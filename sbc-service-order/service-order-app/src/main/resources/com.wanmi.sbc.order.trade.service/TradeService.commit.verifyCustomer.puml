@@ -1,0 +1,10 @@
+@startuml
+start
+if (账号存在) then (no)
+    :抛出异常;
+else if (账号状态正常) then (no)
+    :抛出异常;
+else (yes)
+endif
+stop
+@enduml

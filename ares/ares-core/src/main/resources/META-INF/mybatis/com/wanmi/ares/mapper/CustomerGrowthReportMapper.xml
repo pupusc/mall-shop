@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.CustomerGrowthReportMapper" >
+    <resultMap id="customerReport" type="com.wanmi.ares.report.customer.model.root.CustomerGrowthReport">
+        <id property="id" column="id" />
+        <result property="baseDate" column="base_date"/>
+        <result property="customerAllCount" column="customer_all_count"/>
+        <result property="customerDayGrowthCount" column="customer_day_growth_count"/>
+        <result property="customerDayRegisterCount" column="customer_day_register_count"></result>
+        <result property="companyId" column="company_id"></result>
+        <result property="createDate" column="create_tm"></result>
+    </resultMap>
+
+    <sql id="commonAddColSql">
+        id,base_date, customer_all_count,customer_day_growth_count, customer_day_register_count, company_id, create_tm
+    </sql>
+
+    <insert id="saveCustomerGrowthReport">
+        INSERT INTO customer_grow (<include refid="commonAddColSql"/>) VALUES
+        <foreach collection="customerGrowthReportList" item="item" index="index" separator="," >
+            (
+             uuid(), #{item.baseDate}, #{item.customerAllCount}, #{item.customerDayGrowthCount}, #{item.customerDayRegisterCount}
+            , #{item.companyId}, now()
+            )
+        </foreach>
+    </insert>
+
+    <select id="findPreCustomerAllCount" resultMap="customerReport">
+        SELECT
+        id,
+        base_date ,
+        customer_all_count,
+        customer_day_growth_count,
+        customer_day_register_count,
+        company_id,
+        create_tm
+        FROM customer_grow where base_date= #{preDate} and company_id = #{companyId}
+    </select>
+
+    <select id="findCustomerGrowReport" resultMap="customerReport">
+        SELECT
+        id,
+        base_date ,
+        customer_all_count,
+        customer_day_growth_count,
+        customer_day_register_count,
+        company_id,
+        create_tm
+        from customer_grow where
+        <![CDATA[
+           base_date >= #{customerGrowthReportRequest.startDate} and base_date <= #{customerGrowthReportRequest.enDate}
+        ]]>
+        and (#{customerGrowthReportRequest.companyId} is null or company_id = #{customerGrowthReportRequest.companyId})
+        <if test="customerGrowthReportRequest.sortField != null">
+            order by ${customerGrowthReportRequest.sortField} ${customerGrowthReportRequest.sortTypeText}
+        </if>
+        limit #{pageRequest.start} , #{pageRequest.pageSize}
+    </select>
+
+    <select id="findAllCustomerGrowReport" resultMap="customerReport">
+        <!--SELECT
+        base_date,
+        sum(customer_all_count) as customer_all_count,
+        sum(customer_day_growth_count) as customer_day_growth_count,
+        sum(customer_day_register_count) as customer_day_register_count
+        from customer_grow where
+        <![CDATA[
+              base_date >= #{customerGrowthReportRequest.startDate} and base_date <= #{customerGrowthReportRequest.enDate}
+              and (#{customerGrowthReportRequest.companyId} is null or company_id = #{customerGrowthReportRequest.companyId})
+        ]]>
+        group by base_date
+        <if test="customerGrowthReportRequest.sortField != null">
+            order by ${customerGrowthReportRequest.sortField} ${customerGrowthReportRequest.sortTypeText}
+        </if>
+        limit #{pageRequest.start} , #{pageRequest.pageSize}-->
+
+
+        SELECT
+        id,
+        base_date ,
+        customer_all_count,
+        customer_day_growth_count,
+        customer_day_register_count,
+        company_id,
+        create_tm
+        FROM customer_grow where
+        <![CDATA[
+              base_date >= #{customerGrowthReportRequest.startDate} and base_date <= #{customerGrowthReportRequest.enDate} and (#{customerGrowthReportRequest.companyId} is null or company_id= #{customerGrowthReportRequest.companyId})
+            ]]>
+        <if test="customerGrowthReportRequest.sortField != null">
+            order by ${customerGrowthReportRequest.sortField} ${customerGrowthReportRequest.sortTypeText}
+        </if>
+        limit ${pageRequest.start} , ${pageRequest.pageSize}
+    </select>
+
+    <select id="countCustomerReport" resultType="java.lang.Integer">
+        select count(DISTINCT (base_date))
+        FROM customer_grow
+        where
+            <![CDATA[
+              base_date >= #{customerGrowthReportRequest.startDate} and base_date <= #{customerGrowthReportRequest.enDate}
+            ]]>
+        and (#{customerGrowthReportRequest.companyId} is null or company_id = #{customerGrowthReportRequest.companyId})
+    </select>
+
+    <select id="findCustomerGrowthReportByDate" resultMap="customerReport">
+        SELECT
+        id,
+        base_date ,
+        customer_all_count,
+        customer_day_growth_count,
+        customer_day_register_count,
+        company_id,
+        create_tm
+        FROM customer_grow where
+            <![CDATA[
+              base_date >= #{startDate} and base_date <= #{endDate} and (#{companyId} is null or company_id= #{companyId})
+            ]]>
+        order by base_date asc
+    </select>
+
+    <!--查询平台趋势报表-->
+    <select id="findAllCustomerGrowthReportByDate" resultMap="customerReport">
+        SELECT
+        base_date ,
+        sum(customer_all_count) as customer_all_count,
+        sum(customer_day_growth_count) as customer_day_growth_count,
+        sum(customer_day_register_count) as customer_day_register_count,
+        create_tm
+        FROM customer_grow where
+            <![CDATA[
+                base_date >= #{startDate} and base_date <= #{endDate}
+            ]]>
+        group by base_date
+        order by base_date asc
+    </select>
+
+    <delete id="deleteCustomerGrowthReportByDate">
+        delete from customer_grow WHERE base_date=#{deleteDate}
+    </delete>
+</mapper>

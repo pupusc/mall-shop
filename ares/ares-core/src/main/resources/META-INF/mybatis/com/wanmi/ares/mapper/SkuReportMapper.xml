@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.goods.dao.SkuReportMapper" >
+
+    <sql id="commonAddColSql">
+      GOODS_INFO_ID,ORDER_COUNT,ORDER_MONEY,ORDER_NUM,PAY_COUNT,PAY_NUM,PAY_MONEY,ORDER_CONVERSION,PAY_CONVERSION,REFUND_COUNT,REFUND_MONEY,REFUND_NUM,UV,SHOP_ID,CREATE_TM
+    </sql>
+
+    <sql id="commonAddPropSql">
+      #{item.id},#{item.orderCount},#{item.orderAmt},#{item.orderNum},#{item.payCount},#{item.payNum},#{item.payAmt},#{item.orderConversion},#{item.payConversion},#{item.returnOrderCount},#{item.returnOrderAmt},#{item.returnOrderNum},#{item.viewNum},#{item.companyId},now()
+    </sql>
+
+    <sql id="commonWhereSql">
+        WHERE 1 = 1
+        <if test="companyId != null">
+            AND SHOP_ID = #{companyId}
+        </if>
+
+        <if test="ids != null and ids.size > 0">
+            and GOODS_INFO_ID in
+            <foreach collection="ids" item="item" index="index"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="date != null">
+            AND STAT_DATE = date_format(#{date},'%Y-%m-%d')
+        </if>
+        <if test="month != null">
+            AND STAT_MONTH = #{month}
+        </if>
+        <if test="year != null">
+            AND STAT_YEAR = #{year}
+        </if>
+    </sql>
+
+    <sql id="commonQuerySql">
+        SELECT
+          GOODS_INFO_ID AS id,
+          ORDER_COUNT AS orderCount,
+          ORDER_MONEY AS orderAmt,
+          ORDER_NUM AS orderNum,
+          PAY_COUNT AS payCount,
+          PAY_NUM AS payNum,
+          PAY_MONEY AS payAmt,
+          ORDER_CONVERSION AS orderConversion,
+          PAY_CONVERSION AS payConversion,
+          REFUND_COUNT AS returnOrderCount,
+          REFUND_MONEY AS returnOrderAmt,
+          REFUND_NUM AS returnOrderNum,
+          UV AS customerCount,
+          SHOP_ID AS companyId
+        FROM ${table}
+    </sql>
+
+    <select id="querySkuReport" resultType="com.wanmi.ares.report.goods.model.root.SkuReport">
+        <include refid="commonQuerySql"/>
+        <include refid="commonWhereSql"/>
+        ORDER BY ${sortCol} ${sortType}, GOODS_INFO_ID ASC
+        limit #{number}, #{size}
+    </select>
+
+    <select id="countSkuReport" resultType="long">
+        SELECT COUNT(1) FROM ${table}
+        <include refid="commonWhereSql"/>
+    </select>
+    
+    <insert id="saveDayReport">
+        REPLACE INTO GOODS_DAY (STAT_DATE,<include refid="commonAddColSql"/>) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.date},<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveSevenDayReport">
+        INSERT INTO GOODS_RECENT_SEVEN (<include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+           (<include refid="commonAddPropSql"/>)
+        </foreach>;
+    </insert>
+
+    <insert id="saveThirtyDayReport">
+        INSERT INTO GOODS_RECENT_THIRTY (<include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+           (<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveMonthReport">
+        REPLACE INTO GOODS_MONTH (ID, STAT_MONTH, <include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (CONCAT(#{item.id},#{item.date}),CONVERT(#{item.date},SIGNED),<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveYearReport">
+        REPLACE INTO GOODS_YEAR (ID, STAT_YEAR, <include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (CONCAT(#{item.id},#{item.date}),CONVERT(#{item.date},SIGNED),<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+    
+    <delete id="delSevenDayReport">
+        TRUNCATE TABLE GOODS_RECENT_SEVEN
+    </delete>
+
+    <delete id="delThirtyDayReport">
+        TRUNCATE TABLE GOODS_RECENT_THIRTY
+    </delete>
+
+    <delete id="delDayReportByLtDate" parameterType="String">
+        alter table GOODS_DAY truncate partition #{date}
+    </delete>
+
+    <delete id="delDayReport" parameterType="String">
+        DELETE FROM GOODS_DAY WHERE STAT_DATE = date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="delMonthReport" parameterType="String">
+        alter table GOODS_MONTH truncate partition #{date}
+    </delete>
+
+    <delete id="delMonthReportByDate" parameterType="String">
+       delete from  GOODS_MONTH where stat_month = ${date}
+    </delete>
+    <!--对日报表分组分页查询，生成近报表、月报表-->
+    <select id="querySkuReportByGroup" resultType="com.wanmi.ares.report.goods.model.root.SkuReport">
+        SELECT
+            GOODS_INFO_ID AS id,
+            sum(ORDER_COUNT) AS orderCount,
+            sum(ORDER_MONEY) AS orderAmt,
+            sum(ORDER_NUM) AS orderNum,
+            sum(PAY_COUNT) AS payCount,
+            sum(PAY_NUM) AS payNum,
+            sum(PAY_MONEY) AS payAmt,
+            sum(REFUND_COUNT) AS returnOrderCount,
+            sum(REFUND_MONEY) AS returnOrderAmt,
+            sum(REFUND_NUM) AS returnOrderNum,
+            max(SHOP_ID) AS companyId
+        FROM GOODS_DAY
+        where STAT_DATE &gt;= date_format(#{begDate},'%Y-%m-%d') AND STAT_DATE &lt;= date_format(#{endDate},'%Y-%m-%d')
+        <if test="companyId != null">
+            AND SHOP_ID = #{companyId}
+        </if>
+        GROUP BY GOODS_INFO_ID
+        ORDER BY orderNum DESC , GOODS_INFO_ID ASC
+        limit #{number}, #{size}
+    </select>
+
+    <!--统计去重后的ID-->
+    <select id="countSkuReportByGroup" resultType="long">
+        SELECT
+          COUNT(DISTINCT GOODS_INFO_ID)
+        FROM GOODS_DAY
+        where
+          STAT_DATE &gt;= date_format(#{begDate},'%Y-%m-%d') AND STAT_DATE &lt;= date_format(#{endDate},'%Y-%m-%d')
+          <if test="companyId != null">
+              AND SHOP_ID = #{companyId}
+          </if>
+    </select>
+
+
+</mapper>

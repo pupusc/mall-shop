@@ -1,0 +1,15 @@
+1.将RedisAutoConfiguration配置迁移到common包中了,所以需要在测试服务器每个服务的外层properties文件中增加如下配置,database=2是示例,根据服务器原有配置进行设置
+#redisson
+redisson.url=127.0.0.1:6379
+redisson.database=2
+
+2.本次迭代上线已将所有项目线上分支修改为master
+
+3.新上线xxl-job分布式调度平台,测试环境上boss-bff的配置文件中需增加如下的参数,并让运维在对应测试环境部署xxl-job-admin服务(xxl-job写法参考OrderTimeoutCancelJobHandler类,
+以及该目录下的README.md)
+# ----------------------------------------
+# xxl-job 分布式任务调度
+# ----------------------------------------
+xxl.job.admin.addresses=http://127.0.0.1:8990/xxl-job-admin
+
+4.删除service-order,bff-manager-b2b-boss模块

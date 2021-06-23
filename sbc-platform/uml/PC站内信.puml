@@ -1,0 +1,21 @@
+@startuml
+start
+partition boss站内信新增/编辑 {
+        :站内信新增/编辑;
+        :选择PC落地页;
+        :保存;
+        :操作成功;
+}
+partition PC站内信 {
+        :站内信列表;
+        :点击一个站内信;
+        if (配置了PC落地页) then (yes)
+         :跳转到对应落地页;
+        else
+         :跳转和移动端落地
+          页对应一样的页面;
+        endif;
+
+}
+stop
+@enduml

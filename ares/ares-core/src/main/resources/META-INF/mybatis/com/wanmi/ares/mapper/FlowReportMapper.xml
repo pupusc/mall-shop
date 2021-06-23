@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.flow.dao.FlowReportMapper">
+
+    <sql id="Base_Column_List">
+         date, UV as totalUv, PV as totalPv, GOODS_UV as skuTotalUv, GOODS_PV as skuTotalPv, SHOP_ID as id, CREATE_TM
+    </sql>
+
+    <sql id="queryFlowDataSql">
+        <if test='companyId != null and companyId != "0" '>
+        replay_store s
+        left join
+        </if>
+        (
+        SELECT sum( f.PV ) AS pv,sum( f.GOODS_PV ) AS goodsPv,f.SHOP_ID FROM flow_day f
+        WHERE f.DATE >= #{beginDate} and f.DATE <![CDATA[ <= ]]> #{endDate}
+        <if test='companyId != null and companyId == "0" '>
+            and f.SHOP_ID =0
+        </if>
+        <if test='companyId != null and companyId != "0" '>
+            and f.SHOP_ID !=0
+        </if>
+        GROUP BY f.SHOP_ID
+        ) resPv
+        <if test='companyId != null and companyId != "0" '>
+            on s.company_info_id = resPv.SHOP_ID
+        </if>
+        left join(
+        SELECT count( DISTINCT ( rf.user_id ) ) as uv,f.SHOP_ID FROM flow_day f
+        LEFT JOIN replay_flow_day_user_info rf ON rf.flow_day_id = f.ID
+        WHERE f.DATE >= #{beginDate} and f.DATE <![CDATA[ <= ]]> #{endDate}
+        <if test='companyId != null and companyId == "0" '>
+            and f.SHOP_ID =0
+        </if>
+        <if test='companyId != null and companyId != "0" '>
+            and f.SHOP_ID !=0
+        </if>
+        GROUP BY f.SHOP_ID
+        ) resUv on resUv.SHOP_ID = resPv.SHOP_ID
+        left join(
+        <if test='companyId != null and companyId == "0" '>
+            SELECT
+            count(distinct(rskui.user_id) ) AS goodsUv,
+            0 as SHOP_ID
+            FROM
+            replay_sku_flow rsk
+            INNER JOIN replay_sku_flow_user_info rskui ON rskui.sku_flow_id = rsk.id
+            where rsk.sku_flow_date >= #{beginDate} and rsk.sku_flow_date  <![CDATA[ <= ]]> #{endDate}
+        </if>
+        <if test='companyId != null and companyId != "0" '>
+            SELECT
+            count( distinct(rskui.user_id) ) AS goodsUv,
+            rsk.company_id AS SHOP_ID
+            FROM
+            replay_sku_flow rsk
+            INNER JOIN replay_sku_flow_user_info rskui ON rskui.sku_flow_id = rsk.id
+            where rsk.sku_flow_date >= #{beginDate} and rsk.sku_flow_date  <![CDATA[ <= ]]> #{endDate}
+            GROUP BY
+            rsk.company_id
+        </if>
+        ) resGoodsUv on resGoodsUv.SHOP_ID = resPv.SHOP_ID
+    </sql>
+
+    <insert id="saveFlow" parameterType="com.wanmi.ares.report.flow.model.root.FlowReport">
+        INSERT INTO flow_day (ID, DATE, UV, PV, GOODS_UV, GOODS_PV, SHOP_ID, CREATE_TM)
+        VALUES (CONCAT(#{id}, "-", DATE_FORMAT(#{date}, "%Y%m%d")), #{date}, #{totalUv}, #{totalPv}, #{skuTotalUv},
+                #{skuTotalPv}, #{id}, now())
+    </insert>
+
+    <select id="queryFlowReportInfo" resultType="com.wanmi.ares.report.flow.model.root.FlowReport"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM flow_day
+        WHERE
+        1=1
+        <if test="companyId!=null">
+            and SHOP_ID = #{companyId}
+        </if>
+        <if test="flowDate!=null">
+            and date = #{flowDate}
+        </if>
+    </select>
+
+    <select id="queryFlow" resultType="com.wanmi.ares.report.flow.model.root.FlowReport"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM flow_day
+        WHERE SHOP_ID = #{companyId} AND date &gt;= #{beginDate} and date &lt;= #{endDate}
+        ORDER BY ${sortName} ${sortOrder}
+    </select>
+
+    <select id="queryFlowByIds" resultType="com.wanmi.ares.report.flow.model.root.FlowReport"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM flow_day
+        WHERE SHOP_ID IN
+        <foreach collection="companyIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        AND date &gt;= #{beginDate} and date &lt;= #{endDate}
+        ORDER BY ${sortName} ${sortOrder}
+    </select>
+
+    <select id="queryFlowCount" parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest"
+            resultType="int">
+        SELECT count(ID)
+        FROM flow_day
+        WHERE SHOP_ID = #{companyId} AND date &gt;= #{beginDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="queryFlowPage" resultType="com.wanmi.ares.report.flow.model.root.FlowReport"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM flow_day
+        WHERE SHOP_ID = #{companyId} AND date &gt;= #{beginDate} and date &lt;= #{endDate}
+        ORDER BY ${sortName} ${sortOrder}
+        LIMIT
+        #{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="queryStoreFlowPage" resultType="com.wanmi.ares.source.model.root.Store"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest">
+        SELECT s.id,s.del_flag as delFlag,s.company_info_id as companyInfoId,s.store_name as storeName,s.supplier_name as supplierName
+        FROM store s
+        LEFT JOIN (
+              SELECT SUM(f.GOODS_PV) GOODS_PV,SUM(f.PV) PV,f.SHOP_ID
+              FROM flow_day f
+              GROUP BY f.SHOP_ID
+          ) f ON s.company_info_id = f.SHOP_ID
+        WHERE s.del_flag = 0
+        ORDER BY f.${sortName} ${sortOrder}
+        LIMIT #{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="queryFlowPageByStore" parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest"
+            resultType="com.wanmi.ares.report.flow.model.root.FlowReport">
+        SELECT SHOP_ID AS ID,DATE,sum(PV) AS totalPv,UV,sum(GOODS_PV) AS skuTotalPv,GOODS_UV,SHOP_ID,CREATE_TM from flow_day
+        WHERE date &gt;= #{beginDate} and date &lt;= #{endDate} AND SHOP_ID != 0
+        GROUP BY SHOP_ID
+        ORDER BY ${sortName} ${sortOrder}
+        LIMIT #{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="countFlowPageByStore" parameterType="com.wanmi.ares.report.flow.model.request.FlowReportRequest"
+            resultType="int">
+        SELECT count(f.id) FROM
+            (SELECT ID FROM flow_day
+        WHERE date &gt;= #{beginDate} and date &lt;= #{endDate} AND SHOP_ID != 0
+        GROUP BY SHOP_ID) as f
+    </select>
+
+    <select id="queryFlowDataNum" parameterType="com.wanmi.ares.report.flow.model.request.FlowDataRequest"
+            resultType="int">
+        SELECT count(1) FROM
+        <include refid="queryFlowDataSql"/>
+        where 1=1
+        <if test='companyId != null and companyId != "0" '>
+            and s.del_flag = 0
+            and s.company_info_id != 0
+            order by s.company_info_id desc
+        </if>
+    </select>
+
+    <select id="queryFlowDataInfo" parameterType="com.wanmi.ares.report.flow.model.request.FlowDataRequest"
+            resultType="com.wanmi.ares.report.flow.model.reponse.FlowDataInfoResponse">
+        SELECT
+        <if test='companyId != null and companyId != "0" '>
+        s.company_info_id AS companyId,
+        </if>
+        <if test='companyId != null and companyId == "0" '>
+        0 AS companyId,
+        </if>
+        ifnull(resPv.pv,0) AS pv,
+        ifnull(resPv.goodsPv,0) AS goodsPv,
+        ifnull(resUv.uv,0) AS uv,
+        ifnull(resGoodsUv.goodsUv,0) AS goodsUv
+        FROM
+        <include refid="queryFlowDataSql"/>
+        where 1=1
+        <if test='companyId != null and companyId != "0" '>
+            and s.del_flag = 0
+            and s.company_info_id != 0
+            order by s.company_info_id desc
+        </if>
+        limit #{pageNum} , #{pageSize}
+    </select>
+
+    <select id="queryFlowStoreReportList" resultType="com.wanmi.ares.report.flow.model.reponse.FlowStoreReportResponse"
+            parameterType="com.wanmi.ares.report.flow.model.request.FlowStoreReportRequest">
+        SELECT
+        f.SHOP_ID as companyId,count(distinct(rf.user_id)) as uv
+        FROM
+        replay_flow_day_user_info rf
+        LEFT JOIN flow_day f ON f.ID = rf.flow_day_id
+        where f.DATE &gt;= #{beginDate} and f.DATE <![CDATA[ <= ]]> #{endDate}
+        GROUP BY f.SHOP_ID
+    </select>
+
+    <delete id="deleteById" parameterType="java.lang.String">
+        DELETE FROM flow_day
+        WHERE ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM flow_day WHERE ID IN
+        <foreach collection="list" item="model" open="(" separator="," close=")">
+            #{model}
+        </foreach>
+    </delete>
+
+    <delete id="clearFlowReport" parameterType="java.lang.String">
+      DELETE FROM flow_day WHERE date <![CDATA[ <= ]]>  date_format(#{date},'%Y-%m-%d')
+    </delete>
+</mapper>

@@ -1,0 +1,18 @@
+@startuml
+start
+:商家审核退单;
+partition 填写退货地址 {
+    if(退货方式是快递) then (yes)
+        if(有退货地址) then (yes)
+            if(有默认收货地址) then (yes)
+                :默认选中默认收货地址;
+            else
+               :默认选中第一个收货地址;
+            endif;
+        endif;
+        :选择退货收货地址;
+    endif;
+    :提交审核;
+}
+stop
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+start
+partition 添加直播商品 {
+    :supplier端选择商品;
+    if(校验价格是否正确) then (yes)
+        :﻿添加直播商品;
+        :boss端审核商品;
+        :获取accessToken;
+        :将商品名称不符合规则的进行截取和补充;
+        :将商品图片过大的压缩处理并获取mediaId;
+        if(判断微信提审直播商品是否成功) then (yes)
+            :保存接口返回的商品id;
+            :修改商品审核状态为待审核;
+            :定时任务任务查询微信接口修改商品状态;
+        else
+            :抛出异常;
+        endif
+    else
+         :给出提示;
+    endif
+}
+stop
+@enduml

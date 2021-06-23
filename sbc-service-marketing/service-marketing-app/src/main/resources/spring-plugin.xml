@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-4.0.xsd" default-lazy-init="true">
+
+    <description>营销插件配置</description>
+
+    <!-- 插件注入 -->
+    <bean id="marketingPluginService" class="com.wanmi.sbc.marketing.MarketingPluginService">
+
+        <property name="goodsListPlugins">
+            <description>商品列表插件集</description>
+            <list>
+                <value>customerLevelPlugin</value>
+                <value>paidCardPlugin</value>
+                <value>reductionPlugin</value>
+                <value>discountPlugin</value>
+                <value>giftPlugin</value>
+                <value>couponPlugin</value>
+                <value>grouponPlugin</value>
+                <value>flashSalePlugin</value>
+                <value>enterPrisePlugin</value>
+                <value>buyoutPricePlugin</value>
+                <value>halfPriceSecondPiecePlugin</value>
+            </list>
+        </property>
+
+        <property name="goodsDetailPlugins">
+            <description>商品详情插件集</description>
+            <list>
+                <value>customerLevelPlugin</value>
+                <value>reductionPlugin</value>
+                <value>discountPlugin</value>
+                <value>giftPlugin</value>
+                <value>couponPlugin</value>
+                <value>grouponPlugin</value>
+                <value>buyoutPricePlugin</value>
+                <value>halfPriceSecondPiecePlugin</value>
+            </list>
+        </property>
+    </bean>
+
+
+</beans>

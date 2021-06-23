@@ -1,0 +1,25 @@
+@startuml
+start
+: 开启定时(每隔30分钟)轮询任务;
+: 定时任务传入参数【订单分页参数】;
+partition 查询订单条件{
+    :订单类型为ERP订单;
+    :分页条数;
+    :订单付款状态:已付款,未作废;
+    :订单物流状态:待发货;
+    :订单推送状态:推送成功;
+}
+:待发货订单集合;
+partition 循环订单{
+    : 组装erp接口调用入参对象;
+    : 调用ERP发货单查询接口(gy.erp.trade.deliverys.get);
+    if(接口调用是否正常) then (异常)
+        :打印异常;
+    elseif(判断ERP返回报文) then (success=true)
+        :更新订单发货状态;
+    else (success=false)
+        :打印errorDesc信息;
+    endif;
+}
+stop;
+@enduml

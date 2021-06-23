@@ -1,0 +1,12 @@
+@startuml
+start
+:C端下单;
+:满足下单条件;
+if(供应商商品) then (yes)
+:锁定供应商商品库存;
+else
+:原始逻辑锁定商家商品库存;
+endif
+
+stop
+@enduml

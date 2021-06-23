@@ -1,0 +1,83 @@
+过程说明：
+  1：打开open数据库 base_config 确定要导出数据对应的 app_key
+  1：在open数据库创建BACKUP存储过程
+  3：执行BACKUP存储过程 ，输入app_key  ，整理数据到临时库micro_system_temp；
+     可以查看BACKUP执行结果，验证数据是否均正常备份
+  4：导出micro_system_temp 表和表结构sql
+  5：在目标库 setting中执行步骤4中的sql文件
+  6：将system_config_temp，比对system_config 进行插入
+
+ 备注：
+     micro_system_temp 中数据结构说明
+       除 system_config_temp 被重命名外，其余表和open中表同名
+       去除app_key字段
+       另外删除不需要的img等表
+       最后micro_system_temp中表明细如下：
+       base_config
+       business_config
+       company_info
+       express_company
+       online_service
+       online_service_item
+       store_express_company_rela
+       store_resource
+       store_resource_cate
+       sys_sms
+       system_config_temp
+       system_resource
+       system_resource_cate
+       wechat_login_set
+       wechat_share_set
+
+
+
+
+
+-- 	验证插入结果 sql
+			select 'base_config' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`base_config` ) AS count_back from
+	`micro-system`.`base_config` where  	app_key =appkey
+	UNION
+			select 'business_config_count' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`business_config` ) AS count_back from
+	`micro-system`.`business_config` where  	app_key =appkey
+	UNION
+			select 'company_info' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`company_info` ) AS count_back from
+	`micro-system`.`company_info` where  	app_key =appkey
+	UNION
+			select 'express_company' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`express_company` ) AS count_back from
+	`micro-system`.`express_company` where  	app_key =appkey
+	UNION
+			select 'online_service' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`online_service` ) AS count_back from
+	`micro-system`.`online_service` where  	app_key =appkey
+	UNION
+			select 'online_service_item' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`online_service_item` ) AS count_back from
+	`micro-system`.`online_service_item` where  	app_key =appkey
+	UNION
+			select 'store_express_company_rela' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`store_express_company_rela` ) AS count_back from
+	`micro-system`.`store_express_company_rela` where  	app_key =appkey
+	UNION
+			select 'store_resource' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`store_resource` ) AS count_back from
+	`micro-system`.`store_resource` where  	app_key =appkey
+	UNION
+			select 'store_resource_cate' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`store_resource_cate` ) AS count_back from
+	`micro-system`.`store_resource_cate` where  	app_key =appkey
+	UNION
+			select 'sys_sms' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`sys_sms` ) AS count_back from
+	`micro-system`.`sys_sms` where  	app_key =appkey
+	UNION
+			select 'system_config' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`system_config_temp` ) AS count_back from
+	`micro-system`.`system_config` where  	app_key =appkey
+	UNION
+			select 'system_resource' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`system_resource` ) AS count_back from
+	`micro-system`.`system_resource` where  	app_key =appkey
+	UNION
+			select 'system_resource_cate' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`system_resource_cate` ) AS count_back from
+	`micro-system`.`system_resource_cate` where  	app_key =appkey
+	UNION
+			select 'wechat_login_set' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`wechat_login_set` ) AS count_back from
+	`micro-system`.`wechat_login_set` where  	app_key =appkey
+	UNION
+			select 'wechat_share_set' as 'table', count(*)   as count ,(SELECT COUNT(1) FROM `micro_system_temp`.`wechat_share_set` ) AS count_back from
+	`micro-system`.`wechat_share_set` where  	app_key =appkey;
+
+
+

@@ -1,0 +1,8 @@
+bff-manager-s2b-supplier工程对应的apollo新增配置项：
+
+########sso cookie
+cookie.name = a9a68f4fefd3b693f10be4a89799dc48
+cookie.domain = wanmi.com (配置自己的域名后缀)
+cookie.secure = false
+cookie.path = /
+cookie.maxAge = -1

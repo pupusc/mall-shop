@@ -1,0 +1,73 @@
+@startuml
+start
+repeat
+:根据调价单号分页循环抓取调价详情数据;
+if (数据不为空) then (是)
+    : 根据skuId批量获取sku map集合\n（key: __SKU ID__）;
+    : 根据spuId批量获取spu map集合\n（key: __SPU ID__）;
+    : 不同类型调价分支;
+    if (市场价调价) then (是)
+         :遍历调价详情;
+        repeat
+            if (详情中商品是否存在) then (否)
+             :记录失败原因为商品不存在;
+             :执行状态变更为失败;
+            else (是)
+            :重置市场价、销售类型、设价方式;
+            :置执行结果为成功;
+            endif
+        repeat while
+    elseif (级别价调价) then (是)
+        :根据skuId反查级别设价信息\n以skuId分组;
+        repeat
+            if (详情中商品是否存在) then (否)
+             :记录失败原因为商品不存在;
+             :执行状态变更为失败;
+            else (是)
+            :重置市场价、销售类型、\nSKU、SPU设价方式\n设价类型;
+            repeat
+                :根据skuId找到商品原级别设价信息;
+                if (级别信息是否存在) then (是)
+                    : 更新级别价信息;
+                else (否)
+                    : 创建级别价对象，完成各字段赋值;
+                endif
+            repeat while
+            :置执行结果为成功;
+            endif
+       repeat while
+    elseif (区间价调价) then (是)
+        repeat
+            if (详情中商品是否存在) then (否)
+             :记录失败原因为商品不存在;
+             :执行状态变更为失败;
+            else (是)
+            :重置市场价、销售类型、\nSKU、SPU设价方式\n设价类型;
+            :置执行结果为成功;
+            :将有效区间价信息加入新区间价列表;
+            endif
+        repeat while
+        :根据skuId删除数据库原区间价信息;
+        :新区间价列表信息批量入库;
+    elseif (供货价调价) then (是)
+        repeat
+            if (详情中商品是否存在) then (否)
+             :记录失败原因为商品不存在;
+             :执行状态变更为失败;
+            else (是)
+            :重置商品供货价入库;
+            :批量修改数据库引用当前商品的商家商品供货价
+            :置执行结果为成功;
+            endif
+        repeat while
+    endif
+    :改价详情落库;
+    :更新后的SKU落库;
+    :更新后的SPU落库;
+    if (供货价调价) then (是)
+    :更新供货商品库供货价;
+    endif
+endif
+repeat while(数据不为空)
+stop
+@enduml

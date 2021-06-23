@@ -1,0 +1,25 @@
+1、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/system/queryServerTime,
+   描述: 获取服务时间
+
+2、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/groupon/invite/add/group/**
+   描述: 生成邀请参团的小程序码
+
+3、工程: bff-web-2b-mobile  文件: application.properties
+  新增配置项参数: jwt.excluded-urls=/unLogin/groupon/goods-detail/spu/{skuId},/unLogin/groupon/groupon-detail/{grouponNo}
+  描述: 未登录时访问拼团商品详情页、参团页
+
+4、工程: bff-web-2b-mobile  文件: application.properties
+    新增配置项参数: jwt.excluded-urls=/groupon/instance/page
+    描述: 邀请参团列表
+
+5、工程: bff-web-2b-mobile  文件: application.properties
+    新增配置项参数: jwt.excluded-urls=/groupon/center/list
+    描述: 精选拼团列表
+
+
+5、工程: bff-web-2b-mobile  文件: application.properties
+    新增配置项参数: jwt.excluded-urls=/groupon/grouponInstanceInfo/**
+    描述: 根据团编号获取团信息
+

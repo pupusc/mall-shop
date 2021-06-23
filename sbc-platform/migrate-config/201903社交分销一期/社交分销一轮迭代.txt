@@ -1,0 +1,46 @@
+1、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/goods/shop/sku-list-to-c, /distribute/check/status, /goods/shop-info/**,/goods/shop/goods-detail/**,/distribute/queryOpenFlag
+   描述: 小C-店铺精选页，分销商品接口； 小C-店铺精选页，店铺信息接口；小B-店铺内分享，分销商品详情页接口；平台端-社交分销开关接口
+
+2、工程: bff-web-2b-boss  文件: application.properties
+   新增配置项参数:   distribution.temp.task=0 0 2 * * ?   distribution.temp.task.bath.num=50
+   描述:结算分销佣金的定时任务
+
+3、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/distribute/check/status
+   描述: 小B,C-店铺失效校验
+
+4、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/distribution/miniProgram-code/decodeParam/**
+   描述: 解析小程序参数
+
+5、工程：bff-web-2b-mobile  文件：application.properties
+   新增配置参数：jwt.excluded-urls=/distribute/setting
+   描述：小B，C-获取分销设置信息
+
+6、工程：service-account  文件：application.properties
+   新增配置项: spring.activemq.broker-url=tcp://172.19.26.194:61616
+               spring.activemq.user=admin
+               spring.activemq.password=admin
+               spring.activemq.pool.enabled=true
+               spring.activemq.pool.max-connections=5
+               spring.jms.listener.acknowledge-mode=client
+               spring.jms.pub-sub-domain=false
+
+4、工程: bff-web-2b-mobile  文件: application.properties
+   新增配置项参数: jwt.excluded-urls=/distribution/miniProgram-code/distributionMiniProgramQrCode
+   描述:生成分享赚码
+
+7、工程：bff-manager-base  文件：ResultCode.properties
+    新增错误码提示：K-120011={0}，提现申请已取消，无法进行审核/驳回操作
+
+8.工程: bff-web-2b-mobile  文件: ResultCode.properties
+    新增错误码提示：K-090101=店铺已失效
+                    K-090102=提现申请已进行相关审核操作，无法取消
+
+9.工程：service-account  文件：ResultCode.properties
+    新增错误码提示：K-091011=账户可提现金额不足
+
+10、工程: bff-web-2b-boss  文件: application.properties
+    新增配置项: distributor.goods.task=0 0 1 * * ?
+    描述:查询店铺-已过签约时间，更新分销员商品表信息

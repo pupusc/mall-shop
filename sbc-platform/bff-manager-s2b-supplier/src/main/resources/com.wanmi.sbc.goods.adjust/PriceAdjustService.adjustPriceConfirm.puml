@@ -1,0 +1,20 @@
+@startuml
+start
+if(操作人越权校验) then (存在越权)
+    :抛出异常：数据不存在;
+    stop
+else (非越权)
+    if(是否立即生效) then (立即生效)
+        :执行调价逻辑;
+        :更新数据库;
+        :刷新Elasticsearch(局部刷新);
+        if(执行存在异常) then (是)
+            :更新调价详情，执行状态为**失败**，记录失败原因;
+        endif
+    else (定时生效)
+        :调价确认流程;
+        :创建定时任务task，预置执行逻辑;
+endif
+:流程结束;
+stop
+@enduml

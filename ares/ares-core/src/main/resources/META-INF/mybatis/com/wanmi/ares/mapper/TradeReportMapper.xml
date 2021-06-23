@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.trade.dao.TradeReportMapper">
+
+    <sql id="Base_Column_List">
+         date, ORDER_NUM as orderCount,ORDER_USER_NUM as orderNum,ORDER_MONEY as orderAmt,PAY_NUM as PayOrderCount,PAY_USER_NUM as PayOrderNum,
+         PAY_MONEY as payOrderAmt,ORDER_CONVERSION as orderConversionRate,PAY_CONVERSION as payOrderConversionRate,ALL_CONVERSION as wholeStoreConversionRate,
+         USER_PER_PRICE as customerUnitPrice,ORDER_PER_PRICE as everyUnitPrice,REFUND_NUM as returnOrderCount,REFUND_USER_NUM as returnOrderNum,
+         REFUND_MONEY as returnOrderAmt,SHOP_ID as id
+    </sql>
+
+    <insert id="saveTrade" parameterType="com.wanmi.ares.report.trade.model.root.TradeReport">
+          INSERT INTO trade_day (ID,date,ORDER_NUM,ORDER_USER_NUM,ORDER_MONEY,PAY_NUM,PAY_USER_NUM,PAY_MONEY,ORDER_CONVERSION,PAY_CONVERSION,ALL_CONVERSION,USER_PER_PRICE,ORDER_PER_PRICE,REFUND_NUM,REFUND_USER_NUM,
+          REFUND_MONEY,SHOP_ID,CREATE_TM)
+          VALUES (CONCAT(#{id}, "-", DATE_FORMAT(#{date}, "%Y%m%d")),#{date},#{orderCount},#{orderNum},#{orderAmt},#{PayOrderCount},#{PayOrderNum},#{payOrderAmt},#{orderConversionRate},#{payOrderConversionRate},#{wholeStoreConversionRate},#{customerUnitPrice},
+          #{everyUnitPrice},#{returnOrderCount},#{returnOrderNum},#{returnOrderAmt},#{id},now())
+    </insert>
+
+    <select id="queryTrade" parameterType="com.wanmi.ares.report.trade.model.request.TradeReportRequest"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeReport">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM trade_day
+        WHERE
+        SHOP_ID = #{companyId} AND date &gt;= #{beginDate} AND date &lt;= #{endDate}
+        ORDER BY ${sortName} ${sortOrder}
+    </select>
+
+    <select id="queryTradeCount" parameterType="com.wanmi.ares.report.trade.model.request.TradeReportRequest"
+            resultType="int">
+        SELECT count(ID) FROM trade_day
+        WHERE SHOP_ID = #{companyId} AND date &gt;= #{beginDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="queryTradePage" parameterType="com.wanmi.ares.report.trade.model.request.TradeReportRequest"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeReport">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM trade_day
+        WHERE SHOP_ID = #{companyId} AND date &gt;= #{beginDate} AND date &lt;= #{endDate}
+        ORDER BY ${sortName} ${sortOrder}
+        LIMIT #{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="queryStoreTradePage" parameterType="com.wanmi.ares.report.trade.model.request.TradeReportRequest"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeReport">
+
+        SELECT
+          date, sum(ORDER_NUM) as orderCount,ORDER_USER_NUM as orderNum,sum(ORDER_MONEY) as orderAmt,sum(PAY_NUM) as PayOrderCount,PAY_USER_NUM as PayOrderNum,
+         sum(PAY_MONEY) as payOrderAmt,ORDER_CONVERSION as orderConversionRate,PAY_CONVERSION as payOrderConversionRate,ALL_CONVERSION as wholeStoreConversionRate,
+         USER_PER_PRICE as customerUnitPrice,ORDER_PER_PRICE as everyUnitPrice,sum(REFUND_NUM) as returnOrderCount,REFUND_USER_NUM as returnOrderNum,
+         sum(REFUND_MONEY) as returnOrderAmt,SHOP_ID as id
+        FROM trade_day
+        WHERE date &gt;= #{beginDate} AND date &lt;= #{endDate} AND id != 0
+        GROUP BY SHOP_ID
+        ORDER BY #{sortName} #{sortOrder}
+        LIMIT #{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="countTradePageByStore" parameterType="com.wanmi.ares.report.trade.model.request.TradeReportRequest"
+            resultType="int">
+        SELECT count(t.id) FROM
+        (SELECT ID FROM trade_day
+        WHERE date &gt;= #{beginDate} and date &lt;= #{endDate} AND SHOP_ID != 0
+        GROUP BY SHOP_ID) as t
+    </select>
+
+    <delete id="deleteTrade" parameterType="java.lang.String">
+        DELETE FROM trade_day WHERE ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="clearTradeReport" parameterType="java.lang.String">
+        DELETE FROM trade_day WHERE date &lt;= date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <select id="collectTrade" parameterType="com.wanmi.ares.report.trade.model.request.TradeCollect"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeBase">
+        <![CDATA[
+        SELECT
+            SUM(temp.uv) uv,
+            SUM(temp.order_num) orderNum,
+            SUM(temp.order_user_num) orderUserNum,
+            SUM(temp.order_money) orderMoney,
+            SUM(temp.pay_num) payNum,
+            SUM(temp.pay_user_num) payUserNum,
+            SUM(temp.pay_money) payMoney,
+            CONVERT(SUM(temp.pay_user_num)/SUM(temp.order_user_num)*100,DECIMAL(10,2)) payConversion,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_user_num),DECIMAL(20,2)) userPerPrice,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_num),DECIMAL(20,2)) orderPerPrice,
+            SUM(temp.refund_num) refundNum,
+            SUM(temp.refund_user_num) refundUserNum,
+            SUM(temp.refund_money) refundMoney,
+            temp.company_id companyId
+        FROM (
+            SELECT
+                0 AS uv,
+                SUM(t.order_num) order_num,
+                SUM(t.order_user_num) order_user_num,
+                SUM(t.order_money) order_money,
+                SUM(t.pay_num) pay_num,
+                SUM(t.pay_user_num) pay_user_num,
+                SUM(t.pay_money) pay_money,
+                0 AS refund_num,
+                0 AS refund_user_num,
+                0 AS refund_money,
+                t.company_id  company_id
+            FROM (
+                SELECT
+                    COUNT(1) order_num ,
+                    COUNT(DISTINCT(customer_id)) order_user_num,
+                    SUM(total_price) order_money,
+                    0 AS pay_num,
+                    0 AS pay_user_num,
+                    0 AS pay_money,
+                    company_id
+                 FROM `replay_trade` rt
+                 WHERE DATE_FORMAT(create_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(create_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+                 GROUP BY company_id
+                UNION ALL
+                SELECT
+                    0 AS order_num ,
+                    0 AS order_user_num,
+                    0 AS order_money,
+                    COUNT(1) pay_num,
+                    COUNT(DISTINCT customer_id) pay_user_num,
+                    SUM(total_price) pay_money,
+                    company_id
+                 FROM `replay_trade`
+                 WHERE DATE_FORMAT(pay_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(pay_time,'%Y-%m-%d') <= #{endDate} AND pay_state = 2 AND company_id IS NOT NULL
+                 GROUP BY company_id )t
+             GROUP BY t.company_id
+            UNION ALL
+             SELECT
+                 0 AS uv,
+                 0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 COUNT(1) refund_num,
+                 COUNT(DISTINCT customer_id) refund_user_num ,
+                 SUM(actual_return_price) refund_money,
+                 company_id
+              FROM `replay_return_order`
+              WHERE return_flow_state = 5 AND DATE_FORMAT(finish_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(finish_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+              GROUP BY company_id
+              UNION ALL
+                SELECT
+                  COUNT(DISTINCT(fdu.user_id)) AS uv,
+                   0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 0 AS refund_num,
+                 0 AS refund_user_num,
+                 0 AS refund_money,
+                 fd.SHOP_ID AS company_id
+                FROM
+                  flow_day fd
+                  LEFT JOIN replay_flow_day_user_info fdu ON fdu.flow_day_id = fd.ID
+                  WHERE DATE_FORMAT(fd.DATE,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(fd.DATE,'%Y-%m-%d') <= #{endDate} AND fd.SHOP_ID != 0
+                  GROUP BY fd.SHOP_ID
+
+             )temp GROUP BY temp.company_id
+         ]]>
+    </select>
+
+
+    <select id="collectAllTrade" parameterType="com.wanmi.ares.report.trade.model.request.TradeCollect"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeBase">
+        <![CDATA[
+        SELECT
+            SUM(temp.uv) uv,
+            SUM(temp.order_num) orderNum,
+            SUM(temp.order_user_num) orderUserNum,
+            SUM(temp.order_money) orderMoney,
+            SUM(temp.pay_num) payNum,
+            SUM(temp.pay_user_num) payUserNum,
+            SUM(temp.pay_money) payMoney,
+            CONVERT(SUM(temp.pay_user_num)/SUM(temp.order_user_num)*100,DECIMAL(10,2)) payConversion,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_user_num),DECIMAL(20,2)) userPerPrice,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_num),DECIMAL(20,2)) orderPerPrice,
+            SUM(temp.refund_num) refundNum,
+            SUM(temp.refund_user_num) refundUserNum,
+            SUM(temp.refund_money) refundMoney,
+            0 AS companyId
+        FROM (
+            SELECT
+                0 AS uv,
+                SUM(t.order_num) order_num,
+                SUM(t.order_user_num) order_user_num,
+                SUM(t.order_money) order_money,
+                SUM(t.pay_num) pay_num,
+                SUM(t.pay_user_num) pay_user_num,
+                SUM(t.pay_money) pay_money,
+                0 AS refund_num,
+                0 AS refund_user_num,
+                0 AS refund_money
+            FROM (
+                SELECT
+                    COUNT(1) order_num ,
+                    COUNT(DISTINCT(customer_id)) order_user_num,
+                    SUM(total_price) order_money,
+                    0 AS pay_num,
+                    0 AS pay_user_num,
+                    0 AS pay_money,
+                    company_id
+                 FROM `replay_trade` rt
+                 WHERE DATE_FORMAT(create_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(create_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+
+                UNION ALL
+
+                SELECT
+                    0 AS order_num ,
+                    0 AS order_user_num,
+                    0 AS order_money,
+                    COUNT(1) pay_num,
+                    COUNT(DISTINCT customer_id) pay_user_num,
+                    SUM(total_price) pay_money,
+                    company_id
+                 FROM `replay_trade`
+                 WHERE DATE_FORMAT(pay_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(pay_time,'%Y-%m-%d') <= #{endDate} AND pay_state = 2 AND company_id IS NOT NULL
+                )t
+
+            UNION ALL
+
+             SELECT
+                 0 AS uv,
+                 0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 COUNT(1) refund_num,
+                 COUNT(DISTINCT customer_id) refund_user_num ,
+                 SUM(actual_return_price) refund_money
+              FROM `replay_return_order`
+              WHERE return_flow_state = 5 AND DATE_FORMAT(finish_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(finish_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+
+            UNION ALL
+
+                SELECT
+                  COUNT(DISTINCT(fdu.user_id)) AS uv,
+                   0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 0 AS refund_num,
+                 0 AS refund_user_num,
+                 0 AS refund_money
+                FROM
+                  flow_day fd
+                  LEFT JOIN replay_flow_day_user_info fdu ON fdu.flow_day_id = fd.ID
+                  WHERE DATE_FORMAT(fd.DATE,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(fd.DATE,'%Y-%m-%d') <= #{endDate} AND fd.SHOP_ID = 0
+
+             )temp
+         ]]>
+    </select>
+
+    <select id="collectTradeStore" parameterType="com.wanmi.ares.report.trade.model.request.TradeCollect"
+            resultType="com.wanmi.ares.report.trade.model.root.TradeBase">
+        <![CDATA[
+        SELECT
+            SUM(temp.uv) uv,
+            SUM(temp.order_num) orderNum,
+            SUM(temp.order_user_num) orderUserNum,
+            SUM(temp.order_money) orderMoney,
+            SUM(temp.pay_num) payNum,
+            SUM(temp.pay_user_num) payUserNum,
+            SUM(temp.pay_money) payMoney,
+            CONVERT(SUM(temp.pay_user_num)/SUM(temp.order_user_num)*100,DECIMAL(10,2)) payConversion,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_user_num),DECIMAL(20,2)) userPerPrice,
+            CONVERT(SUM(temp.order_money)/SUM(temp.order_num),DECIMAL(20,2)) orderPerPrice,
+            SUM(temp.refund_num) refundNum,
+            SUM(temp.refund_user_num) refundUserNum,
+            SUM(temp.refund_money) refundMoney,
+            temp.company_id companyId
+        FROM (
+            SELECT
+                0 AS uv,
+                SUM(t.order_num) order_num,
+                SUM(t.order_user_num) order_user_num,
+                SUM(t.order_money) order_money,
+                SUM(t.pay_num) pay_num,
+                SUM(t.pay_user_num) pay_user_num,
+                SUM(t.pay_money) pay_money,
+                0 AS refund_num,
+                0 AS refund_user_num,
+                0 AS refund_money,
+                t.company_id  company_id
+            FROM (
+                SELECT
+                    COUNT(1) order_num ,
+                    COUNT(DISTINCT(customer_id)) order_user_num,
+                    SUM(total_price) order_money,
+                    0 AS pay_num,
+                    0 AS pay_user_num,
+                    0 AS pay_money,
+                    company_id
+                 FROM `replay_trade` rt
+                 WHERE DATE_FORMAT(create_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(create_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+                 GROUP BY company_id
+
+                UNION ALL
+
+                SELECT
+                    0 AS order_num ,
+                    0 AS order_user_num,
+                    0 AS order_money,
+                    COUNT(1) pay_num,
+                    COUNT(DISTINCT customer_id) pay_user_num,
+                    SUM(total_price) pay_money,
+                    company_id
+                 FROM `replay_trade`
+                 WHERE DATE_FORMAT(pay_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(pay_time,'%Y-%m-%d') <= #{endDate} AND pay_state = 2 AND company_id IS NOT NULL
+                 GROUP BY company_id )t
+             GROUP BY t.company_id
+
+            UNION ALL
+
+             SELECT
+                 0 AS uv,
+                 0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 COUNT(1) refund_num,
+                 COUNT(DISTINCT customer_id) refund_user_num ,
+                 SUM(actual_return_price) refund_money,
+                 company_id
+              FROM `replay_return_order`
+              WHERE return_flow_state = 5 AND DATE_FORMAT(finish_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(finish_time,'%Y-%m-%d') <= #{endDate} AND company_id IS NOT NULL
+              GROUP BY company_id
+
+            UNION ALL
+
+                SELECT
+                  COUNT(DISTINCT(fdu.user_id)) AS uv,
+                   0 AS order_num,
+                 0 AS order_user_num,
+                 0 AS order_money,
+                 0 AS pay_num,
+                 0 AS pay_user_num,
+                 0 AS pay_money,
+                 0 AS refund_num,
+                 0 AS refund_user_num,
+                 0 AS refund_money,
+                 fd.SHOP_ID AS company_id
+                FROM
+                  flow_day fd
+                  LEFT JOIN replay_flow_day_user_info fdu ON fdu.flow_day_id = fd.ID
+                  WHERE DATE_FORMAT(fd.DATE,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(fd.DATE,'%Y-%m-%d') <= #{endDate} AND fd.SHOP_ID != 0
+                  GROUP BY fd.SHOP_ID
+             )temp GROUP BY temp.company_id
+         ]]>
+    </select>
+
+</mapper>

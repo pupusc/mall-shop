@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.StoreCateMapper">
+
+    <resultMap id="storeCateMap" type="com.wanmi.ares.source.model.root.StoreCate">
+        <id property="id" column="store_cate_id"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="storeId" column="store_id"/>
+        <result property="cateName" column="cate_name"/>
+        <result property="cateParentId" column="cate_parent_id"/>
+        <result property="parentNames" column="cate_parent_name"/>
+        <result property="catePath" column="cate_path"/>
+        <result property="cateGrade" column="cate_grade"/>
+        <result property="sort" column="sort"/>
+        <result property="isDefault" column="is_default"/>
+    </resultMap>
+
+    <sql id="REPLAY_STORE_CATE_col">
+        store_cate_id , del_flag, store_id,  cate_name, cate_parent_id, cate_path, cate_grade, sort, is_default
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO REPLAY_STORE_CATE (<include refid="REPLAY_STORE_CATE_col"/>) VALUES
+        (
+        #{storeCate.id},
+        #{storeCate.operationDate},
+        #{storeCate.sendTime},
+        #{storeCate.receiveTime},
+        #{storeCate.delFlag},
+        #{storeCate.storeId},
+        #{storeCate.companyInfoId},
+        #{storeCate.cateName},
+        #{storeCate.parentNames},
+        #{storeCate.cateParentId},
+        #{storeCate.catePath},
+        #{storeCate.cateGrade},
+        #{storeCate.sort},
+        #{storeCate.isDefault}
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE REPLAY_STORE_CATE
+        <set>
+            <if test="storeCate.operationDate != null">
+                operation_date = #{storeCate.operationDate},
+            </if>
+            <if test="storeCate.sendTime != null">
+                send_time = #{storeCate.sendTime},
+            </if>
+            <if test="storeCate.receiveTime != null">
+                receive_time = #{storeCate.receiveTime},
+            </if>
+            <if test="storeCate.delFlag != null">
+                del_flag = #{storeCate.delFlag},
+            </if>
+            <if test="storeCate.storeId != null">
+                store_id = #{storeCate.storeId},
+            </if>
+            <if test="storeCate.companyInfoId != null">
+                company_info_id = #{storeCate.companyInfoId},
+            </if>
+            <if test="storeCate.cateName != null">
+                cate_name = #{storeCate.cateName},
+            </if>
+            <if test="storeCate.parentNames != null">
+                parent_names = #{storeCate.parentNames},
+            </if>
+            <if test="storeCate.cateParentId != null">
+                cate_parent_id = #{storeCate.cateParentId},
+            </if>
+            <if test="storeCate.catePath != null">
+                cate_path = #{storeCate.catePath},
+            </if>
+            <if test="storeCate.cateGrade != null">
+                cate_grade = #{storeCate.cateGrade},
+            </if>
+            <if test="storeCate.sort != null">
+                sort = #{storeCate.sort},
+            </if>
+            <if test="storeCate.isDefault != null">
+                is_default = #{storeCate.isDefault},
+            </if>
+        </set>
+        WHERE id = #{storeCate.id}
+    </update>
+
+    <update id="deleteByIds">
+        UPDATE REPLAY_STORE_CATE
+        SET
+        del_flag = 1
+        WHERE id in
+        <foreach collection="ids" separator="," open="(" close=")" item="id">
+          #{id}
+        </foreach>
+    </update>
+
+    <select id="queryById" resultMap="storeCateMap">
+        SELECT
+        <include refid="REPLAY_STORE_CATE_col"/>
+        FROM REPLAY_STORE_CATE WHERE id = #{storeCateId}
+    </select>
+
+    <select id="queryByParentId" resultMap="storeCateMap">
+        SELECT
+        <include refid="REPLAY_STORE_CATE_col"/>
+        FROM REPLAY_STORE_CATE WHERE cate_parent_id IN
+        <foreach collection="cateParentIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryByIds" resultMap="storeCateMap">
+        SELECT
+            a.store_cate_id ,
+            a.del_flag,
+            a.store_id,
+            a.cate_name,
+            a.cate_parent_id,
+            a.cate_path,
+            a.cate_grade,
+            a.sort,
+            a.is_default,
+            b.cate_name cate_parent_name
+        FROM REPLAY_STORE_CATE a
+        left join replay_store_cate b on(a.cate_parent_id= b.store_cate_id)
+        WHERE a.store_cate_id IN
+        <foreach collection="ids" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

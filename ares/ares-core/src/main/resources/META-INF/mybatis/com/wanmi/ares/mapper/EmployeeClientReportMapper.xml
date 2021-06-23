@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.employee.dao.EmployeeClientReportMapper">
+    <cache eviction="LRU" flushInterval="10000" size="512"/>
+    <sql id="BaseColums">
+        employee_id,total,newly_num,company_id,create_time
+    </sql>
+    <sql id="BaseColumsValues">
+        #{item.employeeId},#{item.total},#{item.newlyNum},#{item.companyId},NOW()
+    </sql>
+    <sql id="baseQueryCondition">
+        company_id = #{companyId}
+        <if test="employeeIds != null and employeeIds.size > 0">
+            AND employee_id in
+            <foreach collection="employeeIds" open="(" close=")" item="item" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="table == 'employee_client_month'">
+            AND DATE_FORMAT(target_date,'%Y%m') = #{yearMonth}
+        </if>
+        <if test="table == 'employee_client'">
+            AND target_date=#{day}
+        </if>
+    </sql>
+
+    <sql id="exportBaseSql">
+        SELECT
+            employee_id AS employeeId,
+            sum(newly_num) AS newlyNum,
+            sum(total) AS total
+        FROM
+            employee_client
+        WHERE
+            company_id = #{companyId}
+            AND (
+                target_date BETWEEN #{dateFrom}
+                AND #{dateTo}
+            )
+        GROUP BY
+            employee_id
+    </sql>
+
+    <select id="queryList" resultType="com.wanmi.ares.report.employee.model.root.EmployeeClientReport"
+            parameterType="com.wanmi.ares.report.employee.model.entity.EmployeeClientQuery">
+        SELECT
+        employee_id AS employeeId,
+        total,
+        newly_num AS newlyNum,
+        company_id AS companyId
+        FROM
+        ${table}
+        WHERE
+        <include refid="baseQueryCondition"/>
+        ORDER BY
+        ${property} ${direction},id DESC
+        LIMIT #{pageBegin},#{pageSize}
+    </select>
+
+    <select id="export" resultType="com.wanmi.ares.report.employee.model.root.EmployeeClientReport"
+            parameterType="com.wanmi.ares.report.base.model.ExportQuery">
+        <include refid="exportBaseSql"/>
+        ORDER BY
+        newlyNum DESC,id DESC
+        LIMIT #{beginIndex},#{size}
+    </select>
+
+    <select id="countOfExport" resultType="_long" parameterType="com.wanmi.ares.report.base.model.ExportQuery">
+        SELECT
+        count(1)
+        FROM
+        (
+        <include refid="exportBaseSql"/>
+        )
+        AS REPORT
+    </select>
+
+    <select id="countOfQuery" resultType="java.lang.Long"
+            parameterType="com.wanmi.ares.report.employee.model.entity.EmployeeClientQuery">
+        SELECT
+        count(1)
+        FROM
+        ${table}
+        WHERE
+        <include refid="baseQueryCondition"/>
+    </select>
+
+    <insert id="insertToday">
+        INSERT INTO
+        employee_client
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,NOW()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertDate">
+        INSERT INTO
+        employee_client
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="param1" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,#{param2}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertYestDay">
+        INSERT INTO
+        employee_client
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>, DATE_SUB(curdate(),INTERVAL 1 DAY)
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insert7days">
+        INSERT INTO
+        employee_client_recent_seven
+        (<include refid="BaseColums"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insert30Days">
+        INSERT INTO
+        employee_client_recent_thirty
+        (<include refid="BaseColums"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertMonth">
+        INSERT INTO
+        employee_client_month
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,SUBDATE(NOW(),INTERVAL 1 DAY)
+            )
+        </foreach>
+    </insert>
+
+    <delete id="clearToday">
+        DELETE FROM employee_client WHERE target_date = DATE_FORMAT(NOW(),'%Y-%m-%d')
+    </delete>
+
+    <delete id="clearByDate">
+        DELETE FROM employee_client WHERE target_date = DATE_FORMAT(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="clearYestDay">
+        DELETE FROM employee_client WHERE target_date = DATE_FORMAT(DATE_SUB(curdate(),INTERVAL 1 DAY) ,'%Y-%m-%d')
+    </delete>
+    <delete id="clear7Days">
+        TRUNCATE table employee_client_recent_seven
+    </delete>
+
+    <delete id="clear30Days">
+        TRUNCATE table employee_client_recent_thirty
+    </delete>
+
+    <delete id="clearMonth">
+        DELETE FROM employee_client_month
+        WHERE
+          target_date=DATE_FORMAT(SUBDATE(NOW(),INTERVAL 1 DAY),'%Y-%m-%d')
+    </delete>
+
+    <delete id="clearExpireByDay">
+        alter table employee_client truncate partition #{pname}
+    </delete>
+
+    <delete id="clearExpireByMonth">
+        alter table employee_client_month truncate partition #{pname}
+    </delete>
+</mapper>

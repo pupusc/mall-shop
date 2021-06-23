@@ -1,0 +1,7 @@
+下载：wget https://dl.bintray.com/rabbitmq/community-plugins/3.7.x/rabbitmq_delayed_message_exchange/rabbitmq_delayed_message_exchange-20171201-3.7.x.zip
+
+进入下载目录：cd /htdocs/software/
+
+解压到指定目录：unzip -q rabbitmq_delayed_message_exchange-20171201-3.7.x.zip -d /usr/lib/rabbitmq/lib/rabbitmq_server-3.7.14/plugins/
+
+生效延迟插件：rabbitmq-plugins enable rabbitmq_delayed_message_exchange

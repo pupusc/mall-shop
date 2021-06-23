@@ -1,0 +1,16 @@
+@startuml
+
+start
+:将价格设回拼团价;
+:设置订单拼团信息;
+if(订单为开团订单) then (yes)
+    :设置团实例;
+    :修改拼团信息中的团号;
+endif
+if(拼团活动为包邮) then (yes)
+    :设置运费为0;
+endif
+:﻿增加拼团活动单品的购买量;
+stop
+
+@enduml

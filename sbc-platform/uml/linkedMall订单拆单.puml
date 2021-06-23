@@ -1,0 +1,67 @@
+@startuml
+start
+:C端下单;
+partition linkedMall验证判断 {
+   if(含有linkedMall商品) then (yes)
+     if(渠道设置关闭) then (yes)
+        :商品无效，无法下单;
+     endif
+     :远程调用renderOrder接口验证可售结果;
+   endif
+}
+:下单成功;
+partition linkedMall拆单 {
+   if(linkedMall订单) then (yes)
+     :远程调用renderOrder接口返回拆单结果;
+     :保存thirdPlatformTrade表;
+   endif
+}
+:完成支付;
+partition linkedMall订单 {
+   :远程调用createOrder（下单）接口;
+   if(返回是否成功) then (yes)
+     :保存linkedMall订单号;
+   else
+     :自动退款;
+   endif
+   :批量远程调用payOrder（支付）接口;
+   if(所有订单是否失败) then (yes)
+      :自动退款;
+   elseif(部分订单是否失败) then(yes)
+      :标记部分订单支付失败;
+      :走人工退款流程;
+   elseif(支付是否网络异常) then(yes)
+      :标记支付待确认状态
+      :进入支付补偿定时任务队列;
+   else
+      :完成;
+   endif
+}
+partition 支付补偿定时任务 {
+   :遍历加载队列
+   :远程调用queryOrderList（查询订单）接口;
+   if(是否支付成功) then (yes)
+      :标记支付成功;
+   elseif(是否未支付) then(yes)
+      :远程调用payOrder（支付）接口;
+      if(所有订单是否失败) then (yes)
+         :自动退款;
+      elseif(部分订单是否失败) then(yes)
+         :标记部分订单支付失败;
+         :走人工退款流程;
+      elseif(支付是否网络异常) then(yes)
+         :标记支付待确认状态
+         :进入支付补偿定时任务队列;
+      else
+         :完成;
+      endif
+   elseif(部分订单是否失败) then(yes)
+      :标记部分订单支付失败;
+      :走人工退款流程;
+   else
+      :标记支付失败;
+      :自动退款;
+   endif
+}
+stop
+@enduml

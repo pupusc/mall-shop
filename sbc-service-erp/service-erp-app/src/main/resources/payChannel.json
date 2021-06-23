@@ -1,0 +1,302 @@
+"tradePayments": [{
+		"code": "zhifubao",
+		"name": "支付宝",
+		"note": "",
+		"create_date": "2013-07-10 09:59:03",
+		"modify_date": "2013-07-10 09:59:03"
+	}, {
+		"code": "wangyin",
+		"name": "网银在线",
+		"note": "",
+		"create_date": "2013-07-10 09:59:21",
+		"modify_date": "2013-07-10 09:59:21"
+	}, {
+		"code": "caifutong",
+		"name": "财付通",
+		"note": "",
+		"create_date": "2013-07-10 09:59:50",
+		"modify_date": "2013-07-10 09:59:50"
+	}, {
+		"code": "huikuan",
+		"name": "邮局汇款",
+		"note": "",
+		"create_date": "2013-07-10 10:00:58",
+		"modify_date": "2013-07-10 10:00:58"
+	}, {
+		"code": "cod",
+		"name": "货到付款",
+		"note": "",
+		"create_date": "2013-07-12 16:01:18",
+		"modify_date": "2013-07-12 16:01:18"
+	}, {
+		"code": "cash",
+		"name": "现金支付",
+		"note": "",
+		"create_date": "2014-02-26 13:47:04",
+		"modify_date": "2014-02-26 13:47:04"
+	}, {
+		"code": "weixin",
+		"name": "微信支付",
+		"note": "",
+		"create_date": "2014-03-27 17:29:39",
+		"modify_date": "2015-03-12 17:13:11"
+	}, {
+		"code": "balance",
+		"name": "预存款",
+		"note": "",
+		"create_date": "2014-11-03 13:55:08",
+		"modify_date": "2014-11-03 13:55:08"
+	}, {
+		"code": "yinlian",
+		"name": "银联支付",
+		"note": "",
+		"create_date": "2014-12-23 11:58:42",
+		"modify_date": "2014-12-23 11:58:42"
+	}, {
+		"code": "giftcard",
+		"name": "礼品卡",
+		"note": "",
+		"create_date": "2015-01-28 17:01:13",
+		"modify_date": "2015-01-28 17:01:13"
+	}, {
+		"code": "03",
+		"name": "盛付通",
+		"note": "",
+		"create_date": "2015-05-14 11:23:15",
+		"modify_date": "2015-05-14 11:23:15"
+	}, {
+		"code": "04",
+		"name": "建设银行",
+		"note": "",
+		"create_date": "2015-05-14 11:23:29",
+		"modify_date": "2015-05-14 11:23:29"
+	}, {
+		"code": "05",
+		"name": "中国银行",
+		"note": "",
+		"create_date": "2015-05-14 11:23:35",
+		"modify_date": "2015-05-14 11:23:35"
+	}, {
+		"code": "06",
+		"name": "易付宝",
+		"note": "",
+		"create_date": "2015-05-14 11:23:48",
+		"modify_date": "2015-05-14 11:23:48"
+	}, {
+		"code": "07",
+		"name": "农业银行",
+		"note": "",
+		"create_date": "2015-05-14 11:24:00",
+		"modify_date": "2015-05-14 11:24:00"
+	}, {
+		"code": "08",
+		"name": "京东网银在线",
+		"note": "",
+		"create_date": "2015-05-14 11:24:09",
+		"modify_date": "2015-05-14 11:24:09"
+	}, {
+		"code": "09",
+		"name": "国际支付宝",
+		"note": "",
+		"create_date": "2015-05-14 11:24:19",
+		"modify_date": "2015-05-14 11:24:19"
+	}, {
+		"code": "10",
+		"name": "甬易支付",
+		"note": "",
+		"create_date": "2015-05-14 11:24:31",
+		"modify_date": "2015-05-14 11:24:31"
+	}, {
+		"code": "11",
+		"name": "富友支付",
+		"note": "",
+		"create_date": "2015-05-14 11:24:41",
+		"modify_date": "2015-05-14 11:24:41"
+	}, {
+		"code": "12",
+		"name": "连连支付",
+		"note": "",
+		"create_date": "2015-05-14 11:24:49",
+		"modify_date": "2015-05-14 11:24:49"
+	}, {
+		"code": "14",
+		"name": "快钱",
+		"note": "",
+		"create_date": "2015-05-14 11:25:03",
+		"modify_date": "2015-05-14 11:25:03"
+	}, {
+		"code": "15",
+		"name": "网易宝",
+		"note": "",
+		"create_date": "2015-05-14 11:25:12",
+		"modify_date": "2015-05-14 11:25:12"
+	}, {
+		"code": "16",
+		"name": "微支付",
+		"note": "",
+		"create_date": "2015-05-14 11:25:17",
+		"modify_date": "2015-05-14 11:25:17"
+	}, {
+		"code": "jingdou",
+		"name": "京豆支付",
+		"note": "",
+		"create_date": "2016-02-17 10:08:04",
+		"modify_date": "2016-03-17 14:11:52"
+	}, {
+		"code": "jdcoupon",
+		"name": "京东优惠券",
+		"note": "",
+		"create_date": "2016-02-17 10:08:15",
+		"modify_date": "2016-03-17 14:11:21"
+	}, {
+		"code": "yuen",
+		"name": "余额支付",
+		"note": "",
+		"create_date": "2016-07-01 15:29:37",
+		"modify_date": "2016-07-01 15:29:37"
+	}, {
+		"code": "haibi",
+		"name": "嗨币支付",
+		"note": "",
+		"create_date": "2016-07-01 15:30:09",
+		"modify_date": "2016-07-01 15:30:09"
+	}, {
+		"code": "JFZF",
+		"name": "积分支付",
+		"note": "",
+		"create_date": "2016-09-18 15:26:40",
+		"modify_date": "2016-09-18 15:26:40"
+	}, {
+		"code": "212856450847",
+		"name": "天猫购物券",
+		"note": "",
+		"create_date": "2016-09-30 17:10:58",
+		"modify_date": "2016-09-30 17:10:58"
+	}, {
+		"code": "MYFQ",
+		"name": "京东运费券",
+		"note": "",
+		"create_date": "2016-12-18 22:48:35",
+		"modify_date": "2016-12-18 22:48:35"
+	}, {
+		"code": "JdOtherPay",
+		"name": "京东其它优惠劵",
+		"note": "",
+		"create_date": "2017-01-16 17:04:09",
+		"modify_date": "2017-01-16 17:04:09"
+	}, {
+		"code": "ptzk",
+		"name": "平台折扣",
+		"note": "",
+		"create_date": "2017-03-07 10:25:09",
+		"modify_date": "2017-03-07 10:25:09"
+	}, {
+		"code": "qb",
+		"name": "钱包",
+		"note": "",
+		"create_date": "2017-06-07 11:50:20",
+		"modify_date": "2017-06-07 11:50:20"
+	}, {
+		"code": "pddptyh",
+		"name": "拼多多平台优惠",
+		"note": "",
+		"create_date": "2017-06-07 12:13:00",
+		"modify_date": "2017-06-07 12:13:00"
+	}, {
+		"code": "SXY",
+		"name": "首信易支付",
+		"note": "",
+		"create_date": "2017-11-13 17:54:07",
+		"modify_date": "2017-11-13 17:54:07"
+	}, {
+		"code": "ptyhj",
+		"name": "平台优惠券",
+		"note": "",
+		"create_date": "2017-11-29 18:31:08",
+		"modify_date": "2017-11-29 18:31:08"
+	}, {
+		"code": "QTZF",
+		"name": "其它支付",
+		"note": "",
+		"create_date": "2018-07-19 14:52:46",
+		"modify_date": "2018-07-19 14:52:46"
+	}, {
+		"code": "17",
+		"name": "中国工商银行",
+		"note": "",
+		"create_date": "2018-11-19 17:32:42",
+		"modify_date": "2018-11-19 17:32:42"
+	}, {
+		"code": "DX",
+		"name": "代销",
+		"note": "",
+		"create_date": "2018-12-11 10:25:41",
+		"modify_date": "2018-12-11 10:25:41"
+	}, {
+		"code": "POS",
+		"name": "POS",
+		"note": "",
+		"create_date": "2018-12-11 10:25:49",
+		"modify_date": "2018-12-11 10:25:49"
+	}, {
+		"code": "SPTK",
+		"name": "商品退款",
+		"note": "用于商品退款记录",
+		"create_date": "2018-12-19 11:43:43",
+		"modify_date": "2018-12-19 11:43:43"
+	}, {
+		"code": "XYZF",
+		"name": "信用支付",
+		"note": "",
+		"create_date": "2019-04-12 17:15:59",
+		"modify_date": "2019-04-12 17:15:59"
+	}, {
+		"code": "YZEK",
+		"name": "有赞E卡支付",
+		"note": "",
+		"create_date": "2019-05-28 13:25:23",
+		"modify_date": "2019-05-28 13:25:23"
+	}, {
+		"code": "BAIDUPAY",
+		"name": "百度钱包支付",
+		"note": "",
+		"create_date": "2019-05-28 13:27:37",
+		"modify_date": "2019-05-28 13:27:37"
+	}, {
+		"code": "WEIXIN_DAIXIAO",
+		"name": "微信代销",
+		"note": "",
+		"create_date": "2019-05-28 13:31:02",
+		"modify_date": "2019-05-28 13:31:02"
+	}, {
+		"code": "ShopPay",
+		"name": "门店付款",
+		"note": "",
+		"create_date": "2019-07-02 19:52:56",
+		"modify_date": "2019-07-02 19:52:56"
+	}, {
+		"code": "cpay_o2o",
+		"name": "公司转账",
+		"note": "",
+		"create_date": "2019-07-03 17:15:22",
+		"modify_date": "2019-07-03 17:15:22"
+	}, {
+		"code": "18",
+		"name": "交通银行",
+		"note": "",
+		"create_date": "2019-07-04 16:04:19",
+		"modify_date": "2019-07-04 16:04:19"
+	}, {
+		"code": "PEERPAY",
+		"name": "代付",
+		"note": "",
+		"create_date": "2019-07-10 09:58:48",
+		"modify_date": "2019-07-10 09:58:48"
+	}, {
+		"code": "COUPONPAY",
+		"name": "优惠券/码全额抵扣",
+		"note": "",
+		"create_date": "2019-07-10 10:01:06",
+		"modify_date": "2019-07-10 10:01:06"
+	}],
+	"total": 55

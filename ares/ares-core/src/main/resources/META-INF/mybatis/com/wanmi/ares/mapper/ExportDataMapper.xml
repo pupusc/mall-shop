@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.export.dao.ExportDataMapper" >
+    <!-- 导出任务要求基础结果集 -->
+    <resultMap id="baseResultMap" type="com.wanmi.ares.export.model.entity.ExportDataEntity">
+        <id property="id" column="ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="companyInfoId" column="COMPANY_INFO_ID"/>
+        <result property="beginDate" column="BEGIN_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="typeCd" column="TYPE_CD"/>
+        <result property="exportStatus" column="EXPORT_STATUS"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="finishTime" column="FINISH_TIME"/>
+        <result property="filePath" column="FILE_PATH"/>
+    </resultMap>
+
+    <!-- 导出任务通用查询字段 -->
+    <sql id="commonQuerySql">
+        ID,
+        USER_ID,
+        COMPANY_INFO_ID,
+        BEGIN_DATE,
+        END_DATE,
+        TYPE_CD,
+        EXPORT_STATUS,
+        CREATE_TIME,
+        FINISH_TIME,
+        FILE_PATH
+    </sql>
+
+    <!-- 分页查询导出任务要求 -->
+    <select id="queryExportDataRequest" resultMap="baseResultMap">
+        SELECT
+        <include refid="commonQuerySql"/>
+        FROM EXPORT_DATA_REQUEST
+        WHERE USER_ID = #{userId}
+        ORDER BY CREATE_TIME DESC
+        LIMIT #{startNum} , #{pageSize}
+    </select>
+
+    <!-- 查询导出任务要求总条数 -->
+    <select id="countExportDataRequest" resultType="Integer">
+        SELECT COUNT(1)
+        FROM EXPORT_DATA_REQUEST
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- 根据条件查询导出任务要求List -->
+    <select id="queryExportDataRequestList" resultMap="baseResultMap">
+        SELECT
+        <include refid="commonQuerySql"/>
+        FROM EXPORT_DATA_REQUEST
+        WHERE COMPANY_INFO_ID = #{companyInfoId}
+        AND BEGIN_DATE = #{beginDate}
+        AND END_DATE = #{endDate}
+        AND TYPE_CD = #{typeCd}
+        <if test="exportStatus!=null">
+          AND EXPORT_STATUS = #{exportStatus}
+        </if>
+    </select>
+
+    <!-- 根据条件查询需要清理的导出任务要求List -->
+    <select id="queryExportDataRequestListForClear" resultMap="baseResultMap">
+        SELECT
+        <include refid="commonQuerySql"/>
+        FROM EXPORT_DATA_REQUEST
+        WHERE BEGIN_DATE <![CDATA[ <= ]]> #{beginDate}
+        <if test="exportStatus!=null">
+          AND EXPORT_STATUS = #{exportStatus}
+        </if>
+    </select>
+
+    <!-- 根据条件查询单个导出任务要求 -->
+    <select id="queryOneExportDataRequest" resultMap="baseResultMap">
+        SELECT
+        <include refid="commonQuerySql"/>
+        FROM EXPORT_DATA_REQUEST
+        WHERE ID = #{id}
+        <if test="userId!=null and userId!=''">
+            AND USER_ID = #{userId}
+        </if>
+        <if test="companyInfoId!=null and companyInfoId!=''">
+            AND COMPANY_INFO_ID = #{companyInfoId}
+        </if>
+    </select>
+
+    <!-- 添加导出任务要求(只有要求不一样的才能插入成功) -->
+    <insert id="insertExportDataRequest" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO EXPORT_DATA_REQUEST (USER_ID, COMPANY_INFO_ID, BEGIN_DATE, END_DATE, TYPE_CD, EXPORT_STATUS, CREATE_TIME) VALUES
+        (#{userId}, #{companyInfoId}, #{beginDate}, #{endDate}, #{typeCd}, #{exportStatus}, #{createTime})
+    </insert>
+
+    <!-- 根据条件删除导出任务要求 -->
+    <delete id="deleteExportDataRequest">
+        DELETE FROM EXPORT_DATA_REQUEST
+        WHERE ID = #{id}
+        <if test="userId!=null and userId!=''">
+            AND USER_ID = #{userId}
+        </if>
+        <if test="companyInfoId!=null and companyInfoId!=''">
+            AND COMPANY_INFO_ID = #{companyInfoId}
+        </if>
+    </delete>
+
+    <!-- 根据条件清理导出任务要求 -->
+    <delete id="clearExportDataRequest">
+        DELETE FROM EXPORT_DATA_REQUEST
+        WHERE BEGIN_DATE <![CDATA[ < ]]> #{beginDate}
+    </delete>
+
+    <!-- 修改任务的导出状态以及按需修改结束时间 -->
+    <update id="updateExportDataRequest">
+        UPDATE EXPORT_DATA_REQUEST
+        SET EXPORT_STATUS = #{exportStatus}
+        <if test="finishTime!=null and finishTime!=''">
+          ,FINISH_TIME = #{finishTime}
+        </if>
+        <if test="filePath!=null and filePath!=''">
+            ,FILE_PATH = #{filePath}
+        </if>
+        WHERE ID = #{id}
+        <if test="userId!=null and userId!=''">
+            AND USER_ID = #{userId}
+        </if>
+        <if test="companyInfoId!=null and companyInfoId!=''">
+            AND COMPANY_INFO_ID = #{companyInfoId}
+        </if>
+    </update>
+
+</mapper>

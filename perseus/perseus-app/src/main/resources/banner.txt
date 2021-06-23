@@ -1,0 +1,13 @@
+${Ansi.BLUE}
+	        _ __   ___ _ __ ___  ___ _   _ ___
+	       | '_ \ / _ \ '__/ __|/ _ \ | | / __|
+	       | |_) |  __/ |  \__ \  __/ |_| \__ \
+	       | .__/ \___|_|  |___/\___|\__,_|___/
+	       | |
+	       |_|
+${Ansi.YELLOW}
+=============================================================================
+ :: application name    :: ${Ansi.GREEN}${info.app.name}${Ansi.DEFAULT}
+ :: application version :: ${Ansi.GREEN}${info.build.version}${Ansi.DEFAULT}
+ :: spring-boot version :: ${Ansi.GREEN}${spring-boot.version}${Ansi.DEFAULT}
+=============================================================================

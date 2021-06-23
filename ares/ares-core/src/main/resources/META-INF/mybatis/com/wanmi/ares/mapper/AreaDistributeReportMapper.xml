@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.AreaDistributeReportMapper">
+    <cache eviction="LRU" flushInterval="10000" size="512"/>
+    <insert id="insertReport">
+        INSERT INTO
+        customer_area_distribute
+        (company_id,city_id,num,create_time,target_date)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.companyId},#{item.cityId}, #{item.num}, #{item.createTime},
+            NOW()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="generateThirdShopCustomerAreaDistribute">
+        INSERT INTO
+        customer_area_distribute
+        (company_id,city_id,num,create_time,target_date)
+        SELECT
+        rscr.company_info_id as company_id,
+        ifnull( rcd.city_id,-1) as city_id,
+        count( 1 ) as num,
+        now() as create_time,
+        #{targetDate} as target_date
+        FROM
+        replay_store_customer_rela rscr
+        LEFT JOIN replay_customer rc ON rc.customer_id = rscr.customer_id
+        LEFT JOIN replay_customer_detail rcd ON rcd.customer_id = rscr.customer_id
+        WHERE
+        rc.check_state = 1
+        AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' )<![CDATA[ <= ]]> #{targetDate}
+        GROUP BY
+        rcd.city_id,
+        rscr.company_info_id;
+    </insert>
+
+    <insert id="generateBossCustomerAreaDistribute">
+        INSERT INTO
+            customer_area_distribute
+            (company_id,city_id,num,create_time,target_date)
+        SELECT
+            0 as company_id,
+            ifnull( rcd.city_id,-1) as city_id,
+            count( 1 ) as num,
+            now() as create_time,
+            #{targetDate} as target_date
+        FROM
+            replay_customer rc
+            LEFT JOIN replay_customer_detail rcd ON rcd.customer_id = rc.customer_id
+        WHERE
+            rc.check_state = 1
+            AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' )<![CDATA[ <= ]]> #{targetDate}
+        GROUP BY
+	      rcd.city_id;
+    </insert>
+
+    <select id="query" resultType="com.wanmi.ares.report.customer.model.root.AreaDistrReport">
+        SELECT
+        SUM(num) as num,
+        city_id AS cityId
+        FROM
+        customer_area_distribute
+        WHERE
+        target_date = #{date}
+        AND company_id = #{companyId}
+        group by city_id,create_time
+    </select>
+
+    <select id="queryCityInfo" parameterType="String" resultType="com.wanmi.ares.source.model.root.region.City">
+        select code,name,parent_code from region where code = #{code}
+    </select>
+
+    <select id="queryProvinceInfo" parameterType="String" resultType="com.wanmi.ares.source.model.root.region.Province">
+        SELECT
+            re.code,
+            re.name
+        FROM
+            region r INNER join region re on re.code = r.parent_code
+        WHERE
+            r.code = #{code}
+    </select>
+
+    <delete id="deleteReport">
+        DELETE
+        FROM
+             customer_area_distribute
+        WHERE
+             target_date = #{dateStr};
+    </delete>
+
+    <delete id="clearExpire">
+        alter table customer_area_distribute truncate partition #{pname}
+    </delete>
+</mapper>

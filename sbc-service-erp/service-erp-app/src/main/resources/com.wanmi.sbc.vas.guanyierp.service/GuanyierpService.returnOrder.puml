@@ -1,0 +1,10 @@
+@startuml
+start
+: C端用户确认收货;
+: C端用户选择退货商品;
+: 默认退货地址(商家端同步ERP仓库地址(gy.erp.warehouse.get));
+: 提交申请;
+: 创建退单信息,保存至退单表;
+: 商家端审核;
+stop;
+@enduml

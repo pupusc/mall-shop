@@ -1,0 +1,112 @@
+@startuml
+start
+partition 微信支付设置 {
+    :启用状态更新至pay_gateway表的is_open;
+    :商户号更新至pay_gateway表的account、open_platform_account;
+    :API密钥更新至pay_gateway表的api_key、open_platform_api_key;
+    :通知URL更新至pay_gateway表的pc_back_url;
+    :支付证书更新至pay_gateway表的wx_pay_certificate、wx_open_pay_certificate;
+}
+
+partition H5配置 {
+    :appId、secret分别更新至pay_gateway_config表的app_id、secret;
+    :同步更新third_login_set表的mobile_app_id、mobile_app_secret;
+    :状态更新third_login_set表的mobile_server_status;
+
+    partition 支付列表 {
+        :查询pay_gateway表的is_open;
+        :查询third_login_set表的mobile_server_status;
+        if(pay_gateway.is_open == 1 and third_login_set.mobile_server_status == 1) then (yes)
+            :显示微信支付;
+        endif;
+    }
+
+    partition 显示分享/授权登陆 {
+        :查询third_login_set;
+        if(third_login_set.mobile_server_status == 1) then (yes)
+            :显示分享、授权;
+        endif;
+    }
+
+    partition 授权登陆 {
+        :继续延用third_login_set配置;
+        :处理授权登陆;
+    }
+}
+
+partition PC配置 {
+    :appId、secret分别更新至third_login_set表的pc_app_id、pc_app_secret;
+    :启用状态更新third_login_set表的pc_server_status;
+
+    partition 支付列表 {
+        :查询pay_gateway表的is_open;
+        :查询third_login_set表的pc_server_status;
+        if(pay_gateway.is_open == 1 and third_login_set.pc_server_status == 1) then (yes)
+            :显示微信支付;
+        endif;
+    }
+
+    partition 显示分享/授权 {
+        :查询third_login_set;
+        if(third_login_set.pc_server_status == 1) then (yes)
+            :显示分享/授权;
+        endif;
+    }
+
+    partition 授权登陆 {
+        :继续延用third_login_set配置;
+        :处理授权登陆;
+    }
+}
+
+partition 小程序配置 {
+    :appId、secret分别更新至system_config表(key='small_program_setting')的json内容;
+    :启用状态更新至system_config表(key='small_program_setting')的status;
+
+    partition 支付列表 {
+        :查询pay_gateway表的is_open;
+        :查询system_config表(key='small_program_setting')的status;
+        if(pay_gateway.is_open == 1 and system_config.status == 1) then (yes)
+            :显示微信支付;
+        endif;
+    }
+
+    partition 显示分享/授权 {
+        :查询system_config表(key='small_program_setting');
+        if(system_config.status == 1) then (yes)
+            :显示分享/授权;
+        endif;
+    }
+
+    partition 授权登陆 {
+        :继续延用system_config表(key='small_program_setting')配置;
+        :处理授权登陆;
+    }
+}
+
+partition APP配置 {
+    :appId、secret分别更新至pay_gateway_config表的open_platform_app_id、open_platform_secret;
+    :启用状态更新至third_login_set表的app_server_status;
+
+    partition 支付列表 {
+        :查询pay_gateway表的is_open;
+        :查询third_login_set表的app_server_status;
+        if(pay_gateway.is_open == 1 and third_login_set.app_server_status == 1) then (yes)
+            :显示微信支付;
+        endif;
+    }
+
+    partition 显示分享/授权 {
+        :查询third_login_set;
+        if(third_login_set.app_server_status == 1) then (yes)
+            :显示分享/授权;
+        endif;
+    }
+
+    partition 授权登陆 {
+        :查询pay_gateway_config表的open_platform_app_id、open_platform_secret;
+        :处理授权登陆;
+    }
+}
+stop;
+@enduml

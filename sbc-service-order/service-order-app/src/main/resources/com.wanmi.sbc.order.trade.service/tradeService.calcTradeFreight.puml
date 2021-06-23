@@ -1,0 +1,15 @@
+@startuml
+start
+if(下单商品为周期购商品) then(yes)
+    if(运费方式为"每期运费*期数") then(yes)
+        :计算后的单品运费*期数;
+    else (no)
+        if(期数>=设置的包邮期数) then(yes)
+            :设置邮费为0元;
+        else(no)
+            :计算后的单品运费*期数;
+        endif
+    endif
+endif
+stop
+@enduml

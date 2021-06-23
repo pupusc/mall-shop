@@ -1,0 +1,34 @@
+@startuml
+start
+:从订单中获取配送周期;
+if(每日一期) then(yes)
+    if(每日送达) then(yes)
+        while(i < 期数)
+            :创建发货日历对象;
+            :计算发货时间;
+        endwhile
+    elseif(工作日送达) then(yes)
+        while(i < 期数)
+            :创建发货日历对象;
+            :计算发货时间;
+        endwhile
+    elseif(周末每天送达) then(yes)
+        while(i < 期数)
+            :创建发货日历对象;
+            :计算发货时间;
+        endwhile
+    endif
+elseif(每周一期) then(yes)
+    while(i < 期数)
+        :创建发货日历对象;
+        :计算发货时间;
+    endwhile
+elseif(每月一期) then(yes)
+    while(i < 期数)
+        :创建发货日历对象;
+        :计算发货时间;
+    endwhile
+endif
+:保存发货日历列表到订单中;
+stop
+@enduml

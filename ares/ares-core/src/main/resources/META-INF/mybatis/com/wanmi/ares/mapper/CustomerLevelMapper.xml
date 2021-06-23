@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.CustomerLevelMapper">
+
+    <resultMap id="customerLevelMap" type="com.wanmi.ares.source.model.root.CustomerLevel">
+        <id property="id" column="id"/>
+        <result property="operationDate" column="operation_date"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="receiveTime" column="receive_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="name" column="name"/>
+        <result property="discount" column="discount"/>
+        <result property="companyId" column="company_id"/>
+        <result property="isDefault" column="is_default"/>
+    </resultMap>
+
+    <sql id="customer_level_col">
+        id,operation_date,send_time,receive_time,del_flag,name,discount,company_id,is_default
+    </sql>
+
+
+    <select id="queryById" resultMap="customerLevelMap">
+        SELECT
+        <include refid="customer_level_col"/>
+        FROM CUSTOMER_LEVEL WHERE id = #{levelId}
+    </select>
+
+    <select id="queryByIds" resultMap="customerLevelMap">
+        SELECT
+        <include refid="customer_level_col"/>
+        FROM CUSTOMER_LEVEL WHERE id IN
+        <foreach collection="list" open="(" close=")" item="item" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="queryCustomerLevelByIds" resultType="com.wanmi.ares.source.model.root.CustomerLevel">
+        SELECT
+        customer_level_id as id,
+        customer_level_name as name
+        FROM replay_customer_level WHERE customer_level_id IN
+        <foreach collection="list" open="(" close=")" item="item" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="queryStoreCustomerLevelByIds" resultType="com.wanmi.ares.source.model.root.ReplayStoreLevel">
+        SELECT
+        store_level_id as storeLevelId,
+        store_id as storeId,
+        level_name as levelName
+        FROM replay_store_level WHERE store_level_id IN
+        <foreach collection="list" open="(" close=")" item="item" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO CUSTOMER_LEVEL (<include refid="customer_level_col"/>) VALUES
+        (
+        #{customerLevel.id},
+        #{customerLevel.operationDate},
+        #{customerLevel.sendTime},
+        #{customerLevel.receiveTime},
+        #{customerLevel.delFlag},
+        #{customerLevel.name},
+        #{customerLevel.discount},
+        #{customerLevel.companyId},
+        #{customerLevel.isDefault}
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE CUSTOMER_LEVEL
+        <set>
+            <if test="customerLevel.operationDate != null">
+                operation_date = #{customerLevel.operationDate},
+            </if>
+            <if test="customerLevel.sendTime != null">
+                send_time = #{customerLevel.sendTime},
+            </if>
+            <if test="customerLevel.receiveTime != null">
+                receive_time = #{customerLevel.receiveTime},
+            </if>
+            <if test="customerLevel.delFlag != null">
+                del_flag = #{customerLevel.delFlag},
+            </if>
+            <if test="customerLevel.name != null">
+                name = #{customerLevel.name},
+            </if>
+            <if test="customerLevel.discount != null">
+                discount = #{customerLevel.discount},
+            </if>
+            <if test="customerLevel.companyId != null">
+                company_id = #{customerLevel.companyId},
+            </if>
+            <if test="customerLevel.isDefault != null">
+                is_default = #{customerLevel.isDefault},
+            </if>
+        </set>
+        WHERE id = #{customerLevel.id}
+    </update>
+
+    <delete id="deleteById">
+        UPDATE CUSTOMER_LEVEL SET del_flag = 1
+        WHERE id = #{levelId}
+    </delete>
+
+    <select id="queryAll" resultMap="customerLevelMap">
+        SELECT
+        <include refid="customer_level_col"/>
+        FROM CUSTOMER_LEVEL WHERE del_flag = 0
+    </select>
+
+    <select id="getDefaultLevel" resultMap="customerLevelMap">
+        SELECT
+        <include refid="customer_level_col"/>
+        FROM CUSTOMER_LEVEL WHERE is_default = '1'
+    </select>
+
+</mapper>

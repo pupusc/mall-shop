@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.LevelDistributeReportMapper">
+    <cache eviction="LRU" flushInterval="10000" size="512"/>
+    <insert id="insertReport">
+        INSERT INTO
+        customer_level_distribute
+        (company_id,level_id,num,total,centage,create_time,target_date)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.companyId},#{item.levelId}, #{item.num}, #{item.total}, #{item.centage}, #{item.createTime},NOW()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="generateThirdShopCustomerLevelDistribute">
+        INSERT INTO customer_level_distribute (
+        company_id,
+        level_id,
+        num,
+        total,
+        centage,
+        create_time,
+        target_date
+        )
+        SELECT
+        res.company_info_id AS company_id,
+        IFNULL(res.store_level_id,-1) AS level_id,
+        IFNULL(res.customerNum,0) AS num,
+        IFNULL(res1.allNum,0) AS total,
+        IFNULL(CONCAT( CONVERT ( IFNULL(res.customerNum,0) / IFNULL(res1.allNum,0) * 100, DECIMAL ( 15, 2 ) ), '%' ),0) AS centage,
+        now() as create_time,
+        #{targetDate} as target_date
+        FROM
+        (
+        SELECT
+        count( cd.customer_id ) AS customerNum,
+        sl.level_name,
+        sl.store_level_id,
+        scr.store_id,
+        scr.company_info_id,
+        s.store_name
+        FROM
+        replay_store_customer_rela scr
+        LEFT JOIN replay_store_level sl ON sl.store_level_id = scr.store_level_id
+        LEFT JOIN replay_store s ON s.store_id = sl.store_id
+        LEFT JOIN replay_customer c ON c.customer_id = scr.customer_id
+        LEFT JOIN replay_customer_detail cd ON cd.customer_id = c.customer_id
+        WHERE
+        c.check_state = 1
+        AND cd.del_flag = 0
+        AND DATE_FORMAT( c.check_time, '%Y-%m-%d' ) <![CDATA[ <= ]]> #{targetDate}
+        GROUP BY
+        sl.store_level_id,
+        scr.company_info_id
+        ) res
+        LEFT JOIN (
+        SELECT
+        count( cd.customer_id ) allNum,
+        s.store_id,
+        s.store_name
+        FROM
+        replay_store_customer_rela scr
+        LEFT JOIN replay_store_level sl ON sl.store_level_id = scr.store_level_id
+        LEFT JOIN replay_store s ON s.store_id = scr.store_id
+        LEFT JOIN replay_customer c ON c.customer_id = scr.customer_id
+        LEFT JOIN replay_customer_detail cd ON cd.customer_id = c.customer_id
+        WHERE
+        c.check_state = 1
+        AND cd.del_flag = 0
+        AND DATE_FORMAT( c.check_time, '%Y-%m-%d' ) <![CDATA[ <= ]]> #{targetDate}
+        GROUP BY
+        sl.store_id
+        ) AS res1 ON res1.store_id = res.store_id
+        GROUP BY
+        res.store_level_id,
+        res.company_info_id
+        ORDER BY
+        res.company_info_id,
+        res.store_level_id
+    </insert>
+
+    <insert id="generateBossCustomerLevelDistribute">
+        INSERT INTO customer_level_distribute (
+        company_id,
+        level_id,
+        num,
+        total,
+        centage,
+        create_time,
+        target_date
+        )
+        SELECT
+        res.companyId AS company_id,
+        IFNULL(res1.customer_level_id,-1) AS level_id,
+        IFNULL(res1.num,0) AS num,
+        IFNULL(res.num,0) AS total,
+        IFNULL(CONCAT( CONVERT ( IFNULL(res1.num,0) / IFNULL(res.num,0) * 100, DECIMAL ( 15, 2 ) ), '%' ),0) AS centage,
+        now( ) AS create_time,
+        #{targetDate} as target_date
+        FROM
+        (
+        SELECT
+        count( rc.customer_id ) AS num,
+        0 AS companyId
+        FROM
+        replay_customer rc
+        LEFT JOIN replay_customer_detail rcd ON rc.customer_id = rcd.customer_id
+        LEFT JOIN replay_customer_level rcl ON rcl.customer_level_id = rc.customer_level_id
+        WHERE
+        rc.check_state = 1
+        AND rc.del_flag = 0
+        AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' ) <![CDATA[ <= ]]> #{targetDate}
+        ) res
+        LEFT JOIN (
+        SELECT
+        count( rc.customer_id ) AS num,
+        rcl.customer_level_id,
+        0 AS companyId
+        FROM
+        replay_customer rc
+        LEFT JOIN replay_customer_detail rcd ON rc.customer_id = rcd.customer_id
+        LEFT JOIN replay_customer_level rcl ON rcl.customer_level_id = rc.customer_level_id
+        WHERE
+        rc.check_state = 1
+        and rcl.del_flag = 0
+        AND rc.del_flag = 0
+        AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' ) <![CDATA[ <= ]]> #{targetDate}
+        GROUP BY
+        rcl.customer_level_id
+        ) res1 ON res1.companyId = res.companyId
+    </insert>
+
+    <select id="query" resultType="com.wanmi.ares.report.customer.model.root.LevelDistrReport">
+        SELECT DISTINCT
+            level_id    AS levelId,
+            num,
+            total,
+            centage,
+            company_id  AS companyId,
+            create_time AS createTime
+        FROM
+            customer_level_distribute
+        WHERE
+            target_date = #{date} AND company_id = #{companyId}
+    </select>
+
+    <delete id="deleteReport">
+        DELETE
+        FROM
+            customer_level_distribute
+        WHERE
+            target_date = #{dateStr}
+    </delete>
+
+    <delete id="clearExpire">
+        alter table customer_area_distribute truncate partition #{pname}
+    </delete>
+</mapper>

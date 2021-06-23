@@ -1,0 +1,15 @@
+@startuml
+
+start
+#HotPink:验证用户信息;
+:获取用户已确认订单的商品快照;
+#HotPink: 验证拼团订单;
+#HotPink:﻿验证营销信息;
+#HotPink:﻿按店铺包装多个订单、订单组信息;
+#HotPink:处理订单积分抵扣;
+#HotPink:﻿批量提交订单;
+:﻿删除关联的采购单商品;
+:﻿删除订单商品快照;
+stop
+
+@enduml

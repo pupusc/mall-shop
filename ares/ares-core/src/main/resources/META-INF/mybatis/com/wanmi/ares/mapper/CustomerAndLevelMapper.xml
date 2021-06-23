@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.CustomerAndLevelMapper">
+
+    <resultMap id="customerAndLevelMap" type="com.wanmi.ares.source.model.root.CustomerAndLevel">
+        <id property="id" column="id"/>
+        <result property="operationDate" column="operation_date"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="receiveTime" column="receive_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="storeId" column="store_id"/>
+        <result property="companyInfoId" column="company_info_id"/>
+        <result property="customerLevelId" column="customer_level_id"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="customerType" column="customer_type"/>
+        <result property="bindTime" column="bind_time"/>
+    </resultMap>
+
+    <sql id="customer_and_level_col">
+        id,operation_date,send_time,receive_time,del_flag,customer_id,store_id,company_info_id,customer_level_id,employee_id,customer_type,bind_time
+    </sql>
+
+    <!-- 根据用户id,商家id查询用户等级 -->
+    <select id="selectCustomerStoreLevel" resultMap="customerAndLevelMap">
+        SELECT <include refid="customer_and_level_col"/> FROM CUSTOMER_AND_LEVEL
+        WHERE customer_id = #{customerId}
+          AND company_info_id = #{companyInfoId}
+    </select>
+
+    <update id="updateCustomerLevel">
+        UPDATE CUSTOMER_AND_LEVEL
+        SET customer_level_id = #{newLevelId}
+        WHERE customer_level_id = #{oldLevelId}
+    </update>
+
+    <update id="updateEmployeeId">
+        UPDATE CUSTOMER
+        SET employee_id = #{employeeId},
+             bind_date = #{bindDate},
+             receive_time = NOW()
+        WHERE id = #{customerId}
+    </update>
+
+    <update id="update">
+        UPDATE CUSTOMER_AND_LEVEL
+        SET customer_level_id = #{newLevelId}
+            ,employee_id = #{employeeId}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insert">
+        INSERT INTO CUSTOMER_AND_LEVEL (<include refid="customer_and_level_col"/>) VALUES
+        (
+        #{customerAndLevel.id},
+        #{customerAndLevel.operationDate},
+        #{customerAndLevel.sendTime},
+        #{customerAndLevel.receiveTime},
+        #{customerAndLevel.delFlag},
+        #{customerAndLevel.customerId},
+        #{customerAndLevel.storeId},
+        #{customerAndLevel.companyInfoId},
+        #{customerAndLevel.customerLevelId},
+        #{customerAndLevel.employeeId},
+        #{customerAndLevel.customerType},
+        #{customerAndLevel.bindTime}
+        )
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM CUSTOMER_AND_LEVEL
+        WHERE id = #{id}
+    </delete>
+</mapper>

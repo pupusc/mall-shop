@@ -1,0 +1,2 @@
+# 数据库my.cnf文件修改配置，重启后生效
+SET GLOBAL event_scheduler = ON; #打开

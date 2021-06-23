@@ -1,0 +1,23 @@
+@startuml
+
+start
+:立即购买/加入购物车;
+:根据sku拿到商品类型,存入快照;
+:提交订单;
+if(是否包含虚拟商品) then (yes)
+    :调用卡券接口,占用卡券;
+    if(调用失败) then (失败)
+        :订单作废;
+        stop;
+     else (成功)
+     :拿到卡券信息,冗余;
+
+     endif
+ else (no)
+     :标品流程;
+     stop;
+endif;
+:下单完成;
+stop
+
+@enduml

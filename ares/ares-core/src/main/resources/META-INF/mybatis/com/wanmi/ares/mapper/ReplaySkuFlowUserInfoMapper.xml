@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.ares.report.flow.dao.ReplaySkuFlowUserInfoMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="sku_flow_id" jdbcType="VARCHAR" property="skuFlowId" />
+    <result column="sku_id" jdbcType="VARCHAR" property="skuId" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="sku_flow_date" jdbcType="DATE" property="skuFlowDate" />
+    <result column="send_time" jdbcType="TIMESTAMP" property="sendTime" />
+    <result column="receive_time" jdbcType="TIMESTAMP" property="receiveTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, sku_flow_id, sku_id, user_id, sku_flow_date, send_time, receive_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from replay_sku_flow_user_info
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from replay_sku_flow_user_info
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByPrimary" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    delete from replay_sku_flow_user_info
+    where 1=1
+    <if test="id != null">
+      and id = #{id,jdbcType=BIGINT}
+    </if>
+    <if test="skuFlowId != null">
+      and sku_flow_id = #{skuFlowId,jdbcType=VARCHAR}
+    </if>
+    <if test="skuId != null">
+      and sku_id = #{skuId,jdbcType=VARCHAR}
+    </if>
+    <if test="skuIds != null and skuIds.size > 0">
+      and sku_id in
+      <foreach collection="skuIds" item="item" index="index"  open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+    <if test="userId != null">
+      and user_id = #{userId,jdbcType=VARCHAR}
+    </if>
+    <if test="skuFlowDate != null">
+      and sku_flow_date = #{skuFlowDate,jdbcType=DATE}
+    </if>
+    <if test="sendTime != null">
+      and send_time = #{sendTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="receiveTime != null">
+      and receive_time = #{receiveTime,jdbcType=TIMESTAMP}
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    insert into replay_sku_flow_user_info (id, sku_flow_id, sku_id, 
+      user_id, sku_flow_date, send_time, 
+      receive_time)
+    values (#{id,jdbcType=BIGINT}, #{skuFlowId,jdbcType=VARCHAR}, #{skuId,jdbcType=VARCHAR}, 
+      #{userId,jdbcType=VARCHAR}, #{skuFlowDate,jdbcType=DATE}, #{sendTime,jdbcType=TIMESTAMP}, 
+      #{receiveTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertByList">
+    insert into replay_sku_flow_user_info
+    (
+    sku_flow_id,
+    sku_id,
+    user_id,
+    sku_flow_date,
+    send_time,
+    receive_time
+    )
+    VALUES
+    <foreach collection="list" item="item" index="index" separator=",">
+      (
+      #{item.skuFlowId,jdbcType=VARCHAR},
+      #{item.skuId,jdbcType=VARCHAR},
+      #{item.userId,jdbcType=VARCHAR},
+      #{item.skuFlowDate,jdbcType=TIMESTAMP},
+      #{item.sendTime,jdbcType=TIMESTAMP},
+      #{item.receiveTime,jdbcType=TIMESTAMP}
+      )
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    insert into replay_sku_flow_user_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="skuFlowId != null">
+        sku_flow_id,
+      </if>
+      <if test="skuId != null">
+        sku_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="skuFlowDate != null">
+        sku_flow_date,
+      </if>
+      <if test="sendTime != null">
+        send_time,
+      </if>
+      <if test="receiveTime != null">
+        receive_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="skuFlowId != null">
+        #{skuFlowId,jdbcType=VARCHAR},
+      </if>
+      <if test="skuId != null">
+        #{skuId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="skuFlowDate != null">
+        #{skuFlowDate,jdbcType=DATE},
+      </if>
+      <if test="sendTime != null">
+        #{sendTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveTime != null">
+        #{receiveTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    update replay_sku_flow_user_info
+    <set>
+      <if test="skuFlowId != null">
+        sku_flow_id = #{skuFlowId,jdbcType=VARCHAR},
+      </if>
+      <if test="skuId != null">
+        sku_id = #{skuId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="skuFlowDate != null">
+        sku_flow_date = #{skuFlowDate,jdbcType=DATE},
+      </if>
+      <if test="sendTime != null">
+        send_time = #{sendTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveTime != null">
+        receive_time = #{receiveTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlowUserInfo">
+    update replay_sku_flow_user_info
+    set sku_flow_id = #{skuFlowId,jdbcType=VARCHAR},
+      sku_id = #{skuId,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      sku_flow_date = #{skuFlowDate,jdbcType=DATE},
+      send_time = #{sendTime,jdbcType=TIMESTAMP},
+      receive_time = #{receiveTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="queryUvBySku" resultType="com.wanmi.ares.report.goods.model.root.SkuReport">
+    select id,totalUv from (
+      select sku_id id,count(distinct user_id) totalUv
+      from replay_sku_flow_user_info
+      <where>
+        <if test="begDate != null">
+           and sku_flow_date &gt;= #{begDate}
+        </if>
+        <if test="endDate != null">
+          and sku_flow_date &lt;= #{endDate}
+        </if>
+        <if test="ids != null and ids.size > 0">
+          and sku_id in
+          <foreach collection="ids" item="item" index="index"  open="(" separator="," close=")">
+            #{item}
+          </foreach>
+        </if>
+      </where>
+     GROUP BY sku_id
+    ) a where a.id is not null
+  </select>
+</mapper>

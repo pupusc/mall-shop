@@ -1,0 +1,15 @@
+${AnsiColor.BRIGHT_MAGENTA}
+ ________  _____ ______   ________
+|\   ____\|\   _ \  _   \|\   ____\
+\ \  \___|\ \  \\\__\ \  \ \  \___|_
+ \ \_____  \ \  \\|__| \  \ \_____  \
+  \|____|\  \ \  \    \ \  \|____|\  \
+    ____\_\  \ \__\    \ \__\____\_\  \
+   |\_________\|__|     \|__|\_________\
+   \|_________|             \|_________|
+${AnsiColor.DEFAULT}
+===============================================================================================
+     :: application name    :: ${AnsiColor.GREEN}${info.app.name}${AnsiColor.DEFAULT}
+     :: application version :: ${AnsiColor.GREEN}${info.build.version}${AnsiColor.DEFAULT}
+     :: spring-boot version :: ${AnsiColor.GREEN}${spring-boot.version}${AnsiColor.DEFAULT}
+===============================================================================================

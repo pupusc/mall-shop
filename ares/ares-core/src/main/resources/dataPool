@@ -1,0 +1,185 @@
+{
+  "properties": {
+    "companyId": {
+      "index": "not_analyzed",
+      "type": "string"
+    },
+    "realAmt": {
+      "type": "double"
+    },
+    "skus": {
+      "type": "nested",
+      "properties": {
+        "operationDate": {
+          "format": "yyyy-MM-dd",
+          "type": "date"
+        },
+        "addedFlag": {
+          "type": "boolean"
+        },
+        "leafCateId": {
+          "type": "long"
+        },
+        "goodsId": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "goodsInfoName": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "num": {
+          "type": "long"
+        },
+        "storeCateIds": {
+          "type": "long"
+        },
+        "cateIds": {
+          "type": "long"
+        },
+        "saleDate": {
+          "format": "yyyy-MM-dd",
+          "type": "date"
+        },
+        "delFlag": {
+          "type": "boolean"
+        },
+        "type": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "sendTime": {
+          "format": "yyyy-MM-dd HH:mm:ss.SSS",
+          "type": "date"
+        },
+        "receiveTime": {
+          "format": "yyyy-MM-dd HH:mm:ss.SSS",
+          "type": "date"
+        },
+        "companyId": {
+          "index": "not_analyzed",
+          "type": "string"
+        },
+        "submitTime": {
+          "format": "yyyy-MM-dd",
+          "type": "date"
+        },
+        "leafStoreCateIds": {
+          "type": "long"
+        },
+        "price": {
+          "type": "double"
+        },
+        "brandId": {
+          "type": "long"
+        },
+        "addedTime": {
+          "format": "yyyy-MM-dd",
+          "type": "date"
+        },
+        "id": {
+          "type": "string"
+        },
+        "goodsInfoNo": {
+          "index": "not_analyzed",
+          "type": "string"
+        }
+      }
+    },
+    "customerId": {
+      "index": "not_analyzed",
+      "type": "string"
+    },
+    "murCustomerId": {
+      "type": "string",
+      "index": "not_analyzed",
+      "fields": {
+        "hash": {
+          "type": "murmur3"
+        }
+      }
+    },
+    "id": {
+      "type": "string"
+    },
+    "orderNo": {
+      "type": "string",
+      "index": "not_analyzed",
+      "fields": {
+        "hash": {
+          "type": "murmur3"
+        }
+      }
+    },
+    "orderAmt": {
+      "type": "double"
+    },
+    "time": {
+      "format": "yyyy-MM-dd",
+      "type": "date"
+    },
+    "employeeCompanyId": {
+      "index": "not_analyzed",
+      "type": "string"
+    },
+    "type": {
+      "index": "not_analyzed",
+      "type": "string"
+    },
+    "buyer": {
+      "type": "nested",
+      "properties": {
+        "operationDate": {
+          "format": "yyyy-MM-dd",
+          "type": "date"
+        },
+        "boss": {
+          "type": "boolean"
+        },
+        "employeeId": {
+          "type": "string"
+        },
+        "cityId": {
+          "type": "string"
+        },
+        "checkDate": {
+          "format": "strict_date_optional_time||epoch_millis",
+          "type": "date"
+        },
+        "delFlag": {
+          "type": "boolean"
+        },
+        "sendTime": {
+          "format": "yyyy-MM-dd HH:mm:ss.SSS",
+          "type": "date"
+        },
+        "receiveTime": {
+          "format": "yyyy-MM-dd HH:mm:ss.SSS",
+          "type": "date"
+        },
+        "companyId": {
+          "type": "string"
+        },
+        "bindDate": {
+          "format": "strict_date_optional_time||epoch_millis",
+          "type": "date"
+        },
+        "levelId": {
+          "type": "string"
+        },
+        "checkState": {
+          "type": "long"
+        },
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "account": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

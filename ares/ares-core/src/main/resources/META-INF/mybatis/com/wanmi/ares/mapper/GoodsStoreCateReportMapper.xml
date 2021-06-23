@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.goods.dao.GoodsStoreCateReportMapper" >
+
+    <sql id="commonAddColSql">
+      CATE_ID,ORDER_COUNT,ORDER_MONEY,ORDER_NUM,PAY_COUNT,PAY_NUM,PAY_MONEY,REFUND_COUNT,REFUND_MONEY,REFUND_NUM,SHOP_ID,CREATE_TM,IS_LEAF
+    </sql>
+
+    <sql id="commonAddPropSql">
+      #{item.id},#{item.orderCount},#{item.orderAmt},#{item.orderNum},#{item.payCount},#{item.payNum},#{item.payAmt},#{item.returnOrderCount},#{item.returnOrderAmt},#{item.returnOrderNum},#{item.companyId},now(),#{item.isLeaf}
+    </sql>
+
+    <sql id="commonWhereSql">
+        WHERE SHOP_ID = #{companyId}
+        <if test="ids != null and ids.size > 0">
+            and CATE_ID in
+            <foreach collection="ids" item="item" index="index"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="isLeaf != null">
+            AND IS_LEAF = #{isLeaf}
+        </if>
+
+        <if test="date != null">
+            AND STAT_DATE = date_format(#{date},'%Y-%m-%d')
+        </if>
+        <if test="month != null">
+            AND STAT_MONTH = #{month}
+        </if>
+        <if test="year != null">
+            AND STAT_YEAR = #{year}
+        </if>
+    </sql>
+
+    <sql id="commonQuerySql">
+        SELECT
+          CATE_ID AS id,
+          ORDER_COUNT AS orderCount,
+          ORDER_MONEY AS orderAmt,
+          ORDER_NUM AS orderNum,
+          PAY_COUNT AS payCount,
+          PAY_NUM AS payNum,
+          PAY_MONEY AS payAmt,
+          REFUND_COUNT AS returnOrderCount,
+          REFUND_MONEY AS returnOrderAmt,
+          REFUND_NUM AS returnOrderNum,
+          SHOP_ID AS companyId
+        FROM ${table}
+    </sql>
+
+    <select id="queryStoreCateReport" resultType="com.wanmi.ares.report.goods.model.root.GoodsReport">
+        <include refid="commonQuerySql"/>
+        <include refid="commonWhereSql"/>
+        ORDER BY #{sortCol} #{sortType}, CATE_ID ASC
+        limit #{number}, #{size}
+    </select>
+
+    <select id="countStoreCateReport" resultType="long">
+        SELECT COUNT(1) FROM ${table}
+        <include refid="commonWhereSql"/>
+    </select>
+    
+    <insert id="saveDayReport">
+        REPLACE INTO GOODS_STORE_CATE_DAY (ID,STAT_DATE,<include refid="commonAddColSql"/>) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (CONCAT(#{item.id},#{item.companyId},'0'),#{item.date},<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveYesterdayDayReport">
+        REPLACE INTO GOODS_STORE_CATE_DAY (ID,STAT_DATE,<include refid="commonAddColSql"/>) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (CONCAT(#{item.id},#{item.companyId},'1'),#{item.date},<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveSevenDayReport">
+        INSERT INTO GOODS_STORE_CATE_RECENT_SEVEN (<include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+           (<include refid="commonAddPropSql"/>)
+        </foreach>;
+    </insert>
+
+    <insert id="saveThirtyDayReport">
+        INSERT INTO GOODS_STORE_CATE_RECENT_THIRTY (<include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+           (<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <insert id="saveMonthReport">
+        REPLACE INTO GOODS_STORE_CATE_MONTH (ID, STAT_MONTH, <include refid="commonAddColSql"/>)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+            (CONCAT(#{item.id},#{item.companyId},#{item.date}),CONVERT(#{item.date},SIGNED),<include refid="commonAddPropSql"/>)
+        </foreach>
+    </insert>
+
+    <delete id="delSevenDayReport">
+        TRUNCATE TABLE GOODS_STORE_CATE_RECENT_SEVEN
+    </delete>
+
+    <delete id="delThirtyDayReport">
+        TRUNCATE TABLE GOODS_STORE_CATE_RECENT_THIRTY
+    </delete>
+
+    <delete id="delDayReport" parameterType="String">
+        DELETE FROM GOODS_STORE_CATE_DAY WHERE STAT_DATE &lt;= date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="delMonthReport" parameterType="int">
+        DELETE FROM GOODS_STORE_CATE_MONTH WHERE STAT_MONTH &lt;= #{date}
+    </delete>
+</mapper>

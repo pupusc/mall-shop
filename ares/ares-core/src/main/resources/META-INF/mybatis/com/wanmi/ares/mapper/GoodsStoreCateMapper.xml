@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.goods.dao.GoodsStoreCateMapper" >
+
+    <sql id="commonAddColSql">
+      SHOP_ID,CATE_ID,ORDER_COUNT,ORDER_MONEY,ORDER_NUM,PAY_COUNT,PAY_MONEY,PAY_NUM,REFUND_COUNT,REFUND_MONEY,REFUND_NUM,CREATE_TM,IS_LEAF
+    </sql>
+
+    <sql id="commonWhereSql">
+        WHERE SHOP_ID = #{companyId}
+        <if test="ids != null and ids.size > 0">
+            and CATE_ID in
+            <foreach collection="ids" item="item" index="index"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="isLeaf != null">
+            AND IS_LEAF = #{isLeaf}
+        </if>
+
+        <if test="date != null">
+            AND STAT_DATE = date_format(#{date},'%Y-%m-%d')
+        </if>
+        <if test="begDate!=null">
+            and stat_date &gt;=#{begDate}
+        </if>
+        <if test="endDate!=null">
+            and stat_date &lt;= #{endDate}
+        </if>
+        <if test="month != null">
+            AND STAT_MONTH = #{month}
+        </if>
+        <if test="year != null">
+            AND STAT_YEAR = #{year}
+        </if>
+    </sql>
+    <sql id="commonQuerySql">
+        SELECT
+          CATE_ID AS id,
+          ORDER_COUNT AS orderCount,
+          ORDER_MONEY AS orderAmt,
+          ORDER_NUM AS orderNum,
+          PAY_COUNT AS payCount,
+          PAY_NUM AS payNum,
+          PAY_MONEY AS payAmt,
+          REFUND_COUNT AS returnOrderCount,
+          REFUND_MONEY AS returnOrderAmt,
+          REFUND_NUM AS returnOrderNum,
+          SHOP_ID AS companyId
+        FROM ${table}
+    </sql>
+    <sql id="statisticsQuery">
+         select
+            companyId,
+            storeCateId,
+            COALESCE(sum(orderCount),0) orderCount,
+            COALESCE(sum(orderPrice),0) orderPrice,
+            COALESCE(sum(orderNum),0) orderNum,
+            COALESCE(sum(payCount),0) payCount,
+            COALESCE(sum(payPrice),0) payPrice,
+            COALESCE(sum(payNum),0) payNum,
+            COALESCE(sum(returnCount),0) returnCount,
+            COALESCE(sum(returnPrice),0) returnPrice,
+            COALESCE(sum(returnNum),0) returnNum,
+            now(),
+            1
+        from(
+
+            select
+                a.companyId,
+                a.storeCateId,
+                a.orderCount,
+                a.orderPrice,
+                a.orderNum,
+                0 payCount,
+                0 payPrice,
+                0 payNum,
+                0 returnCount,
+                0 returnPrice,
+                0 returnNum
+            from(
+                 select
+                    t.company_id companyId,
+                    s.store_cate_id storeCateId,
+                     count(1) orderCount,
+                     sum(level_price*num) orderPrice,
+                     sum(num) orderNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                join replay_store_cate_goods_rela s on (i.spu_id=s.goods_id)
+                where t.create_time &gt;= #{beginTime} and t.create_time &lt; #{endTime}
+                group by t.company_id,s.store_cate_id
+            ) a
+            union all (
+                select
+                    t.company_id companyId,
+                    s.store_cate_id storeCateId,
+                    0 orderCount,
+                    0 orderPrice,
+                    0 orderNum,
+                    count(1) orderCount,
+                    sum(level_price*num) orderPrice,
+                    sum(num) orderNum,
+                    0 returnCount,
+                    0 returnPrice,
+                    0 returnNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                 join replay_store_cate_goods_rela s on (i.spu_id=s.goods_id)
+                where t.create_time &gt;= #{beginTime} and t.create_time &lt; #{endTime} and t.pay_state=2
+                group by  t.company_id,s.store_cate_id
+            )
+            union all
+            (
+                select
+                    o.company_id companyId,
+                    s.store_cate_id storeCateId,
+                    0 orderCount,
+                    0  orderPrice,
+                    0 orderNum,
+                    0 payCount,
+                    0 payPrice,
+                    0 payNum,
+                    count(i.id) returnCount,
+                    sum(i.price*i.num) returnPrice,
+                    sum(i.num) returnNum
+                from replay_return_order o
+                left join replay_return_item i on(o.rid=i.rid)
+				join replay_store_cate_goods_rela s on (i.spu_id=s.goods_id)
+                where finish_time &gt;= #{beginTime} and finish_time &lt; #{endTime}
+                group by o.company_id,s.store_cate_id
+            )
+        ) g where storeCateId is not null GROUP BY companyId,storeCateId
+
+    </sql>
+
+    <select id="queryGoodsCateReport" resultType="com.wanmi.ares.report.goods.model.root.GoodsReport">
+        <include refid="commonQuerySql"/>
+        <include refid="commonWhereSql"/>
+        ORDER BY ${sortCol} ${sortType}, CATE_ID ASC
+        limit #{number}, #{size}
+    </select>
+
+    <select id="countGoodsCateReport" resultType="long">
+        SELECT COUNT(1) FROM ${table}
+        <include refid="commonWhereSql"/>
+    </select>
+    <select id="queryGoodsCateReportByCateId" resultType="com.wanmi.ares.report.goods.model.root.GoodsReport">
+        select
+            sum(order_count) orderCount,
+            sum(order_money) orderAmt,
+            sum(order_num) orderNum,
+            sum(pay_count) payCount,
+            sum(pay_money) payAmt,
+            sum(pay_num) payNum,
+            sum(REFUND_count) returnOrderCount,
+            sum(REFUND_money) returnOrderAmt,
+            sum(REFUND_num) returnOrderNum
+        from ${table} report
+      <include refid="commonWhereSql"/>
+        ORDER BY ${sortCol} ${sortType}, CATE_ID ASC
+        limit #{number}, #{size}
+    </select>
+
+    <select id="queryStoreCateChild" resultType="long">
+        select store_cate_id from replay_store_cate where cate_path like concat('%',${cateId},'%')
+    </select>
+    <select id="queryGoodsStoreCateReportByExport" resultType="com.wanmi.ares.report.goods.model.root.GoodsCateReport">
+        select a.*,
+            b.cate_name cateName,
+            b.cate_parent_id cateParentId,
+            c.cate_name cateParentName
+        from
+        (
+            select
+                cate_id id,
+                sum(order_count) orderCount,
+                sum(order_money) orderAmt,
+                sum(order_num) orderNum,
+                sum(pay_count) payCount,
+                sum(pay_money) payAmt,
+                sum(pay_num) payNum,
+                sum(REFUND_count) returnOrderCount,
+                sum(REFUND_money) returnOrderAmt,
+                sum(REFUND_num) returnOrderNum
+            from goods_store_cate_day report
+            <include refid="commonWhereSql"/>
+            group by cate_id
+            ORDER BY  CATE_ID ASC
+        )a
+        left join replay_store_cate b on(a.id = b.store_cate_id)
+        left join replay_store_cate c on(b.cate_parent_id = c.store_cate_id)
+    </select>
+    <delete id="delSevenDayReport">
+        TRUNCATE TABLE GOODS_STORE_CATE_RECENT_SEVEN
+    </delete>
+
+    <delete id="delThirtyDayReport">
+        TRUNCATE TABLE GOODS_STORE_CATE_RECENT_THIRTY
+    </delete>
+
+    <delete id="delDayReport" parameterType="String">
+        DELETE FROM GOODS_STORE_CATE_DAY WHERE STAT_DATE = date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="delMonthReport" parameterType="int">
+        DELETE FROM GOODS_STORE_CATE_MONTH WHERE STAT_MONTH = #{date}
+    </delete>
+
+    <insert id="saveDayReportBySelect">
+        insert into GOODS_STORE_CATE_DAY(
+          <include refid="commonAddColSql"/>
+          ,STAT_DATE,id
+        )
+        select statistic.*,#{statDate},CONCAT(#{statDate},',',statistic.companyId,',',statistic.storeCateId) from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveMonthReportBySelect">
+        insert into GOODS_STORE_CATE_MONTH(
+          <include refid="commonAddColSql"/>
+          ,STAT_MONTH,ID
+        )
+        select statistic.*,${statDate},CONCAT(#{statDate},',',statistic.companyId,',',statistic.storeCateId) from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveSevenDayReportBySelect">
+        insert into GOODS_STORE_CATE_RECENT_SEVEN(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveThirtyDayReportBySelect">
+        insert into GOODS_STORE_CATE_RECENT_THIRTY(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+</mapper>

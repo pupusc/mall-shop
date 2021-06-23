@@ -1,0 +1,19 @@
+@startuml
+start
+:商品标签新增/编辑;
+if(是否名称重复) then (yes)
+ :提示名称重复提示;
+endif
+if(是否超过数据限制) then (yes)
+ :提示超限提示;
+endif
+:更新标签信息;
+:更新相关ES商品信息;
+:操作成功;
+partition 标签删除/开启/关闭 {
+   :更新标签信息;
+   :更新相关ES商品信息;
+}
+:操作成功;
+stop
+@enduml

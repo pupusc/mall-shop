@@ -1,0 +1,27 @@
+@startuml
+start
+:访问商家端;
+:商品发布;
+:填写ERP商品编码;
+:点击”批量同步按钮“;
+:组装erp接口调用参数;
+:调用ERP商品查询接口(gy.erp.items.get)
+,获取成本价和规格值(ERP接口不支持自定义规格名称);
+    if (接口调用是否成功) then (success=true)
+         :调用新库存查询接口(gy.erp.new.stock.get);
+       if(接口调用是否成功) then (success =true)
+         :解析报文;
+         :获取库存数据;
+       elseif (success = false)
+         :解析报文;
+         :抛出errorDesc;
+       else (接口异常)
+         :抛出异常;
+       endif;
+    elseif (success = false)
+       :抛出errorDesc;
+    else (接口异常)
+       :抛出异常;
+    endif;
+stop;
+@enduml

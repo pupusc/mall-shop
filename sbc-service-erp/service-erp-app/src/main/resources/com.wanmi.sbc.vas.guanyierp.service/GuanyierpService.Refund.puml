@@ -1,0 +1,57 @@
+@startuml
+start
+:用户商城端申请退款;
+if(订单全部发货) then (yes)
+   :待用户确认收货（标品逻辑）;
+   if (是否确认收货) then (yes)
+       :申请退货;
+   else
+       :不支持申请售后;
+       stop;
+   endif;
+   :展示订单所有商品;
+   :选择商品申请退货退款;
+elseif(订单部分发货) then (yes)
+   :不支持申请售后;
+   :前端不显示申请售后按钮;
+   stop;
+elseif(订单未发货) then (yes)
+   :点击退款;
+   :展示订单所有商品;
+   :选择商品申请退货退款;
+   :系统根据商品的供应商id进行退单拆单;
+endif;
+:选择待退款商品列表;
+/'if(判断订单类型) then (ERP订单)
+   :调用ERP退款接口(gy.erp.trade.return.add)--待定逻辑;
+elseif(商城订单)
+   :调用标品退款逻辑;
+endif'/
+:退单拆单;
+if(商家端审核) then (通过)
+    :商家端操作退款;
+    :调用ERP发货单查询接口(查看商品状态);
+    :商家操作退款校验erp订单是否发货;
+    if(商品已发货)
+        :审核不通过,商品已发货;
+        :商家进行退单驳货操作;
+    elseif (商品未发货)
+        :审核通过;
+        :调erp系统订单退款状态修改(gy.erp.trade.refund.update);
+        :调ERP系统新增退货单接口(gy.erp.trade.return.add);
+        :调用ERP订单拦截接口(gy.erp.trade.intercept);
+        if(接口调用是否成功) then (success)
+             :返商城库存（ERP库存不需要单独调接口返还）;
+             :继续退款逻辑;
+        else (fail)
+            :退款失败;
+        endif;
+    else
+        :抛出异常;
+        stop;
+    endif
+else (驳回)
+    :调用标品驳回逻辑;
+endif
+stop;
+@enduml

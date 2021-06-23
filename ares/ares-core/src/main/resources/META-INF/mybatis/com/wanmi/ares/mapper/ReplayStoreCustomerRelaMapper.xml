@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.ares.report.employee.dao.ReplayStoreCustomerRelaMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.ares.report.employee.model.root.ReplayStoreCustomerRela">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="customer_id" jdbcType="VARCHAR" property="customerId" />
+    <result column="store_id" jdbcType="BIGINT" property="storeId" />
+    <result column="company_info_id" jdbcType="INTEGER" property="companyInfoId" />
+    <result column="store_level_id" jdbcType="BIGINT" property="storeLevelId" />
+    <result column="employee_id" jdbcType="VARCHAR" property="employeeId" />
+    <result column="customer_type" jdbcType="TINYINT" property="customerType" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="total" jdbcType="BIGINT" property="total" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    a.id, a.customer_id, a.store_id, a.company_info_id, a.store_level_id, a.employee_id, a.customer_type,
+    a.create_time, count(1) as total
+  </sql>
+  <select id="selectTotal" resultMap="BaseResultMap" parameterType="java.util.Map">
+    select 
+    <include refid="Base_Column_List" />
+    from replay_store_customer_rela a
+    inner JOIN replay_customer b ON a.customer_id = b.customer_id AND b.check_state = 1
+    WHERE  a.employee_id is not null
+    AND a.employee_id != ''
+    <if test="startTime != null and endTime != null">
+      and a.create_time  between  #{startTime} and #{endTime}
+    </if>
+    <if test="employeeId != null">
+      and a.employee_id = #{employeeId}
+    </if>
+    GROUP BY a.employee_id
+  </select>
+
+  <select id="findTotal" resultType="java.util.Map" parameterType="java.util.Map">
+    SELECT
+	c.employee_id, count(1) as total
+    FROM
+	replay_customer a
+	INNER JOIN replay_customer_detail b ON a.customer_id = b.customer_id
+    <if test="startTime != null and endTime != null">
+	  and a.check_time BETWEEN #{startTime} and #{endTime}
+    </if>
+	INNER JOIN replay_employee c ON b.employee_id = c.employee_id
+    WHERE
+	c.account_type = 1
+    <if test="employeeId != null">
+      and c.employee_id = #{employeeId}
+    </if>
+	GROUP BY c.employee_id
+  </select>
+</mapper>

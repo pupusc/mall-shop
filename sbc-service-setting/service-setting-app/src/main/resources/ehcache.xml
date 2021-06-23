@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+         updateCheck="false">
+    <diskStore path="java.io.tmpdir/Tmp_EhCache" />
+
+    <defaultCache eternal="false" maxElementsInMemory="1000" overflowToDisk="false" diskPersistent="false"
+                  timeToLiveSeconds="60" memoryStoreEvictionPolicy="LRU" />
+
+    <cache name="GOODS_EVALUATE_CONFIG"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="300">
+    </cache>
+
+    <cache name="THIRD_PLATFORM_CONFIG_LINKEDMALL"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="300">
+    </cache>
+</ehcache>

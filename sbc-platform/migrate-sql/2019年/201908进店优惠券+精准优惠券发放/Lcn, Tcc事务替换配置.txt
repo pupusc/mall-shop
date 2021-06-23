@@ -1,0 +1,24 @@
+去除DogTcc事务配置，涉及以下服务：
+bff-manager-s2b-boss, bff-manager-s2b-supplier, bff-web-2b-mobile, bff-web-2b-pc,
+service-pay-app, service-account-app, service-order-app, service-setting-app,
+service-goods-app, service-marketing-app, service-customer-app
+例如删除order-app以下配置：
+# dog tcc
+# ----------------------------------------
+redis.config.address=116.62.44.71:6379
+redis.config.connectionPoolSize=500
+redis.config.idleConnectionTimeout=10000
+redis.config.connectTimeout=10000
+redis.config.timeout=3000
+redis.config.pingTimeout=30000
+redis.config.reconnectionTimeout=30000
+redis.config.database=0
+dog.zookeeper.connectString=116.62.44.71:2181
+dog.zookeeper.sessionTimeout=100000
+dog.zookeeper.application=default
+dog.zookeeper.path=/dog
+dog.zookeeper.recoveryperiod=120
+dog.zookeeper.initialdeplay=60
+dog.application.applicationname=sbc-service-order
+dog.zookeeper.poolsize=2
+# ----------------------------------------

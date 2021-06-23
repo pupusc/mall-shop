@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "clean": "mvn clean",
+    "package": "mvn clean org.codehaus.mojo:buildnumber-maven-plugin:create-timestamp  package",
+    "push": "mvn clean  org.codehaus.mojo:buildnumber-maven-plugin:create-timestamp package   docker:build",
+    "deploy": "mvn clean org.codehaus.mojo:buildnumber-maven-plugin:create-timestamp package  docker:build && cd target/helm && chmod 777 deploy.bat && ./deploy.bat",
+
+    "deploy:win": "mvn clean org.codehaus.mojo:buildnumber-maven-plugin:create-timestamp package  docker:build && cd target/helm  && deploy.bat",
+    "update": "mvn clean org.codehaus.mojo:buildnumber-maven-plugin:create-timestamp  package  docker:build && cd target/helm && chmod 777 upgrade.bat && ./upgrade.bat",
+    "rollback": "mvn clean resources:resources && cd target/helm && rollback.bat"
+  }
+}

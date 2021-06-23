@@ -1,0 +1,15 @@
+@startuml
+start
+:调用boss端方法;
+:调用goods服务初始化linkedmall商品;
+:查询linkedmall店铺信息(系统初始化配置);
+repeat
+:调用linkedmall服务分页查询商品信息;
+repeat
+:调用linkedmall服务查询商品详细信息;
+:包装linkedmall商品信息;
+:存入数据库;
+:导入商品库;
+repeat while (是否有下一页)
+end
+@enduml

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.EmployeeMapper">
+
+    <resultMap id="employeeMap" type="com.wanmi.ares.source.model.root.Employee">
+        <id property="id" column="id"/>
+        <result property="operationDate" column="operation_date"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="receiveTime" column="receive_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="isEmployee" column="is_employee"/>
+        <result property="name" column="name"/>
+        <result property="mobile" column="mobile"/>
+        <result property="companyId" column="company_id"/>
+    </resultMap>
+
+    <sql id="employee_col">
+        id, operation_date, send_time, receive_time, del_flag, is_employee, name, mobile, company_id
+    </sql>
+
+    <select id="queryById" resultMap="employeeMap">
+        SELECT
+        <include refid="employee_col"/>
+        FROM employee WHERE id = #{employeeId}
+    </select>
+
+    <!--List<Employee> queryByIds(@Param("employeeIds") List<String> employeeIds);-->
+    <select id="queryByIds" resultMap="employeeMap">
+        SELECT
+        <include refid="employee_col"/>
+        FROM employee WHERE id IN
+        <foreach collection="employeeIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryEmployeeByIds" resultType="java.util.Map">
+        SELECT
+        *
+        FROM replay_employee WHERE employee_id IN
+        <foreach collection="employeeIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--List<Employee> queryByKeyWords(@Param("keyWords") String keyWords);-->
+    <select id="queryByKeyWords" resultMap="employeeMap">
+        SELECT
+        <include refid="employee_col"/>
+        FROM employee
+        <where>
+            <if test="keyWords != null">
+                AND name LIKE '%#{keyWords}%'
+            </if>
+        </where>
+    </select>
+
+    <select id="queryEmployeeByKeyWords" resultType="java.util.Map" parameterType="java.lang.String">
+        SELECT
+        *
+        FROM replay_employee
+        <where>
+            <if test="keyWords != null">
+                AND employee_name LIKE '%${keyWords}%'
+            </if>
+        </where>
+    </select>
+
+    <update id="updateById">
+        UPDATE employee
+        <set>
+            <if test="employee.operationDate != null">
+                operation_date = #{employee.operationDate},
+            </if>
+            <if test="employee.sendTime != null">
+                send_time = #{employee.sendTime},
+            </if>
+            <if test="employee.receiveTime != null">
+                receive_time = #{employee.receiveTime},
+            </if>
+            <if test="employee.delFlag != null">
+                del_flag = #{employee.delFlag},
+            </if>
+            <if test="employee.isEmployee != null">
+                is_employee = #{employee.isEmployee},
+            </if>
+            <if test="employee.name != null">
+                name = #{employee.name},
+            </if>
+            <if test="employee.mobile != null">
+                mobile = #{employee.mobile},
+            </if>
+            <if test="employee.companyId != null">
+                company_id = #{employee.companyId},
+            </if>
+        </set>
+        WHERE id = #{employee.id}
+    </update>
+
+    <update id="deleteById">
+        UPDATE employee
+        SET del_flag = 1
+        WHERE id = #{employeeId}
+    </update>
+
+
+    <insert id="insert">
+        INSERT INTO employee (<include refid="employee_col"/>) VALUES
+        (
+        #{employee.id},
+        #{employee.operationDate},
+        #{employee.sendTime},
+        #{employee.receiveTime},
+        #{employee.delFlag},
+        #{employee.isEmployee},
+        #{employee.name},
+        #{employee.mobile},
+        #{employee.companyId}
+        )
+    </insert>
+
+</mapper>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.ares.report.flow.dao.ReplaySkuFlowMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="sku_id" jdbcType="VARCHAR" property="skuId" />
+    <result column="company_id" jdbcType="VARCHAR" property="companyId" />
+    <result column="pc_pv" jdbcType="BIGINT" property="pcPv" />
+    <result column="h5_pv" jdbcType="BIGINT" property="h5Pv" />
+    <result column="app_pv" jdbcType="BIGINT" property="appPv" />
+    <result column="total_pv" jdbcType="BIGINT" property="totalPv" />
+    <result column="pc_uv" jdbcType="BIGINT" property="pcUv" />
+    <result column="h5_uv" jdbcType="BIGINT" property="h5Uv" />
+    <result column="app_uv" jdbcType="BIGINT" property="appUv" />
+    <result column="total_uv" jdbcType="BIGINT" property="totalUv" />
+    <result column="send_time" jdbcType="TIMESTAMP" property="sendTime" />
+    <result column="receive_time" jdbcType="TIMESTAMP" property="receiveTime" />
+    <result column="sku_flow_date" jdbcType="DATE" property="skuFlowDate" />
+    <result column="sku_flow_month" jdbcType="VARCHAR" property="skuFlowMonth" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, sku_id, company_id, pc_pv, h5_pv, app_pv, total_pv, pc_uv, h5_uv, app_uv, total_uv, 
+    send_time, receive_time, sku_flow_date, sku_flow_month
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from replay_sku_flow
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from replay_sku_flow
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <delete id="deleteByPrimary" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow">
+    delete from replay_sku_flow
+    where 1=1
+    <if test="id != null">
+      and id = #{id,jdbcType=VARCHAR}
+    </if>
+    <if test="skuId != null">
+      and sku_id = #{skuId,jdbcType=VARCHAR}
+    </if>
+    <if test="skuIds != null and skuIds.size > 0">
+      and sku_id in
+      <foreach collection="skuIds" item="item" index="index"  open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+    <if test='companyId != null and companyId!="" '>
+      and company_id = #{companyId,jdbcType=VARCHAR}
+    </if>
+    <if test="pcPv != null">
+      and pc_pv = #{pcPv,jdbcType=BIGINT}
+    </if>
+    <if test="h5Pv != null">
+      and h5_pv = #{h5Pv,jdbcType=BIGINT}
+    </if>
+    <if test="appPv != null">
+      and app_pv = #{appPv,jdbcType=BIGINT}
+    </if>
+    <if test="totalPv != null">
+      and total_pv = #{totalPv,jdbcType=BIGINT}
+    </if>
+    <if test="pcUv != null">
+      and pc_uv = #{pcUv,jdbcType=BIGINT}
+    </if>
+    <if test="h5Uv != null">
+      and h5_uv = #{h5Uv,jdbcType=BIGINT}
+    </if>
+    <if test="appUv != null">
+      and app_uv = #{appUv,jdbcType=BIGINT}
+    </if>
+    <if test="totalUv != null">
+      and total_uv = #{totalUv,jdbcType=BIGINT}
+    </if>
+    <if test="sendTime != null">
+      and send_time = #{sendTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="receiveTime != null">
+      and receive_time = #{receiveTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="skuFlowDate != null">
+      and sku_flow_date = #{skuFlowDate,jdbcType=DATE}
+    </if>
+    <if test='skuFlowMonth != null and skuFlowMonth!="" '>
+      and sku_flow_month = #{skuFlowMonth,jdbcType=VARCHAR}
+    </if>
+  </delete>
+
+  <insert id="insert" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow" useGeneratedKeys="true" keyProperty="id">
+    insert into replay_sku_flow (sku_id, company_id,
+      pc_pv, h5_pv, app_pv, total_pv, 
+      pc_uv, h5_uv, app_uv, total_uv, 
+      send_time, receive_time, sku_flow_date, 
+      sku_flow_month)
+    values (#{skuId,jdbcType=VARCHAR}, #{companyId,jdbcType=VARCHAR},
+      #{pcPv,jdbcType=BIGINT}, #{h5Pv,jdbcType=BIGINT}, #{appPv,jdbcType=BIGINT}, #{totalPv,jdbcType=BIGINT}, 
+      #{pcUv,jdbcType=BIGINT}, #{h5Uv,jdbcType=BIGINT}, #{appUv,jdbcType=BIGINT}, #{totalUv,jdbcType=BIGINT}, 
+      #{sendTime,jdbcType=TIMESTAMP}, #{receiveTime,jdbcType=TIMESTAMP}, #{skuFlowDate,jdbcType=DATE}, 
+      #{skuFlowMonth,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow">
+    insert into replay_sku_flow
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="skuId != null">
+        sku_id,
+      </if>
+      <if test="companyId != null">
+        company_id,
+      </if>
+      <if test="pcPv != null">
+        pc_pv,
+      </if>
+      <if test="h5Pv != null">
+        h5_pv,
+      </if>
+      <if test="appPv != null">
+        app_pv,
+      </if>
+      <if test="totalPv != null">
+        total_pv,
+      </if>
+      <if test="pcUv != null">
+        pc_uv,
+      </if>
+      <if test="h5Uv != null">
+        h5_uv,
+      </if>
+      <if test="appUv != null">
+        app_uv,
+      </if>
+      <if test="totalUv != null">
+        total_uv,
+      </if>
+      <if test="sendTime != null">
+        send_time,
+      </if>
+      <if test="receiveTime != null">
+        receive_time,
+      </if>
+      <if test="skuFlowDate != null">
+        sku_flow_date,
+      </if>
+      <if test="skuFlowMonth != null">
+        sku_flow_month,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="skuId != null">
+        #{skuId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="pcPv != null">
+        #{pcPv,jdbcType=BIGINT},
+      </if>
+      <if test="h5Pv != null">
+        #{h5Pv,jdbcType=BIGINT},
+      </if>
+      <if test="appPv != null">
+        #{appPv,jdbcType=BIGINT},
+      </if>
+      <if test="totalPv != null">
+        #{totalPv,jdbcType=BIGINT},
+      </if>
+      <if test="pcUv != null">
+        #{pcUv,jdbcType=BIGINT},
+      </if>
+      <if test="h5Uv != null">
+        #{h5Uv,jdbcType=BIGINT},
+      </if>
+      <if test="appUv != null">
+        #{appUv,jdbcType=BIGINT},
+      </if>
+      <if test="totalUv != null">
+        #{totalUv,jdbcType=BIGINT},
+      </if>
+      <if test="sendTime != null">
+        #{sendTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveTime != null">
+        #{receiveTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="skuFlowDate != null">
+        #{skuFlowDate,jdbcType=DATE},
+      </if>
+      <if test="skuFlowMonth != null">
+        #{skuFlowMonth,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow">
+    update replay_sku_flow
+    <set>
+      <if test="skuId != null">
+        sku_id = #{skuId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        company_id = #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="pcPv != null">
+        pc_pv = #{pcPv,jdbcType=BIGINT},
+      </if>
+      <if test="h5Pv != null">
+        h5_pv = #{h5Pv,jdbcType=BIGINT},
+      </if>
+      <if test="appPv != null">
+        app_pv = #{appPv,jdbcType=BIGINT},
+      </if>
+      <if test="totalPv != null">
+        total_pv = #{totalPv,jdbcType=BIGINT},
+      </if>
+      <if test="pcUv != null">
+        pc_uv = #{pcUv,jdbcType=BIGINT},
+      </if>
+      <if test="h5Uv != null">
+        h5_uv = #{h5Uv,jdbcType=BIGINT},
+      </if>
+      <if test="appUv != null">
+        app_uv = #{appUv,jdbcType=BIGINT},
+      </if>
+      <if test="totalUv != null">
+        total_uv = #{totalUv,jdbcType=BIGINT},
+      </if>
+      <if test="sendTime != null">
+        send_time = #{sendTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveTime != null">
+        receive_time = #{receiveTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="skuFlowDate != null">
+        sku_flow_date = #{skuFlowDate,jdbcType=DATE},
+      </if>
+      <if test="skuFlowMonth != null">
+        sku_flow_month = #{skuFlowMonth,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow">
+    update replay_sku_flow
+    set sku_id = #{skuId,jdbcType=VARCHAR},
+      company_id = #{companyId,jdbcType=VARCHAR},
+      pc_pv = #{pcPv,jdbcType=BIGINT},
+      h5_pv = #{h5Pv,jdbcType=BIGINT},
+      app_pv = #{appPv,jdbcType=BIGINT},
+      total_pv = #{totalPv,jdbcType=BIGINT},
+      pc_uv = #{pcUv,jdbcType=BIGINT},
+      h5_uv = #{h5Uv,jdbcType=BIGINT},
+      app_uv = #{appUv,jdbcType=BIGINT},
+      total_uv = #{totalUv,jdbcType=BIGINT},
+      send_time = #{sendTime,jdbcType=TIMESTAMP},
+      receive_time = #{receiveTime,jdbcType=TIMESTAMP},
+      sku_flow_date = #{skuFlowDate,jdbcType=DATE},
+      sku_flow_month = #{skuFlowMonth,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <insert id="insertList" parameterType="com.wanmi.ares.report.flow.model.root.ReplaySkuFlow" useGeneratedKeys="true" keyProperty="id">
+    insert into replay_sku_flow (
+    sku_id,
+    company_id,
+    pc_pv,
+    h5_pv,
+    app_pv,
+    total_pv,
+    pc_uv,
+    h5_uv,
+    app_uv,
+    total_uv,
+    send_time,
+    receive_time,
+    sku_flow_date,
+    sku_flow_month)
+    values
+    <foreach collection="list" item="item" index="index" separator=",">
+      (
+      #{item.skuId,jdbcType=VARCHAR},
+      #{item.companyId,jdbcType=VARCHAR},
+      #{item.pcPv,jdbcType=BIGINT},
+      #{item.h5Pv,jdbcType=BIGINT},
+      #{item.appPv,jdbcType=BIGINT},
+      #{item.totalPv,jdbcType=BIGINT},
+      #{item.pcUv,jdbcType=BIGINT},
+      #{item.h5Uv,jdbcType=BIGINT},
+      #{item.appUv,jdbcType=BIGINT},
+      #{item.totalUv,jdbcType=BIGINT},
+      #{item.sendTime,jdbcType=TIMESTAMP},
+      #{item.receiveTime,jdbcType=TIMESTAMP},
+      #{item.skuFlowDate,jdbcType=DATE},
+      #{item.skuFlowMonth,jdbcType=VARCHAR}
+      )
+    </foreach>
+  </insert>
+</mapper>

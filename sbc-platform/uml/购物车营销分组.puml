@@ -1,0 +1,33 @@
+@startuml
+  start
+  :/site/purchaseInfo 接口数据;
+  note right
+  接口主要数据：
+  goodsInfos: sku维度，后台按加购时间排序
+  goodses: spu纬度，后台按加购时间排序
+  goodsMarketingMap：{goodsinfoid: 营销信息}
+  goodsMarketings：商品选中的营销活动
+  stores：店铺信息，后台按加购时间排序
+  end note
+  :goodses按照storeId分组 -> storeGoodses;
+  :goodsInfos按照storeId分组 -> storeGoodsInfos;
+  :遍历店铺信息,得到店铺对应的sku(goodsInfos)，spu(goodses);
+  :遍历goodsinfos,找到商品对应的营销活动(goodsMarketing);
+  :marketingList营销活动中填充sku，spu;
+  :遍历stores，得到店铺商品storeGoodses;
+  :遍历storeGoodses;
+  if(商品是否有营销活动) then (Y)
+    :{storeId: marketings};
+  else (N)
+   :{storeId: goodses};
+  endif
+  :[{storeId: goodses}, {storeId, marketings}];
+  if(遍历数组，判断是否有marketingId) then (Y)
+  :获取marketings;
+  :获取spu;
+  else (N)
+  :获取spu;
+  endif
+  :结束;
+  stop
+@enduml

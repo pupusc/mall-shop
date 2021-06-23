@@ -1,0 +1,4 @@
+-----------order模块配置application.properties------------------------
+新增配置属性
+#开团-截团时间，默认24小时
+open.group.millis = 86400000

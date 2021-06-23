@@ -1,0 +1,21 @@
+@startuml
+ start
+  :发起支付;
+  if (是否可开团/参团?) then (Y)
+    :发起支付请求;
+    if(是否支付成功?) then (Y)
+        :开始验证拼团订单;
+         if(是否验证通过?) then (N)
+             :更新拼团订单信息;
+             :自动退款;
+         else(Y)
+             :更新拼团订单信息;
+              if(是否团长?) then (Y)
+                :开启团长订单延迟队列;
+              endif
+         endif
+    endif
+  endif
+  :结束支付;
+  stop
+@enduml

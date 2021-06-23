@@ -1,0 +1,31 @@
+package com.wanmi.sbc.customer.api.request.fdpaidcast;
+
+import com.wanmi.sbc.common.base.BaseRequest;
+import lombok.*;
+import javax.validation.constraints.NotNull;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+
+/**
+ * <p>单个查询樊登付费类型 映射商城付费类型请求参数</p>
+ * @author tzx
+ * @date 2021-01-29 14:13:37
+ */
+@ApiModel
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FdPaidCastByIdRequest extends BaseRequest {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 樊登付费类型 映射商城付费类型主键
+	 */
+	@ApiModelProperty(value = "樊登付费类型 映射商城付费类型主键")
+	@NotNull
+	private Long id;
+
+}

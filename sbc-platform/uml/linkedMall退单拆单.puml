@@ -1,0 +1,46 @@
+@startuml
+start
+:C端申请退单;
+partition 退单拆分 {
+   if(是否含有linkedMall商品) then (yes)
+   :按退单明细进行拆分;
+   :远程调用queryOrderDetail（查询订单）接口;
+   :保存返回的lmSubOrderId字段;
+      if(是否含有linkedMall赠品) then(yes)
+        :按退单明细进行拆分;
+        :远程调用queryOrderDetail（查询订单）接口;
+        :保存返回的lmSubOrderId字段;
+      endif;
+   endif;
+}
+:下单成功;
+partition linkedMall申请 {
+   if(linkedMall退单? and 是否完成支付？) then (yes)
+     :远程调用initApplyRefund（逆向渲染）接口;
+     :返回linkedMall原因列表数据;
+     :选择原因
+     :远程调用applyRefund（逆向申请）接口;
+     if(申请是否成功) then(yes)
+       :返回操作成功;
+     else
+       :返回申请异常信息;
+     endif;
+   endif;
+}
+partition 退单状态同步定时任务 {
+   :加载完成申请的退单队列
+   :远程调用queryRefundApplicationDetail（查询退单）接口;
+   if(退单仅退款) then (yes)
+      if(商户是否同意退款) then (yes)
+        :自动完成审核;
+      endif
+   else(退货退款)
+      if(商户是否同意退款) then (yes)
+        :本地调用退单审核;
+      elseif(商户是否确认收货) then (yes)
+        :本地调用完成确认收货;
+      endif
+   endif
+}
+stop
+@enduml

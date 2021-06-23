@@ -1,0 +1,14 @@
+1.原有的application.properties配置文件内容移入到阿波罗配置中心，涉及bff pay setting customer account goods marketing order，application.properties新增配置中心相关配置，比如：
+#是否启动apollo
+apollo.bootstrap.enabled=true
+
+#apollo的APPId，每个应用不能重复
+app.id=wanmi-customer
+
+#apollo的meta地址，建议域名
+apollo.meta=http://127.0.0.1:9080
+
+#apollo的配置缓存地址
+apollo.cacheDir=opt/apollo/wanmi_customer
+
+2.以后新增配置在配置中心增加，application.properties只保留配置中心相关配置

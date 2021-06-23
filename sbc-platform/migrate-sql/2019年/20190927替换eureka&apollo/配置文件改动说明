@@ -1,0 +1,79 @@
+Nacos注册中心替换Eureka注册中心指导说明：
+    以setting服务为例：
+    1、父pom.xml中去除依赖
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-dependencies</artifactId>
+                    <version>Edgware.SR4</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+
+    2、父pom.xml增加配置属性，以及nacos依赖：
+            <properties>
+                <spring-cloud.version>Edgware.SR4</spring-cloud.version>
+                <spring-cloud-alibaba.version>1.5.0.RELEASE</spring-cloud-alibaba.version>
+            </properties>
+
+             <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework.cloud</groupId>
+                        <artifactId>spring-cloud-dependencies</artifactId>
+                        <version>${spring-cloud.version}</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>com.alibaba.cloud</groupId>
+                        <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                        <version>${spring-cloud-alibaba.version}</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+
+                </dependencies>
+            </dependencyManagement>
+
+    3、子项目app模块pom.xml中去除eureka客户端依赖：
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            </dependency>
+
+    4、子项目app模块pom.xml中增加nacos注册中心依赖：
+           <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            </dependency>
+
+    5、application.properties :
+            去除eureka配置项，增加nacos注册中心：spring.cloud.nacos.discovery.server-addr = 172.19.26.206:8848
+
+Nacos配置中心替换Apollo配置中心指导文档：
+    1、子项目app模块pom.xml中去除Apollo配置中心客户端依赖:
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>1.1.0</version>
+            </dependency>
+
+    2、子项目app模块pom.xml中增加Nacos配置中心依赖:
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+            </dependency>
+
+    3、子项目app模块resources文件夹下增加配置文件：bootstrap.properties，并设置Nacos配置中心配置项：spring.cloud.nacos.config.server-addr=172.19.26.206:8848
+
+    4、Apollo配置中心数据迁移至Nacos配置中心：
+            第1步：找到bff项目下migrate-sql文件夹下的文件夹20190927替换eureka&apollo下执行脚本
+                apollo.sh（将原有的Apollo缓存配置文件压缩成指定格式的zip文件）
+                modifyconfig.sh（将原有的服务器外部引用文件更改为nacos配置中心配置项）
+            第2步：打开nacos管理界面 > 配置管理 > 配置列表，导入配置（第1步生成的一系列zip文件）
+
+
+

@@ -1,0 +1,2 @@
+UPDATE `xxl-job`.`xxl_job_qrtz_trigger_info` SET `job_cron` = '0 0 2 * * ?' WHERE `id` = 37 and `executor_handler` = 'tradeReportScheduledGenerateData';
+UPDATE `xxl-job`.`xxl_job_qrtz_trigger_info` SET `job_cron` = '0 0 2 1 * ?' WHERE `id` = 38 and `executor_handler` = 'tradeReportScheduledGenerateData';

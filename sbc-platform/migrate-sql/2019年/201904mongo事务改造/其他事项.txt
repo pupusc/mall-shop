@@ -1,0 +1,23 @@
+1.后台新增配置如下，涉及bff pay setting customer account goods marketing order，只需要在配置中心新增：
+#DogTcc
+#zookeeper配置
+dog.zookeeper.connectString = 127.0.0.1:2181
+dog.zookeeper.sessionTimeout = 100000
+dog.zookeeper.application = default
+#路径不存在不会自动创建，需要在服务器上提前建好
+dog.zookeeper.path = /dog
+dog.zookeeper.recoveryperiod = 120
+dog.zookeeper.initialdeplay = 60
+#应用服务名，每个应用都不一样
+dog.application.applicationname = sbc-service-pay
+dog.zookeeper.poolsize = 2
+
+#redis配置
+redis.config.address = 127.0.0.1:6379
+redis.config.connectionPoolSize = 500
+redis.config.idleConnectionTimeout = 10000
+redis.config.connectTimeout = 10000
+redis.config.timeout = 3000
+redis.config.pingTimeout = 30000
+redis.config.reconnectionTimeout = 30000
+redis.config.database = 0

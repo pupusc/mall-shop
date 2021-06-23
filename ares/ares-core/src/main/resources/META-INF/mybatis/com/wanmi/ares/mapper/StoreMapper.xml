@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.StoreMapper">
+
+    <resultMap id="storeMap" type="com.wanmi.ares.source.model.root.Store">
+        <id property="id" column="id"/>
+        <result property="operationDate" column="operation_date"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="receiveTime" column="receive_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="companyInfoId" column="company_info_id"/>
+        <result property="storeName" column="store_name"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="storeState" column="store_state"/>
+        <result property="contractStartDate" column="contract_start_date"/>
+        <result property="contractEndDate" column="contract_end_date"/>
+    </resultMap>
+
+    <sql id="store_col">
+        id, operation_date, send_time, receive_time, del_flag, company_info_id, store_name, supplier_name, store_state, contract_start_date, contract_end_date
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO STORE (<include refid="store_col"/>) VALUES
+        (
+        #{store.id},
+        #{store.operationDate},
+        #{store.sendTime},
+        #{store.receiveTime},
+        #{store.delFlag},
+        #{store.companyInfoId},
+        #{store.storeName},
+        #{store.supplierName},
+        #{store.storeState},
+        #{store.contractStartDate},
+        #{store.contractEndDate}
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE STORE
+        <set>
+            <if test="store.operationDate != null">
+                operation_date = #{store.operationDate},
+            </if>
+            <if test="store.sendTime != null">
+                send_time = #{store.sendTime},
+            </if>
+            <if test="store.receiveTime != null">
+                receive_time = #{store.receiveTime},
+            </if>
+            <if test="store.delFlag != null">
+                del_flag = #{store.delFlag},
+            </if>
+            <if test="store.companyInfoId != null">
+                company_info_id = #{store.companyInfoId},
+            </if>
+            <if test="store.storeName != null">
+                store_name = #{store.storeName},
+            </if>
+            <if test="store.supplierName != null">
+                supplier_name = #{store.supplierName},
+            </if>
+            <if test="store.storeState != null">
+                store_state = #{store.storeState},
+            </if>
+            <if test="store.contractStartDate != null">
+                contract_start_date =#{store.contractStartDate},
+            </if>
+            <if test="store.contractEndDate != null">
+                contract_end_date = #{store.contractEndDate},
+            </if>
+        </set>
+        WHERE id = #{store.id}
+    </update>
+
+    <select id="queryById" resultMap="storeMap">
+        SELECT
+        <include refid="store_col"/>
+        FROM STORE WHERE id = #{storeId}
+    </select>
+
+    <select id="queryByCompanyIds" resultMap="storeMap" parameterType="list">
+        SELECT
+        <include refid="store_col"/>
+        FROM STORE WHERE company_info_id IN
+        <foreach collection="companyIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryByCondition" resultMap="storeMap" parameterType="java.util.Map">
+        SELECT <include refid="store_col"/>
+        FROM STORE WHERE 1 = 1
+        <if test="companyInfoId != null and companyInfoId != ''">
+            AND company_info_id = #{companyInfoId}
+        </if>
+        <if test="delFlag != null and delFlag != ''">
+            AND del_flag = #{delFlag}
+        </if>
+        <if test="contractStartDate != null and contractStartDate != ''">
+            AND contract_start_date &lt;= #{contractStartDate}
+        </if>
+        <if test="contractEndDate != null and contractEndDate != ''">
+            AND contract_end_date &gt;= #{contractEndDate}
+        </if>
+        <if test="storeState != null and storeState != ''">
+            AND store_state = #{storeState}
+        </if>
+    </select>
+
+</mapper>

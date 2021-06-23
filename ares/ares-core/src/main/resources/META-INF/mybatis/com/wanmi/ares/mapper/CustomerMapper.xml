@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.CustomerMapper">
+
+    <resultMap id="customerMap" type="com.wanmi.ares.source.model.root.Customer">
+        <id property="id" column="id"/>
+        <result property="operationDate" column="operation_date"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="receiveTime" column="receive_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="account" column="account"/>
+        <result property="levelId" column="level_id"/>
+        <result property="name" column="name"/>
+        <result property="checkState" column="check_state"/>
+        <result property="checkDate" column="check_date"/>
+        <result property="cityId" column="city_id"/>
+        <result property="isBoss" column="is_boss"/>
+        <result property="employeeId" column="employee_id"/>
+        <result property="companyId" column="company_id"/>
+        <result property="bindDate" column="bind_date"/>
+    </resultMap>
+
+    <sql id="customer_col">
+        id, operation_date, send_time, receive_time, del_flag, account, level_id, name, check_state,
+        check_date, city_id, is_boss, employee_id, company_id, bind_date
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO customer (<include refid="customer_col"/>) VALUES
+        (
+        #{customer.id},
+        #{customer.operationDate},
+        #{customer.sendTime},
+        #{customer.receiveTime},
+        #{customer.delFlag},
+        #{customer.account},
+        #{customer.levelId},
+        #{customer.name},
+        #{customer.checkState},
+        #{customer.checkDate},
+        #{customer.cityId},
+        #{customer.isBoss},
+        #{customer.employeeId},
+        #{customer.companyId},
+        #{customer.bindDate}
+        )
+    </insert>
+
+    <select id="queryByParams" resultMap="customerMap">
+        SELECT
+        c.id, c.operation_date, c.send_time, c.receive_time
+        , c.del_flag, c.account, c.level_id, c.name, c.check_state
+        , c.check_date, c.city_id, c.is_boss, c.employee_id, c.company_id, c.bind_date
+        FROM CUSTOMER c
+        <if test="request.companyInfoId">
+            LEFT JOIN CUSTOMER_AND_LEVEL cl ON c.id = cl.customer_id
+        </if>
+        <where>
+            <if test="request.companyInfoId">
+                AND c.company_id = #{request.companyInfoId}
+            </if>
+            <if test="request.levelId">
+                AND cl.customer_level_id = #{request.levelId}
+            </if>
+            <if test="request.employeeId">
+                AND c.employee_id = #{request.employeeId}
+            </if>
+            <if test="request.keyWord">
+                AND (c.name LIKE '%#{request.keyWord}%' OR c.account LIKE '%#{request.keyWord}%')
+            </if>
+        </where>
+    </select>
+
+    <select id="queryById" resultMap="customerMap">
+        SELECT
+        <include refid="customer_col"/>
+        FROM CUSTOMER WHERE id = #{customerId}
+    </select>
+
+    <select id="queryTotalByEmployee" resultType="com.wanmi.ares.report.employee.model.root.EmployeeClientReport">
+        SELECT
+            e.company_id AS companyId,
+            c.employee_id AS employeeId,
+            count(1) AS total
+        FROM
+           customer AS c
+        INNER JOIN employee AS e ON c.employee_id = e.id
+        WHERE
+            c.employee_id IS NOT NULL
+        <![CDATA[
+            AND e.is_employee = 0
+            AND c.employee_id <> ''
+            AND c.check_state = 'CHECKED'
+            AND c.bind_date <= #{date}
+        ]]>
+        AND c.del_flag = '0'
+        AND e.del_flag = '0'
+        GROUP BY
+            e.company_id,
+            c.employee_id
+    </select>
+
+    <select id="queryNewlyByEmployee" resultType="com.wanmi.ares.report.employee.model.root.EmployeeClientReport">
+        SELECT
+            e.company_id AS companyId,
+            c.employee_id AS employeeId,
+            count(1) AS newlyNum
+        FROM
+            customer AS c
+            INNER JOIN employee AS e ON c.employee_id = e.id
+        WHERE
+            c.employee_id IS NOT NULL
+        <![CDATA[
+            AND e.is_employee = 0
+            AND c.employee_id <> ''
+            AND c.check_state = 'CHECKED'
+            AND c.bind_date >= #{dateFrom} AND c.bind_date <= #{dateTo}
+        ]]>
+        AND c.del_flag = '0'
+        AND e.del_flag = '0'
+        GROUP BY
+            e.company_id,
+            c.employee_id
+    </select>
+
+    <select id="queryTotalByLevel" resultType="com.wanmi.ares.report.customer.model.root.LevelDistrReport">
+        SELECT
+            l.company_info_id as companyId,
+            l.customer_level_id as levelId,
+            count(DISTINCT l.customer_id) as num,
+            now() as createTime
+        FROM
+          customer c
+        INNER JOIN customer_and_level l ON c.id = l.customer_id
+        WHERE
+          <![CDATA[
+            l.customer_level_id is not null
+            and l.company_info_id is not null
+            and l.company_info_id <> 0
+            AND c.del_flag = 0
+            AND c.check_date <= #{date}
+            AND c.check_state = 'CHECKED'
+          ]]>
+        GROUP BY
+        l.company_info_id,
+        l.customer_level_id
+    </select>
+
+    <select id="queryTotalByArea" resultType="com.wanmi.ares.report.customer.model.root.AreaDistrReport">
+        SELECT
+            l.company_info_id as companyId,
+            c.city_id as cityId,
+            count(DISTINCT l.customer_id) as num,
+            now() as createTime
+        FROM
+          customer c
+        INNER JOIN customer_and_level l ON c.id = l.customer_id
+        WHERE
+        <![CDATA[
+            c.city_id is not null and l.company_info_id is not null
+            AND c.del_flag = 0
+            AND c.check_date <= #{date}
+            AND c.check_state = 'CHECKED'
+        ]]>
+        GROUP BY
+        l.company_info_id,
+        c.city_id
+    </select>
+
+    <select id="queryTotalByCompany" resultType="_int">
+        SELECT
+          count(1) as num
+        FROM
+            replay_store_customer_rela rscr
+        INNER JOIN replay_customer rc ON rc.customer_id = rscr.customer_id
+        where rscr.company_info_id = #{companyId}
+        AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' ) <![CDATA[<=]]> #{date}
+        AND rc.check_state = 1
+        AND rc.del_flag = 0
+    </select>
+
+    <select id="queryTotal" resultType="_int">
+        SELECT
+          count(1) AS num
+        FROM
+          replay_customer rc
+        WHERE
+        <![CDATA[
+            rc.del_flag = 0
+            AND DATE_FORMAT( rc.check_time, '%Y-%m-%d' ) <= #{date}
+            AND rc.check_state = 1
+        ]]>
+    </select>
+
+    <delete id="deleteByIds">
+        UPDATE CUSTOMER SET del_flag = '1'
+        WHERE id in
+        <foreach collection="customerIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <update id="updateById">
+        UPDATE CUSTOMER
+        <set>
+            <if test="customer.operationDate != null">
+                operation_date = #{customer.operationDate},
+            </if>
+            <if test="customer.sendTime != null">
+                send_time = #{customer.sendTime},
+            </if>
+            <if test="customer.receiveTime != null">
+                receive_time = #{customer.receiveTime},
+            </if>
+            <if test="customer.delFlag != null">
+                del_flag = #{customer.delFlag},
+            </if>
+            <if test="customer.account != null">
+                account = #{customer.account},
+            </if>
+            <if test="customer.levelId != null">
+                level_id = #{customer.levelId},
+            </if>
+            <if test="customer.name != null">
+                name = #{customer.name},
+            </if>
+            <if test="customer.checkState != null">
+                check_state = #{customer.checkState},
+            </if>
+            <if test="customer.checkDate != null">
+                check_date = #{customer.checkDate},
+            </if>
+            <if test="customer.cityId != null">
+                city_id = #{customer.cityId},
+            </if>
+            <if test="customer.isBoss != null">
+                is_boss = #{customer.isBoss},
+            </if>
+            <if test="customer.employeeId != null">
+                employee_id = #{customer.employeeId},
+            </if>
+            <if test="customer.companyId != null">
+                company_id = #{customer.companyId},
+            </if>
+            <if test="customer.bindDate != null">
+                bind_date = #{customer.bindDate},
+            </if>
+        </set>
+        WHERE id = #{customer.id}
+    </update>
+
+    <update id="unbindCustomer">
+        UPDATE CUSTOMER
+        SET employee_id = null
+        WHERE employee_id = #{employeeId}
+    </update>
+
+    <select id="queryPhone" resultType="java.lang.String">
+        select a.customer_account
+        from replay_customer a
+        where a.del_flag=0 and a.check_state=1
+        <if test="levelIds != null and levelIds.size > 0">
+            and customer_level_id in
+            <foreach collection="levelIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryPhoneCount" resultType="java.lang.Long">
+        select count(1)
+        from replay_customer a
+        where a.del_flag=0 and a.check_state=1
+        <if test="levelIds != null and levelIds.size > 0">
+            and customer_level_id in
+            <foreach collection="levelIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+    </select>
+</mapper>

@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.employee.dao.EmployeePerformanceReportMapper">
+    <cache eviction="LRU" flushInterval="10000" size="512"/>
+    <sql id="BaseColums">
+        company_id, employee_id, order_count, customer_count, amount,
+        pay_amount, pay_count, pay_customer_count, order_unit_price,
+        customer_unit_price, return_count, return_customer_count, return_amount, create_time
+    </sql>
+    <sql id="BaseColumsValues">
+        #{item.companyId}, #{item.employeeId}, #{item.orderCount}, #{item.customerCount}, #{item.amount},
+        #{item.payAmount}, #{item.payCount}, #{item.payCustomerCount}, #{item.orderUnitPrice}, #{item.customerUnitPrice},
+        #{item.returnCount}, #{item.returnCustomerCount}, #{item.returnAmount}, NOW()
+    </sql>
+
+    <sql id="BaseColumsValuesTest">
+        #{item.companyId}, #{item.employeeId}, #{item.orderCount}, #{item.customerCount}, #{item.amount},
+        #{item.payAmount}, #{item.payCount}, #{item.payCustomerCount}, #{item.orderUnitPrice}, #{item.customerUnitPrice},
+        #{item.returnCount}, #{item.returnCustomerCount}, #{item.returnAmount}, #{item.testCreateTime}
+    </sql>
+    <sql id="baseQueryCondition">
+        company_id = #{companyId}
+        <if test="employeeIds != null and employeeIds.size > 0">
+            AND employee_id in
+            <foreach collection="employeeIds" open="(" close=")" item="item" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="table == 'employee_performance_month'">
+            AND DATE_FORMAT(target_date,'%Y%m') = #{yearMonth}
+        </if>
+        <if test="table == 'employee_performance'">
+            AND target_date=#{day}
+        </if>
+    </sql>
+
+    <sql id="exportBaseSql">
+        SELECT
+            employee_id AS employeeId,
+            sum(order_count) AS orderCount,
+            sum(customer_count) AS customerCount,
+            sum(amount) AS amount,
+            sum(pay_amount) AS payAmount,
+            sum(pay_count) AS payCount,
+            sum(pay_customer_count) AS payCustomerCount,
+            sum(return_count) AS returnCount,
+            sum(return_customer_count) AS returnCustomerCount,
+            sum(return_amount) AS returnAmount,
+            cast( sum(amount) /sum(order_count) as decimal(18, 2))  as orderUnitPrice,
+            cast( sum(amount) /sum(customer_count) as decimal(18, 2))  as customerUnitPrice
+        FROM
+            employee_performance
+        WHERE
+            company_id = #{companyId}
+            AND (
+                target_date BETWEEN #{dateFrom}
+                AND #{dateTo}
+            )
+        GROUP BY
+            employee_id
+    </sql>
+
+    <select id="queryList" resultType="com.wanmi.ares.report.employee.model.root.EmployeePerformanceReport"
+            parameterType="com.wanmi.ares.report.employee.model.entity.EmployeePerformanceQuery">
+        SELECT
+            employee_id AS employeeId,
+            company_id AS companyId,
+            order_count AS orderCount,
+            customer_count AS customerCount,
+            amount,
+            pay_amount AS payAmount,
+            pay_count AS payCount,
+            pay_customer_count AS payCustomerCount,
+            return_count AS returnCount,
+            return_customer_count AS returnCustomerCount,
+            return_amount AS returnAmount,
+            order_unit_price AS orderUnitPrice,
+            customer_unit_price AS customerUnitPrice
+        FROM
+          ${table}
+        WHERE
+        <include refid="baseQueryCondition"/>
+        ORDER BY
+           ${property} ${direction},id DESC
+        LIMIT #{pageBegin},#{pageSize}
+    </select>
+
+    <select id="countOfQuery" resultType="_long" parameterType="com.wanmi.ares.report.employee.model.entity.EmployeePerformanceQuery">
+        SELECT
+          count(1)
+        FROM
+         ${table}
+        WHERE
+        <include refid="baseQueryCondition"/>
+    </select>
+
+    <select id="export" parameterType="com.wanmi.ares.report.base.model.ExportQuery"
+            resultType="com.wanmi.ares.report.employee.model.root.EmployeePerformanceReport">
+        <include refid="exportBaseSql"/>
+        ORDER BY
+            orderCount DESC,id DESC
+        LIMIT #{beginIndex},#{size}
+    </select>
+
+    <select id="countOfExport" resultType="_long" parameterType="com.wanmi.ares.report.base.model.ExportQuery">
+        SELECT COUNT(1)
+        FROM
+        (
+          <include refid="exportBaseSql"/>
+        )
+        AS REPORT
+    </select>
+
+    <insert id="insert7days">
+        INSERT INTO
+        employee_performance_recent_seven
+        (<include refid="BaseColums"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insert30Days">
+        INSERT INTO
+        employee_performance_recent_thirty
+        (<include refid="BaseColums"/>)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertMonth">
+        INSERT INTO
+        employee_performance_month
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,#{item.targetDate}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="testInsertToday">
+        INSERT INTO
+        employee_performance
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValuesTest"/>,#{item.testCreateTime}
+            )
+        </foreach>
+    </insert>
+
+
+    <insert id="insertToday">
+        INSERT INTO
+        employee_performance
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,NOW()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertDay">
+        INSERT INTO
+        employee_performance
+        (<include refid="BaseColums"/>,target_date)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <include refid="BaseColumsValues"/>,#{item.targetDate}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="clearToday">
+        DELETE FROM employee_performance WHERE target_date = DATE_FORMAT(NOW(),'%Y-%m-%d')
+    </delete>
+
+    <delete id="testClearToday">
+        DELETE FROM employee_performance WHERE target_date = #{testCreateTime}
+    </delete>
+
+    <delete id="clear7Days">
+        TRUNCATE TABLE employee_performance_recent_seven
+    </delete>
+
+    <delete id="clear30Days">
+        TRUNCATE TABLE employee_performance_recent_thirty
+    </delete>
+
+    <delete id="clearMonth" >
+        DELETE FROM employee_performance_month
+            WHERE
+              target_date=DATE_FORMAT(SUBDATE(NOW(),INTERVAL 1 DAY),'%Y-%m-%d')
+    </delete>
+
+    <delete id="clearExpireByDay">
+        alter table employee_performance truncate partition #{pname}
+    </delete>
+
+    <delete id="clearExpireByMonth">
+        alter table employee_performance_month truncate partition #{pname}
+    </delete>
+    <delete id="deleteTodayDay" parameterType="java.time.LocalDate">
+        DELETE FROM employee_performance WHERE target_date = #{now}
+    </delete>
+
+    <delete id="deleteRecentMonth" parameterType="string">
+    DELETE FROM employee_performance_month
+    WHERE DATE_FORMAT(target_date,'%Y-%m') = #{_parameter}
+  </delete>
+
+    <select id="collectThirdEmployeeTrade" parameterType="com.wanmi.ares.report.trade.model.request.TradeCollect"
+            resultType="com.wanmi.ares.report.employee.model.root.EmployeePerformanceReport">
+        <![CDATA[
+            SELECT
+                temp.employee_id employeeId,
+                temp.company_id companyId,
+                SUM(temp.order_num) orderCount,
+                SUM(temp.order_user_num) customerCount,
+                SUM(temp.order_money) amount,
+                SUM(temp.pay_num) payCount,
+                SUM(temp.pay_user_num) payCustomerCount,
+                SUM(temp.pay_money) payAmount,
+                CONVERT(SUM(temp.order_money)/SUM(temp.order_user_num),DECIMAL(20,2)) orderUnitPrice,
+                CONVERT(SUM(temp.order_money)/SUM(temp.order_num),DECIMAL(20,2)) customerUnitPrice,
+                SUM(temp.refund_num) returnCount,
+                SUM(temp.refund_user_num) returnCustomerCount,
+                SUM(temp.refund_money) returnAmount
+
+                    FROM (
+                    SELECT
+                        t.employee_id employee_id,
+                        t.company_id  company_id,
+                        SUM(t.order_num) order_num,
+                        SUM(t.order_user_num) order_user_num,
+                        SUM(t.order_money) order_money,
+                        SUM(t.pay_num) pay_num,
+                        SUM(t.pay_user_num) pay_user_num,
+                        SUM(t.pay_money) pay_money,
+                        0 AS refund_num,
+                        0 AS refund_user_num,
+                        0 AS refund_money
+
+                            FROM (
+
+                            SELECT re.`employee_id` employee_id, re.company_info_id company_id ,COUNT(tr.id) order_num ,
+                                        COUNT(DISTINCT(tr.customer_id)) order_user_num,
+                                        SUM(tr.total_price) order_money,
+                                        0 AS pay_num,
+                                        0 AS pay_user_num,
+                                        0 AS pay_money
+                               FROM `replay_employee` re
+                               INNER JOIN `replay_store_customer_rela` scr ON re.employee_id = scr.`employee_id`
+                               INNER JOIN `replay_trade` tr ON tr.`customer_id` = scr.`customer_id`
+                               WHERE re.account_type = 0 AND DATE_FORMAT(tr.create_time,'%Y-%m-%d') >= #{beginDate} AND DATE_FORMAT(tr.create_time,'%Y-%m-%d') <= #{endDate}
+                               GROUP BY re.`employee_id`
+
+                               UNION ALL
+
+                             SELECT re.`employee_id` employee_id, re.company_info_id company_id ,0 AS order_num ,
+                                        0 AS order_user_num,
+                                        0 AS order_money,
+                                        COUNT(tr.id) pay_num,
+                                        COUNT(DISTINCT tr.customer_id) pay_user_num,
+                                        SUM(tr.total_price) pay_money
+                               FROM `replay_employee` re
+                               INNER JOIN `replay_store_customer_rela` scr ON re.employee_id = scr.`employee_id`
+                               INNER JOIN `replay_trade` tr ON tr.`customer_id` = scr.`customer_id`
+                               WHERE re.account_type = 0 AND DATE_FORMAT(tr.pay_time,'%Y-%m-%d') >= #{beginDate} AND DATE_FORMAT(tr.pay_time,'%Y-%m-%d') <= #{endDate}
+                               GROUP BY re.`employee_id`)t
+                               GROUP BY t.employee_id
+
+                    UNION ALL
+
+                    SELECT
+                         re.`employee_id` employee_id,
+                         re.company_info_id company_id ,
+                         0 AS order_num,
+                         0 AS order_user_num,
+                         0 AS order_money,
+                         0 AS pay_num,
+                         0 AS pay_user_num,
+                         0 AS pay_money,
+                         COUNT(tr.`id`) refund_num,
+                         COUNT(DISTINCT tr.customer_id) refund_user_num ,
+                         SUM(tr.actual_return_price) refund_money
+
+                          FROM `replay_employee` re
+                           INNER JOIN `replay_store_customer_rela` scr ON re.employee_id = scr.`employee_id`
+                           INNER JOIN `replay_return_order` tr ON tr.`customer_id` = scr.`customer_id`
+                           WHERE re.account_type = 0 AND tr.return_flow_state = 5 AND DATE_FORMAT(tr.finish_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(tr.finish_time,'%Y-%m-%d') <= #{endDate}
+                           GROUP BY re.`employee_id`)temp GROUP BY temp.employee_id
+
+        ]]>
+    </select>
+
+    <select id="collectBossEmployeeTrade" parameterType="com.wanmi.ares.report.trade.model.request.TradeCollect"
+            resultType="com.wanmi.ares.report.employee.model.root.EmployeePerformanceReport">
+        <![CDATA[
+            SELECT
+                temp.employee_id employeeId,
+                0 AS companyId,
+                SUM(temp.order_num) orderCount,
+                SUM(temp.order_user_num) customerCount,
+                SUM(temp.order_money) amount,
+                SUM(temp.pay_num) payCount,
+                SUM(temp.pay_user_num) payCustomerCount,
+                SUM(temp.pay_money) payAmount,
+                CONVERT(SUM(temp.order_money)/SUM(temp.order_user_num),DECIMAL(20,2)) orderUnitPrice,
+                CONVERT(SUM(temp.order_money)/SUM(temp.order_num),DECIMAL(20,2)) customerUnitPrice,
+                SUM(temp.refund_num) returnCount,
+                SUM(temp.refund_user_num) returnCustomerCount,
+                SUM(temp.refund_money) returnAmount
+
+                    FROM (
+                    SELECT
+                        t.employee_id employee_id,
+                        t.company_id  company_id,
+                        SUM(t.order_num) order_num,
+                        SUM(t.order_user_num) order_user_num,
+                        SUM(t.order_money) order_money,
+                        SUM(t.pay_num) pay_num,
+                        SUM(t.pay_user_num) pay_user_num,
+                        SUM(t.pay_money) pay_money,
+                        0 AS refund_num,
+                        0 AS refund_user_num,
+                        0 AS refund_money
+
+                            FROM (
+
+                            SELECT re.`employee_id` employee_id, re.company_info_id company_id ,COUNT(tr.id) order_num ,
+                                        COUNT(DISTINCT(tr.customer_id)) order_user_num,
+                                        SUM(tr.total_price) order_money,
+                                        0 AS pay_num,
+                                        0 AS pay_user_num,
+                                        0 AS pay_money
+                               FROM `replay_employee` re
+                               INNER JOIN `replay_customer_detail` scr ON re.employee_id = scr.`employee_id`
+                               INNER JOIN `replay_trade` tr ON tr.`customer_id` = scr.`customer_id`
+                               WHERE re.account_type = 1 AND DATE_FORMAT(tr.create_time,'%Y-%m-%d') >= #{beginDate} AND DATE_FORMAT(tr.create_time,'%Y-%m-%d') <= #{endDate}
+                               GROUP BY re.`employee_id`
+
+                               UNION ALL
+
+                             SELECT re.`employee_id` employee_id, re.company_info_id company_id ,0 AS order_num ,
+                                        0 AS order_user_num,
+                                        0 AS order_money,
+                                        COUNT(tr.id) pay_num,
+                                        COUNT(DISTINCT tr.customer_id) pay_user_num,
+                                        SUM(tr.total_price) pay_money
+                               FROM `replay_employee` re
+                               INNER JOIN `replay_customer_detail` scr ON re.employee_id = scr.`employee_id`
+                               INNER JOIN `replay_trade` tr ON tr.`customer_id` = scr.`customer_id`
+                               WHERE re.account_type = 1 AND DATE_FORMAT(tr.pay_time,'%Y-%m-%d') >= #{beginDate} AND DATE_FORMAT(tr.pay_time,'%Y-%m-%d') <= #{endDate}
+                               GROUP BY re.`employee_id`)t
+                               GROUP BY t.employee_id
+
+                    UNION ALL
+
+                    SELECT
+                         re.`employee_id` employee_id,
+                         re.company_info_id company_id ,
+                         0 AS order_num,
+                         0 AS order_user_num,
+                         0 AS order_money,
+                         0 AS pay_num,
+                         0 AS pay_user_num,
+                         0 AS pay_money,
+                         COUNT(tr.`id`) refund_num,
+                         COUNT(DISTINCT tr.customer_id) refund_user_num ,
+                         SUM(tr.actual_return_price) refund_money
+
+                          FROM `replay_employee` re
+                           INNER JOIN `replay_customer_detail` scr ON re.employee_id = scr.`employee_id`
+                           INNER JOIN `replay_return_order` tr ON tr.`customer_id` = scr.`customer_id`
+                           WHERE re.account_type = 1 AND tr.return_flow_state = 5 AND DATE_FORMAT(tr.finish_time,'%Y-%m-%d') >= #{beginDate} AND  DATE_FORMAT(tr.finish_time,'%Y-%m-%d') <= #{endDate}
+                           GROUP BY re.`employee_id`)temp GROUP BY temp.employee_id
+
+        ]]>
+    </select>
+</mapper>

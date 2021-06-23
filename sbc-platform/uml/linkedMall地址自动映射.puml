@@ -1,0 +1,17 @@
+@startuml
+start
+:初始化远程数据保存至第三方地区表;
+partition 自动映射 {
+   :读取所有本商城地区数据;
+   :分页读取未映射的第三方地区数据;
+   if(名称相互匹配 and 等级相等) then (yes)
+       if(是否省份) then (yes)
+         :保存关联id;
+       else(父节点名称相互匹配)
+         :保存关联id;
+       endif
+   endif
+}
+:映射成功;
+stop
+@enduml

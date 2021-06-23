@@ -1,0 +1,10 @@
+@startuml
+start
+:C端退单;
+:满足退换条件;
+if(包含供应商商品订单) then (yes)
+:弹窗提示自动拆单;
+endif
+:退单成功;
+stop
+@enduml

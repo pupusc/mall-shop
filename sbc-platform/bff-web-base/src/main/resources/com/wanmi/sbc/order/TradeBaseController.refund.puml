@@ -1,0 +1,21 @@
+@startuml
+ start
+  :用户提交退单/取消订单;
+  if (支付状态) then (已支付)
+    :商家审核;
+    if(是否通过) then(Y)
+       if(BOSS审核是否通过) then(Y)
+       :调用积分增加接口;
+       else(N)
+       :修改退单状态;
+       endif
+    else(N)
+        :修改退单状态;
+    endif
+  else(未支付)
+    :调用释放积分接口;
+  endif
+
+  stop
+@enduml
+

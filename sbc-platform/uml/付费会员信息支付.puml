@@ -1,0 +1,30 @@
+@startuml
+start
+    :前端提交;
+    :判断是否是0元单;
+    if(0元单) then(不是)
+         :跳转收银台;
+         :加载支付配置;
+         :提交支付;
+         :调用支付api;
+         :redis缓存流水号信息（key:前缀+businessid，val:{customerid,businessid,ruleid:付费卡开通或续费规则id}）;
+         :设置流水号过期时间;
+         if(成功支付) then(是)
+            partition 回调处理{
+                :生成付费卡实例;
+                :生成付费卡购买记录;
+                :发送购买成功短信给用户;
+            }
+          else(支付失败)
+            stop;
+          endif
+    else(是)
+        partition 处理0元单逻辑 {
+            :生成付费卡实例;
+            :生成付费卡购买记录;
+            :发送购买成功短信给用户;
+            stop
+        }
+     endif
+stop
+@enduml;

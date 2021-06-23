@@ -1,0 +1,6 @@
+1.服务器上setting模块的 application.properties 中的mq相关配置开启
+2.boss,supplier,micro-system的 application.properties 中的上传文件大小限制修改成支持50M
+3.调整了bff,open,micro服务的jvm内存 最大1024M
+4.隐藏 "详情模板" 菜单
+
+

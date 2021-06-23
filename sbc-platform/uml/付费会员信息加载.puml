@@ -1,0 +1,13 @@
+@startuml
+start
+:提交支付信息;
+:调用支付接口;
+    if(支付回调成功) then (yes)
+    else
+     stop;
+    endif;
+:生成付费记录;
+:生成会员权益数据;
+:返回状态码;
+stop
+@enduml

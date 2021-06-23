@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.ares.report.flow.dao.FlowSevenMapper">
+    <resultMap id="BaseResultMap" type="com.wanmi.ares.report.flow.model.root.FlowSeven">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="date" jdbcType="DATE" property="date"/>
+        <result column="uv" jdbcType="BIGINT" property="uv"/>
+        <result column="pv" jdbcType="BIGINT" property="pv"/>
+        <result column="goods_uv" jdbcType="BIGINT" property="goodsUv"/>
+        <result column="goods_pv" jdbcType="BIGINT" property="goodsPv"/>
+        <result column="company_id" jdbcType="VARCHAR" property="companyId"/>
+        <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, `date`, uv, pv, goods_uv, goods_pv, company_id, creat_time
+  </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from flow_seven
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="queryFlowSevenInfo" parameterType="com.wanmi.ares.request.flow.FlowSevenRequest" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from flow_seven
+        where 1=1
+        <if test="id != null">
+            and id = #{id,jdbcType=BIGINT}
+        </if>
+        <if test="flowDate != null">
+            and date = #{flowDate,jdbcType=DATE}
+        </if>
+        <if test="companyId != null">
+            and company_id = #{companyId,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <select id="getFlowSevenList" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven"
+            resultType="com.wanmi.ares.report.flow.model.root.FlowReport">
+        select
+        date, uv as totalUv, pv as totalPv, goods_uv as skuTotalUv, goods_pv as skuTotalPv, company_id as id, creat_time
+        from flow_seven
+        where 1=1
+        <if test="id != null">
+            and id = #{id,jdbcType=BIGINT}
+        </if>
+        <if test="date != null">
+            and date = #{date,jdbcType=DATE}
+        </if>
+        <if test="uv != null">
+            and uv = #{uv,jdbcType=BIGINT}
+        </if>
+        <if test="pv != null">
+            and pv = #{pv,jdbcType=BIGINT}
+        </if>
+        <if test="goodsUv != null">
+            and goods_uv = #{goodsUv,jdbcType=BIGINT}
+        </if>
+        <if test="goodsPv != null">
+            and goods_pv = #{goodsPv,jdbcType=BIGINT}
+        </if>
+        <if test="companyId != null">
+            and company_id = #{companyId,jdbcType=VARCHAR}
+        </if>
+        <if test="creatTime != null">
+            and creat_time = #{creatTime,jdbcType=TIMESTAMP}
+        </if>
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from flow_seven
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="deleteByPrimary" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven">
+        delete from flow_seven
+        where 1=1
+        <if test="id != null">
+            and id = #{id,jdbcType=BIGINT}
+        </if>
+        <if test="date != null">
+            and date = #{date,jdbcType=DATE}
+        </if>
+        <if test="uv != null">
+            and uv = #{uv,jdbcType=BIGINT}
+        </if>
+        <if test="pv != null">
+            and pv = #{pv,jdbcType=BIGINT}
+        </if>
+        <if test="goodsUv != null">
+            and goods_uv = #{goodsUv,jdbcType=BIGINT}
+        </if>
+        <if test="goodsPv != null">
+            and goods_pv = #{goodsPv,jdbcType=BIGINT}
+        </if>
+        <if test="companyId != null">
+            and company_id = #{companyId,jdbcType=VARCHAR}
+        </if>
+        <if test="creatTime != null">
+            and creat_time = #{creatTime,jdbcType=TIMESTAMP}
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven">
+    insert into flow_seven (id, `date`, uv, pv, 
+      goods_uv, goods_pv, company_id, 
+      creat_time)
+    values (#{id,jdbcType=BIGINT}, #{date,jdbcType=DATE}, #{uv,jdbcType=BIGINT}, #{pv,jdbcType=BIGINT}, 
+      #{goodsUv,jdbcType=BIGINT}, #{goodsPv,jdbcType=BIGINT}, #{companyId,jdbcType=VARCHAR}, 
+      #{creatTime,jdbcType=TIMESTAMP})
+  </insert>
+
+    <insert id="insertFlowSevenList">
+        insert into flow_seven (
+        date,
+        uv,
+        pv,
+        goods_uv,
+        goods_pv,
+        company_id,
+        creat_time
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.date,jdbcType=DATE},
+            #{item.uv,jdbcType=BIGINT},
+            #{item.pv,jdbcType=BIGINT},
+            #{item.goodsUv,jdbcType=BIGINT},
+            #{item.goodsPv,jdbcType=BIGINT},
+            #{item.companyId,jdbcType=VARCHAR},
+            #{item.creatTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven">
+        insert into flow_seven
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="date != null">
+                `date`,
+            </if>
+            <if test="uv != null">
+                uv,
+            </if>
+            <if test="pv != null">
+                pv,
+            </if>
+            <if test="goodsUv != null">
+                goods_uv,
+            </if>
+            <if test="goodsPv != null">
+                goods_pv,
+            </if>
+            <if test="companyId != null">
+                company_id,
+            </if>
+            <if test="creatTime != null">
+                creat_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="date != null">
+                #{date,jdbcType=DATE},
+            </if>
+            <if test="uv != null">
+                #{uv,jdbcType=BIGINT},
+            </if>
+            <if test="pv != null">
+                #{pv,jdbcType=BIGINT},
+            </if>
+            <if test="goodsUv != null">
+                #{goodsUv,jdbcType=BIGINT},
+            </if>
+            <if test="goodsPv != null">
+                #{goodsPv,jdbcType=BIGINT},
+            </if>
+            <if test="companyId != null">
+                #{companyId,jdbcType=VARCHAR},
+            </if>
+            <if test="creatTime != null">
+                #{creatTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven">
+        update flow_seven
+        <set>
+            <if test="date != null">
+                `date` = #{date,jdbcType=DATE},
+            </if>
+            <if test="uv != null">
+                uv = #{uv,jdbcType=BIGINT},
+            </if>
+            <if test="pv != null">
+                pv = #{pv,jdbcType=BIGINT},
+            </if>
+            <if test="goodsUv != null">
+                goods_uv = #{goodsUv,jdbcType=BIGINT},
+            </if>
+            <if test="goodsPv != null">
+                goods_pv = #{goodsPv,jdbcType=BIGINT},
+            </if>
+            <if test="companyId != null">
+                company_id = #{companyId,jdbcType=VARCHAR},
+            </if>
+            <if test="creatTime != null">
+                creat_time = #{creatTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.wanmi.ares.report.flow.model.root.FlowSeven">
+    update flow_seven
+    set `date` = #{date,jdbcType=DATE},
+      uv = #{uv,jdbcType=BIGINT},
+      pv = #{pv,jdbcType=BIGINT},
+      goods_uv = #{goodsUv,jdbcType=BIGINT},
+      goods_pv = #{goodsPv,jdbcType=BIGINT},
+      company_id = #{companyId,jdbcType=VARCHAR},
+      creat_time = #{creatTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

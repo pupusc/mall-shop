@@ -1,0 +1,1 @@
+alter table customer_draw_cash add `account_balance` decimal(20,2) default 0.00 comment '账户余额';

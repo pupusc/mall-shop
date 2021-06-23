@@ -1,0 +1,399 @@
+db.getCollection("tpl_infos").insert({
+    "envCode": "test1",
+    "tplInfoCode": "pc-01",
+    "tplRuleCode": "pc-common-rule",
+    "userId": "ADMIN",
+    "sortIndex": NumberInt(28),
+    "detailInfo": {
+        "author": "zll",
+        "previewHtml": "",
+        "detailImage": "",
+        "previewImage": "https://wanmi-x-site.oss-cn-shanghai.aliyuncs.com/x-site/public/images/template/pc-temp-zonghe.png"
+    },
+    "systemCode": "d2cStore",
+    "tag": [
+        "401",
+        "402",
+        "403",
+        "404",
+        "405",
+        "406",
+        "407",
+        "408",
+        "409",
+        "410",
+        "499"
+    ],
+    "type": "ADMIN",
+    "deleted": false,
+    "online": true,
+    "platform": "pc",
+    "configOrder": {
+        "children": [
+            {
+                "__info": {
+                    "props,items": {
+                        "props,items,3,imgSrc": {
+                            "info": {
+                                "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100514723",
+                                "id": NumberInt(6169),
+                                "pid": NumberInt(296),
+                                "isCate": "0",
+                                "name": "2fc46c265436d1a8ad5763eead9f2ab4.jpg",
+                                "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100514723"
+                            },
+                            "type": "image-custom"
+                        },
+                        "props,items,2,imgSrc": {
+                            "info": {
+                                "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544279744",
+                                "id": NumberInt(6202),
+                                "pid": NumberInt(296),
+                                "isCate": "0",
+                                "name": "21381138ded42d6cbd5f6fdfaf20e7e6.jpg",
+                                "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544279744"
+                            },
+                            "type": "image-custom"
+                        },
+                        "props,items,1,imgSrc": {
+                            "info": {
+                                "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544298044",
+                                "id": NumberInt(6203),
+                                "pid": NumberInt(296),
+                                "isCate": "0",
+                                "name": "1b23b18e99cb05cb523232f61d4ea41a.jpg",
+                                "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544298044"
+                            },
+                            "type": "image-custom"
+                        },
+                        "props,items,0,imgSrc": {
+                            "info": {
+                                "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100511977",
+                                "id": NumberInt(6170),
+                                "pid": NumberInt(296),
+                                "isCate": "0",
+                                "name": "21381138ded42d6cbd5f6fdfaf20e7e6.jpg",
+                                "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100511977"
+                            },
+                            "type": "image-custom"
+                        }
+                    },
+                    "props,items,3,imgSrc": {
+                        "info": {
+                            "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100514723",
+                            "id": NumberInt(6169),
+                            "pid": NumberInt(296),
+                            "isCate": "0",
+                            "name": "2fc46c265436d1a8ad5763eead9f2ab4.jpg",
+                            "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100514723"
+                        },
+                        "type": "image-custom"
+                    },
+                    "props,items,2,imgSrc": {
+                        "info": {
+                            "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544279744",
+                            "id": NumberInt(6202),
+                            "pid": NumberInt(296),
+                            "isCate": "0",
+                            "name": "21381138ded42d6cbd5f6fdfaf20e7e6.jpg",
+                            "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544279744"
+                        },
+                        "type": "image-custom"
+                    },
+                    "props,items,1,imgSrc": {
+                        "info": {
+                            "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544298044",
+                            "id": NumberInt(6203),
+                            "pid": NumberInt(296),
+                            "isCate": "0",
+                            "name": "1b23b18e99cb05cb523232f61d4ea41a.jpg",
+                            "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544298044"
+                        },
+                        "type": "image-custom"
+                    },
+                    "props,items,0,imgSrc": {
+                        "info": {
+                            "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100511977",
+                            "id": NumberInt(6170),
+                            "pid": NumberInt(296),
+                            "isCate": "0",
+                            "name": "21381138ded42d6cbd5f6fdfaf20e7e6.jpg",
+                            "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100511977"
+                        },
+                        "type": "image-custom"
+                    }
+                },
+                "widgetNameSpace": "@wanmi/pc-slider",
+                "props": {
+                    "items": [
+                        {
+                            "imgHref": "",
+                            "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100513363"
+                        },
+                        {
+                            "imgHref": "",
+                            "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544298044"
+                        },
+                        {
+                            "imgHref": "",
+                            "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191544279744"
+                        },
+                        {
+                            "imgHref": "",
+                            "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191100514723"
+                        }
+                    ]
+                }
+            },
+            {
+                "__info": {
+                    "props,right,items,5,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149264669",
+                            "id": "8a9bc76c65ea68480165eff5c199002c",
+                            "skuId": "8a9bc76c65ea68480165eff5c199002c",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149264669"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165eff5c196002b"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 钢笔墨水礼盒",
+                            "name": "仲秋·拾月 钢笔墨水礼盒",
+                            "price": NumberInt(149)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,4,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149263689",
+                            "id": "8a9bc76c65ea68480165f00b1d7b0036",
+                            "skuId": "8a9bc76c65ea68480165f00b1d7b0036",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149263689"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165f00b1d780035"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(99999)
+                            },
+                            "nameWithSku": "仲秋·拾月 月桂飘香焖烧罐",
+                            "name": "仲秋·拾月 月桂飘香焖烧罐",
+                            "price": NumberInt(119)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,3,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149264782",
+                            "id": "8a9bc76c65ea68480165f009f0420032",
+                            "skuId": "8a9bc76c65ea68480165f009f0420032",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149264782"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165f009f03f0031"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 森林秋月抱枕套",
+                            "name": "仲秋·拾月 森林秋月抱枕套",
+                            "price": NumberInt(49)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,2,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191154359200",
+                            "id": "8a9bc76c65ea68480165eff7807d0030",
+                            "skuId": "8a9bc76c65ea68480165eff7807d0030",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191154359200"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165eff7807a002f"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 立体月兔点心盘",
+                            "name": "仲秋·拾月 立体月兔点心盘",
+                            "price": NumberInt(129)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,1,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149263119",
+                            "id": "8a9bc76c65ea68480165eff693b8002e",
+                            "skuId": "8a9bc76c65ea68480165eff693b8002e",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149263119"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165eff693b5002d"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "中秋推荐 仲秋·拾月 飞兔奔月点心平盘",
+                            "name": "中秋推荐 仲秋·拾月 飞兔奔月点心平盘",
+                            "price": NumberInt(99)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,0,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191150341070",
+                            "id": "8a9bc76c65ea68480165eff3ebb70028",
+                            "skuId": "8a9bc76c65ea68480165eff3ebb70028",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191150341070"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165eff3ebb40027"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 茗月夜月饼礼盒 60克*8枚",
+                            "name": "仲秋·拾月 茗月夜月饼礼盒 60克*8枚",
+                            "price": NumberInt(198)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,left,img,imgSrc": {
+                        "info": {
+                            "src": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809190940302319",
+                            "id": NumberInt(6164),
+                            "pid": NumberInt(296),
+                            "isCate": "0",
+                            "name": "4$QBHR.png",
+                            "path": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809190940302319"
+                        },
+                        "type": "image-custom"
+                    },
+                    "props,right,items,7,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149266812",
+                            "id": "8a9bc76c65ea68480165f00b93340038",
+                            "skuId": "8a9bc76c65ea68480165f00b93340038",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149266812"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165f00b932f0037"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 拾月套杯组合",
+                            "name": "仲秋·拾月 拾月套杯组合",
+                            "price": NumberInt(109)
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    },
+                    "props,right,items,6,imgHref": {
+                        "target": false,
+                        "info": {
+                            "image": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149269370",
+                            "id": "8a9bc76c65ea68480165eff4e7ed002a",
+                            "skuId": "8a9bc76c65ea68480165eff4e7ed002a",
+                            "images": [
+                                "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149269370"
+                            ],
+                            "specs": [
+                                {
+                                    "valKey": null,
+                                    "goodsId": "8a9bc76c65ea68480165eff4e7ea0029"
+                                }
+                            ],
+                            "stock": {
+                                "stock": NumberInt(9999999)
+                            },
+                            "nameWithSku": "仲秋·拾月 贺卡套装",
+                            "name": "仲秋·拾月 贺卡套装",
+                            "price": 12.8
+                        },
+                        "linkKey": "goodsList",
+                        "type": "link"
+                    }
+                },
+                "widgetNameSpace": "@wanmi/pc-floor-01",
+                "props": {
+                    "key": 1537326106707,
+                    "version": "0.0.30",
+                    "right": {
+                        "items": [
+                            {
+                                "skuId": "8a9bc76c65ea68480165eff3ebb70028",
+                                "stock": {
+                                    "stock": NumberInt(9999999)
+                                },
+                                "target": false,
+                                "imgHref": "/goods-detail/8a9bc76c65ea68480165eff3ebb70028",
+                                "name": "仲秋·拾月 茗月夜月饼礼盒 60克*8枚",
+                                "text3": "￥198",
+                                "text2": null,
+                                "text1": "仲秋·拾月 茗月夜月饼礼盒 60克*8枚",
+                                "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191150341070"
+                            },
+                            {
+                                "skuId": "8a9bc76c65ea68480165eff693b8002e",
+                                "stock": {
+                                    "stock": NumberInt(9999999)
+                                },
+                                "target": false,
+                                "imgHref": "/goods-detail/8a9bc76c65ea68480165eff693b8002e",
+                                "name": "中秋推荐 仲秋·拾月 飞兔奔月点心平盘",
+                                "text3": "￥99",
+                                "text2": null,
+                                "text1": "中秋推荐 仲秋·拾月 飞兔奔月点心平盘",
+                                "imgSrc": "https://wanmi-b2b.oss-cn-shanghai.aliyuncs.com/201809191149263119"
+                            },
+                            {
+                                "skuId": "8a9bc76c65ea68480165eff7807d0030",
+                                "stock": {
+                                    "stock": NumberInt(999999)
+                                },
+                                "target": false,

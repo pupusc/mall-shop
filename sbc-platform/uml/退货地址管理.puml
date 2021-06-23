@@ -1,0 +1,49 @@
+@startuml
+start
+partition 退货地址新增/编辑 {
+    if(联系人名称是否为空) then (yes)
+     :提示参数不正确;
+    endif;
+    if(联系人名称长度不在2~15字符之间?) then (yes)
+     :提示参数不正确;
+    endif;
+    if(联系方式是否为空) then (yes)
+     :提示参数不正确;
+    endif;
+    if(联系方式不是数字?) then (yes)
+     :提示参数不正确;
+    endif;
+    if(联系方式长度不是11位?) then (yes)
+     :提示参数不正确;
+    endif;
+    if(所在地区没有选择四级地区) then (yes)
+     :提示参数不正确;
+    endif;
+    if(详细地址为空) then (yes)
+     :提示参数不正确;
+    endif;
+    if(详细地址长度不在2~60字符之间?) then (yes)
+     :提示参数不正确;
+    endif;
+    :查询退货地区数据;
+    if(同一商家/供应商下是否有地址数据) then (yes)
+        if(总条数是否超过20条) then (yes)
+         :提示最多不可超过20条;
+        endif;
+        if(是否默认) then (yes)
+         :将其他退货地址更新为非默认;
+        endif;
+    else
+        :设为默认;
+    endif;
+    :更新退货地址;
+    :提示操作成功;
+}
+
+partition 退货地址设为默认 {
+    :将其他退货地址更新为非默认;
+    :更新退货地址;
+    :提示操作成功;
+}
+stop;
+@enduml

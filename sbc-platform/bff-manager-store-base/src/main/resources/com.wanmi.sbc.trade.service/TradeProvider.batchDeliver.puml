@@ -1,0 +1,13 @@
+@startuml
+start
+:循环bff传来批量发货所需信息;
+if(是否是商家端) then(是)
+    if(是否有子单) then(是)
+        :更新商家子单\ndealBatchDeliver();
+    endif
+else (否)
+    :更新供应商子单;
+endif
+:更新主单deliver();
+stop
+@enduml

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.customer.dao.ReplayStoreMapper">
+
+    <resultMap id="storeMap" type="com.wanmi.ares.source.model.root.Store">
+        <id property="id" column="store_id"/>
+        <result property="applyEnterTime" column="apply_enter_time"/>
+        <result property="auditState" column="audit_state"/>
+        <result property="companyType" column="company_type"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="companyInfoId" column="company_info_id"/>
+        <result property="storeName" column="store_name"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="storeState" column="store_state"/>
+        <result property="contractStartDate" column="contract_start_date"/>
+        <result property="contractEndDate" column="contract_end_date"/>
+    </resultMap>
+
+    <sql id="store_col">
+        store_id, apply_enter_time, audit_state,company_type,del_flag, company_info_id, store_name, supplier_name, store_state, contract_start_date, contract_end_date
+    </sql>
+
+
+    <select id="queryById" resultMap="storeMap">
+        SELECT
+        <include refid="store_col"/>
+        FROM REPLAY_STORE WHERE id = #{storeId}
+    </select>
+
+    <select id="queryByCompanyInfoId" resultMap="storeMap">
+        SELECT
+        <include refid="store_col"/>
+        FROM REPLAY_STORE WHERE company_info_id = #{companyInfoId}
+    </select>
+
+    <select id="queryByCompanyIds" resultMap="storeMap" parameterType="list">
+        SELECT
+        <include refid="store_col"/>
+        FROM REPLAY_STORE WHERE audit_state=1 and company_info_id IN
+        <foreach collection="companyIds" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryByCondition" resultMap="storeMap" parameterType="java.util.Map">
+        SELECT <include refid="store_col"/>
+        FROM REPLAY_STORE WHERE 1 = 1
+        <if test="companyInfoId != null and companyInfoId != ''">
+            AND company_info_id = #{companyInfoId}
+        </if>
+        <if test="delFlag != null and delFlag != ''">
+            AND del_flag = #{delFlag}
+        </if>
+        <if test="contractStartDate != null and contractStartDate != ''">
+            AND contract_start_date &lt;= #{contractStartDate}
+        </if>
+        <if test="contractEndDate != null and contractEndDate != ''">
+            AND contract_end_date &gt;= #{contractEndDate}
+        </if>
+        <if test="storeState != null and storeState != ''">
+            AND store_state = #{storeState}
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,25 @@
+@startuml
+start
+if (下单数超过1个) then (yes)
+  :抛出异常;
+elseif (订单商品超过1个) then (yes)
+  :抛出异常;
+elseif (拼团单存在营销活动、分销商品或是开店礼包) then (yes)
+  :抛出异常;
+elseif (商品未关联进行中的拼团活动) then (yes)
+  :抛出异常;
+elseif (已开团) then (yes)
+    :抛出异常;
+elseif (已参同一团活动) then (yes)
+  :抛出异常;
+elseif (已成团/团已作废) then (yes)
+  :抛出异常;
+elseif (未达到拼团商品起售数) then (yes)
+  :抛出异常;
+elseif (已超过拼团商品限购数) then (yes)
+  :抛出异常;
+else
+  :验证通过;
+endif
+stop
+@enduml

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.goods.dao.GoodsTotalRatioMapper" >
+
+    <sql id="commonAddColSql">
+      SHOP_ID,CUSTOMER_COUNT,TOTAL_UV,RATIO,CREATE_TIME
+    </sql>
+
+    <sql id="commonWhereSql">
+        WHERE 1 = 1
+        <if test="companyId != null">
+            AND SHOP_ID = #{companyId}
+        </if>
+
+        <if test="date != null">
+            AND STAT_DATE = date_format(#{date},'%Y-%m-%d')
+        </if>
+        <if test="month != null">
+            AND STAT_MONTH = #{month}
+        </if>
+        <if test="year != null">
+            AND STAT_YEAR = #{year}
+        </if>
+    </sql>
+
+
+    <sql id="statisticsQuery">
+        select
+            b.companyId companyId,
+            COALESCE(customerCount,0) customerCount,
+            totalUv totalUv,
+            case when totalUv is null or totalUv=0 then  LEAST(ROUND (customerCount/1,4) *100,100) else LEAST(ROUND (customerCount/totalUv,4) *100,100) end ratio,
+            now()
+        from (
+            select companyId,count(distinct customerId) customerCount  from (
+                select
+                t.company_id companyId,sku_id skuId,t.customer_id customerId
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.create_time &gt;= #{beginTime} and t.create_time &lt; #{endTime}
+                group by companyId,skuId,customerId
+            ) trade
+            inner join
+            (
+                select
+                sku_id skuId, i.user_id userId
+                from  replay_sku_flow_user_info i
+                where i.sku_flow_date &gt;= #{beginTime} and i.sku_flow_date &lt; #{endTime}
+                GROUP BY skuId,userId
+            ) flow on (trade.skuId = flow.skuId and trade.customerId= flow.userId)
+            GROUP BY companyId
+        )a
+         join
+        (
+            select
+                t.company_id companyId,count(distinct i.user_id) totalUv
+            from replay_sku_flow t
+            join replay_sku_flow_user_info i on (t.id=i.sku_flow_id)
+            where i.sku_flow_date  &gt;= #{beginTime} and i.sku_flow_date &lt;#{endTime}
+            group by t.company_id
+        ) b on a.companyId=b.companyId
+
+        union all
+
+        select
+            b.companyId companyId,
+            COALESCE(customerCount,0) customerCount,
+            totalUv totalUv,
+            case when totalUv is null or totalUv=0 then  LEAST(ROUND (customerCount/1,4) *100,100) else LEAST(ROUND (customerCount/totalUv,4) *100,100) end ratio,
+            now()
+        from (
+            select 0 companyId,count(distinct customerId) customerCount
+            from (
+                select
+                    sku_id skuId,t.customer_id customerId
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.create_time  &gt;= #{beginTime} and t.create_time &lt; #{endTime}
+                group by skuId,customerId
+            ) trade
+            inner join
+            (
+                select
+                  sku_id skuId, i.user_id userId
+                from  replay_sku_flow_user_info i
+                where i.sku_flow_date  &gt;= #{beginTime} and i.sku_flow_date &lt; #{endTime}
+                GROUP BY skuId,userId
+            ) flow on (trade.skuId = flow.skuId and trade.customerId= flow.userId)
+        )a
+         join
+        (
+            select
+                0 companyId,count(distinct i.user_id) totalUv
+            from replay_sku_flow t
+            join replay_sku_flow_user_info i on (t.id=i.sku_flow_id)
+            where i.sku_flow_date  &gt;= #{beginTime} and i.sku_flow_date &lt; #{endTime}
+        ) b on a.companyId=b.companyId
+
+    </sql>
+    <select id="queryGoodsTotalRatioReport" resultType="com.wanmi.ares.report.goods.model.root.GoodsTotalRatioReport">
+       select shop_id,customer_count,total_uv,ratio from ${table}
+        <include refid="commonWhereSql"/>
+    </select>
+
+
+    <delete id="delSevenDayReport">
+        TRUNCATE TABLE GOODS_TOTAL_RATIO_RECENT_SEVEN
+    </delete>
+
+    <delete id="delThirtyDayReport">
+        TRUNCATE TABLE GOODS_TOTAL_RATIO_RECENT_THIRTY
+    </delete>
+
+    <delete id="delDayReport" parameterType="String">
+        DELETE FROM GOODS_TOTAL_RATIO_DAY WHERE STAT_DATE = date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="delDayReportByLtDate" parameterType="String">
+        alter table GOODS_TOTAL_RATIO_DAY truncate partition #{date}
+    </delete>
+
+
+    <delete id="delMonthReport" parameterType="String">
+       delete from  GOODS_TOTAL_RATIO_MONTH where stat_month = ${date}
+    </delete>
+
+
+    <insert id="saveDayReportBySelect">
+       insert into GOODS_TOTAL_RATIO_DAY(
+          <include refid="commonAddColSql"/>
+          ,STAT_DATE,id
+       )
+       select statistic.*,#{statDate},concat(statistic.companyId,',',#{statDate})  from (
+          <include refid="statisticsQuery"/>
+       ) statistic
+    </insert>
+
+    <insert id="saveMonthReportBySelect">
+        insert into GOODS_TOTAL_RATIO_MONTH(
+          <include refid="commonAddColSql"/>
+          ,STAT_MONTH,ID
+        )
+        select statistic.*,${statDate},concat(statistic.companyId,',',${statDate}) from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveSevenDayReportBySelect">
+        insert into GOODS_TOTAL_RATIO_RECENT_SEVEN(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveThirtyDayReportBySelect">
+        insert into GOODS_TOTAL_RATIO_RECENT_THIRTY(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+</mapper>

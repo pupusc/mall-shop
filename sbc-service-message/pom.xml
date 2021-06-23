@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.wanmi</groupId>
+        <artifactId>parent</artifactId>
+        <version>2.2.4-RELEASE</version>
+    </parent>
+
+    <groupId>com.wanmi.sbc</groupId>
+    <artifactId>service-message</artifactId>
+    <version>fandeng-uat-4.1.7-alpha</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <discovery.version>6.3.3</discovery.version>
+
+        <wm.micro.service.version>fandeng-uat-4.1.7-alpha</wm.micro.service.version>
+        <module.version>1.0.0-RELEASE</module.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+
+        <poi>3.17</poi>
+        <aliyun.sdk.version>4.1.0</aliyun.sdk.version>
+        <xxl-job-core.version>2.0.2</xxl-job-core.version>
+
+    </properties>
+
+    <modules>
+        <module>service-message-api</module>
+        <module>service-message-app</module>
+        <module>service-message-core</module>
+        <module>service-message-bean</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-message-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-message-app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-message-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-message-bean</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>aliyun-java-sdk-core</artifactId>
+                <version>${aliyun.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job-core.version}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-common</artifactId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
+
+
+
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.2.12</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <username>${git.username}</username>
+                    <password>${git.password}</password>
+                    <tagNameFormat>service-message-v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                    <testFailureIgnore>true</testFailureIgnore>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--<repositories>
+        <repository>
+            <id>nexus</id>
+            <name>local private nexus</name>
+            <url>http://maven.ningpai.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>nexus repository</id>
+            <name>intranet public groups</name>
+            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>qianmi-snapshots</id>
+            <name>intranet public snapshots</name>
+            <url>http://nexus.dev.qianmi.com/nexus/content/repositories/snapshots</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>nexus-snapshots</id>
+            <name>snapshots</name>
+            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>snapshots</name>
+            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+
+    <scm>
+        <connection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-message.git</connection>
+        <developerConnection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-message.git</developerConnection>
+        <url>http://172.19.25.151/sbc-micro-service/sbc-service-message.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>local private nexus</name>
+            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>local private nexus</name>
+            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>-->
+
+</project>

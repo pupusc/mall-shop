@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.ares.report.goods.dao.GoodsBrandMapper" >
+
+    <sql id="commonAddColSql">
+      SHOP_ID,BRAND_ID,ORDER_COUNT,ORDER_MONEY,ORDER_NUM,PAY_COUNT,PAY_MONEY,PAY_NUM,REFUND_COUNT,REFUND_MONEY,REFUND_NUM,CREATE_TM
+    </sql>
+
+    <sql id="commonWhereSql">
+        WHERE SHOP_ID = #{companyId}
+        <if test="ids != null and ids.size > 0">
+            and brand_id in
+            <foreach collection="ids" item="item" index="index"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        <if test="isLeaf != null">
+            AND IS_LEAF = #{isLeaf}
+        </if>
+
+        <if test="date != null">
+            AND STAT_DATE = date_format(#{date},'%Y-%m-%d')
+        </if>
+        <if test="month != null">
+            AND STAT_MONTH = #{month}
+        </if>
+        <if test="year != null">
+            AND STAT_YEAR = #{year}
+        </if>
+    </sql>
+
+    <sql id="commonQuerySql">
+        SELECT
+          brand_id AS id,
+          ORDER_COUNT AS orderCount,
+          ORDER_MONEY AS orderAmt,
+          ORDER_NUM AS orderNum,
+          PAY_COUNT AS payCount,
+          PAY_NUM AS payNum,
+          PAY_MONEY AS payAmt,
+          REFUND_COUNT AS returnOrderCount,
+          REFUND_MONEY AS returnOrderAmt,
+          REFUND_NUM AS returnOrderNum,
+          SHOP_ID AS companyId
+        FROM ${table}
+    </sql>
+
+    <sql id="statisticsQuery">
+         select
+            companyId,
+            brand,
+            COALESCE(sum(orderCount),0) orderCount,
+            COALESCE(sum(orderPrice),0) orderPrice,
+            COALESCE(sum(orderNum),0) orderNum,
+            COALESCE(sum(payCount),0) payCount,
+            COALESCE(sum(payPrice),0) payPrice,
+            COALESCE(sum(payNum),0) payNum,
+            COALESCE(sum(returnCount),0) returnCount,
+            COALESCE(sum(returnPrice),0) returnPrice,
+            COALESCE(sum(returnNum),0) returnNum,
+            now()
+        from(
+            
+            select
+                a.companyId,
+                a.brand,
+                a.orderCount,
+                a.orderPrice,
+                a.orderNum,
+                0 payCount,
+                0 payPrice,
+                0 payNum,
+                0 returnCount,
+                0 returnPrice,
+                0 returnNum
+            from (
+                select
+                    t.company_id companyId,i.brand brand, count(1) orderCount,sum(level_price*num) orderPrice,sum(num) orderNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.create_time &gt;= #{beginTime} and t.create_time &lt; #{endTime}
+                group by t.company_id,i.brand
+            ) a
+            union all (
+                select
+                    t.company_id companyId,
+                    i.brand brand,
+                    0 orderCount,
+                    0 orderPrice,
+                    0 orderNum,
+                    count(i.id) payCount,
+                    sum(price*num) payPrice,
+                    sum(num) payNum,
+                    0 returnCount,
+                    0 returnPrice,
+                    0 returnNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.pay_time &gt;= #{beginTime} and t.pay_time &lt; #{endTime} and t.pay_state=2
+                group by t.company_id,i.brand
+            )
+            
+            union all
+           
+            select
+                o.company_id companyId,
+                i.brand brand,
+                0 orderCount,
+                0  orderPrice,
+                0 orderNum,
+                0 payCount,
+                0 payPrice,
+                0 payNum,
+                count(i.id) returnCount,
+                sum(i.price*i.num) returnPrice,
+                sum(i.num) returnNum
+            from replay_return_order o
+            left join replay_return_item i on(o.rid=i.rid)
+            where finish_time &gt;= #{beginTime} and finish_time &lt; #{endTime}
+            group by o.company_id,i.brand
+        ) g where brand is not null GROUP BY companyId,brand
+         
+        union all
+        
+        select
+            0 companyId,
+            brand,
+            COALESCE(sum(orderCount),0) orderCount,
+            COALESCE(sum(orderPrice),0) orderPrice,
+            COALESCE(sum(orderNum),0) orderNum,
+            COALESCE(sum(payCount),0) payCount,
+            COALESCE(sum(payPrice),0) payPrice,
+            COALESCE(sum(payNum),0) payNum,
+            COALESCE(sum(returnCount),0) returnCount,
+            COALESCE(sum(returnPrice),0) returnPrice,
+            COALESCE(sum(returnNum),0) returnNum,
+            now()
+        from (
+            select
+                a.brand,
+                a.orderCount,
+                a.orderPrice,
+                a.orderNum,
+                0 payCount,
+                0 payPrice,
+                0 payNum,
+                0 returnCount,
+                0 returnPrice,
+                0 returnNum
+                from (
+                  select i.brand brand, count(1) orderCount,sum(level_price*num) orderPrice,sum(num) orderNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.create_time &gt;= #{beginTime} and t.create_time &lt; #{endTime}
+                group by i.brand
+            ) a
+            union all (
+                select
+                    i.brand brand,
+                    0 orderCount,
+                    0 orderPrice,
+                    0 orderNum,
+                    count(i.id) payCount,
+                    sum(price*num) payPrice,
+                    sum(num) payNum,
+                    0 returnCount,
+                    0 returnPrice,
+                    0 returnNum
+                from replay_trade t
+                left join replay_trade_item i on(t.tid=i.tid)
+                where t.pay_time&gt;= #{beginTime} and t.pay_time &lt; #{endTime} and t.pay_state=2
+                group by i.brand
+            )
+
+            union all
+
+            select
+                i.brand brand,
+                0 orderCount,
+                0  orderPrice,
+                0 orderNum,
+                0 payCount,
+                0 payPrice,
+                0 payNum,
+                count(i.id) returnCount,
+                sum(i.price*i.num) returnPrice,
+                sum(i.num) returnNum
+            from replay_return_order o
+            left join replay_return_item i on(o.rid=i.rid)
+            where finish_time &gt;= #{beginTime} and finish_time &lt; #{endTime}
+            group by i.brand
+        )g where brand is not null group by brand
+    </sql>
+
+    <select id="queryGoodsBrandReport" resultType="com.wanmi.ares.report.goods.model.root.GoodsReport">
+        <include refid="commonQuerySql"/>
+        <include refid="commonWhereSql"/>
+        ORDER BY ${sortCol} ${sortType}, brand_id ASC
+        limit #{number}, #{size}
+    </select>
+
+    <select id="countGoodsBrandReport" resultType="long">
+        SELECT COUNT(1) FROM ${table}
+        <include refid="commonWhereSql"/>
+    </select>
+
+    <select id="queryGoodsBrandReportByExport" resultType="com.wanmi.ares.report.goods.model.root.GoodsBrandReport">
+        select a.*,
+        b.brand_name brandName
+        from
+        (
+        select
+        brand_id id,
+        sum(order_count) orderCount,
+        sum(order_money) orderAmt,
+        sum(order_num) orderNum,
+        sum(pay_count) payCount,
+        sum(pay_money) payAmt,
+        sum(pay_num) payNum,
+        sum(REFUND_count) returnOrderCount,
+        sum(REFUND_money) returnOrderAmt,
+        sum(REFUND_num) returnOrderNum
+        from goods_brand_day report
+        <where>
+            <if test="begDate!=null">
+                and STAT_DATE &gt;=#{begDate}
+            </if>
+            <if test="endDate != null">
+                and stat_date &lt;=#{endDate}
+            </if>
+            <if test="companyId != null">
+                and SHOP_ID = #{companyId}
+            </if>
+        </where>
+        group by brand_id
+        ORDER BY  orderAmt DESC
+        )a
+        left join replay_goods_brand b on(a.id = b.brand_id)
+    </select>
+    <delete id="delSevenDayReport">
+        TRUNCATE TABLE GOODS_BRAND_RECENT_SEVEN
+    </delete>
+
+    <delete id="delThirtyDayReport">
+        TRUNCATE TABLE GOODS_BRAND_RECENT_THIRTY
+    </delete>
+
+    <delete id="delDayReport" parameterType="String">
+        DELETE FROM GOODS_BRAND_DAY WHERE STAT_DATE = date_format(#{date},'%Y-%m-%d')
+    </delete>
+
+    <delete id="delMonthReport" parameterType="int">
+        DELETE FROM GOODS_BRAND_MONTH WHERE STAT_MONTH = #{date}
+    </delete>
+
+    <insert id="saveDayReportBySelect">
+        insert into goods_brand_day(
+          <include refid="commonAddColSql"/>
+          ,STAT_DATE,ID
+        )
+        select statistic.*,#{statDate},CONCAT(#{statDate},',',statistic.companyId,',',statistic.brand)  from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveMonthReportBySelect">
+        insert into goods_brand_month(
+          <include refid="commonAddColSql"/>
+          ,STAT_MONTH,ID
+        )
+        select statistic.*,${statDate},CONCAT(#{statDate},',',statistic.companyId,',',statistic.brand) from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveSevenDayReportBySelect">
+        insert into goods_brand_recent_seven(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <insert id="saveThirtyDayReportBySelect">
+        insert into goods_brand_recent_thirty(
+          <include refid="commonAddColSql"/>
+        )
+        select statistic.* from (
+          <include refid="statisticsQuery"/>
+        ) statistic
+    </insert>
+
+    <select id="queryByIds" resultType="com.wanmi.ares.source.model.root.GoodsBrand">
+        SELECT
+            brand_id id,
+            brand_name name,
+            s.company_info_id companyId
+        FROM REPLAY_GOODS_BRAND b
+        left join REPLAY_STORE s on (b.store_id = s.store_id)
+        WHERE brand_id IN
+        <foreach collection="ids" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

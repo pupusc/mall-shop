@@ -1,0 +1,13 @@
+1.新增的定时任务
+storeEvaluateStatisticsJob
+
+2.服务器上mysql配置修改字符集为utf8mb4(参考线上或120环境)
+vim /etc/my.cnf
+# 重启mysql服务
+service mysql restart
+
+3.删除了非bff模块的@MultiSubmit
+优化MultiSubmitHandler处理器,redis锁的key增加登录人id,增加@AfterReturning释放锁的逻辑,默认锁时长改为5秒
+
+4.删除Boss启动调用setting服务的init()方法初始化system_config的逻辑
+system_config表的数据由sql提供,无需调用服务来初始化

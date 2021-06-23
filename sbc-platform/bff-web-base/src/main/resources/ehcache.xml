@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+         updateCheck="false">
+    <diskStore path="java.io.tmpdir/Tmp_EhCache" />
+
+    <defaultCache eternal="false" maxElementsInMemory="1000" overflowToDisk="false" diskPersistent="false"
+                  timeToLiveSeconds="60" memoryStoreEvictionPolicy="LRU" />
+
+    <cache name="BASE_CONFIG"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="300">
+    </cache>
+
+<!--    <cache name="GOODS_EVALUATE_CONFIG"-->
+<!--           eternal="false"-->
+<!--           maxEntriesLocalHeap="0"-->
+<!--           timeToLiveSeconds="300">-->
+<!--    </cache>-->
+
+    <cache name="POINTS_CONFIG"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="300">
+    </cache>
+
+    <cache name="VISIT_WITH_LOGIN"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="300">
+    </cache>
+
+    <cache name="MAGIC_PAGE_MAIN_HTML"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="60">
+    </cache>
+
+    <cache name="MAGIC_PAGE_MAIN_CONFIG"
+           eternal="false"
+           maxEntriesLocalHeap="0"
+           timeToLiveSeconds="60">
+    </cache>
+
+</ehcache>

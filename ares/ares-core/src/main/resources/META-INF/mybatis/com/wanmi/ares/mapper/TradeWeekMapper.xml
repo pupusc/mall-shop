@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.ares.report.trade.dao.TradeWeekMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.ares.report.trade.model.root.TradeWeek">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="date" jdbcType="DATE" property="date" />
+    <result column="month" jdbcType="VARCHAR" property="month" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="week_start_date" jdbcType="DATE" property="weekStartDate" />
+    <result column="week_end_date" jdbcType="DATE" property="weekEndDate" />
+    <result column="order_num" jdbcType="BIGINT" property="orderNum" />
+    <result column="order_user_num" jdbcType="BIGINT" property="orderUserNum" />
+    <result column="order_money" jdbcType="DECIMAL" property="orderMoney" />
+    <result column="pay_num" jdbcType="BIGINT" property="payNum" />
+    <result column="pay_user_num" jdbcType="BIGINT" property="payUserNum" />
+    <result column="pay_money" jdbcType="DECIMAL" property="payMoney" />
+    <result column="order_conversion" jdbcType="DECIMAL" property="orderConversion" />
+    <result column="pay_conversion" jdbcType="DECIMAL" property="payConversion" />
+    <result column="all_conversion" jdbcType="DECIMAL" property="allConversion" />
+    <result column="user_per_price" jdbcType="DECIMAL" property="userPerPrice" />
+    <result column="order_per_price" jdbcType="DECIMAL" property="orderPerPrice" />
+    <result column="refund_num" jdbcType="BIGINT" property="refundNum" />
+    <result column="refund_user_num" jdbcType="BIGINT" property="refundUserNum" />
+    <result column="refund_money" jdbcType="DECIMAL" property="refundMoney" />
+    <result column="uv" jdbcType="BIGINT" property="uv" />
+    <result column="company_id" jdbcType="BIGINT" property="companyId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, `date`, `month`, `type`, week_start_date, week_end_date, order_num, order_user_num, 
+    order_money, pay_num, pay_user_num, pay_money, order_conversion, pay_conversion, 
+    all_conversion, user_per_price, order_per_price, refund_num, refund_user_num, refund_money, 
+    uv, company_id, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from trade_week
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from trade_week
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.wanmi.ares.report.trade.model.root.TradeWeek" useGeneratedKeys="true">
+    insert into trade_week (`date`, `month`, `type`, 
+      week_start_date, week_end_date, order_num, 
+      order_user_num, order_money, pay_num, 
+      pay_user_num, pay_money, order_conversion, 
+      pay_conversion, all_conversion, user_per_price, 
+      order_per_price, refund_num, refund_user_num, 
+      refund_money, uv, company_id, 
+      create_time)
+    values (#{date,jdbcType=DATE}, #{month,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
+      #{weekStartDate,jdbcType=DATE}, #{weekEndDate,jdbcType=DATE}, #{orderNum,jdbcType=BIGINT}, 
+      #{orderUserNum,jdbcType=BIGINT}, #{orderMoney,jdbcType=DECIMAL}, #{payNum,jdbcType=BIGINT}, 
+      #{payUserNum,jdbcType=BIGINT}, #{payMoney,jdbcType=DECIMAL}, #{orderConversion,jdbcType=DECIMAL}, 
+      #{payConversion,jdbcType=DECIMAL}, #{allConversion,jdbcType=DECIMAL}, #{userPerPrice,jdbcType=DECIMAL}, 
+      #{orderPerPrice,jdbcType=DECIMAL}, #{refundNum,jdbcType=BIGINT}, #{refundUserNum,jdbcType=BIGINT}, 
+      #{refundMoney,jdbcType=DECIMAL}, #{uv,jdbcType=BIGINT}, #{companyId,jdbcType=BIGINT}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.wanmi.ares.report.trade.model.root.TradeWeek" useGeneratedKeys="true">
+    insert into trade_week
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="date != null">
+        `date`,
+      </if>
+      <if test="month != null">
+        `month`,
+      </if>
+      <if test="type != null">
+        `type`,
+      </if>
+      <if test="weekStartDate != null">
+        week_start_date,
+      </if>
+      <if test="weekEndDate != null">
+        week_end_date,
+      </if>
+      <if test="orderNum != null">
+        order_num,
+      </if>
+      <if test="orderUserNum != null">
+        order_user_num,
+      </if>
+      <if test="orderMoney != null">
+        order_money,
+      </if>
+      <if test="payNum != null">
+        pay_num,
+      </if>
+      <if test="payUserNum != null">
+        pay_user_num,
+      </if>
+      <if test="payMoney != null">
+        pay_money,
+      </if>
+      <if test="orderConversion != null">
+        order_conversion,
+      </if>
+      <if test="payConversion != null">
+        pay_conversion,
+      </if>
+      <if test="allConversion != null">
+        all_conversion,
+      </if>
+      <if test="userPerPrice != null">
+        user_per_price,
+      </if>
+      <if test="orderPerPrice != null">
+        order_per_price,
+      </if>
+      <if test="refundNum != null">
+        refund_num,
+      </if>
+      <if test="refundUserNum != null">
+        refund_user_num,
+      </if>
+      <if test="refundMoney != null">
+        refund_money,
+      </if>
+      <if test="uv != null">
+        uv,
+      </if>
+      <if test="companyId != null">
+        company_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="date != null">
+        #{date,jdbcType=DATE},
+      </if>
+      <if test="month != null">
+        #{month,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="weekStartDate != null">
+        #{weekStartDate,jdbcType=DATE},
+      </if>
+      <if test="weekEndDate != null">
+        #{weekEndDate,jdbcType=DATE},
+      </if>
+      <if test="orderNum != null">
+        #{orderNum,jdbcType=BIGINT},
+      </if>
+      <if test="orderUserNum != null">
+        #{orderUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="orderMoney != null">
+        #{orderMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="payNum != null">
+        #{payNum,jdbcType=BIGINT},
+      </if>
+      <if test="payUserNum != null">
+        #{payUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="payMoney != null">
+        #{payMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="orderConversion != null">
+        #{orderConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="payConversion != null">
+        #{payConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="allConversion != null">
+        #{allConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="userPerPrice != null">
+        #{userPerPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="orderPerPrice != null">
+        #{orderPerPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="refundNum != null">
+        #{refundNum,jdbcType=BIGINT},
+      </if>
+      <if test="refundUserNum != null">
+        #{refundUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="refundMoney != null">
+        #{refundMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="uv != null">
+        #{uv,jdbcType=BIGINT},
+      </if>
+      <if test="companyId != null">
+        #{companyId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanmi.ares.report.trade.model.root.TradeWeek">
+    update trade_week
+    <set>
+      <if test="date != null">
+        `date` = #{date,jdbcType=DATE},
+      </if>
+      <if test="month != null">
+        `month` = #{month,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        `type` = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="weekStartDate != null">
+        week_start_date = #{weekStartDate,jdbcType=DATE},
+      </if>
+      <if test="weekEndDate != null">
+        week_end_date = #{weekEndDate,jdbcType=DATE},
+      </if>
+      <if test="orderNum != null">
+        order_num = #{orderNum,jdbcType=BIGINT},
+      </if>
+      <if test="orderUserNum != null">
+        order_user_num = #{orderUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="orderMoney != null">
+        order_money = #{orderMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="payNum != null">
+        pay_num = #{payNum,jdbcType=BIGINT},
+      </if>
+      <if test="payUserNum != null">
+        pay_user_num = #{payUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="payMoney != null">
+        pay_money = #{payMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="orderConversion != null">
+        order_conversion = #{orderConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="payConversion != null">
+        pay_conversion = #{payConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="allConversion != null">
+        all_conversion = #{allConversion,jdbcType=DECIMAL},
+      </if>
+      <if test="userPerPrice != null">
+        user_per_price = #{userPerPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="orderPerPrice != null">
+        order_per_price = #{orderPerPrice,jdbcType=DECIMAL},
+      </if>
+      <if test="refundNum != null">
+        refund_num = #{refundNum,jdbcType=BIGINT},
+      </if>
+      <if test="refundUserNum != null">
+        refund_user_num = #{refundUserNum,jdbcType=BIGINT},
+      </if>
+      <if test="refundMoney != null">
+        refund_money = #{refundMoney,jdbcType=DECIMAL},
+      </if>
+      <if test="uv != null">
+        uv = #{uv,jdbcType=BIGINT},
+      </if>
+      <if test="companyId != null">
+        company_id = #{companyId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wanmi.ares.report.trade.model.root.TradeWeek">
+    update trade_week
+    set `date` = #{date,jdbcType=DATE},
+      `month` = #{month,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=INTEGER},
+      week_start_date = #{weekStartDate,jdbcType=DATE},
+      week_end_date = #{weekEndDate,jdbcType=DATE},
+      order_num = #{orderNum,jdbcType=BIGINT},
+      order_user_num = #{orderUserNum,jdbcType=BIGINT},
+      order_money = #{orderMoney,jdbcType=DECIMAL},
+      pay_num = #{payNum,jdbcType=BIGINT},
+      pay_user_num = #{payUserNum,jdbcType=BIGINT},
+      pay_money = #{payMoney,jdbcType=DECIMAL},
+      order_conversion = #{orderConversion,jdbcType=DECIMAL},
+      pay_conversion = #{payConversion,jdbcType=DECIMAL},
+      all_conversion = #{allConversion,jdbcType=DECIMAL},
+      user_per_price = #{userPerPrice,jdbcType=DECIMAL},
+      order_per_price = #{orderPerPrice,jdbcType=DECIMAL},
+      refund_num = #{refundNum,jdbcType=BIGINT},
+      refund_user_num = #{refundUserNum,jdbcType=BIGINT},
+      refund_money = #{refundMoney,jdbcType=DECIMAL},
+      uv = #{uv,jdbcType=BIGINT},
+      company_id = #{companyId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <select id="queryWeek" parameterType="com.wanmi.ares.request.flow.FlowDataListRequest" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from trade_week
+    WHERE type = #{type} AND company_id = #{companyId,jdbcType=BIGINT}
+    <if test="month != null and month != ''">
+        AND month = #{month}
+    </if>
+  </select>
+
+  <delete id="deleteThirtyWeek" parameterType="java.lang.Integer">
+    delete from trade_week
+    where type = #{type} 
+  </delete>
+
+  <delete id="deleteMonthWeek" parameterType="string">
+    delete from trade_week
+    where month = #{_parameter} AND type = 1
+  </delete>
+</mapper>

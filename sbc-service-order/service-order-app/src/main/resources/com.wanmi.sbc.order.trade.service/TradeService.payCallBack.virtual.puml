@@ -1,0 +1,29 @@
+@startuml
+
+start
+:支付;
+if(超时未支付/取消订单) then (yes)
+    :调用卡券接口,释放卡券;
+    :订单作废;
+    stop;
+
+else ( 正常支付,进入支付回调)
+     :处理状态;
+     if(包含虚拟商品) then (否)
+        :标品流程;
+        stop;
+      else (包含虚拟商品)
+        if(全部是虚拟商品) then (yes)
+            :生成发货记录;
+            :订单完成;
+         else (包含实物商品)
+            :生成发货记录;
+            :订单部分发货状态;
+           endif
+      endif
+
+endif;
+:支付回调完成;
+stop
+
+@enduml

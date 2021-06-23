@@ -1,0 +1,31 @@
+@startuml
+start
+partition 商品/标签请求拦截 {
+    if(接口地址以及请求类型是否包含BadWordUrls) then (yes)
+        :提取全文入参;
+        if(全文入参不为空?) then (yes)
+            :缓存敏感词;
+            if(全文入参是否含有敏感词) then (yes)
+                :提示包括敏感词：[XXX,YYY];
+            endif;
+        endif;
+    endif;
+}
+partition 商品导入Excel {
+    if(名称是否包含敏感词) then (yes)
+     :提示包括敏感词：[XXX,YYY];
+    endif;
+    if(商品详情是否包含敏感词) then (yes)
+     :提示包括敏感词：[XXX,YYY];
+    endif;
+    if(商品规格是否包含敏感词) then (yes)
+     :提示包括敏感词：[XXX,YYY];
+    endif;
+    if(商品规格值是否包含敏感词) then (yes)
+     :提示包括敏感词：[XXX,YYY];
+    endif;
+    :批量保存商品信息;
+    :提示操作成功;
+}
+stop
+@enduml

@@ -1,0 +1,10 @@
+@startuml
+start
+: 用户发起退货退款;
+: 选择退货商品;
+: 提交申请;
+: 按标品的退货退款流程执行
+if(boss端)
+
+stop;
+@enduml

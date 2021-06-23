@@ -1,0 +1,7 @@
+1.nacos中去除open的配置项
+    #com.wanmi.open.sdk.appKey
+    #com.wanmi.open.sdk.appSecret
+    #com.wanmi.open.sdk.appNo
+
+
+

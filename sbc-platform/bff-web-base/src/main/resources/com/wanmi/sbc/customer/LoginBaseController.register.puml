@@ -1,0 +1,15 @@
+@startuml
+ start
+  :发起注册;
+  :填写注册基本信息;
+  if (是否仅限邀请码注册?) then (Y)
+    :填写邀请码;
+  endif
+  if(验证码/邀请码/邀请人ID是否验证通过?) then (Y)
+       :注册成功;
+  else(N)
+       :注册失败;
+  endif
+  :结束注册;
+  stop
+@enduml

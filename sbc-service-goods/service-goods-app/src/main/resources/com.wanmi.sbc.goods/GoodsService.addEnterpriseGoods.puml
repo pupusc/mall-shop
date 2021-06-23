@@ -1,0 +1,16 @@
+@startuml
+start
+:添加非批发商品为企业购商品;
+partition 校验商品的有效性 {
+    if(商品是未上架 || 批发 || 未通过审核 || 已删除 || 已是企业购) then(yes)
+     :添加商品存在异常;
+     stop
+    elseif(企业购商品审核开关打开) then(yes)
+     :添加企业购商品已审核（enterpriseAuditState = 2）;
+    else(no)
+     :添加企业购商品待审核（enterpriseAuditState = 1）;
+    endif
+}
+:更新企业购商品的状态至ES;
+stop
+@enduml

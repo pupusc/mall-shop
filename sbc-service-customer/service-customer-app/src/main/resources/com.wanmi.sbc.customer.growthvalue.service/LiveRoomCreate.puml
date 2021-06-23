@@ -1,0 +1,32 @@
+@startuml
+start
+partition 创建直播 {
+    :填写直播信息;
+    if(校验参数是否正确) then (yes)
+        :﻿添加直播商品;
+        :获取accessToken和mediaId;
+        :转换时间格式;
+        if(判断主播微信是否实名认证) then (yes)
+            :创建直播;
+            if(判断创建直播是否成功) then (yes)
+                :存储返回结果（直播房间号）;
+            if(判断是否添加的直播商品) then (yes)
+                :直播间导入直播商品;
+                 if(导入直播商品是否成功) then (yes)
+                 :定时任务任务查询微信接口，修改直播状态;
+                  else
+                  :抛出异常;
+                   endif
+            endif
+            else
+                :抛出异常;
+            endif
+        else
+            :抛出异常;
+        endif
+    else
+         :抛出异常;
+    endif
+}
+stop
+@enduml

@@ -1,0 +1,61 @@
+@startuml
+start
+:供应商下架、删除;
+if(供应商商品状态)
+    :下架;
+    if(操作spu) then(yes)
+    :spu下架;
+    :关联所有sku下架;
+    :同步商家关联此商品spu为不可售;
+    :同步商家关联此商品<所有>sku为不可售;
+    else
+    :sku下架;
+    :当前sku下架;
+        if(spu上架状态) then (上架)
+        :<spu>更新商家状态为<部分上架>;
+        :同步商家关联此商品sku为不可售;
+        else
+        endif
+    endif
+
+else
+    :删除;
+   if(操作spu) then(yes)
+    :spu删除;
+    :关联所有sku删除;
+    else
+    :sku删除;
+    :当前sku删除;
+
+    endif
+
+endif
+:同步商品Es索引库;
+if(供应商商品状态)
+:上架;
+if(操作spu) then(yes)
+    :spu上架;
+    :关联所有sku上架;
+    :同步商家关联此商品spu为可售;
+    :同步商家关联此商品<所有>sku为可售;
+    else
+    :sku上架;
+    :当前sku上架;
+        if(spu上架状态) then (部分上架)
+
+        :同步商家关联此商品sku为可售;
+            if(满足上架状态条件) then (上架)
+
+             :修改商家商家商家状态为上架;
+
+             else
+             :维持部分上架状态;
+             endif
+        else
+        endif
+    endif
+else
+:同步商品Es索引库;
+endif
+stop
+@enduml
