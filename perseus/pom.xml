@@ -11,7 +11,7 @@
     <groupId>com.wanmi.perseus</groupId>
     <artifactId>perseus-parent</artifactId>
     <packaging>pom</packaging>
-    <version>fandeng-uat-4.1.7-alpha</version>
+    <version>fandeng-4.1.7-release</version>
 
     <modules>
         <module>perseus-core</module>
@@ -20,10 +20,11 @@
 
     <properties>
         <start-class>com.wanmi.perseus.PerseusBootstrap</start-class>
-        <wm.micro.service.version>fandeng-uat-4.1.7-alpha</wm.micro.service.version>
+        <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
         <security-component.version>1.6.8-RELEASE</security-component.version>
         <servlet-api.version>3.1.0</servlet-api.version>
+        <spring-data-redis.version>2.2.4.RELEASE</spring-data-redis.version>
     </properties>
 
     <dependencyManagement>
@@ -50,6 +51,12 @@
                 <groupId>com.wanmi.perseus</groupId>
                 <artifactId>perseus-core</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.10.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -89,72 +96,72 @@
             </plugin>
         </plugins>
     </build>
-    <!--<scm>
-        <connection>scm:git:http://172.19.25.151/statistic/perseus.git</connection>
-        <developerConnection>scm:git:http://172.19.25.151/statistic/perseus.git</developerConnection>
-        <url>http://172.19.25.151/statistic/perseus.git</url>
-        <tag>perseus-v4.1.0-RELEASE</tag>
-    </scm>
+<!--    <scm>-->
+<!--        <connection>scm:git:http://172.19.25.151/statistic/perseus.git</connection>-->
+<!--        <developerConnection>scm:git:http://172.19.25.151/statistic/perseus.git</developerConnection>-->
+<!--        <url>http://172.19.25.151/statistic/perseus.git</url>-->
+<!--        <tag>perseus-v4.1.0-RELEASE</tag>-->
+<!--    </scm>-->
 
-    <repositories>
-        <repository>
-            <id>nexus</id>
-            <name>local private nexus</name>
-            <url>http://maven.ningpai.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>nexus repository</id>
-            <name>intranet public groups</name>
-            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>qianmi-snapshots</id>
-            <name>intranet public snapshots</name>
-            <url>http://nexus.dev.qianmi.com/nexus/content/repositories/snapshots</url>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>central</id>
-            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>nexus-snapshots</id>
-            <name>snapshots</name>
-            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>releases</id>
-            <name>snapshots</name>
-            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>
-        </repository>
-    </repositories>
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>nexus</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/groups/public/</url>-->
+<!--            <releases>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </releases>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>nexus repository</id>-->
+<!--            <name>intranet public groups</name>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>-->
+<!--            <snapshots>-->
+<!--                <enabled>false</enabled>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>qianmi-snapshots</id>-->
+<!--            <name>intranet public snapshots</name>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/repositories/snapshots</url>-->
+<!--            <snapshots>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>central</id>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>nexus-snapshots</id>-->
+<!--            <name>snapshots</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>releases</id>-->
+<!--            <name>snapshots</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
 
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>local private nexus</name>
-            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>local private nexus</name>
-            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>-->
+<!--    <distributionManagement>-->
+<!--        <repository>-->
+<!--            <id>releases</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>-->
+<!--        </repository>-->
+<!--        <snapshotRepository>-->
+<!--            <id>snapshots</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>-->
+<!--        </snapshotRepository>-->
+<!--    </distributionManagement>-->
 </project>

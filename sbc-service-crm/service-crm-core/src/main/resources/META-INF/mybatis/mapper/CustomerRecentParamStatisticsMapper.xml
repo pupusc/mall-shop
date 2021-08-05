@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.sbc.crm.customgroup.mapper.CustomerRecentParamStatisticsMapper" >
+
+
+    <sql id="selectSql">
+
+        select
+            customerId,
+            sum(payTime) payTime,
+            sum(tradeTime) tradeTime,
+            sum(flowTime) flowTime,
+            sum(cartTime) cartTime,
+            sum(favoriteTime) favoriteTime,
+            now() createTime
+        from(
+            select
+                customerId,
+                IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(payTime,'%y-%m-%d'),#{statDate}),${maxValue})+1 payTime,
+                0 tradeTime,
+                0 flowTime,
+                0 cartTime,
+                0 favoriteTime
+            from (
+                SELECT a.customer_id customerId,c.payTime  payTime
+                FROM  ${aresDB} replay_customer a
+                left join (
+                    select customer_id,max(b.pay_time)  payTime
+                    from  ${aresDB} replay_trade b
+                    where b.pay_state=2 and b.pay_time &gt;=#{startTime} and  b.pay_time &lt;= #{endTime}
+                    GROUP BY b.customer_id
+                ) c on(a.customer_id=c.customer_id)
+            where a.del_flag=0 and a.check_state=1
+            GROUP BY a.customer_id
+            ) d
+
+            union all
+
+            select
+                customerId,
+                0 payTime,
+                IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(createTime,'%y-%m-%d'),#{statDate}),${maxValue})+1 tradeTime,
+                0 flowTime,
+                0 cartTime,
+                0 favoriteTime
+            from (
+                SELECT a.customer_id customerId,c.createTime  createTime
+                FROM  ${aresDB} replay_customer a
+                left join (
+                    select customer_id,max(b.create_time)  createTime
+                    from  ${aresDB} replay_trade b
+                    where b.create_time &gt;=#{startTime} and  b.create_time &lt;=#{endTime}
+                    GROUP BY b.customer_id
+                ) c on(a.customer_id=c.customer_id)
+                where a.del_flag=0 and a.check_state=1
+                GROUP BY a.customer_id
+            ) d
+
+            union all
+
+            select
+                customerId,
+                0 payTime,
+                0 tradeTime,
+                IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(flowDate,'%y-%m-%d'),#{statDate}),${maxValue})+1 flowTime,
+                0 cartTime,
+                0 favoriteTime
+            from (
+                SELECT a.customer_id customerId,c.flowDate  flowDate
+                FROM  ${aresDB} replay_customer a
+                left join (
+                    select user_id,max(b.flow_date)  flowDate
+                    from  ${aresDB} replay_flow_day_user_info b
+                    where b.flow_date &gt;=#{startTime} and  b.flow_date &lt;=#{endTime}
+                    GROUP BY b.user_id
+                ) c on(a.customer_id=c.user_id)
+                where a.del_flag=0 and a.check_state=1
+                GROUP BY a.customer_id
+            ) d
+
+            union all
+
+            select
+                customerId,
+                0 payTime,
+                0 tradeTime,
+                0 flowTime,
+                IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(createTime,'%y-%m-%d'),#{statDate}),${maxValue})+1 cartTime,
+                0 favoriteTime
+            from (
+                SELECT a.customer_id customerId,c.createTime  createTime
+                FROM  ${aresDB} replay_customer a
+                left join (
+                    select customer_id,max(b.create_time)  createTime
+                    from  ${aresDB} replay_purchase_action b
+                    where b.create_time &gt;=#{startTime} and  b.create_time &lt;=#{endTime}
+                    GROUP BY b.customer_id
+                ) c on(a.customer_id=c.customer_id)
+                where a.del_flag=0 and a.check_state=1
+                GROUP BY a.customer_id
+            ) d
+
+            union all
+
+            select
+                customerId,
+                0 payTime,
+                0 tradeTime,
+                0 flowTime,
+                0 cartTime,
+                IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(followTime,'%y-%m-%d'),#{statDate}),${maxValue})+1 favoriteTime
+            from (
+                SELECT a.customer_id customerId,c.followTime  followTime
+                FROM  ${aresDB} replay_customer a
+                left join (
+                    select customer_id,max(b.follow_time)  followTime
+                    from  ${aresDB} replay_goods_customer_follow_action b
+                    where b.follow_time &gt;=#{startTime} and  b.follow_time &lt;=#{endTime}
+                    GROUP BY b.customer_id
+                ) c on(a.customer_id=c.customer_id)
+                where a.del_flag=0 and a.check_state=1
+                GROUP BY a.customer_id
+            ) d
+        ) tmp group by customerId
+
+
+
+    </sql>
+
+    <insert id="save">
+        insert into ${crmDB} customer_recent_param_statistics(
+        customer_id,pay_time,trade_time,flow_time,cart_time,favorite_time,create_time)
+        <include refid="selectSql"/>
+    </insert>
+
+
+
+    <delete id="delete">
+        TRUNCATE table ${crmDB} customer_recent_param_statistics
+    </delete>
+
+
+</mapper>

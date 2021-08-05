@@ -104,5 +104,16 @@ public final class GoodsErrorCode {
      * 周期购活动期数大于0校验
      */
     public final static String NUMBER_PERIODS = "K-0300018";
+
+
+    /**
+     * spu编码是必填
+     */
+    public final static String SPU_REQUIRED = "K-0300019";
+
+    /**
+     *  在非组合商品的情况下，sku编码是必填
+     */
+    public final static String SKU_REQUIRED = "K-0300020";
 }
 

@@ -104,6 +104,12 @@ public class SettlementDetailGoodsViewVO {
     private BigDecimal commonCouponPrice;
 
     /**
+     * 通用券优惠
+     */
+    @ApiModelProperty(value = "通用券优惠")
+    private BigDecimal calCommonCouponPrice;
+
+    /**
      * 通用券优惠，作为显示
      */
     @ApiModelProperty(value = "通用券优惠")
@@ -158,6 +164,19 @@ public class SettlementDetailGoodsViewVO {
     private BigDecimal pointPrice;
 
     /**
+     * 积分
+     */
+    @ApiModelProperty(value = "积分")
+    private Long points;
+
+    /**
+     * 结算单明细统计积分抵扣金额
+     */
+    @ApiModelProperty(value = "结算单明细统计积分抵扣金额")
+    private BigDecimal calPointPrice;
+
+
+    /**
      * 佣金比例
      */
     @ApiModelProperty(value = "佣金比例")
@@ -195,6 +214,18 @@ public class SettlementDetailGoodsViewVO {
             return commonCouponPrice.toString();
         }else{
             return "-";
+        }
+    }
+
+    /**
+     * 复写通用券优惠券get方法
+     * @return
+     */
+    public BigDecimal getCalCommonCouponPrice(){
+        if (commonCouponPrice != null){
+            return commonCouponPrice;
+        }else{
+            return BigDecimal.ZERO;
         }
     }
 
@@ -246,6 +277,19 @@ public class SettlementDetailGoodsViewVO {
     }
 
     /**
+     * 复写积分get方法
+     * @return
+     */
+    public String getPoints() {
+        if (points != null){
+            return String.format("%.2f", points);
+        }else{
+            return "-";
+        }
+    }
+
+
+    /**
      * 复写佣金比例get方法
      * @return
      */
@@ -269,4 +313,15 @@ public class SettlementDetailGoodsViewVO {
         }
     }
 
+    /**
+     * 复写计算积分的get方法
+     * @return
+     */
+    public BigDecimal getCalPointPrice(){
+        if(pointPrice != null){
+            return pointPrice;
+        }else {
+            return BigDecimal.ZERO;
+        }
+    }
 }

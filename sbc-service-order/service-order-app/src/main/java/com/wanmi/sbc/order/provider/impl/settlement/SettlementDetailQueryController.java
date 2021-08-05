@@ -1,16 +1,20 @@
 package com.wanmi.sbc.order.provider.impl.settlement;
 
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.order.api.provider.settlement.SettlementDetailQueryProvider;
 import com.wanmi.sbc.order.api.request.settlement.SettlementDetailByParamRequest;
 import com.wanmi.sbc.order.api.request.settlement.SettlementDetailListBySettleUuidRequest;
+import com.wanmi.sbc.order.api.request.settlement.SettlementDetailPageSettleUuidRequest;
 import com.wanmi.sbc.order.api.response.settlement.SettlementDetailByParamResponse;
 import com.wanmi.sbc.order.api.response.settlement.SettlementDetailListBySettleUuidResponse;
+import com.wanmi.sbc.order.api.response.settlement.SettlementDetailPageBySettleUuidResponse;
 import com.wanmi.sbc.order.bean.vo.SettlementDetailVO;
 import com.wanmi.sbc.order.settlement.model.root.SettlementDetail;
 import com.wanmi.sbc.order.settlement.service.SettlementDetailService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,4 +63,22 @@ public class SettlementDetailQueryController implements SettlementDetailQueryPro
         List<SettlementDetailVO> settlementDetailVOList = KsBeanUtil.convert(settlementDetailList,SettlementDetailVO.class);
         return BaseResponse.success(new SettlementDetailListBySettleUuidResponse(settlementDetailVOList));
     }
+
+
+
+    /**
+     * 根据结算单id分页查询结算明细列表
+     *
+     * @param request 包含结算单id的查询条件 {@link SettlementDetailListBySettleUuidRequest}
+     * @return 返回的计算明细列表 {@link SettlementDetailListBySettleUuidResponse}
+     */
+
+    @Override
+    public BaseResponse<SettlementDetailPageBySettleUuidResponse> pageBySettleUuid(@RequestBody @Valid SettlementDetailPageSettleUuidRequest request) {
+        Page<SettlementDetail> settlementDetailList = settlementDetailService.pageSettlementDetail(request);
+        MicroServicePage<SettlementDetailVO> settlementDetailVOList = KsBeanUtil.convertPage(settlementDetailList,SettlementDetailVO.class);
+        return BaseResponse.success(new SettlementDetailPageBySettleUuidResponse(settlementDetailVOList));
+    }
+
+
 }

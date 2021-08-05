@@ -32,6 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -353,6 +355,9 @@ public class GoodsReportService {
         criteria.setIsLeaf(1);
         if(StringUtils.isNotEmpty(request.getId())) {
             List<Long> cateIds = goodsStoreCateMapper.queryStoreCateChild(Integer.parseInt(request.getId()));
+            if (CollectionUtils.isEmpty(cateIds)){
+                cateIds = Arrays.asList(Long.valueOf(request.getId()));
+            }
             criteria.setIds(cateIds.stream().map(String::valueOf).collect(Collectors.toList()));
             List<GoodsReport> skuReports = goodsStoreCateMapper.queryGoodsCateReportByCateId(criteria);
             skuReports.stream().forEach(goodsReport->goodsReport.setId(request.getId()));

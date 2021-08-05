@@ -823,4 +823,15 @@ public class TradeQueryController implements TradeQueryProvider {
         return BaseResponse.success(ShippingCalendarResponse.builder().shippingCalendarVO( ShippingCalendarVO.builder().deliverCalendarVOS(calendarVOS).numberPeriods(size).totalIssues(totalIssues).build()).build());
     }
 
+
+    /**
+     * 查询对账信息
+     * @param shippingCalendarRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<TradeAccountRecordResponse> getTradeAccountRecord(@Valid @RequestBody  TradeAccountRecordRequest shippingCalendarRequest) {
+        return BaseResponse.success(tradeService.getTradeAccountRecord(shippingCalendarRequest));
+    }
+
 }

@@ -39,9 +39,11 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoResponse;
 import com.wanmi.sbc.elastic.bean.dto.goods.EsGoodsInfoDTO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.distributor.goods.DistributorGoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoSiteQueryProvider;
@@ -51,6 +53,7 @@ import com.wanmi.sbc.goods.api.provider.prop.GoodsPropQueryProvider;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleInProgressAllGoodsInfoIdsRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoListByCustomerIdRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoPageByCustomerIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
@@ -190,6 +193,9 @@ public class GoodsInfoBaseController {
 
     @Autowired
     private EnterpriseInfoQueryProvider enterpriseInfoQueryProvider;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     public static final String CYCLE_BUY = "周期购";
 
@@ -863,6 +869,19 @@ public class GoodsInfoBaseController {
             response.setIepFlag(Boolean.TRUE);
             response.setEnterprisePriceName(iepSettingInfo.getEnterprisePriceName());
         }
+
+        List<String> goodsInfos= response.getEsGoodsInfoPage().getContent().stream().map(EsGoodsInfoVO::getGoodsId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(goodsInfos)) {
+            List<GoodsVO> goodsVOList = goodsQueryProvider.listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsInfos).build()).getContext().getGoodsVOList();
+            response.getEsGoodsInfoPage().getContent().forEach(esGoodsInfoVO -> {
+                goodsVOList.forEach(goodsVO -> {
+                    if (Objects.equals(esGoodsInfoVO.getGoodsId(),goodsVO.getGoodsId()) && Objects.nonNull(goodsVO.getGoodsSubtitle())) {
+                        esGoodsInfoVO.setGoodsSubtitle(goodsVO.getGoodsSubtitle());
+                    }
+                });
+            });
+        }
+
 
         return response;
     }

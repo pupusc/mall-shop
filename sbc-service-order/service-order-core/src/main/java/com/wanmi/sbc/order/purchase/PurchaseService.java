@@ -2395,8 +2395,7 @@ public class PurchaseService {
             goodsMarketingModifyRequest.setMarketingId(marketingId);
             goodsMarketingProvider.modify(goodsMarketingModifyRequest);
         }
-
-        purchaseRepository.updateTime(LocalDateTime.now(), customer.getCustomerId(), goodsInfoId);
+        //purchaseRepository.updateTime(LocalDateTime.now(), customer.getCustomerId(), goodsInfoId);
     }
 
     /**

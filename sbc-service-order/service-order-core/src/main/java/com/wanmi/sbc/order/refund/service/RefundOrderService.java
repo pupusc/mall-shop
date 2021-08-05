@@ -17,20 +17,25 @@ import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRe
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.order.api.request.refund.RefundOrderAccountRecordRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
+import com.wanmi.sbc.order.api.response.refund.RefundOrderAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderPageResponse;
-import com.wanmi.sbc.order.bean.enums.BookingType;
-import com.wanmi.sbc.order.bean.enums.RefundChannel;
+import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
+import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.RefundOrderResponse;
 import com.wanmi.sbc.order.customer.service.CustomerCommonService;
 import com.wanmi.sbc.order.refund.model.root.RefundBill;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
 import com.wanmi.sbc.order.refund.repository.RefundOrderRepository;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPrice;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.service.TradeService;
 import com.wanmi.sbc.order.util.XssUtils;
@@ -47,6 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,8 +102,13 @@ public class RefundOrderService {
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
 
+
     @Autowired
-    private TradeService tradeService;
+    private MongoTemplate mongoTemplate;
+
+
+    public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
+
 
     @Transactional
     public List<RefundOrder> batchAdd(List<RefundOrder> refundOrderList) {
@@ -871,4 +884,48 @@ public class RefundOrderService {
             //throw e;
         }
     }
+
+
+    /**
+     * 查询对账数据
+     */
+    public RefundOrderAccountRecordResponse getRefundOrderAccountRecord(RefundOrderAccountRecordRequest recordRequest) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(FMT_TIME_1);
+        LocalDateTime beginTime = LocalDateTime.parse(recordRequest.getBeginTime(),formatter);
+        LocalDateTime endTime = LocalDateTime.parse(recordRequest.getEndTime(),formatter);
+
+        List<Criteria> criterias = new ArrayList<>();
+        //criterias.add(Criteria.where("supplier.storeId").is(recordRequest.getCompanyInfoId()));
+        criterias.add(Criteria.where("returnFlowState").is(ReturnFlowState.COMPLETED.getStateId()));
+        criterias.add(Criteria.where("finishTime").gte(beginTime));
+        criterias.add(Criteria.where("finishTime").lt(endTime));
+        criterias.add(Criteria.where("returnPoints.actualPoints").exists(true));
+
+        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+        Query query = new Query(newCriteria);
+
+        List<ReturnOrder> trades = mongoTemplate.find(query, ReturnOrder.class);
+
+        log.info("===========查询查询条件：{}===============",query);
+
+        log.info("===========查询查询条件出来的数据：{}===============",trades);
+
+        List<ReturnPoints> tradePrices=trades.stream().map(ReturnOrder::getReturnPoints).collect(Collectors.toList());
+
+        //计算积分的总和
+        Long points=tradePrices.stream().mapToLong(ReturnPoints::getActualPoints).sum();
+
+        BigDecimal bigDecimal=new BigDecimal(points);
+        //计算积分金额的总和
+        BigDecimal pointsPrice =bigDecimal.divide(new BigDecimal(100));
+
+        log.info("===========查询对账积分：{}===============",points);
+        log.info("===========查询对账积分金额：{}===============",pointsPrice);
+
+        return RefundOrderAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
+    }
+
+
+
 }

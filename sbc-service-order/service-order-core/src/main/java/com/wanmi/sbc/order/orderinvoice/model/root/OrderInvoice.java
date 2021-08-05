@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.account.bean.enums.InvoiceState;
 import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.account.bean.enums.IsCompany;
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.account.bean.vo.InvoiceProjectVO;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
@@ -163,5 +165,21 @@ public class OrderInvoice implements Serializable{
      */
     @Column(name = "taxpayer_number")
     private String taxpayerNumber;
+
+
+    /**
+     * 支付状态
+     */
+    @Column(name = "pay_status")
+    @Enumerated
+    private PayOrderStatus payStatus;
+
+
+    /**
+     * 订单状态
+     */
+    @Column(name = "order_status")
+    @Enumerated
+    private FlowState orderStatus;
 
 }

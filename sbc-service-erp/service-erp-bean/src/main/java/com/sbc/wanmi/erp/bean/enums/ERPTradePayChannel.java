@@ -19,7 +19,7 @@ import java.util.Map;
 public enum ERPTradePayChannel {
 
     @ApiEnumProperty("zhifubao: 支付宝")
-    aliPay("aliPay", "支付宝"),
+    aliPay("zhifubao", "支付宝"),
 
     @ApiEnumProperty("weixin:微信支付")
     weixin("weixin", "微信支付"),

@@ -463,6 +463,13 @@ public class TradeItemVO implements Serializable, Cloneable {
      */
     private String erpSpuNo;
 
+
+    /**
+     * 是否是组合商品，0：否，1：是
+     */
+    @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
+    private Boolean combinedCommodity;
+
     /**
      * 营销优惠商品结算Bean
      */

@@ -14,6 +14,7 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -44,6 +45,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
  */
 @Data
 @ApiModel
+@Slf4j
 public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
 
     /**
@@ -570,7 +572,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder.must(termQuery(queryName.concat(".goodsType"), goodsType.toValue()));
         }
 
-//        System.out.println(String.format("ES商口查询条件->%s", boolQueryBuilder.toString()));
+         log.info(String.format("ES商口查询条件->%s", boolQueryBuilder.toString()));
         return boolQueryBuilder;
     }
 

@@ -3,14 +3,18 @@ package com.wanmi.sbc.erp.service;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.constant.ErpErrorCode;
+import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.erp.entity.ERPGoodsInfoStock;
+import com.wanmi.sbc.erp.entity.ERPTrade;
 import com.wanmi.sbc.erp.request.*;
 import com.wanmi.sbc.erp.response.*;
 import com.wanmi.sbc.erp.util.GuanyierpContants;
@@ -62,6 +66,24 @@ public class GuanyierpService {
      */
     @Value("${guanyierp_shopCode}")
     private String erpShopCode;
+
+    /**
+     * ERP推送订单已发货物流编号
+     */
+    @Value("${guanyierp_expressCode}")
+    private String expressCode;
+
+    /**
+     * ERP推送订单已发货物流编号
+     */
+    @Value("${guanyierp_warehouseCode}")
+    private String warehouseCode;
+
+    /**
+     * ERP同步库存的仓库编号
+     */
+    @Value("${guanyierp_stockWarehouseCode}")
+    private String stockwarehouseCode;
 
     @Autowired
     private GuanyierpUtil guanyierpUtil;
@@ -123,6 +145,56 @@ public class GuanyierpService {
     }
 
 
+    /**
+     * ERP订单推送接口
+     * @param request
+     * @return
+     */
+    public Optional<ERPPushTradeResponse> pushTradeDelivered(ERPPushTradeRequest request){
+        request.setExpressCode(expressCode);
+        request.setWarehouseCode(warehouseCode);
+        log.info("ERP订单推送接口已发货接口=====>:{}",request);
+        //TODO: 2021/1/27
+        request.setAppkey(appkey);
+        request.setSessionkey(sessionkey);
+        request.setMethod(GuanyierpContants.PUSH_ORDER_METHOD_DELIVERED);
+        //配置店铺编号
+        request.setShopCode(erpShopCode);
+        try {
+            buildSignParams = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            log.error("#订单:{}推送接口生成Sign签名参数,转换JSON失败,异常信息:{}", request.getPlatformCode(),e.getMessage());
+            return Optional.empty();
+        }
+        String response = StringUtils.EMPTY;
+        String buildSign = guanyierpUtil.buildSign(buildSignParams);
+        request.setSign(buildSign);
+        try {
+            requestParamsJson =objectMapper.writeValueAsString(request);
+            log.info("requestParamsJson=====>:{}",requestParamsJson);
+            // 将传参编为urlencode
+            requestParamsEncode = URLEncoder.encode(requestParamsJson, "UTF-8");
+            response = guanyierpUtil.execute(path, requestParamsEncode);
+            log.info("response=====>:{}",response);
+        }catch (Exception e) {
+            log.error("#订单推送异常,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
+        }
+        ERPPushTradeResponse tradeResponse = JSONObject.parseObject(response, ERPPushTradeResponse.class);
+        if (tradeResponse.isSuccess()){
+            if (tradeResponse.getId() == null) {
+                log.info("#订单:{}推送管易云ERP成功,返回值显示为空!", request.getPlatformCode());
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+            }else{
+                log.info("#订单:{}推送管易云ERP成功,返回值:{}", request.getPlatformCode(), tradeResponse.toString());
+                return Optional.of(tradeResponse);
+            }
+        }else {
+            log.info("#订单:{}推送接口调用失败,返回状态码:{}", request.getPlatformCode(),tradeResponse.getErrorCode());
+            return Optional.empty();
+        }
+    }
+
 
     /**
      * ERP商品库存查询接口
@@ -135,7 +207,7 @@ public class GuanyierpService {
         request.setSessionkey(sessionkey);
         request.setMethod(GuanyierpContants.GOODS_STOCK_METHOD);
         //获取库存最大商品数量
-        //request.setWarehouseCode(warehouseCode);
+        request.setWarehouseCode(stockwarehouseCode);
         try {
             buildSignParams = objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
@@ -206,7 +278,7 @@ public class GuanyierpService {
         if (goodsQueryResponse.isSuccess()){
             if (CollectionUtils.isEmpty(goodsQueryResponse.getItems())) {
                 log.info("#商品SPU:{}查询接口调用成功,返回值显示为空!", request.getCode());
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP内不存在该SPU编码商品"});
             }else{
                 log.info("#商品SPU:{}查询接口调用成功,返回值:{}", request.getCode(),goodsQueryResponse.toString());
                 return Optional.of(goodsQueryResponse);
@@ -512,9 +584,58 @@ public class GuanyierpService {
     }
 
     /**
+     * ERP订单查询接口
+     * @param request
+     * @return
+     */
+    public Optional<ERPTradeQueryResponse> getErpTradeInfo(ERPTradeQueryRequest request,int flag){
+        // TODO: 2021/1/27
+        request.setAppkey(appkey);
+        request.setSessionkey(sessionkey);
+        if (flag == 0){
+            request.setMethod(GuanyierpContants.TRADE_GET_METHOD);
+        }else {
+            request.setMethod(GuanyierpContants.TRADE_HISTORY_GET_METHOD);
+        }
+        try {
+            buildSignParams = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            log.error("#【订单查询】发货单查询接口生成Sign签名转换JSON失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"生成Sign参数已成"});
+        }
+        String response = StringUtils.EMPTY;
+        String buildSign = guanyierpUtil.buildSign(buildSignParams);
+        request.setSign(buildSign);
+        try {
+            requestParamsJson = objectMapper.writeValueAsString(request);
+            log.info("#【订单查询】组装传参,requestParamsJson:{}",requestParamsJson);
+            response = guanyierpUtil.execute(path, requestParamsJson);
+        } catch (Exception e) {
+            log.error("#【订单查询】接口调用失败,异常信息:{}",e.getMessage());
+            throw new SbcRuntimeException(ErpErrorCode.ERP_SERVICE_ERROR);
+        }
+        log.info("response=========>:{}",response);
+        ERPTradeQueryResponse erpTradeQueryResponse = JSONObject.parseObject(response, ERPTradeQueryResponse.class);
+        log.info("erpTradeQueryResponse=========>:{}",erpTradeQueryResponse);
+        if (erpTradeQueryResponse.isSuccess()){
+            if (erpTradeQueryResponse == null) {
+                log.info("#【订单查询】订单:{}接口调用成功,返回值显示为空!", request.getPlatformCode());
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
+            }else{
+                log.info("#【订单查询】订单:{}接口调用成功,返回值:{}", request.getPlatformCode(),erpTradeQueryResponse.toString());
+                return Optional.of(erpTradeQueryResponse);
+            }
+        }else {
+            log.info("#【订单查询】接口调用成功,返回状态码:{}",erpTradeQueryResponse.getErrorCode());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{erpTradeQueryResponse.getErrorDesc()});
+        }
+    }
+
+    /**
      * 接口测试方法
      */
-    public static void main(String[] args){
+    @PostConstruct
+    public void test(){
 
         /**
          * 商品信息同步
@@ -631,5 +752,12 @@ public class GuanyierpService {
                 .receive(1).build();
         Optional<ERPReturnTradeResponse> returnTrade = this.getReturnTrade(returnTradeQueryRequest);
         log.info(returnTrade.get().toString());*/
+
+        /**
+         * 订单查询接口测试
+         */
+/*        ERPTradeQueryRequest build = ERPTradeQueryRequest.builder().platformCode("P202106290947571141071").build();
+        Optional<ERPTradeQueryResponse> erpTradeInfo = this.getErpTradeInfo(build, 0);
+        log.info("erpTradeInfo===>:{}",erpTradeInfo.get());*/
     }
 }

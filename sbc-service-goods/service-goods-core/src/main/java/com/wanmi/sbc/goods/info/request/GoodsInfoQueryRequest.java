@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsInfoSelectStatus;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.util.XssUtils;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -251,6 +252,12 @@ public class GoodsInfoQueryRequest extends BaseQueryRequest implements Serializa
      */
     private String erpGoodsInfoNo;
 
+    /**
+     * 是否组合购
+     */
+    @ApiModelProperty(value = "是否组合购", notes = "是否是组合商品，0：否，1：是")
+    private Boolean combinedCommodity;
+
 
     /**
      * 封装公共条件
@@ -424,6 +431,17 @@ public class GoodsInfoQueryRequest extends BaseQueryRequest implements Serializa
             if(goodsType != null){
                 predicates.add(cbuild.notEqual(root.get("goodsType"), goodsType));
             }
+
+            //是组合购商品
+            if (combinedCommodity != null && combinedCommodity) {
+                predicates.add(cbuild.equal(root.get("combinedCommodity"), 1));
+            }
+
+            //非组合购商品
+            if (combinedCommodity != null && !combinedCommodity) {
+                predicates.add(cbuild.equal(root.get("combinedCommodity"), 0));
+            }
+
             predicates.add(cbuild.isNotNull(root.get("erpGoodsInfoNo")));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

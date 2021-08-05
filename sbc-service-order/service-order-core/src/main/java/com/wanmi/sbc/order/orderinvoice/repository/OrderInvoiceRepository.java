@@ -1,7 +1,10 @@
 package com.wanmi.sbc.order.orderinvoice.repository;
 
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.orderinvoice.model.root.OrderInvoice;
+import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -37,6 +40,7 @@ public interface OrderInvoiceRepository extends JpaRepository<OrderInvoice,Strin
     @Query("update OrderInvoice c set c.invoiceState = 1 ,c.invoiceTime = :invoiceTime ,c.updateTime = :invoiceTime where c.invoiceState = 0 and c.delFlag = 0 and c.orderInvoiceId in :orderInvoiceIds")
     int checkInvoiceState(@Param("orderInvoiceIds") List<String> orderInvoiceIds, @Param("invoiceTime") LocalDateTime
             invoiceTime);
+
 
     /**
      * 发票作废 是否作废 0 否 1 是

@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.DateUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  */
 @ApiModel
 @Data
+@Slf4j
 public class SettlementDetailViewVO {
 
     /**
@@ -149,15 +151,15 @@ public class SettlementDetailViewVO {
                 goodsView.setSpecial(detail.isSpecial());
                 if (goods.getSkuNo() != null && !"".equals(goods.getSkuNo())) {
                     goodsView.setSkuNo(goods.getSkuNo());
-                    if (isExcel) {
-                        goodsView.setGoodsName(goods.getSkuNo().concat(" ").concat(goodsView.getGoodsName()));
-                    }
+//                    if (isExcel) {
+//                        goodsView.setGoodsName(goods.getSkuNo().concat(" ").concat(goodsView.getGoodsName()));
+//                    }
                 }
                 if (goods.getSpecDetails() != null && !"".equals(goods.getSpecDetails())) {
                     goodsView.setSpecDetails(goods.getSpecDetails());
-                    if (isExcel) {
-                        goodsView.setGoodsName(goodsView.getGoodsName().concat(" ").concat(goods.getSpecDetails()));
-                    }
+//                    if (isExcel) {
+//                        goodsView.setGoodsName(goodsView.getGoodsName().concat(" ").concat(goods.getSpecDetails()));
+//                    }
                 }
                 goodsView.setGoodsPrice(goods.getGoodsPrice());
                 goodsView.setCateName(goods.getCateName());

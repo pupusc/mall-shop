@@ -5,12 +5,14 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
+import com.wanmi.sbc.goods.api.request.goodslabel.GoodsLabelQueryRequest;
 import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterpriseGoodsInfoPageResponse;
 import com.wanmi.sbc.goods.api.response.info.*;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMarketingPriceDTO;
 import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
+import com.wanmi.sbc.goods.goodslabel.model.root.GoodsLabel;
 import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
 import com.wanmi.sbc.goods.info.model.entity.GoodsMarketingPrice;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -29,12 +31,14 @@ import com.wanmi.sbc.goods.spec.service.GoodsInfoSpecDetailRelService;
 import com.wanmi.sbc.goods.util.mapper.GoodsInfoMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsMapper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -162,6 +166,20 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         GoodsInfoViewByIdResponse response = GoodsInfoConvert.toGoodsInfoViewByGoodsInfoEditResponse(editResponse);
         //在设置未开启商品抵扣下清零buyPoint
         systemPointsConfigService.clearBuyPoinsForSku(response.getGoodsInfo());
+
+        if (StringUtils.isNotBlank(response.getGoods().getLabelIdStr())) {
+            String labelId=response.getGoods().getLabelIdStr().replace(",","");
+            List<String> labelIds = Arrays.asList(labelId.split(""));
+            if (CollectionUtils.isNotEmpty(labelIds)) {
+                List<Long> result = labelIds.stream().map(s -> Long.parseLong(s.trim())).collect(Collectors.toList());
+                List<GoodsLabel>  goodsLabels =  goodsLabelService.list(GoodsLabelQueryRequest.builder().goodsLabelIdList(result).build());
+                if (CollectionUtils.isNotEmpty(goodsLabels)) {
+                    response.getGoods().setGoodsLabelList(KsBeanUtil.convertList(goodsLabels,GoodsLabelVO.class));
+                }
+            }
+        }
+
+
         return BaseResponse.success(response);
     }
 

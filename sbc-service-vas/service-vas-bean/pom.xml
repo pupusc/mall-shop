@@ -3,7 +3,7 @@
     <parent>
         <artifactId>service-vas</artifactId>
         <groupId>com.wanmi.sbc</groupId>
-        <version>fandeng-uat-4.1.7-alpha</version>
+        <version>fandeng-4.1.7-release</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

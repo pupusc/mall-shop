@@ -40,6 +40,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.customer.bean.vo.StoreReturnAddressVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.request.RefundTradeRequest;
 import com.wanmi.sbc.erp.api.request.ReturnTradeCreateRequst;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsQueryProvider;
@@ -923,84 +924,6 @@ public class ReturnOrderService {
             //保存退单
             newReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
             returnOrderService.addReturnOrder(newReturnOrder);
-
-            /**
-             * 1.判断订单是否已完成发货
-             * 2.调用ERP接口创建退货单
-            if (trade.getCycleBuyFlag()) {
-                if(!isRefund){
-                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                    ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                    //获取订单支付方式
-                    if(Objects.isNull(trade.getPayWay())){
-                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                    }else {
-                        switch(trade.getPayWay()){
-                            case WECHAT:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                            case ALIPAY:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                            default:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                break;
-                        }
-                    }
-
-                    log.info("price==========>:{}",price);
-                    log.info("returnOrder===============>:{}",returnOrder);
-                    erpTradePaymentVO.setPayment(String.valueOf(price));
-                    erpTradePaymentVOList.add(erpTradePaymentVO);
-                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                            .buyerMobile(trade.getBuyer().getAccount())
-                            .returnType(ReturnTradeType.RETURN.getCode())
-                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                            .tradeNo(returnOrder.getPtid())
-                            .tradeItems(returnOrderItemList)
-                            .refundDetail(erpTradePaymentVOList)
-                            .build();
-                    log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-                }
-
-            }else {
-                if(trade.getTradeState().getDeliverStatus().equals(DeliverStatus.SHIPPED)){
-                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                    ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                    //获取订单支付方式
-                    if(Objects.isNull(trade.getPayWay())){
-                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                    }else {
-                        switch(trade.getPayWay()){
-                            case WECHAT:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                            case ALIPAY:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                            default:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                break;
-                        }
-                    }
-
-                    log.info("price==========>:{}",price);
-                    log.info("returnOrder===============>:{}",returnOrder);
-                    erpTradePaymentVO.setPayment(String.valueOf(price));
-                    erpTradePaymentVOList.add(erpTradePaymentVO);
-                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                            .buyerMobile(trade.getBuyer().getAccount())
-                            .returnType(ReturnTradeType.RETURN.getCode())
-                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                            .tradeNo(returnOrder.getPtid())
-                            .tradeItems(returnOrderItemList)
-                            .refundDetail(erpTradePaymentVOList)
-                            .build();
-                    log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-                }
-
-            } */
-
             returnOrderId = rid;
 
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
@@ -1050,7 +973,6 @@ public class ReturnOrderService {
             }
 
         }
-
         return returnOrderId;
     }
 
@@ -1962,13 +1884,11 @@ public class ReturnOrderService {
                 .flatMap(Collection::stream).collect(Collectors.toList());
         List<ReturnTradeItemVO> returnTradeItemVOS = new ArrayList<>();
         totalReturnItems.forEach(returnItem -> {
-            BaseResponse<GoodsInfoByIdResponse> GoodsInfoByIdResponse = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder()
+            BaseResponse<GoodsInfoByIdResponse> goodsInfoByIdResponse = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder()
                     .goodsInfoId(returnItem.getSkuId()).build());
-            BaseResponse<GoodsByIdResponse> goodsResponse = goodsQueryProvider.getById(GoodsByIdRequest.builder()
-                    .goodsId(GoodsInfoByIdResponse.getContext().getGoodsId()).build());
             ReturnTradeItemVO returnTradeItemVO = ReturnTradeItemVO.builder()
-                    .spuCode(goodsResponse.getContext().getErpGoodsNo())
-                    .skuCode(GoodsInfoByIdResponse.getContext().getErpGoodsInfoNo())
+                    .spuCode(goodsInfoByIdResponse.getContext().getErpGoodsNo())
+                    .skuCode(goodsInfoByIdResponse.getContext().getErpGoodsInfoNo())
                     .qty(returnItem.getNum())
                     .build();
             returnTradeItemVOS.add(returnTradeItemVO);

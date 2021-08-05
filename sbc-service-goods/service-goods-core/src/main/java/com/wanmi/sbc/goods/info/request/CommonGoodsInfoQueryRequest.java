@@ -166,6 +166,7 @@ public class CommonGoodsInfoQueryRequest extends BaseQueryRequest {
     @ApiModelProperty(value = "企业购商品审核状态", notes = "0：无状态 1：待审核 2：已审核 3：审核未通过")
     private EnterpriseAuditState enterPriseAuditState;
 
+
     /**
      * 封装公共条件
      *

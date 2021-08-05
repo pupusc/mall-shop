@@ -291,4 +291,10 @@ public class EsGoodsVO implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime;
+
+    /**
+     * 商品副标题
+     */
+    @ApiModelProperty(value = "商品副标题")
+    private String goodsSubtitle;
 }

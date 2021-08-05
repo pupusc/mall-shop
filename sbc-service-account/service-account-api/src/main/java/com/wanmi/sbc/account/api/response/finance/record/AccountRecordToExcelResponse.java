@@ -1,5 +1,6 @@
 package com.wanmi.sbc.account.api.response.finance.record;
 
+import com.wanmi.sbc.account.bean.vo.AccountRecordExcelVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -21,5 +22,5 @@ public class AccountRecordToExcelResponse {
      * base64位字符串形式的文件流
      */
     @ApiModelProperty(value = "base64位字符串形式的文件流")
-    private String file;
+    private AccountRecordExcelVO accountRecordExcel;
 }

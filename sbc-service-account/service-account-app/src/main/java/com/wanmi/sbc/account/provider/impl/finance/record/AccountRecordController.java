@@ -7,7 +7,9 @@ import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByOrderCodeAndTypeRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByReturnOrderCodeAndTypeRequest;
+import com.wanmi.sbc.account.bean.vo.AccountRecordExcelVO;
 import com.wanmi.sbc.account.finance.record.model.entity.Reconciliation;
+import com.wanmi.sbc.account.finance.record.model.response.AccountRecordExcel;
 import com.wanmi.sbc.account.finance.record.service.AccountRecordService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -80,7 +82,8 @@ public class AccountRecordController implements AccountRecordProvider {
      */
     @Override
     public BaseResponse<AccountRecordToExcelResponse> writeAccountRecordToExcel(@RequestBody @Valid AccountRecordToExcelRequest request) {
-        return BaseResponse.success(AccountRecordToExcelResponse.builder().file(accountRecordService.writeAccountRecordToExcel(request)).build());
+        AccountRecordExcelVO accountRecordExcelVO= KsBeanUtil.convert(accountRecordService.writeAccountRecordToExcel(request), AccountRecordExcelVO.class);
+        return BaseResponse.success(AccountRecordToExcelResponse.builder().accountRecordExcel(accountRecordExcelVO).build());
     }
 
     private Byte toType(AccountRecordType type) {

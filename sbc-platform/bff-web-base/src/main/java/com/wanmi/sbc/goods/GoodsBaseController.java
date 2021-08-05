@@ -520,6 +520,12 @@ public class GoodsBaseController {
                         .map(GoodsInfoNestVO::getGoodsInfoId).collect(Collectors.toList()));
             }
             List<GoodsLevelPriceVO> goodsLevelPrices = this.getGoodsLevelPrices(skuIds, customer);
+
+            List<String> goodsIds = response.getEsGoods().getContent().stream().map(EsGoodsVO::getId).collect(Collectors.toList());
+
+            List<GoodsVO> goodsVOList = goodsQueryProvider.listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsIds).build()).getContext().getGoodsVOList();
+
+
             response.getEsGoods().getContent().forEach(esGoods -> {
                 List<GoodsInfoVO> goodsInfoVOList = voMap.get(esGoods.getId());
                 List<GoodsInfoNestVO> goodsInfoNests = esGoods.getGoodsInfos();
@@ -551,6 +557,15 @@ public class GoodsBaseController {
                     });
                     esGoods.setGoodsInfos(resultGoodsInfos);
                 }
+
+                if (CollectionUtils.isNotEmpty(goodsVOList)) {
+                    goodsVOList.forEach(goodsVO -> {
+                        if (Objects.equals(esGoods.getId(),goodsVO.getGoodsId()) && Objects.nonNull(goodsVO.getGoodsSubtitle())) {
+                            esGoods.setGoodsSubtitle(goodsVO.getGoodsSubtitle());
+                        }
+                    });
+                }
+
             });
             // 填充预约、预售信息
             List<String> goodInfoIdList = goodsInfoList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());

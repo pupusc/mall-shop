@@ -169,6 +169,13 @@ public class CycleBuySaveController implements CycleBuySaveProvider {
             goodsInfo.setSaleType(SaleType.RETAIL.toValue());
             //如果选择的是企业购商品，需要设置成不是企业购的商品
             goodsInfo.setEnterPriseAuditState(EnterpriseAuditState.INIT);
+
+            //设置erp编码spu
+            goodsInfo.setErpGoodsNo(cycleBuyAddRequest.getErpGoodsNo());
+
+            //设置是否组合商品
+            goodsInfo.setCombinedCommodity(Boolean.FALSE);
+
         });
         goodsSaveRequest.setGoodsInfos(goodsInfos);
 

@@ -213,4 +213,11 @@ public class GoodsInfoPageRequest extends BaseQueryRequest implements Serializab
      * ERP商品编码
      */
     private String erpGoodsInfoNo;
+
+    /**
+     * 是否组合购
+     */
+    @ApiModelProperty(value = "是否组合购", notes = "是否是组合商品，0：否，1：是")
+    private Boolean combinedCommodity;
+
 }

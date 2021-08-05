@@ -58,4 +58,17 @@ public class CycleBuyTradeController {
         return tradeProvider.cycleBuyPostponement(cycleBuyPostponementRequest);
     }
 
+
+    /**
+     * 周期购订单  定时器推送失败---手动推送
+     *
+     * @param cycleBuyPostponementRequest
+     * @return
+     */
+    @ApiOperation(value = " 周期购订单  定时器推送失败---手动推送")
+    @PostMapping("/cyclebuy-supplementary-push")
+    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
+        return tradeProvider.cycleBuySupplementaryPush(cycleBuyPostponementRequest);
+    }
+
 }

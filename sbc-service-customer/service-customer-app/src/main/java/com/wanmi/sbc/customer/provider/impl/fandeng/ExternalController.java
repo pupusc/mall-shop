@@ -1,13 +1,11 @@
 package com.wanmi.sbc.customer.provider.impl.fandeng;
 
-import com.sun.org.apache.regexp.internal.RE;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.*;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.*;
-import com.wanmi.sbc.customer.api.response.loginregister.CustomerLoginResponse;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.fandeng.ExternalService;
 import org.springframework.beans.factory.annotation.Autowired;

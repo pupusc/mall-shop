@@ -498,10 +498,27 @@ public class SettlementAnalyseService {
             for (SettleGood goodsInfo : settleGoods) {
                 // 通用券累加
                 if (CollectionUtils.isNotEmpty(goodsInfo.getCouponSettlements())) {
+
+                    BigDecimal priceForSettle = goodsInfo.getGoodsPrice().multiply(new BigDecimal(goodsInfo.getNum()));
+
+                    if (CollectionUtils.isNotEmpty(goodsInfo.getMarketingSettlements())) {
+                        for (SettleGood.MarketingSettlement marketingSettlement : goodsInfo.getMarketingSettlements()) {
+                            //如果存在满减或者满折营销活动，计算满折/满减优惠价格
+                            if (marketingSettlement.getMarketingType() == SettleMarketingType.DISCOUNT) {
+                                priceForSettle = marketingSettlement.getSplitPrice();
+                            }
+
+                            if (marketingSettlement.getMarketingType() == SettleMarketingType.REDUCTION) {
+                                priceForSettle = marketingSettlement.getSplitPrice();
+                            }
+                        }
+                    }
+
                     Optional<SettleGood.CouponSettlement> couponSettle = goodsInfo.getCouponSettlements().stream()
                             .filter(item -> item.getCouponType() == SettleCouponType.GENERAL_VOUCHERS).findFirst();
                     if (couponSettle.isPresent()) {
-                        commonCouponPrice = commonCouponPrice.add(couponSettle.get().getReducePrice());
+                        //commonCouponPrice = commonCouponPrice.add(couponSettle.get().getReducePrice());
+                        commonCouponPrice = commonCouponPrice.add(priceForSettle.subtract(couponSettle.get().getSplitPrice()));
                     }
                 }
 

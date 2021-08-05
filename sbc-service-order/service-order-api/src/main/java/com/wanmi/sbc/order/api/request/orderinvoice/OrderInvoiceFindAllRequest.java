@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.api.request.orderinvoice;
 import com.wanmi.sbc.account.bean.enums.InvoiceState;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.util.XssUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -105,6 +106,23 @@ public class OrderInvoiceFindAllRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "商家id")
     private List<Long> companyInfoIds;
+
+
+
+    /**
+     * 支付单状态
+     */
+    @ApiModelProperty(value = "支付单状态")
+    private PayOrderStatus payStatus;
+
+
+    /**
+     * 订单状态
+     */
+    @ApiModelProperty(value = "订单状态")
+    private FlowState orderStatus;
+
+
 
     /**
      * 封装公共条件

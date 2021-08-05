@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.settlement.service;
 
 // import com.codingapi.txlcn.tc.annotation.TccTransaction;
+import com.wanmi.sbc.order.api.request.settlement.SettlementDetailPageSettleUuidRequest;
 import com.wanmi.sbc.order.settlement.model.root.SettlementDetail;
 import com.wanmi.sbc.order.settlement.repository.SettlementDetailRepository;
 import com.wanmi.sbc.common.util.UUIDUtil;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -125,6 +128,30 @@ public class SettlementDetailService {
         Query query = new Query(criteria).with(Sort.by(new Sort.Order(Sort.Direction.DESC, "settleTrade" +
                 ".tradeEndTime")));
         return mongoTemplate.find(query, SettlementDetail.class);
+    }
+
+
+
+
+    /**
+     * 分页查询结算明细
+     *
+     * @param request 结算单uuid
+     * @return 结算明细列表
+     */
+    public PageImpl<SettlementDetail> pageSettlementDetail(SettlementDetailPageSettleUuidRequest request) {
+
+        Criteria criteria = new Criteria();
+        criteria.andOperator(Criteria.where("settleUuid").is(request.getSettleUuid()));
+        Query query = new Query(criteria).with(Sort.by(new Sort.Order(Sort.Direction.DESC, "settleTrade" +
+                ".tradeEndTime")));
+
+        long totalSize = mongoTemplate.count(query, SettlementDetail.class);
+
+        if (totalSize < 1) {
+            return new PageImpl<>(new ArrayList<>(), request.getPageRequest(), totalSize);
+        }
+        return new PageImpl<>(mongoTemplate.find(query.with(request.getPageRequest()), SettlementDetail.class), request.getPageable(), totalSize);
     }
 
     /**

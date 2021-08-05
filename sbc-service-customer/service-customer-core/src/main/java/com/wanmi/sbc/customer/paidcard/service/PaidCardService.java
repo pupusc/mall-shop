@@ -628,12 +628,14 @@ public class PaidCardService {
 				.payTime(paidCardBuyRecord.getCreateTime())
 				.payTypeCode(erpTradePayChannel.toValue())
 				.phone(customer.getCustomerDetail().getContactPhone())
-				.platformCode(UUIDUtil.getUUID())
+				.platformCode(paidCardBuyRecord.getPayCode())
 				.price(paidCardRule.getPrice().toString())
 				//.shopCode("99999")
 				.skuCode(paidCardRule.getErpSkuCode())
 				.spuCode(paidCard.getErpSpuCode())
 				.vipCode(customer.getCustomerAccount())
+				.beginTime(paidCardBuyRecord.getBeginTime())
+				.endTime(paidCardBuyRecord.getInvalidTime())
 				.build());
 
 

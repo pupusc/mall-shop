@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -51,6 +52,20 @@ public class AccountRecordVO implements Serializable {
      */
     @ApiModelProperty(value = "总计金额")
     private String totalAmount;
+
+
+
+    /**
+     * 积分
+     */
+    private Long points;
+
+    /**
+     * 积分兑换金额
+     */
+    private BigDecimal pointsPrice;
+
+
 
     /**
      * 存在各支付项金额的Map，key: 枚举PayWay的name, value: 金额，单位元，格式："￥#,###.00"

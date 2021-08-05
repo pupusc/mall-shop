@@ -27,10 +27,7 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeGroup;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
-import com.wanmi.sbc.order.trade.service.CycleBuyDeliverTimeService;
-import com.wanmi.sbc.order.trade.service.ProviderTradeService;
-import com.wanmi.sbc.order.trade.service.TradeOptimizeService;
-import com.wanmi.sbc.order.trade.service.TradeService;
+import com.wanmi.sbc.order.trade.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +65,10 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private ProviderTradeService providerTradeService;
+
+
+    @Autowired
+    private TradePushERPService tradePushERPService;
 
     /**
      * 新增交易单
@@ -631,7 +632,6 @@ public class TradeController implements TradeProvider {
         TradeCycleBuyInfo tradeCycleBuyInfo= trade.getTradeCycleBuyInfo();
         List<DeliverCalendar> deliverCalendars=tradeCycleBuyInfo.getDeliverCalendar();
         //顺延
-        //String uuid=UUIDUtil.getUUID();
         if (cycleBuyPostponementRequest.getIsPostponement()){
             //拿到顺延的时间和集合中的时间做对比把找到的数据状态设置成已顺延
             deliverCalendars.forEach(deliverCalendar -> {
@@ -645,7 +645,6 @@ public class TradeController implements TradeProvider {
             DeliverCalendar newDeliverCalendar=new DeliverCalendar();
             newDeliverCalendar.setDeliverDate(localDate);
             newDeliverCalendar.setCycleDeliverStatus(CycleDeliverStatus.NOT_SHIPPED);
-            //newDeliverCalendar.setDeliverId(uuid);
             deliverCalendars.add(newDeliverCalendar);
 
 
@@ -662,15 +661,18 @@ public class TradeController implements TradeProvider {
             //删除最后是已顺延的发货日历
             this.removecycleBuy(deliverCalendars);
 
+
         }
         tradeCycleBuyInfo.setDeliverCalendar(deliverCalendars);
         trade.setTradeCycleBuyInfo(tradeCycleBuyInfo);
         tradeService.updateTrade(trade);
 
+
+
         List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
 
         providerTrades.forEach(providerTrade -> {
-            providerTrade.setTradeCycleBuyInfo(tradeCycleBuyInfo);
+             providerTrade.setTradeCycleBuyInfo(tradeCycleBuyInfo);
         });
 
         //更新子单的周期购信息
@@ -678,6 +680,41 @@ public class TradeController implements TradeProvider {
 
         return BaseResponse.SUCCESSFUL();
     }
+
+
+    /**
+     * 周期购订单  定时器推送失败---手动推送
+     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+     * @return
+     */
+    @Override
+    public BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest) {
+        List<ProviderTrade>  providerTrades= providerTradeService.findListByParentId(cycleBuyPostponementRequest.getTid());
+        providerTrades.forEach(providerTrade -> {
+            TradeCycleBuyInfo tradeCycleBuyInfo = providerTrade.getTradeCycleBuyInfo();
+            List<DeliverCalendar> deliverCalendarList = tradeCycleBuyInfo.getDeliverCalendar();
+            deliverCalendarList.forEach(deliverCalendar -> {
+                if (deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.PUSHED_FAIL && Objects.equals(deliverCalendar.getDeliverDate(),cycleBuyPostponementRequest.getLocalDate().toLocalDate())) {
+                    int index = deliverCalendarList.indexOf(deliverCalendar);
+                    boolean isFirstCycle = Boolean.FALSE;
+                    if (index == 0) {
+                        isFirstCycle = Boolean.TRUE;
+                    }
+
+                    //推送订单
+                    tradePushERPService.pushCycleOrderToERP(providerTrade, deliverCalendar, index + 1, isFirstCycle);
+
+                    log.info("================订单推送周期购订单---手动推送===:{}", providerTrade);
+
+                }
+            });
+        });
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+
+
 
     /**
      * 删除最后是已顺延的发货日历

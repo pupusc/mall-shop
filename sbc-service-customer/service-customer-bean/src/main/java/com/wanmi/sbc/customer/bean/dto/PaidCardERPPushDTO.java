@@ -33,5 +33,11 @@ public class PaidCardERPPushDTO {
 
     private String platformCode;
 
+    //会期开始时间
+    private LocalDateTime beginTime;
+
+    //会期结束时间
+    private LocalDateTime endTime;
+
 
 }

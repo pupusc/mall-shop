@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 @Slf4j
 public class PerseusBootstrap {
     public static void main(String[] args) throws UnknownHostException {
+        System.setProperty("nacos.logging.default.config.enabled","false");
         Environment env = SpringApplication.run(PerseusBootstrap.class, args).getEnvironment();
         String port = env.getProperty("server.port", "8480");
         String actPort = env.getProperty("management.server.port", "8481");

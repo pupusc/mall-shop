@@ -392,6 +392,16 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/cycle-buy-postponement")
     BaseResponse cycleBuyPostponement(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
 
+
+    /**
+     * 周期购订单  定时器推送失败---手动推送
+     * @param cycleBuyPostponementRequest 订单信息 {@link TradePayOnlineCallBackRequest}
+     * @return 操作结果 {@link BaseResponse}
+     */
+    @PostMapping("/order/${application.order.version}/trade//cyclebuy-supplementary-push")
+    BaseResponse cycleBuySupplementaryPush(@RequestBody @Valid CycleBuyPostponementRequest cycleBuyPostponementRequest);
+
+
     /**
      * erp订单推送
      * @param request

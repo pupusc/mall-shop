@@ -39,6 +39,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCateRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsPageForGrouponRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsQueryNeedSynRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
@@ -249,6 +250,7 @@ public class StoreGoodsController {
             EnterpriseGoodsInfoPageRequest enterpriseGoodsInfoPageRequest=new EnterpriseGoodsInfoPageRequest();
             enterpriseGoodsInfoPageRequest.setStoreId(commonUtil.getStoreId());
             enterpriseGoodsInfoPageRequest.setEnterPriseAuditState(EnterpriseAuditState.CHECKED);
+            enterpriseGoodsInfoPageRequest.setPageSize(100000);
             List<GoodsInfoVO> goodsInfoVOList=enterpriseGoodsInfoQueryProvider.page(enterpriseGoodsInfoPageRequest).getContext().getGoodsInfoPage().getContent();
             if(CollectionUtils.isNotEmpty(goodsInfoVOList)){
                 List<String> spuIds = goodsInfoVOList.stream().map(i -> i.getGoodsId()).distinct().collect(Collectors.toList());
@@ -260,8 +262,24 @@ public class StoreGoodsController {
                     }
                 }
             }
-        }
 
+            //过滤组合商品
+            GoodsInfoPageRequest goodsInfoPageRequest=new GoodsInfoPageRequest();
+            goodsInfoPageRequest.setCombinedCommodity(Boolean.TRUE);
+            goodsInfoPageRequest.setPageSize(100000);
+            List<GoodsInfoVO> goodsInfos=goodsInfoQueryProvider.page(goodsInfoPageRequest).getContext().getGoodsInfoPage().getContent();
+            if (CollectionUtils.isNotEmpty(goodsInfos)) {
+                List<String> spuIds = goodsInfos.stream().map(i -> i.getGoodsId()).distinct().collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(spuIds)) {
+                    if (CollectionUtils.isNotEmpty(pageRequest.getNotGoodsIdList())){
+                        pageRequest.getNotGoodsIdList().addAll(spuIds);
+                    }else {
+                        pageRequest.setNotGoodsIdList(spuIds);
+                    }
+                }
+            }
+
+        }
 
 
 

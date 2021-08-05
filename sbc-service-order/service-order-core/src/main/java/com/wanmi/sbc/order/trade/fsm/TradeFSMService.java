@@ -1,6 +1,10 @@
 package com.wanmi.sbc.order.trade.fsm;
 
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.bean.enums.FlowState;
@@ -10,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * 状态机服务
@@ -24,6 +30,10 @@ public class TradeFSMService {
 
     @Autowired
     private BuilderFactory builderFactory;
+
+    @Autowired
+    private OrderInvoiceService orderInvoiceService;
+
 
     /**
      * 修改订单状态
@@ -57,6 +67,25 @@ public class TradeFSMService {
             } else {
                 throw new SbcRuntimeException("K-050102");
             }
+        }
+
+
+        //排除不开票的订单
+        if (!Objects.equals(trade.getInvoice().getType(),-1)) {
+            FlowState flowState= stateMachine.getState().getId();
+            //更新订单状态
+            OrderInvoiceModifyOrderStatusRequest orderInvoiceModifyOrderStatusRequest=new OrderInvoiceModifyOrderStatusRequest();
+            orderInvoiceModifyOrderStatusRequest.setOrderNo(trade.getId());
+            orderInvoiceModifyOrderStatusRequest.setOrderStatus(flowState);
+            if (PayState.NOT_PAID==trade.getTradeState().getPayState()) {
+                orderInvoiceModifyOrderStatusRequest.setPayOrderStatus(PayOrderStatus.NOTPAY);
+            } else  if (PayState.PAID==trade.getTradeState().getPayState()) {
+                orderInvoiceModifyOrderStatusRequest.setPayOrderStatus(PayOrderStatus.PAYED);
+            }else  if (PayState.UNCONFIRMED==trade.getTradeState().getPayState()) {
+                orderInvoiceModifyOrderStatusRequest.setPayOrderStatus(PayOrderStatus.TOCONFIRM);
+            }
+            log.info("订单开票更新订单状态，订单编号 {},订单当前状态：{}，更新之后的状态：{}", trade.getId(),trade.getTradeState().getFlowState(),flowState);
+            orderInvoiceService.updateOrderStatus(orderInvoiceModifyOrderStatusRequest);
         }
         return true;
     }

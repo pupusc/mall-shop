@@ -188,16 +188,18 @@ public class CycleBuyController {
         cycleBuyAddRequest.setSendDateRules(cycleBuyAddRequest.getDateRule());
         cycleBuyAddRequest.setSendDateRule(null);
 
-        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
+        //判断sku上面填写的sku的erp是否在填写的spu编码之内
         List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(cycleBuyAddRequest.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
         if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-            List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-            List<GoodsInfoDTO> goodsInfoDTOS= cycleBuyAddRequest.getGoodsInfoDTOS();
-            goodsInfoDTOS.forEach(goodsInfoDTO -> {
-                if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                    throw new SbcRuntimeException("K-800001");
-                }
+            cycleBuyAddRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
+                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                        throw new SbcRuntimeException("K-800002");
+                    }
+
             });
+        } else {
+            throw new SbcRuntimeException("K-800003");
         }
 
         CycleBuyVO cycleBuyVO = cycleBuySaveProvider.add(cycleBuyAddRequest).getContext().getCycleBuyVO();
@@ -241,6 +243,19 @@ public class CycleBuyController {
 
         CycleBuyVO cycleBuyVO = cycleBuyQueryProvider.getById(CycleBuyByIdRequest.builder().id(cycleBuyModifyRequest.getId()).build()).getContext().getCycleBuyVO();
 
+        //判断sku上面填写的sku的erp是否在填写的spu编码之内
+        List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(cycleBuyModifyRequest.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+        if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                cycleBuyModifyRequest.getGoodsInfoDTOS().forEach(goodsInfoDTO -> {
+                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                        throw new SbcRuntimeException("K-800002");
+                    }
+                });
+        } else {
+            throw new SbcRuntimeException("K-800003");
+        }
+
 
         GoodsViewByIdRequest goodsViewByIdRequest = new GoodsViewByIdRequest();
         goodsViewByIdRequest.setGoodsId(cycleBuyVO.getGoodsId());
@@ -258,6 +273,12 @@ public class CycleBuyController {
             goodsInfoVO.setSaleType(SaleType.RETAIL.toValue());
             //如果选择的是企业购商品，需要设置成不是企业购的商品
             goodsInfoVO.setEnterPriseAuditState(EnterpriseAuditState.INIT);
+
+            //设置spu(erp)编码
+            goodsInfoVO.setErpGoodsNo(cycleBuyModifyRequest.getErpGoodsNo());
+
+            //设置是否组合商品
+            goodsInfoVO.setCombinedCommodity(Boolean.FALSE);
         });
         goodsModifyRequest.setGoodsInfos(goodsInfos);
         //商品规格

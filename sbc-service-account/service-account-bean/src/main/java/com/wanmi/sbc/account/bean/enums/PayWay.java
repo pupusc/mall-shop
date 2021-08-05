@@ -38,8 +38,14 @@ public enum PayWay {
     /**
      * 积分
      */
-    @ApiEnumProperty("积分兑换")
-    POINT("积分兑换"),
+    @ApiEnumProperty("积分抵扣")
+    POINT("积分抵扣"),
+
+    /**
+     * 积分数量
+     */
+    @ApiEnumProperty("积分数量")
+    POINTS_USED("积分数量"),
 
     /**
      * 转账汇款
@@ -69,6 +75,7 @@ public enum PayWay {
      */
     @ApiEnumProperty("其他")
     OTHER("其他");
+
 
 
 

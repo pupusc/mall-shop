@@ -42,6 +42,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -168,6 +169,16 @@ public class GoodsFollowBaseController {
             }
         }
 
+        //设置商品副标题
+        if (CollectionUtils.isNotEmpty(  response.getGoodsInfos().getContent()) &&   CollectionUtils.isNotEmpty(response.getGoodses())){
+            response.getGoodsInfos().getContent().forEach(goodsInfoVO -> {
+                response.getGoodses().forEach(goodsVO -> {
+                    if (Objects.equals(goodsInfoVO.getGoodsId(),goodsVO.getGoodsId()) && StringUtils.isNotBlank(goodsVO.getGoodsSubtitle())) {
+                        goodsInfoVO.setGoodsSubtitle(goodsVO.getGoodsSubtitle());
+                    }
+                });
+            });
+        }
         return BaseResponse.success(response);
     }
 

@@ -2,7 +2,9 @@ package com.wanmi.sbc.order.api.provider.refund;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.refund.*;
+import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
 import com.wanmi.sbc.order.api.response.refund.*;
+import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,5 +74,13 @@ public interface RefundOrderQueryProvider {
      */
     @PostMapping("/order/${application.order.version}/refund/get-by-return-order-no")
     BaseResponse<RefundOrderByReturnOrderNoResponse> getByReturnOrderNo(@RequestBody @Valid RefundOrderByReturnOrderNoRequest refundOrderByReturnOrderNoRequest);
+
+
+    /**
+     * 查询财务对账
+     */
+    @PostMapping("/order/${application.order.version}/refund/account-record")
+    BaseResponse<RefundOrderAccountRecordResponse> getRefundOrderAccountRecord(@RequestBody @Valid RefundOrderAccountRecordRequest request);
+
 
 }

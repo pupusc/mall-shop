@@ -7,6 +7,7 @@ import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.order.bean.vo.TradeStateVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -127,4 +128,12 @@ public class OrderInvoiceViewResponse implements Serializable {
      */
     @ApiModelProperty(value = "商家名称")
     private String supplierName;
+
+
+    /**
+     * 订单总体状态
+     */
+    @ApiModelProperty(value = "订单总体状态")
+    private TradeStateVO tradeState;
+
 }

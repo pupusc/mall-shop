@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.annotation.CanEmpty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -165,6 +166,27 @@ public class GoodsExportVo implements Serializable {
      */
     @ApiModelProperty(value = "商品副标题")
     private String goodsSubtitle;
+
+
+    /**
+     * ERP商品编码sku
+     */
+    @ApiModelProperty(value = "ERP编码（sku）")
+    private String erpGoodsInfoNo;
+
+
+    /**
+     * ERP商品编码spu
+     */
+    @ApiModelProperty(value = "ERP编码（spu）")
+    private String erpGoodsNo;
+
+    /**
+     * 是否是组合商品
+     */
+    @ApiModelProperty(value = "是否是组合商品")
+    private String combinedCommodity;
+
 
 
 }

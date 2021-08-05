@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.crm.customgroup.mapper.CustomGroupStatisticsMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.sbc.crm.customgroup.model.CustomGroupStatistics">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="stat_date" jdbcType="DATE" property="statDate" />
+    <result column="group_id" jdbcType="BIGINT" property="groupId" />
+    <result column="customer_count" jdbcType="BIGINT" property="customerCount" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, stat_date, group_id, customer_count, create_time
+  </sql>
+
+  <delete id="deleteByStatDate">
+    delete from custom_group_statistics
+    where stat_date = #{statDate}
+  </delete>
+
+  <select id="queryListByGroupId" resultMap="BaseResultMap">
+    select
+      <include refid="Base_Column_List"/>
+    from custom_group_statistics
+    where group_id = #{groupId}
+  </select>
+
+  <insert id="insertBySelect">
+    insert into custom_group_statistics(group_id,customer_count,stat_date,create_time)
+    select
+      group_id,
+      count(1) customerCount,
+      #{statDate},
+      now()
+    from custom_group_rel
+    group by group_id
+  </insert>
+</mapper>

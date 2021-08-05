@@ -301,7 +301,8 @@ public class EsGoods implements Serializable {
     /**
      * 模糊查询
      */
-    @Field(type = FieldType.Keyword)
+    //@Field(type = FieldType.Keyword)
+    @Field(searchAnalyzer = EsConstants.DEF_ANALYZER, analyzer = EsConstants.DEF_ANALYZER, type = FieldType.Text)
     private String goodsName;
 
 

@@ -563,6 +563,18 @@ public class GoodsInfo implements Serializable {
     private String isbnNo;
 
     /**
+     * erp--spu编码
+     */
+    @Column(name = "erp_goods_no")
+    private String erpGoodsNo;
+
+    /**
+     * 是否是组合商品，0：否，1：是
+     */
+    @Column(name = "combined_commodity")
+    private Boolean combinedCommodity;
+
+    /**
      * 企业购 设价类型,0:按市场价 1:按会员等级设价 2:按购买数量设价
      */
     @Column(name = "enterprise_price_type")
@@ -591,4 +603,6 @@ public class GoodsInfo implements Serializable {
      */
     @Transient
     private BigDecimal enterPriseMaxPrice;
+
+
 }

@@ -467,32 +467,32 @@ public class AccountRecordService {
      * @param request
      * @throws Exception
      */
-    public String writeAccountRecordToExcel(AccountRecordToExcelRequest request) {
+    public AccountRecordExcel writeAccountRecordToExcel(AccountRecordToExcelRequest request) {
         AccountRecordPageRequest pageRequest = new AccountRecordPageRequest();
         KsBeanUtil.copyPropertiesThird(request, pageRequest);
-        AccountRecordExcel excelData = getExcelData(pageRequest);
+        return getExcelData(pageRequest);
 
 //        String fileName =  excelData.getTheme()  + "." + EXCEL_TYPE;
 //        fileName = URLEncoder.encode(fileName,"UTF-8");
         //写入到response
 //        response.setContentType("application/vnd.ms-excel");
 //        response.setHeader("Content-disposition", "attachment;filename=" + fileName);
-
+//
 //        OutputStream outputStream = null;
-        try (InputStream inputStream = templateFile.getInputStream();
-             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
-        ) {
-            XSSFCellStyle xssfCellStyle = workbook.createCellStyle();
-            xssfCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-            writeExcel(workbook, excelData, xssfCellStyle);
-            workbook.setActiveSheet(request.getAccountRecordType() == null ? 0 : request.getAccountRecordType().toValue());
-            workbook.write(baos);
-            return new BASE64Encoder().encode(baos.toByteArray());
-        } catch (Exception e) {
-            log.error("导出Excel错误:" + e);
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
-        }
+//        try (InputStream inputStream = templateFile.getInputStream();
+//             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//             XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+//        ) {
+//            XSSFCellStyle xssfCellStyle = workbook.createCellStyle();
+//            xssfCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+//            writeExcel(workbook, excelData, xssfCellStyle);
+//            workbook.setActiveSheet(request.getAccountRecordType() == null ? 0 : request.getAccountRecordType().toValue());
+//            workbook.write(baos);
+//            return new BASE64Encoder().encode(baos.toByteArray());
+//        } catch (Exception e) {
+//            log.error("导出Excel错误:" + e);
+//            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+//        }
     }
 
     /**

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.wanmi.sbc</groupId>
 		<artifactId>service-elastic</artifactId>
-		<version>fandeng-uat-4.1.7-alpha</version>
+		<version>fandeng-4.1.7-release</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -109,6 +109,7 @@
 		<dependency> <!-- 主要想使用 seata 1.2.0 版本 -->
 			<groupId>io.seata</groupId>
 			<artifactId>seata-spring-boot-starter</artifactId>
+			<version>1.4.1</version>
 		</dependency>
 
 		<dependency>

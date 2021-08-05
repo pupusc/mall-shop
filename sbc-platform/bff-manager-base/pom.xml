@@ -84,7 +84,6 @@
             <groupId>of-security</groupId>
             <artifactId>security-component</artifactId>
             <version>${security-component.version}</version>
-            <!--<classifier>RELEASE</classifier>-->
             <exclusions>
                 <exclusion>
                     <groupId>commons-io</groupId>
@@ -103,6 +102,12 @@
             <artifactId>kaptcha</artifactId>
             <version>${kaptcha.version}</version>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org</groupId>-->
+<!--            <artifactId>patchca</artifactId>-->
+<!--            <version>${patchca.version}</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.patchca</groupId>
@@ -193,10 +198,15 @@
             <artifactId>service-goods-api</artifactId>
             <version>${wm.micro.service.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.wanmi.sbc</groupId>-->
+<!--            <artifactId>service-crm-api</artifactId>-->
+<!--            <version>${wm.micro.service.crm.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-crm-api</artifactId>
-            <version>${wm.micro.service.crm.version}</version>
+            <version>${wm.micro.service.version}</version>
         </dependency>
         <dependency>
             <groupId>com.wanmi.sbc</groupId>

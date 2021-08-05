@@ -174,6 +174,11 @@ public class EsSpuSearchCriteriaBuilder {
             boolQb.must(termQuery("goodsSource", request.getGoodsSource()));
         }
 
+        //ERP的SPU编码
+        if (Objects.nonNull(request.getSpuErp())) {
+            boolQb.must(termQuery("goodsInfos.erpGoodsNo",request.getSpuErp()));
+        }
+
         //商品状态筛选
         if (CollectionUtils.isNotEmpty(request.getGoodsSelectStatuses())) {
             BoolQueryBuilder orBq = QueryBuilders.boolQuery();

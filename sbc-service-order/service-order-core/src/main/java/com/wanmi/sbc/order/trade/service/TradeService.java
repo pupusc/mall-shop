@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -117,6 +118,7 @@ import com.wanmi.sbc.marketing.bean.vo.*;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
 import com.wanmi.sbc.order.api.request.trade.*;
+import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
 import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.*;
@@ -191,6 +193,7 @@ import com.wanmi.sbc.setting.bean.enums.EmailStatus;
 import com.wanmi.sbc.setting.bean.enums.PointsUsageFlag;
 import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 import io.seata.spring.annotation.GlobalTransactional;
+import jdk.nashorn.internal.runtime.linker.LinkerCallSite;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -442,6 +445,9 @@ public class TradeService {
 
     @Autowired
     private ExceptionOfTradePointsService exceptionOfTradePointsService;
+
+
+    public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * 新增文档
@@ -2798,14 +2804,27 @@ public class TradeService {
                     .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(tradeItem.getSkuId()))
                     .map(GoodsInfoVO::getErpGoodsInfoNo)
                     .findFirst();
-            Optional<String> erpSpuOptional = goodsVOList.stream().filter(goodsVO -> goodsVO.getGoodsId()
-                    .equals(tradeItem.getSpuId()))
-                    .map(GoodsVO::getErpGoodsNo)
+            Optional<String> erpSpuOptional = goodsInfoVOList.stream()
+                    .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(tradeItem.getSkuId()))
+                    .map(GoodsInfoVO::getErpGoodsNo)
                     .findFirst();
-            if (erpSkuNoOptional.isPresent() && erpSpuOptional.isPresent()){
+
+            if (erpSkuNoOptional.isPresent()){
                 tradeItem.setErpSkuNo(erpSkuNoOptional.get());
+            }
+
+            if ( erpSpuOptional.isPresent()){
                 tradeItem.setErpSpuNo(erpSpuOptional.get());
             }
+
+
+            //设置是否组合商品
+            goodsInfoVOList.forEach(goodsInfoVO -> {
+                if (Objects.equals(goodsInfoVO.getGoodsInfoId(),tradeItem.getSkuId()) && Objects.nonNull(goodsInfoVO.getCombinedCommodity())  && goodsInfoVO.getCombinedCommodity()) {
+                    tradeItem.setCombinedCommodity(goodsInfoVO.getCombinedCommodity());
+                }
+            });
+
         });
 
         if (!CollectionUtils.isEmpty(trade.getGifts())){
@@ -2814,14 +2833,26 @@ public class TradeService {
                         .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(gift.getSkuId()))
                         .map(GoodsInfoVO::getErpGoodsInfoNo)
                         .findFirst();
-                Optional<String> erpSpuOptional = goodsVOList.stream().filter(goodsVO -> goodsVO.getGoodsId()
-                        .equals(gift.getSpuId()))
-                        .map(GoodsVO::getErpGoodsNo)
+                Optional<String> erpSpuOptional = goodsInfoVOList.stream()  .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(gift.getSkuId()))
+                        .map(GoodsInfoVO::getErpGoodsNo)
                         .findFirst();
-                if (erpSkuNoOptional.isPresent() && erpSpuOptional.isPresent()){
+
+                if (erpSkuNoOptional.isPresent() ){
                     gift.setErpSkuNo(erpSkuNoOptional.get());
+                }
+
+
+                if ( erpSpuOptional.isPresent()){
                     gift.setErpSpuNo(erpSpuOptional.get());
                 }
+
+                //设置是否组合商品
+                goodsInfoVOList.forEach(goodsInfoVO -> {
+                    if (Objects.equals(goodsInfoVO.getGoodsInfoId(),gift.getSkuId()) && Objects.nonNull(goodsInfoVO.getCombinedCommodity()) && goodsInfoVO.getCombinedCommodity()) {
+                        gift.setCombinedCommodity(goodsInfoVO.getCombinedCommodity());
+                    }
+                });
+
                 //生产oid
                 gift.setOid(generatorService.generateOid());
             });
@@ -6397,7 +6428,6 @@ public class TradeService {
                 }
                 log.info("微信支付异步通知回调end---------");
             } catch (Exception e) {
-                e.printStackTrace();
                 log.error(e.getMessage());
                 //支付处理结果回写回执支付结果表
                 payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
@@ -6933,21 +6963,40 @@ public class TradeService {
                         BigDecimal splitPrice = Objects.isNull(providerTradeItem.getSplitPrice()) ? BigDecimal.ZERO :
                                 providerTradeItem.getSplitPrice();
                         orderPrice = orderPrice.add(splitPrice);
-
-                        //todo 增加ERP商品SKU编码和SPU编码add by wugongjiang
-                        Optional<String> erpSkuNoOptional = goodsInfoVOList.stream()
-                                .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(providerTradeItem.getSkuId()))
-                                .map(GoodsInfoVO::getErpGoodsInfoNo)
-                                .findFirst();
-                        Optional<String> erpSpuOptional = goodsVOList.stream().filter(goodsVO -> goodsVO.getGoodsId()
-                                .equals(providerTradeItem.getSpuId()))
-                                .map(GoodsVO::getErpGoodsNo)
-                                .findFirst();
-                        if (erpSkuNoOptional.isPresent() && erpSpuOptional.isPresent()){
-                            providerTradeItem.setErpSkuNo(erpSkuNoOptional.get());
-                            providerTradeItem.setErpSpuNo(erpSpuOptional.get());
-                        }
                     }
+
+                    //todo 增加ERP商品SKU编码和SPU编码add by wugongjiang
+                    Optional<String> erpSkuNoOptional = goodsInfoVOList.stream()
+                            .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(providerTradeItem.getSkuId()) && StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()))
+                            .map(GoodsInfoVO::getErpGoodsInfoNo)
+                            .findFirst();
+                    Optional<String> erpSpuOptional = goodsInfoVOList.stream()
+                            .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(providerTradeItem.getSkuId()))
+                            .map(GoodsInfoVO::getErpGoodsNo)
+                            .findFirst();
+                    if (erpSkuNoOptional.isPresent() && erpSpuOptional.isPresent()){
+                        providerTradeItem.setErpSkuNo(erpSkuNoOptional.get());
+                        providerTradeItem.setErpSpuNo(erpSpuOptional.get());
+                    }
+
+                    if (erpSkuNoOptional.isPresent()){
+                        providerTradeItem.setErpSkuNo(erpSkuNoOptional.get());
+                    }
+
+
+                    if (erpSpuOptional.isPresent()){
+                        providerTradeItem.setErpSpuNo(erpSpuOptional.get());
+                    }
+
+                    //设置是否组合商品
+                    goodsInfoVOList.forEach(goodsInfoVO -> {
+                        if (Objects.equals(goodsInfoVO.getGoodsInfoId(),providerTradeItem.getSkuId())   && Objects.nonNull(goodsInfoVO.getCombinedCommodity()) && goodsInfoVO.getCombinedCommodity()) {
+                            providerTradeItem.setCombinedCommodity(goodsInfoVO.getCombinedCommodity());
+                        }
+                    });
+
+                    log.info("================设置是否组合商品：{}==============",providerTradeItem);
+
                     // 订单供货价总额
                     orderSupplyPrice = orderSupplyPrice.add(providerTradeItem.getTotalSupplyPrice());
                     // 供应商名称
@@ -6972,17 +7021,30 @@ public class TradeService {
 
                         //todo 增加ERP商品SKU编码和SPU编码add by wugongjiang
                         Optional<String> erpSkuNoOptional = goodsInfoVOList.stream()
-                                .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(pgift.getSkuId()))
+                                .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(pgift.getSkuId()) && StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()))
                                 .map(GoodsInfoVO::getErpGoodsInfoNo)
                                 .findFirst();
-                        Optional<String> erpSpuOptional = goodsVOList.stream().filter(goodsVO -> goodsVO.getGoodsId()
-                                .equals(pgift.getSpuId()))
-                                .map(GoodsVO::getErpGoodsNo)
+                        Optional<String> erpSpuOptional = goodsInfoVOList.stream()
+                                .filter(goodsInfoVO -> goodsInfoVO.getGoodsInfoId().equals(pgift.getSkuId()))
+                                .map(GoodsInfoVO::getErpGoodsNo)
                                 .findFirst();
-                        if (erpSkuNoOptional.isPresent() && erpSpuOptional.isPresent()){
+                        if (erpSkuNoOptional.isPresent()){
                             pgift.setErpSkuNo(erpSkuNoOptional.get());
+                        }
+
+                        if (erpSpuOptional.isPresent()){
                             pgift.setErpSpuNo(erpSpuOptional.get());
                         }
+
+                        //设置是否组合商品
+                        goodsInfoVOList.forEach(goodsInfoVO -> {
+                            if (Objects.equals(goodsInfoVO.getGoodsInfoId(),pgift.getSkuId()) && Objects.nonNull(goodsInfoVO.getCombinedCommodity()) && goodsInfoVO.getCombinedCommodity()) {
+                                pgift.setCombinedCommodity(goodsInfoVO.getCombinedCommodity());
+                            }
+                        });
+
+                        log.info("================设置是否组合商品：{}==============",pgift);
+
                     }
                 }
 
@@ -7347,5 +7409,51 @@ public class TradeService {
                 }
             });
         }
+    }
+
+
+
+    /**
+     * 查询对账数据
+     */
+    public TradeAccountRecordResponse getTradeAccountRecord(TradeAccountRecordRequest recordRequest) {
+
+        log.info("===========查询开始时间：{}，结束时间：{},storeId={}===============",recordRequest.getBeginTime(),recordRequest.getEndTime(),recordRequest.getCompanyInfoId());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(FMT_TIME_1);
+        LocalDateTime beginTime = LocalDateTime.parse(recordRequest.getBeginTime(),formatter);
+        LocalDateTime endTime = LocalDateTime.parse(recordRequest.getEndTime(),formatter);
+
+
+        log.info("===========查询开始时间：{}，结束时间：{},storeId={}===============",beginTime,endTime,recordRequest.getCompanyInfoId());
+
+        List<Criteria> criterias = new ArrayList<>();
+        //criterias.add(Criteria.where("supplier.storeId").is(recordRequest.getCompanyInfoId()));
+        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+        criterias.add(Criteria.where("tradeState.payTime").gte(beginTime));
+        criterias.add(Criteria.where("tradeState.payTime").lt(endTime));
+        criterias.add(Criteria.where("yzTid").exists(false));
+        criterias.add(Criteria.where("tradePrice.points").exists(true));
+
+        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+        Query query = new Query(newCriteria);
+
+        List<Trade> trades = mongoTemplate.find(query, Trade.class);
+
+        log.info("===========查询查询条件：{}===============",query);
+
+        List<TradePrice> tradePrices=trades.stream().map(Trade::getTradePrice).collect(Collectors.toList());
+
+        //计算积分的总和
+        Long points=tradePrices.stream().mapToLong(TradePrice::getPoints).sum();
+
+        //计算积分金额的总和
+        BigDecimal pointsPrice =tradePrices.stream().map(TradePrice::getPointsPrice).reduce(BigDecimal.ZERO,BigDecimal::add);
+
+        log.info("===========查询对账积分：{}===============",points);
+        log.info("===========查询对账积分金额：{}===============",pointsPrice);
+
+        return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
     }
 }

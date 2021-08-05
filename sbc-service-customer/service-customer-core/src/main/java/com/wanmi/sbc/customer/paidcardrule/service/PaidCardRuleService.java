@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -286,12 +287,14 @@ public class PaidCardRuleService {
 				.payTime(paidCardBuyRecord.getCreateTime())
 				.payTypeCode(ERPTradePayChannel.other.toValue())
 				.phone(customer.getCustomerDetail().getContactPhone())
-				.platformCode(UUIDUtil.getUUID())
+				.platformCode(paidCardBuyRecord.getPayCode())
 				.price(paidCardRule.getPrice().toString())
 				//.shopCode("99999")
 				.skuCode(paidCardRule.getErpSkuCode())
 				.spuCode(paidCard.getErpSpuCode())
 				.vipCode(customer.getCustomerAccount())
+				.beginTime(paidCardBuyRecord.getBeginTime())
+				.endTime(paidCardBuyRecord.getInvalidTime())
 				.build());
 
 		// 更新es
@@ -333,12 +336,17 @@ public class PaidCardRuleService {
 	}
 
 	public void pushPaidCard(PaidCardERPPushDTO paidCardERPPushDTO) {
+		//拼接会期开始时间和结束时间
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		StringBuffer stringBuffer=new StringBuffer();
+		              stringBuffer.append("[").append(df.format(paidCardERPPushDTO.getBeginTime())).append("|").append(df.format(paidCardERPPushDTO.getEndTime())).append("]");
 		ERPTradeItemDTO erpTradeItemDTO = ERPTradeItemDTO.builder()
 				.skuCode(paidCardERPPushDTO.getSkuCode())
 				.itemCode(paidCardERPPushDTO.getSpuCode())
 				.price(paidCardERPPushDTO.getPrice())
 				.qty(1)
 				.refund(0)
+		        .note(stringBuffer.toString())//会期时间备注
 				.build();
 		List<ERPTradePaymentDTO> erpTradePaymentDTOList = new ArrayList<>();
 		ERPTradePaymentDTO erpTradePaymentDTO = ERPTradePaymentDTO.builder()
@@ -353,7 +361,7 @@ public class PaidCardRuleService {
 				.shopCode(paidCardERPPushDTO.getShopCode())//店铺代码
 				.vipCode(paidCardERPPushDTO.getAccount())//会员代码
 				.dealDatetime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))//下单时间
-				.platformCode(UUIDUtil.getUUID())//订单号
+				.platformCode(paidCardERPPushDTO.getPlatformCode())//订单号
 				.details(Arrays.asList(erpTradeItemDTO))
 				.payments(erpTradePaymentDTOList)
 //				.receiveName(customer.getCustomerDetail().getCustomerName())
@@ -365,7 +373,7 @@ public class PaidCardRuleService {
 				.build();
 //		guanyierpProvider.autoPushTrade(pushTradeRequest);
 		new Thread(() -> {
-			guanyierpProvider.autoPushTrade(pushTradeRequest);
+			guanyierpProvider.autoPushTradeDelivered(pushTradeRequest);
 		}).start();
 	}
 }

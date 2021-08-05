@@ -10,11 +10,11 @@
 
     <groupId>com.wanmi.ares</groupId>
     <artifactId>ares-parent</artifactId>
-    <version>fandeng-uat-4.1.7-alpha</version>
+    <version>fandeng-4.1.7-release</version>
     <packaging>pom</packaging>
 
     <properties>
-        <wm.micro.service.version>fandeng-uat-4.1.7-alpha</wm.micro.service.version>
+        <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
         <poi.version>3.17</poi.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
@@ -116,4 +116,72 @@
             </plugin>
         </plugins>
     </build>
+
+    <scm>
+        <connection>scm:git:http://172.19.25.151/statistic/ares.git</connection>
+        <developerConnection>scm:git:http://172.19.25.151/statistic/ares.git</developerConnection>
+        <url>http://172.19.25.151/statistic/ares.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>nexus</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/groups/public/</url>-->
+<!--            <releases>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </releases>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>nexus repository</id>-->
+<!--            <name>intranet public groups</name>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>-->
+<!--            <snapshots>-->
+<!--                <enabled>false</enabled>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>qianmi-snapshots</id>-->
+<!--            <name>intranet public snapshots</name>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/repositories/snapshots</url>-->
+<!--            <snapshots>-->
+<!--                <updatePolicy>always</updatePolicy>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>central</id>-->
+<!--            <url>http://nexus.dev.qianmi.com/nexus/content/groups/public</url>-->
+<!--            <snapshots>-->
+<!--                <enabled>true</enabled>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>nexus-snapshots</id>-->
+<!--            <name>snapshots</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>-->
+<!--        </repository>-->
+<!--        <repository>-->
+<!--            <id>releases</id>-->
+<!--            <name>snapshots</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
+<!--    <distributionManagement>-->
+<!--        <repository>-->
+<!--            <id>releases</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/releases/</url>-->
+<!--        </repository>-->
+<!--        <snapshotRepository>-->
+<!--            <id>snapshots</id>-->
+<!--            <name>local private nexus</name>-->
+<!--            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>-->
+<!--        </snapshotRepository>-->
+<!--    </distributionManagement>-->
 </project>

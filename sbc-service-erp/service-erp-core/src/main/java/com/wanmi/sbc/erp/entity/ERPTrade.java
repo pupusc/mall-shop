@@ -245,4 +245,13 @@ public class ERPTrade implements Serializable {
     @JsonProperty("tag_code")
     private String tagCode;
 
+    /**
+     * 发货状态(
+     * 0-未发货
+     * 1-部分发货
+     * 2-全部发货)
+     */
+    @JsonProperty("delivery_state")
+    private int deliveryState;
+
 }

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanmi.sbc.crm.rfmstatistic.mapper.RfmCustomerDetailMapper" >
+    <resultMap id="BaseResultMap" type="com.wanmi.sbc.crm.rfmstatistic.model.RfmCustomerDetail">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="r_score" jdbcType="INTEGER" property="rScore" />
+        <result column="f_score" jdbcType="INTEGER" property="fScore" />
+        <result column="m_score" jdbcType="INTEGER" property="mScore" />
+        <result column="customer_id" jdbcType="VARCHAR" property="customerId" />
+        <result column="system_group_id" jdbcType="BIGINT" property="systemGroupId" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="stat_date" jdbcType="DATE" property="statDate" />
+        <result column="r_value" jdbcType="INTEGER" property="rValue" />
+        <result column="f_value" jdbcType="INTEGER" property="fValue" />
+        <result column="m_value" jdbcType="DECIMAL" property="mValue" />
+    </resultMap>
+    
+    <resultMap id="DetailResultMap" type="com.wanmi.sbc.crm.rfmstatistic.model.RfmCustomerDetail" extends="BaseResultMap">
+        <result column="system_group_name" jdbcType="VARCHAR" property="systemGroupName" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        d.id, d.r_score, d.f_score, d.m_score, d.customer_id, d.system_group_id, d.create_time, d.stat_date,
+        d.r_value, d.f_value, d.m_value
+    </sql>
+
+    <sql id="selectRScore">
+        select customerId,IFNULL(TIMESTAMPDIFF(DAY,DATE_FORMAT(payTime,'%y-%m-%d'),#{statDate}),${maxValue})+1 intervalDay
+        from (
+            SELECT a.customer_id customerId,c.payTime  payTime
+            FROM ${aresDB} replay_customer a
+            left join (
+              select customer_id,max(b.pay_time)  payTime
+              from ${aresDB} replay_trade b
+              where b.pay_state=2 and b.pay_time &gt;=#{startTime} and  b.pay_time &lt;=#{endTime}
+              GROUP BY b.customer_id
+            ) c on(a.customer_id=c.customer_id)
+            where a.del_flag=0 and a.check_state=1
+            GROUP BY a.customer_id
+        ) d
+
+    </sql>
+    <sql id="selectFAndMScore">
+        SELECT
+          a.customer_id customerId,
+          ifnull(c.tradeCount,0) tradeCount,
+          IFNULL(c.tradePrice,0) tradePrice
+        FROM ${aresDB} replay_customer a
+        left join (
+            select customer_id,count(id)  tradeCount,sum(total_price) tradePrice
+            from ${aresDB} replay_trade b
+            where b.pay_state=2 and b.pay_time &gt;=#{startTime} and  b.pay_time &lt;=#{endTime}
+            GROUP BY b.customer_id
+        ) c on(a.customer_id=c.customer_id)
+        where a.del_flag=0 and a.check_state=1
+    </sql>
+    <sql id="selectMScore">
+
+    </sql>
+    <insert id="saveRValues">
+        insert into ${crmDB} rfm_customer_detail(customer_id,r_value,stat_date,create_time)
+        select
+          customerId,
+          intervalDay,
+          #{statDate},
+          now()
+        from (
+            <include refid="selectRScore"/>
+        ) tmp
+    </insert>
+
+    <update id="saveFAndMValues">
+        update ${crmDB} rfm_customer_detail f
+        join (
+          <include refid="selectFAndMScore"/>
+        ) tmp on( f.customer_id=tmp.customerId)
+        set f.f_value = tmp.tradeCount,f.m_value = tmp.tradePrice
+    </update>
+
+    <delete id="deleteByDate">
+        delete from ${crmDB} rfm_customer_detail where stat_date = #{statDate}
+    </delete>
+
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from ${crmDB} rfm_customer_detail d
+        <where>
+            <if test="statDate!=null">
+                and d.stat_date = #{statDate}
+            </if>
+            <if test="customerId!=null">
+                and d.customer_id = #{customerId}
+            </if>
+            <if test="systemGroupId != null">
+                and d.system_group_id = ${systemGroupId}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryCount" resultType="java.lang.Long">
+        select
+          count(id)
+        from ${crmDB} rfm_customer_detail
+        <where>
+            <if test="statDate!=null">
+                and stat_date = #{statDate}
+            </if>
+            <if test="customerId!=null">
+                and customer_id = #{customerId}
+            </if>
+            <if test="systemGroupId != null">
+                and system_group_id = ${systemGroupId}
+            </if>
+        </where>
+    </select>
+
+
+    <update id="batchUpdateScore" parameterType="java.util.Map">
+        <!-- 接收list参数，循环着组装sql语句，注意for循环的写法
+             separator=";" 代表着每次循环完，在sql后面放一个分号
+             item="cus" 循环List的每条的结果集
+             collection="list" list 即为 map传过来的参数key -->
+        <foreach collection="list" separator=";" item="item">
+            update ${crmDB} rfm_customer_detail set
+            r_score = #{item.rScore},
+            f_score = #{item.fScore},
+            m_score = #{item.mScore}
+            where id = #{item.id}
+        </foreach>
+    </update>
+
+    <update id="updateCustomerSystemGroupId">
+        update rfm_customer_detail rcdetail
+        set rcdetail.system_group_id = (
+        SELECT
+        rsg.id as system_group_id
+        FROM
+        ( SELECT
+        res.id,
+        res.customer_id customerId,
+        sum( res.rRuleValue ) rRuleValue,
+        sum( res.fRuleValue ) fRuleValue,
+        sum( res.mRuleValue ) mRuleValue
+        FROM
+        (
+        SELECT
+        rcd.id,
+        rcd.customer_id,
+        rcd.r_score,
+        rcd.f_score,
+        rcd.m_score,
+        scoreResult.score,
+        scoreResult.type,
+        (
+        CASE
+        WHEN scoreResult.type = 0 and rcd.r_score &gt;= scoreResult.score THEN
+        1
+        WHEN scoreResult.type = 0 and rcd.r_score &lt; scoreResult.score THEN
+        0
+        END
+        ) rRuleValue,
+        (
+        CASE
+        WHEN scoreResult.type = 1 and rcd.f_score &gt;= scoreResult.score THEN
+        1
+        WHEN scoreResult.type = 1 and rcd.f_score &lt; scoreResult.score THEN
+        0
+        END
+        ) fRuleValue ,
+        (
+        CASE
+        WHEN scoreResult.type = 2 and rcd.m_score &gt;= scoreResult.score THEN
+        1
+        WHEN scoreResult.type = 2 and rcd.m_score &lt; scoreResult.score THEN
+        0
+        END
+        ) mRuleValue
+        FROM
+        rfm_customer_detail rcd
+        LEFT JOIN (
+        SELECT
+        score,
+        type,
+        stat_date
+        FROM rfm_score_statistic
+        WHERE score_type = 1 AND stat_date = #{statDate}
+        GROUP BY type
+        ) scoreResult ON scoreResult.stat_date = rcd.stat_date
+        where rcd.stat_date = #{statDate}
+        GROUP BY
+        rcd.customer_id,
+        scoreResult.type
+        ) res GROUP BY res.customer_id
+        ) ruleResult
+        left join rfm_system_group rsg on rsg.r_rule = ruleResult.rRuleValue
+        and rsg.f_rule = ruleResult.fRuleValue and rsg.m_rule = ruleResult.mRuleValue
+        where rcdetail.id = ruleResult.id
+        ) where rcdetail.stat_date=#{statDate}
+    </update>
+
+    <select id="queryCustomerDetail" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rfm_customer_detail d
+        where d.customer_id=#{customerId} order by d.stat_date desc limit 1
+    </select>
+
+    <select id="getCustomerDetail" resultMap="DetailResultMap">
+        select
+        <include refid="Base_Column_List"/>, g.name system_group_name
+        from rfm_customer_detail d
+        left join rfm_system_group g on g.id = d.system_group_id
+        where d.customer_id=#{customerId} order by d.stat_date desc limit 1
+    </select>
+</mapper>

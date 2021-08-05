@@ -3,7 +3,7 @@
     <parent>
         <artifactId>service-elastic</artifactId>
         <groupId>com.wanmi.sbc</groupId>
-        <version>fandeng-uat-4.1.7-alpha</version>
+        <version>fandeng-4.1.7-release</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -22,6 +22,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.wanmi.sbc</groupId>-->
+<!--            <artifactId>micro-service</artifactId>-->
+<!--            <version>${micro-service-autoconfigure.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>micro-service</artifactId>

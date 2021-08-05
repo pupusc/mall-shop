@@ -49,4 +49,11 @@ public class CycleBuyModifyRequest extends CycleBuyDTO implements Serializable {
     private List<GoodsInfoDTO> goodsInfoDTOS;
 
 
+    /**
+     * erp商品编码
+     */
+    @ApiModelProperty(value = "erp商品编码")
+    private String erpGoodsNo;
+
+
 }

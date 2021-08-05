@@ -242,6 +242,8 @@ public class OrderInvoiceDetailService {
                 invoiceResponse.setPayOrderStatus(value.getPayOrderStatus());
             }
 
+            invoiceResponse.setTradeState(trade.getTradeState());
+
             return invoiceResponse;
         }).collect(Collectors.toList());
     }
@@ -399,6 +401,7 @@ public class OrderInvoiceDetailService {
                         .invoiceState(orderInvoice.getInvoiceState())
                         .supplierName( trade.getSupplier() != null? trade.getSupplier().getSupplierName() : null)
                         .taxNo( trade.getInvoice() != null? trade.getInvoice().getGeneralInvoice().getIdentification() : null)
+                        .tradeState(trade.getTradeState())
                         .build();
             }
 
@@ -425,6 +428,7 @@ public class OrderInvoiceDetailService {
                     .projectName(invoiceProjectByIdResponse.getProjectName())
                     .invoiceState(orderInvoice.getInvoiceState())
                     .supplierName( trade.getSupplier() != null ? trade.getSupplier().getSupplierName() : null)
+                    .tradeState(trade.getTradeState())
                     .build();
         }).orElseThrow(() -> new SbcRuntimeException("K-070004"));
     }

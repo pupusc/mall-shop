@@ -103,6 +103,16 @@ public class ProviderTradeVO implements Serializable {
     private String directChargeMobile;
 
     /**
+     * 是否是全部卡券商品(不含赠品)
+     */
+    private Boolean isVirtualCouponGoods;
+    /**
+     * 是否是全部卡券商品(赠品)
+     */
+    private Boolean isVirtualCouponGiveawayGoods;
+
+
+    /**
      * 订单附件，以逗号隔开
      */
     private String encloses;

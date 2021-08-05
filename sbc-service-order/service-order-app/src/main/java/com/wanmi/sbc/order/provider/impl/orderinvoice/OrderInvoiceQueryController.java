@@ -9,10 +9,13 @@ import com.wanmi.sbc.order.api.request.orderinvoice.*;
 import com.wanmi.sbc.order.api.response.orderinvoice.*;
 import com.wanmi.sbc.order.bean.util.XssUtils;
 import com.wanmi.sbc.order.bean.vo.OrderInvoiceVO;
+import com.wanmi.sbc.order.bean.vo.PayOrderVO;
 import com.wanmi.sbc.order.orderinvoice.model.root.OrderInvoice;
 import com.wanmi.sbc.order.orderinvoice.response.OrderInvoiceResponse;
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
+import com.wanmi.sbc.order.payorder.service.PayOrderService;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @Author: ZhangLingKe
@@ -170,6 +174,16 @@ public class OrderInvoiceQueryController implements OrderInvoiceQueryProvider {
 
             if (!org.springframework.util.CollectionUtils.isEmpty(request.getOrderInvoiceIds())) {
                 predicates.add(root.get("orderInvoiceId").in(request.getOrderInvoiceIds()));
+            }
+
+
+            if(Objects.nonNull(request.getOrderStatus())){
+                predicates.add(cbuild.equal(root.get("orderStatus"),request.getOrderStatus()));
+            }
+
+
+            if(Objects.nonNull(request.getPayStatus())){
+                predicates.add(cbuild.equal(root.get("payStatus"),request.getPayStatus()));
             }
 
             //删除标记

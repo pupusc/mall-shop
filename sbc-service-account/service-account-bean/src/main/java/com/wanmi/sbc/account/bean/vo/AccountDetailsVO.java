@@ -99,4 +99,19 @@ public class AccountDetailsVO implements Serializable {
      */
     @ApiModelProperty(value = "交易流水号")
     private String tradeNo;
+
+
+    /**
+     * 订单积分
+     */
+    @ApiModelProperty(value = "订单积分")
+    private Long points;
+
+
+    /**
+     * 积分兑换金额
+     */
+    @ApiModelProperty(value = "积分兑换金额")
+    private BigDecimal pointsPrice;
+
 }

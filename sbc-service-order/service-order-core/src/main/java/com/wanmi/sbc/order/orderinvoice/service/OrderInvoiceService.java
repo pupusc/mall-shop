@@ -1,6 +1,11 @@
 package com.wanmi.sbc.order.orderinvoice.service;
 
 
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.service.TradeService;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.account.bean.enums.InvoiceState;
 import com.wanmi.sbc.account.bean.enums.InvoiceType;
@@ -50,6 +55,12 @@ public class OrderInvoiceService {
     @Autowired
     private CustomerInvoiceQueryProvider customerInvoiceQueryProvider;
 
+
+
+    @Autowired
+    private TradeService tradeService;
+
+
     /**
      * 生成开票
      * @param orderInvoiceSaveRequest orderInvoiceSaveRequest
@@ -86,6 +97,19 @@ public class OrderInvoiceService {
         orderInvoice.setCreateTime(LocalDateTime.now());
         orderInvoice.setOperateId(employeeId);
         orderInvoice.setInvoiceState(invoiceState);
+
+        //更新订单状态
+        Trade trade= tradeService.detail(orderInvoiceSaveRequest.getOrderNo());
+
+        if (PayState.NOT_PAID==trade.getTradeState().getPayState()) {
+            orderInvoice.setPayStatus(PayOrderStatus.NOTPAY);
+        } else  if (PayState.PAID==trade.getTradeState().getPayState()) {
+            orderInvoice.setPayStatus(PayOrderStatus.PAYED);
+        }else  if (PayState.UNCONFIRMED==trade.getTradeState().getPayState()) {
+            orderInvoice.setPayStatus(PayOrderStatus.TOCONFIRM);
+        }
+        orderInvoice.setOrderStatus(trade.getTradeState().getFlowState());
+
         return Optional.ofNullable(repository.save(orderInvoice));
     }
 
@@ -121,6 +145,21 @@ public class OrderInvoiceService {
         orderInvoice.setUpdateTime(LocalDateTime.now());
         return Optional.ofNullable(repository.save(orderInvoice));
     }
+
+
+    /**
+     * 修改订单状态
+     * @param orderInvoiceModifyOrderRequest orderInvoiceSaveRequest
+     * @return Optional<OrderInvoice>
+     */
+    @Transactional
+    public Optional<OrderInvoice> updateOrderStatus(OrderInvoiceModifyOrderStatusRequest orderInvoiceModifyOrderRequest){
+        OrderInvoice orderInvoice = repository.findByOrderNoAndDelFlag(orderInvoiceModifyOrderRequest.getOrderNo(),DeleteFlag.NO).orElse(null);
+        orderInvoice.setPayStatus(orderInvoiceModifyOrderRequest.getPayOrderStatus());
+        orderInvoice.setOrderStatus(orderInvoiceModifyOrderRequest.getOrderStatus());
+        return Optional.ofNullable(repository.save(orderInvoice));
+    }
+
 
     /**
      * 根据订单号查询订单是否已开过票

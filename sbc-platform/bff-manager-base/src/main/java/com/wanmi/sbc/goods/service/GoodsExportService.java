@@ -17,9 +17,11 @@ import com.wanmi.sbc.goods.api.request.spec.GoodsSpecListByGoodsIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByStoreIdRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.common.util.CollectionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class GoodsExportService {
 
     @Autowired
@@ -87,6 +90,9 @@ public class GoodsExportService {
                 }),
                 new Column("重量（kg）",new SpelColumnRender<GoodsExportVo>("goodsWeight")),
                 new Column("体积（m³）",new SpelColumnRender<GoodsExportVo>("goodsCubage")),
+                new Column("SPU（ERP）",new SpelColumnRender<GoodsExportVo>("erpGoodsNo")),
+                new Column("SKU（ERP）",new SpelColumnRender<GoodsExportVo>("erpGoodsInfoNo")),
+                new Column("是否组合",new SpelColumnRender<GoodsExportVo>("combinedCommodity")),
 
         };
 
@@ -228,6 +234,28 @@ public class GoodsExportService {
                         if(Objects.nonNull(freightTemplateGoodsVO)) {
                             goodsExportVo.setFreightTempName(freightTemplateGoodsVO.getFreightTempName());
                         }
+
+                        log.info("=========id:{}===商品类型：{}=====是否组合：{}=====GoodsType.REAL_GOODS.toValue()====",goodsInfoVO.getGoodsInfoId(),goodsInfoVO.getGoodsType(),goodsInfoVO.getCombinedCommodity(),GoodsType.REAL_GOODS.toValue());
+
+                        //处理是否是组合商品
+                        if (Objects.equals(GoodsType.REAL_GOODS.toValue(),goodsInfoVO.getGoodsType()) && goodsInfoVO.getCombinedCommodity()){
+                            goodsExportVo.setCombinedCommodity("是");
+                        }
+
+                        if (Objects.equals(GoodsType.REAL_GOODS.toValue(),goodsInfoVO.getGoodsType()) && !goodsInfoVO.getCombinedCommodity()) {
+                            goodsExportVo.setCombinedCommodity("否");
+                        }
+
+                        if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo())){
+                            goodsExportVo.setErpGoodsInfoNo(goodsInfoVO.getErpGoodsInfoNo());
+                        }
+
+                        if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsNo())){
+                            goodsExportVo.setErpGoodsNo(goodsInfoVO.getErpGoodsNo());
+                        }
+
+
+
                         brandVOOptional.ifPresent(contractBrandVO -> goodsExportVo.setBrandName(contractBrandVO.getGoodsBrand().getBrandName()));
                         goodsExportVoList.add(goodsExportVo);
                     });

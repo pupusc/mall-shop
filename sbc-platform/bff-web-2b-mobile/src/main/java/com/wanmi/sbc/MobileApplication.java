@@ -35,7 +35,7 @@ import java.net.UnknownHostException;
 @EnableCaching
 public class MobileApplication {
     public static void main(String[] args) throws UnknownHostException {
-
+        System.setProperty("nacos.logging.default.config.enabled","false");
         System.setProperty("es.set.netty.runtime.available.processors", "false");
         Environment env = SpringApplication.run(com.wanmi.sbc.MobileApplication.class, args).getEnvironment();
         String port = env.getProperty("server.port", "8088");

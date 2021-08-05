@@ -350,6 +350,54 @@ public class OrderInvoiceController {
                         new Column("开票时间", new SpelColumnRender<OrderInvoiceResponse>("invoiceTime")),
                         new Column("订单号", new SpelColumnRender<OrderInvoiceResponse>("orderNo")),
                         new Column("订单金额", new SpelColumnRender<OrderInvoiceResponse>("orderPrice")),
+                        new Column("订单状态", (cell, object) -> {
+                            String status = "";
+                            if (Objects.isNull(((OrderInvoiceResponse) object).getTradeState().getFlowState())) {
+                                cell.setCellValue("未付款");
+                                return;
+                            }
+                            switch (((OrderInvoiceResponse) object).getTradeState().getFlowState()) {
+                                case INIT:
+                                    status = "创建订单";
+                                    break;
+                                case REMEDY:
+                                    status = "修改订单";
+                                    break;
+                                case REFUND:
+                                    status = "已退款";
+                                    break;
+                                case AUDIT:
+                                    status = "已审核";
+                                    break;
+                                case DELIVERED_PART:
+                                    status = "部分发货";
+                                    break;
+                                case DELIVERED:
+                                    status = "已发货";
+                                    break;
+                                case CONFIRMED:
+                                    status = "已确认";
+                                    break;
+                                case COMPLETED:
+                                    status = "已完成";
+                                    break;
+                                case VOID:
+                                    status = "已作废";
+                                    break;
+                                case GROUPON:
+                                    status = "已参团";
+                                    break;
+                                case WAIT_PAY_EARNEST:
+                                    status = "待支付定金";
+                                    break;
+                                case WAIT_PAY_TAIL:
+                                    status = "待支付尾款";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            cell.setCellValue(status);
+                        }),
                         new Column("付款状态", (cell, object) -> {
                             String status = "";
                             if (Objects.isNull(((OrderInvoiceResponse) object).getPayOrderStatus())) {

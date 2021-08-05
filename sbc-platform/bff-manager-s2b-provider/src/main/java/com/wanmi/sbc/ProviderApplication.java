@@ -34,6 +34,7 @@ public class ProviderApplication {
 
     public static void main(String[] args) throws UnknownHostException {
         System.setProperty("es.set.netty.runtime.available.processors", "false");
+
         Environment env = SpringApplication.run(ProviderApplication.class, args).getEnvironment();
 
         String port = env.getProperty("server.port", "8088");

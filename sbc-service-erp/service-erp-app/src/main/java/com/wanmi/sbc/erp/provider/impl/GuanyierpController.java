@@ -11,10 +11,7 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.constant.ErpErrorCode;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.*;
-import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
-import com.wanmi.sbc.erp.api.response.ReturnTradeResponse;
-import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
-import com.wanmi.sbc.erp.api.response.WareHouseListResponse;
+import com.wanmi.sbc.erp.api.response.*;
 import com.wanmi.sbc.erp.entity.*;
 import com.wanmi.sbc.erp.request.*;
 import com.wanmi.sbc.erp.response.*;
@@ -80,11 +77,14 @@ public class GuanyierpController implements GuanyierpProvider {
             Optional<List<ERPGoodsInfoVO>> optionalGoodsStock = guanyierpService.getERPGoodsStock(goodsStockQueryRequest);
             if (optionalGoodsStock.isPresent()){
                 List<ERPGoodsInfoVO> erpGoodsInfoStockList = optionalGoodsStock.get();
+                ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
                 optionalErpGoodsInfo.get().getItems().get(0).getSkus().stream().forEach(erpGoodsInfo -> {
                     ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
                             .itemSkuName(erpGoodsInfo.getName())
                             .skuCode(erpGoodsInfo.getCode())
                             .costPrice(erpGoodsInfo.getCostPrice())
+                            .itemCode(erpGoods.getCode())
+                            .itemName(erpGoods.getName())
                             .build();
                     //填充库存数据（采用erp可销售数据,取出最大困的值）
                     Optional<ERPGoodsInfoVO> goodsInfoVOOptional = erpGoodsInfoStockList.stream()
@@ -113,6 +113,24 @@ public class GuanyierpController implements GuanyierpProvider {
         ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
                 ERPPushTradeRequest.class);
         Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTrade(erpPushTradeRequest);
+        if (erpPushTradeResponse.isPresent()){
+            return BaseResponse.SUCCESSFUL();
+        }
+        return BaseResponse.FAILED();
+    }
+
+
+
+    /**
+     * 推送订单到ERP--已发货
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest request) {
+        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
+                ERPPushTradeRequest.class);
+        Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTradeDelivered(erpPushTradeRequest);
         if (erpPushTradeResponse.isPresent()){
             return BaseResponse.SUCCESSFUL();
         }
@@ -266,6 +284,37 @@ public class GuanyierpController implements GuanyierpProvider {
             return BaseResponse.success(deliveryStatusResponse);
         }
         return BaseResponse.success(DeliveryStatusResponse.builder().build());
+    }
+
+    /**
+     * 查询ERP订单
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<QueryTradeResponse> getTradeInfo(@Valid TradeQueryRequest request) {
+        ERPTradeQueryRequest erpTradeQueryRequest = ERPTradeQueryRequest.builder().platformCode(request.getTid()).build();
+        Optional<ERPTradeQueryResponse> optional = guanyierpService.getErpTradeInfo(erpTradeQueryRequest,request.getFlag());
+        if (optional.isPresent() && CollectionUtils.isNotEmpty(optional.get().getOrders())){
+            ERPTrade erpTrade = optional.get().getOrders().get(0);
+            QueryTradeResponse response = QueryTradeResponse.builder().platformCode(erpTrade.getPlatformCode()).build();
+            //将erp返回的发货状态转成商城的发货状态枚举值
+            switch(erpTrade.getDeliveryState()){
+                case 0:
+                    response.setDeliveryState(DeliveryStatus.UN_DELIVERY);
+                    break;
+                case 1:
+                    response.setDeliveryState(DeliveryStatus.PART_DELIVERY);
+                    break;
+                case 2:
+                    response.setDeliveryState(DeliveryStatus.DELIVERY_COMPLETE);
+                default:
+                    break;
+            }
+            return BaseResponse.success(response);
+        }else{
+            return BaseResponse.success(QueryTradeResponse.builder().build());
+        }
     }
 
     /**

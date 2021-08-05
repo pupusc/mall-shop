@@ -597,6 +597,19 @@ public class GoodsInfoVO implements Serializable {
     private Integer goodsType;
 
     /**
+     * erp--spu编码
+     */
+    @ApiModelProperty(name = "erp--spu编码")
+    private String erpGoodsNo;
+
+    /**
+     * 是否是组合商品，0：否，1：是
+     */
+    @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
+    private Boolean combinedCommodity;
+
+
+    /**
      * 企业购 设价类型,0:按市场价 1:按会员等级设价 2:按购买数量设价
      */
     @ApiModelProperty(value = "企业购 设价类型")
@@ -637,6 +650,15 @@ public class GoodsInfoVO implements Serializable {
      */
     @ApiModelProperty(name = "企业购 最高价格")
     private BigDecimal enterpriseMaxPrice;
+
+
+    /**
+     * 商品副标题
+     */
+    @ApiModelProperty(value = "商品副标题")
+    private String goodsSubtitle;
+
+
 
     public Integer getVendibility() {
         if (Objects.nonNull(providerGoodsInfoId)) {

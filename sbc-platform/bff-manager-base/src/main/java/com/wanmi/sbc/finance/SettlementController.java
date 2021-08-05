@@ -13,6 +13,7 @@ import com.wanmi.sbc.order.api.provider.settlement.SettlementDetailQueryProvider
 import com.wanmi.sbc.account.api.provider.finance.record.SettlementProvider;
 import com.wanmi.sbc.account.api.provider.finance.record.SettlementQueryProvider;
 import com.wanmi.sbc.account.api.request.finance.record.*;
+import com.wanmi.sbc.order.api.request.settlement.SettlementDetailPageSettleUuidRequest;
 import com.wanmi.sbc.order.api.response.settlement.SettlementDetailListBySettleUuidResponse;
 import com.wanmi.sbc.account.api.response.finance.record.SettlementGetViewResponse;
 import com.wanmi.sbc.account.api.response.finance.record.SettlementToExcelResponse;
@@ -31,6 +32,8 @@ import com.wanmi.sbc.common.util.excel.ExcelHelper;
 import com.wanmi.sbc.common.util.excel.SpanColumn;
 import com.wanmi.sbc.common.util.excel.impl.SpelColumnRender;
 import com.wanmi.sbc.order.api.request.settlement.SettlementDetailListBySettleUuidRequest;
+import com.wanmi.sbc.order.api.response.settlement.SettlementDetailPageBySettleUuidResponse;
+import com.wanmi.sbc.order.bean.vo.SettlementDetailGoodsViewVO;
 import com.wanmi.sbc.order.bean.vo.SettlementDetailVO;
 import com.wanmi.sbc.order.bean.vo.SettlementDetailViewVO;
 import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
@@ -130,6 +133,11 @@ public class SettlementController {
         request.setStoreType(StoreType.SUPPLIER);
         BaseResponse<EsSettlementResponse> response = esSettlementQueryProvider.esSettlementPage(request);
         if(Objects.nonNull(response.getContext())){
+            List<EsSettlementVO> esSettlementVOS= response.getContext().getEsSettlementVOPage().getContent();
+            esSettlementVOS.stream().forEach(esSettlementVO -> {
+                BigDecimal points= esSettlementVO.getPointPrice().multiply(new BigDecimal(100));
+                esSettlementVO.setPoints(points.longValue());
+            });
             return BaseResponse.success(response.getContext().getEsSettlementVOPage());
         }
         return BaseResponse.SUCCESSFUL();
@@ -172,23 +180,41 @@ public class SettlementController {
     /**
      * 查询结算明细
      *
-     * @param settleId
+     * @param request
      * @return
      */
     @ApiOperation(value = "查询结算明细")
     @ApiImplicitParam(paramType = "path", dataType = "Long", name = "settleId", value = "结算Id", required = true)
-    @RequestMapping(value = "/detail/list/{settleId}", method = RequestMethod.GET)
-    public BaseResponse<List<SettlementDetailViewVO>> getSettlementDetailList(@PathVariable("settleId") Long settleId) {
+    @RequestMapping(value = "/detail/page", method = RequestMethod.POST)
+    public BaseResponse<MicroServicePage<SettlementDetailViewVO>> getSettlementDetailList(@RequestBody SettlementDetailPageSettleUuidRequest request) {
+        logger.info("============settleId:{}=================",request.getSettleId());
         SettlementVO settlement = settlementQueryProvider.getById(
-                SettlementGetByIdRequest.builder().settleId(settleId).build()
+                SettlementGetByIdRequest.builder().settleId(request.getSettleId()).build()
         ).getContext();
         if (settlement != null) {
-            BaseResponse<SettlementDetailListBySettleUuidResponse> baseResponse =
-                    settlementDetailQueryProvider.listBySettleUuid(new SettlementDetailListBySettleUuidRequest(settlement.getSettleUuid()));
-            SettlementDetailListBySettleUuidResponse response = baseResponse.getContext();
+            request.setSettleUuid(settlement.getSettleUuid());
+            BaseResponse<SettlementDetailPageBySettleUuidResponse> baseResponse =
+                    settlementDetailQueryProvider.pageBySettleUuid(request);
+            SettlementDetailPageBySettleUuidResponse response = baseResponse.getContext();
             if (Objects.nonNull(response)) {
-                List<SettlementDetailVO> settlementDetailVOList = response.getSettlementDetailVOList();
-                return BaseResponse.success(SettlementDetailViewVO.renderSettlementDetailForView(settlementDetailVOList, false));
+                MicroServicePage<SettlementDetailVO> settlementDetailList=  response.getSettlementDetailVOList();
+                List<SettlementDetailVO> settlementDetailVOList = settlementDetailList.getContent();
+                //组装数据
+                List<SettlementDetailViewVO>  settlementDetailViewVO=SettlementDetailViewVO.renderSettlementDetailForView(settlementDetailVOList, false);
+
+                settlementDetailViewVO.forEach(settlementDetailView -> {
+                    if (CollectionUtils.isNotEmpty(settlementDetailView.getGoodsViewList())){
+                        settlementDetailView.getGoodsViewList().forEach(settlementDetailGoodsViewVO -> {
+                            logger.info("==========积分金额：{}==========",settlementDetailGoodsViewVO.getPointPrice());
+                           if (!Objects.equals(settlementDetailGoodsViewVO.getPointPrice(),"-")) {
+                               settlementDetailGoodsViewVO.setPoints(Long.parseLong(settlementDetailGoodsViewVO.getPointPrice())*100);
+                           }
+                        });
+                    }
+                });
+
+
+                return BaseResponse.success(new MicroServicePage<>(settlementDetailViewVO, request.getPageRequest(),settlementDetailList.getTotalElements()));
             }
             throw new SbcRuntimeException("K-020201");
         } else {
@@ -269,13 +295,27 @@ public class SettlementController {
             // List<SettlementDetail> detailList = this.getSettlementDetail();
             List<SettlementDetailViewVO> viewList =
                     SettlementDetailViewVO.renderSettlementDetailForView(settlementDetailVOList, true);
+
+            viewList.forEach(settlementDetailView -> {
+                if (CollectionUtils.isNotEmpty(settlementDetailView.getGoodsViewList())){
+                    settlementDetailView.getGoodsViewList().forEach(settlementDetailGoodsViewVO -> {
+                        logger.info("==========积分金额：{}==========",settlementDetailGoodsViewVO.getPointPrice());
+                        if (!Objects.equals(settlementDetailGoodsViewVO.getPointPrice(),"-")) {
+                            settlementDetailGoodsViewVO.setPoints(Long.parseLong(settlementDetailGoodsViewVO.getPointPrice())*100);
+                        }
+                    });
+                }
+            });
+
             ExcelHelper<SettlementDetailViewVO> excelHelper = new ExcelHelper<>();
             excelHelper.addSheet("结算明细", new SpanColumn[]{
                     new SpanColumn("序号", "index", null),
                     new SpanColumn("订单入账时间", "finalTime", null),
                     new SpanColumn("订单编号", "tradeCode", null),
                     new SpanColumn("订单类型", "orderType", null),
-                    new SpanColumn("商品编码/名称/规格", "goodsViewList", "goodsName"),
+                    new SpanColumn("商品编码", "goodsViewList", "skuNo"),
+                    new SpanColumn("商品名称", "goodsViewList", "goodsName"),
+                    new SpanColumn("商品规格", "goodsViewList", "specDetails"),
                     new SpanColumn("所属类目", "goodsViewList", "cateName"),
                     new SpanColumn("商品单价", "goodsViewList", "goodsPrice"),
                     new SpanColumn("供货金额", "goodsViewList", "providerPrice"),
@@ -286,6 +326,7 @@ public class SettlementController {
                     new SpanColumn("通用券优惠", "goodsViewList", "commonCouponPriceString"),
                     new SpanColumn("订单改价差额", "goodsViewList", "specialPrice"),
                     new SpanColumn("积分抵扣", "goodsViewList", "pointPrice"),
+                    new SpanColumn("积分数量", "goodsViewList", "points"),
                     new SpanColumn("商品实付金额", "goodsViewList", "splitPayPrice"),
                     new SpanColumn("类目扣率", "goodsViewList", "cateRate"),
                     new SpanColumn("平台佣金", "goodsViewList", "platformPriceString"),
@@ -360,6 +401,35 @@ public class SettlementController {
                 SettlementGetByIdRequest.builder().settleId(settleId).build()
         ).getContext();
         if (settlement != null) {
+            SettlementDetailListBySettleUuidRequest settlementDetailListBySettleUuidRequest =
+                    new SettlementDetailListBySettleUuidRequest();
+            settlementDetailListBySettleUuidRequest.setSettleUuid(settlement.getSettleUuid());
+            BaseResponse<SettlementDetailListBySettleUuidResponse> settlementDetailResponse =
+                    settlementDetailQueryProvider.listBySettleUuid(settlementDetailListBySettleUuidRequest);
+            SettlementDetailListBySettleUuidResponse settlementDetailListBySettleUuidResponse =
+                    settlementDetailResponse.getContext();
+            if (!Objects.isNull(settlementDetailListBySettleUuidResponse)) {
+                List<SettlementDetailVO> settlementDetailVOList =
+                        settlementDetailListBySettleUuidResponse.getSettlementDetailVOList();
+
+                List<SettlementDetailViewVO> viewList =
+                        SettlementDetailViewVO.renderSettlementDetailForView(settlementDetailVOList, true);
+                BigDecimal totalCommonCouponPrice = BigDecimal.ZERO;
+                BigDecimal totalPointPrice = BigDecimal.ZERO;
+                for(SettlementDetailViewVO settlementDetailViewVO : viewList){
+                    List<SettlementDetailGoodsViewVO> goodsViewList = settlementDetailViewVO.getGoodsViewList();
+                    if (CollectionUtils.isNotEmpty(goodsViewList)){
+                        BigDecimal commonCouponPrice = goodsViewList.stream().map(SettlementDetailGoodsViewVO::getCalCommonCouponPrice).reduce(BigDecimal::add).get();
+                        BigDecimal pointPrice = goodsViewList.stream().map(SettlementDetailGoodsViewVO::getCalPointPrice).reduce(BigDecimal::add).get();
+                        totalCommonCouponPrice = totalCommonCouponPrice.add(commonCouponPrice);
+                        totalPointPrice = totalPointPrice.add(pointPrice);
+                    }
+                }
+                settlement.setCommonCouponPrice(totalCommonCouponPrice);
+                settlement.setPointPrice(totalPointPrice);
+                //计算积分总和=积分兑换金额*100
+                settlement.setPoints(totalPointPrice.multiply(new BigDecimal(100)).longValue());
+            }
             SettlementGetViewRequest request = KsBeanUtil.convert(settlement, SettlementGetViewRequest.class);
             BaseResponse<SettlementGetViewResponse> view = settlementQueryProvider.getView(request);
             return BaseResponse.success(view.getContext());
@@ -425,8 +495,29 @@ public class SettlementController {
      */
     private void writeSettleToExcel(SettlementToExcelResponse settlementViewExcel, OutputStream outputStream) {
         ExcelHelper helper = new ExcelHelper();
+
+        settlementViewExcel.getNotSettledSettlements().forEach(settlementViewVO -> {
+            //计算积分总和=积分兑换金额*100
+            if (Objects.nonNull(settlementViewVO.getPointPrice())) {
+                settlementViewVO.setPoints(settlementViewVO.getPointPrice().multiply(new BigDecimal(100)).longValue());
+            }else {
+                settlementViewVO.setPoints(0L);
+            }
+        });
+
         //写入未结算数据
         doExportSettle(helper, settlementViewExcel.getNotSettledSettlements(), NOT_SETTLED);
+
+
+        settlementViewExcel.getSettledSettlements().forEach(settlementViewVO -> {
+            //计算积分总和=积分兑换金额*100
+            if (Objects.nonNull(settlementViewVO.getPointPrice())) {
+                settlementViewVO.setPoints(settlementViewVO.getPointPrice().multiply(new BigDecimal(100)).longValue());
+            }else {
+                settlementViewVO.setPoints(0L);
+            }
+
+        });
 
         //写入已结算数据
         doExportSettle(helper, settlementViewExcel.getSettledSettlements(), SETTLED);
@@ -473,6 +564,7 @@ public class SettlementController {
         columnList.add(new Column("运费总额", new SpelColumnRender<SettlementViewVO>("deliveryPrice")));
         columnList.add(new Column("通用券优惠总额", new SpelColumnRender<SettlementViewVO>("commonCouponPrice")));
         columnList.add(new Column("积分抵扣总额", new SpelColumnRender<SettlementViewVO>("pointPrice")));
+        columnList.add(new Column("积分总和", new SpelColumnRender<SettlementViewVO>("points")));
         columnList.add(new Column("平台佣金总额", new SpelColumnRender<SettlementViewVO>("platformPrice")));
         columnList.add(new Column("分销佣金总额", new SpelColumnRender<SettlementViewVO>("commissionPrice")));
         columnList.add(new Column("供货总额", new SpelColumnRender<SettlementViewVO>("providerPrice")));

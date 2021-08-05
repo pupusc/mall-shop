@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.wanmi.ares</groupId>
         <artifactId>ares-parent</artifactId>
-        <version>fandeng-uat-4.1.7-alpha</version>
+        <version>fandeng-4.1.7-release</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.wanmi.ares</groupId>
             <artifactId>ares-thrift-server</artifactId>
-            <version>fandeng-uat-4.1.7-alpha</version>
+            <version>fandeng-4.1.7-release</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

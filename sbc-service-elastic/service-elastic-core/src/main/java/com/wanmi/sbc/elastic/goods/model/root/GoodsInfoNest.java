@@ -599,4 +599,11 @@ public class GoodsInfoNest implements Serializable {
     @Field(type = FieldType.Integer)
     private Integer goodsType;
 
+    /**
+     * ERP的SPU编码
+     */
+    @Field(index = false,type = FieldType.Text)
+    private String erpGoodsNo;
+
+
 }

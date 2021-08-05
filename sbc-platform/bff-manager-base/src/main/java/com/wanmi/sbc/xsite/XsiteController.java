@@ -203,6 +203,18 @@ public class XsiteController {
             sku.put("spuId", goodsInfo.getGoodsId());
             sku.put("skuName", goodsInfo.getGoodsInfoName());
             sku.put("spuName", goodsInfoEditResponse.getGoods().getGoodsName());
+            if (Objects.nonNull(goodsInfoEditResponse.getGoods()) && Objects.nonNull(goodsInfoEditResponse.getGoods().getGoodsSubtitle())){
+                sku.put("goodsSubtitle",goodsInfoEditResponse.getGoods().getGoodsSubtitle());
+            } else {
+                sku.put("goodsSubtitle",null);
+            }
+
+            if (Objects.nonNull(goodsInfoEditResponse.getGoods()) && CollectionUtils.isNotEmpty(goodsInfoEditResponse.getGoods().getGoodsLabelList())){
+                sku.put("goodsLabel",goodsInfoEditResponse.getGoods().getGoodsLabelList());
+            } else {
+                sku.put("labelName",null);
+            }
+
             List<String> imgs = new ArrayList<>();
             String img = goodsInfoEditResponse.getGoodsInfo().getGoodsInfoImg();
             if (StringUtils.isEmpty(img)) {

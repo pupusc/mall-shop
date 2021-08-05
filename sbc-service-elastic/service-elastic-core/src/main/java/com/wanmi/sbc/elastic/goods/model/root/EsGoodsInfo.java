@@ -171,6 +171,7 @@ public class EsGoodsInfo implements Serializable {
      * 商品名称
      */
     @ApiModelProperty(value = "商品名称")
-    @Field(type = FieldType.Keyword)
+    //@Field(type = FieldType.Keyword)
+    @Field(searchAnalyzer = EsConstants.DEF_ANALYZER, analyzer = EsConstants.DEF_ANALYZER, type = FieldType.Text)
     private String goodsName;
 }

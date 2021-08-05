@@ -280,4 +280,12 @@ public interface TradeQueryProvider {
     @PostMapping("/order/${application.order.version}/trade/get-shipping-calendar")
     BaseResponse<ShippingCalendarResponse> getShippingCalendar(@RequestBody @Valid ShippingCalendarRequest shippingCalendarRequest);
 
+
+    /**
+     * 查询财务对账
+     */
+    @PostMapping("/order/${application.order.version}/trade/account-record")
+    BaseResponse<TradeAccountRecordResponse> getTradeAccountRecord(@RequestBody @Valid TradeAccountRecordRequest tradeAccountRecordRequest);
+
+
 }

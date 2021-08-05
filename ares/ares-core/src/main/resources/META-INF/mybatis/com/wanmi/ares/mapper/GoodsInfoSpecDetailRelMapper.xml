@@ -35,9 +35,6 @@
                     #{item}
                 </foreach>
             </if>
-            <if test="delFlag!= null">
-                and del_flag=${delFlag}
-            </if>
         </where>
         group by goodsInfoId
     </select>

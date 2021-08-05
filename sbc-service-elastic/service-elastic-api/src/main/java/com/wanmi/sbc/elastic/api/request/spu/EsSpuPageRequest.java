@@ -231,4 +231,11 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
      */
     @ApiModelProperty(value = "标签ID")
     private Long labelId;
+
+
+    /**
+     * ERP的SPU编码
+     */
+    @ApiModelProperty(value = "ERP的SPU编码")
+    private String spuErp;
 }

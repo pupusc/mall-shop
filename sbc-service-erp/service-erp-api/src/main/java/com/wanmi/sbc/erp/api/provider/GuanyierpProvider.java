@@ -1,10 +1,7 @@
 package com.wanmi.sbc.erp.api.provider;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.request.*;
-import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
-import com.wanmi.sbc.erp.api.response.ReturnTradeResponse;
-import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
-import com.wanmi.sbc.erp.api.response.WareHouseListResponse;
+import com.wanmi.sbc.erp.api.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +40,15 @@ public interface GuanyierpProvider {
      */
     @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade")
     BaseResponse autoPushTrade(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
+
+
+    /**
+     * 推动订单--已发货状态
+     * @param erpPushTradeRequest
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/auto-push-trade-delivered")
+    BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest erpPushTradeRequest);
 
     /**
      * 获取仓库集合
@@ -91,4 +97,13 @@ public interface GuanyierpProvider {
      */
     @PostMapping("/erp/${application.erp.version}/guanyierp/get-history-delivery-status")
     BaseResponse<DeliveryStatusResponse> getHistoryDeliveryStatus(@RequestBody @Valid HistoryDeliveryInfoRequest request);
+
+
+    /**
+     * 订单查询
+     * @param request
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/get-trade-info")
+    BaseResponse<QueryTradeResponse> getTradeInfo(@RequestBody @Valid TradeQueryRequest request);
 }

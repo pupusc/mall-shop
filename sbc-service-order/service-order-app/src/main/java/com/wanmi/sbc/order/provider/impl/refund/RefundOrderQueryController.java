@@ -5,7 +5,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.request.refund.*;
+import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
 import com.wanmi.sbc.order.api.response.refund.*;
+import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
 import com.wanmi.sbc.order.refund.service.RefundOrderService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -114,4 +116,17 @@ public class RefundOrderQueryController implements RefundOrderQueryProvider{
         RefundOrder refundOrder = refundOrderService.getRefundOrderByReturnOrderNo(refundOrderByReturnOrderCodeRequest.getReturnOrderCode());
         return BaseResponse.success(KsBeanUtil.convert(refundOrder,RefundOrderByReturnOrderNoResponse.class));
     }
+
+
+    /**
+     * 查询对账信息
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<RefundOrderAccountRecordResponse> getRefundOrderAccountRecord(@Valid @RequestBody RefundOrderAccountRecordRequest request) {
+        return BaseResponse.success(refundOrderService.getRefundOrderAccountRecord(request));
+    }
+
+
 }

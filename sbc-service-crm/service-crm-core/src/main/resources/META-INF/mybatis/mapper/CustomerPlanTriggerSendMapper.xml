@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.crm.customerplan.mapper.CustomerPlanTriggerSendMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.sbc.crm.customerplan.model.CustomerPlanTriggerSend">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="plan_id" jdbcType="BIGINT" property="planId" />
+    <result column="stat_date" jdbcType="DATE" property="statDate" />
+    <result column="customer_id" jdbcType="VARCHAR" property="customerId" />
+    <result column="point_flag" jdbcType="BIT" property="pointFlag" />
+    <result column="coupon_flag" jdbcType="BIT" property="couponFlag" />
+    <result column="sms_flag" jdbcType="BIT" property="smsFlag" />
+    <result column="app_push_flag" jdbcType="BIT" property="appPushFlag" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, plan_id, stat_date, customer_id, point_flag, coupon_flag, sms_flag, app_push_flag, 
+    create_time
+  </sql>
+  <sql id="selectPlanCustomerSql">
+    SELECT
+	  c.planId,
+	  c.customerId
+    FROM
+    (
+      SELECT
+          a.planId,
+          b.customer_id customerId
+      FROM
+          ( SELECT id planId, substr( receive_value, 3 ) groupId FROM customer_plan WHERE trigger_flag=1 AND  receive_type = 2 AND receive_value LIKE '0_%' ) a
+      JOIN rfm_customer_detail b ON ( a.groupId = b.system_group_id )
+      JOIN customer_recent_param_statistics f ON (b.customer_id=f.customer_id)
+      WHERE
+        b.stat_date = #{statDate}
+        <if test="triggerList!=null and triggerList.size() > 0">
+          <foreach collection="triggerList" item="item" index="">
+            <if test="item == 1">
+               and flow_time &lt;= 1
+            </if>
+            <if test="item == 2">
+               and favorite_time &lt;= 1
+            </if>
+            <if test="item == 3">
+              and cart_time &lt;= 1
+            </if>
+            <if test="item == 4">
+              and trade_time &lt;= 1
+            </if>
+            <if test="item == 5">
+              and pay_time &lt;= 1
+            </if>
+          </foreach>
+        </if>
+	) c
+	LEFT JOIN (
+	    SELECT customer_id FROM
+	    <if test="customerLimit !=null ">
+	        ( SELECT customer_id, count( id ) cnt FROM customer_plan_trigger_send GROUP BY customer_id ) e WHERE e.cnt &lt; ${customerLimit}
+        </if>
+        <if test="customerLimit == null">
+          customer_plan_trigger_send
+        </if>
+	) d ON c.customerId = d.customer_id
+    WHERE
+        d.customer_id IS NULL
+
+    UNION ALL
+
+    SELECT
+	  c.planId,
+	  c.customerId
+    FROM
+    (
+      SELECT
+          a.planId,
+          b.customer_id customerId
+      FROM
+          ( SELECT id planId, substr( receive_value, 3 ) groupId FROM customer_plan WHERE trigger_flag=1 AND  receive_type = 2 AND receive_value LIKE '1_%' ) a
+          JOIN custom_group_rel b ON ( a.groupId = b.group_id )
+          JOIN customer_recent_param_statistics f ON (b.customer_id=f.customer_id)
+          WHERE
+          1=1
+          <if test="triggerList!=null and triggerList.size() > 0">
+            <foreach collection="triggerList" item="item"  index="">
+              <if test="item == 1">
+                and flow_time &lt;= 1
+              </if>
+              <if test="item == 2">
+                and favorite_time &lt;= 1
+              </if>
+              <if test="item == 3">
+                and cart_time &lt;= 1
+              </if>
+              <if test="item == 4">
+                and trade_time &lt;= 1
+              </if>
+              <if test="item == 5">
+                and pay_time &lt;= 1
+              </if>
+            </foreach>
+          </if>
+
+    ) c
+    LEFT JOIN
+    (
+      SELECT customer_id FROM
+        <if test="customerLimit !=null ">
+          ( SELECT customer_id, count( id ) cnt FROM customer_plan_trigger_send GROUP BY customer_id ) e WHERE e.cnt &lt; ${customerLimit}
+        </if>
+        <if test="customerLimit == null">
+          customer_plan_trigger_send
+        </if>
+    ) d ON c.customerId = d.customer_id
+    WHERE
+        d.customer_id IS NULL
+
+  </sql>
+
+
+  <sql id="selectBySystemGroupCustomerSql">
+        SELECT
+            b.customerId
+        FROM
+        (
+          SELECT
+              a.customer_id customerId
+          FROM
+              rfm_customer_detail a
+              JOIN customer_recent_param_statistics f ON (a.customer_id=f.customer_id)
+          WHERE
+              a.stat_date = #{statDate} and a.system_group_id = #{groupId,jdbcType=BIGINT}
+              <if test="triggerList!=null and triggerList.size() > 0">
+                <foreach collection="triggerList" item="item" index="">
+                  <if test="item == 1">
+                    and flow_time &lt;= 1
+                  </if>
+                  <if test="item == 2">
+                    and favorite_time &lt;= 1
+                  </if>
+                  <if test="item == 3">
+                    and cart_time &lt;= 1
+                  </if>
+                  <if test="item == 4">
+                    and trade_time &lt;= 1
+                  </if>
+                  <if test="item == 5">
+                    and pay_time &lt;= 1
+                  </if>
+                </foreach>
+              </if>
+        ) b
+        LEFT JOIN (
+            SELECT customer_id
+            FROM
+                <if test="customerLimit !=null ">
+                  ( SELECT customer_id, count( id ) cnt FROM customer_plan_trigger_send where plan_id= #{planId,jdbcType=BIGINT} GROUP BY customer_id ) e WHERE e.cnt &gt;= ${customerLimit}
+                  UNION
+                  select customer_id from customer_plan_trigger_send where plan_id= #{planId,jdbcType=BIGINT} and stat_date = #{statDate}
+                </if>
+                <if test="customerLimit == null">
+                  customer_plan_trigger_send
+                  where plan_id=#{planId,jdbcType=BIGINT} and stat_date=#{statDate}
+                </if>
+            ) c ON b.customerId = c.customer_id
+        WHERE
+            c.customer_id IS NULL
+    </sql>
+
+  <sql id="selectByCustomGroupCustomerSql">
+    SELECT
+      b.customerId
+      FROM
+      (
+        SELECT
+        a.customer_id customerId
+        FROM
+            custom_group_rel a
+        JOIN customer_recent_param_statistics f ON (a.customer_id=f.customer_id)
+        WHERE
+         a.group_id = #{groupId,jdbcType=BIGINT}
+        <if test="triggerList!=null and triggerList.size() > 0">
+          <foreach collection="triggerList" item="item" index="">
+            <if test="item == 1">
+              and flow_time &lt;= 1
+            </if>
+            <if test="item == 2">
+              and favorite_time &lt;= 1
+            </if>
+            <if test="item == 3">
+              and cart_time &lt;= 1
+            </if>
+            <if test="item == 4">
+              and trade_time &lt;= 1
+            </if>
+            <if test="item == 5">
+              and pay_time &lt;= 1
+            </if>
+          </foreach>
+        </if>
+      ) b
+      LEFT JOIN (
+        SELECT customer_id
+        FROM
+        <if test="customerLimit !=null ">
+          ( SELECT customer_id, count( id ) cnt FROM customer_plan_trigger_send where plan_id= #{planId,jdbcType=BIGINT} GROUP BY customer_id ) e WHERE e.cnt &gt;= ${customerLimit}
+          UNION
+          select customer_id from customer_plan_trigger_send where plan_id= #{planId,jdbcType=BIGINT} and stat_date = #{statDate}
+        </if>
+        <if test="customerLimit == null">
+          customer_plan_trigger_send
+          where plan_id=#{planId,jdbcType=BIGINT} and stat_date=#{statDate}
+        </if>
+      ) c ON b.customerId = c.customer_id
+      WHERE
+      c.customer_id IS NULL
+    </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from customer_plan_trigger_send
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from customer_plan_trigger_send
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.wanmi.sbc.crm.customerplan.model.CustomerPlanTriggerSend">
+    insert into customer_plan_trigger_send (id, plan_id, stat_date, 
+      customer_id, point_flag, coupon_flag, 
+      sms_flag, app_push_flag, create_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{planId,jdbcType=BIGINT}, #{statDate,jdbcType=DATE}, 
+      #{customerId,jdbcType=VARCHAR}, #{pointFlag,jdbcType=BIT}, #{couponFlag,jdbcType=BIT}, 
+      #{smsFlag,jdbcType=BIT}, #{appPushFlag,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanmi.sbc.crm.customerplan.model.CustomerPlanTriggerSend">
+    update customer_plan_trigger_send
+    <set>
+      <if test="planId != null">
+        plan_id = #{planId,jdbcType=BIGINT},
+      </if>
+      <if test="statDate != null">
+        stat_date = #{statDate,jdbcType=DATE},
+      </if>
+      <if test="customerId != null">
+        customer_id = #{customerId,jdbcType=VARCHAR},
+      </if>
+      <if test="pointFlag != null">
+        point_flag = #{pointFlag,jdbcType=BIT},
+      </if>
+      <if test="couponFlag != null">
+        coupon_flag = #{couponFlag,jdbcType=BIT},
+      </if>
+      <if test="smsFlag != null">
+        sms_flag = #{smsFlag,jdbcType=BIT},
+      </if>
+      <if test="appPushFlag != null">
+        app_push_flag = #{appPushFlag,jdbcType=BIT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <where>
+        <if test="id != null">
+           and id = #{id,jdbcType=BIGINT}
+        </if>
+      <if test=" idList != null and idList.size() > 0">
+        and id in
+        <foreach collection="idList" item="item" separator="," open="(" close=")" index="">
+          #{item,jdbcType=BIGINT}
+        </foreach>
+      </if>
+    </where>
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wanmi.sbc.crm.customerplan.model.CustomerPlanTriggerSend">
+    update customer_plan_trigger_send
+    set plan_id = #{planId,jdbcType=BIGINT},
+      stat_date = #{statDate,jdbcType=DATE},
+      customer_id = #{customerId,jdbcType=VARCHAR},
+      point_flag = #{pointFlag,jdbcType=BIT},
+      coupon_flag = #{couponFlag,jdbcType=BIT},
+      sms_flag = #{smsFlag,jdbcType=BIT},
+      app_push_flag = #{appPushFlag,jdbcType=BIT},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+  <insert id="insertSelect">
+    insert into customer_plan_trigger_send(
+      customer_id,
+      plan_id,
+      point_flag,
+      coupon_flag,
+      sms_flag,
+      app_push_flag,
+      create_time,
+      stat_date)
+    select
+      customerId,
+      ${planId},
+      ${pointFlag},
+      ${couponFlag},
+      ${smsFlag},
+      ${appPushFlag},
+      now(),
+      #{statDate}
+    from (
+      <if test="groupType == 0">
+        <include refid="selectBySystemGroupCustomerSql"/>
+      </if>
+      <if test="groupType == 1">
+        <include refid="selectByCustomGroupCustomerSql"/>
+      </if>
+    )t limit #{giftPackageTotal}
+  </insert>
+
+  <select id="selectByType" resultMap="BaseResultMap">
+    select id, plan_id, customer_id, point_flag, coupon_flag, sms_flag, app_push_flag  from customer_plan_trigger_send
+    where
+            plan_id = #{planId,jdbcType=BIGINT}
+            and (
+                point_flag = 1
+                or coupon_flag = 1
+                or sms_flag = 1
+                or app_push_flag = 1
+            )
+
+  </select>
+
+  <insert id="statisticsPlanPushResult">
+    INSERT INTO plan_statistics_message
+    ( `plan_id`,
+        `message_receive_total`,
+        `message_receive_num`,
+        `statistics_date`)
+    select
+        cp.id as plan_id,
+        IFNULL(res.message_receive_total,0) as message_receive_total,
+        IFNULL(res.message_receive_num,0) as asmessage_receive_num,
+        DATE_FORMAT(NOW( ), '%Y-%m-%d' ) AS statistics_date
+    from customer_plan cp left join (
+            SELECT
+                plan_id,
+                count( customer_id ) AS message_receive_total,
+                count( DISTINCT ( customer_id ) ) AS message_receive_num
+            FROM
+                customer_plan_trigger_send
+            WHERE
+                app_push_flag = 2
+            GROUP BY
+                plan_id UNION
+            SELECT
+                plan_id,
+                count( customer_id ) AS message_receive_total,
+                count( DISTINCT ( customer_id ) ) AS message_receive_num
+            FROM
+                customer_plan_send
+            WHERE
+                app_push_flag = 2
+            GROUP BY
+                plan_id) res on res.plan_id = cp.id
+    ON DUPLICATE KEY UPDATE
+    message_receive_total =  VALUES(message_receive_total),
+    message_receive_num =  VALUES(message_receive_num),
+    statistics_date = VALUES(statistics_date)
+  </insert>
+</mapper>

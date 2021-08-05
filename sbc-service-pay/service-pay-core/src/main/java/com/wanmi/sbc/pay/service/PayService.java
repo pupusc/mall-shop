@@ -552,6 +552,12 @@ public class PayService {
         record.setPracticalPrice(request.getPracticalPrice());
         record.setFinishTime(LocalDateTime.now());
         record.setTradeNo(request.getTradeNo());
+        if(Objects.isNull(record.getApplyPrice())){
+            record.setApplyPrice(BigDecimal.ZERO);
+        }
+        if(Objects.isNull(record.getChannelItemId())){
+            record.setChannelItemId(request.getChannelItemId());
+        }
         recordRepository.save(record);
     }
 

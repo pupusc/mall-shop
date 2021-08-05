@@ -172,6 +172,7 @@ public class EnterpriseGoodsQueryRequest extends BaseQueryRequest {
     @ApiModelProperty("可以作为 企业购商品-筛选 -- 不能是周期购商品")
     private Boolean enterpriseFlag;
 
+
     /**
      * 封装公共条件
      *

@@ -142,6 +142,12 @@ public class EsSettlementVO implements Serializable {
     private BigDecimal pointPrice;
 
     /**
+     * 积分总和
+     */
+    @ApiModelProperty(value = "积分总和")
+    private Long points;
+
+    /**
      * 分销佣金总额
      */
     @ApiModelProperty(value = "分销佣金总额")

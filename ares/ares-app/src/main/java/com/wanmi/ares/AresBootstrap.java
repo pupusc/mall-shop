@@ -33,6 +33,7 @@ import java.net.UnknownHostException;
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 public class AresBootstrap {
     public static void main(String[] args) throws UnknownHostException {
+        System.setProperty("nacos.logging.default.config.enabled","false");
         Environment env = SpringApplication.run(AresBootstrap.class, args).getEnvironment();
         String actPort = env.getProperty("management.server.port", "8581");
         String port = env.getProperty("server.port", "8580");

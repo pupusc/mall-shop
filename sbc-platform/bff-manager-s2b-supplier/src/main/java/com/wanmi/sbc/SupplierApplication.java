@@ -34,6 +34,7 @@ public class SupplierApplication {
 
     public static void main(String[] args) throws UnknownHostException {
         System.setProperty("es.set.netty.runtime.available.processors", "false");
+        System.setProperty("nacos.logging.default.config.enabled","false");
         Environment env = SpringApplication.run(SupplierApplication.class, args).getEnvironment();
 
         String port = env.getProperty("server.port", "8087");

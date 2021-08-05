@@ -97,6 +97,8 @@ import com.wanmi.sbc.goods.virtualcoupon.service.VirtualCouponService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import io.seata.spring.annotation.GlobalTransactional;
+import jdk.nashorn.internal.runtime.linker.LinkerCallSite;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -1367,6 +1369,39 @@ public class GoodsService {
         List<GoodsInfo> goodsInfos = saveRequest.getGoodsInfos();
         Goods goods = saveRequest.getGoods();
 
+
+        //判断sku编码是否重复，当组合商品时不sku是非必填的
+        goodsInfos.forEach(goodsInfo -> {
+
+            if (StringUtils.isBlank(goodsInfo.getErpGoodsNo())) {
+                throw new SbcRuntimeException(GoodsErrorCode.SPU_REQUIRED);
+            }
+
+            if (Objects.equals(goodsInfo.getGoodsType(),GoodsType.CYCLE_BUY.toValue()) || Objects.equals(goodsInfo.getGoodsType(),GoodsType.VIRTUAL_COUPON.toValue()) || Objects.equals(goodsInfo.getGoodsType(),GoodsType.VIRTUAL_GOODS.toValue())) {
+                if (StringUtils.isBlank(goodsInfo.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException(GoodsErrorCode.SKU_REQUIRED);
+                }
+            }else {
+                if (!goodsInfo.getCombinedCommodity() && StringUtils.isBlank(goodsInfo.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException(GoodsErrorCode.SKU_REQUIRED);
+                }
+            }
+        });
+
+
+        //判断sku编码是否重复
+        Map<String, List<GoodsInfo>> erpSpuMap = goodsInfos.stream().filter(goodsInfo -> StringUtils.isNotBlank(goodsInfo.getErpGoodsInfoNo())).collect(Collectors.groupingBy(GoodsInfo::getErpGoodsNo));
+        erpSpuMap.forEach((key, value) -> {
+            long count =value.stream().map(GoodsInfo::getErpGoodsInfoNo).distinct().count();
+            boolean isRepeat = count < value.size();
+            if (isRepeat){
+                throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
+            }
+        });
+
+
+
+
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
         queryRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -1389,22 +1424,6 @@ public class GoodsService {
         if (CollectionUtils.isNotEmpty(goodsInfosList)) {
             throw new SbcRuntimeException(GoodsErrorCode.SKU_NO_H_EXIST, new Object[]{StringUtils.join(goodsInfosList.stream().map(GoodsInfo::getGoodsInfoNo).collect(Collectors.toList()), ",")});
         }
-
-
-        infoQueryRequest.setErpGoodsInfoNos(goodsInfos.stream().map(GoodsInfo::getErpGoodsInfoNo).distinct().collect(Collectors.toList()));
-        //如果ERP SKU数据有重复
-        if (goodsInfos.size() != infoQueryRequest.getErpGoodsInfoNos().size()) {
-            throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
-        }
-        // TODO 避免受原商城sku 编码查询影响
-        infoQueryRequest.setGoodsInfoNos(null);
-        //验证ERP SKU编码重复
-        List<GoodsInfo> erpGoodsInfosList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        if (CollectionUtils.isNotEmpty(erpGoodsInfosList)) {
-            throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_H_EXIST, new Object[]{StringUtils.join(erpGoodsInfosList.stream().map(GoodsInfo::getErpGoodsInfoNo).collect(Collectors.toList()), ",")});
-        }
-
-
         //验证商品相关基础数据
         this.checkBasic(goods);
 
@@ -1680,6 +1699,42 @@ public class GoodsService {
 //            throw new SbcRuntimeException(GoodsErrorCode.EDIT_GOODS_CATE);
 //        }
 
+
+
+        List<GoodsInfo> goodsInfoList= saveRequest.getGoodsInfos();
+
+
+        //判断sku编码是否重复，当组合商品时不sku是非必填的
+        goodsInfoList.forEach(goodsInfo -> {
+
+            if (StringUtils.isBlank(goodsInfo.getErpGoodsNo())) {
+                throw new SbcRuntimeException(GoodsErrorCode.SPU_REQUIRED);
+            }
+
+            if (Objects.equals(goodsInfo.getGoodsType(),GoodsType.CYCLE_BUY.toValue()) || Objects.equals(goodsInfo.getGoodsType(),GoodsType.VIRTUAL_COUPON.toValue()) || Objects.equals(goodsInfo.getGoodsType(),GoodsType.VIRTUAL_GOODS.toValue())) {
+                if (StringUtils.isBlank(goodsInfo.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException(GoodsErrorCode.SKU_REQUIRED);
+                }
+            }else {
+                if (!goodsInfo.getCombinedCommodity() && StringUtils.isBlank(goodsInfo.getErpGoodsInfoNo())) {
+                    throw new SbcRuntimeException(GoodsErrorCode.SKU_REQUIRED);
+                }
+            }
+
+        });
+
+        //判断sku编码是否重复
+        Map<String, List<GoodsInfo>> erpSpuMap = goodsInfoList.stream().filter(goodsInfo -> StringUtils.isNotBlank(goodsInfo.getErpGoodsInfoNo())).collect(Collectors.groupingBy(GoodsInfo::getErpGoodsNo));
+
+        erpSpuMap.forEach((key, value) -> {
+            long count =value.stream().map(GoodsInfo::getErpGoodsInfoNo).distinct().count();
+            boolean isRepeat = count < value.size();
+            if (isRepeat){
+                throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
+            }
+        });
+
+
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
         queryRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -1703,20 +1758,6 @@ public class GoodsService {
         if (CollectionUtils.isNotEmpty(goodsInfosList)) {
             throw new SbcRuntimeException(GoodsErrorCode.SKU_NO_H_EXIST, new Object[]{StringUtils.join(goodsInfosList.stream().map(GoodsInfo::getGoodsInfoNo).collect(Collectors.toList()), ",")});
         }
-
-        infoQueryRequest.setErpGoodsInfoNos(saveRequest.getGoodsInfos().stream().map(GoodsInfo::getErpGoodsInfoNo).distinct().collect(Collectors.toList()));
-        infoQueryRequest.setGoodsInfoNos(null);
-        //如果SKU数据有重复
-        if (saveRequest.getGoodsInfos().size() != infoQueryRequest.getErpGoodsInfoNos().size()) {
-            throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
-        }
-
-        List<GoodsInfo> erpGoodsInfosList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        if (CollectionUtils.isNotEmpty(erpGoodsInfosList)) {
-            throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_H_EXIST, new Object[]{StringUtils.join(erpGoodsInfosList.stream().map(GoodsInfo::getErpGoodsInfoNo).collect(Collectors.toList()), ",")});
-        }
-
-
         if (Objects.isNull(newGoods.getPriceType())) {
             newGoods.setPriceType(GoodsPriceType.MARKET.toValue());
         }

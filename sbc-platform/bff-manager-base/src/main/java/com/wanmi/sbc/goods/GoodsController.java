@@ -183,17 +183,21 @@ public class GoodsController {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(request.getGoods().getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-        if (org.apache.commons.collections4.CollectionUtils.isEmpty(erpGoodsInfoVOList)) {
-            throw new SbcRuntimeException("K-800003");
-        }
-        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
         List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
         goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                throw new SbcRuntimeException("K-800002");
+            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
+                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                        throw new SbcRuntimeException("K-800002");
+                    }
+                } else {
+                    throw new SbcRuntimeException("K-800003");
+                }
             }
         });
+
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
@@ -243,17 +247,23 @@ public class GoodsController {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(request.getGoods().getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-        if (org.apache.commons.collections4.CollectionUtils.isEmpty(erpGoodsInfoVOList)) {
-            throw new SbcRuntimeException("K-800003");
-        }
-        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
         List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
         goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                throw new SbcRuntimeException("K-800002");
+            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
+                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                        throw new SbcRuntimeException("K-800002");
+                    }
+                } else {
+                    throw new SbcRuntimeException("K-800003");
+                }
             }
         });
+
+
+
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
@@ -308,6 +318,24 @@ public class GoodsController {
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
+
+
+        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
+        List<GoodsInfoVO> goodsInfoVOS= request.getGoodsInfos();
+        goodsInfoVOS.forEach(goodsInfoVO -> {
+            if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo())) {
+                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                    if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+                        throw new SbcRuntimeException("K-800002");
+                    }
+                } else {
+                    throw new SbcRuntimeException("K-800003");
+                }
+            }
+        });
+
 
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {

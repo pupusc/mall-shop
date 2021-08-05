@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.account.bean.enums.InvoiceState;
 import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.account.bean.enums.IsCompany;
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.account.bean.vo.InvoiceProjectVO;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -16,6 +18,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
+import javax.persistence.Enumerated;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -150,5 +154,20 @@ public class OrderInvoiceVO implements Serializable {
      */
     @ApiModelProperty(value = "纳税人识别号")
     private String taxpayerNumber;
+
+
+    /**
+     * 支付状态
+     */
+    @ApiModelProperty(value = "支付状态")
+    private PayOrderStatus payStatus;
+
+
+    /**
+     * 订单状态
+     */
+    @ApiModelProperty(value = "订单状态")
+    private FlowState orderStatus;
+
 
 }

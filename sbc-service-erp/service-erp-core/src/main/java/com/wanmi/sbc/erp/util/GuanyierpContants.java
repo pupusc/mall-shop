@@ -9,9 +9,14 @@ package com.wanmi.sbc.erp.util;
 public class GuanyierpContants {
 
     /**
-     * 管易云ERP-订单创建接口名
+     * 管易云ERP-订单创建接口名--未发货接口
      */
     public static final String PUSH_ORDER_METHOD = "gy.erp.trade.add";
+
+    /**
+     * 管易云ERP-订单创建接口名--已发货接口
+     */
+    public static final String PUSH_ORDER_METHOD_DELIVERED = "gy.erp.trade.addCompleted";
 
     /**
      * 管易云ERP-商品查询接口名
@@ -57,5 +62,15 @@ public class GuanyierpContants {
      * 管易云ERP-历史发货单查询接口名
      */
     public static final String DELIVERY_HISTORY_QUERY_METHOD= "gy.erp.trade.deliverys.history.get";
+
+    /**
+     * 管易云ERP-订单查询接口
+     */
+    public static final String TRADE_GET_METHOD = "gy.erp.trade.get";
+
+    /**
+     * 管易云ERP-历史订单查询接口
+     */
+    public static final String TRADE_HISTORY_GET_METHOD = "gy.erp.trade.history.get";
 
 }

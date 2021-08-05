@@ -313,7 +313,7 @@ public class MarkupService {
 
         MarketingBuyoutPriceSearchRequest marketingBuyoutPriceSearchRequest = new MarketingBuyoutPriceSearchRequest();
         marketingBuyoutPriceSearchRequest.setStoreId(marketingIdRequest.getStoreId());
-        marketingBuyoutPriceSearchRequest.setMarketingType(MarketingType.MARKUP);
+        marketingBuyoutPriceSearchRequest.setMarketingSubType(MarketingSubType.MARKUP);
         marketingBuyoutPriceSearchRequest.setEndTimeBegin(LocalDateTime.now());
         marketingBuyoutPriceSearchRequest.setDelFlag(DeleteFlag.NO);
         List<Marketing> marketingList = marketingRepository.findAll(marketingService.getWhereCriteria(marketingBuyoutPriceSearchRequest));

@@ -209,6 +209,8 @@ public class GrouponOrderService {
                 grouponInstance.setCreateTime(currentTime);
                 LocalDateTime endTime = currentTime.plusDays(NumberUtils.LONG_ONE);
 
+                //LocalDateTime endTimeTest = currentTime.plusMinutes(5);
+
                 //参团人数不足提醒时间
                 LocalDateTime remindTime = endTime.minusHours(3);
                 //团截止时间：默认延迟24小时
@@ -237,6 +239,7 @@ public class GrouponOrderService {
             }
             GrouponInstance reslut = updateGrouponInstance(grouponInstance);
             log.info("更新拼团实例信息：{},是否成功=====>>{}", reslut, Objects.nonNull(reslut) ? "成功" : "失败");
+            //拼团成功
             if (grouponInstance.getGrouponStatus() == GrouponOrderStatus.COMPLETE) {
                 List<Trade> tradeList = getTradeByGrouponNo(grouponInstance.getGrouponNo());
                 tradeList.add(trade);

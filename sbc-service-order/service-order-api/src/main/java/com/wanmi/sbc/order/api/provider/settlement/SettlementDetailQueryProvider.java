@@ -2,9 +2,11 @@ package com.wanmi.sbc.order.api.provider.settlement;
 
 import com.wanmi.sbc.order.api.request.settlement.SettlementDetailByParamRequest;
 import com.wanmi.sbc.order.api.request.settlement.SettlementDetailListBySettleUuidRequest;
+import com.wanmi.sbc.order.api.request.settlement.SettlementDetailPageSettleUuidRequest;
 import com.wanmi.sbc.order.api.response.settlement.SettlementDetailByParamResponse;
 import com.wanmi.sbc.order.api.response.settlement.SettlementDetailListBySettleUuidResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.order.api.response.settlement.SettlementDetailPageBySettleUuidResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,4 +40,8 @@ public interface SettlementDetailQueryProvider {
     BaseResponse<SettlementDetailListBySettleUuidResponse> listBySettleUuid(@RequestBody @Valid
                                                                                     SettlementDetailListBySettleUuidRequest
                                                                                     settlementDetailListBySettleUuidRequest);
+
+    @PostMapping("/account/${application.order.version}/finance/record/settlement/detail/page-by-settle-uuid")
+    BaseResponse<SettlementDetailPageBySettleUuidResponse> pageBySettleUuid(@RequestBody @Valid SettlementDetailPageSettleUuidRequest request);
+
 }

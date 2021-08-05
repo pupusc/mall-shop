@@ -9,13 +9,16 @@ import com.wanmi.sbc.common.constant.ErrorCodeConstant;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.erp.api.request.RefundTradeRequest;
+import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
 import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
+import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
@@ -77,6 +80,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 退货
@@ -317,6 +321,8 @@ public class StoreReturnOrderController {
             }
 
         }
+
+
         //通知erp系统停止发货,走系统退款逻辑
         if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
             tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
@@ -360,6 +366,49 @@ public class StoreReturnOrderController {
             }
         });
 
+        if (returnOrder.getReturnType().equals(ReturnType.RETURN)) {
+            log.info("=============组合商品退货退款拦截未发货的商品：{}==================",tradeVO.getId());
+            List<ReturnItemVO> returnGoods = returnOrder.getReturnItems();
+            List<ReturnItemVO> returnGifts = returnOrder.getReturnGifts();
+            List<ReturnItemVO> totalReturnItemList =
+                    Stream.of(returnGoods, returnGifts).flatMap(Collection::stream).collect(Collectors.toList());
+            List<String> returnItemSkuIds = totalReturnItemList.stream().map(item -> item.getSkuId()).collect(Collectors.toList());
+            List<TradeVO> providerTrades =tradeVO.getTradeVOList();
+            providerTrades.forEach(providerTrade -> {
+                List<TradeItemVO>  tradeItems= providerTrade.getTradeItems();
+                List<TradeItemVO>  gifts= providerTrade.getGifts();
+                List<TradeItemVO> totalTradeItemList =
+                        Stream.of(gifts, tradeItems).flatMap(Collection::stream).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(totalTradeItemList)) {
+                    totalTradeItemList.forEach(tradeItem -> {
+                        if (Objects.nonNull(tradeItem.getCombinedCommodity()) && tradeItem.getCombinedCommodity() && returnItemSkuIds.contains(tradeItem.getSkuId())) {
+                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).build();
+                            //如果是组合商品,查询ERP订单发货状态，ERP订单已发货就不需要走拦截
+                            TradeQueryRequest tradeQueryRequest = TradeQueryRequest.builder().tid(providerTrade.getId()).flag(0).build();
+                            BaseResponse<QueryTradeResponse> tradeInfoResponse= guanyierpProvider.getTradeInfo(tradeQueryRequest);
+                            //默认查询七天内的订单,如果没有加过就再查询历史订单
+                            if (StringUtils.isBlank(tradeInfoResponse.getContext().getPlatformCode())){
+                                tradeQueryRequest.setFlag(1);
+                                BaseResponse<QueryTradeResponse> historyTradeResponse = guanyierpProvider.getTradeInfo(tradeQueryRequest);
+                                if (StringUtils.isNoneBlank(historyTradeResponse.getContext().getPlatformCode())) {
+                                    if (DeliverStatus.NOT_YET_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())
+                                            || DeliverStatus.PART_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())) {
+                                        guanyierpProvider.RefundTrade(refundTradeRequest);
+                                        log.info("=============组合商品退货退款拦截未发货的商品：{}==================", refundTradeRequest);
+                                    }
+                                }
+                            }else {
+                                if (DeliverStatus.NOT_YET_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())
+                                        || DeliverStatus.PART_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())){
+                                    guanyierpProvider.RefundTrade(refundTradeRequest);
+                                    log.info("=============组合商品退货退款拦截未发货的商品：{}==================",refundTradeRequest);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
         return BaseResponse.SUCCESSFUL();
     }
 

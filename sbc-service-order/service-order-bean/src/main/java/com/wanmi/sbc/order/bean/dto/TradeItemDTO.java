@@ -566,4 +566,11 @@ public class TradeItemDTO implements Serializable, Cloneable {
      * ERP商品SPU编码
      */
     private String erpSpuNo;
+
+    /**
+     * 是否是组合商品，0：否，1：是
+     */
+    @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
+    private Boolean combinedCommodity;
+
 }

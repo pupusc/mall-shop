@@ -15,12 +15,16 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.api.response.goods.EsGoodsInfoResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
@@ -40,6 +44,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -81,6 +86,9 @@ public class CouponInfoController {
 
     @Autowired
     private SystemPointsConfigService systemPointsConfigService;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     /**
      * 未登录时，领券中心列表
@@ -284,6 +292,9 @@ public class CouponInfoController {
             purchaseFillBuyCountRequest.setGoodsInfoList(goodsInfoList);
             goodsInfoList = purchaseProvider.fillBuyCount(purchaseFillBuyCountRequest).getContext().getGoodsInfoList();
 
+            List<String> goodsIds = goodsInfoVOs.stream().map(EsGoodsInfoVO::getGoodsId).collect(Collectors.toList());
+            List<GoodsVO> goodsVOList = goodsQueryProvider.listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsIds).build()).getContext().getGoodsVOList();
+
             //重新赋值于Page内部对象
             Map<String, GoodsInfoVO> voMap = goodsInfoList.stream()
                     .collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, g -> g));
@@ -292,6 +303,12 @@ public class CouponInfoController {
                 if (Objects.nonNull(vo)) {
                     esGoodsInfo.setGoodsInfo(KsBeanUtil.convert(vo, GoodsInfoNestVO.class));
                 }
+
+                goodsVOList.forEach(goodsVO -> {
+                    if (Objects.equals(esGoodsInfo.getGoodsId(),goodsVO.getGoodsId()) && StringUtils.isNotBlank(goodsVO.getGoodsSubtitle())) {
+                        esGoodsInfo.setGoodsSubtitle(goodsVO.getGoodsSubtitle());
+                    }
+                });
             });
 
             couponGoodsPageResponse.setEsGoodsInfoResponse(esGoodsInfoResponse);
