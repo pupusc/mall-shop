@@ -12,7 +12,6 @@ import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.*;
 import com.wanmi.sbc.customer.api.response.fandeng.*;
-import com.wanmi.sbc.customer.api.response.loginregister.CustomerLoginResponse;
 import com.wanmi.sbc.customer.ares.CustomerAresService;
 import com.wanmi.sbc.customer.bean.enums.*;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;

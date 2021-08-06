@@ -27,6 +27,7 @@ import java.net.InetAddress;
 public class CustomerServiceApplication {
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("nacos.logging.default.config.enabled","false");
         Environment env = SpringApplication.run(CustomerServiceApplication.class, args).getEnvironment();
         String port = env.getProperty("server.port", "8090");
         String actPort = env.getProperty("management.server.port", "8091");
