@@ -1,0 +1,74 @@
+{
+  "es_coupon_info" : {
+    "mappings" : {
+      "es_coupon_info" : {
+        "properties" : {
+          "cateIds" : {
+            "type" : "keyword"
+          },
+          "couponId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "couponName" : {
+            "type" : "keyword"
+          },
+          "couponType" : {
+            "type" : "integer"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "delFlag" : {
+            "type" : "integer"
+          },
+          "denomination" : {
+            "type" : "double",
+            "index" : false
+          },
+          "effectiveDays" : {
+            "type" : "integer",
+            "index" : false
+          },
+          "endTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "fullBuyPrice" : {
+            "type" : "double",
+            "index" : false
+          },
+          "fullBuyType" : {
+            "type" : "integer",
+            "index" : false
+          },
+          "platformFlag" : {
+            "type" : "integer"
+          },
+          "rangeDayType" : {
+            "type" : "integer"
+          },
+          "scopeIds" : {
+            "type" : "keyword"
+          },
+          "scopeType" : {
+            "type" : "integer"
+          },
+          "startTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "storeId" : {
+            "type" : "long"
+          }
+        }
+      }
+    }
+  }
+}

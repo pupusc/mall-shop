@@ -1,0 +1,43 @@
+{
+  "es_system_resource" : {
+    "mappings" : {
+      "es_system_resource" : {
+        "properties" : {
+          "artworkUrl" : {
+            "type" : "keyword"
+          },
+          "auditStatus" : {
+            "type" : "keyword"
+          },
+          "cateId" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "resourceId" : {
+            "type" : "long"
+          },
+          "resourceKey" : {
+            "type" : "keyword"
+          },
+          "resourceName" : {
+            "type" : "keyword"
+          },
+          "resourceType" : {
+            "type" : "keyword"
+          },
+          "serverType" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

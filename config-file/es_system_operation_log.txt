@@ -1,0 +1,61 @@
+{
+  "es_system_operation_log" : {
+    "mappings" : {
+      "es_system_operation_log" : {
+        "properties" : {
+          "companyInfoId" : {
+            "type" : "keyword"
+          },
+          "employeeId" : {
+            "type" : "keyword"
+          },
+          "id" : {
+            "type" : "long"
+          },
+          "opAccount" : {
+            "type" : "keyword"
+          },
+          "opCity" : {
+            "type" : "keyword"
+          },
+          "opCode" : {
+            "type" : "keyword"
+          },
+          "opContext" : {
+            "type" : "keyword"
+          },
+          "opCountry" : {
+            "type" : "keyword"
+          },
+          "opIp" : {
+            "type" : "keyword"
+          },
+          "opIsp" : {
+            "type" : "keyword"
+          },
+          "opMac" : {
+            "type" : "keyword"
+          },
+          "opModule" : {
+            "type" : "keyword"
+          },
+          "opName" : {
+            "type" : "keyword"
+          },
+          "opProvince" : {
+            "type" : "keyword"
+          },
+          "opRoleName" : {
+            "type" : "keyword"
+          },
+          "opTime" : {
+            "type" : "keyword"
+          },
+          "storeId" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

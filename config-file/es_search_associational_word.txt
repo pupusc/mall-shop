@@ -1,0 +1,40 @@
+{
+  "es_search_associational_word" : {
+    "mappings" : {
+      "es_search_associational_word" : {
+        "properties" : {
+          "createPerson" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "deletePerson" : {
+            "type" : "keyword"
+          },
+          "deleteTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "id" : {
+            "type" : "long"
+          },
+          "searchTerms" : {
+            "type" : "keyword"
+          },
+          "updatePerson" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+    }
+  }
+}

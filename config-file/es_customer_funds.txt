@@ -1,0 +1,47 @@
+{
+  "es_customer_funds" : {
+    "mappings" : {
+      "es_customer_funds" : {
+        "properties" : {
+          "accountBalance" : {
+            "type" : "double"
+          },
+          "blockedBalance" : {
+            "type" : "double"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "customerAccount" : {
+            "type" : "keyword"
+          },
+          "customerFundsId" : {
+            "type" : "text"
+          },
+          "customerId" : {
+            "type" : "text"
+          },
+          "customerName" : {
+            "type" : "keyword"
+          },
+          "distributor" : {
+            "type" : "integer"
+          },
+          "id" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "withdrawAmount" : {
+            "type" : "double"
+          }
+        }
+      }
+    }
+  }
+}

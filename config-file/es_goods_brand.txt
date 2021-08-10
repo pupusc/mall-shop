@@ -1,0 +1,40 @@
+{
+  "es_goods_brand" : {
+    "mappings" : {
+      "es_goods_brand" : {
+        "properties" : {
+          "brandId" : {
+            "type" : "long"
+          },
+          "brandName" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "logo" : {
+            "type" : "keyword"
+          },
+          "nickName" : {
+            "type" : "keyword"
+          },
+          "pinYin" : {
+            "type" : "keyword"
+          },
+          "sPinYin" : {
+            "type" : "keyword"
+          },
+          "storeId" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

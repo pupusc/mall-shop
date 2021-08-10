@@ -1,0 +1,34 @@
+{
+  "es_store_evaluate_sum" : {
+    "mappings" : {
+      "es_store_evaluate_sum" : {
+        "properties" : {
+          "orderNum" : {
+            "type" : "keyword"
+          },
+          "scoreCycle" : {
+            "type" : "keyword"
+          },
+          "storeId" : {
+            "type" : "keyword"
+          },
+          "storeName" : {
+            "type" : "keyword"
+          },
+          "sumCompositeScore" : {
+            "type" : "keyword"
+          },
+          "sumGoodsScore" : {
+            "type" : "keyword"
+          },
+          "sumLogisticsScoreScore" : {
+            "type" : "keyword"
+          },
+          "sumServerScore" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

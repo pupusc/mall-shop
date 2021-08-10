@@ -1,0 +1,148 @@
+{
+  "es_customer_detail" : {
+    "mappings" : {
+      "es_customer_detail" : {
+        "properties" : {
+          "areaId" : {
+            "type" : "long"
+          },
+          "checkState" : {
+            "type" : "integer"
+          },
+          "cityId" : {
+            "type" : "long"
+          },
+          "contactName" : {
+            "type" : "keyword"
+          },
+          "contactPhone" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "customerAccount" : {
+            "type" : "keyword"
+          },
+          "customerAddress" : {
+            "type" : "text",
+            "index" : false
+          },
+          "customerId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "customerLevelId" : {
+            "type" : "long"
+          },
+          "customerName" : {
+            "type" : "keyword"
+          },
+          "customerStatus" : {
+            "type" : "integer"
+          },
+          "employeeId" : {
+            "type" : "keyword"
+          },
+          "enterpriseCheckReason" : {
+            "type" : "text",
+            "index" : false
+          },
+          "enterpriseCheckState" : {
+            "type" : "integer"
+          },
+          "enterpriseInfo" : {
+            "type" : "nested",
+            "properties" : {
+              "businessEmployeeNum" : {
+                "type" : "integer"
+              },
+              "businessIndustryType" : {
+                "type" : "integer"
+              },
+              "businessNatureType" : {
+                "type" : "integer"
+              },
+              "customerId" : {
+                "type" : "text",
+                "fields" : {
+                  "keyword" : {
+                    "type" : "keyword",
+                    "ignore_above" : 256
+                  }
+                }
+              },
+              "enterpriseName" : {
+                "type" : "keyword"
+              },
+              "socialCreditCode" : {
+                "type" : "keyword"
+              }
+            }
+          },
+          "esPaidCardList" : {
+            "type" : "nested",
+            "properties" : {
+              "paidCardId" : {
+                "type" : "text"
+              },
+              "paidCardName" : {
+                "type" : "text"
+              }
+            }
+          },
+          "esStoreCustomerRelaList" : {
+            "type" : "nested",
+            "properties" : {
+              "companyInfoId" : {
+                "type" : "long"
+              },
+              "customerId" : {
+                "type" : "keyword"
+              },
+              "customerType" : {
+                "type" : "integer"
+              },
+              "employeeId" : {
+                "type" : "keyword"
+              },
+              "id" : {
+                "type" : "keyword"
+              },
+              "storeId" : {
+                "type" : "long"
+              },
+              "storeLevelId" : {
+                "type" : "long"
+              }
+            }
+          },
+          "forbidReason" : {
+            "type" : "text",
+            "index" : false
+          },
+          "isDistributor" : {
+            "type" : "integer"
+          },
+          "provinceId" : {
+            "type" : "long"
+          },
+          "rejectReason" : {
+            "type" : "text",
+            "index" : false
+          },
+          "streetId" : {
+            "type" : "long"
+          }
+        }
+      }
+    }
+  }
+}
+

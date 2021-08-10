@@ -1,0 +1,37 @@
+{
+  "es_sensitive_words" : {
+    "mappings" : {
+      "es_sensitive_words" : {
+        "properties" : {
+          "createTime" : {
+            "type" : "keyword"
+          },
+          "createUser" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "deleteTime" : {
+            "type" : "keyword"
+          },
+          "deleteUser" : {
+            "type" : "keyword"
+          },
+          "sensitiveId" : {
+            "type" : "long"
+          },
+          "sensitiveWords" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "keyword"
+          },
+          "updateUser" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

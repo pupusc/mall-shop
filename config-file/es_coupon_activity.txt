@@ -1,0 +1,64 @@
+{
+  "es_coupon_activity" : {
+    "mappings" : {
+      "es_coupon_activity" : {
+        "properties" : {
+          "activityId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "activityName" : {
+            "type" : "keyword"
+          },
+          "couponActivityType" : {
+            "type" : "integer"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "delFlag" : {
+            "type" : "integer"
+          },
+          "endTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "joinLevelType" : {
+            "type" : "integer"
+          },
+          "joinLevels" : {
+            "type" : "keyword"
+          },
+          "pauseFlag" : {
+            "type" : "integer"
+          },
+          "platformFlag" : {
+            "type" : "integer"
+          },
+          "receiveCount" : {
+            "type" : "integer"
+          },
+          "receiveType" : {
+            "type" : "integer"
+          },
+          "startTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "storeId" : {
+            "type" : "long"
+          },
+          "terminals" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

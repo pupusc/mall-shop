@@ -1,0 +1,82 @@
+{
+  "es_distribution_customer" : {
+    "mappings" : {
+      "es_distribution_customer" : {
+        "properties" : {
+          "commission" : {
+            "type" : "keyword"
+          },
+          "commissionNotRecorded" : {
+            "type" : "keyword"
+          },
+          "commissionTotal" : {
+            "type" : "keyword"
+          },
+          "createPerson" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "keyword"
+          },
+          "customerAccount" : {
+            "type" : "keyword"
+          },
+          "customerId" : {
+            "type" : "keyword"
+          },
+          "customerName" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "distributionId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "distributionTradeCount" : {
+            "type" : "keyword"
+          },
+          "distributorFlag" : {
+            "type" : "keyword"
+          },
+          "distributorLevelId" : {
+            "type" : "keyword"
+          },
+          "forbiddenFlag" : {
+            "type" : "keyword"
+          },
+          "forbiddenReason" : {
+            "type" : "keyword"
+          },
+          "inviteAvailableCount" : {
+            "type" : "keyword"
+          },
+          "inviteCode" : {
+            "type" : "keyword"
+          },
+          "inviteCount" : {
+            "type" : "keyword"
+          },
+          "inviteCustomerIds" : {
+            "type" : "keyword"
+          },
+          "rewardCash" : {
+            "type" : "keyword"
+          },
+          "rewardCashNotRecorded" : {
+            "type" : "keyword"
+          },
+          "sales" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}

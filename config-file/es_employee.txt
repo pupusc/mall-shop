@@ -1,0 +1,129 @@
+{
+  "es_employee" : {
+    "mappings" : {
+      "es_employee" : {
+        "properties" : {
+          "accountDisableReason" : {
+            "type" : "text"
+          },
+          "accountName" : {
+            "type" : "text"
+          },
+          "accountPassword" : {
+            "type" : "text",
+            "index" : false
+          },
+          "accountState" : {
+            "type" : "integer"
+          },
+          "accountType" : {
+            "type" : "integer"
+          },
+          "becomeMember" : {
+            "type" : "integer"
+          },
+          "birthday" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd"
+          },
+          "companyInfoId" : {
+            "type" : "long"
+          },
+          "createPerson" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "customerId" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "integer"
+          },
+          "deletePerson" : {
+            "type" : "keyword"
+          },
+          "deleteTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "departmentIds" : {
+            "type" : "keyword"
+          },
+          "email" : {
+            "type" : "keyword"
+          },
+          "employeeId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "employeeMobile" : {
+            "type" : "text"
+          },
+          "employeeName" : {
+            "type" : "text"
+          },
+          "employeeSaltVal" : {
+            "type" : "text",
+            "index" : false
+          },
+          "heirEmployeeId" : {
+            "type" : "keyword"
+          },
+          "isEmployee" : {
+            "type" : "integer"
+          },
+          "isLeader" : {
+            "type" : "integer"
+          },
+          "isMasterAccount" : {
+            "type" : "integer"
+          },
+          "jobNo" : {
+            "type" : "text"
+          },
+          "loginErrorTime" : {
+            "type" : "integer"
+          },
+          "loginLockTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "loginTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "manageDepartmentIds" : {
+            "type" : "keyword"
+          },
+          "position" : {
+            "type" : "keyword"
+          },
+          "roleIds" : {
+            "type" : "keyword"
+          },
+          "sex" : {
+            "type" : "integer"
+          },
+          "thirdId" : {
+            "type" : "keyword"
+          },
+          "updatePerson" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss.SSS"
+          }
+        }
+      }
+    }
+  }
+}

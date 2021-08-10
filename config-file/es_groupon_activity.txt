@@ -1,0 +1,76 @@
+{
+  "es_groupon_activity" : {
+    "mappings" : {
+      "es_groupon_activity" : {
+        "properties" : {
+          "alreadyGrouponNum" : {
+            "type" : "keyword"
+          },
+          "auditFailReason" : {
+            "type" : "keyword"
+          },
+          "auditStatus" : {
+            "type" : "keyword"
+          },
+          "autoGroupon" : {
+            "type" : "keyword"
+          },
+          "createTime" : {
+            "type" : "keyword"
+          },
+          "delFlag" : {
+            "type" : "keyword"
+          },
+          "endTime" : {
+            "type" : "keyword"
+          },
+          "failGrouponNum" : {
+            "type" : "keyword"
+          },
+          "freeDelivery" : {
+            "type" : "keyword"
+          },
+          "goodsId" : {
+            "type" : "keyword"
+          },
+          "goodsName" : {
+            "type" : "keyword"
+          },
+          "goodsNo" : {
+            "type" : "keyword"
+          },
+          "grouponActivityId" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "grouponCateId" : {
+            "type" : "keyword"
+          },
+          "grouponNum" : {
+            "type" : "keyword"
+          },
+          "startTime" : {
+            "type" : "keyword"
+          },
+          "sticky" : {
+            "type" : "keyword"
+          },
+          "storeId" : {
+            "type" : "keyword"
+          },
+          "updateTime" : {
+            "type" : "keyword"
+          },
+          "waitGrouponNum" : {
+            "type" : "keyword"
+          }
+        }
+      }
+    }
+  }
+}
