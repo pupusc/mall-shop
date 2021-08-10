@@ -1,3 +1,4 @@
+curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods/es_goods/_mapping?pretty" -d '
 {
   "es_goods" : {
     "mappings" : {
@@ -535,4 +536,4 @@
       }
     }
   }
-}
+}'
