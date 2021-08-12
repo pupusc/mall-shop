@@ -277,7 +277,11 @@ public class EsGoodsVO implements Serializable {
      */
     @ApiModelProperty(value = "商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品")
     private Integer goodsType;
-
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @ApiModelProperty(value = "知识顾问专享 0:不是 ，1：是")
+    private Integer cpsSpecial;
     /**
      * 商品库存
      */

@@ -13,7 +13,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Column;
 import javax.persistence.Enumerated;
 import javax.persistence.Transient;
 import java.io.Serializable;
@@ -343,6 +342,11 @@ public class GoodsDTO implements Serializable {
      * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
      */
     private Integer goodsType;
+
+    /**
+     * 知识顾问专享 0：不是，1：是
+     */
+    private Integer cpsSpecial;
 
     /**
      * 商品来源，0供应商，1商家,2 linkedmall

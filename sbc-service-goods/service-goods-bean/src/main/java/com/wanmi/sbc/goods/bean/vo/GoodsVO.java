@@ -120,6 +120,11 @@ public class GoodsVO  implements Serializable {
 
 
     /**
+     * 知识顾问专享 0：不是，1：是
+     */
+    @Column(name = "cps_special")
+    private Integer cpsSpecial;
+    /**
      * 成本价
      */
     @ApiModelProperty(value = "成本价")

@@ -6,20 +6,22 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.IteratorUtils;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.constants.WebBaseErrorCode;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
-import com.wanmi.sbc.customer.api.request.enterpriseinfo.EnterpriseInfoByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelWithDefaultByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.response.distribution.DistributorLevelByCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelWithDefaultByCustomerIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
-import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.DistributorLevelVO;
-import com.wanmi.sbc.customer.bean.vo.EnterpriseInfoVO;
 import com.wanmi.sbc.distribute.DistributionCacheService;
 import com.wanmi.sbc.distribute.DistributionService;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
@@ -44,7 +46,12 @@ import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleAndBooking
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoListByCustomerIdAndGoodsIdRequest;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailSimpleRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
@@ -53,14 +60,33 @@ import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceByCustomerIdReque
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleAndBookingSaleResponse;
 import com.wanmi.sbc.goods.api.response.distributor.goods.DistributorGoodsInfoListByCustomerIdAndGoodsIdResponse;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdAndSkuIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByPointsGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
 import com.wanmi.sbc.goods.api.response.groupongoodsinfo.GrouponGoodsByGrouponActivityIdAndGoodsInfoIdResponse;
 import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResponse;
 import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByGoodsAndSkuResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.enums.PriceType;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.DistributorGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
 import com.wanmi.sbc.goods.request.GrouponGoodsViewByIdResponse;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -98,13 +124,23 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 商品Controller
@@ -381,7 +417,6 @@ public class GoodsBaseController {
                 queryRequest.getDistributionGoodsAudit()) {
             queryRequest.setDistributionGoodsStatus(NumberUtils.INTEGER_ZERO);
         }
-
         //获取会员和等级
         queryRequest.setQueryGoods(true);
         queryRequest.setAddedFlag(AddedFlag.YES.toValue());

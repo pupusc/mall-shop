@@ -305,7 +305,11 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "商品类型")
     private GoodsType goodsType;
-
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @ApiModelProperty(value = "知识顾问专享 0:不是 ，1：是")
+    private Integer cpsSpecial;
     /**
      * 封装公共条件
      * @return

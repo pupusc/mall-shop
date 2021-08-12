@@ -131,6 +131,12 @@ public class Goods {
     private Integer goodsType;
 
     /**
+     * 知识顾问专享 0：不是，1：是
+     */
+    @Column(name = "cps_special")
+    private Integer cpsSpecial;
+
+    /**
      * 划线价格
      */
     @Column(name = "line_price")

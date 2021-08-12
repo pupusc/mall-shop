@@ -7,7 +7,6 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
@@ -23,9 +22,7 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsPriceAssistProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoFillGoodsStatusRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsPriceSetBatchByIepRequest;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
@@ -36,13 +33,48 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsMarketingDTO;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsMarketingVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
-import com.wanmi.sbc.order.api.request.purchase.*;
-import com.wanmi.sbc.order.api.response.purchase.*;
+import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseAddFollowRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseBatchSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcAmountRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCalcMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseClearLoseGoodsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseCountGoodsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseDeleteRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontMiniRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseFrontRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetGoodsMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreCouponExistRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseGetStoreMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseInfoRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseMergeRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseMiniListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseModifyGoodsMarketingRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseQueryGoodsMarketingListRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSaveRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseSyncGoodsMarketingsRequest;
+import com.wanmi.sbc.order.api.request.purchase.PurchaseUpdateNumRequest;
+import com.wanmi.sbc.order.api.request.purchase.ValidateAndSetGoodsMarketingsRequest;
+import com.wanmi.sbc.order.api.response.purchase.MiniPurchaseResponse;
+import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseCalcMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseCountGoodsResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetGoodsMarketingResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseMiniListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseQueryGoodsMarketingListResponse;
+import com.wanmi.sbc.order.api.response.purchase.PurchaseResponse;
 import com.wanmi.sbc.order.bean.dto.PurchaseCalcAmountDTO;
 import com.wanmi.sbc.order.bean.dto.PurchaseMergeDTO;
 import com.wanmi.sbc.system.service.SystemPointsConfigService;
@@ -57,11 +89,20 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -900,6 +941,7 @@ public class PurchaseBaseController {
     @ApiOperation(value = "获取购物车信息")
     @RequestMapping(value = "/purchaseInfo", method = RequestMethod.POST)
     public BaseResponse<PurchaseListResponse> purchaseInfo(@RequestBody PurchaseListRequest request) {
+        System.out.println("purchaseQueryProvider" + purchaseQueryProvider);
         return purchaseQueryProvider.purchaseInfo(PurchaseInfoRequest.builder()
                 .customer(commonUtil.getCustomer())
                 .areaId(request.getAreaId())
