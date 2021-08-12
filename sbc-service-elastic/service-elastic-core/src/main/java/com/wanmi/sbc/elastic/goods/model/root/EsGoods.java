@@ -283,7 +283,11 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Integer)
     private Integer goodsType;
-
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @Field(type = FieldType.Integer)
+    private Integer cpsSpecial;
     /**
      * 商品库存
      */

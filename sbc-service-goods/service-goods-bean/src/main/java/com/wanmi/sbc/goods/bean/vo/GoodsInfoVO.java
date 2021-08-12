@@ -10,12 +10,14 @@ import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
-import com.wanmi.sbc.goods.bean.enums.*;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Column;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -595,7 +597,11 @@ public class GoodsInfoVO implements Serializable {
      */
     @ApiModelProperty(value = "商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品")
     private Integer goodsType;
-
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @ApiModelProperty(value = "知识顾问专享 0:不是 ，1：是")
+    private Integer cpsSpecial;
     /**
      * erp--spu编码
      */
