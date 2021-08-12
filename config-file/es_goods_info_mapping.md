@@ -1,6 +1,5 @@
+curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods_info/es_goods_info/_mapping?pretty" -d '
 {
-  "es_goods_info" : {
-    "mappings" : {
       "es_goods_info" : {
         "properties" : {
           "addedTime" : {
@@ -445,5 +444,3 @@
         }
       }
     }
-  }
-}

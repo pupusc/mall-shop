@@ -36,19 +36,29 @@ public class PaidCardCustomerRelWhereCriteriaBuilder {
             if (StringUtils.isNotEmpty(queryRequest.getId())) {
                 predicates.add(cbuild.equal(root.get("id"), queryRequest.getId()));
             }
+//            做一次 优化 like 更改为 equals by duanlongshan
+//            // 模糊查询 - 会员id
+//            if (StringUtils.isNotEmpty(queryRequest.getCustomerId())) {
+//                predicates.add(cbuild.like(root.get("customerId"), StringUtil.SQL_LIKE_CHAR
+//                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getCustomerId()))
+//                        .concat(StringUtil.SQL_LIKE_CHAR)));
+//            }
+//
+//            // 模糊查询 - 付费会员类型ID
+//            if (StringUtils.isNotEmpty(queryRequest.getPaidCardId())) {
+//                predicates.add(cbuild.like(root.get("paidCardId"), StringUtil.SQL_LIKE_CHAR
+//                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getPaidCardId()))
+//                        .concat(StringUtil.SQL_LIKE_CHAR)));
+//            }
 
             // 模糊查询 - 会员id
             if (StringUtils.isNotEmpty(queryRequest.getCustomerId())) {
-                predicates.add(cbuild.like(root.get("customerId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getCustomerId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("customerId"), queryRequest.getCustomerId()));
             }
 
             // 模糊查询 - 付费会员类型ID
             if (StringUtils.isNotEmpty(queryRequest.getPaidCardId())) {
-                predicates.add(cbuild.like(root.get("paidCardId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getPaidCardId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("paidCardId"), queryRequest.getPaidCardId()));
             }
 
             // 大于或等于 搜索条件:开始时间开始
