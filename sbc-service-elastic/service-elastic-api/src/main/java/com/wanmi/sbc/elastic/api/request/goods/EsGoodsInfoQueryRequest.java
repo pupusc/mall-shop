@@ -327,7 +327,8 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         if (CollectionUtils.isNotEmpty(aggs)) {
             aggs.forEach(builder::addAggregation);
         }
-        return builder.build();
+        SearchQuery searchQuery = builder.build();
+        return searchQuery;
     }
 
     public QueryBuilder getWhereCriteria() {
@@ -470,6 +471,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         //删除标记
         if (delFlag != null) {
             boolQueryBuilder.must(termQuery(queryName.concat(".delFlag"), delFlag));
+        }
+        //删除标记
+        if (cpsSpecial != null) {
+            boolQueryBuilder.must(termQuery(queryName.concat(".cpsSpecial"), cpsSpecial));
         }
         //上下架状态
         if (addedFlag != null) {

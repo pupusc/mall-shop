@@ -555,7 +555,11 @@ public class GoodsInfo implements Serializable {
      */
     @Column(name = "goods_type")
     private Integer goodsType;
-
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @Column(name = "cps_special")
+    private Integer cpsSpecial;
     /**
      * ISBN编码
      */

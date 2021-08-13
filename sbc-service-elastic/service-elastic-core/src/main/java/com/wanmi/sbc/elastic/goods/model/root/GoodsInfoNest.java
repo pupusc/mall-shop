@@ -599,6 +599,13 @@ public class GoodsInfoNest implements Serializable {
     @Field(type = FieldType.Integer)
     private Integer goodsType;
 
+
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    @Field(type = FieldType.Integer)
+    private Integer cpsSpecial;
+
     /**
      * ERP的SPU编码
      */

@@ -173,6 +173,7 @@ public class EsGoodsElasticService {
             //批量查询所有SKU信息列表
             GoodsInfoListByConditionRequest infoQueryRequest = new GoodsInfoListByConditionRequest();
             infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+
             infoQueryRequest.setCompanyInfoId(request.getCompanyInfoId());
             infoQueryRequest.setGoodsInfoIds(request.getSkuIds());
             infoQueryRequest.setStoreId(request.getStoreId());
@@ -492,6 +493,7 @@ public class EsGoodsElasticService {
                                     goodsInfoNest.setStoreId(esGoods.getStoreId());
                                     goodsInfoNest.setStoreName(esGoods.getStoreName());
                                     goodsInfoNest.setGoodsType(esGoods.getGoodsType());
+                                    goodsInfoNest.setCpsSpecial(esGoods.getCpsSpecial());
                                     if (StringUtils.isNotBlank(goodsInfoVO.getProviderGoodsInfoId())) {
                                         GoodsInfoVO providerGoodsInfoVO = providerGoodsInfoVOMap.get(goodsInfoVO.getProviderGoodsInfoId());
                                         if (providerGoodsInfoVO != null) {
