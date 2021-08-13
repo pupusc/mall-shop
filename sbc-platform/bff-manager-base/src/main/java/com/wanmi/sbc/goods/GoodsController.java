@@ -85,8 +85,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 商品服务
- * Created by daiyitian on 17/4/12.
+ * @menu 商城配合知识顾问
+ * @tag feature_d_cps3
+ * @status undone
  */
 @Api(tags = "GoodsController", description = "商品服务 Api")
 @RestController
@@ -169,8 +170,12 @@ public class GoodsController {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
     /**
-     * 新增商品
+     * @description 新增商品
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "新增商品")
     @RequestMapping(value = "/spu", method = RequestMethod.POST)
@@ -233,8 +238,12 @@ public class GoodsController {
         return BaseResponse.success(goodsId);
     }
 
+
     /**
-     * 同时新增商品基本和商品设价
+     * @description 同时新增商品基本和商品设价
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "同时新增商品基本和商品设价")
     @RequestMapping(value = "/spu/price", method = RequestMethod.POST)
@@ -305,8 +314,12 @@ public class GoodsController {
         return BaseResponse.success(goodsId);
     }
 
+
     /**
-     * 编辑商品
+     * @description 编辑商品
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "编辑商品")
     @RequestMapping(value = "/spu", method = RequestMethod.PUT)
@@ -805,8 +818,12 @@ public class GoodsController {
         return operateDataLogAddRequest;
     }
 
+
     /**
-     * 保存商品价格
+     * @description 保存商品价格
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "保存商品价格")
     @RequestMapping(value = "/spu/price", method = RequestMethod.PUT)
@@ -850,11 +867,12 @@ public class GoodsController {
         return BaseResponse.SUCCESSFUL();
     }
 
+
     /**
-     * 获取商品详情信息
-     *
-     * @param goodsId 商品编号
-     * @return 商品详情
+     * @description 获取商品详情信息
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "获取商品详情信息")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "goodsId", value = "商品Id", required = true)

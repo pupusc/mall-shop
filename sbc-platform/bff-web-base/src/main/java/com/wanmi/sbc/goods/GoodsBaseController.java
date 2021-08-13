@@ -143,8 +143,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 商品Controller
- * Created by daiyitian on 17/4/12.
+ * @menu 商城配合知识顾问
+ * @tag feature_d_cps3
+ * @status undone
  */
 @RestController
 @RequestMapping("/goods")
@@ -237,11 +238,12 @@ public class GoodsBaseController {
 
     public static final String CYCLE_BUY = "周期购";
 
+
     /**
-     * 商品分页(ES级)
-     *
-     * @param queryRequest 搜索条件
-     * @return 返回分页结果
+     * @description 商品分页(ES级)
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "商品分页")
     @RequestMapping(value = "/spus", method = RequestMethod.POST)

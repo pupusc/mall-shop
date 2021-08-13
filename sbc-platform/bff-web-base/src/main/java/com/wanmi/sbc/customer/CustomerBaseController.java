@@ -42,6 +42,7 @@ import com.wanmi.sbc.customer.api.response.customer.GrowthValueAndPointResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.employee.EmployeeOptionalByIdResponse;
 import com.wanmi.sbc.customer.api.response.enterpriseinfo.EnterpriseInfoByCustomerIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.enums.*;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerLevelVO;
@@ -52,6 +53,7 @@ import com.wanmi.sbc.customer.request.CustomerMobileRequest;
 import com.wanmi.sbc.customer.response.CustomerBaseInfoResponse;
 import com.wanmi.sbc.customer.response.CustomerCenterResponse;
 import com.wanmi.sbc.customer.response.CustomerSafeResponse;
+import com.wanmi.sbc.customer.response.IsCounselorVo;
 import com.wanmi.sbc.mq.producer.WebBaseProducerService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.systemconfig.SystemConfigQueryProvider;
@@ -76,8 +78,9 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * 客户信息
- * Created by CHENLI on 2017/7/11.
+ * @menu 商城配合知识顾问
+ * @tag feature_d_cps3
+ * @status undone
  */
 @RestController
 @RequestMapping("/customer")
@@ -635,4 +638,32 @@ public class CustomerBaseController {
         }
 
     }
+
+    /**
+     * @description 是否是知识顾问
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
+     */
+    @ApiOperation(value = "是否是知识顾问")
+    @RequestMapping(value = "/isCounselor", method = RequestMethod.GET)
+    public BaseResponse<IsCounselorVo> isCounselor() {
+        IsCounselorVo isCounselorVo = new IsCounselorVo();
+        CustomerVO customer = commonUtil.getCanNullCustomer();
+        if (customer == null || StringUtils.isEmpty(customer.getFanDengUserNo())) {
+            isCounselorVo.setIsCounselor(Boolean.FALSE);
+            return BaseResponse.success(isCounselorVo);
+        }
+        isCounselorVo.setCustomerId(customer.getCustomerId());
+        CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
+        if (counselorDto == null) {
+            isCounselorVo.setIsCounselor(Boolean.FALSE);
+            return BaseResponse.success(isCounselorVo);
+        }
+        isCounselorVo.setIsCounselor(Boolean.TRUE);
+        isCounselorVo.setProfit(counselorDto.getProfit());
+        isCounselorVo.setCustomerId(customer.getCustomerId());
+        return BaseResponse.success(isCounselorVo);
+    }
+
 }

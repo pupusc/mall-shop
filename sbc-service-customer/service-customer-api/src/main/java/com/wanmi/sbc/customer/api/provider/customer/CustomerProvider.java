@@ -1,11 +1,25 @@
 package com.wanmi.sbc.customer.api.provider.customer;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.customer.api.request.customer.*;
-import com.wanmi.sbc.customer.api.response.customer.*;
+import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerAddRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerCheckStateModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerEnterpriseCheckStateModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerFandengModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerSalesManModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerToDistributorModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomersDeleteRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerAccountModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerAddResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerCheckStateModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomersDeleteResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -95,5 +109,12 @@ public interface CustomerProvider {
      */
     @PostMapping("/customer/${application.customer.version}/customer/modify-to-distributor")
     BaseResponse modifyToDistributor(@RequestBody @Valid CustomerToDistributorModifyRequest request);
-
+    /**
+     * 查询是否是知识顾问
+     *
+     * @param userId
+     * @return BaseResponse
+     */
+    @PostMapping("/customer/${application.customer.version}/customer/is-counselor")
+    BaseResponse<CounselorDto> isCounselor(@RequestParam Integer userId);
 }

@@ -137,7 +137,17 @@ public final class CommonUtil {
         }
         return customer;
     }
-
+    /**
+     * 获取登录客户信息
+     *
+     * @return
+     */
+    public CustomerVO getCanNullCustomer() {
+        //获取会员和等级
+        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
+                (getOperatorId())).getContext();
+        return customer;
+    }
 
     /**
      * 获取分销渠道对象

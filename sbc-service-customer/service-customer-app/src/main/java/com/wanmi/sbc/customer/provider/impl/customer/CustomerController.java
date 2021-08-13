@@ -1,14 +1,31 @@
 package com.wanmi.sbc.customer.provider.impl.customer;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
-import com.wanmi.sbc.customer.api.request.customer.*;
-import com.wanmi.sbc.customer.api.response.customer.*;
+import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerAddRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerCheckStateModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerEnterpriseCheckStateModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerFandengModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerSalesManModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomerToDistributorModifyRequest;
+import com.wanmi.sbc.customer.api.request.customer.CustomersDeleteRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerAccountModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerAddResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerCheckStateModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomerModifyResponse;
+import com.wanmi.sbc.customer.api.response.customer.CustomersDeleteResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailToEsVO;
+import com.wanmi.sbc.customer.counselor.model.root.Counselor;
+import com.wanmi.sbc.customer.counselor.repository.CounselorRepository;
 import com.wanmi.sbc.customer.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -19,6 +36,8 @@ public class CustomerController implements CustomerProvider {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private  CounselorRepository counselorRepository;
     /**
      * 审核客户状态
      *
@@ -136,4 +155,21 @@ public class CustomerController implements CustomerProvider {
         customerService.updateCustomerToDistributor(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    /**
+     * 获取知识顾问信息
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public BaseResponse isCounselor(@RequestParam Integer userId) {
+        Counselor counselor = counselorRepository.getCounselorByUserId(userId);
+        if (counselor == null) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        CounselorDto counselorDto = KsBeanUtil.copyPropertiesThird(counselor, CounselorDto.class);
+        return BaseResponse.success(counselorDto);
+    }
+
 }
