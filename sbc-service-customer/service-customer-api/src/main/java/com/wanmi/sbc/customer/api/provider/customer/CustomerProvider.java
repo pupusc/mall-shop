@@ -116,5 +116,5 @@ public interface CustomerProvider {
      * @return BaseResponse
      */
     @PostMapping("/customer/${application.customer.version}/customer/is-counselor")
-    BaseResponse<CounselorDto> isCounselor(@RequestParam Integer userId);
+    BaseResponse<CounselorDto> isCounselor(@RequestParam("userId") Integer userId);
 }
