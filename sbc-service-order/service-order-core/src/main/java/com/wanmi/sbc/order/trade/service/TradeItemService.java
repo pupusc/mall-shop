@@ -681,7 +681,7 @@ public class TradeItemService {
 
         Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
         tradeItems.stream().forEach(tradeItem -> {
-            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSpuId()));
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
             tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
             tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
             tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
