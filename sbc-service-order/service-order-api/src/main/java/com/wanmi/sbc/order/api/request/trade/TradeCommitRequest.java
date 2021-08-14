@@ -120,6 +120,12 @@ public class TradeCommitRequest extends BaseRequest {
     private Long points;
 
     /**
+     * 使用知豆
+     */
+    @ApiModelProperty(value = "使用知豆")
+    private Long knowledge;
+
+    /**
      * 分享人id
      */
     @ApiModelProperty(value = "分享人id")

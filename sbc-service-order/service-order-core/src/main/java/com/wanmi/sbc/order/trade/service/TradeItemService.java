@@ -25,6 +25,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionSimplifyRequest;
@@ -244,7 +245,7 @@ public class TradeItemService {
                 if (Objects.isNull(tradeItemGroup) || CollectionUtils.isEmpty(tradeItemGroup.getTradeMarketingList())) {
                     return;
                 }
-                if(Objects.nonNull(marketingGiftDTO) && CollectionUtils.isNotEmpty(marketingGiftDTO.getGiftSkuIds())){
+                if (Objects.nonNull(marketingGiftDTO) && CollectionUtils.isNotEmpty(marketingGiftDTO.getGiftSkuIds())) {
                     //符合以上条件修改快照
                     tradeItemGroup.getTradeMarketingList().forEach(m -> {
                         if (m.getMarketingId().equals(marketingGiftDTO.getMarketingId())
@@ -253,22 +254,22 @@ public class TradeItemService {
                             m.setGiftSkuIds(marketingGiftDTO.getGiftSkuIds());
                         }
                     });
-                }else{
+                } else {
                     //满赠赠品不选，快照里的相关满赠营销信息删掉
                     List<TradeMarketingDTO> marketingDTOSOthers =
-                    tradeItemGroup.getTradeMarketingList().stream().filter(m ->
-                            !(m.getMarketingId().equals(marketingGiftDTO.getMarketingId())
-                                    && org.apache.commons.collections4.CollectionUtils.isEqualCollection(m.getSkuIds(), marketingGiftDTO.getSkuIds()))
-                    ).collect(Collectors.toList());
+                            tradeItemGroup.getTradeMarketingList().stream().filter(m ->
+                                    !(m.getMarketingId().equals(marketingGiftDTO.getMarketingId())
+                                            && org.apache.commons.collections4.CollectionUtils.isEqualCollection(m.getSkuIds(), marketingGiftDTO.getSkuIds()))
+                            ).collect(Collectors.toList());
                     List<TradeMarketingDTO> marketingDTOSDelete =
-                    tradeItemGroup.getTradeMarketingList().stream().filter(m ->
-                            m.getMarketingId().equals(marketingGiftDTO.getMarketingId())
-                                    && org.apache.commons.collections4.CollectionUtils.isEqualCollection(m.getSkuIds(), marketingGiftDTO.getSkuIds())
-                    ).collect(Collectors.toList());
+                            tradeItemGroup.getTradeMarketingList().stream().filter(m ->
+                                    m.getMarketingId().equals(marketingGiftDTO.getMarketingId())
+                                            && org.apache.commons.collections4.CollectionUtils.isEqualCollection(m.getSkuIds(), marketingGiftDTO.getSkuIds())
+                            ).collect(Collectors.toList());
                     List<Long> deleteMarketingIds =
-                    marketingDTOSDelete.stream().map(TradeMarketingDTO::getMarketingId).collect(Collectors.toList());
+                            marketingDTOSDelete.stream().map(TradeMarketingDTO::getMarketingId).collect(Collectors.toList());
                     List<Long> deleteMarketingLevelIds =
-                    marketingDTOSDelete.stream().map(TradeMarketingDTO::getMarketingLevelId).collect(Collectors.toList());
+                            marketingDTOSDelete.stream().map(TradeMarketingDTO::getMarketingLevelId).collect(Collectors.toList());
                     tradeItemGroup.getTradeItems().forEach(m -> {
                         m.setMarketingIds(m.getMarketingIds().stream().filter(t -> !deleteMarketingIds.contains(t)).collect(Collectors.toList()));
                         m.setMarketingLevelIds(m.getMarketingLevelIds().stream().filter(t -> !deleteMarketingLevelIds.contains(t)).collect(Collectors.toList()));
@@ -308,7 +309,7 @@ public class TradeItemService {
                 for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList) {
                     for (TradeItemGroup itemGroup : tradeItemSnapshot.getItemGroups()) {
                         Long storeId = tradeMarketingDTO.getStoreId();
-                        if(!itemGroup.getSupplier().getStoreId().equals(storeId)){
+                        if (!itemGroup.getSupplier().getStoreId().equals(storeId)) {
                             continue;
                         }
                         TradeItemGroup tradeItemGroup = itemGroup;
@@ -322,9 +323,9 @@ public class TradeItemService {
                                         && CollectionUtils.isEqualCollection(m.getSkuIds(), tradeMarketingDTO.getSkuIds())) {
                                     isFindMarketing.set(false);
                                     m.setMarketingLevelId(tradeMarketingDTO.getMarketingLevelId());
-                                   if(!m.getMarkupSkuIds().contains(tradeMarketingDTO.getMarkupSkuIds().get(0))){
-                                       m.getMarkupSkuIds().add(tradeMarketingDTO.getMarkupSkuIds().get(0));
-                                   }
+                                    if (!m.getMarkupSkuIds().contains(tradeMarketingDTO.getMarkupSkuIds().get(0))) {
+                                        m.getMarkupSkuIds().add(tradeMarketingDTO.getMarkupSkuIds().get(0));
+                                    }
                                 }
                             });
                             if (isFindMarketing.get()) {
@@ -440,6 +441,16 @@ public class TradeItemService {
     }
 
     /**
+     * 计算商品集合的知豆抵扣均摊总价
+     */
+    BigDecimal calcSkusTotalKnowledgePrice(List<TradeItem> tradeItems) {
+        return tradeItems.stream()
+                .filter(tradeItem -> tradeItem.getKnowledgePrice() != null && tradeItem.getKnowledgePrice().compareTo(BigDecimal.ZERO) > 0)
+                .map(TradeItem::getKnowledgePrice)
+                .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+    }
+
+    /**
      * 计算商品集合的积分抵扣均摊总数
      */
     Long calcSkusTotalPoints(List<TradeItem> tradeItems) {
@@ -448,6 +459,17 @@ public class TradeItemService {
                 .map(TradeItem::getPoints)
                 .reduce(0L, (a, b) -> a + b);
     }
+
+    /**
+     * 计算商品集合的知豆抵扣均摊总数
+     */
+    Long calcSkusTotalKnowledge(List<TradeItem> tradeItems) {
+        return tradeItems.stream()
+                .filter(tradeItem -> tradeItem.getKnowledge() != null && tradeItem.getKnowledge() > 0)
+                .map(TradeItem::getKnowledge)
+                .reduce(0L, (a, b) -> a + b);
+    }
+
 
     /**
      * 计算商品均摊价
@@ -537,6 +559,44 @@ public class TradeItemService {
         }
     }
 
+    /**
+     * 计算知豆抵扣均摊价、均摊数量
+     *
+     * @param tradeItems          待计算的商品列表
+     * @param knowledgePriceTotal 知豆抵扣总额
+     * @param knowledgeTotal      知豆抵扣总数
+     */
+    void calcKnowledge(List<TradeItem> tradeItems, BigDecimal knowledgePriceTotal, Long knowledgeTotal, BigDecimal knowledgeWorth) {
+        BigDecimal totalPrice = tradeItems.stream()
+                .filter(tradeItem -> tradeItem.getSplitPrice() != null && tradeItem.getSplitPrice().compareTo(BigDecimal.ZERO) > 0)
+                .map(TradeItem::getSplitPrice)
+                .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+        int size = tradeItems.size();
+        //累积积分平摊价，将剩余扣给最后一个元素
+        BigDecimal splitPriceTotal = BigDecimal.ZERO;
+        //累积积分数量，将剩余扣给最后一个元素
+        Long splitKnowledgeTotal = 0L;
+
+        for (int i = 0; i < size; i++) {
+            TradeItem tradeItem = tradeItems.get(i);
+            if (i == size - 1) {
+                tradeItem.setPointsPrice(knowledgePriceTotal.subtract(splitPriceTotal));
+                tradeItem.setPoints(knowledgeTotal - splitKnowledgeTotal);
+            } else {
+                BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
+                tradeItem.setPointsPrice(
+                        splitPrice
+                                .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
+                                .multiply(knowledgePriceTotal)
+                                .setScale(2, BigDecimal.ROUND_HALF_UP));
+                splitPriceTotal = splitPriceTotal.add(tradeItem.getPointsPrice());
+
+                tradeItem.setKnowledge(tradeItem.getPointsPrice().multiply(knowledgeWorth).longValue());
+                splitKnowledgeTotal = splitKnowledgeTotal + tradeItem.getKnowledge();
+            }
+        }
+    }
 
     /**
      * 确认结算
@@ -581,7 +641,7 @@ public class TradeItemService {
 
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, customer);
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-
+        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
 
         ChannelType channelType = request.getChannelType();
         DistributeChannel distributeChannel = request.getDistributeChannel();
@@ -621,6 +681,7 @@ public class TradeItemService {
 
         Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
         tradeItems.stream().forEach(tradeItem -> {
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSpuId()));
             tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
             tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
             tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());

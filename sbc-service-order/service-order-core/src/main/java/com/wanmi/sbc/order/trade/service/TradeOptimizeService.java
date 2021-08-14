@@ -282,6 +282,7 @@ public class TradeOptimizeService {
             trades.parallelStream().flatMap(trade -> trade.getTradeItems().stream()).forEach(tradeItem -> {
                 tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
                 tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
+                tradeItem.setBuyKnowledge(NumberUtils.LONG_ZERO);
             });
         }
         // 3.批量提交订单
@@ -289,6 +290,8 @@ public class TradeOptimizeService {
         try {
         // 处理积分抵扣
         tradeService.dealPoints(trades, tradeCommitRequest);
+        // 处理知豆抵扣
+        tradeService.dealKnowledge(trades, tradeCommitRequest);
         // 预售补充尾款价格
         tradeService.dealTailPrice(trades, tradeCommitRequest);
 
@@ -305,6 +308,8 @@ public class TradeOptimizeService {
                     //释放积分接口
                     externalProvider.pointCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
                             .desc("订单提交异常返还(退单号:"+trade.getId()+")").build());
+                    //释放知豆接口
+                    // todo
                 }
             }
             throw  new SbcRuntimeException("K-000001");

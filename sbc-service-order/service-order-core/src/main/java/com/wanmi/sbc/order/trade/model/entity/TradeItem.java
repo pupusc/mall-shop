@@ -2,7 +2,6 @@ package com.wanmi.sbc.order.trade.model.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.wanmi.sbc.common.annotation.CanEmpty;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
@@ -90,9 +89,13 @@ public class TradeItem implements Serializable, Cloneable {
      */
     private Integer goodsSource;
     /**
-     * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
+     * 知识顾问专享 0:不是 ，1：是
      */
     private GoodsType goodsType;
+    /**
+     * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
+     */
+    private Integer cpsSpecial;
     /**
      * 电子卡券id
      */
@@ -298,15 +301,26 @@ public class TradeItem implements Serializable, Cloneable {
     private Long points;
 
     /**
+     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
+     */
+    private Long knowledge;
+
+    /**
      * 购买积分，被用于普通订单的积分+金额混合商品
      */
     private Long buyPoint;
-
+    /**
+     * 购买知豆，被用于普通订单的知豆+金额混合商品
+     */
+    private Long buyKnowledge;
     /**
      * 积分兑换金额
      */
     private BigDecimal pointsPrice;
-
+    /**
+     * 积分兑换金额
+     */
+    private BigDecimal knowledgePrice;
     /**
      * 积分商品Id
      */

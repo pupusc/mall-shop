@@ -5,23 +5,51 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByOrderCodeAndTypeRequest;
-import com.wanmi.sbc.account.bean.enums.*;
-import com.wanmi.sbc.common.base.*;
+import com.wanmi.sbc.account.bean.enums.AccountRecordType;
+import com.wanmi.sbc.account.bean.enums.InvoiceState;
+import com.wanmi.sbc.account.bean.enums.InvoiceType;
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.account.bean.enums.PayType;
+import com.wanmi.sbc.account.bean.enums.PayWay;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.DistributeChannel;
+import com.wanmi.sbc.common.base.MessageMQRequest;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.common.constant.PaidCardConstant;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.CompanySourceType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.EnableStatus;
+import com.wanmi.sbc.common.enums.NodeType;
+import com.wanmi.sbc.common.enums.OrderType;
+import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.PointsOrderType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.enums.node.DistributionType;
 import com.wanmi.sbc.common.enums.node.OrderProcessType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.DistributionCommissionUtils;
+import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.IteratorUtils;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.OsUtil;
+import com.wanmi.sbc.common.util.UUIDUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.distribution.DistributionCustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.email.CustomerEmailQueryProvider;
@@ -45,10 +73,23 @@ import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
 import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlagResponse;
 import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.dto.PaidCardRedisDTO;
 import com.wanmi.sbc.customer.bean.enums.CheckState;
-import com.wanmi.sbc.customer.bean.enums.*;
-import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.customer.bean.enums.CommissionPriorityType;
+import com.wanmi.sbc.customer.bean.enums.CommissionUnhookType;
+import com.wanmi.sbc.customer.bean.enums.CompanyType;
+import com.wanmi.sbc.customer.bean.enums.OperateType;
+import com.wanmi.sbc.customer.bean.enums.PointsServiceType;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerEmailVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
+import com.wanmi.sbc.customer.bean.vo.DistributionCustomerSimVO;
+import com.wanmi.sbc.customer.bean.vo.DistributorLevelVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.appointmentsalegoods.AppointmentSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -84,8 +125,29 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
-import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.ConditionType;
+import com.wanmi.sbc.goods.bean.enums.DeliverWay;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.enums.ProvideType;
+import com.wanmi.sbc.goods.bean.enums.ValuationType;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyGiftVO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyVO;
+import com.wanmi.sbc.goods.bean.vo.FlashSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.FreightTemplateGoodsExpressVO;
+import com.wanmi.sbc.goods.bean.vo.FreightTemplateGoodsFreeVO;
+import com.wanmi.sbc.goods.bean.vo.FreightTemplateGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.FreightTemplateStoreVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.RestrictedRecordSimpVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
 import com.wanmi.sbc.marketing.api.provider.distribution.DistributionCacheQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.gift.FullGiftQueryProvider;
@@ -114,14 +176,44 @@ import com.wanmi.sbc.marketing.bean.dto.TradeMarketingWrapperDTO;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
-import com.wanmi.sbc.marketing.bean.vo.*;
+import com.wanmi.sbc.marketing.bean.vo.GrouponActivityVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingSuitsSkuVO;
+import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
+import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
+import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
-import com.wanmi.sbc.order.api.request.trade.*;
+import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePayOnlineCallBackRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.*;
-import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
+import com.wanmi.sbc.order.bean.dto.GeneralInvoiceDTO;
+import com.wanmi.sbc.order.bean.dto.SpecialInvoiceDTO;
+import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
+import com.wanmi.sbc.order.bean.dto.TradeUpdateDTO;
+import com.wanmi.sbc.order.bean.enums.AuditState;
+import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
+import com.wanmi.sbc.order.bean.enums.BookingType;
+import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
+import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.HandleStatus;
+import com.wanmi.sbc.order.bean.enums.OrderSmsTemplate;
+import com.wanmi.sbc.order.bean.enums.OrderSource;
+import com.wanmi.sbc.order.bean.enums.PayCallBackResultStatus;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.PaymentOrder;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.common.GoodsStockService;
@@ -158,25 +250,79 @@ import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
-import com.wanmi.sbc.order.trade.model.entity.*;
-import com.wanmi.sbc.order.trade.model.entity.value.*;
+import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
+import com.wanmi.sbc.order.trade.model.entity.Discounts;
+import com.wanmi.sbc.order.trade.model.entity.GrouponTradeValid;
+import com.wanmi.sbc.order.trade.model.entity.PayCallBackOnlineBatch;
+import com.wanmi.sbc.order.trade.model.entity.PayInfo;
+import com.wanmi.sbc.order.trade.model.entity.PointsTradeCommitResult;
+import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
+import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
+import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
+import com.wanmi.sbc.order.trade.model.entity.TradeState;
+import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.DiscountsPriceDetail;
+import com.wanmi.sbc.order.trade.model.entity.value.GeneralInvoice;
+import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
+import com.wanmi.sbc.order.trade.model.entity.value.Seller;
+import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
+import com.wanmi.sbc.order.trade.model.entity.value.SpecialInvoice;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.mapper.TradeMapper;
-import com.wanmi.sbc.order.trade.model.root.*;
+import com.wanmi.sbc.order.trade.model.root.GrouponInstance;
+import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.model.root.TradeCommission;
+import com.wanmi.sbc.order.trade.model.root.TradeConfirmItem;
+import com.wanmi.sbc.order.trade.model.root.TradeDistributeItem;
+import com.wanmi.sbc.order.trade.model.root.TradeDistributeItemCommission;
+import com.wanmi.sbc.order.trade.model.root.TradeGroup;
+import com.wanmi.sbc.order.trade.model.root.TradeGroupon;
+import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.reponse.TradeFreightResponse;
 import com.wanmi.sbc.order.trade.reponse.TradeItemPrice;
 import com.wanmi.sbc.order.trade.reponse.TradeRemedyDetails;
 import com.wanmi.sbc.order.trade.repository.GrouponInstanceRepository;
 import com.wanmi.sbc.order.trade.repository.TradeGroupRepository;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
+import com.wanmi.sbc.order.trade.request.TradeCreateRequest;
 import com.wanmi.sbc.order.trade.request.TradeDeliverRequest;
-import com.wanmi.sbc.order.trade.request.*;
+import com.wanmi.sbc.order.trade.request.TradeParams;
+import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
+import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
+import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
+import com.wanmi.sbc.order.trade.request.TradeWrapperListRequest;
 import com.wanmi.sbc.order.util.SmsSendUtil;
 import com.wanmi.sbc.pay.api.provider.AliPayProvider;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
-import com.wanmi.sbc.pay.api.request.*;
-import com.wanmi.sbc.pay.api.response.*;
+import com.wanmi.sbc.pay.api.request.AliPayRefundRequest;
+import com.wanmi.sbc.pay.api.request.ChannelItemByGatewayRequest;
+import com.wanmi.sbc.pay.api.request.ChannelItemByIdRequest;
+import com.wanmi.sbc.pay.api.request.ChannelItemSaveRequest;
+import com.wanmi.sbc.pay.api.request.GatewayConfigByGatewayRequest;
+import com.wanmi.sbc.pay.api.request.PayTradeRecordRequest;
+import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
+import com.wanmi.sbc.pay.api.request.TradeRecordByOrderOrParentCodeRequest;
+import com.wanmi.sbc.pay.api.request.TradeRecordCountByOrderOrParentCodeRequest;
+import com.wanmi.sbc.pay.api.request.WxPayOrderDetailRequest;
+import com.wanmi.sbc.pay.api.request.WxPayRefundInfoRequest;
+import com.wanmi.sbc.pay.api.response.AliPayRefundResponse;
+import com.wanmi.sbc.pay.api.response.PayChannelItemListResponse;
+import com.wanmi.sbc.pay.api.response.PayChannelItemResponse;
+import com.wanmi.sbc.pay.api.response.PayGatewayConfigResponse;
+import com.wanmi.sbc.pay.api.response.PayTradeRecordCountResponse;
+import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
+import com.wanmi.sbc.pay.api.response.WxPayOrderDetailReponse;
+import com.wanmi.sbc.pay.api.response.WxPayRefundResponse;
+import com.wanmi.sbc.pay.api.response.WxPayResultResponse;
 import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
@@ -193,7 +339,6 @@ import com.wanmi.sbc.setting.bean.enums.EmailStatus;
 import com.wanmi.sbc.setting.bean.enums.PointsUsageFlag;
 import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 import io.seata.spring.annotation.GlobalTransactional;
-import jdk.nashorn.internal.runtime.linker.LinkerCallSite;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -228,7 +373,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -445,7 +600,8 @@ public class TradeService {
 
     @Autowired
     private ExceptionOfTradePointsService exceptionOfTradePointsService;
-
+    @Autowired
+    private CustomerProvider customerProvider;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -1350,6 +1506,57 @@ public class TradeService {
         }
     }
 
+
+    public void dealKnowledge(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
+
+        if (tradeCommitRequest.getKnowledge() == null || tradeCommitRequest.getKnowledge() <= 0) {
+            return;
+        }
+        //将buyKnowledge置零
+        trades.stream().flatMap(trade -> trade.getTradeItems().stream()).forEach(tradeItem -> tradeItem.setBuyKnowledge(0L));
+
+        if (StringUtils.isEmpty(tradeCommitRequest.getCustomer().getFanDengUserNo())) {
+            throw new SbcRuntimeException("K-000018");
+        }
+        Integer fanDengUserId = Integer.valueOf(tradeCommitRequest.getCustomer().getFanDengUserNo());
+        CounselorDto counselorDto = customerProvider.isCounselor(fanDengUserId).getContext();
+        if (counselorDto == null || counselorDto.getProfit() < tradeCommitRequest.getKnowledge()) {
+            throw new SbcRuntimeException("K-000018");
+        }
+        final BigDecimal knowledgeWorth = new BigDecimal(100);
+        //如果使用积分 校验可使用积分
+        //锁定知豆 todo
+
+        List<TradeItem> items =
+                trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
+
+        // 设置关联商品的积分均摊
+        BigDecimal knowledgeTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(knowledgeWorth, 2,
+                BigDecimal.ROUND_HALF_UP);
+        tradeItemService.calcKnowledge(items, knowledgeTotalPrice, tradeCommitRequest.getKnowledge(), knowledgeWorth);
+
+        // 设置关联商品的均摊价
+        BigDecimal total = tradeItemService.calcSkusTotalPrice(items);
+        tradeItemService.calcSplitPrice(items, total.subtract(knowledgeTotalPrice), total);
+
+        Map<Long, List<TradeItem>> itemsMap = items.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
+        itemsMap.keySet().forEach(storeId -> {
+            // 找到店铺对应订单的价格信息
+            Trade trade = trades.stream()
+                    .filter(t -> t.getSupplier().getStoreId().equals(storeId)).findFirst().orElse(null);
+            TradePrice tradePrice = trade.getTradePrice();
+
+            // 计算知豆抵扣额(pointsPrice、points)，并追加至订单优惠金额、知豆抵扣金额
+            BigDecimal knowledgePrice = tradeItemService.calcSkusTotalKnowledgePrice(itemsMap.get(storeId));
+            Long knowledge = tradeItemService.calcSkusTotalKnowledge(itemsMap.get(storeId));
+            tradePrice.setKnowledgePrice(knowledgePrice);
+            tradePrice.setKnowledge(knowledge);
+            tradePrice.setKnowledgeWorth(100L);
+            // 重设订单总价
+            tradePrice.setTotalPrice(tradePrice.getTotalPrice().subtract(knowledgePrice));
+        });
+
+    }
     /**
      * 调用校验与封装单个订单信息 - [后端代客下单]
      * 业务员app/商家-共用

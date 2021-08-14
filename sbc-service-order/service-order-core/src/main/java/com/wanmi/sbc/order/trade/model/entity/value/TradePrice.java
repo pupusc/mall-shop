@@ -57,21 +57,37 @@ public class TradePrice implements Serializable {
      * 积分
      */
     private Long points;
+    /**
+     * 知豆
+     */
+    private Long knowledge;
 
     /**
      * 购买积分
      */
     private Long buyPoints;
+    /**
+     * 购买知豆
+     */
+    private Long buyKnowledge;
+
 
     /**
      * 积分兑换金额
      */
     private BigDecimal pointsPrice;
-
+    /**
+     * 知豆兑换金额
+     */
+    private BigDecimal knowledgePrice;
     /**
      * 积分价值
      */
     private Long pointWorth;
+    /**
+     * 知豆价值
+     */
+    private Long knowledgeWorth;
 
     /**
      * 是否特价单
