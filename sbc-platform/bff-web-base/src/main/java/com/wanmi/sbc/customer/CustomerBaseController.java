@@ -646,7 +646,7 @@ public class CustomerBaseController {
      * @status done
      */
     @ApiOperation(value = "是否是知识顾问")
-    @RequestMapping(value = "/isCounselor", method = RequestMethod.GET)
+    @RequestMapping(value = "/isCounselor", method = RequestMethod.POST)
     public BaseResponse<IsCounselorVo> isCounselor() {
         IsCounselorVo isCounselorVo = new IsCounselorVo();
         CustomerVO customer = commonUtil.getCanNullCustomer();

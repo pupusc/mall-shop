@@ -36,7 +36,7 @@ public class XssFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (request.getMethod().equals("OPTIONS")) {
             response.setStatus(200);
-            response.addHeader("Access-Control-Allow-Origin", "*");
+            response.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
             response.addHeader("Access-Control-Allow-Headers",
                     "authorization,content-type,x-requested-with,distribute-channel,ctxPath,terminal");
             response.addHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");

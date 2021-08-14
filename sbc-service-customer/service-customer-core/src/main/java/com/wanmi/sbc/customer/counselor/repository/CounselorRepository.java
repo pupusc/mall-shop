@@ -20,6 +20,6 @@ public interface CounselorRepository extends JpaRepository<Counselor, String>,
      * @param userId
      * @return
      */
-    @Query("from Counselor where userId = ?1 and status = 2 and delFlag = 1")
+    @Query(value = "select * from Counselor where userId = ?1 and status = 2 and delFlag = 1 order by id desc limit 1", nativeQuery = true)
     Counselor getCounselorByUserId(Integer userId);
 }
