@@ -541,11 +541,7 @@ public class TradeGoodsService {
         Map<String, BigDecimal> skuMap =
                 goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId,
                         GoodsInfoVO::getMarketPrice));
-        Map<String, Integer> cpsSpecialMap =
-                goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId,
-                        GoodsInfoVO::getCpsSpecial));
         return tradeItems.stream().map(item -> {
-            item.setCpsSpecial(cpsSpecialMap.get(item.getSkuId()));
             if (item.getIsAppointmentSaleGoods()) {
                 AppointmentSaleVO appointmentSaleVO =
                         appointmentSaleQueryProvider.getAppointmentSaleRelaInfo(RushToAppointmentSaleGoodsRequest.builder().appointmentSaleId(item.getAppointmentSaleId()).
