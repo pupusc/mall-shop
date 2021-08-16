@@ -412,6 +412,11 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private GoodsType goodsType;
 
     /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    private Integer cpsSpecial;
+
+    /**
      * 期数
      */
     private Integer cycleNum;

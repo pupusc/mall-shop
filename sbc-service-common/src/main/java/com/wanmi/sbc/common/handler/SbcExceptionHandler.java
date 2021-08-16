@@ -139,13 +139,13 @@ public class SbcExceptionHandler {
     public BaseResponse jwtExceptionHandler(SignatureException sx, HttpServletRequest request, HttpServletResponse response) throws IOException {
         String msg = sx.getMessage();
         response.setStatus(200);
-        response.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        /*response.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.addHeader("Access-Control-Allow-Headers", "authorization,content-type,x-requested-with");
         response.addHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
         response.addHeader("Access-Control-Allow-Credentials", "true");
         response.addHeader("Access-Control-Max-Age", "1800");
         response.addHeader("Allow", "Allow:GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH");
-        response.addHeader("Vary", "Origin");
+        response.addHeader("Vary", "Origin");*/
         if ("Invalid jwtToken.".equals(msg) || "Expired jwtToken.".equals(msg) || "Missing jwtToken.".equals(msg)) {
             return new BaseResponse("K-000015");
         } else {

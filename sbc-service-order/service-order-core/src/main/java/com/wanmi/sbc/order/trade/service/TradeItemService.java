@@ -641,7 +641,8 @@ public class TradeItemService {
 
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, customer);
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
+        Map<String, String> goodMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, GoodsInfoVO::getGoodsInfoId));
+        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().collect(Collectors.toMap(goods -> goodMap.get(goods.getGoodsId()), GoodsVO::getCpsSpecial));
 
         ChannelType channelType = request.getChannelType();
         DistributeChannel distributeChannel = request.getDistributeChannel();
@@ -681,7 +682,7 @@ public class TradeItemService {
 
         Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
         tradeItems.stream().forEach(tradeItem -> {
-            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSpuId()));
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
             tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
             tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
             tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());

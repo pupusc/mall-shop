@@ -89,11 +89,11 @@ public class TradeItem implements Serializable, Cloneable {
      */
     private Integer goodsSource;
     /**
-     * 知识顾问专享 0:不是 ，1：是
+     * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
      */
     private GoodsType goodsType;
     /**
-     * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
+     * 知识顾问专享 0:不是 ，1：是
      */
     private Integer cpsSpecial;
     /**
