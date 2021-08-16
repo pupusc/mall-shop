@@ -641,7 +641,8 @@ public class TradeItemService {
 
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, customer);
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
+        Map<String, String> goodMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, GoodsInfoVO::getGoodsInfoId));
+        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().collect(Collectors.toMap(goods -> goodMap.get(goods.getGoodsId()), GoodsVO::getCpsSpecial));
 
         ChannelType channelType = request.getChannelType();
         DistributeChannel distributeChannel = request.getDistributeChannel();

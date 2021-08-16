@@ -7,12 +7,20 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
-import com.wanmi.sbc.order.api.request.trade.*;
-import com.wanmi.sbc.order.api.response.trade.*;
+import com.wanmi.sbc.order.api.request.trade.MergeGoodsInfoRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyCycleBuyRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyPointsGoodsRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyStoreRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyTradeMarketingRequest;
+import com.wanmi.sbc.order.api.response.trade.MergeGoodsInfoResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
+import com.wanmi.sbc.order.api.response.trade.VerifyGoodsResponse;
+import com.wanmi.sbc.order.api.response.trade.VerifyPointsGoodsResponse;
+import com.wanmi.sbc.order.api.response.trade.VerifyTradeMarketingResponse;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
@@ -101,12 +109,12 @@ public class VerifyQueryController implements VerifyQueryProvider {
                 }
             }
         }
-        List<TradeItem> tradeItems = verifyService.verifyGoods(tradeItemMapper.tradeItemDTOsToTradeItems(verifyGoodsRequest.getTradeItems()),
+        List<TradeItem> tradeItems = verifyService.verifyGoods(KsBeanUtil.convertList(verifyGoodsRequest.getTradeItems(), TradeItem.class),
                 tradeItemMapper.tradeItemDTOsToTradeItems(verifyGoodsRequest.getOldTradeItems()),
                 tradeGoodsListMapper.tradeGoodsInfoPageDTOToTradeGoodsListVO(verifyGoodsRequest.getGoodsInfoResponse()),
                 verifyGoodsRequest.getStoreId(), verifyGoodsRequest.getIsFull(),null);
         VerifyGoodsResponse verifyGoodsResponse = new VerifyGoodsResponse();
-        verifyGoodsResponse.setTradeItems(tradeItemMapper.tradeItemsToTradeItemVOs(tradeItems));
+        verifyGoodsResponse.setTradeItems(KsBeanUtil.convertList(tradeItems, TradeItemVO.class));
         return BaseResponse.success(verifyGoodsResponse);
     }
 
