@@ -346,7 +346,7 @@ public class GoodsDTO implements Serializable {
     /**
      * 知识顾问专享 0：不是，1：是
      */
-    private Integer cpsSpecial;
+    private Integer cpsSpecial = 0;
 
     /**
      * 商品来源，0供应商，1商家,2 linkedmall
