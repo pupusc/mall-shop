@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.service;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -25,6 +26,7 @@ import com.wanmi.sbc.pay.repository.GatewayRepository;
 import com.wanmi.sbc.pay.repository.TradeRecordRepository;
 import com.wanmi.sbc.pay.utils.GeneratorUtils;
 import com.wanmi.sbc.pay.utils.PayValidates;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +41,11 @@ import java.util.Objects;
  * @create: 2019-01-28 16:37
  **/
 @Service
+@Slf4j
 public class AlipayService {
+
+
+
 
     @Resource
     private TradeRecordRepository recordRepository;
@@ -122,6 +128,7 @@ public class AlipayService {
 //        jsonObject.put("timeout_express","1m");
             alipayRequest.setBizContent(jsonObject.toString());
             try {
+                log.info(" h5 invoke alipay sdk param:{} ", JSONObject.toJSONString(alipayRequest));
                 form = alipayClient.pageExecute(alipayRequest).getBody(); //调用SDK生成表单
             } catch (AlipayApiException e) {
                 e.printStackTrace();
