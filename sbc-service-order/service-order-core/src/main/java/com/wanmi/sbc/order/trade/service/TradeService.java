@@ -1531,7 +1531,7 @@ public class TradeService {
                 trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
 
         // 设置关联商品的积分均摊
-        BigDecimal knowledgeTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(knowledgeWorth, 2,
+        BigDecimal knowledgeTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getKnowledge()).divide(knowledgeWorth, 2,
                 BigDecimal.ROUND_HALF_UP);
         tradeItemService.calcKnowledge(items, knowledgeTotalPrice, tradeCommitRequest.getKnowledge(), knowledgeWorth);
 

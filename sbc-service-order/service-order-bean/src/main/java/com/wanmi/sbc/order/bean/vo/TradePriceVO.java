@@ -85,6 +85,19 @@ public class TradePriceVO implements Serializable {
     @ApiModelProperty(value = "积分价值")
     private Long pointWorth;
 
+    /**
+     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
+     */
+    private Long knowledge;
+    /**
+     * 知豆兑换金额
+     */
+    private BigDecimal knowledgePrice;
+    /**
+     * 知豆价值
+     */
+    private BigDecimal knowledgeWorth;
+
 
     /**
      * 是否特价单

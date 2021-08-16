@@ -321,8 +321,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * <p>订单公共Controller</p>
- * Created by of628-wenzhi on 2017-07-10-下午4:12.
+ * @menu 订单公共接口类
+ * @tag feature_d_cps3
+ * @status undone
  */
 @Api(tags = "TradeBaseController", description = "订单公共服务API")
 @RestController
@@ -492,7 +493,10 @@ public class TradeBaseController {
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
 
     /**
-     * 查询订单详情
+     * @description 商城配合知识顾问
+     * @menu 查询订单详情
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查询订单详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单ID", required = true)
@@ -2938,8 +2942,12 @@ public class TradeBaseController {
         return BaseResponse.success(trade.getEncloses());
     }
 
+
     /**
-     * 查询订单付款记录
+     * @description 查询订单付款记录
+     * @menu 商城配合知识顾问
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查询订单付款记录")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单ID", required = true)
