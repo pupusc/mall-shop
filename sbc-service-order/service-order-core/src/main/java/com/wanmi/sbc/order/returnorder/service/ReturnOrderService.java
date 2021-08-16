@@ -2024,6 +2024,7 @@ public class ReturnOrderService {
     private void updateProviderTrade(ReturnOrder returnOrder) {
         String ptid = returnOrder.getPtid();
         if (StringUtils.isNotBlank(ptid)) {
+            log.info(" request updateProviderTrade 参数为：{}", JSON.toJSONString(returnOrder));
             TradeGetByIdResponse tradeGetByIdResponse = providerTradeQueryProvider.providerGetById(TradeGetByIdRequest.builder().tid(ptid).build()).getContext();
             if (tradeGetByIdResponse != null && tradeGetByIdResponse.getTradeVO() != null) {
                 TradeVO tradeVO = tradeGetByIdResponse.getTradeVO();
