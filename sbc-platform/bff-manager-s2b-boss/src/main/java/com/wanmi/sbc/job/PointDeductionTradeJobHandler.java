@@ -73,11 +73,19 @@ public class PointDeductionTradeJobHandler extends IJobHandler {
 
     @Async
     public void toFandeng(ExceptionOfTradePointsVO exceptionOfTradePoints) {
-        //调用樊登积分扣除
+
         BaseResponse<FanDengConsumeResponse> fanDengConsumeResponseBaseResponse = new BaseResponse<>();
         try {
-            fanDengConsumeResponseBaseResponse = externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
-                    .deductCode(exceptionOfTradePoints.getDeductCode()).build());
+            //调用樊登积分扣除
+            if (exceptionOfTradePoints.getType() == null || exceptionOfTradePoints.getType() == 1) {
+                fanDengConsumeResponseBaseResponse = externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
+                        .deductCode(exceptionOfTradePoints.getDeductCode()).build());
+            }
+            //调用樊登知豆扣除
+            else if (exceptionOfTradePoints.getType() != null && exceptionOfTradePoints.getType() == 2) {
+                fanDengConsumeResponseBaseResponse = externalProvider.knowledgeDeduct(FanDengPointDeductRequest.builder()
+                        .deductCode(exceptionOfTradePoints.getDeductCode()).build());
+            }
             //处理成功更新状态
             exceptionOfTradePoints.setErrorCode(fanDengConsumeResponseBaseResponse.getCode());
             exceptionOfTradePoints.setErrorDesc(fanDengConsumeResponseBaseResponse.getMessage());

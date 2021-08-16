@@ -2,18 +2,23 @@ package com.wanmi.sbc.order.api.request.exceptionoftradepoints;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.base.BaseRequest;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.order.bean.enums.HandleStatus;
-import lombok.*;
-import javax.validation.constraints.*;
-import javax.validation.constraints.NotBlank;
-import org.hibernate.validator.constraints.*;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
@@ -35,7 +40,10 @@ public class ExceptionOfTradePointsAddRequest extends BaseRequest {
 	 */
 	@ApiModelProperty(value = "主键")
 	private String id;
-
+	/**
+	 * 类型
+	 */
+	private Integer type = 1;
 	/**
 	 * 订单id
 	 */

@@ -3,15 +3,20 @@ package com.wanmi.sbc.order.exceptionoftradepoints.model.root;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.order.bean.enums.HandleStatus;
 import lombok.Data;
-import javax.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -41,6 +46,13 @@ public class ExceptionOfTradePoints implements Serializable {
 	 */
 	@Column(name = "trade_id")
 	private String tradeId;
+
+
+	/**
+	 * 类型
+	 */
+	private Integer type;
+
 
 	/**
 	 * 使用积分

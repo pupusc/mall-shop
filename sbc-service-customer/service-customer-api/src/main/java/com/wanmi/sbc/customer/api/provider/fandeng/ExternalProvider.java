@@ -1,11 +1,32 @@
 package com.wanmi.sbc.customer.api.provider.fandeng;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.customer.api.request.fandeng.*;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengAuthLoginRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengLoginRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyAccountFanDengRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerLoginTimeRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyPaidCustomerRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPrepositionRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengSendCodeRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengVerifyRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.MaterialCheckRequest;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.*;
-import com.wanmi.sbc.customer.api.response.loginregister.CustomerLoginResponse;
-import org.checkerframework.checker.units.qual.C;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengLockResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengPointResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengPrepositionResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengSengCodeResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengVerifyResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.MaterialCheckResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -90,6 +111,17 @@ public interface ExternalProvider {
     BaseResponse<FanDengLockResponse> pointLock(@RequestBody @Valid FanDengPointLockRequest request);
 
     /**
+     * 樊登知豆锁定接口
+     *
+     * @author tianzhengxin
+     * @param request
+     * @return  {@link FanDengPointLockRequest}
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/knowledge-lock")
+    BaseResponse<FanDengLockResponse> knowledgeLock(@RequestBody @Valid FanDengKnowledgeLockRequest request);
+
+
+    /**
      * 樊登扣除积分接口
      *
      * @author tianzhengxin
@@ -98,6 +130,17 @@ public interface ExternalProvider {
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/point-deduct")
     BaseResponse<FanDengConsumeResponse> pointDeduct(@RequestBody @Valid FanDengPointDeductRequest request);
+
+    /**
+     * 樊登扣除知豆接口
+     *
+     * @author tianzhengxin
+     * @param request
+     * @return  {@link FanDengPointDeductRequest}
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/knowledge-deduct")
+    BaseResponse<FanDengConsumeResponse> knowledgeDeduct(@RequestBody @Valid FanDengPointDeductRequest request);
+
 
     /**
      * 樊登冻结积分返还积分接口
@@ -109,6 +152,15 @@ public interface ExternalProvider {
     @PostMapping("/customer/${application.customer.version}/fan-deng/point-cancel")
     BaseResponse<FanDengConsumeResponse> pointCancel(@RequestBody @Valid FanDengPointCancelRequest request);
 
+    /**
+     * 樊登冻结知豆返还知豆接口
+     *
+     * @author tianzhengxin
+     * @param request
+     * @return  {@link FanDengPointCancelRequest}
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/knowledge-cancel")
+    BaseResponse<FanDengConsumeResponse> knowledgeCancel(@RequestBody @Valid FanDengPointCancelRequest request);
 
     /**
      * 退单积分退还接口
@@ -119,6 +171,15 @@ public interface ExternalProvider {
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/point-refund")
     BaseResponse<FanDengConsumeResponse> pointRefund(@RequestBody @Valid FanDengPointRefundRequest request);
+    /**
+     * 退单知豆退还接口
+     *
+     * @author tianzhengxin
+     * @param request
+     * @return  {@link FanDengPointRefundRequest}
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/knowledge-refund")
+    BaseResponse<FanDengConsumeResponse> knowledgeRefund(@RequestBody @Valid FanDengKnowledgeRefundRequest request);
 
     /**
      * 获取樊登素材审核接口 跟签名参数

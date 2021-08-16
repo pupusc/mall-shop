@@ -38,6 +38,11 @@ public class ExceptionOfTradePointsPageRequest extends BaseQueryRequest {
 	 */
 	@ApiModelProperty(value = "异常标识ID")
 	private String id;
+	/**
+	 * 类型
+	 */
+	private Integer type = 1;
+
 
 	/**
 	 * 订单id
