@@ -28,8 +28,16 @@ public enum QueryPayType {
     POINT_ONLINE,
 
     @ApiEnumProperty("积分+余额支付")
-    POINT_BALANCE;
+    POINT_BALANCE,
 
+    @ApiEnumProperty("纯知豆支付")
+    KNOWLEDGE,
+
+    @ApiEnumProperty("知豆+在线支付")
+    KNOWLEDGE_ONLINE,
+
+    @ApiEnumProperty("知豆+余额支付")
+    KNOWLEDGE_BALANCE;
     @JsonCreator
     public QueryPayType fromValue(int value) {
         return values()[value];

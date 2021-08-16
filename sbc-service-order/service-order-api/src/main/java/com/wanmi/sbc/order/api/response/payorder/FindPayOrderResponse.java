@@ -109,6 +109,10 @@ public class FindPayOrderResponse implements Serializable {
      * 支付单积分
      */
     private Long payOrderPoints;
+    /**
+     * 支付单积分
+     */
+    private Long payOrderKnowledge;
 
     /**
      * 应付金额

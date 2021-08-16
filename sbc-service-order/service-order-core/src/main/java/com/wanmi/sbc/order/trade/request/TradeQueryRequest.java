@@ -709,6 +709,23 @@ public class TradeQueryRequest extends BaseQueryRequest {
                     criterias.add(Criteria.where("tradePrice.points").gt(0));
                     criterias.add(Criteria.where("tradePrice.totalPrice").gt("0.00"));
                     break;
+                case KNOWLEDGE:
+                    //纯积分支付
+                    criterias.add(Criteria.where("tradePrice.knowledge").gt(0)
+                            .orOperator(Criteria.where("tradePrice.totalPrice").exists(false), Criteria.where("tradePrice.totalPrice").lte("0.00")));
+                    break;
+                case KNOWLEDGE_ONLINE:
+                    //线上支付，非余额支付
+                    criterias.add(Criteria.where("payInfo.payTypeId").is(String.valueOf(PayType.ONLINE.toValue()))
+                            .orOperator(Criteria.where("payWay").exists(false), Criteria.where("payWay").ne(PayWay.BALANCE)));
+                    criterias.add(Criteria.where("tradePrice.knowledge").gt(0));
+                    criterias.add(Criteria.where("tradePrice.totalPrice").gt("0.00"));
+                    break;
+                case KNOWLEDGE_BALANCE:
+                    criterias.add(Criteria.where("payWay").is(PayWay.BALANCE));
+                    criterias.add(Criteria.where("tradePrice.knowledge").gt(0));
+                    criterias.add(Criteria.where("tradePrice.totalPrice").gt("0.00"));
+                    break;
             }
         }
 

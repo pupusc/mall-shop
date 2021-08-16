@@ -122,8 +122,9 @@ public class PayOrderService {
         }
         payOrder.setPayOrderPrice(payOrderGenerateRequest.getPayOrderPrice());
         payOrder.setPayOrderPoints(payOrderGenerateRequest.getPayOrderPoints());
+        payOrder.setPayOrderKnowledge(payOrderGenerateRequest.getPayOrderKnowledge());
         payOrder.setPayType(payOrderGenerateRequest.getPayType());
-
+        payOrder.setPayOrderKnowledge(payOrderGenerateRequest.getPayOrderKnowledge());
         if (OrderType.POINTS_ORDER.equals(payOrderGenerateRequest.getOrderType())) {
             payOrderRepository.saveAndFlush(payOrder);
             // 积分订单生成收款单
