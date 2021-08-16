@@ -3,7 +3,6 @@ package com.wanmi.sbc.order.trade.model.root;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
