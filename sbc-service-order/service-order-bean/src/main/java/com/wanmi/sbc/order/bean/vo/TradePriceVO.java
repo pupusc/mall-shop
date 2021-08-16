@@ -97,7 +97,10 @@ public class TradePriceVO implements Serializable {
      * 知豆价值
      */
     private BigDecimal knowledgeWorth;
-
+    /**
+     * 购买知豆
+     */
+    private Long buyKnowledge;
 
     /**
      * 是否特价单

@@ -2981,6 +2981,7 @@ public class TradeBaseController {
         payOrderResponse.setStoreName(trade.getSupplier().getStoreName());
         payOrderResponse.setIsSelf(trade.getSupplier().getIsSelf());
         payOrderResponse.setBuyPoints(trade.getTradePrice().getBuyPoints());
+        payOrderResponse.setBuyKnowledge(trade.getTradePrice().getBuyKnowledge());
         // 订单流程状态
         payOrderResponse.setFlowState(trade.getTradeState().getFlowState());
         return BaseResponse.success(payOrderResponse);

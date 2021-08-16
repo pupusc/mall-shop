@@ -110,7 +110,7 @@ public class FindPayOrderResponse implements Serializable {
      */
     private Long payOrderPoints;
     /**
-     * 支付单积分
+     * 支付单知豆
      */
     private Long payOrderKnowledge;
 
@@ -178,6 +178,11 @@ public class FindPayOrderResponse implements Serializable {
      */
     @ApiModelProperty(value = "应付积分")
     private Long buyPoints;
+    /**
+     * 应付知豆
+     */
+    @ApiModelProperty(value = "应付知豆")
+    private Long buyKnowledge;
 
     /**
      * 流程状态
