@@ -3090,6 +3090,7 @@ public class TradeService {
                         trade.getBuyer().getId(),
                         trade.getTradePrice().getTailPrice(),
                         trade.getTradePrice().getPoints(),
+                        trade.getTradePrice().getKnowledge(),
                         PayType.valueOf(trade.getPayInfo().getPayTypeName()),
                         trade.getSupplier().getSupplierId(),
                         trade.getTradeState().getCreateTime(),
@@ -3461,6 +3462,7 @@ public class TradeService {
                             trade.getBuyer().getId(),
                             trade.getTradePrice().getTotalPrice(),
                             trade.getTradePrice().getPoints(),
+                            trade.getTradePrice().getKnowledge(),
                             PayType.valueOf(trade.getPayInfo().getPayTypeName()),
                             trade.getSupplier().getSupplierId(),
                             trade.getTradeState().getCreateTime(),
@@ -3907,6 +3909,7 @@ public class TradeService {
                                 && StringUtils.isEmpty(trade.getTailOrderNo()) ?
                                 trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice(),
                         trade.getTradePrice().getPoints(),
+                        trade.getTradePrice().getKnowledge(),
                         PayType.valueOf(trade.getPayInfo().getPayTypeName()),
                         trade.getSupplier().getSupplierId(),
                         trade.getTradeState().getCreateTime(),

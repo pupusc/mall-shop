@@ -103,6 +103,12 @@ public class PayOrder implements Serializable{
     @Column(name= "pay_order_points")
     private Long payOrderPoints;
 
+    /**
+     * 支付单积分
+     */
+    @Column(name= "pay_order_knowledge")
+    private Long payOrderKnowledge;
+
     @OneToOne(mappedBy = "payOrder")
     @JsonManagedReference
     private Receivable receivable;

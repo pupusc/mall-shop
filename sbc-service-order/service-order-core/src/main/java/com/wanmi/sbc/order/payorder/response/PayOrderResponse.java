@@ -93,6 +93,12 @@ public class PayOrderResponse implements Serializable{
      */
     private Long payOrderPoints;
 
+
+    /**
+     * 支付单知豆
+     */
+    private Long payOrderKnowledge;
+
     /**
      * 应付金额
      */

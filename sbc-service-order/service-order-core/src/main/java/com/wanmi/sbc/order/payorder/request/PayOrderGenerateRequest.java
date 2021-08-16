@@ -41,6 +41,11 @@ public class PayOrderGenerateRequest {
     private Long payOrderPoints;
 
     /**
+     * 知豆数
+     */
+    private Long payOrderKnowledge;
+
+    /**
      * 支付类型
      */
     private PayType payType;
