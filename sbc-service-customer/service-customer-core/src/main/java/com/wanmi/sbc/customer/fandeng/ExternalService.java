@@ -69,6 +69,14 @@ public class ExternalService {
     private String appid;
     @Value("${fandeng.appsecret}")
     private String appsecret;
+
+    //@Value("${fandeng.host}")
+    private String host1 = "https://open-platform.dushu365.com";
+    //@Value("${fandeng.appid}")
+    private String appid1 = "fdb30e72d96f5bd426";
+    //@Value("${fandeng.appsecret}")
+    private String appsecret1 ="b44a84a40abee673723b4cda5871c6d3d3dcbd1c";
+
     @Autowired
     private RedisService redisService;
     @Autowired
@@ -577,7 +585,7 @@ public class ExternalService {
 
     public BaseResponse<FanDengLockResponse> knowledgeLock(@Valid FanDengKnowledgeLockRequest request) {
         String body = JSON.toJSONString(request);
-        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_URL + PARAMETER, body),
+        String result = getUrl1(jointUrl1(KNOWLEDGE_LOCK_URL + PARAMETER, body),
                 body);
         FanDengLockResponse response =
                 (FanDengLockResponse) exchange(result, FanDengLockResponse.class);
@@ -596,7 +604,7 @@ public class ExternalService {
     }
     public BaseResponse<FanDengConsumeResponse> knowledgeDeduct(@Valid FanDengPointDeductRequest request) {
         String body = JSON.toJSONString(request);
-        String result = getUrl(jointUrl(KNOWLEDGE_DEDUCT_URL + PARAMETER, body),
+        String result = getUrl1(jointUrl1(KNOWLEDGE_DEDUCT_URL + PARAMETER, body),
                 body);
         FanDengConsumeResponse response =
                 (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
@@ -615,7 +623,7 @@ public class ExternalService {
     }
     public BaseResponse<FanDengConsumeResponse> knowledgeCancel(@Valid FanDengPointCancelRequest request) {
         String body = JSON.toJSONString(request);
-        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_FALLBACK_URL + PARAMETER, body),
+        String result = getUrl1(jointUrl1(KNOWLEDGE_LOCK_FALLBACK_URL + PARAMETER, body),
                 body);
         FanDengConsumeResponse response =
                 (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
@@ -658,6 +666,24 @@ public class ExternalService {
     private String getUrl(String url, String body) {
         try {
             HttpResponse httpResponse = HttpUtils.doPost(host,
+                    url, getMap(), null, body);
+            log.info("樊登请求接口直接返回：{}", httpResponse);
+            log.info("樊登请求接口：{},请求参数{}", url, body);
+            if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
+//                log.info("请求接口：{},请求参数：{}", host + url, body);
+                String entity = EntityUtils.toString(httpResponse.getEntity());
+                log.info("樊登请求接口：{},请求参数{},返回状态：{}", url, body, entity);
+                return entity;
+            }
+        } catch (Exception e) {
+            log.error("樊登接口调用异常：{}", e);
+        }
+        throw new SbcRuntimeException("K-120801", "樊登接口异常");
+    }
+
+    private String getUrl1(String url, String body) {
+        try {
+            HttpResponse httpResponse = HttpUtils.doPost(host1,
                     url, getMap(), null, body);
             log.info("樊登请求接口直接返回：{}", httpResponse);
             log.info("樊登请求接口：{},请求参数{}", url, body);
@@ -723,7 +749,17 @@ public class ExternalService {
 
         return null;
     }
+    private String jointUrl1(String url, String body) {
+        try {
+            String encryptSHA1 = SHAUtils.encryptSHA1(body + appid1, appsecret1);
+            String realUrl = StringFormatter.format(url, appid1, encryptSHA1, getAccessToken()).get();
+            return realUrl;
+        } catch (Exception e) {
+            log.error("拼接加密参数:{}", e);
+        }
 
+        return null;
+    }
     /**
      * 获取请求头参数
      *
