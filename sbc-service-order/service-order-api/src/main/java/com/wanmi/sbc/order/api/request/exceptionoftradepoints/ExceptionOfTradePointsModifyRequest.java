@@ -43,6 +43,11 @@ public class ExceptionOfTradePointsModifyRequest extends BaseRequest {
 	@NotBlank
 	@Length(max=32)
 	private String tradeId;
+	/**
+	 * 类型
+	 */
+	private Integer type = 1;
+
 
 	/**
 	 * 使用积分

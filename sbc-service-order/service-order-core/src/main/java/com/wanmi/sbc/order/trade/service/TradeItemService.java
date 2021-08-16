@@ -581,8 +581,8 @@ public class TradeItemService {
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
             if (i == size - 1) {
-                tradeItem.setPointsPrice(knowledgePriceTotal.subtract(splitPriceTotal));
-                tradeItem.setPoints(knowledgeTotal - splitKnowledgeTotal);
+                tradeItem.setKnowledgePrice(knowledgePriceTotal.subtract(splitPriceTotal));
+                tradeItem.setKnowledge(knowledgeTotal - splitKnowledgeTotal);
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
                 tradeItem.setPointsPrice(

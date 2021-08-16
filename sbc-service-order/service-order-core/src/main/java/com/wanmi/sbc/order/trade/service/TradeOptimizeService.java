@@ -303,13 +303,19 @@ public class TradeOptimizeService {
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {
-                if (StringUtils.isNotBlank(trade.getDeductCode())){
-                    log.error("提交订单异常补偿取消订单积分对象：{}",trade);
-                    //释放积分接口
-                    externalProvider.pointCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
-                            .desc("订单提交异常返还(退单号:"+trade.getId()+")").build());
+                if (StringUtils.isNotBlank(trade.getDeductCode())) {
+                    log.error("提交订单异常补偿取消订单积分对象：{}", trade);
+                    if (tradeCommitRequest.getPoints() != null && tradeCommitRequest.getPoints() > 0) {
+                        //释放积分接口
+                        externalProvider.pointCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
+                                .desc("订单提交异常返还(退单号:" + trade.getId() + ")").build());
+                    }
                     //释放知豆接口
-                    // todo
+                    if (tradeCommitRequest.getKnowledge() != null && tradeCommitRequest.getKnowledge() > 0) {
+                        //释放积分接口
+                        externalProvider.knowledgeCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
+                                .desc("订单提交异常返还(退单号:" + trade.getId() + ")").build());
+                    }
                 }
             }
             throw  new SbcRuntimeException("K-000001");

@@ -61,6 +61,7 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
 import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerListForOrderCommitRequest;
 import com.wanmi.sbc.customer.api.request.email.NoDeleteCustomerEmailListByCustomerIdRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
@@ -1524,14 +1525,21 @@ public class TradeService {
             throw new SbcRuntimeException("K-000018");
         }
         final BigDecimal knowledgeWorth = new BigDecimal(100);
-        //如果使用积分 校验可使用积分
-        //锁定知豆 todo
-
+        Trade tradeKnow = trades.get(0);
+        //锁定知豆
+        FanDengKnowledgeLockRequest knowledgeLockRequest = FanDengKnowledgeLockRequest.builder()
+                .desc("提交订单锁定(订单号:" + tradeKnow.getId() + ")")
+                .beans(tradeCommitRequest.getKnowledge())
+                .userNo(tradeCommitRequest.getCustomer().getFanDengUserNo())
+                .sourceId(tradeKnow.getId())
+                .build();
+        String deductCode = externalProvider.knowledgeLock(knowledgeLockRequest).getContext().getDeductionCode();
+        tradeKnow.setDeductCode(deductCode);
         List<TradeItem> items =
                 trades.stream().flatMap(trade -> trade.getTradeItems().stream()).collect(Collectors.toList());
 
         // 设置关联商品的积分均摊
-        BigDecimal knowledgeTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getPoints()).divide(knowledgeWorth, 2,
+        BigDecimal knowledgeTotalPrice = BigDecimal.valueOf(tradeCommitRequest.getKnowledge()).divide(knowledgeWorth, 2,
                 BigDecimal.ROUND_HALF_UP);
         tradeItemService.calcKnowledge(items, knowledgeTotalPrice, tradeCommitRequest.getKnowledge(), knowledgeWorth);
 
@@ -4535,17 +4543,31 @@ public class TradeService {
             createOrderInvoice(trade, operator);
 
             if (StringUtils.isNotBlank(trade.getDeductCode())){
+
                 //调用樊登积分扣除
                 BaseResponse<FanDengConsumeResponse> fanDengConsumeResponseBaseResponse = new BaseResponse<>();
                 ExceptionOfTradePoints exceptionOfTradePoints = exceptionOfTradePointsService.getByTradeId(trade.getId());
                 try {
-                    fanDengConsumeResponseBaseResponse = externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
-                            .deductCode(trade.getDeductCode()).build());
-                    if (Objects.nonNull(exceptionOfTradePoints)) {
-                        //处理成功更新状态
-                        exceptionOfTradePoints.setErrorCode(fanDengConsumeResponseBaseResponse.getCode());
-                        exceptionOfTradePoints.setErrorDesc(fanDengConsumeResponseBaseResponse.getMessage());
-                        exceptionOfTradePoints.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
+                    if (trade.getTradePrice().getPoints() != null && trade.getTradePrice().getPoints() > 0) {
+                        fanDengConsumeResponseBaseResponse = externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
+                                .deductCode(trade.getDeductCode()).build());
+                        if (Objects.nonNull(exceptionOfTradePoints)) {
+                            //处理成功更新状态
+                            exceptionOfTradePoints.setErrorCode(fanDengConsumeResponseBaseResponse.getCode());
+                            exceptionOfTradePoints.setErrorDesc(fanDengConsumeResponseBaseResponse.getMessage());
+                            exceptionOfTradePoints.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
+                        }
+                    }
+                    //调用樊登知豆扣除
+                    if (trade.getTradePrice().getKnowledge() != null && trade.getTradePrice().getKnowledge() > 0) {
+                        fanDengConsumeResponseBaseResponse = externalProvider.knowledgeDeduct(FanDengPointDeductRequest.builder()
+                                .deductCode(trade.getDeductCode()).build());
+                        if (Objects.nonNull(exceptionOfTradePoints)) {
+                            //处理成功更新状态
+                            exceptionOfTradePoints.setErrorCode(fanDengConsumeResponseBaseResponse.getCode());
+                            exceptionOfTradePoints.setErrorDesc(fanDengConsumeResponseBaseResponse.getMessage());
+                            exceptionOfTradePoints.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
+                        }
                     }
                 } catch (Exception e) {
                     // 保存积分订单抵扣异常信息
@@ -4559,7 +4581,14 @@ public class TradeService {
                         //新增
                         exceptionOfTradePoints = new ExceptionOfTradePoints();
                         exceptionOfTradePoints.setTradeId(trade.getId());
-                        exceptionOfTradePoints.setPoints(trade.getTradePrice().getPoints());
+                        if (trade.getTradePrice().getPoints() != null && trade.getTradePrice().getPoints() > 0) {
+                            exceptionOfTradePoints.setPoints(trade.getTradePrice().getPoints());
+                            exceptionOfTradePoints.setType(1);
+                        }
+                        if (trade.getTradePrice().getKnowledge() != null && trade.getTradePrice().getKnowledge() > 0) {
+                            exceptionOfTradePoints.setPoints(trade.getTradePrice().getKnowledge());
+                            exceptionOfTradePoints.setType(2);
+                        }
                         exceptionOfTradePoints.setErrorCode(fanDengConsumeResponseBaseResponse.getCode());
                         exceptionOfTradePoints.setErrorDesc(fanDengConsumeResponseBaseResponse.getMessage());
                         exceptionOfTradePoints.setDeductCode(trade.getDeductCode());

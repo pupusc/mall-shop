@@ -346,6 +346,15 @@ public class TradeItemVO implements Serializable, Cloneable {
     private BigDecimal pointsPrice;
 
     /**
+     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
+     */
+    private Long knowledge;
+    /**
+     * 积分兑换金额
+     */
+    private BigDecimal knowledgePrice;
+
+    /**
      * 积分商品Id
      */
     @ApiModelProperty(value = "积分商品Id")

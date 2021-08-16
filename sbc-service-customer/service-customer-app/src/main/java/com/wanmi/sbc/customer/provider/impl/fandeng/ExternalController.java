@@ -61,22 +61,35 @@ public class ExternalController implements ExternalProvider {
     public BaseResponse<FanDengLockResponse> pointLock(@Valid FanDengPointLockRequest request) {
         return externalService.pointLock(request);
     }
-
+    @Override
+    public BaseResponse<FanDengLockResponse> knowledgeLock(@Valid FanDengKnowledgeLockRequest request) {
+        return externalService.knowledgeLock(request);
+    }
     @Override
     public BaseResponse<FanDengConsumeResponse> pointDeduct(@Valid FanDengPointDeductRequest request) {
         return externalService.pointDeduct(request);
+    }
+    @Override
+    public BaseResponse<FanDengConsumeResponse> knowledgeDeduct(@Valid FanDengPointDeductRequest request) {
+        return externalService.knowledgeDeduct(request);
     }
 
     @Override
     public BaseResponse<FanDengConsumeResponse> pointCancel(@Valid FanDengPointCancelRequest request) {
         return externalService.pointCancel(request);
     }
-
+    @Override
+    public BaseResponse<FanDengConsumeResponse> knowledgeCancel(@Valid FanDengPointCancelRequest request) {
+        return externalService.knowledgeCancel(request);
+    }
     @Override
     public BaseResponse<FanDengConsumeResponse> pointRefund(@Valid FanDengPointRefundRequest request) {
         return externalService.pointRefund(request);
     }
-
+    @Override
+    public BaseResponse<FanDengConsumeResponse>knowledgeRefund(@Valid FanDengKnowledgeRefundRequest request) {
+        return externalService.knowledgeRefund(request);
+    }
     @Override
     public BaseResponse<MaterialCheckResponse> materialCheck(@Valid MaterialCheckRequest request) throws Exception {
         return externalService.materialCheck(request);

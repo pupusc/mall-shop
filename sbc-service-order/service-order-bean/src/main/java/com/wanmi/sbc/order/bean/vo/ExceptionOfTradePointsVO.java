@@ -40,6 +40,10 @@ public class ExceptionOfTradePointsVO implements Serializable {
 	 */
 	@ApiModelProperty(value = "使用积分")
 	private Long points;
+	/**
+	 * 类型
+	 */
+	private Integer type;
 
 	/**
 	 * 异常码

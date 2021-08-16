@@ -136,19 +136,36 @@ public class ExternalService {
     public static final String POINT_LOCK_URL = "/point/lock";
 
     /**
+     * 会员锁定知豆
+     */
+    public static final String KNOWLEDGE_LOCK_URL = "/lockBeans";
+
+    /**
      * 通过抵扣码扣除积分
      */
     public static final String POINT_DEDUCT_URL = "/point/deduct";
+    /**
+     * 通过抵扣码扣除知豆
+     */
+    public static final String KNOWLEDGE_DEDUCT_URL = "/deductBeans";
 
     /**
      * 会员锁定的积分返还接口
      */
     public static final String POINT_LOCK_FALLBACK_URL = "/point/lock/fallback";
+    /**
+     * 会员锁定的知豆返还接口
+     */
+    public static final String KNOWLEDGE_LOCK_FALLBACK_URL = "/fallbackLockBeans";
 
     /**
      * 用户退积分
      */
     public static final String POINT_FALLBACK_URL = "/point/fallback";
+    /**
+     * 用户退知豆
+     */
+    public static final String KNOWLEDGE_FALLBACK_URL = "/fallbackBeans";
 
     /**
      * 用户退积分
@@ -558,9 +575,28 @@ public class ExternalService {
         return BaseResponse.success(response);
     }
 
+    public BaseResponse<FanDengLockResponse> knowledgeLock(@Valid FanDengKnowledgeLockRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_URL + PARAMETER, body),
+                body);
+        FanDengLockResponse response =
+                (FanDengLockResponse) exchange(result, FanDengLockResponse.class);
+
+        return BaseResponse.success(response);
+    }
+
     public BaseResponse<FanDengConsumeResponse> pointDeduct(@Valid FanDengPointDeductRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(POINT_DEDUCT_URL + PARAMETER, body),
+                body);
+        FanDengConsumeResponse response =
+                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
+
+        return BaseResponse.success(response);
+    }
+    public BaseResponse<FanDengConsumeResponse> knowledgeDeduct(@Valid FanDengPointDeductRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_DEDUCT_URL + PARAMETER, body),
                 body);
         FanDengConsumeResponse response =
                 (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
@@ -577,10 +613,28 @@ public class ExternalService {
 
         return BaseResponse.success(response);
     }
+    public BaseResponse<FanDengConsumeResponse> knowledgeCancel(@Valid FanDengPointCancelRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_FALLBACK_URL + PARAMETER, body),
+                body);
+        FanDengConsumeResponse response =
+                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
+
+        return BaseResponse.success(response);
+    }
 
     public BaseResponse<FanDengConsumeResponse> pointRefund(@Valid FanDengPointRefundRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(POINT_FALLBACK_URL + PARAMETER, body),
+                body);
+        FanDengConsumeResponse response =
+                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
+
+        return BaseResponse.success(response);
+    }
+    public BaseResponse<FanDengConsumeResponse> knowledgeRefund(@Valid FanDengKnowledgeRefundRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_FALLBACK_URL + PARAMETER, body),
                 body);
         FanDengConsumeResponse response =
                 (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
