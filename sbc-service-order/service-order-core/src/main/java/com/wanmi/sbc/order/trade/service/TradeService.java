@@ -1531,7 +1531,7 @@ public class TradeService {
                 .desc("提交订单锁定(订单号:" + tradeKnow.getId() + ")")
                 .beans(tradeCommitRequest.getKnowledge())
                 .userNo(tradeCommitRequest.getCustomer().getFanDengUserNo())
-                .sourceId(tradeKnow.getId().substring(1))
+                .sourceId(tradeKnow.getId())
                 .build();
         String deductCode = externalProvider.knowledgeLock(knowledgeLockRequest).getContext().getDeductionCode();
         tradeKnow.setDeductCode(deductCode);
