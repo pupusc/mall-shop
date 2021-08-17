@@ -80,6 +80,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     private Integer addedFlag;
 
     /**
+     * 是否固定显示
+     */
+    @ApiModelProperty(value = "是否固定显示")
+    private Boolean isFix = false;
+
+    /**
      * 可售状态
      */
     @ApiModelProperty(value = "可售状态")

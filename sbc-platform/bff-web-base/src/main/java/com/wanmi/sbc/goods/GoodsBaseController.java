@@ -13,11 +13,13 @@ import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.constants.WebBaseErrorCode;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelWithDefaultByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.response.distribution.DistributorLevelByCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelWithDefaultByCustomerIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
@@ -124,6 +126,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -238,7 +241,10 @@ public class GoodsBaseController {
 
     public static final String CYCLE_BUY = "周期购";
 
-
+    @Autowired
+    private CustomerProvider customerProvider;
+    @Value("${know.ordinary.good.ids}")
+    private String goodIds;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -248,6 +254,14 @@ public class GoodsBaseController {
     @ApiOperation(value = "商品分页")
     @RequestMapping(value = "/spus", method = RequestMethod.POST)
     public BaseResponse<EsGoodsResponse> goodslist(@RequestBody EsGoodsInfoQueryRequest queryRequest) {
+        CustomerVO customerVO = commonUtil.getCustomer();
+        if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
+            queryRequest.setCpsSpecial(0);
+        }
+        CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
+        if (Objects.isNull(counselorDto)) {
+            queryRequest.setCpsSpecial(0);
+        }
         return BaseResponse.success(list(queryRequest, commonUtil.getCustomer()));
     }
 
@@ -260,6 +274,7 @@ public class GoodsBaseController {
     @ApiOperation(value = "未登录时,查询商品分页")
     @RequestMapping(value = "/spuListFront", method = RequestMethod.POST)
     public BaseResponse<EsGoodsResponse> spuListFront(@RequestBody EsGoodsInfoQueryRequest queryRequest) {
+        queryRequest.setCpsSpecial(0);
         EsGoodsResponse response = list(queryRequest, null);
         if (CollectionUtils.isNotEmpty(response.getEsGoods().getContent())) {
             Map<String, List<EsGoodsInfoDTO>> buyCountMap =
@@ -406,6 +421,9 @@ public class GoodsBaseController {
      * @return spu商品封装数据
      */
     private EsGoodsResponse list(EsGoodsInfoQueryRequest queryRequest, CustomerVO customer) {
+        if (queryRequest.getIsFix()) {
+            queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
+        }
         if (Objects.nonNull(queryRequest.getMarketingId())) {
             MarketingGetByIdRequest marketingGetByIdRequest = new MarketingGetByIdRequest();
             marketingGetByIdRequest.setMarketingId(queryRequest.getMarketingId());
