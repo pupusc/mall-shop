@@ -70,11 +70,10 @@ public class ExternalService {
     @Value("${fandeng.appsecret}")
     private String appsecret;
 
-    //@Value("${fandeng.host}")
-    private String host1 = "https://open-platform.dushu365.com";
-    //@Value("${fandeng.appid}")
+    private String host1 = "https://gateway-api.dushu365.com";
+
     private String appid1 = "fdb30e72d96f5bd426";
-    //@Value("${fandeng.appsecret}")
+
     private String appsecret1 ="b44a84a40abee673723b4cda5871c6d3d3dcbd1c";
 
     @Autowired
@@ -146,7 +145,7 @@ public class ExternalService {
     /**
      * 会员锁定知豆
      */
-    public static final String KNOWLEDGE_LOCK_URL = "/lockBeans";
+    public static final String KNOWLEDGE_LOCK_URL = "/cps-orch/open/store/v100/lockBeans";
 
     /**
      * 通过抵扣码扣除积分
@@ -155,7 +154,7 @@ public class ExternalService {
     /**
      * 通过抵扣码扣除知豆
      */
-    public static final String KNOWLEDGE_DEDUCT_URL = "/deductBeans";
+    public static final String KNOWLEDGE_DEDUCT_URL = "/cps-orch/open/store/v100/deductBeans";
 
     /**
      * 会员锁定的积分返还接口
