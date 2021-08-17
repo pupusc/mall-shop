@@ -14,7 +14,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
-import com.wanmi.sbc.customer.api.provider.detail.CustomerDetailQueryProvider;
+import com.wanmi.sbc.customer.api.provider.detail .CustomerDetailQueryProvider;
 import com.wanmi.sbc.customer.api.provider.distribution.DistributionCustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
