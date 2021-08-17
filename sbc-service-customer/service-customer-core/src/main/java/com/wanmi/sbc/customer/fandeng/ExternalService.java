@@ -138,7 +138,7 @@ public class ExternalService {
     /**
      * 会员锁定知豆
      */
-    public static final String KNOWLEDGE_LOCK_URL = "/cps-orch/open/store/v100/lockBeans";
+    public static final String KNOWLEDGE_LOCK_URL = "/lockBeans";
 
     /**
      * 通过抵扣码扣除积分
@@ -147,7 +147,7 @@ public class ExternalService {
     /**
      * 通过抵扣码扣除知豆
      */
-    public static final String KNOWLEDGE_DEDUCT_URL = "/cps-orch/open/store/v100/deductBeans";
+    public static final String KNOWLEDGE_DEDUCT_URL = "/deductBeans";
 
     /**
      * 会员锁定的积分返还接口
