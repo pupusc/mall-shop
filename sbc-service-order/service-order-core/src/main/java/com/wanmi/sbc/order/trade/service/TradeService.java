@@ -6899,13 +6899,27 @@ public class TradeService {
                     }
                     payCallBackResultService.updateStatus(out_trade_no, PayCallBackResultStatus.SUCCESS);
                     // 判断订单类型是否是 全款销售 或 定金销售
-                    Trade trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
-                    if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
-                        log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
-                    }else {
-                        log.info("ali支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
-                        //推送ERP订单
-                        this.pushTradeToErp(out_trade_no);
+//                    Trade trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
+//                    if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
+//                        log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
+//                    }else {
+//                        log.info("ali支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
+//                        //推送ERP订单
+//                        this.pushTradeToErp(out_trade_no);
+//                    }
+                    //当前只有 定金销售的情况下才有 tailOrderNo 数据, 所以此处分步处理
+                    List<Trade> tradeList = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build());
+                    log.info(" ali支付回调处理=======> 根据尾款订单号 tailOrderNo ：{} 查询结果为：{}", out_trade_no, JSONObject.toJSONString(tradeList));
+                    Trade trade = CollectionUtils.isEmpty(tradeList) ? null : tradeList.get(0);
+                    //TODO duanlsh 如果 trade为null 怎么处理
+                    if (trade != null) {
+                        if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
+                            log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
+                        }else {
+                            log.info("ali支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
+                            //推送ERP订单
+                            this.pushTradeToErp(out_trade_no);
+                        }
                     }
 
                 } finally {
