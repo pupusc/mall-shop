@@ -593,6 +593,10 @@ public class GoodsBaseController {
                         goodsInfoVO.setGoodsEvaluateNum(esGoods.getGoodsEvaluateNum());
                         GoodsInfoNestVO goodsInfoNest = KsBeanUtil.convert(goodsInfoVO, GoodsInfoNestVO.class);
                         goodsInfoNest.setVendibilityStatus(goodsInfoVO.getVendibility());
+                        //知识顾问商品不显示优惠
+                        if (esGoods.getCpsSpecial() == 1) {
+                            goodsInfoNest.setSalePrice(goodsInfoNest.getMarketPrice());
+                        }
                         resultGoodsInfos.add(goodsInfoNest);
                     });
                     //设置企业商品的审核状态
@@ -644,11 +648,21 @@ public class GoodsBaseController {
      * fullMarketing
      */
     private GoodsViewByIdResponse detail(String skuId, CustomerVO customer, Boolean fullMarketing) {
+
         String customerId = null;
         if (Objects.nonNull(customer) && StringUtils.isNotBlank(customer.getCustomerId())) {
             customerId = customer.getCustomerId();
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(skuId, customerId);
+        if (response.getGoods().getCpsSpecial() == 1) {
+            if (StringUtils.isEmpty(customer.getFanDengUserNo())) {
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
+            if (Objects.isNull(counselorDto)) {
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+        }
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos().stream()
                 .filter(g -> {
                     if (Objects.isNull(g.getProviderId())) {
@@ -668,10 +682,16 @@ public class GoodsBaseController {
         List<GoodsLevelPriceVO> goodsLevelPrices = this.getGoodsLevelPrices(response.getGoodsInfos().stream()
                 .map(GoodsInfoVO::getGoodsInfoId)
                 .collect(Collectors.toList()), customer);
+        final GoodsVO goodsVO = response.getGoods();
         List<GoodsInfoVO> goodsInfos = response.getGoodsInfos().stream().map(goodsinfo -> {
             BigDecimal marketPrice = goodsinfo.getMarketPrice();
             marketPrice = marketPrice.setScale(2, BigDecimal.ROUND_HALF_UP);
             goodsinfo.setMarketPrice(marketPrice);
+            //知识顾问专属商品没有其他优惠
+            if (goodsVO.getCpsSpecial() == 1) {
+                goodsinfo.setSalePrice(marketPrice);
+                goodsinfo.setPaidCardPrice(marketPrice);
+            }
             if (Objects.nonNull(goodsinfo.getAppointmentSaleVO()) && CollectionUtils.isNotEmpty(goodsinfo.getAppointmentSaleVO().getAppointmentSaleGoods())) {
                 List<AppointmentSaleGoodsVO> appointmentSaleGoods = goodsinfo.getAppointmentSaleVO().getAppointmentSaleGoods().stream().map(good -> {
                     BigDecimal price = good.getPrice();

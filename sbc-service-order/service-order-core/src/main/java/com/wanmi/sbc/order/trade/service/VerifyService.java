@@ -479,11 +479,17 @@ public class VerifyService {
                 GoodsIntervalPriceVO goodsIntervalPrice = first.get();
                 tradeItem.setLevelPrice(goodsIntervalPrice.getPrice());
                 tradeItem.setOriginalPrice(goodsInfo.getMarketPrice());
+                if (goods.getCpsSpecial() == 1) {
+                    tradeItem.setLevelPrice(goodsInfo.getMarketPrice());
+                }
                 //判断是否为秒杀抢购商品
                 if (!(Objects.nonNull(tradeItem.getIsFlashSaleGoods()) && tradeItem.getIsFlashSaleGoods())
                         && !(Objects.nonNull(tradeItem.getIsAppointmentSaleGoods()) && tradeItem.getIsAppointmentSaleGoods())
                         && !(Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods())) {
                     tradeItem.setPrice(goodsIntervalPrice.getPrice());
+                    if (goods.getCpsSpecial() == 1) {
+                        tradeItem.setPrice(goodsInfo.getMarketPrice());
+                    }
                     tradeItem.setSplitPrice(tradeItem.getLevelPrice().multiply(
                             new BigDecimal(tradeItem.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP)
                     );
@@ -491,17 +497,27 @@ public class VerifyService {
                     tradeItem.setSplitPrice(tradeItem.getPrice().multiply(
                             new BigDecimal(tradeItem.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }
+
                 return;
             }
         }
-        tradeItem.setLevelPrice(goodsInfo.getSalePrice());
-        tradeItem.setOriginalPrice(goodsInfo.getMarketPrice() == null ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
+        if (goods.getCpsSpecial() == 1) {
+            tradeItem.setLevelPrice(goodsInfo.getMarketPrice());
+            tradeItem.setOriginalPrice(goodsInfo.getMarketPrice() == null ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
+        } else {
+            tradeItem.setLevelPrice(goodsInfo.getSalePrice());
+            tradeItem.setOriginalPrice(goodsInfo.getMarketPrice() == null ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
+        }
         //判断是否为秒杀抢购商品
         if (!(Objects.nonNull(tradeItem.getIsFlashSaleGoods()) && tradeItem.getIsFlashSaleGoods())
                 && !(Objects.nonNull(tradeItem.getIsAppointmentSaleGoods()) && tradeItem.getIsAppointmentSaleGoods())
                 // 全款预售指定预售价、定金预售价格以市场价计算
                 && !(Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods())) {
-            tradeItem.setPrice(goodsInfo.getSalePrice());
+            if (goods.getCpsSpecial() == 1) {
+                tradeItem.setPrice(goodsInfo.getMarketPrice());
+            } else {
+                tradeItem.setPrice(goodsInfo.getSalePrice());
+            }
             tradeItem.setSplitPrice(tradeItem.getLevelPrice().multiply(
                     new BigDecimal(tradeItem.getNum())).setScale(2, BigDecimal.ROUND_HALF_UP)
             );
