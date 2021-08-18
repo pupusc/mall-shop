@@ -598,8 +598,8 @@ public class ExternalService {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(KNOWLEDGE_DEDUCT_URL + PARAMETER, body),
                 body);
-        FanDengConsumeResponse response =
-                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
+        FanDengConsumeResponse response = new FanDengConsumeResponse();
+        response.setSuccFlag(exchangeBoolean(result));
 
         return BaseResponse.success(response);
     }
@@ -617,9 +617,8 @@ public class ExternalService {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(KNOWLEDGE_LOCK_FALLBACK_URL + PARAMETER, body),
                 body);
-        FanDengConsumeResponse response =
-                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
-
+        FanDengConsumeResponse response = new FanDengConsumeResponse();
+        response.setSuccFlag(exchangeBoolean(result));
         return BaseResponse.success(response);
     }
 
@@ -636,9 +635,8 @@ public class ExternalService {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(KNOWLEDGE_FALLBACK_URL + PARAMETER, body),
                 body);
-        FanDengConsumeResponse response =
-                (FanDengConsumeResponse) exchange(result, FanDengConsumeResponse.class);
-
+        FanDengConsumeResponse response = new FanDengConsumeResponse();
+        response.setSuccFlag(exchangeBoolean(result));
         return BaseResponse.success(response);
     }
 
@@ -749,6 +747,23 @@ public class ExternalService {
             JSONObject data = (JSONObject) object.get("data");
             Object parseObject = JSON.parseObject(data.toString(), t);
             return parseObject;
+        }
+        throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
+    }
+
+    /**
+     * 转换成返回对象
+     *
+     * @param body
+     * @param t
+     * @return
+     */
+    private Boolean exchangeBoolean(String body) {
+        JSONObject object = JSONObject.parseObject(body);
+        String code = (String) object.get("status");
+        if (code == null || (code != null && code.equals("0000"))) {
+            Boolean data = (Boolean) object.get("data");
+            return data;
         }
         throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
     }
