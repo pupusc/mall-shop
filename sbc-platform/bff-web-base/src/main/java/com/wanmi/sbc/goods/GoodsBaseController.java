@@ -770,6 +770,15 @@ public class GoodsBaseController {
             filterRequest.setIsIndependent(Boolean.TRUE);
             response.setGoodsInfos(marketingPluginProvider.goodsListFilter(filterRequest).getContext()
                     .getGoodsInfoVOList());
+            response.getGoodsInfos().stream().forEach(
+                    goodsInfoVO -> {
+                        //知识顾问专属商品没有其他优惠
+                        if (response.getGoods().getCpsSpecial() == 1) {
+                            goodsInfoVO.setPaidCardPrice(goodsInfoVO.getMarketPrice());
+                        }
+                    }
+
+            );
         }
         return response;
     }
