@@ -775,6 +775,7 @@ public class GoodsBaseController {
                         //知识顾问专属商品没有其他优惠
                         if (response.getGoods().getCpsSpecial() == 1) {
                             goodsInfoVO.setPaidCardPrice(goodsInfoVO.getMarketPrice());
+                            goodsInfoVO.setPaidCardIcon(null);
                         }
                     }
 
