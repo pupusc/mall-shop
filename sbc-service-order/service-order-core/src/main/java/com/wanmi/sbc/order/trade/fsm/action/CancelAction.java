@@ -73,10 +73,16 @@ public class CancelAction extends TradeAction {
                         .build());
             }*/
             if (StringUtils.isNotEmpty(trade.getDeductCode())){
+
                 FanDengPointCancelRequest cancelRequest =
                         FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
                                 .desc("订单取消返还(退单号:"+trade.getId()+")").build();
-                externalProvider.pointCancel(cancelRequest);
+                if (trade.getTradePrice().getPoints() != null && trade.getTradePrice().getPoints() > 0) {
+                    externalProvider.pointCancel(cancelRequest);
+                }
+                if (trade.getTradePrice().getKnowledge() != null && trade.getTradePrice().getKnowledge() > 0) {
+                    externalProvider.knowledgeCancel(cancelRequest);
+                }
             }
         }
 
