@@ -6775,7 +6775,7 @@ public class TradeService {
         });
         //微信支付异步回调添加交易数据
         payProvider.wxPayCallBack(payTradeRecordRequest);
-        //订单 支付单 操作信息
+        //        //订单 支付单 操作信息
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, isMergePay);
@@ -6899,6 +6899,7 @@ public class TradeService {
                     }
                     payCallBackResultService.updateStatus(out_trade_no, PayCallBackResultStatus.SUCCESS);
                     // 判断订单类型是否是 全款销售 或 定金销售
+
 //                    Trade trade = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build()).get(0);
 //                    if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
 //                        log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
@@ -6907,17 +6908,21 @@ public class TradeService {
 //                        //推送ERP订单
 //                        this.pushTradeToErp(out_trade_no);
 //                    }
-                    //当前只有 定金销售的情况下才有 tailOrderNo 数据, 所以此处分步处理
-                    List<Trade> tradeList = tradeService.queryAll(TradeQueryRequest.builder().tailOrderNo(out_trade_no).build());
-                    log.info(" ali支付回调处理=======> 根据尾款订单号 tailOrderNo ：{} 查询结果为：{}", out_trade_no, JSONObject.toJSONString(tradeList));
-                    Trade trade = CollectionUtils.isEmpty(tradeList) ? null : tradeList.get(0);
-                    //TODO duanlsh 如果 trade为null 怎么处理
-                    if (trade != null) {
+
+                    Trade trade = null;
+                    if (isTailPayOrder(out_trade_no)) {
+                        //如果是尾款订单号代表是订单需要推送到ERP系统进行发货
+                        log.info("ali支付回调处理======>订单号:{} 尾款订单，同步到erp", out_trade_no);
+                        this.pushTradeToErp(out_trade_no);
+                    } else if (isMergePayOrder(out_trade_no)) {
+                        log.error("ali支付回调处理======>订单号:{} 当前为合并支付，当前系统不支持合并支付；订单有误", out_trade_no);
+                    } else {
+                        trade = tradeService.detail(out_trade_no);
+                        //如果是定金预付款订单不需要推送订单到ERP系统，否则全款销售则推送订单
                         if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
-                            log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
+                            log.info("ali支付回调处理======>订单号:{},订单类型:{},订单状态：{} 不同同步到erp",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
                         }else {
                             log.info("ali支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",out_trade_no,trade.getBookingType(),trade.getTradeState().getFlowState());
-                            //推送ERP订单
                             this.pushTradeToErp(out_trade_no);
                         }
                     }
@@ -6965,6 +6970,9 @@ public class TradeService {
             payProvider.wxPayCallBack(payTradeRecordRequest);
             payCallbackOnline(trades, operator, isMergePay);
             log.info("支付回调成功,单号：{}", out_trade_no);
+        } else {
+            log.error("支付回调 out_trade_no：{}, payTradeRecord.applyPrice为：{}, 支付宝回调的金额为：{} 两个不相同，不进行交易数据变更等等，为异常数据",
+                    out_trade_no, recordResponse.getApplyPrice(), total_amount);
         }
     }
 
