@@ -7,7 +7,6 @@ import com.wanmi.sbc.customer.api.provider.points.CustomerPointsDetailSaveProvid
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.order.api.request.growthvalue.OrderGrowthValueTempQueryRequest;
-import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.growthvalue.model.root.OrderGrowthValueTemp;
