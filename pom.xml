@@ -6,23 +6,24 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>ares</module>
-        <module>perseus</module>
         <module>sbc-service-common</module>
-        <module>sbc-service-pay</module>
         <module>sbc-service-setting</module>
+        <module>sbc-service-vas</module>
+        <module>perseus</module>
+        <module>ares</module>
+        <module>sbc-service-erp</module>
         <module>sbc-service-customer</module>
         <module>sbc-service-account</module>
-        <module>sbc-service-goods</module>
-        <module>sbc-service-marketing</module>
-        <module>sbc-service-order</module>
-        <module>sbc-service-crm</module>
-        <module>sbc-service-elastic</module>
-        <module>sbc-service-message</module>
-        <module>sbc-service-vas</module>
-        <module>sbc-platform</module>
         <module>sbc-service-linkedmall</module>
-        <module>sbc-service-erp</module>
+        <module>sbc-service-goods</module>
+        <module>sbc-service-elastic</module>
+        <module>sbc-service-marketing</module>
+        <module>sbc-service-crm</module>
+        <module>sbc-service-message</module>
+        <module>sbc-service-pay</module>
+        <module>sbc-service-order</module>
+        <module>sbc-platform</module>
+
     </modules>
 
     <groupId>com.wanmi.sbc</groupId>
