@@ -6,6 +6,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>of-parent</module>
         <module>sbc-service-common</module>
         <module>wm-micro-service</module>
         <module>sbc-osd</module>
