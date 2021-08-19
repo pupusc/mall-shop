@@ -7,6 +7,7 @@
 
     <modules>
         <module>sbc-service-common</module>
+        <module>wm-micro-service</module>
         <module>sbc-service-setting</module>
         <module>sbc-service-vas</module>
         <module>perseus</module>
@@ -67,6 +68,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>dushu-RELEASES</id>
+            <name>NexusReleaseRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>dushu-SNAPSHOTS</id>
+            <name>NexusSnapshotRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 
 <!--    <repositories>-->
 <!--        <repository>-->
