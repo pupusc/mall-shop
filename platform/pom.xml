@@ -193,14 +193,16 @@
 
     <modules>
         <module>web-base</module>
-        <module>web-mobile</module>
         <module>web-pc</module>
-        <module>manager-supplier</module>
-        <module>manager-provider</module>
-        <module>manager-boss</module>
+
+        <module>service-provider</module>
+
         <module>manager-base</module>
         <module>manager-store-base</module>
         <module>datamigrate-base</module>
+        <module>service-mobile</module>
+        <module>service-supplier</module>
+        <module>service-boss</module>
     </modules>
 
 </project>

@@ -12,21 +12,21 @@
         <module>sbc-osd</module>
         <module>wx-pay-sdk</module>
 
-        <module>setting</module>
-        <module>vas</module>
-        <module>perseus</module>
-        <module>ares</module>
-        <module>erp</module>
-        <module>customer</module>
-        <module>account</module>
-        <module>linkedmall</module>
-        <module>goods</module>
-        <module>elastic</module>
-        <module>marketing</module>
-        <module>crm</module>
-        <module>message</module>
-        <module>pay</module>
-        <module>order</module>
+        <module>service-setting</module>
+        <module>service-vas</module>
+        <module>service-perseus</module>
+        <module>service-ares</module>
+        <module>service-erp</module>
+        <module>service-customer</module>
+        <module>service-account</module>
+        <module>service-linkedmall</module>
+        <module>service-goods</module>
+        <module>service-elastic</module>
+        <module>service-marketing</module>
+        <module>service-crm</module>
+        <module>service-message</module>
+        <module>service-pay</module>
+        <module>service-order</module>
         <module>platform</module>
 
     </modules>
