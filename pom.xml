@@ -9,6 +9,7 @@
         <module>sbc-service-common</module>
         <module>wm-micro-service</module>
         <module>sbc-osd</module>
+        <module>wx-pay-sdk</module>
         <module>sbc-service-setting</module>
         <module>sbc-service-vas</module>
         <module>perseus</module>
