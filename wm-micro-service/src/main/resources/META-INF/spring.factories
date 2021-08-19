@@ -1,0 +1,7 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.wanmi.ms.autoconfigure.AsyncAutoConfiguration,\
+com.wanmi.ms.autoconfigure.JwtAutoConfiguration,\
+com.wanmi.ms.autoconfigure.LoggingAspectConfiguration,\
+com.wanmi.ms.autoconfigure.RequestLogAutoConfiguration,\
+com.wanmi.ms.autoconfigure.KafkaAutoConfiguration,\
+com.wanmi.ms.autoconfigure.XssFilterAutoConfiguration
