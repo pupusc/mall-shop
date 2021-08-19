@@ -1304,14 +1304,17 @@ public class LoginBaseController {
     }
 
     public CustomerVO extractLogin(FanDengLoginResponse response) {
+        //根据樊登的id去查找
         NoDeleteCustomerGetByFanDengRequest request = new NoDeleteCustomerGetByFanDengRequest();
         request.setFanDengId(response.getUserNo());
         NoDeleteCustomerGetByAccountResponse customer = customerQueryProvider.getNoDeleteCustomerByFanDengId(request).getContext();
         if (customer == null) {
+            //根据樊登的电话去查找
             NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
             accountRequest.setCustomerAccount(response.getMobile());
             customer = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
             if (customer != null) {
+                //如果存在电话的，则吧该电话的客户信息更改成 樊登的id
                     //合并用户
                     customer.setFanDengUserNo(response.getUserNo());
                     customer.setLoginTime(LocalDateTime.now());
@@ -1322,6 +1325,7 @@ public class LoginBaseController {
                     customerProvider.modifyCustomerFanDengIdTime(modifyRequest);
             } else {
                 //创建用户
+                //如果电话和id都不存在，则直接创建用户
                 FanDengModifyCustomerRequest customerRequest = FanDengModifyCustomerRequest.builder()
                         .fanDengUserNo(response.getUserNo())
                         .nickName(response.getNickName())
@@ -1330,22 +1334,25 @@ public class LoginBaseController {
                 customer = externalProvider.modifyCustomer(customerRequest).getContext();
             }
         } else {
+            //当前用户樊登的id存在
             customer.setLoginTime(LocalDateTime.now());
+            //如果樊登的id存在，但是电话为空或者 电话和樊登给过的电话不同
             if (StringUtils.isBlank(customer.getCustomerAccount()) || !customer.getCustomerAccount().equals(response.getMobile())) {
                 //如果樊登id 一样 并且手机号码不一样
                 NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
                 accountRequest.setCustomerAccount(response.getMobile());
                 NoDeleteCustomerGetByAccountResponse newCustomerVO =
                         customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
+
                 if (newCustomerVO != null) {
                     TradeQueryDTO tradeQueryDTO = new TradeQueryDTO();
                     tradeQueryDTO.putSort("createTime", "desc");
                     tradeQueryDTO.setBuyerId(customer.getCustomerId());
                     TradePageCriteriaRequest criteriaRequest = TradePageCriteriaRequest.builder().tradePageDTO(tradeQueryDTO).build();
-                    //有樊登id
+                    //有樊登id  根据樊登id 获取的客户id，对应的订单信息
                     TradePageCriteriaResponse oldCustomerTrade = tradeQueryProvider.pageCriteria(criteriaRequest).getContext();
                     tradeQueryDTO.setBuyerId(newCustomerVO.getCustomerId());
-                    //有手机号码
+                    //有手机号码  根据手机樊登手机号码获取的用户id 对应的订单信息
                     TradePageCriteriaResponse newCustomerTrade = tradeQueryProvider.pageCriteria(criteriaRequest).getContext();
                     List<TradeVO> oldTradeVOS = oldCustomerTrade.getTradePage().getContent();
                     List<TradeVO> newTradeVOS = newCustomerTrade.getTradePage().getContent();

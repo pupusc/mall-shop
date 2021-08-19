@@ -4451,10 +4451,13 @@ public class TradeService {
         Trade trade = detail(tid);
         TradePrice tradePrice = trade.getTradePrice();
         BigDecimal shouldPayPrice = tradePrice.getTotalPrice();
+        //表示付定金的时候 获取的应该支付的金额
         if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
                 && StringUtils.isEmpty(trade.getTailOrderNo())) {
             shouldPayPrice = tradePrice.getEarnestPrice();
         }
+
+        //表示有尾款订单号，则表示付尾款的时候 要支付的金额
         if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
                 && StringUtils.isNotEmpty(trade.getTailOrderNo())) {
             shouldPayPrice = tradePrice.getTailPrice();
@@ -4479,11 +4482,14 @@ public class TradeService {
                 // 拼团订单支付处理，拼团成功更新子单
                 trade = grouponOrderService.handleGrouponOrderPaySuccess(trade);
             }
+            // TODO duanlsh  设置支付状态
             trade.getTradeState().setPayState(PayState.PAID);
             if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && StringUtils.isEmpty(trade.getTailOrderNo()) &&
                     Objects.nonNull(trade.getBookingType()) && trade.getBookingType() == BookingType.EARNEST_MONEY) {
                 trade.getTradeState().setPayState(PayState.PAID_EARNEST);
             }
+
+            // TODO duanlsh  设置第三方支付
             trade.setPayWay(payWay);
             operator.setPlatform(Platform.CUSTOMER);
             operator.setName(trade.getBuyer().getName());
@@ -4606,8 +4612,7 @@ public class TradeService {
                 }
             }
         }
-        if (trade.getTradeState().getFlowState() == FlowState.CONFIRMED && trade.getTradeState().getPayState() ==
-                PayState.PAID) {
+        if (trade.getTradeState().getFlowState() == FlowState.CONFIRMED && trade.getTradeState().getPayState() == PayState.PAID) {
             // 订单支付后，发送MQ消息
             //this.sendMQForOrderPayed(trade);
             //已支付并已收货，结束订单流程
@@ -4621,7 +4626,8 @@ public class TradeService {
             // 订单完成后，发送MQ消息
             this.sendMQForOrderPayedAndComplete(trade);
 
-        } else if (trade.getTradeState().getFlowState() != FlowState.CONFIRMED && (trade.getTradeState().getPayState() ==
+        }
+        else if (trade.getTradeState().getFlowState() != FlowState.CONFIRMED && (trade.getTradeState().getPayState() ==
                 PayState.PAID || trade.getTradeState().getPayState() == PayState.PAID_EARNEST)) {
             if (trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_EARNEST) {
                 trade.getTradeState().setFlowState(FlowState.WAIT_PAY_TAIL);
@@ -4655,7 +4661,8 @@ public class TradeService {
             // 订单支付后，发送MQ消息
             this.sendMQForOrderPayed(trade);
             this.operationLogMq.convertAndSend(operator, TradeEvent.PAY.getDescription(), detail);
-        } else {
+        }
+        else {
             //添加操作日志
             String detail = String.format("订单[%s]已%s,操作人：%s", trade.getId(), eventStr, operator.getName());
             trade.appendTradeEventLog(TradeEventLog
@@ -4691,9 +4698,9 @@ public class TradeService {
         changeActivityBuyCount(trade);
         // 判断订单是否是定金销售
         if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
-            log.info("wx支付回调处理======>订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
+            log.info("wx-or-aliPay支付回调处理======>订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
         }else {
-            log.info("wx支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
+            log.info("wx-or-aliPay支付回调处理======>推送至erp,订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
             //推送ERP订单
             this.pushTradeToErp(trade.getId());
         }
@@ -5660,8 +5667,8 @@ public class TradeService {
             request.setInvoiceAddress(trade.getBuyer().getName() + " " + trade.getBuyer().getPhone() + " " + trade
                     .getConsignee().getDetailAddress());
         }
-        request.setInvoiceTitle(isGeneral ? invoice.getGeneralInvoice().getFlag() == 0 ? null : invoice
-                .getGeneralInvoice().getTitle()
+        request.setInvoiceTitle(isGeneral ? invoice.getGeneralInvoice().getFlag() == 0 ? null :
+                invoice.getGeneralInvoice().getTitle()
                 : invoice.getSpecialInvoice().getCompanyName());
 
         request.setInvoiceType(InvoiceType.NORMAL.fromValue(invoice.getType()));
