@@ -217,12 +217,12 @@
 
     </dependencies>
 
-    <scm>
-        <connection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-common.git</connection>
-        <developerConnection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-common.git</developerConnection>
-        <url>http://172.19.25.151/sbc-micro-service/sbc-service-common.git</url>
-      <tag>service-common-v4.1.3-RELEASE</tag>
-  </scm>
+<!--    <scm>-->
+<!--        <connection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-common.git</connection>-->
+<!--        <developerConnection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-common.git</developerConnection>-->
+<!--        <url>http://172.19.25.151/sbc-micro-service/sbc-service-common.git</url>-->
+<!--      <tag>service-common-v4.1.3-RELEASE</tag>-->
+<!--  </scm>-->
 
     <build>
         <plugins>
@@ -278,6 +278,19 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>dushu-RELEASES</id>
+            <name>NexusReleaseRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>dushu-SNAPSHOTS</id>
+            <name>NexusSnapshotRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 <!--    <repositories>-->
 <!--        <repository>-->

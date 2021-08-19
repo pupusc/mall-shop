@@ -117,12 +117,25 @@
         </plugins>
     </build>
 
-    <scm>
-        <connection>scm:git:http://172.19.25.151/statistic/ares.git</connection>
-        <developerConnection>scm:git:http://172.19.25.151/statistic/ares.git</developerConnection>
-        <url>http://172.19.25.151/statistic/ares.git</url>
-    <tag>HEAD</tag>
-  </scm>
+<!--    <scm>-->
+<!--        <connection>scm:git:http://172.19.25.151/statistic/ares.git</connection>-->
+<!--        <developerConnection>scm:git:http://172.19.25.151/statistic/ares.git</developerConnection>-->
+<!--        <url>http://172.19.25.151/statistic/ares.git</url>-->
+<!--    <tag>HEAD</tag>-->
+<!--  </scm>-->
+
+    <distributionManagement>
+        <repository>
+            <id>dushu-RELEASES</id>
+            <name>NexusReleaseRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>dushu-SNAPSHOTS</id>
+            <name>NexusSnapshotRepository</name>
+            <url>http://resp.dushuclub.io/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 <!--    <repositories>-->
 <!--        <repository>-->
