@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>service-account-api</module>
-        <module>service-account-core</module>
-        <module>service-account-app</module>
-        <module>service-account-bean</module>
-    </modules>
+    <groupId>com.wanmi.b2b</groupId>
+    <artifactId>b2b-platform</artifactId>
+    <packaging>pom</packaging>
+    <version>december-4.1.3-SNAPSHOT</version>
 
     <parent>
         <groupId>com.wanmi</groupId>
@@ -16,38 +13,28 @@
         <version>2.2.4-RELEASE</version>
     </parent>
 
-    <groupId>com.wanmi.sbc</groupId>
-    <artifactId>service-account</artifactId>
-    <version>fandeng-4.1.7-release</version>
-
     <properties>
-        <discovery.version>6.3.3</discovery.version>
-
-        <!-- wanmi -->
         <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
+        <wm.micro.service.crm.version>4.1.5-RELEASE</wm.micro.service.crm.version>
+
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
+
+        <logstash.logback.encoder.version>6.2</logstash.logback.encoder.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <pinyin4j.version>2.5.0</pinyin4j.version>
+        <fastj.version>1.2.10</fastj.version>
+        <kaptcha.version>0.0.9</kaptcha.version>
+        <apache.thrift>0.10.0</apache.thrift>
+        <quartz.version>2.3.0</quartz.version>
+        <commons-pool.version>1.6</commons-pool.version>
+        <security-component.version>1.6.8-RELEASE</security-component.version>
+        <patchca.version>0.5.0</patchca.version>
+        <wxpay-sdk.version>wanmi-3.0.9</wxpay-sdk.version>
+        <bcprov-jdk16.version>1.45</bcprov-jdk16.version>
+        <alipay-sdk-java.version>3.4.49.ALL</alipay-sdk-java.version>
+        <xstream.version>1.4.11.1</xstream.version>
+        <classmate.version>1.3.4</classmate.version>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate-validator.version}</version>
-            <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml</groupId>
-                    <artifactId>classmate</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>
 
     <build>
         <plugins>
@@ -70,7 +57,7 @@
                 <configuration>
                     <username>${git.username}</username>
                     <password>${git.password}</password>
-                    <tagNameFormat>service-account-v@{project.version}</tagNameFormat>
+                    <tagNameFormat>sbc-platform-v@{project.version}</tagNameFormat>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
             </plugin>
@@ -93,6 +80,41 @@
             </plugin>
         </plugins>
     </build>
+<!--    <scm>-->
+<!--        <connection>scm:git:http://172.19.25.151/b2b/sbc-platform.git</connection>-->
+<!--        <developerConnection>scm:git:http://172.19.25.151/b2b/sbc-platform.git</developerConnection>-->
+<!--        <url>http://172.19.25.151/b2b/sbc-platform.git</url>-->
+<!--    <tag>HEAD</tag>-->
+<!--  </scm>-->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>micro-service</artifactId>
+                <version>${micro-service-autoconfigure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash.logback.encoder.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.thrift</groupId>
+                <artifactId>libthrift</artifactId>
+                <version>${apache.thrift}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <distributionManagement>
         <repository>
@@ -106,13 +128,6 @@
             <url>http://resp.dushuclub.io/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
-
-<!--    <scm>-->
-<!--        <connection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-account.git</connection>-->
-<!--        <developerConnection>scm:git:http://172.19.25.151/sbc-micro-service/sbc-service-account.git</developerConnection>-->
-<!--        <url>http://172.19.25.151/sbc-micro-service/sbc-service-account.git</url>-->
-<!--      <tag>HEAD</tag>-->
-<!--  </scm>-->
 
 <!--    <repositories>-->
 <!--        <repository>-->
@@ -175,4 +190,19 @@
 <!--            <url>http://maven.ningpai.com/nexus/content/repositories/snapshots/</url>-->
 <!--        </snapshotRepository>-->
 <!--    </distributionManagement>-->
+
+    <modules>
+        <module>web-base</module>
+        <module>web-pc</module>
+
+        <module>service-provider</module>
+
+        <module>manager-base</module>
+        <module>manager-store-base</module>
+        <module>datamigrate-base</module>
+        <module>service-mobile</module>
+        <module>service-supplier</module>
+        <module>service-boss</module>
+    </modules>
+
 </project>
