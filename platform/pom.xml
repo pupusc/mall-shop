@@ -192,15 +192,15 @@
 <!--    </distributionManagement>-->
 
     <modules>
-        <module>bff-web-base</module>
-        <module>bff-web-2b-mobile</module>
-        <module>bff-web-2b-pc</module>
-        <module>bff-manager-s2b-supplier</module>
-        <module>bff-manager-s2b-provider</module>
-        <module>bff-manager-s2b-boss</module>
-        <module>bff-manager-base</module>
-        <module>bff-manager-store-base</module>
-        <module>bff-datamigrate-base</module>
+        <module>web-base</module>
+        <module>web-mobile</module>
+        <module>web-pc</module>
+        <module>manager-supplier</module>
+        <module>manager-provider</module>
+        <module>manager-boss</module>
+        <module>manager-base</module>
+        <module>manager-store-base</module>
+        <module>datamigrate-base</module>
     </modules>
 
 </project>

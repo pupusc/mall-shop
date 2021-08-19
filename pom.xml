@@ -7,26 +7,27 @@
 
     <modules>
         <module>of-parent</module>
-        <module>sbc-service-common</module>
+        <module>service-common</module>
         <module>wm-micro-service</module>
         <module>sbc-osd</module>
         <module>wx-pay-sdk</module>
-        <module>sbc-service-setting</module>
-        <module>sbc-service-vas</module>
+
+        <module>setting</module>
+        <module>vas</module>
         <module>perseus</module>
         <module>ares</module>
-        <module>sbc-service-erp</module>
-        <module>sbc-service-customer</module>
-        <module>sbc-service-account</module>
-        <module>sbc-service-linkedmall</module>
-        <module>sbc-service-goods</module>
-        <module>sbc-service-elastic</module>
-        <module>sbc-service-marketing</module>
-        <module>sbc-service-crm</module>
-        <module>sbc-service-message</module>
-        <module>sbc-service-pay</module>
-        <module>sbc-service-order</module>
-        <module>sbc-platform</module>
+        <module>erp</module>
+        <module>customer</module>
+        <module>account</module>
+        <module>linkedmall</module>
+        <module>goods</module>
+        <module>elastic</module>
+        <module>marketing</module>
+        <module>crm</module>
+        <module>message</module>
+        <module>pay</module>
+        <module>order</module>
+        <module>platform</module>
 
     </modules>
 
