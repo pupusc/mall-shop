@@ -2,7 +2,6 @@ package com.wanmi.sbc.customer.fandeng;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.sun.javafx.binding.StringFormatter;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.common.enums.DefaultFlag;
@@ -193,7 +192,6 @@ public class ExternalService {
 
     public BaseResponse<FanDengLoginResponse> loginConfirm(@Valid FanDengLoginRequest request) {
         String body = JSON.toJSONString(request);
-//        String realUrl = StringFormatter.format(OAUTH_TOKEN_URL, appid, appsecret).get();
         String result = getUrl(jointUrl(LOGIN_CONFIRM_URL + PARAMETER, body), JSON.toJSONString(request));
         FanDengLoginResponse response =
                 (FanDengLoginResponse) exchange(result, FanDengLoginResponse.class);
@@ -680,7 +678,7 @@ public class ExternalService {
         String accessToken = redisService.getString(appid);
 //        String accessToken = "";
         if (StringUtils.isBlank(accessToken)) {
-            String url = StringFormatter.format(OAUTH_TOKEN_URL, appid, appsecret).get();
+            String url = String.format(OAUTH_TOKEN_URL, appid, appsecret);
             try {
                 HttpResponse httpResponse = HttpUtils.doPost(host,
                         url, getMap(), null, null);
@@ -713,7 +711,7 @@ public class ExternalService {
     private String jointUrl(String url, String body) {
         try {
             String encryptSHA1 = SHAUtils.encryptSHA1(body + appid, appsecret);
-            String realUrl = StringFormatter.format(url, appid, encryptSHA1, getAccessToken()).get();
+            String realUrl = String.format(url, appid, encryptSHA1, getAccessToken());
             return realUrl;
         } catch (Exception e) {
             log.error("拼接加密参数:{}", e);
