@@ -14,8 +14,8 @@
     <version>fandeng-4.1.7-release</version>
 
     <modules>
-        <module>perseus-core</module>
-        <module>perseus-app</module>
+        <module>service-perseus-core</module>
+        <module>service-perseus-app</module>
     </modules>
 
     <properties>
