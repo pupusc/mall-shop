@@ -1288,6 +1288,7 @@ public class LoginBaseController {
     @MultiSubmit
     public BaseResponse<LoginResponse> autoLogin(@Valid @RequestBody FanDengLoginRequest loginRequest) {
         log.info("enter autoLogin method ......");
+        log.info(" autoLogin param{}", JSONObject.toJSONString(loginRequest));
         BaseResponse<FanDengLoginResponse> loginConfirm = externalProvider.loginConfirm(loginRequest);
         CustomerVO customerVO = extractLogin(loginConfirm.getContext());
         LoginResponse loginResponse = LoginResponse.builder().build();
