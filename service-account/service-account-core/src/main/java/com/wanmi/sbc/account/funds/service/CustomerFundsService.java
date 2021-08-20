@@ -133,7 +133,8 @@ public class CustomerFundsService {
         CustomerFunds customerFunds = new CustomerFunds();
         customerFunds.setCustomerId(customerId);
         customerFunds.setCustomerAccount(customerAccount);
-        customerFunds.setCustomerName(customerName);
+//        customerFunds.setCustomerName(customerName);
+        customerFunds.setCustomerName(customerId); //此处不能给 customerName 因为customerName里面包含 表情符号
         customerFunds.setAccountBalance(accountBalance);
         customerFunds.setBlockedBalance(BigDecimal.ZERO);
         customerFunds.setWithdrawAmount(accountBalance);
