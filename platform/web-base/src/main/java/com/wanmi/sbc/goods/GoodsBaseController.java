@@ -255,13 +255,15 @@ public class GoodsBaseController {
     @RequestMapping(value = "/spus", method = RequestMethod.POST)
     public BaseResponse<EsGoodsResponse> goodslist(@RequestBody EsGoodsInfoQueryRequest queryRequest) {
         CustomerVO customerVO = commonUtil.getCustomer();
-        if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
+        if (customerVO == null || StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
             queryRequest.setCpsSpecial(0);
+        } else {
+            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
+            if (Objects.isNull(counselorDto)) {
+                queryRequest.setCpsSpecial(0);
+            }
         }
-        CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
-        if (Objects.isNull(counselorDto)) {
-            queryRequest.setCpsSpecial(0);
-        }
+
         return BaseResponse.success(list(queryRequest, commonUtil.getCustomer()));
     }
 
@@ -655,7 +657,7 @@ public class GoodsBaseController {
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(skuId, customerId);
         if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
-            if (customer != null && StringUtils.isEmpty(customer.getFanDengUserNo())) {
+            if (customer == null || StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
             }
             CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
