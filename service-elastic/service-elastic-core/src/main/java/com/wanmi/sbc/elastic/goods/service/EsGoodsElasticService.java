@@ -616,7 +616,8 @@ public class EsGoodsElasticService {
     /**
      * 初始化SPU持化于ES
      */
-    public void initEsGoods2(EsGoodsInfoRequest request) {
+    public void initEsGoods2() {
+        EsGoodsInfoRequest request = EsGoodsInfoRequest.builder().build();
         if (request.getGoodsIds() == null) {
             request.setGoodsIds(new ArrayList<>());
         }
