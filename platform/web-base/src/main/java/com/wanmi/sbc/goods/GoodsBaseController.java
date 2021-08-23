@@ -773,7 +773,7 @@ public class GoodsBaseController {
             response.getGoodsInfos().stream().forEach(
                     goodsInfoVO -> {
                         //知识顾问专属商品没有其他优惠
-                        if (response.getGoods().getCpsSpecial() == 1) {
+                        if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
                             goodsInfoVO.setPaidCardPrice(goodsInfoVO.getMarketPrice());
                             goodsInfoVO.setPaidCardIcon(null);
                         }
