@@ -23,10 +23,10 @@
     </properties>
 
     <modules>
-        <module>ares-api</module>
-        <module>ares-core</module>
-        <module>ares-app</module>
-        <module>ares-thrift-server</module>
+        <module>service-ares-api</module>
+        <module>service-ares-core</module>
+        <module>service-ares-app</module>
+        <module>service-ares-thrift</module>
     </modules>
 
     <dependencyManagement>
