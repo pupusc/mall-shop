@@ -479,7 +479,7 @@ public class VerifyService {
                 GoodsIntervalPriceVO goodsIntervalPrice = first.get();
                 tradeItem.setLevelPrice(goodsIntervalPrice.getPrice());
                 tradeItem.setOriginalPrice(goodsInfo.getMarketPrice());
-                if (goods.getCpsSpecial() == 1) {
+                if (goods.getCpsSpecial() != null && goods.getCpsSpecial() == 1) {
                     tradeItem.setLevelPrice(goodsInfo.getMarketPrice());
                 }
                 //判断是否为秒杀抢购商品
@@ -487,7 +487,7 @@ public class VerifyService {
                         && !(Objects.nonNull(tradeItem.getIsAppointmentSaleGoods()) && tradeItem.getIsAppointmentSaleGoods())
                         && !(Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods())) {
                     tradeItem.setPrice(goodsIntervalPrice.getPrice());
-                    if (goods.getCpsSpecial() == 1) {
+                    if (goods.getCpsSpecial() != null && goods.getCpsSpecial() == 1) {
                         tradeItem.setPrice(goodsInfo.getMarketPrice());
                     }
                     tradeItem.setSplitPrice(tradeItem.getLevelPrice().multiply(
@@ -501,7 +501,7 @@ public class VerifyService {
                 return;
             }
         }
-        if (goods.getCpsSpecial() == 1) {
+        if (goods.getCpsSpecial() != null && goods.getCpsSpecial() == 1) {
             tradeItem.setLevelPrice(goodsInfo.getMarketPrice());
             tradeItem.setOriginalPrice(goodsInfo.getMarketPrice() == null ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
         } else {
@@ -513,7 +513,7 @@ public class VerifyService {
                 && !(Objects.nonNull(tradeItem.getIsAppointmentSaleGoods()) && tradeItem.getIsAppointmentSaleGoods())
                 // 全款预售指定预售价、定金预售价格以市场价计算
                 && !(Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods())) {
-            if (goods.getCpsSpecial() == 1) {
+            if (goods.getCpsSpecial() != null && goods.getCpsSpecial() == 1) {
                 tradeItem.setPrice(goodsInfo.getMarketPrice());
             } else {
                 tradeItem.setPrice(goodsInfo.getSalePrice());

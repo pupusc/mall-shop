@@ -594,7 +594,7 @@ public class GoodsBaseController {
                         GoodsInfoNestVO goodsInfoNest = KsBeanUtil.convert(goodsInfoVO, GoodsInfoNestVO.class);
                         goodsInfoNest.setVendibilityStatus(goodsInfoVO.getVendibility());
                         //知识顾问商品不显示优惠
-                        if (esGoods.getCpsSpecial() == 1) {
+                        if (esGoods.getCpsSpecial() != null && esGoods.getCpsSpecial() == 1) {
                             goodsInfoNest.setSalePrice(goodsInfoNest.getMarketPrice());
                         }
                         resultGoodsInfos.add(goodsInfoNest);
@@ -654,7 +654,7 @@ public class GoodsBaseController {
             customerId = customer.getCustomerId();
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(skuId, customerId);
-        if (response.getGoods().getCpsSpecial() == 1) {
+        if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
             if (StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
             }
@@ -688,7 +688,7 @@ public class GoodsBaseController {
             marketPrice = marketPrice.setScale(2, BigDecimal.ROUND_HALF_UP);
             goodsinfo.setMarketPrice(marketPrice);
             //知识顾问专属商品没有其他优惠
-            if (goodsVO.getCpsSpecial() == 1) {
+            if (goodsVO.getCpsSpecial() != null && goodsVO.getCpsSpecial() == 1) {
                 goodsinfo.setSalePrice(marketPrice);
                 goodsinfo.setPaidCardPrice(marketPrice);
             }
