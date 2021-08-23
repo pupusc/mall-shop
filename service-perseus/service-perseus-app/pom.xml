@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>perseus-app</artifactId>
+    <artifactId>service-perseus-app</artifactId>
 
     <dependencies>
         <dependency>
