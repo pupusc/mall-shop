@@ -655,7 +655,7 @@ public class GoodsBaseController {
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(skuId, customerId);
         if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
-            if (StringUtils.isEmpty(customer.getFanDengUserNo())) {
+            if (customer != null && StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
             }
             CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
