@@ -1,6 +1,6 @@
 FROM 172.19.25.163:5000/jre8:0.4
 ARG jarVersion
-COPY perseus-app/target/perseus-app-$jarVersion.jar /data/server/bin/sbc.jar
+COPY service-perseus-app/target/perseus-app-$jarVersion.jar /data/server/bin/sbc.jar
 RUN ln -s /data/server/bin/sbc.jar /data/server/bin/server.jar && \
     echo "spring.cloud.nacos.config.server-addr=127.0.0.1:8848" > /data/server/conf/application.properties && \
     echo "spring.application.name=sbc-perseus" >> /data/server/conf/application.properties && \
