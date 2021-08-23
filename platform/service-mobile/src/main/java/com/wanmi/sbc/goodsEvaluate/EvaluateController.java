@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -106,6 +107,9 @@ public class EvaluateController {
     @ApiOperation(value = "获取某店铺某商品评价总数数量、好评率、top3评价信息")
     @RequestMapping(value = "/top3EvaluateAndPraiseBySkuId/{skuId}", method = RequestMethod.GET)
     public BaseResponse<GoodsDetailEvaluateTop3Resp> top3EvaluateAndPraiseBySkuId(@PathVariable String skuId) {
+        if (StringUtils.isEmpty(skuId)) {
+            return BaseResponse.error("skuId error");
+        }
 
         GoodsEvaluateCountBySkuIdRequset request =
                 GoodsEvaluateCountBySkuIdRequset.builder().skuId(skuId).build();
