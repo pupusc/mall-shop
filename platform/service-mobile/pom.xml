@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>bff-web-2b-mobile</artifactId>
+    <artifactId>bff-manager-s2b-mobile</artifactId>
 
     <properties>
         <main-class>com.wanmi.sbc.MobileApplication</main-class>
