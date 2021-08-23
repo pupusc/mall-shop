@@ -1666,7 +1666,7 @@ public class TradeBaseController {
                 .map(TradeItemVO::getSkuId).collect(Collectors.toList());
         //获取订单商品详情,包含区间价，会员级别价salePrice
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
-        Map<String, Integer> cpsMap = skuResp.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
+        Map<String, Integer> cpsMap = skuResp.getGoodses().stream().filter(good -> good.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
         // 营销活动赠品
         List<String> giftIds =
                 tradeItemGroups.stream().flatMap(i -> i.getTradeMarketingList().stream())
