@@ -3091,9 +3091,9 @@ public class ReturnOrderService {
                 .filter(o -> Objects.nonNull(o.getReturnKnowledge()) && Objects.nonNull(o.getReturnKnowledge().getActualKnowledge()))
                 .map(o -> o.getReturnKnowledge().getActualKnowledge())
                 .reduce((long) 0, Long::sum);
-        // 可退积分
+        // 可退知豆
         Long knoeledge = trade.getTradePrice().getKnowledge() == null ? 0 : trade.getTradePrice().getKnowledge();
-        trade.setCanReturnPoints(knoeledge - retiredKnowledge);
+        trade.setCanReturnKnowledge(knoeledge - retiredKnowledge);
 
         // 可退金额
         BigDecimal totalPrice = trade.getTradeItems().stream()
