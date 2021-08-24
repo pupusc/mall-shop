@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.returnorder.fsm.action;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.points.CustomerPointsDetailSaveProvider;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateSaveProvider;
@@ -82,6 +83,13 @@ public class RefundReturnAction extends ReturnAction {
                     .point(points).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId()).sourceType(1)
                     .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
             externalProvider.pointRefund(refundRequest);
+        }
+        Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
+        if (points != null && points > 0) {
+            FanDengKnowledgeRefundRequest refundRequest = FanDengKnowledgeRefundRequest.builder()
+                    .beans(knowledge).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId())
+                    .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
+            externalProvider.knowledgeRefund(refundRequest);
         }
         delEvaluate(returnOrder);
     }

@@ -123,7 +123,7 @@ public class GoodsVO  implements Serializable {
      * 知识顾问专享 0：不是，1：是
      */
     @Column(name = "cps_special")
-    private Integer cpsSpecial;
+    private Integer cpsSpecial = 0;
     /**
      * 成本价
      */

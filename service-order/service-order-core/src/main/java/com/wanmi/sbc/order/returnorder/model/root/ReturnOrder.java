@@ -22,6 +22,7 @@ import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnKnowledge;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPrice;
@@ -177,6 +178,10 @@ public class ReturnOrder implements Serializable {
      */
     private ReturnPoints returnPoints;
 
+    /**
+     * 退知豆信息
+     */
+    private ReturnKnowledge returnKnowledge;
     /**
      * 收货人信息
      */

@@ -3,7 +3,6 @@ package com.wanmi.sbc.order.returnorder.service;
 import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryRefundApplicationDetailResponse;
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
@@ -11,14 +10,27 @@ import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
 import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByReturnOrderCodeAndTypeRequest;
-import com.wanmi.sbc.account.bean.enums.*;
+import com.wanmi.sbc.account.bean.enums.AccountRecordType;
+import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.account.bean.enums.PayType;
+import com.wanmi.sbc.account.bean.enums.PayWay;
+import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MessageMQRequest;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.CompanySourceType;
+import com.wanmi.sbc.common.enums.NodeType;
+import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.StoreType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.enums.node.ReturnOrderProcessType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.IteratorUtils;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountProvider;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -40,7 +52,6 @@ import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.customer.bean.vo.StoreReturnAddressVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.RefundTradeRequest;
 import com.wanmi.sbc.erp.api.request.ReturnTradeCreateRequst;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsQueryProvider;
@@ -53,22 +64,20 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleGoodsCountRequest;
 import com.wanmi.sbc.goods.api.request.bookingsalegoods.BookingSaleGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsBatchStockAndSalesVolumeRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoReturnModifyRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.linkedmall.api.provider.returnorder.LinkedMallReturnOrderProvider;
 import com.wanmi.sbc.linkedmall.api.provider.returnorder.LinkedMallReturnOrderQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.returnorder.SbcCancelRefundRequest;
 import com.wanmi.sbc.linkedmall.api.request.returnorder.SbcQueryRefundApplicationDetailRequest;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.grouponactivity.GrouponActivitySaveProvider;
 import com.wanmi.sbc.marketing.api.provider.grouponrecord.GrouponRecordProvider;
 import com.wanmi.sbc.marketing.api.request.grouponactivity.GrouponActivityModifyStatisticsNumByIdRequest;
@@ -85,7 +94,16 @@ import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
-import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
+import com.wanmi.sbc.order.bean.enums.BookingType;
+import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
+import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.RefundChannel;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
+import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.TradeDistributeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.common.GoodsStockService;
@@ -109,6 +127,7 @@ import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrderTransfer;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnKnowledge;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPrice;
@@ -164,7 +183,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -723,6 +751,7 @@ public class ReturnOrderService {
         List<TradeDistributeItemVO> tradeDistributeItemVos = returnOrder.getDistributeItems();
         BigDecimal price = null;
         Long points = 0L;
+        Long knowledge = 0L;
 
         //填充商品信息
         List<GoodsInfoVO> goodsInfoVOList = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder()
@@ -749,6 +778,7 @@ public class ReturnOrderService {
                             .reduce(BigDecimal::add).get().add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice
                             ()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
             points = trade.getCanReturnPoints();
+            knowledge = trade.getCanReturnKnowledge();
             returnOrder.setDistributeItems(tradeDistributeItemVos);
         } else {
             //------------------start-------------------
@@ -790,7 +820,10 @@ public class ReturnOrderService {
             if (Objects.nonNull(trade.getTradePrice().getPoints())) {
                 points = getPoints(returnOrder, trade, false);
             }
-
+            // 计算知豆
+            if (Objects.nonNull(trade.getTradePrice().getKnowledge())) {
+                knowledge = getKnowledge(returnOrder, trade, false);
+            }
             //分销商品数据接口赋值开始
             tradeDistributeItemVos = tradeDistributeItemVos.stream().filter(item -> skuIds
                     .contains(item.getGoodsInfoId())).collect(Collectors.toList());
@@ -839,6 +872,9 @@ public class ReturnOrderService {
         returnOrder.getReturnPrice().setApplyPrice(price);
         if (returnOrder.getReturnPoints() == null) {
             returnOrder.setReturnPoints(ReturnPoints.builder().applyPoints(points).build());
+        }
+        if (returnOrder.getReturnKnowledge() == null) {
+            returnOrder.setReturnKnowledge(ReturnKnowledge.builder().applyKnowledge(knowledge).build());
         }
 
         PayOrder payOrder = payOrderService.findPayOrderByOrderCode(returnOrder.getTid()).get();
@@ -1058,6 +1094,49 @@ public class ReturnOrderService {
                     //设置单品应退积分
                     returnItem.setSplitPoint(shouldPoints);
                     return shouldPoints;
+                })
+                .reduce(0L, Long::sum);
+    }
+    // 计算知豆
+    private Long getKnowledge(ReturnOrder returnOrder, Trade trade, boolean isRefund) {
+        // 各商品均摊积分
+        Map<String, Double> splitKnowledgeMap = new HashMap<>();
+        // 各商品购买数量
+        Map<String, Long> totalNumMap = new HashMap<>();
+        // 各商品消耗积分
+        Map<String, Long> knowledgeMap = new HashMap<>();
+        List<TradeItem> tradeItems = trade.getTradeItems();
+        Long knowledge;
+        for (TradeItem tradeItem : tradeItems) {
+            knowledge = Objects.nonNull(tradeItem.getKnowledge()) ? tradeItem.getKnowledge() : NumberUtils.LONG_ZERO;
+            Double splitKnowledge = new BigDecimal(knowledge)
+                    .divide(new BigDecimal(tradeItem.getNum()), 2, BigDecimal.ROUND_DOWN)
+                    .doubleValue();
+            String skuId = tradeItem.getSkuId();
+            splitKnowledgeMap.put(skuId, splitKnowledge);
+            totalNumMap.put(skuId, tradeItem.getNum());
+            knowledgeMap.put(skuId, knowledge);
+        }
+
+        List<ReturnItem> returnItems = returnOrder.getReturnItems();
+        // 可退积分计算
+        return returnItems.stream()
+                .map(returnItem -> {
+                    String skuId = returnItem.getSkuId();
+                    Long shouldKnowledge;
+                    if (isRefund || returnItem.getNum() < returnItem.getCanReturnNum()) {
+                        // 小于可退数量,直接均摊积分乘以数量
+                        Double totalKnowledge = returnItem.getNum() * splitKnowledgeMap.get(skuId);
+                        shouldKnowledge = totalKnowledge.longValue();
+                    } else {
+                        //大于等于可退数量 , 所用积分 - 已退积分(均摊积分*(购买数量-可退数量))
+                        Double retiredPoints =
+                                splitKnowledgeMap.get(skuId) * (totalNumMap.get(skuId) - returnItem.getCanReturnNum());
+                        shouldKnowledge = knowledgeMap.get(skuId) - retiredPoints.longValue();
+                    }
+                    //设置单品应退积分
+                    returnItem.setSplitPoint(shouldKnowledge);
+                    return shouldKnowledge;
                 })
                 .reduce(0L, Long::sum);
     }
@@ -3006,6 +3085,16 @@ public class ReturnOrderService {
         // 可退积分
         Long points = trade.getTradePrice().getPoints() == null ? 0 : trade.getTradePrice().getPoints();
         trade.setCanReturnPoints(points - retiredPoints);
+
+        // 已退知豆
+        Long retiredKnowledge = returnsNotVoid.stream()
+                .filter(o -> Objects.nonNull(o.getReturnKnowledge()) && Objects.nonNull(o.getReturnKnowledge().getActualKnowledge()))
+                .map(o -> o.getReturnKnowledge().getActualKnowledge())
+                .reduce((long) 0, Long::sum);
+        // 可退积分
+        Long knoeledge = trade.getTradePrice().getKnowledge() == null ? 0 : trade.getTradePrice().getKnowledge();
+        trade.setCanReturnPoints(knoeledge - retiredKnowledge);
+
         // 可退金额
         BigDecimal totalPrice = trade.getTradeItems().stream()
                 .map(TradeItem::getSplitPrice)

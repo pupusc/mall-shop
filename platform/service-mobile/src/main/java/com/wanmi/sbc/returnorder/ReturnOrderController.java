@@ -49,11 +49,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Objects;
 
-
 /**
- * Created by sunkun on 2017/7/10.
+ * @menu 退单相关
+ * @tag feature_d_cps
+ * @status undone
  */
-
 @RestController
 @RequestMapping("/return")
 @Api(tags = "ReturnOrderController", description = "mobile退单Api")
@@ -135,11 +135,12 @@ public class ReturnOrderController {
         return BaseResponse.success(rid);
     }
 
+
     /**
-     * 创建退款单
-     *
-     * @param returnOrder
-     * @return
+     * @description 创建退款单
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "创建退款单")
     @RequestMapping(value = "/addRefund", method = RequestMethod.POST)
