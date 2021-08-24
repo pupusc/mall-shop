@@ -85,7 +85,7 @@ public class RefundReturnAction extends ReturnAction {
             externalProvider.pointRefund(refundRequest);
         }
         Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
-        if (points != null && points > 0) {
+        if (knowledge != null && knowledge > 0) {
             FanDengKnowledgeRefundRequest refundRequest = FanDengKnowledgeRefundRequest.builder()
                     .beans(knowledge).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId())
                     .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
