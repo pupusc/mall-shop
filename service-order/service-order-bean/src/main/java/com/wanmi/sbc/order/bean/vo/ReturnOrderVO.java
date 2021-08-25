@@ -183,7 +183,7 @@ public class ReturnOrderVO implements Serializable {
      * 退知豆信息
      */
     @ApiModelProperty(value = "退知豆信息")
-    private ReturnKnowledgeVO returnKnowledgeVO;
+    private ReturnKnowledgeVO returnKnowledge;
 
     /**
      * 收货人信息
