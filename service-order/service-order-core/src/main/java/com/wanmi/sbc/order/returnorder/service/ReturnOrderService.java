@@ -553,6 +553,7 @@ public class ReturnOrderService {
                 BigDecimal providerTotalPrice = BigDecimal.ZERO;
                 BigDecimal price = BigDecimal.ZERO;
                 Long points = 0L;
+                Long knowledge = 0L;
                 for (TradeItem tradeItemVO : providerTradeItems) {
                     for (ReturnItem returnItemDTO : returnOrder.getReturnItems()) {
                         if (tradeItemVO.getSkuId().equals(returnItemDTO.getSkuId())) {
@@ -566,6 +567,11 @@ public class ReturnOrderService {
                                 points += tradeItemVO.getPoints();
                             } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
                                 points += returnItemDTO.getSplitPoint();
+                            }
+                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
+                                knowledge += tradeItemVO.getKnowledge();
+                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
+                                knowledge += returnItemDTO.getSplitKnowledge();
                             }
                             returnItemDTOList.add(returnItemDTO);
                         }
@@ -595,12 +601,14 @@ public class ReturnOrderService {
                 returnOrder.getReturnPrice().setApplyPrice(price);
                 returnOrder.getReturnPrice().setTotalPrice(price);
                 returnOrder.getReturnPoints().setApplyPoints(points);
+                returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
         } else {
             if (storeItemList != null) {
                 List<ReturnItem> returnItemDTOList = new ArrayList<>();
                 BigDecimal price = BigDecimal.ZERO;
                 Long points = 0L;
+                Long knowledge = 0L;
                 //组装退单详情
                 for (TradeItem tradeItemVO : storeItemList) {
                     for (ReturnItem returnItemDTO : returnOrder.getReturnItems()) {
@@ -612,6 +620,11 @@ public class ReturnOrderService {
                                 points += tradeItemVO.getPoints();
                             } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
                                 points += returnItemDTO.getSplitPoint();
+                            }
+                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
+                                knowledge += tradeItemVO.getKnowledge();
+                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
+                                knowledge += returnItemDTO.getSplitKnowledge();
                             }
                             returnItemDTOList.add(returnItemDTO);
                         }
@@ -625,6 +638,7 @@ public class ReturnOrderService {
                 returnOrder.getReturnPrice().setApplyPrice(price);
                 returnOrder.getReturnPrice().setTotalPrice(price);
                 returnOrder.getReturnPoints().setApplyPoints(points);
+                returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
 
         }
@@ -1135,7 +1149,7 @@ public class ReturnOrderService {
                         shouldKnowledge = knowledgeMap.get(skuId) - retiredPoints.longValue();
                     }
                     //设置单品应退积分
-                    returnItem.setSplitPoint(shouldKnowledge);
+                    returnItem.setSplitKnowledge(shouldKnowledge);
                     return shouldKnowledge;
                 })
                 .reduce(0L, Long::sum);
@@ -1433,6 +1447,7 @@ public class ReturnOrderService {
                     item.setUnit(trade.skuItemMap().get(item.getSkuId()).getUnit());
                     item.setCanReturnNum(map.get(item.getSkuId()));
                     item.setBuyPoint(trade.skuItemMap().get(item.getSkuId()).getBuyPoint());
+                    item.setBuyKnowledge(trade.skuItemMap().get(item.getSkuId()).getBuyKnowledge());
                     item.setGoodsSource(trade.skuItemMap().get(item.getSkuId()).getGoodsSource());
                     item.setThirdPlatformType(trade.skuItemMap().get(item.getSkuId()).getThirdPlatformType());
                     item.setThirdPlatformSpuId(trade.skuItemMap().get(item.getSkuId()).getThirdPlatformSpuId());
@@ -1496,6 +1511,7 @@ public class ReturnOrderService {
                             .unit(item.getUnit())
                             .price(item.getPrice())
                             .buyPoint(item.getBuyPoint())
+                            .buyKnowledge(item.getBuyKnowledge())
                             .splitPrice(item.getSplitPrice())
                             .specDetails(item.getSpecDetails())
                             .goodsSource(item.getGoodsSource())

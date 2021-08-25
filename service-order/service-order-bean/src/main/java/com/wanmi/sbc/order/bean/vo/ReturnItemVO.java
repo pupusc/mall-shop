@@ -110,6 +110,24 @@ public class ReturnItemVO implements Serializable {
     @ApiModelProperty(value = "购买积分")
     private Long buyPoint;
 
+    /**
+     * 应退积分
+     */
+    @ApiModelProperty(value = "应退积分")
+    private Long splitPoint;
+
+    /**
+     * 购买知豆
+     */
+    @ApiModelProperty(value = "购买知豆")
+    private Long buyKnowledge;
+
+    /**
+     * 应退知豆
+     */
+    @ApiModelProperty(value = "应退知豆")
+    private Long splitKnowledge;
+
 
 
     /**
@@ -137,12 +155,6 @@ public class ReturnItemVO implements Serializable {
      * 第三方平台-明细子订单id
      */
     private String thirdPlatformSubOrderId;
-
-    /**
-     * 应退积分
-     */
-    @ApiModelProperty(value = "应退积分")
-    private Long splitPoint;
 
     /**
      * @param returnItem

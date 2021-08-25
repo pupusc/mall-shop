@@ -225,6 +225,7 @@ public class ThirdPlatformReturnOrderService {
                 .splitPrice(item.getSplitPrice())
                 .specDetails(item.getSpecDetails())
                 .splitPoint(item.getPoints())
+                .splitKnowledge(item.getKnowledge())
                 .build()).collect(Collectors.toList()));
         TradePrice tradePrice = trade.getTradePrice();
         if(providerTrade!=null){
