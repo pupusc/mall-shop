@@ -338,6 +338,7 @@ public class RefundOrderService {
 
                 refundOrderResponse.setActualReturnPrice(v.getRefundBill().getActualReturnPrice());
                 refundOrderResponse.setActualReturnPoints(v.getRefundBill().getActualReturnPoints());
+                refundOrderResponse.setActualReturnKnowledge(v.getRefundBill().getActualReturnKnowledge());
                 refundOrderResponse.setReturnAccount(v.getRefundBill().getOfflineAccountId());
                 refundOrderResponse.setOfflineAccountId(v.getRefundBill().getOfflineAccountId());
                 refundOrderResponse.setComment(v.getRefundBill().getRefundComment());
@@ -400,6 +401,7 @@ public class RefundOrderService {
 
             refundOrderResponse.setActualReturnPrice(refundOrder.getRefundBill().getActualReturnPrice());
             refundOrderResponse.setActualReturnPoints(refundOrder.getRefundBill().getActualReturnPoints());
+            refundOrderResponse.setActualReturnKnowledge(refundOrder.getRefundBill().getActualReturnKnowledge());
             refundOrderResponse.setReturnAccount(refundOrder.getRefundBill().getOfflineAccountId());
             refundOrderResponse.setOfflineAccountId(refundOrder.getRefundBill().getOfflineAccountId());
             refundOrderResponse.setComment(refundOrder.getRefundBill().getRefundComment());

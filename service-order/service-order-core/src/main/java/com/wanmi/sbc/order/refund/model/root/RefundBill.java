@@ -111,6 +111,13 @@ public class RefundBill {
     private Long actualReturnPoints;
 
     /**
+     * 实退知豆
+     */
+    @Column(name = "actual_return_knowledge")
+    private Long actualReturnKnowledge;
+
+
+    /**
      * 退款在线渠道
      */
     @Column(name = "pay_channel")

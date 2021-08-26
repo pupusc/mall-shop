@@ -2345,7 +2345,7 @@ public class ReturnOrderService {
     @Transactional
     @GlobalTransactional
     public void onlineEditPrice(ReturnOrder returnOrder, String refundComment, BigDecimal actualReturnPrice,
-                                Long actualReturnPoints, Operator operator) {
+                                Long actualReturnPoints, Long actualReturnKnowledge, Operator operator) {
         ReturnPrice returnPrice = returnOrder.getReturnPrice();
         if (StringUtils.isNotEmpty(returnOrder.getBusinessTailId()) && Objects.nonNull(returnPrice.getIsTailApply()) && returnPrice.getIsTailApply()) {
             BigDecimal refundPrice = returnPrice.getEarnestPrice().add(returnPrice.getTailPrice());
@@ -2358,10 +2358,10 @@ public class ReturnOrderService {
                 returnPrice.setEarnestPrice(actualReturnPrice);
                 returnPrice.setTailPrice(BigDecimal.ZERO);
             }
-            onlineEditPrice(returnOrder, refundComment, returnPrice.getEarnestPrice(), actualReturnPoints, operator, returnOrder.getId());
-            onlineEditPrice(returnOrder, refundComment, returnPrice.getTailPrice(), 0L, operator, returnOrder.getBusinessTailId());
+            onlineEditPrice(returnOrder, refundComment, returnPrice.getEarnestPrice(), actualReturnPoints, actualReturnKnowledge, operator, returnOrder.getId());
+            onlineEditPrice(returnOrder, refundComment, returnPrice.getTailPrice(), 0L,0L, operator, returnOrder.getBusinessTailId());
         } else {
-            onlineEditPrice(returnOrder, refundComment, actualReturnPrice, actualReturnPoints, operator, returnOrder.getId());
+            onlineEditPrice(returnOrder, refundComment, actualReturnPrice, actualReturnPoints, actualReturnKnowledge, operator, returnOrder.getId());
         }
     }
 
@@ -2377,7 +2377,7 @@ public class ReturnOrderService {
     @Transactional
     @GlobalTransactional
     public void onlineEditPrice(ReturnOrder returnOrder, String refundComment, BigDecimal actualReturnPrice,
-                                Long actualReturnPoints, Operator operator, String returnOrderNo) {
+                                Long actualReturnPoints, Long actualReturnKnowledge, Operator operator, String returnOrderNo) {
         // 查询退款单
         RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(returnOrderNo);
         // 退款单状态不等于待退款 -- 参数错误
@@ -2391,6 +2391,7 @@ public class ReturnOrderService {
             refundBill.setActualReturnPrice(Objects.isNull(actualReturnPrice) ? refundOrder.getReturnPrice() :
                     actualReturnPrice);
             refundBill.setActualReturnPoints(actualReturnPoints);
+            refundBill.setActualReturnKnowledge(actualReturnKnowledge);
             refundBill.setCreateTime(LocalDateTime.now());
             refundBill.setRefundId(refundOrder.getRefundId());
             refundBill.setRefundComment(refundComment);
@@ -2399,6 +2400,7 @@ public class ReturnOrderService {
             refundBill.setActualReturnPrice(Objects.isNull(actualReturnPrice) ? refundOrder.getReturnPrice() :
                     actualReturnPrice);
             refundBill.setActualReturnPoints(actualReturnPoints);
+            refundBill.setActualReturnKnowledge(actualReturnKnowledge);
         }
         refundBillService.saveAndFlush(refundBill);
         //设置退款单状态为待平台退款
@@ -2416,6 +2418,7 @@ public class ReturnOrderService {
             returnOrder.getReturnPrice().setApplyPrice(returnPrice.getEarnestPrice().add(returnPrice.getTailPrice()));
         }
         returnOrder.getReturnPoints().setActualPoints(actualReturnPoints);
+        returnOrder.getReturnKnowledge().setActualKnowledge(actualReturnKnowledge);
         refundOrderRepository.saveAndFlush(refundOrder);
         String detail = String.format("退单[%s]已添加线上退款单，操作人:%s", returnOrder.getId(), operator.getName());
         returnOrder.appendReturnEventLog(
@@ -2778,6 +2781,8 @@ public class ReturnOrderService {
 
         // 积分信息
         returnOrder.getReturnPoints().setActualPoints(refundBill.getActualReturnPoints());
+        // 积分信息
+        returnOrder.getReturnKnowledge().setActualKnowledge(refundBill.getActualReturnKnowledge());
         // 退货金额
         if (refundBill.getActualReturnPrice().compareTo(returnOrder.getReturnPrice().getApplyPrice()) == -1) {
             returnOrder.getReturnPrice().setApplyStatus(true);
