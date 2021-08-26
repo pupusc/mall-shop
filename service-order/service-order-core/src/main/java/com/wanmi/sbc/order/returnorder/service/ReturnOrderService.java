@@ -794,6 +794,14 @@ public class ReturnOrderService {
             points = trade.getCanReturnPoints();
             knowledge = trade.getCanReturnKnowledge();
             returnOrder.setDistributeItems(tradeDistributeItemVos);
+            // 计算积分
+            if (Objects.nonNull(trade.getTradePrice().getPoints())) {
+                points = getPoints(returnOrder, trade, true);
+            }
+            // 计算知豆
+            if (Objects.nonNull(trade.getTradePrice().getKnowledge())) {
+                knowledge = getKnowledge(returnOrder, trade, true);
+            }
         } else {
             //------------------start-------------------
             returnOrder.getReturnItems().forEach(info -> {
@@ -907,7 +915,6 @@ public class ReturnOrderService {
         if (isRefund) {
             //创建退款单，会过滤已完成部分退款的的商品
             createRefund(returnOrder, operator, trade);
-            this.getPoints(returnOrder, trade, true);
         } else {
             createReturn(returnOrder, operator, trade);
             // 计算并设置需要退的赠品
