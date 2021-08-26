@@ -7,12 +7,44 @@ import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.BusinessCodeGenUtils;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.SecurityUtil;
+import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.*;
-import com.wanmi.sbc.customer.api.response.fandeng.*;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengAuthLoginRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengLoginRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyAccountFanDengRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerLoginTimeRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyPaidCustomerRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPrepositionRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengSendCodeRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengVerifyRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.MaterialCheckRequest;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengLockResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengPointResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengPrepositionResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengSengCodeResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengVerifyResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.MaterialCheckResponse;
 import com.wanmi.sbc.customer.ares.CustomerAresService;
-import com.wanmi.sbc.customer.bean.enums.*;
+import com.wanmi.sbc.customer.bean.enums.CheckState;
+import com.wanmi.sbc.customer.bean.enums.CustomerStatus;
+import com.wanmi.sbc.customer.bean.enums.CustomerType;
+import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
+import com.wanmi.sbc.customer.bean.enums.ThirdLoginType;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.detail.model.root.CustomerDetail;
 import com.wanmi.sbc.customer.detail.repository.CustomerDetailRepository;
@@ -49,7 +81,11 @@ import javax.validation.Valid;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @program: sbc-background
@@ -655,8 +691,14 @@ public class ExternalService {
         try {
             HttpResponse httpResponse = HttpUtils.doPost(host,
                     url, getMap(), null, body);
+            if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
+                redisService.delete(appid);
+                httpResponse = HttpUtils.doPost(host,
+                        url, getMap(), null, body);
+            }
             log.info("樊登请求接口直接返回：{}", httpResponse);
             log.info("樊登请求接口：{},请求参数{}", url, body);
+
             if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
 //                log.info("请求接口：{},请求参数：{}", host + url, body);
                 String entity = EntityUtils.toString(httpResponse.getEntity());
