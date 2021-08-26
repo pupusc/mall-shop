@@ -592,7 +592,7 @@ public class ReturnOrderService {
                     }
                 }
 
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType())){
+                if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
                     price = price.add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice()) ?
                             trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
                 }
@@ -682,11 +682,11 @@ public class ReturnOrderService {
             throw new SbcRuntimeException("K-000009");
         }
         long count = returnOrder.getReturnItems().stream()
-                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType() )
-                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType()) ).count();
+                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
+                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
         long giftsCount = returnOrder.getReturnGifts().stream()
                 .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
-                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType() )).count();
+                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
         if (count + giftsCount == returnOrder.getReturnItems().size() + returnOrder.getReturnGifts().size()) {
             // 虚拟商品 只能直接退款
             returnOrder.setReturnWay(ReturnWay.OTHER);
@@ -695,9 +695,9 @@ public class ReturnOrderService {
         //查询订单信息
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid());
         //设置退单调用樊登参数
-       if (StringUtils.isNotEmpty(trade.getDeductCode())) {
-           CustomerDetailVO customerDetailVO = customerCommonService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
-           returnOrder.setFanDengUserNo(customerDetailVO.getCustomerVO().getFanDengUserNo());
+        if (StringUtils.isNotEmpty(trade.getDeductCode())) {
+            CustomerDetailVO customerDetailVO = customerCommonService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
+            returnOrder.setFanDengUserNo(customerDetailVO.getCustomerVO().getFanDengUserNo());
         }
         //查询该订单所有退单
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(trade.getId());
@@ -727,17 +727,17 @@ public class ReturnOrderService {
 
         if (trade.getCycleBuyFlag()) {
             //判断订单里面里面的赠品是否有虚拟或者电子卡券
-            List<TradeItem> gifts=trade.getGifts().stream().filter(g->GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType())|| GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType()) ).collect(Collectors.toList());
+            List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
             //判断里面是否有已经发货日历
-            List<DeliverCalendar> deliverCalendarList=trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()==CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
+            List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
             //是否仅退款
-           isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
 
-           if(CollectionUtils.isNotEmpty(deliverCalendarList)){
-               isRefund=false;
-           }
+            if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
+                isRefund = false;
+            }
 
-        }else {
+        } else {
             isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade
                     .getTradeState().getDeliverStatus()
                     == DeliverStatus.VOID;
@@ -946,15 +946,15 @@ public class ReturnOrderService {
             );
 
 
-             count = newReturnOrder.getReturnItems().stream()
-                    .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType() )
-                            || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType()) ).count();
-             giftsCount = newReturnOrder.getReturnGifts().stream()
+            count = newReturnOrder.getReturnItems().stream()
                     .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
-                            || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType() )).count();
+                            || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
+            giftsCount = newReturnOrder.getReturnGifts().stream()
+                    .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
+                            || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
             Boolean virtualFlag = false;
             if (count + giftsCount == newReturnOrder.getReturnItems().size() + newReturnOrder.getReturnGifts().size()) {
-                virtualFlag=true;
+                virtualFlag = true;
             }
 
             /*if(ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
@@ -996,8 +996,8 @@ public class ReturnOrderService {
             }
 
             // 虚拟自动收货
-            if(virtualFlag){
-                receive(rid,operator);
+            if (virtualFlag) {
+                receive(rid, operator);
             }
             ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                     .addFlag(Boolean.TRUE)
@@ -1118,6 +1118,7 @@ public class ReturnOrderService {
                 })
                 .reduce(0L, Long::sum);
     }
+
     // 计算知豆
     private Long getKnowledge(ReturnOrder returnOrder, Trade trade, boolean isRefund) {
         // 各商品均摊积分
@@ -1315,7 +1316,7 @@ public class ReturnOrderService {
             ReturnItem currGiftItem = allReturnGifts.get(gift.getProductId());
             TradeItem giftDetail = giftItemMap.get(gift.getProductId());
             // 查不到,不做处理
-            if(Objects.isNull(giftDetail)){
+            if (Objects.isNull(giftDetail)) {
                 return;
             }
             if (currGiftItem == null) {
@@ -1501,41 +1502,17 @@ public class ReturnOrderService {
         }
 
         //设置退货商品
-        returnOrder.setReturnItems(trade.getTradeItems().stream().map(item ->
+        returnOrder.getReturnItems().forEach(item ->
                 {
                     GoodsInfoVO vo = goodsInfoVOMap.get(item.getSkuId());
-                    String goodsName = null;
-                    if (Objects.nonNull(vo.getGoods())) {
-                        goodsName = vo.getGoods().getGoodsName() != null ? vo.getGoods().getGoodsName() : null;
-                    }
-
-                    return ReturnItem.builder()
-                            .num(item.getNum().intValue())
-                            .skuId(item.getSkuId())
-                            .skuNo(item.getSkuNo())
-                            .pic(item.getPic())
-                            .skuName(item.getSkuName())
-                            .unit(item.getUnit())
-                            .price(item.getPrice())
-                            .buyPoint(item.getBuyPoint())
-                            .buyKnowledge(item.getBuyKnowledge())
-                            .splitPrice(item.getSplitPrice())
-                            .specDetails(item.getSpecDetails())
-                            .goodsSource(item.getGoodsSource())
-                            .thirdPlatformSpuId(item.getThirdPlatformSpuId())
-                            .thirdPlatformSkuId(item.getThirdPlatformSkuId())
-                            .thirdPlatformType(item.getThirdPlatformType())
-                            .providerId(item.getProviderId())
-                            .supplyPrice(item.getSupplyPrice())
-                            .cateTopId(vo != null ? vo.getCateTopId() : null)
-                            .cateId(vo != null ? vo.getCateId() : null)
-                            .goodsId(vo != null ? vo.getGoodsId() : null)
-                            .spuId(vo != null ? vo.getGoodsId() : null)
-                            .spuName(vo != null ? vo.getGoodsInfoName() : null)
-                            .brandId(vo != null ? vo.getBrandId() : null)
-                            .build();
+                    item.setCateTopId(vo != null ? vo.getCateTopId() : null);
+                    item.setCateId(vo != null ? vo.getCateId() : null);
+                    item.setGoodsId(vo != null ? vo.getGoodsId() : null);
+                    item.setSpuId(vo != null ? vo.getGoodsId() : null);
+                    item.setSpuName(vo != null ? vo.getGoodsInfoName() : null);
+                    item.setBrandId(vo != null ? vo.getBrandId() : null);
                 }
-        ).collect(Collectors.toList()));
+        );
     }
 
     /**
@@ -1782,7 +1759,7 @@ public class ReturnOrderService {
             //构造退单收货地址
             if (StringUtils.isNotBlank(addressId)) {
                 // 定制不需要 供应商地址
-                returnAddress = wapperReturnAddress(addressId,  returnOrder.getCompany().getStoreId());
+                returnAddress = wapperReturnAddress(addressId, returnOrder.getCompany().getStoreId());
             }
 
             //修改退单状态
@@ -1811,157 +1788,157 @@ public class ReturnOrderService {
             /**
              * 1.判断订单是否已完成发货
              * 2.调用ERP接口创建退货单
-            if (trade.getCycleBuyFlag()) {
+             if (trade.getCycleBuyFlag()) {
 
-                //判断订单里面里面的赠品是否有虚拟或者电子卡券
-                List<TradeItem> gifts=trade.getGifts().stream().filter(g->GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType())|| GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType()) ).collect(Collectors.toList());
-                //判断里面是否有已经发货日历
-                List<DeliverCalendar> deliverCalendarList=trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()==CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
-                //是否仅退款
-                 Boolean  isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+             //判断订单里面里面的赠品是否有虚拟或者电子卡券
+             List<TradeItem> gifts=trade.getGifts().stream().filter(g->GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType())|| GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType()) ).collect(Collectors.toList());
+             //判断里面是否有已经发货日历
+             List<DeliverCalendar> deliverCalendarList=trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()==CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
+             //是否仅退款
+             Boolean  isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
 
-                if(CollectionUtils.isNotEmpty(deliverCalendarList)){
-                    isRefund=false;
-                }
-                if (!isRefund) {
-                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                    ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                    //获取订单支付方式
-                    if(Objects.isNull(trade.getPayWay())){
-                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                    }else {
-                        switch(trade.getPayWay()){
-                            case WECHAT:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                            case ALIPAY:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                            default:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                break;
-                        }
-                    }
+             if(CollectionUtils.isNotEmpty(deliverCalendarList)){
+             isRefund=false;
+             }
+             if (!isRefund) {
+             List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
+             ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
+             List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
+             //获取订单支付方式
+             if(Objects.isNull(trade.getPayWay())){
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+             }else {
+             switch(trade.getPayWay()){
+             case WECHAT:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
+             case ALIPAY:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
+             default:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+             break;
+             }
+             }
 
-                    log.info("price==========>:{}",price);
-                    log.info("returnOrder===============>:{}",returnOrder);
-                    erpTradePaymentVO.setPayment(String.valueOf(price));
-                    erpTradePaymentVOList.add(erpTradePaymentVO);
+             log.info("price==========>:{}",price);
+             log.info("returnOrder===============>:{}",returnOrder);
+             erpTradePaymentVO.setPayment(String.valueOf(price));
+             erpTradePaymentVOList.add(erpTradePaymentVO);
 
-                    //收货人信息
-                    Consignee consignee = trade.getConsignee();
+             //收货人信息
+             Consignee consignee = trade.getConsignee();
 
-                    Map<Enum, String> addrMap = new HashMap<>();
-                    //排除周期购有赞老订单
-                    if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
-                        //todo 增加地址省市区信息字段
-                        addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
-                        addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
-                        addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
-                    }else{
-                        //提取平台地址数据
-                        PlatformAddressListRequest platformAddressListRequest =
-                                PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
-                                        consignee.getCityId().toString()
-                                        , consignee.getAreaId().toString())).build();
-                        //不填充叶子节点
-                        platformAddressListRequest.setLeafFlag(false);
-                        BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
-                        List<PlatformAddressVO> platformAddressVOList =
-                                platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
-                        platformAddressVOList.stream().forEach(platformAddressVO -> {
-                            addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
-                        });
-                    }
-
-
-                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                            .buyerMobile(trade.getBuyer().getAccount())
-                            .returnType(ReturnTradeType.RETURN.getCode())
-                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                            .tradeNo(returnOrder.getPtid())
-                            .tradeItems(returnOrderItemList)
-                            .refundDetail(erpTradePaymentVOList)
-                            .receiveName(consignee.getName())
-                            .receiverMobile(consignee.getPhone())
-                            .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
-                            .receiverCity(addrMap.get(AddrLevel.CITY))
-                            .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
-                            .receiverAddress(consignee.getDetailAddress())
-                            .build();
-                    log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-
-                }
-            }else {
-                if(trade.getTradeState().getDeliverStatus().equals(DeliverStatus.SHIPPED)){
-                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                    ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                    //获取订单支付方式
-                    if(Objects.isNull(trade.getPayWay())){
-                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                    }else {
-                        switch(trade.getPayWay()){
-                            case WECHAT:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                            case ALIPAY:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                            default:
-                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                break;
-                        }
-                    }
-
-                    log.info("price==========>:{}",price);
-                    log.info("returnOrder===============>:{}",returnOrder);
-                    erpTradePaymentVO.setPayment(String.valueOf(price));
-                    erpTradePaymentVOList.add(erpTradePaymentVO);
-
-                    //收货人信息
-                    Consignee consignee = trade.getConsignee();
-
-                    Map<Enum, String> addrMap = new HashMap<>();
-                    //排除周期购有赞老订单
-                    if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
-                        //todo 增加地址省市区信息字段
-                        addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
-                        addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
-                        addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
-                    }else{
-                        //提取平台地址数据
-                        PlatformAddressListRequest platformAddressListRequest =
-                                PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
-                                        consignee.getCityId().toString()
-                                        , consignee.getAreaId().toString())).build();
-                        //不填充叶子节点
-                        platformAddressListRequest.setLeafFlag(false);
-                        BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
-                        List<PlatformAddressVO> platformAddressVOList =
-                                platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
-                        platformAddressVOList.stream().forEach(platformAddressVO -> {
-                            addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
-                        });
-                    }
+             Map<Enum, String> addrMap = new HashMap<>();
+             //排除周期购有赞老订单
+             if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
+             //todo 增加地址省市区信息字段
+             addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
+             addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
+             addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
+             }else{
+             //提取平台地址数据
+             PlatformAddressListRequest platformAddressListRequest =
+             PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
+             consignee.getCityId().toString()
+             , consignee.getAreaId().toString())).build();
+             //不填充叶子节点
+             platformAddressListRequest.setLeafFlag(false);
+             BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
+             List<PlatformAddressVO> platformAddressVOList =
+             platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
+             platformAddressVOList.stream().forEach(platformAddressVO -> {
+             addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
+             });
+             }
 
 
-                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                            .buyerMobile(trade.getBuyer().getAccount())
-                            .returnType(ReturnTradeType.RETURN.getCode())
-                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                            .tradeNo(returnOrder.getPtid())
-                            .tradeItems(returnOrderItemList)
-                            .refundDetail(erpTradePaymentVOList)
-                            .receiveName(consignee.getName())
-                            .receiverMobile(consignee.getPhone())
-                            .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
-                            .receiverCity(addrMap.get(AddrLevel.CITY))
-                            .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
-                            .receiverAddress(consignee.getDetailAddress())
-                            .build();
-                    log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-                }
-            }*/
+             ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
+             .buyerMobile(trade.getBuyer().getAccount())
+             .returnType(ReturnTradeType.RETURN.getCode())
+             .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
+             .tradeNo(returnOrder.getPtid())
+             .tradeItems(returnOrderItemList)
+             .refundDetail(erpTradePaymentVOList)
+             .receiveName(consignee.getName())
+             .receiverMobile(consignee.getPhone())
+             .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
+             .receiverCity(addrMap.get(AddrLevel.CITY))
+             .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
+             .receiverAddress(consignee.getDetailAddress())
+             .build();
+             log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
+             guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
+
+             }
+             }else {
+             if(trade.getTradeState().getDeliverStatus().equals(DeliverStatus.SHIPPED)){
+             List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
+             ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
+             List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
+             //获取订单支付方式
+             if(Objects.isNull(trade.getPayWay())){
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+             }else {
+             switch(trade.getPayWay()){
+             case WECHAT:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
+             case ALIPAY:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
+             default:
+             erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+             break;
+             }
+             }
+
+             log.info("price==========>:{}",price);
+             log.info("returnOrder===============>:{}",returnOrder);
+             erpTradePaymentVO.setPayment(String.valueOf(price));
+             erpTradePaymentVOList.add(erpTradePaymentVO);
+
+             //收货人信息
+             Consignee consignee = trade.getConsignee();
+
+             Map<Enum, String> addrMap = new HashMap<>();
+             //排除周期购有赞老订单
+             if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
+             //todo 增加地址省市区信息字段
+             addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
+             addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
+             addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
+             }else{
+             //提取平台地址数据
+             PlatformAddressListRequest platformAddressListRequest =
+             PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
+             consignee.getCityId().toString()
+             , consignee.getAreaId().toString())).build();
+             //不填充叶子节点
+             platformAddressListRequest.setLeafFlag(false);
+             BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
+             List<PlatformAddressVO> platformAddressVOList =
+             platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
+             platformAddressVOList.stream().forEach(platformAddressVO -> {
+             addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
+             });
+             }
+
+
+             ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
+             .buyerMobile(trade.getBuyer().getAccount())
+             .returnType(ReturnTradeType.RETURN.getCode())
+             .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
+             .tradeNo(returnOrder.getPtid())
+             .tradeItems(returnOrderItemList)
+             .refundDetail(erpTradePaymentVOList)
+             .receiveName(consignee.getName())
+             .receiverMobile(consignee.getPhone())
+             .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
+             .receiverCity(addrMap.get(AddrLevel.CITY))
+             .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
+             .receiverAddress(consignee.getDetailAddress())
+             .build();
+             log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
+             guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
+             }
+             }*/
 
             this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
                     ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
@@ -1975,10 +1952,11 @@ public class ReturnOrderService {
 
     /**
      * 退单商品列表
+     *
      * @param returnOrder
      * @return
      */
-    private List<ReturnTradeItemVO> getReturnOrderItemList(ReturnOrder returnOrder){
+    private List<ReturnTradeItemVO> getReturnOrderItemList(ReturnOrder returnOrder) {
         //调用ERP接口创建退货单
         List<ReturnItem> returnItems = returnOrder.getReturnItems();
         List<ReturnItem> returnGifts = returnOrder.getReturnGifts();
@@ -2068,13 +2046,13 @@ public class ReturnOrderService {
         Trade trade = tradeService.detail(returnOrder.getTid());
 
         //周期购订单部分发货退货退款
-        if(trade.getCycleBuyFlag()) {
+        if (trade.getCycleBuyFlag()) {
             //作废主订单
             tradeService.voidTrade(returnOrder.getTid(), operator);
             trade = tradeService.detail(returnOrder.getTid());
             trade.setRefundFlag(true);
             tradeService.updateTrade(trade);
-        }else {
+        } else {
             //判断是否全量退货完成
             if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
                 //作废主订单
@@ -2466,168 +2444,168 @@ public class ReturnOrderService {
         /**
          * 1.调用ERP接口创建退货单
          */
-         if (returnOrder.getReturnType()==ReturnType.RETURN){
-             Trade trade=tradeService.detail(returnOrder.getTid());
-                if (trade.getCycleBuyFlag()) {
-                    //判断订单里面里面的赠品是否有虚拟或者电子卡券
-                    List<TradeItem> gifts=trade.getGifts().stream().filter(g->GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType())|| GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType()) ).collect(Collectors.toList());
-                    //判断里面是否有已经发货日历
-                    List<DeliverCalendar> deliverCalendarList=trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus()==CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
-                    //是否仅退款
-                    Boolean  isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+        if (returnOrder.getReturnType() == ReturnType.RETURN) {
+            Trade trade = tradeService.detail(returnOrder.getTid());
+            if (trade.getCycleBuyFlag()) {
+                //判断订单里面里面的赠品是否有虚拟或者电子卡券
+                List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
+                //判断里面是否有已经发货日历
+                List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
+                //是否仅退款
+                Boolean isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
 
-                    if(CollectionUtils.isNotEmpty(deliverCalendarList)){
-                        isRefund=false;
+                if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
+                    isRefund = false;
+                }
+                if (!isRefund) {
+                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
+                    ERPTradePaymentVO erpTradePaymentVO = new ERPTradePaymentVO();
+                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
+                    //获取订单支付方式
+                    if (Objects.isNull(trade.getPayWay())) {
+                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+                    } else {
+                        switch (trade.getPayWay()) {
+                            case WECHAT:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
+                                break;
+                            case ALIPAY:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
+                                break;
+                            default:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+                                break;
+                        }
                     }
-                    if (!isRefund) {
-                        List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                        ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                        List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                        //获取订单支付方式
-                        if(Objects.isNull(trade.getPayWay())){
-                            erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                        }else {
-                            switch(trade.getPayWay()){
-                                case WECHAT:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                                    break;
-                                case ALIPAY:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                                    break;
-                                default:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                    break;
-                            }
-                        }
 
-                        log.info("price==========>:{}",actualReturnPrice);
-                        log.info("returnOrder===============>:{}",returnOrder);
-                        erpTradePaymentVO.setPayment(String.valueOf(actualReturnPrice));
-                        erpTradePaymentVOList.add(erpTradePaymentVO);
+                    log.info("price==========>:{}", actualReturnPrice);
+                    log.info("returnOrder===============>:{}", returnOrder);
+                    erpTradePaymentVO.setPayment(String.valueOf(actualReturnPrice));
+                    erpTradePaymentVOList.add(erpTradePaymentVO);
 
-                        //收货人信息
-                        Consignee consignee = trade.getConsignee();
+                    //收货人信息
+                    Consignee consignee = trade.getConsignee();
 
-                        Map<Enum, String> addrMap = new HashMap<>();
-                        //排除周期购有赞老订单
-                        if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
-                            //todo 增加地址省市区信息字段
-                            addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
-                            addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
-                            addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
-                        }else{
-                            //提取平台地址数据
-                            PlatformAddressListRequest platformAddressListRequest =
-                                    PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
-                                            consignee.getCityId().toString()
-                                            , consignee.getAreaId().toString())).build();
-                            //不填充叶子节点
-                            platformAddressListRequest.setLeafFlag(false);
-                            BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
-                            List<PlatformAddressVO> platformAddressVOList =
-                                    platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
-                            platformAddressVOList.stream().forEach(platformAddressVO -> {
-                                addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
-                            });
-                        }
-
-
-                        ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                                .buyerMobile(trade.getBuyer().getAccount())
-                                .returnType(ReturnTradeType.RETURN.getCode())
-                                .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                                .tradeNo(returnOrder.getPtid())
-                                .tradeItems(returnOrderItemList)
-                                .refundDetail(erpTradePaymentVOList)
-                                .receiveName(consignee.getName())
-                                .receiverMobile(consignee.getPhone())
-                                .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
-                                .receiverCity(addrMap.get(AddrLevel.CITY))
-                                .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
-                                .receiverAddress(consignee.getDetailAddress())
-                                .expressName((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getCompany(): null)
-                                .expressNum((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getNo())) ? returnOrder.getReturnLogistics().getNo() : null)
-                                .build();
-                        log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                        guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-
+                    Map<Enum, String> addrMap = new HashMap<>();
+                    //排除周期购有赞老订单
+                    if (trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)) {
+                        //todo 增加地址省市区信息字段
+                        addrMap.put(AddrLevel.PROVINCE, trade.getConsignee().getProvinceName());
+                        addrMap.put(AddrLevel.CITY, trade.getConsignee().getCityName());
+                        addrMap.put(AddrLevel.DISTRICT, trade.getConsignee().getAreaName());
+                    } else {
+                        //提取平台地址数据
+                        PlatformAddressListRequest platformAddressListRequest =
+                                PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
+                                        consignee.getCityId().toString()
+                                        , consignee.getAreaId().toString())).build();
+                        //不填充叶子节点
+                        platformAddressListRequest.setLeafFlag(false);
+                        BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
+                        List<PlatformAddressVO> platformAddressVOList =
+                                platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
+                        platformAddressVOList.stream().forEach(platformAddressVO -> {
+                            addrMap.put(platformAddressVO.getAddrLevel(), platformAddressVO.getAddrName());
+                        });
                     }
-                }else {
-                    if(trade.getTradeState().getDeliverStatus().equals(DeliverStatus.SHIPPED)){
-                        List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
-                        ERPTradePaymentVO erpTradePaymentVO =new ERPTradePaymentVO();
-                        List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
-                        //获取订单支付方式
-                        if(Objects.isNull(trade.getPayWay())){
-                            erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                        }else {
-                            switch(trade.getPayWay()){
-                                case WECHAT:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
-                                    break;
-                                case ALIPAY:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
-                                    break;
-                                default:
-                                    erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
-                                    break;
-                            }
+
+
+                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
+                            .buyerMobile(trade.getBuyer().getAccount())
+                            .returnType(ReturnTradeType.RETURN.getCode())
+                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
+                            .tradeNo(returnOrder.getPtid())
+                            .tradeItems(returnOrderItemList)
+                            .refundDetail(erpTradePaymentVOList)
+                            .receiveName(consignee.getName())
+                            .receiverMobile(consignee.getPhone())
+                            .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
+                            .receiverCity(addrMap.get(AddrLevel.CITY))
+                            .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
+                            .receiverAddress(consignee.getDetailAddress())
+                            .expressName((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getCompany() : null)
+                            .expressNum((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getNo())) ? returnOrder.getReturnLogistics().getNo() : null)
+                            .build();
+                    log.info("returnTradeCreateRequst================>:{}", returnTradeCreateRequst);
+                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
+
+                }
+            } else {
+                if (trade.getTradeState().getDeliverStatus().equals(DeliverStatus.SHIPPED)) {
+                    List<ReturnTradeItemVO> returnOrderItemList = this.getReturnOrderItemList(returnOrder);
+                    ERPTradePaymentVO erpTradePaymentVO = new ERPTradePaymentVO();
+                    List<ERPTradePaymentVO> erpTradePaymentVOList = new ArrayList<>();
+                    //获取订单支付方式
+                    if (Objects.isNull(trade.getPayWay())) {
+                        erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+                    } else {
+                        switch (trade.getPayWay()) {
+                            case WECHAT:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.weixin.getStateId());
+                                break;
+                            case ALIPAY:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.aliPay.getStateId());
+                                break;
+                            default:
+                                erpTradePaymentVO.setPayTypeCode(ERPTradePayChannel.other.getStateId());
+                                break;
                         }
+                    }
 
-                        log.info("price==========>:{}",actualReturnPrice);
-                        log.info("returnOrder===============>:{}",returnOrder);
-                        erpTradePaymentVO.setPayment(String.valueOf(actualReturnPrice));
-                        erpTradePaymentVOList.add(erpTradePaymentVO);
+                    log.info("price==========>:{}", actualReturnPrice);
+                    log.info("returnOrder===============>:{}", returnOrder);
+                    erpTradePaymentVO.setPayment(String.valueOf(actualReturnPrice));
+                    erpTradePaymentVOList.add(erpTradePaymentVO);
 
-                        //收货人信息
-                        Consignee consignee = trade.getConsignee();
+                    //收货人信息
+                    Consignee consignee = trade.getConsignee();
 
-                        Map<Enum, String> addrMap = new HashMap<>();
-                        //排除周期购有赞老订单
-                        if(trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)){
-                            //todo 增加地址省市区信息字段
-                            addrMap.put(AddrLevel.PROVINCE,trade.getConsignee().getProvinceName());
-                            addrMap.put(AddrLevel.CITY,trade.getConsignee().getCityName());
-                            addrMap.put(AddrLevel.DISTRICT,trade.getConsignee().getAreaName());
-                        }else{
-                            //提取平台地址数据
-                            PlatformAddressListRequest platformAddressListRequest =
-                                    PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
-                                            consignee.getCityId().toString()
-                                            , consignee.getAreaId().toString())).build();
-                            //不填充叶子节点
-                            platformAddressListRequest.setLeafFlag(false);
-                            BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
-                            List<PlatformAddressVO> platformAddressVOList =
-                                    platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
-                            platformAddressVOList.stream().forEach(platformAddressVO -> {
-                                addrMap.put(platformAddressVO.getAddrLevel(),platformAddressVO.getAddrName());
-                            });
-                        }
+                    Map<Enum, String> addrMap = new HashMap<>();
+                    //排除周期购有赞老订单
+                    if (trade.getParentId().startsWith(GeneratorService._PREFIX_YOUZAN_TRADE_ID)) {
+                        //todo 增加地址省市区信息字段
+                        addrMap.put(AddrLevel.PROVINCE, trade.getConsignee().getProvinceName());
+                        addrMap.put(AddrLevel.CITY, trade.getConsignee().getCityName());
+                        addrMap.put(AddrLevel.DISTRICT, trade.getConsignee().getAreaName());
+                    } else {
+                        //提取平台地址数据
+                        PlatformAddressListRequest platformAddressListRequest =
+                                PlatformAddressListRequest.builder().addrIdList(Arrays.asList(consignee.getProvinceId().toString(),
+                                        consignee.getCityId().toString()
+                                        , consignee.getAreaId().toString())).build();
+                        //不填充叶子节点
+                        platformAddressListRequest.setLeafFlag(false);
+                        BaseResponse<PlatformAddressListResponse> platformAddressListResponseBaseResponse = platformAddressQueryProvider.list(platformAddressListRequest);
+                        List<PlatformAddressVO> platformAddressVOList =
+                                platformAddressListResponseBaseResponse.getContext().getPlatformAddressVOList();
+                        platformAddressVOList.stream().forEach(platformAddressVO -> {
+                            addrMap.put(platformAddressVO.getAddrLevel(), platformAddressVO.getAddrName());
+                        });
+                    }
 
 
-                        ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
-                                .buyerMobile(trade.getBuyer().getAccount())
-                                .returnType(ReturnTradeType.RETURN.getCode())
-                                .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
-                                .tradeNo(returnOrder.getPtid())
-                                .tradeItems(returnOrderItemList)
-                                .refundDetail(erpTradePaymentVOList)
-                                .receiveName(consignee.getName())
-                                .receiverMobile(consignee.getPhone())
-                                .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
-                                .receiverCity(addrMap.get(AddrLevel.CITY))
-                                .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
-                                .receiverAddress(consignee.getDetailAddress())
-                                .expressName((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getCompany(): null)
-                                .expressNum((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getNo() : null)
-                                .build();
-                        log.info("returnTradeCreateRequst================>:{}",returnTradeCreateRequst);
-                        guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
-                     }
-               }
+                    ReturnTradeCreateRequst returnTradeCreateRequst = ReturnTradeCreateRequst.builder()
+                            .buyerMobile(trade.getBuyer().getAccount())
+                            .returnType(ReturnTradeType.RETURN.getCode())
+                            .typeCode(String.valueOf(returnOrder.getReturnReason().getType()))
+                            .tradeNo(returnOrder.getPtid())
+                            .tradeItems(returnOrderItemList)
+                            .refundDetail(erpTradePaymentVOList)
+                            .receiveName(consignee.getName())
+                            .receiverMobile(consignee.getPhone())
+                            .receiverProvince(addrMap.get(AddrLevel.PROVINCE))
+                            .receiverCity(addrMap.get(AddrLevel.CITY))
+                            .receiverDistrict(addrMap.get(AddrLevel.DISTRICT))
+                            .receiverAddress(consignee.getDetailAddress())
+                            .expressName((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getCompany() : null)
+                            .expressNum((Objects.nonNull(returnOrder.getReturnLogistics()) && Objects.nonNull(returnOrder.getReturnLogistics().getCompany())) ? returnOrder.getReturnLogistics().getNo() : null)
+                            .build();
+                    log.info("returnTradeCreateRequst================>:{}", returnTradeCreateRequst);
+                    guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
+                }
+            }
 
-         }
+        }
         this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
                 ReturnOrderProcessType.REFUND_CHECK_PASS,
                 params,
@@ -3084,7 +3062,7 @@ public class ReturnOrderService {
             trade.getTradeItems().forEach(
                     item -> {
                         item.setCanReturnNum(map.get(item.getSkuId()));
-                        if(item.getCanReturnNum() >item.getNum()){
+                        if (item.getCanReturnNum() > item.getNum()) {
                             item.setCanReturnNum(item.getNum().intValue());
                         }
                     }
@@ -3213,18 +3191,18 @@ public class ReturnOrderService {
      * @param trade
      */
     private Map<String, Integer> findLeftItems(Trade trade) {
-        Map<String, Integer>  canReturnNum=null;
+        Map<String, Integer> canReturnNum = null;
         if (trade.getCycleBuyFlag()) {
-            if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)&& !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.PART_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
+            if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.PART_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
                 throw new SbcRuntimeException("K-050002");
             }
             if (CollectionUtils.isNotEmpty(trade.getTradeItems())) {
-                canReturnNum= new HashMap<>();
-                TradeItem tradeItem= trade.getTradeItems().get(0);
-                canReturnNum.put(tradeItem.getSkuId(),tradeItem.getNum().intValue());
+                canReturnNum = new HashMap<>();
+                TradeItem tradeItem = trade.getTradeItems().get(0);
+                canReturnNum.put(tradeItem.getSkuId(), tradeItem.getNum().intValue());
             }
 
-        }else {
+        } else {
             if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
                 throw new SbcRuntimeException("K-050002");
             }
@@ -3239,7 +3217,7 @@ public class ReturnOrderService {
                     });
             Map<String, List<ReturnItem>> groupMap = IteratorUtils.groupBy(allReturnItems, ReturnItem::getSkuId);
 
-            canReturnNum= map.entrySet().stream()
+            canReturnNum = map.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
                             entry -> {
@@ -3871,19 +3849,19 @@ public class ReturnOrderService {
 
         //判断周期购订单赠品是否是虚拟或者电子卡券
         if (trade.getCycleBuyFlag()) {
-            List<TradeItem> gifts=trade.getGifts().stream().filter(tradeItem -> tradeItem.getGoodsType()==GoodsType.VIRTUAL_GOODS || tradeItem.getGoodsType()==GoodsType.VIRTUAL_COUPON).collect(Collectors.toList());
+            List<TradeItem> gifts = trade.getGifts().stream().filter(tradeItem -> tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS || tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(gifts)) {
                 //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
-                if(returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
+                if (returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
                     //退款单更新，已拒绝
                     this.refundReject(returnOrder, refundOrder);
                     return null;
                 }
             }
 
-        }else {
+        } else {
             //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
-            if(returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
+            if (returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
                 //退款单更新，已拒绝
                 this.refundReject(returnOrder, refundOrder);
                 return null;
@@ -3969,12 +3947,13 @@ public class ReturnOrderService {
 
     /**
      * 补偿拒绝退款
+     *
      * @param returnOrder
      * @param refundOrder
      */
     @Transactional
     @GlobalTransactional
-    public void refundReject(ReturnOrder returnOrder, RefundOrder refundOrder){
+    public void refundReject(ReturnOrder returnOrder, RefundOrder refundOrder) {
         //退款单更新，已拒绝
         returnOrder.setReturnFlowState(ReturnFlowState.REJECT_REFUND);
         returnOrder.setRejectReason("已发货不允许退款");
