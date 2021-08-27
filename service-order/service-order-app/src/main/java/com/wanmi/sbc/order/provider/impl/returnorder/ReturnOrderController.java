@@ -131,7 +131,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
     @Override
     public BaseResponse onlineModifyPrice(@RequestBody @Valid ReturnOrderOnlineModifyPriceRequest request) {
         returnOrderService.onlineEditPrice(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
-                request.getRefundComment(), request.getActualReturnPrice(), request.getActualReturnPoints(),
+                request.getRefundComment(), request.getActualReturnPrice(), request.getActualReturnPoints(),request.getActualReturnKnowledge(),
                 request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }

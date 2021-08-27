@@ -13,13 +13,23 @@ import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderResponseByReturnOrderCodeRequest;
-import com.wanmi.sbc.order.api.request.returnorder.*;
+import com.wanmi.sbc.order.api.request.returnorder.CanReturnItemNumByTidRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByIdRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderDeliverRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderListByTidRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderNotVoidByTidRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderPageRequest;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderListReponse;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
-import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.order.bean.vo.ReturnItemVO;
+import com.wanmi.sbc.order.bean.vo.ReturnLogisticsVO;
+import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
@@ -29,14 +39,21 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by sunkun on 2017/7/11.
+ * @menu 退单相关
+ * @tag feature_d_cps
+ * @status undone
  */
 @Api(tags = "ReturnOrderBaseController", description = "退单基本服务API")
 @RestController
@@ -77,11 +94,12 @@ public class ReturnOrderBaseController {
         return BaseResponse.success(returnPage);
     }
 
+
     /**
-     * 查看退单详情
-     *
-     * @param rid
-     * @return
+     * @description H5查看退单详情
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查看退单详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
@@ -191,10 +209,10 @@ public class ReturnOrderBaseController {
 
 
     /**
-     * 查看退货订单详情和可退商品数
-     *
-     * @param tid
-     * @return
+     * @description 查看退货订单详情和可退商品数
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查看退货订单详情和可退商品数")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单Id", required = true)

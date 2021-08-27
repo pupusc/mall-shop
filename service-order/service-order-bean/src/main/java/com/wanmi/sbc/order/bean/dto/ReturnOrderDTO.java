@@ -169,6 +169,12 @@ public class ReturnOrderDTO implements Serializable {
     private ReturnPointsDTO returnPoints;
 
     /**
+     * 退知豆信息
+     */
+    @ApiModelProperty(value = "退知豆信息")
+    private ReturnKnowledgeDTO returnKnowledge;
+
+    /**
      * 收货人信息
      */
     @ApiModelProperty(value = "收货人信息")

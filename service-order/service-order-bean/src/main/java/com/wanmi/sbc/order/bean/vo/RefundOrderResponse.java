@@ -74,12 +74,22 @@ public class RefundOrderResponse implements Serializable{
      */
     @ApiModelProperty(value = "应退积分")
     private Long returnPoints;
+    /**
+     * 应退知豆
+     */
+    @ApiModelProperty(value = "应退知豆")
+    private Long returnKnowledge;
 
     /**
      * 实退积分
      */
     @ApiModelProperty(value = "实退积分")
     private Long actualReturnPoints;
+    /**
+     * 实退知豆
+     */
+    @ApiModelProperty(value = "实退知豆")
+    private Long actualReturnKnowledge;
 
     /**
      * 退款账户

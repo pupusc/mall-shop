@@ -4,7 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.account.bean.enums.PayWay;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.OrderType;
+import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.PointsOrderType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
@@ -14,15 +19,24 @@ import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.EvaluateStatus;
 import com.wanmi.sbc.order.bean.enums.OrderSource;
 import com.wanmi.sbc.order.bean.enums.PaymentOrder;
-import com.wanmi.sbc.order.trade.model.entity.*;
-import com.wanmi.sbc.order.trade.model.entity.value.*;
+import com.wanmi.sbc.order.trade.model.entity.PayInfo;
+import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
+import com.wanmi.sbc.order.trade.model.entity.TradeState;
+import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
+import com.wanmi.sbc.order.trade.model.entity.value.Seller;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -330,6 +344,12 @@ public class Trade implements Serializable {
      * 可退积分
      */
     private Long canReturnPoints;
+
+    /**
+     * 可退知豆
+     */
+    @ApiModelProperty(value = "可退知豆")
+    private Long canReturnKnowledge;
 
     /**
      * 已退金额

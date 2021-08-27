@@ -52,7 +52,11 @@ public class ReturnOrderOnlineModifyPriceRequest implements Serializable {
      */
     @ApiModelProperty(value = "实退积分")
     private Long actualReturnPoints;
-
+    /**
+     * 实退知豆
+     */
+    @ApiModelProperty(value = "实退知豆")
+    private Long actualReturnKnowledge;
     /**
      * 操作人信息
      */

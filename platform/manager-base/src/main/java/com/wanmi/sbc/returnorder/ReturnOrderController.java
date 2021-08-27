@@ -85,9 +85,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+
 /**
- * 退货
- * Created by jinwei on 20/4/2017.
+ * @menu 退单相关
+ * @tag feature_d_cps3
+ * @status undone
  */
 @Api(tags = "ReturnOrderController", description = "退货 Api")
 @RestController
@@ -158,6 +160,12 @@ public class ReturnOrderController {
      */
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
+    /**
+     * @description 商家-运营查询退单
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
+     */
     @ApiOperation(value = "查询退单")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/{rid}")
@@ -499,11 +507,12 @@ public class ReturnOrderController {
         return res;
     }
 
+
     /**
-     * 根据订单id查询退单(过滤拒绝退款、拒绝收货、已作废)
-     *
-     * @param tid
-     * @return
+     * @description 商家-运营根据订单id查询退单(过滤拒绝退款、拒绝收货、已作废)
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "根据订单id查询退单(过滤拒绝退款、拒绝收货、已作废)")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "退单Id", required = true)
@@ -635,11 +644,12 @@ public class ReturnOrderController {
                 .newReturnOrder(Remedy2ReturnOrder.convert(request)).build());
     }
 
+
     /**
-     * 查看退货订单详情和可退商品数
-     *
-     * @param tid
-     * @return
+     * @description 商家-运营查看退货订单详情和可退商品数
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查看退货订单详情和可退商品数")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "退单Id", required = true)
@@ -652,10 +662,10 @@ public class ReturnOrderController {
     }
 
     /**
-     * 查询退货退单及可退商品数
-     *
-     * @param rid
-     * @return
+     * @description 商家-运营查询退货退单及可退商品数
+     * @menu 退单相关
+     * @tag feature_d_cps_v3
+     * @status done
      */
     @ApiOperation(value = "查询退货退单及可退商品数")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)

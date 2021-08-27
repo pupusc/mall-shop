@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.returnorder.fsm.action;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.points.CustomerPointsDetailSaveProvider;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateSaveProvider;
@@ -21,6 +22,8 @@ import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.returnorder.fsm.params.ReturnStateRequest;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,6 +56,10 @@ public class RefundReturnAction extends ReturnAction {
 
     @Autowired
     private ExternalProvider externalProvider;
+
+
+    @Autowired
+    private TradeRepository tradeRepository;
     @Override
     protected void evaluateInternal(ReturnOrder returnOrder, ReturnStateRequest request, ReturnStateContext rsc) {
         Operator operator = rsc.findOperator();
@@ -82,6 +89,15 @@ public class RefundReturnAction extends ReturnAction {
                     .point(points).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId()).sourceType(1)
                     .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
             externalProvider.pointRefund(refundRequest);
+        }
+        Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
+        if (knowledge != null && knowledge > 0) {
+            Trade trade = tradeRepository.findById(returnOrder.getTid()).get();
+            FanDengKnowledgeRefundRequest refundRequest = FanDengKnowledgeRefundRequest.builder()
+                    .beans(knowledge).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId())
+                    .deductCode(trade.getDeductCode())
+                    .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
+            externalProvider.knowledgeRefund(refundRequest);
         }
         delEvaluate(returnOrder);
     }

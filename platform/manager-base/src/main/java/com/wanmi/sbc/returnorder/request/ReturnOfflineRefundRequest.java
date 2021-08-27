@@ -88,4 +88,11 @@ public class ReturnOfflineRefundRequest extends BaseRequest {
     @ApiModelProperty(value = "实退积分")
     @Min(value = 0)
     private Long actualReturnPoints;
+
+    /**
+     * 实退知豆
+     */
+    @ApiModelProperty(value = "实退知豆")
+    @Min(value = 0)
+    private Long actualReturnKnowledge;
 }

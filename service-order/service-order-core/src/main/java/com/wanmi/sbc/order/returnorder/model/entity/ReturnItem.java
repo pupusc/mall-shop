@@ -96,6 +96,15 @@ public class ReturnItem {
      * 应退积分
      */
     private Long splitPoint;
+    /**
+     * 购买知豆
+     */
+    private Long buyKnowledge;
+
+    /**
+     * 应退知豆
+     */
+    private Long splitKnowledge;
 
 
     /**

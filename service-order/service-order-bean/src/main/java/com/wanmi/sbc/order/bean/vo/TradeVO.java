@@ -4,7 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.account.bean.enums.PayWay;
-import com.wanmi.sbc.common.enums.*;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.OrderExternalSource;
+import com.wanmi.sbc.common.enums.OrderType;
+import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.PointsOrderType;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
@@ -12,7 +18,6 @@ import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeGrouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
-import com.wanmi.sbc.order.bean.dto.TradeCycleBuyInfoDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.OrderSource;
 import com.wanmi.sbc.order.bean.enums.PaymentOrder;
@@ -384,6 +389,12 @@ public class TradeVO implements Serializable {
      */
     @ApiModelProperty(value = "可退积分")
     private Long canReturnPoints;
+
+    /**
+     * 可退知豆
+     */
+    @ApiModelProperty(value = "可退知豆")
+    private Long canReturnKnowledge;
 
     /**
      * 已退金额
