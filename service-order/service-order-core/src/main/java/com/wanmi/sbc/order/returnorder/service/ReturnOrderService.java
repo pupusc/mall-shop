@@ -2418,7 +2418,11 @@ public class ReturnOrderService {
             returnOrder.getReturnPrice().setApplyPrice(returnPrice.getEarnestPrice().add(returnPrice.getTailPrice()));
         }
         returnOrder.getReturnPoints().setActualPoints(actualReturnPoints);
-        returnOrder.getReturnKnowledge().setActualKnowledge(actualReturnKnowledge);
+        if (returnOrder.getReturnKnowledge() == null) {
+            returnOrder.setReturnKnowledge(ReturnKnowledge.builder().actualKnowledge(actualReturnKnowledge).build());
+        } else {
+            returnOrder.getReturnKnowledge().setActualKnowledge(actualReturnKnowledge);
+        }
         refundOrderRepository.saveAndFlush(refundOrder);
         String detail = String.format("退单[%s]已添加线上退款单，操作人:%s", returnOrder.getId(), operator.getName());
         returnOrder.appendReturnEventLog(
@@ -2782,7 +2786,11 @@ public class ReturnOrderService {
         // 积分信息
         returnOrder.getReturnPoints().setActualPoints(refundBill.getActualReturnPoints());
         // 积分信息
-        returnOrder.getReturnKnowledge().setActualKnowledge(refundBill.getActualReturnKnowledge());
+        if (returnOrder.getReturnKnowledge() == null) {
+            returnOrder.setReturnKnowledge(ReturnKnowledge.builder().actualKnowledge(refundBill.getActualReturnKnowledge()).build());
+        } else {
+            returnOrder.getReturnKnowledge().setActualKnowledge(refundBill.getActualReturnKnowledge());
+        }
         // 退货金额
         if (refundBill.getActualReturnPrice().compareTo(returnOrder.getReturnPrice().getApplyPrice()) == -1) {
             returnOrder.getReturnPrice().setApplyStatus(true);
