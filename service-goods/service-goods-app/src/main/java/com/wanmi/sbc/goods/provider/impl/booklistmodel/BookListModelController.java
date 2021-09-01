@@ -2,6 +2,9 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.constant.BookListModelErrorCode;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
@@ -46,6 +49,7 @@ public class BookListModelController implements BookListModelProvider {
                                 @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
         BookListModelRequest bookListModelRequest = new BookListModelRequest();
         BeanUtils.copyProperties(bookListModelProviderRequest, bookListModelRequest);
+        bookListModelRequest.setPublishState(PublishStateEnum.UN_PUBLISH.getCode()); //默认草稿
         bookListModelService.add(bookListModelRequest, bookListModelProviderRequest.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
@@ -59,6 +63,20 @@ public class BookListModelController implements BookListModelProvider {
     @Override
     public BaseResponse update(@Validated(BookListModelProviderRequest.Update.class)
                             @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
+        if (bookListModelProviderRequest.getPublishState() != null) {
+            PublishStateEnum publishStateEnum = PublishStateEnum.getByCode(bookListModelProviderRequest.getPublishState());
+            if (publishStateEnum == null) {
+                log.error("BookListModelController update 更新书单发布类型 publicState: {} 有误",
+                                    bookListModelProviderRequest.getPublishState());
+                throw new SbcRuntimeException(BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_UN_EXISTS,
+                        BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_UN_EXISTS_MESSAGE);
+            }
+            if (publishStateEnum == PublishStateEnum.UN_PUBLISH) {
+                log.error("BookListModelController update 更新书单不能为草稿类型");
+                throw new SbcRuntimeException(BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_ERROR,
+                        BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_ERROR_MESSAGE);
+            }
+        }
         BookListModelRequest bookListModelRequest = new BookListModelRequest();
         BeanUtils.copyProperties(bookListModelProviderRequest, bookListModelRequest);
         bookListModelService.update(bookListModelRequest, bookListModelProviderRequest.getOperator());
@@ -73,10 +91,7 @@ public class BookListModelController implements BookListModelProvider {
     @Override
     public BaseResponse delete(@Validated(BookListModelProviderRequest.Delete.class)
                                @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
-        Boolean delete = bookListModelService.delete(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
-        if (delete == null || !delete){
-            return BaseResponse.FAILED();
-        }
+        bookListModelService.delete(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -103,4 +118,6 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setContent(bookListModelResponseList);
         return microServicePage;
     }
+
+
 }

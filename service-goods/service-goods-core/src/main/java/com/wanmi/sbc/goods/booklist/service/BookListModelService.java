@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.booklist.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.booklist.BookListModel;
 import com.wanmi.sbc.goods.booklist.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklist.repository.BookListModelRepository;
@@ -101,7 +102,7 @@ public class BookListModelService {
      * @param bookListModelId
      * @return
      */
-    public Boolean delete(Integer bookListModelId, String operater) {
+    public void delete(Integer bookListModelId, String operater) {
         log.info("bookListModel.delete id {} by user: {}", bookListModelId, operater);
         Optional<BookListModelDTO> bookListModelOptional =
                 bookListModelRepository.findById(bookListModelId);
@@ -109,13 +110,18 @@ public class BookListModelService {
             log.error("bookListModel.delete id {} not exists ", bookListModelId);
             throw new SbcRuntimeException("书单" + bookListModelId + "不存在");
         }
+        if (!Objects.equals(bookListModelOptional.get().getPublishState(), PublishStateEnum.UN_PUBLISH.getCode())) {
+            throw new SbcRuntimeException("书单" + bookListModelId + "状态不是草稿，不能删除");
+        }
         if (Objects.equals(bookListModelOptional.get().getDelFlag(), GoodsConstants.DELETE)) {
-            log.error("bookListModel.delete id {} already delete ", bookListModelId);
-            return true;
+            log.info("bookListModel.delete id {} already delete ", bookListModelId);
+            return;
         }
         log.info("bookListModel.delete id{} result{}", bookListModelId, JSON.toJSONString(bookListModelOptional.get()));
-        Integer result = bookListModelRepository.deleteBookListModelByCustomer(bookListModelId, bookListModelOptional.get().getVersion());
-        return result > 0;
+        int result = bookListModelRepository.deleteBookListModelByCustomer(bookListModelId, bookListModelOptional.get().getVersion());
+        if (result <= 0) {
+            throw new SbcRuntimeException("书单" + bookListModelId + "删除中异常");
+        }
     }
 
 
