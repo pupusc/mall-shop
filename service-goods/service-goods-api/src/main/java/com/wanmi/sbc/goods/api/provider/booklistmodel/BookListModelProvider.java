@@ -22,6 +22,10 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/update")
     BaseResponse update(@RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/delete")
+    BaseResponse delete(@RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
     MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);
 }

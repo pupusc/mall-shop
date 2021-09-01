@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.booklist.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.booklist.BookListModel;
 import com.wanmi.sbc.goods.booklist.model.root.BookListModelDTO;
@@ -112,7 +113,7 @@ public class BookListModelService {
             log.error("bookListModel.delete id {} already delete ", bookListModelId);
             return true;
         }
-
+        log.info("bookListModel.delete id{} result{}", bookListModelId, JSON.toJSONString(bookListModelOptional.get()));
         Integer result = bookListModelRepository.deleteBookListModelByCustomer(bookListModelId, bookListModelOptional.get().getVersion());
         return result > 0;
     }
@@ -123,11 +124,11 @@ public class BookListModelService {
      * @param bookListModelPageRequest
      * @return
      */
-    public Page<BookListModelDTO> list(BookListModelPageRequest bookListModelPageRequest) {
+    public Page<BookListModelDTO> list(BookListModelPageRequest bookListModelPageRequest, int pageNum, int pageSize) {
         //查询数量
         Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
-        Pageable pageable = PageRequest.of(bookListModelPageRequest.getPageNum(), bookListModelPageRequest.getPageSize(),
-                Sort.Direction.ASC, "createTime");
+        Pageable pageable = PageRequest.of(pageNum, pageSize,
+                Sort.Direction.DESC, "createTime");
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
 

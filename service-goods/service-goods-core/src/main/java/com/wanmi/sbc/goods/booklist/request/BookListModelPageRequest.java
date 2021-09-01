@@ -12,10 +12,6 @@ import lombok.Data;
 @Data
 public class BookListModelPageRequest {
 
-    private Integer pageNum = 0;
-
-    private Integer pageSize = 10;
-
     private Integer id;
 
     /**

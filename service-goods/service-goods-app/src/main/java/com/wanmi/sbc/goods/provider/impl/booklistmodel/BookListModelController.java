@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,19 +65,39 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+    /**
+     * 删除书单
+     * @param bookListModelProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse delete(@Validated(BookListModelProviderRequest.Delete.class)
+                               @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
+        Boolean delete = bookListModelService.delete(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
+        if (delete == null || !delete){
+            return BaseResponse.FAILED();
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
 
+    /**
+     * 获取列表
+     * @param bookListModelPageProviderRequest
+     * @return
+     */
     @Override
     public MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest) {
         BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
         BeanUtils.copyProperties(bookListModelPageProviderRequest, bookListModelPageRequest);
-        Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest);
+        Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
+                bookListModelPageProviderRequest.getPageNum(), bookListModelPageProviderRequest.getPageSize());
         List<BookListModelProviderResponse> bookListModelResponseList = pageBookListModel.getContent().stream().map(ex -> {
                                                         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
                                                         BeanUtils.copyProperties(ex, bookListModelProviderResponse);
                                                         return bookListModelProviderResponse;
                                                     }).collect(Collectors.toList());
 
-        MicroServicePage<BookListModelProviderResponse> microServicePage = new MicroServicePage<BookListModelProviderResponse>();
+        MicroServicePage<BookListModelProviderResponse> microServicePage = new MicroServicePage<>();
         microServicePage.setPageable(pageBookListModel.getPageable());
         microServicePage.setTotal(pageBookListModel.getTotalElements());
         microServicePage.setContent(bookListModelResponseList);

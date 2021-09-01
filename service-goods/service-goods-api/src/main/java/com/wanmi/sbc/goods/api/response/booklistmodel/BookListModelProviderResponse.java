@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.api.response.booklistmodel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Description:
@@ -52,6 +53,8 @@ public class BookListModelProviderResponse implements Serializable {
      */
     private Integer publishState;
 
-    private String operator;
+    private Date createTime;
+
+    private Date updateTime;
 
 }

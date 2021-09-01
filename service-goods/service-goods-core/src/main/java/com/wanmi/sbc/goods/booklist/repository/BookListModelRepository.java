@@ -19,7 +19,7 @@ public interface BookListModelRepository extends JpaRepository<BookListModelDTO,
 
 
     @Modifying
-    @Query("update BookListModelDTO m set m.delFlag = 1 where m.id = ?1 and m.delFlag = 0 and m.version =?2")
+    @Query("update BookListModelDTO m set m.delFlag = 1 where m.id = ?1 and m.delFlag = 0 and m.version =?2 and m.publishState = 0")
     Integer deleteBookListModelByCustomer(Integer id, Integer version);
 
 

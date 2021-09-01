@@ -22,6 +22,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class BookListModelPageProviderRequest implements Serializable {
 
+    private int pageNum = 1;
+
+    private int pageSize = 10;
 
     private Integer id;
 
