@@ -1,13 +1,13 @@
-package com.wanmi.sbc.goods.booklist.service;
+package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
-import com.wanmi.sbc.goods.booklist.BookListModel;
-import com.wanmi.sbc.goods.booklist.model.root.BookListModelDTO;
-import com.wanmi.sbc.goods.booklist.repository.BookListModelRepository;
-import com.wanmi.sbc.goods.booklist.request.BookListModelPageRequest;
-import com.wanmi.sbc.goods.booklist.request.BookListModelRequest;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
+import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
+import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
+import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
 import com.wanmi.sbc.goods.util.GoodsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,11 +22,12 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,9 +54,12 @@ public class BookListModelService {
      */
     public BookListModelDTO add(BookListModelRequest bookListModelRequest, String operator) {
         log.info("bookListModel.add operator: {} ", operator);
-        bookListModelRequest.setId(null); //防止误传，导致不是新增而是更新操作
         BookListModelDTO bookListModelDTO = new BookListModelDTO();
         BeanUtils.copyProperties(bookListModelRequest, bookListModelDTO);
+        bookListModelDTO.setId(null);
+        bookListModelDTO.setCreateTime(new Date());
+        bookListModelDTO.setUpdateTime(new Date());
+        bookListModelDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         //新增对象信息
         return bookListModelRepository.save(bookListModelDTO);
     }
@@ -69,10 +73,12 @@ public class BookListModelService {
         log.info("bookListModel.add id:{}, operator:{}", bookListModelRequest.getId(), operator);
         Optional<BookListModelDTO> bookListModelOptional =
                 bookListModelRepository.findById(bookListModelRequest.getId());
-        if (!bookListModelOptional.isPresent() || Objects.equals(bookListModelOptional.get().getDelFlag(), GoodsConstants.DELETE)) {
+        if (!bookListModelOptional.isPresent() || Objects.equals(bookListModelOptional.get().getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
             throw new SbcRuntimeException("书单" + bookListModelRequest.getId() + "不存在");
         }
         BookListModelDTO existBookListModelDtoUpdate = bookListModelOptional.get();
+        existBookListModelDtoUpdate.setUpdateTime(new Date());
+        existBookListModelDtoUpdate.setId(bookListModelRequest.getId());
         if (!StringUtils.isEmpty(bookListModelRequest.getName())) {
             existBookListModelDtoUpdate.setName(bookListModelRequest.getName());
         }
@@ -113,7 +119,7 @@ public class BookListModelService {
         if (!Objects.equals(bookListModelOptional.get().getPublishState(), PublishStateEnum.UN_PUBLISH.getCode())) {
             throw new SbcRuntimeException("书单" + bookListModelId + "状态不是草稿，不能删除");
         }
-        if (Objects.equals(bookListModelOptional.get().getDelFlag(), GoodsConstants.DELETE)) {
+        if (Objects.equals(bookListModelOptional.get().getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
             log.info("bookListModel.delete id {} already delete ", bookListModelId);
             return;
         }
@@ -143,13 +149,13 @@ public class BookListModelService {
      * @param bookListModelPageRequest
      */
     private Specification<BookListModelDTO> packageWhere(BookListModelPageRequest bookListModelPageRequest) {
-        Specification<BookListModelDTO> specificationWhere = new Specification<BookListModelDTO>() {
+        return new Specification<BookListModelDTO>() {
             @Override
             public Predicate toPredicate(Root<BookListModelDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                List<Predicate> conditionList = new ArrayList<>();
+                final List<Predicate> conditionList = new ArrayList<>();
 
                 //只是获取有效的
-                conditionList.add(criteriaBuilder.equal(root.get("delFlag"), GoodsConstants.NORMAL));
+                conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (bookListModelPageRequest.getId() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("id"), bookListModelPageRequest.getId()));
                 }
@@ -164,6 +170,5 @@ public class BookListModelService {
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };
-        return specificationWhere;
     }
 }

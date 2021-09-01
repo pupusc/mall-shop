@@ -9,10 +9,10 @@ import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
-import com.wanmi.sbc.goods.booklist.model.root.BookListModelDTO;
-import com.wanmi.sbc.goods.booklist.request.BookListModelPageRequest;
-import com.wanmi.sbc.goods.booklist.request.BookListModelRequest;
-import com.wanmi.sbc.goods.booklist.service.BookListModelService;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
+import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
+import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
+import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +118,7 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setContent(bookListModelResponseList);
         return microServicePage;
     }
+
 
 
 }

@@ -1,6 +1,6 @@
-package com.wanmi.sbc.goods.booklist.repository;
+package com.wanmi.sbc.goods.booklistmodel.repository;
 
-import com.wanmi.sbc.goods.booklist.model.root.BookListModelDTO;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.booklist.model.root;
+package com.wanmi.sbc.goods.booklistmodel.model.root;
 
 import lombok.Data;
 
