@@ -7,6 +7,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRe
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -16,15 +17,18 @@ public interface BookListModelProvider {
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/add")
-    BaseResponse add(@RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+    BaseResponse add(@Validated(BookListModelProviderRequest.Add.class)
+                     @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/update")
-    BaseResponse update(@RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+    BaseResponse update(@Validated(BookListModelProviderRequest.Update.class)
+                        @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/delete")
-    BaseResponse delete(@RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+    BaseResponse delete(@Validated(BookListModelProviderRequest.Delete.class)
+                        @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
     MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);

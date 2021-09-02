@@ -6,8 +6,6 @@ import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
 import com.wanmi.sbc.goods.chooserule.model.root.ChooseRuleDTO;
 import com.wanmi.sbc.goods.chooserule.service.ChooseRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -29,7 +27,7 @@ public class ChooseRuleController implements ChooseRuleProvider {
      * @return
      */
     @Override
-    public BaseResponse add(@Validated @RequestBody ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    public BaseResponse add(ChooseRuleProviderRequest chooseRuleProviderRequest) {
         chooseRuleService.add(chooseRuleProviderRequest);
         return BaseResponse.SUCCESSFUL();
     }
@@ -41,7 +39,7 @@ public class ChooseRuleController implements ChooseRuleProvider {
      * @return
      */
     @Override
-    public BaseResponse update(@Validated @RequestBody ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    public BaseResponse update(ChooseRuleProviderRequest chooseRuleProviderRequest) {
         chooseRuleService.update(chooseRuleProviderRequest);
         return BaseResponse.SUCCESSFUL();
     }
@@ -52,7 +50,7 @@ public class ChooseRuleController implements ChooseRuleProvider {
      * @return
      */
     @Override
-    public BaseResponse findByCondition(@Validated @RequestBody ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    public BaseResponse findByCondition(ChooseRuleProviderRequest chooseRuleProviderRequest) {
         ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleProviderRequest);
         return BaseResponse.success(chooseRuleDTO);
     }

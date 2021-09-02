@@ -17,8 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -45,8 +43,7 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public BaseResponse add(@Validated(BookListModelProviderRequest.Add.class)
-                                @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
+    public BaseResponse add(BookListModelProviderRequest bookListModelProviderRequest) {
         BookListModelRequest bookListModelRequest = new BookListModelRequest();
         BeanUtils.copyProperties(bookListModelProviderRequest, bookListModelRequest);
         bookListModelRequest.setPublishState(PublishStateEnum.UN_PUBLISH.getCode()); //默认草稿
@@ -61,8 +58,7 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public BaseResponse update(@Validated(BookListModelProviderRequest.Update.class)
-                            @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
+    public BaseResponse update(BookListModelProviderRequest bookListModelProviderRequest) {
         if (bookListModelProviderRequest.getPublishState() != null) {
             PublishStateEnum publishStateEnum = PublishStateEnum.getByCode(bookListModelProviderRequest.getPublishState());
             if (publishStateEnum == null) {
@@ -89,8 +85,7 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public BaseResponse delete(@Validated(BookListModelProviderRequest.Delete.class)
-                               @RequestBody BookListModelProviderRequest bookListModelProviderRequest) {
+    public BaseResponse delete(BookListModelProviderRequest bookListModelProviderRequest) {
         bookListModelService.delete(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
@@ -101,7 +96,7 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest) {
+    public MicroServicePage<BookListModelProviderResponse> listByPage(BookListModelPageProviderRequest bookListModelPageProviderRequest) {
         BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
         BeanUtils.copyProperties(bookListModelPageProviderRequest, bookListModelPageRequest);
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
