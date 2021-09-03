@@ -100,6 +100,10 @@ public class ChooseRuleService {
                 if (chooseRuleProviderRequest.getCategory() != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("category"), chooseRuleProviderRequest.getCategory()));
                 }
+
+                if (chooseRuleProviderRequest.getId() != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("id"), chooseRuleProviderRequest.getId()));
+                }
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
         };

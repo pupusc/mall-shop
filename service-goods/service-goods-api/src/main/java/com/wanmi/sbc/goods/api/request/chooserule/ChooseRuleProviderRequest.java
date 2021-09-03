@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.request.chooserule;
 
+import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -14,6 +15,7 @@ import java.io.Serializable;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
+@Builder
 public class ChooseRuleProviderRequest implements Serializable {
 
 
