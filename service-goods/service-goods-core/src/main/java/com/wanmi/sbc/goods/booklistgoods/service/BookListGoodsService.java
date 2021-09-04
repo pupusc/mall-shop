@@ -1,30 +1,29 @@
 package com.wanmi.sbc.goods.booklistgoods.service;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.api.request.booklistgoods.BookListGoodsProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistgoods.BookListGoodsSortProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistgoods.GoodsIdListProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
+import com.wanmi.sbc.goods.api.request.chooserulegoodslist.BookListGoodsSortProviderRequest;
+import com.wanmi.sbc.goods.api.request.chooserulegoodslist.GoodsIdListProviderRequest;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.repository.BookListGoodsRepository;
-import com.wanmi.sbc.goods.chooserule.model.root.ChooseRuleDTO;
-import com.wanmi.sbc.goods.chooserule.service.ChooseRuleService;
+import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -41,42 +40,23 @@ public class BookListGoodsService {
     @Resource
     private BookListGoodsRepository bookListGoodsRepository;
 
-    @Autowired
-    private ChooseRuleService chooseRuleService;
-
-    /**
-     * 生成批次
-     * @return
-     */
-//    private String generateBatchId() {
-//
-//    }
-
     /**
      * 新增商品列表
-     * @param bookListGoodsProviderRequest
+     * @param bookListGoodsRequest
      */
-    @Transactional
-    public void add(BookListGoodsProviderRequest bookListGoodsProviderRequest) {
-
-        ChooseRuleProviderRequest chooseRuleProviderRequest =
-                ChooseRuleProviderRequest.builder().id(bookListGoodsProviderRequest.getChooseRuleId()).build();
-        ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleProviderRequest);
-        if (chooseRuleDTO == null) {
-            log.error("BookListGoodsService.add get chooseRule by Id {}, return null", bookListGoodsProviderRequest.getChooseRuleId());
-            throw new SbcRuntimeException(String.format("chooseRule id %s not exists", bookListGoodsProviderRequest.getChooseRuleId()));
-        }
+    public void add(BookListGoodsRequest bookListGoodsRequest) {
+        AtomicInteger orderNum = new AtomicInteger();
         List<BookListGoodsDTO> bookListGoodsDTOList = new ArrayList<>();
-        for (GoodsIdListProviderRequest goodsIdListParam : bookListGoodsProviderRequest.getGoodsIdListProviderRequestList()) {
+        for (GoodsIdListProviderRequest goodsIdListParam : bookListGoodsRequest.getGoodsIdListProviderRequestList()) {
             BookListGoodsDTO bookListGoodsDTO = new BookListGoodsDTO();
-            bookListGoodsDTO.setChooseRuleId(bookListGoodsProviderRequest.getChooseRuleId());
-            bookListGoodsDTO.setBookListId(chooseRuleDTO.getBookListId());
-            bookListGoodsDTO.setCategory(chooseRuleDTO.getCategory());
+            bookListGoodsDTO.setChooseRuleId(bookListGoodsRequest.getChooseRuleId());
+            bookListGoodsDTO.setBookListId(bookListGoodsRequest.getBookListId());
+            bookListGoodsDTO.setCategory(bookListGoodsRequest.getCategory());
             bookListGoodsDTO.setSpuId(goodsIdListParam.getSpuId());
             bookListGoodsDTO.setSpuNo(goodsIdListParam.getSpuNo());
             bookListGoodsDTO.setSkuId(goodsIdListParam.getSkuId());
             bookListGoodsDTO.setSkuNo(goodsIdListParam.getSkuNo());
-//            bookListGoodsDTO.setOrderNum();
+            bookListGoodsDTO.setOrderNum(orderNum.incrementAndGet());
             bookListGoodsDTO.setVersion(0);
             bookListGoodsDTO.setCreateTime(new Date());
             bookListGoodsDTO.setUpdateTime(new Date());
@@ -85,12 +65,30 @@ public class BookListGoodsService {
         bookListGoodsRepository.saveAll(bookListGoodsDTOList);
     }
 
+    /**
+     * 更新
+     * @param bookListGoodsRequest
+     */
+    public void update(BookListGoodsRequest bookListGoodsRequest) {
+        //根据 chooseRuleId 获取所有的商品列表信息
+        List<BookListGoodsDTO> bookListGoodsDTOList =
+                bookListGoodsRepository.findAll(this.packageWhere(bookListGoodsRequest.getChooseRuleId()));
+        //全部列表删除
+        Date now = new Date();
+        for (BookListGoodsDTO bookListGoodsParam : bookListGoodsDTOList) {
+            bookListGoodsParam.setUpdateTime(now);
+            bookListGoodsParam.setDelFlag(DeleteFlagEnum.DELETE.getCode());
+        }
+
+        bookListGoodsRepository.saveAll(bookListGoodsDTOList);
+        this.add(bookListGoodsRequest);
+    }
+
 
     /**
      * 排序
      * @param bookListGoodsSortProviderRequestList
      */
-    @Transactional
     public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {
         //批量获取id
         Set<Integer> bookListGoodsIdSet =
@@ -118,18 +116,29 @@ public class BookListGoodsService {
         bookListGoodsRepository.saveAll(rawAllNormalBookListGoods);
     }
 
+    /**
+     * 查询商品列表
+     * @return
+     */
+    public List<BookListGoodsDTO> list() {
 
-    public void update() {
-
+        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
+        return bookListGoodsRepository.findAll(orderNum);
     }
 
 
-    public void list() {
+    private Specification<BookListGoodsDTO> packageWhere(Integer chooseRuleId) {
+        return new Specification<BookListGoodsDTO>() {
+            final List<Predicate> predicateList = new ArrayList<>();
+            @Override
+            public Predicate toPredicate(Root<BookListGoodsDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
 
-    }
-
-
-    private void packageWhere() {
-
+                if (chooseRuleId != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("chooseRuleId"), chooseRuleId));
+                }
+                return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
+            }
+        };
     }
 }

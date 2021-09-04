@@ -1,10 +1,8 @@
-package com.wanmi.sbc.goods.api.request.booklistgoods;
+package com.wanmi.sbc.goods.api.request.chooserulegoodslist;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * Description:
@@ -14,17 +12,17 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListGoodsProviderRequest implements Serializable {
-
+public class GoodsIdListProviderRequest implements Serializable {
     /**
-     * 控件id
+     *
      */
-    @NotNull
-    private Integer chooseRuleId;
+    private String spuId;
 
-    /**
-     * goodIdList
-     */
-    @NotNull
-    private List<GoodsIdListProviderRequest> goodsIdListProviderRequestList;
+    private String spuNo;
+
+    private String skuId;
+
+    private String skuNo;
+
+    private Integer orderNum;
 }

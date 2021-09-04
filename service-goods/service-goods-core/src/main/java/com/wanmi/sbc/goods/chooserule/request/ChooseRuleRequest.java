@@ -1,11 +1,7 @@
-package com.wanmi.sbc.goods.api.request.chooserule;
+package com.wanmi.sbc.goods.chooserule.request;
 
-import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 
 /**
  * Description:
@@ -15,8 +11,7 @@ import java.io.Serializable;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-@Builder
-public class ChooseRuleProviderRequest implements Serializable {
+public class ChooseRuleRequest {
 
 
     private Integer id;
@@ -24,25 +19,21 @@ public class ChooseRuleProviderRequest implements Serializable {
     /**
      *  书单模板id或者书单类目id
      */
-    @NotNull(message = "bookListId不能为空")
     private Integer bookListId;
 
     /**
      * 过滤规则 1 无库存展示 2 无库存不展示 3 无库存沉底
      */
-    @NotNull(groups = Add.class, message = "filterRule不能为空")
     private Integer filterRule;
 
     /**
      * 类 1书单模板 2类目
      */
-    @NotNull(message = "category不能为空")
     private Integer category;
 
     /**
      * 类型 1按条件 2 按sql 3 制定商品 4 书单
      */
-    @NotNull(groups = Add.class, message = "filterRule不能为空")
     private Integer chooseType;
 
     /**
@@ -50,7 +41,6 @@ public class ChooseRuleProviderRequest implements Serializable {
      */
     private String chooseCondition;
 
-    @NotBlank( message = "filterRule不能为空")
     private String operator;
 
 

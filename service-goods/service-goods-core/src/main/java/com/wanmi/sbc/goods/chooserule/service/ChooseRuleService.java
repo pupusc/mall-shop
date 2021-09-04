@@ -3,10 +3,9 @@ package com.wanmi.sbc.goods.chooserule.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
 import com.wanmi.sbc.goods.chooserule.model.root.ChooseRuleDTO;
 import com.wanmi.sbc.goods.chooserule.repository.ChooseRuleRepository;
-import com.wanmi.sbc.goods.util.GoodsConstants;
+import com.wanmi.sbc.goods.chooserule.request.ChooseRuleRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,8 +21,6 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Description:
@@ -40,46 +37,46 @@ public class ChooseRuleService {
     private ChooseRuleRepository chooseRuleRepository;
 
 
-    public void add(ChooseRuleProviderRequest chooseRuleProviderRequest) {
-        log.info("ChooseRuleService.add param:{}", JSON.toJSONString(chooseRuleProviderRequest));
+    public ChooseRuleDTO add(ChooseRuleRequest chooseRuleRequest) {
+        log.info("ChooseRuleService.add param:{}", JSON.toJSONString(chooseRuleRequest));
         ChooseRuleDTO chooseRuleDTO = new ChooseRuleDTO();
-        BeanUtils.copyProperties(chooseRuleProviderRequest, chooseRuleDTO);
+        BeanUtils.copyProperties(chooseRuleRequest, chooseRuleDTO);
         chooseRuleDTO.setId(null); //保证是新增
         chooseRuleDTO.setVersion(0);
         chooseRuleDTO.setCreateTime(new Date());
         chooseRuleDTO.setUpdateTime(new Date());
         chooseRuleDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
-        chooseRuleRepository.save(chooseRuleDTO);
+        return chooseRuleRepository.save(chooseRuleDTO);
     }
 
 
-    public ChooseRuleDTO update(ChooseRuleProviderRequest chooseRuleProviderRequest) {
-        ChooseRuleDTO chooseRuleDTORaw = this.findByCondition(chooseRuleProviderRequest);
+    public ChooseRuleDTO update(ChooseRuleRequest chooseRuleRequest) {
+        ChooseRuleDTO chooseRuleDTORaw = this.findByCondition(chooseRuleRequest);
         if (chooseRuleDTORaw == null) {
-            throw new SbcRuntimeException(String.format("用户: %s 订单：%s 不存在", chooseRuleProviderRequest.getId()));
+            throw new SbcRuntimeException(String.format("用户: %s 订单：%s 不存在", chooseRuleRequest.getId()));
         }
 
         chooseRuleDTORaw.setUpdateTime(new Date());
-        chooseRuleDTORaw.setId(chooseRuleProviderRequest.getId());
-        chooseRuleDTORaw.setBookListId(chooseRuleProviderRequest.getBookListId());
-        chooseRuleDTORaw.setCategory(chooseRuleProviderRequest.getCategory());
-        if (chooseRuleProviderRequest.getFilterRule() != null) {
-            chooseRuleDTORaw.setFilterRule(chooseRuleProviderRequest.getFilterRule());
+        chooseRuleDTORaw.setId(chooseRuleRequest.getId());
+        chooseRuleDTORaw.setBookListId(chooseRuleRequest.getBookListId());
+        chooseRuleDTORaw.setCategory(chooseRuleRequest.getCategory());
+        if (chooseRuleRequest.getFilterRule() != null) {
+            chooseRuleDTORaw.setFilterRule(chooseRuleRequest.getFilterRule());
         }
 
-        if (chooseRuleProviderRequest.getChooseType() != null) {
-            chooseRuleDTORaw.setChooseType(chooseRuleProviderRequest.getChooseType());
+        if (chooseRuleRequest.getChooseType() != null) {
+            chooseRuleDTORaw.setChooseType(chooseRuleRequest.getChooseType());
         }
-        if (!StringUtils.isEmpty(chooseRuleProviderRequest.getChooseCondition())) {
-            chooseRuleDTORaw.setChooseCondition(chooseRuleProviderRequest.getChooseCondition());
+        if (!StringUtils.isEmpty(chooseRuleRequest.getChooseCondition())) {
+            chooseRuleDTORaw.setChooseCondition(chooseRuleRequest.getChooseCondition());
         }
         return chooseRuleRepository.save(chooseRuleDTORaw);
     }
 
 
-    public ChooseRuleDTO findByCondition(ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    public ChooseRuleDTO findByCondition(ChooseRuleRequest chooseRuleRequest) {
         List<ChooseRuleDTO> chooseRuleDTOList =
-                chooseRuleRepository.findAll(this.packageWhere(chooseRuleProviderRequest));
+                chooseRuleRepository.findAll(this.packageWhere(chooseRuleRequest));
         if (CollectionUtils.isEmpty(chooseRuleDTOList)) {
             return null;
         }
@@ -87,22 +84,22 @@ public class ChooseRuleService {
     }
 
 
-    private Specification<ChooseRuleDTO> packageWhere(ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    private Specification<ChooseRuleDTO> packageWhere(ChooseRuleRequest chooseRuleRequest) {
         return new Specification<ChooseRuleDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
             public Predicate toPredicate(Root<ChooseRuleDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
-                if (chooseRuleProviderRequest.getBookListId() != null) {
-                    predicateList.add(criteriaBuilder.equal(root.get("bookListId"), chooseRuleProviderRequest.getBookListId()));
+                if (chooseRuleRequest.getBookListId() != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("bookListId"), chooseRuleRequest.getBookListId()));
                 }
 
-                if (chooseRuleProviderRequest.getCategory() != null) {
-                    predicateList.add(criteriaBuilder.equal(root.get("category"), chooseRuleProviderRequest.getCategory()));
+                if (chooseRuleRequest.getCategory() != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("category"), chooseRuleRequest.getCategory()));
                 }
 
-                if (chooseRuleProviderRequest.getId() != null) {
-                    predicateList.add(criteriaBuilder.equal(root.get("id"), chooseRuleProviderRequest.getId()));
+                if (chooseRuleRequest.getId() != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("id"), chooseRuleRequest.getId()));
                 }
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
