@@ -144,6 +144,25 @@ public class BookListModelService {
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
 
+
+    /**
+     * 根据id获取 书单模版
+     * @param id
+     * @return
+     */
+    public BookListModelDTO findById(Integer id) {
+        Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
+        if (!bookListModelDTOOptional.isPresent()) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
+        }
+        BookListModelDTO bookListModelDTO = bookListModelDTOOptional.get();
+        if (Objects.equals(bookListModelDTO.getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s is delete", id));
+        }
+        log.info("bookListModel.findById id: {} is :{}", id, JSON.toJSONString(bookListModelDTO));
+        return bookListModelDTO;
+    }
+
     /**
      * condition
      * @param bookListModelPageRequest

@@ -9,22 +9,21 @@ import java.util.Objects;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/1 7:22 下午
+ * Date       : 2021/9/5 1:51 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@AllArgsConstructor
 @Getter
-public enum PublishStateEnum {
+@AllArgsConstructor
+public enum CategoryEnum {
 
-    UN_PUBLISH(0, "草稿"),
-    EDIT_UN_PUBLISH(1, "已编辑未发布"),
-    PUBLISH(2, "发布");
+    BOOK_LIST_MODEL(1, "书单模版"),
+    BOOK_CATEGORY(2, "类目");
 
-    private final int code;
+    private final Integer code;
     private final String message;
 
-    public static PublishStateEnum getByCode(int code) {
-        for (PublishStateEnum p : values()) {
+    public static CategoryEnum getByCode(int code) {
+        for (CategoryEnum p : values()) {
             if (Objects.equals(p.getCode(), code)) {
                 return p;
             }
