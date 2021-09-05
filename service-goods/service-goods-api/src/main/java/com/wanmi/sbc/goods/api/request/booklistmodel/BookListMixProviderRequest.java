@@ -30,7 +30,7 @@ public class BookListMixProviderRequest implements Serializable {
     private BookListModelProviderRequest bookListModel;
 
     /**
-     * 控件
+     * 控件模版
      */
     @Valid
     @NotNull
