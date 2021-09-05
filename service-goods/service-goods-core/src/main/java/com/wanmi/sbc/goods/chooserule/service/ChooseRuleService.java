@@ -45,7 +45,7 @@ public class ChooseRuleService {
         chooseRuleDTO.setVersion(0);
         chooseRuleDTO.setCreateTime(new Date());
         chooseRuleDTO.setUpdateTime(new Date());
-        chooseRuleDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
+        chooseRuleDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         return chooseRuleRepository.save(chooseRuleDTO);
     }
 

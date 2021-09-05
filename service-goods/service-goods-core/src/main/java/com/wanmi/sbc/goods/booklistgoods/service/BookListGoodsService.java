@@ -2,8 +2,8 @@ package com.wanmi.sbc.goods.booklistgoods.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
 import com.wanmi.sbc.goods.api.request.chooserulegoodslist.BookListGoodsSortProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.GoodsIdListProviderRequest;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.repository.BookListGoodsRepository;
 import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
@@ -47,7 +47,7 @@ public class BookListGoodsService {
     public void add(BookListGoodsRequest bookListGoodsRequest) {
         AtomicInteger orderNum = new AtomicInteger();
         List<BookListGoodsDTO> bookListGoodsDTOList = new ArrayList<>();
-        for (GoodsIdListProviderRequest goodsIdListParam : bookListGoodsRequest.getGoodsIdListProviderRequestList()) {
+        for (GoodsIdListProviderRequest goodsIdListParam : bookListGoodsRequest.getGoodsIdListRequestList()) {
             BookListGoodsDTO bookListGoodsDTO = new BookListGoodsDTO();
             bookListGoodsDTO.setChooseRuleId(bookListGoodsRequest.getChooseRuleId());
             bookListGoodsDTO.setBookListId(bookListGoodsRequest.getBookListId());
@@ -85,36 +85,36 @@ public class BookListGoodsService {
     }
 
 
-    /**
-     * 排序
-     * @param bookListGoodsSortProviderRequestList
-     */
-    public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {
-        //批量获取id
-        Set<Integer> bookListGoodsIdSet =
-                bookListGoodsSortProviderRequestList.stream().map(BookListGoodsSortProviderRequest::getId).collect(Collectors.toSet());
-        List<BookListGoodsDTO> allById = bookListGoodsRepository.findAllById(bookListGoodsIdSet);
-        List<BookListGoodsDTO> rawAllNormalBookListGoods =
-                allById.stream().filter(ex -> Objects.equals(ex.getDelFlag(), DeleteFlagEnum.NORMAL.getCode())).collect(Collectors.toList());
-        if (bookListGoodsSortProviderRequestList.size() != rawAllNormalBookListGoods.size()) {
-            throw new IllegalArgumentException("请求参数数量和根据id获取结果的数据不想等，传递的数据有误");
-        }
-
-        Map<Integer, Integer> bookListGoodsSortMap =
-                bookListGoodsSortProviderRequestList.stream().collect(Collectors.toMap(BookListGoodsSortProviderRequest::getId, BookListGoodsSortProviderRequest::getSortNum, (k1, k2) -> k1));
-        if (rawAllNormalBookListGoods.size() != bookListGoodsSortMap.size()) {
-            log.error(" rawAllNormalBookListGoods --> : {}", JSON.toJSONString(rawAllNormalBookListGoods));
-            throw new IllegalArgumentException("对象 rawAllNormalBookListGoods 存在重复的id");
-        }
-        //重新排序
-        Date now = new Date();
-        for (BookListGoodsDTO bookListGoodsParam : rawAllNormalBookListGoods) {
-            bookListGoodsParam.setUpdateTime(now);
-            bookListGoodsParam.setOrderNum(bookListGoodsSortMap.getOrDefault(bookListGoodsParam.getId(), 0));
-        }
-
-        bookListGoodsRepository.saveAll(rawAllNormalBookListGoods);
-    }
+//    /**
+//     * 排序
+//     * @param bookListGoodsSortProviderRequestList
+//     */
+//    public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {
+//        //批量获取id
+//        Set<Integer> bookListGoodsIdSet =
+//                bookListGoodsSortProviderRequestList.stream().map(BookListGoodsSortProviderRequest::getId).collect(Collectors.toSet());
+//        List<BookListGoodsDTO> allById = bookListGoodsRepository.findAllById(bookListGoodsIdSet);
+//        List<BookListGoodsDTO> rawAllNormalBookListGoods =
+//                allById.stream().filter(ex -> Objects.equals(ex.getDelFlag(), DeleteFlagEnum.NORMAL.getCode())).collect(Collectors.toList());
+//        if (bookListGoodsSortProviderRequestList.size() != rawAllNormalBookListGoods.size()) {
+//            throw new IllegalArgumentException("请求参数数量和根据id获取结果的数据不想等，传递的数据有误");
+//        }
+//
+//        Map<Integer, Integer> bookListGoodsSortMap =
+//                bookListGoodsSortProviderRequestList.stream().collect(Collectors.toMap(BookListGoodsSortProviderRequest::getId, BookListGoodsSortProviderRequest::getSortNum, (k1, k2) -> k1));
+//        if (rawAllNormalBookListGoods.size() != bookListGoodsSortMap.size()) {
+//            log.error(" rawAllNormalBookListGoods --> : {}", JSON.toJSONString(rawAllNormalBookListGoods));
+//            throw new IllegalArgumentException("对象 rawAllNormalBookListGoods 存在重复的id");
+//        }
+//        //重新排序
+//        Date now = new Date();
+//        for (BookListGoodsDTO bookListGoodsParam : rawAllNormalBookListGoods) {
+//            bookListGoodsParam.setUpdateTime(now);
+//            bookListGoodsParam.setOrderNum(bookListGoodsSortMap.getOrDefault(bookListGoodsParam.getId(), 0));
+//        }
+//
+//        bookListGoodsRepository.saveAll(rawAllNormalBookListGoods);
+//    }
 
     /**
      * 查询商品列表

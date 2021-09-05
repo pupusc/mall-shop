@@ -2,13 +2,10 @@ package com.wanmi.sbc.goods.booklistgoodspublish.service;
 
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
-import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -72,13 +69,6 @@ public class BookListGoodsPublishService {
             bookListGoodsPublishList.add(bookListGoodsPublishModel);
         }
         bookListGoodsPublishRepository.saveAll(bookListGoodsPublishList);
-
-        //更新状态为已发布
-        BookListModelDTO bookListModelDTO = bookListModelService.findById(bookListId);
-        BookListModelRequest bookListModelRequest = new BookListModelRequest();
-        bookListModelRequest.setId(bookListModelDTO.getId());
-        bookListModelRequest.setPublishState(PublishStateEnum.PUBLISH.getCode());
-        bookListModelService.update(bookListModelRequest, operator);
     }
 
     /**

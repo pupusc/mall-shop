@@ -1,8 +1,8 @@
 package com.wanmi.sbc.goods.api.request.chooserulegoodslist;
 
+import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -49,14 +49,12 @@ public class ChooseRuleGoodsListProviderRequest implements Serializable {
      */
     private String chooseCondition;
 
-    @NotBlank(groups = ChooseRuleGoodsListProviderRequest.Add.class,message = "filterRule不能为空")
-    private String operator;
-
     /**
-     * goodIdList
+     * 商品列表
      */
-    @NotBlank(groups = ChooseRuleGoodsListProviderRequest.Add.class,message = "商品列表id不能为空")
-    private List<GoodsIdListProviderRequest> goodsIdListProviderRequestList;
+    private List<GoodsIdListProviderRequest> goodsIdListRequestList;
+
+
 
     public interface Add{}
     public interface Update{}

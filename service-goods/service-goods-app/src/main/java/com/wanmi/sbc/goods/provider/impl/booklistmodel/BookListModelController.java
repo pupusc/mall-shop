@@ -6,12 +6,12 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.constant.BookListModelErrorCode;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -39,59 +39,52 @@ public class BookListModelController implements BookListModelProvider {
 
     /**
      * 新增书单模版
-     * @param bookListModelProviderRequest
+     * @param bookListMixProviderRequest
      * @return
      */
     @Override
-    public BaseResponse add(BookListModelProviderRequest bookListModelProviderRequest) {
-        BookListModelRequest bookListModelRequest = new BookListModelRequest();
-        BeanUtils.copyProperties(bookListModelProviderRequest, bookListModelRequest);
-        bookListModelRequest.setPublishState(PublishStateEnum.UN_PUBLISH.getCode()); //默认草稿
-        bookListModelService.add(bookListModelRequest, bookListModelProviderRequest.getOperator());
+    public BaseResponse add(BookListMixProviderRequest bookListMixProviderRequest) {
+        bookListModelService.add(bookListMixProviderRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
 
     /**
      * 修改书单模版
-     * @param bookListModelProviderRequest
+     * @param bookListMixProviderRequest
      * @return
      */
     @Override
-    public BaseResponse update(BookListModelProviderRequest bookListModelProviderRequest) {
-        if (bookListModelProviderRequest.getPublishState() != null) {
-            PublishStateEnum publishStateEnum = PublishStateEnum.getByCode(bookListModelProviderRequest.getPublishState());
-            if (publishStateEnum == null) {
-                log.error("BookListModelController update 更新书单发布类型 publicState: {} 有误",
-                                    bookListModelProviderRequest.getPublishState());
-                throw new SbcRuntimeException(BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_UN_EXISTS,
-                        BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_UN_EXISTS_MESSAGE);
-            }
-            if (publishStateEnum == PublishStateEnum.UN_PUBLISH) {
-                log.error("BookListModelController update 更新书单不能为草稿类型");
-                throw new SbcRuntimeException(BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_ERROR,
-                        BookListModelErrorCode.BOOK_LIST_MODEL_PUBLISH_STATE_ERROR_MESSAGE);
-            }
-        }
-        BookListModelRequest bookListModelRequest = new BookListModelRequest();
-        BeanUtils.copyProperties(bookListModelProviderRequest, bookListModelRequest);
-        bookListModelService.update(bookListModelRequest, bookListModelProviderRequest.getOperator());
+    public BaseResponse update(BookListMixProviderRequest bookListMixProviderRequest) {
+        bookListModelService.update(bookListMixProviderRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
     /**
      * 删除书单
-     * @param bookListModelProviderRequest
+     * @param bookListModel
      * @return
      */
     @Override
-    public BaseResponse delete(BookListModelProviderRequest bookListModelProviderRequest) {
-        bookListModelService.delete(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
+    public BaseResponse delete(BookListModelProviderRequest bookListModel) {
+
+        bookListModelService.delete(bookListModel.getId(), null);
         return BaseResponse.SUCCESSFUL();
     }
 
     /**
-     * 获取列表
+     * 发布书单
+     * @param bookListModelProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
+        bookListModelService.publish(bookListModelProviderRequest.getId(), null);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 获取书单列表
      * @param bookListModelPageProviderRequest
      * @return
      */
@@ -101,6 +94,7 @@ public class BookListModelController implements BookListModelProvider {
         BeanUtils.copyProperties(bookListModelPageProviderRequest, bookListModelPageRequest);
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
                 bookListModelPageProviderRequest.getPageNum(), bookListModelPageProviderRequest.getPageSize());
+
         List<BookListModelProviderResponse> bookListModelResponseList = pageBookListModel.getContent().stream().map(ex -> {
                                                         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
                                                         BeanUtils.copyProperties(ex, bookListModelProviderResponse);
@@ -115,10 +109,6 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
-    @Override
-    public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
-        bookListModelService.publish(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
-        return BaseResponse.SUCCESSFUL();
-    }
+
 
 }

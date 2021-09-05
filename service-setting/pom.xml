@@ -77,7 +77,7 @@
                     <skip>true</skip>
                     <doclint>none</doclint>
                     <failOnError>false</failOnError>
-                </configuration>
+                </configuratio
             </plugin>
         </plugins>
     </build>

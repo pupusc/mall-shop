@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.api.provider.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -18,17 +19,17 @@ public interface BookListModelProvider {
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/add")
     BaseResponse add(@Validated(BookListModelProviderRequest.Add.class)
-                     @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+                     @RequestBody BookListMixProviderRequest bookListMixProviderRequest);
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/update")
     BaseResponse update(@Validated(BookListModelProviderRequest.Update.class)
-                        @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+                        @RequestBody BookListMixProviderRequest bookListMixProviderRequest);
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/delete")
     BaseResponse delete(@Validated(BookListModelProviderRequest.Delete.class)
-                        @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+                        @RequestBody BookListModelProviderRequest bookListModel);
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
     MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);

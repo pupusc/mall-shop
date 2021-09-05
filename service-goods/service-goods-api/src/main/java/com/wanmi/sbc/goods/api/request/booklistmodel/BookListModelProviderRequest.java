@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -68,8 +67,6 @@ public class BookListModelProviderRequest implements Serializable {
     @NotNull(groups = Add.class, message = "发布状态为空")
     private Integer publishState;
 
-    @NotBlank(groups = {Add.class, Update.class, Publish.class}, message = "操作人为空")
-    private String operator;
 
 
     public interface Add{}

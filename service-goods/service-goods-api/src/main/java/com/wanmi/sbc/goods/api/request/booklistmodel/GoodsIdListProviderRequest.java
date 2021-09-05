@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.request.chooserulegoodslist;
+package com.wanmi.sbc.goods.api.request.booklistmodel;
 
 import lombok.Data;
 
