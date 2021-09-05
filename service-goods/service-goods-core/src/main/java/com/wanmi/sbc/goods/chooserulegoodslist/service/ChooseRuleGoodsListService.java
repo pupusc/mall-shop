@@ -144,15 +144,5 @@ public class ChooseRuleGoodsListService {
         bookListGoodsService.sort(bookListGoodsSortProviderRequestList);
     }
 
-
-    public void publish(Integer id) {
-        BookListModelDTO bookListModelServiceById = bookListModelService.findById(id);
-        if (Objects.equals(bookListModelServiceById.getPublishState(), PublishStateEnum.PUBLISH.getCode())) {
-            log.error("-------->> ChooseRuleGoodsListService.publish id:{} publishState is already publish return", id);
-            return ;
-        }
-
-        
-
-    }
+    
 }

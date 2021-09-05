@@ -4,11 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
-import com.wanmi.sbc.goods.util.GoodsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -47,6 +46,9 @@ public class BookListModelService {
 
     @Resource
     private BookListModelRepository bookListModelRepository;
+
+    @Resource
+    private BookListGoodsPublishService bookListGoodsPublishService;
 
     /**
      * 新增 书单模板
@@ -108,8 +110,8 @@ public class BookListModelService {
      * @param bookListModelId
      * @return
      */
-    public void delete(Integer bookListModelId, String operater) {
-        log.info("bookListModel.delete id {} by user: {}", bookListModelId, operater);
+    public void delete(Integer bookListModelId, String operator) {
+        log.info("bookListModel.delete id {} by user: {}", bookListModelId, operator);
         Optional<BookListModelDTO> bookListModelOptional =
                 bookListModelRepository.findById(bookListModelId);
         if (!bookListModelOptional.isPresent()) {
@@ -128,6 +130,25 @@ public class BookListModelService {
         if (result <= 0) {
             throw new SbcRuntimeException("书单" + bookListModelId + "删除中异常");
         }
+    }
+
+    /**
+     * 发布书单
+     * @param bookListModelId
+     * @param operator
+     */
+    public void publish(Integer bookListModelId, String operator) {
+
+        BookListModelDTO bookListModelObj = this.findById(bookListModelId);
+        if (Objects.equals(bookListModelObj.getPublishState(), PublishStateEnum.PUBLISH.getCode())) {
+            log.error("-------->> ChooseRuleGoodsListService.publish id:{} operator:{} publishState is already publish return",
+                    bookListModelId, operator);
+            return ;
+        }
+        bookListGoodsPublishService.publish(bookListModelId, PublishStateEnum.PUBLISH.getCode(), operator);
+        log.info("----->>>ChooseRuleGoodsListService.publish bookListModelId:{} operator:{} complete"
+                , bookListModelId, operator);
+
     }
 
 

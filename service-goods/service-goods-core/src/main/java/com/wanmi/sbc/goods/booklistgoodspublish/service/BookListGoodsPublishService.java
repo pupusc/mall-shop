@@ -47,16 +47,16 @@ public class BookListGoodsPublishService {
     private BookListModelService bookListModelService;
 
     @Transactional
-    public void publish(Integer bookListId, String operator) {
+    public void publish(Integer bookListId, Integer categoryId, String operator) {
         //获取书单模版对应的 商品列表,即待发布的列表
-        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode());
+        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, categoryId);
         if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
             log.error("-------->>> BookListGoodsPublishService.publish bookListId:{}, categoryId: {} is empty return", bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode());
             return;
         }
 
         //删除已经发布的
-        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(bookListId);
+        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(bookListId, categoryId, operator);
         Date now = new Date();
         for (BookListGoodsPublishDTO bookListGoodsPublishParam : rawBookListGoodsPublishDTOList) {
             bookListGoodsPublishParam.setUpdateTime(now);
@@ -86,8 +86,10 @@ public class BookListGoodsPublishService {
      * @param bookListId
      * @return
      */
-    public List<BookListGoodsPublishDTO> list(Integer bookListId) {
-        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode()));
+    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String operator) {
+        log.info("---->> BookListGoodsPublishService.list operator:{} bookListId:{} categoryId: {}",
+                operator, bookListId, categoryId);
+        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId));
     }
 
 

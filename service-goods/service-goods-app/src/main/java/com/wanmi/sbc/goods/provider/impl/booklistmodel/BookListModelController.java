@@ -115,5 +115,10 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
+    @Override
+    public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
+        bookListModelService.publish(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
+        return BaseResponse.SUCCESSFUL();
+    }
 
 }

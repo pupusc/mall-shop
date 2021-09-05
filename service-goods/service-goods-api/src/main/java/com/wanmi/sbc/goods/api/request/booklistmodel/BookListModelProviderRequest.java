@@ -25,7 +25,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class BookListModelProviderRequest implements Serializable {
 
-    @NotNull(groups = {Update.class, Delete.class}, message = "id为空")
+    @NotNull(groups = {Update.class, Delete.class, Publish.class}, message = "id为空")
     private Integer id;
 
     /**
@@ -68,11 +68,12 @@ public class BookListModelProviderRequest implements Serializable {
     @NotNull(groups = Add.class, message = "发布状态为空")
     private Integer publishState;
 
-    @NotBlank(groups = {Add.class, Update.class}, message = "操作人为空")
+    @NotBlank(groups = {Add.class, Update.class, Publish.class}, message = "操作人为空")
     private String operator;
 
 
     public interface Add{}
     public interface Update{}
     public interface Delete{}
+    public interface Publish{}
 }

@@ -32,4 +32,8 @@ public interface BookListModelProvider {
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
     MicroServicePage<BookListModelProviderResponse> listByPage(@RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/publish")
+    BaseResponse publish(@Validated(BookListModelProviderRequest.Publish.class)
+                         @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 }
