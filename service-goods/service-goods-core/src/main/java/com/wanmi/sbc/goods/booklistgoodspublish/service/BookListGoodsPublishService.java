@@ -3,10 +3,7 @@ package com.wanmi.sbc.goods.booklistgoodspublish.service;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.GoodsIdListProviderRequest;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
-import com.wanmi.sbc.goods.booklistgoods.repository.BookListGoodsRepository;
-import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
@@ -51,7 +48,7 @@ public class BookListGoodsPublishService {
 
     @Transactional
     public void publish(Integer bookListId, String operator) {
-
+        //获取书单模版对应的 商品列表,即待发布的列表
         List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode());
         if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
             log.error("-------->>> BookListGoodsPublishService.publish bookListId:{}, categoryId: {} is empty return", bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode());
@@ -84,7 +81,11 @@ public class BookListGoodsPublishService {
         bookListModelService.update(bookListModelRequest, operator);
     }
 
-
+    /**
+     * 发布商品列表
+     * @param bookListId
+     * @return
+     */
     public List<BookListGoodsPublishDTO> list(Integer bookListId) {
         return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode()));
     }
