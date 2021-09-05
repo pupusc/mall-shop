@@ -72,7 +72,7 @@ public class BookListGoodsService {
     public void update(BookListGoodsRequest bookListGoodsRequest) {
         //根据 chooseRuleId 获取所有的商品列表信息
         List<BookListGoodsDTO> bookListGoodsDTOList =
-                bookListGoodsRepository.findAll(this.packageWhere(bookListGoodsRequest.getChooseRuleId()));
+                bookListGoodsRepository.findAll(this.packageWhere(bookListGoodsRequest.getChooseRuleId(), null, null));
         //全部列表删除
         Date now = new Date();
         for (BookListGoodsDTO bookListGoodsParam : bookListGoodsDTOList) {
@@ -126,8 +126,17 @@ public class BookListGoodsService {
         return bookListGoodsRepository.findAll(orderNum);
     }
 
+    /**
+     * 查询商品列表
+     * @return
+     */
+    public List<BookListGoodsDTO> list(Integer bookListId, Integer categoryId) {
 
-    private Specification<BookListGoodsDTO> packageWhere(Integer chooseRuleId) {
+        return bookListGoodsRepository.findAll(this.packageWhere(null, bookListId, categoryId));
+    }
+
+
+    private Specification<BookListGoodsDTO> packageWhere(Integer chooseRuleId, Integer bookListId, Integer categoryId) {
         return new Specification<BookListGoodsDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
@@ -136,6 +145,12 @@ public class BookListGoodsService {
 
                 if (chooseRuleId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("chooseRuleId"), chooseRuleId));
+                }
+                if (bookListId != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("bookListId"), bookListId));
+                }
+                if (categoryId != null) {
+                    predicateList.add(criteriaBuilder.equal(root.get("category"), categoryId));
                 }
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
