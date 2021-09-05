@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -28,12 +29,17 @@ public class ClassifyService {
     @Resource
     private ClassifyRepository classifyRepository;
 
-    public void listNoPage() {
-
+    /**
+     * 获取类目列表
+     * @param bookListModelIdList
+     * @return
+     */
+    public List<ClassifyDTO> listNoPage(List<Integer> bookListModelIdList) {
+        return classifyRepository.findAll(this.packageWhere(bookListModelIdList));
     }
 
 
-    private Specification<ClassifyDTO> packageWhere(Integer bookListModelId) {
+    private Specification<ClassifyDTO> packageWhere(List<Integer> bookListModelIdList) {
         return new Specification<ClassifyDTO>() {
             @Override
             public Predicate toPredicate(Root<ClassifyDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -41,10 +47,15 @@ public class ClassifyService {
 
                 //只是获取有效的
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
-                if (bookListModelId != null) {
-                    conditionList.add(criteriaBuilder.equal(root.get("bookListModelId"), bookListModelId));
+                if (!CollectionUtils.isEmpty(bookListModelIdList)) {
+//                    root.get("id")
+                    CriteriaBuilder.In<Integer> in = criteriaBuilder.in(root.get("id"));
+                    for (Integer id : bookListModelIdList) {
+                        in.value(id);
+                    }
+                    conditionList.add(in);
                 }
-                return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+                return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }
         };
     }

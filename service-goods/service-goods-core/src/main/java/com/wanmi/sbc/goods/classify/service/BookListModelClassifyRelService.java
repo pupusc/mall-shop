@@ -1,9 +1,14 @@
 package com.wanmi.sbc.goods.classify.service;
 
+import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.BookListModelClassifyRelRepository;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,8 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -26,10 +33,13 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class BookListModelClassifyRelService {
 
     @Resource
     private BookListModelClassifyRelRepository bookListModelClassifyRelRepository;
+    @Autowired
+    private ClassifyService classifyService;
 
 
     /**
@@ -39,8 +49,16 @@ public class BookListModelClassifyRelService {
     @Transactional
     public void add(BookListModelClassifyRelRequest bookListModelClassifyRequest) {
 
-        //获取商品分类，查看当前参数是否有效 TODO
-
+        //获取商品分类，查看当前参数是否有效
+        List<ClassifyDTO> classifyList = classifyService.listNoPage(bookListModelClassifyRequest.getClassifyIdList());
+        log.info("--->> BookListModelClassifyRelService.add classify result: {}", JSON.toJSONString(classifyList));
+        if (bookListModelClassifyRequest.getClassifyIdList().size() != classifyList.size()) {
+            throw new SbcRuntimeException(String.format("书单：%s 获取的结果和传递的结果不同，请求参数有误", bookListModelClassifyRequest.getBookListModelId()));
+        }
+        Set<Integer> classifyIdSet = classifyList.stream().map(ClassifyDTO::getId).collect(Collectors.toSet());
+        if (classifyList.size() != classifyIdSet.size()){
+            throw new SbcRuntimeException(String.format("书单：%s 获取的结果和传递的结果中有重复的 classifyId", bookListModelClassifyRequest.getBookListModelId()));
+        }
 
         //1删除当前 书单对一个的类目
         List<BookListModelClassifyRelDTO> bookListModelClassifyList = this.listNoPage(bookListModelClassifyRequest.getBookListModelId());
