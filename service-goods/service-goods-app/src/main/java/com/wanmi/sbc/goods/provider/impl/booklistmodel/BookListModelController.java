@@ -2,13 +2,11 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.goods.api.constant.BookListModelErrorCode;
-import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
@@ -81,6 +79,17 @@ public class BookListModelController implements BookListModelProvider {
     public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
         bookListModelService.publish(bookListModelProviderRequest.getId(), null);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 获取详情
+     * @param bookListModelProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<BookListMixProviderResponse> findById(BookListModelProviderRequest bookListModelProviderRequest) {
+        BookListMixProviderResponse bookListMixProviderResponse = bookListModelService.findById(bookListModelProviderRequest.getId());
+        return BaseResponse.success(bookListMixProviderResponse);
     }
 
     /**

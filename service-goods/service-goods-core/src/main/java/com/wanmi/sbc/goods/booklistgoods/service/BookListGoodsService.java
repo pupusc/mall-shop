@@ -116,23 +116,23 @@ public class BookListGoodsService {
 //        bookListGoodsRepository.saveAll(rawAllNormalBookListGoods);
 //    }
 
-    /**
-     * 查询商品列表
-     * @return
-     */
-    public List<BookListGoodsDTO> list() {
-
-        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
-        return bookListGoodsRepository.findAll(orderNum);
-    }
+//    /**
+//     * 查询商品列表
+//     * @return
+//     */
+//    public List<BookListGoodsDTO> list(Integer chooseRuleId) {
+//
+//        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
+//        return bookListGoodsRepository.findAll(this.packageWhere(chooseRuleId, null, null), orderNum);
+//    }
 
     /**
      * 查询商品列表
      * @return
      */
     public List<BookListGoodsDTO> list(Integer bookListId, Integer categoryId) {
-
-        return bookListGoodsRepository.findAll(this.packageWhere(null, bookListId, categoryId));
+        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
+        return bookListGoodsRepository.findAll(this.packageWhere(null, bookListId, categoryId), orderNum);
     }
 
 

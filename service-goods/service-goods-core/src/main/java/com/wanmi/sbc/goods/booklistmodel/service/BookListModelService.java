@@ -2,10 +2,14 @@ package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
@@ -164,7 +168,7 @@ public class BookListModelService {
      */
     public void publish(Integer bookListModelId, String operator) {
 
-        BookListModelDTO bookListModelObj = this.findById(bookListModelId);
+        BookListModelDTO bookListModelObj = this.findSimpleById(bookListModelId);
         if (Objects.equals(bookListModelObj.getPublishState(), PublishStateEnum.PUBLISH.getCode())) {
             log.error("-------->> ChooseRuleGoodsListService.publish id:{} operator:{} publishState is already publish return",
                     bookListModelId, operator);
@@ -177,6 +181,44 @@ public class BookListModelService {
         bookListModelObj.setPublishState(PublishStateEnum.PUBLISH.getCode());
         bookListModelObj.setUpdateTime(new Date());
         bookListModelRepository.save(bookListModelObj);
+    }
+
+    /**
+     * 获取书单简单信息
+     * @param id
+     * @return
+     */
+    private BookListModelDTO findSimpleById(Integer id){
+        Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
+        if (!bookListModelDTOOptional.isPresent()) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
+        }
+        BookListModelDTO bookListModelDTO = bookListModelDTOOptional.get();
+        if (Objects.equals(bookListModelDTO.getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s is delete", id));
+        }
+        return bookListModelDTO;
+    }
+
+    /**
+     * 根据id获取 书单模版详细信息
+     * @param id
+     * @return
+     */
+    public BookListMixProviderResponse findById(Integer id) {
+
+        BookListModelDTO bookListModelDTO = this.findSimpleById(id);
+        BookListMixProviderResponse bookListMixProviderResponse = new BookListMixProviderResponse();
+
+        BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
+        BeanUtils.copyProperties(bookListModelDTO, bookListModelProviderResponse);
+        bookListMixProviderResponse.setBookListModel(bookListModelProviderResponse);
+
+        //获取控件信息和商品列表信息
+        ChooseRuleProviderResponse chooseRuleProviderResponse =
+                chooseRuleGoodsListService.findByCondition(bookListModelDTO.getId(), CategoryEnum.BOOK_LIST_MODEL.getCode());
+        bookListMixProviderResponse.setChooseRuleMode(chooseRuleProviderResponse);
+        return bookListMixProviderResponse;
     }
 
 
@@ -194,23 +236,7 @@ public class BookListModelService {
     }
 
 
-    /**
-     * 根据id获取 书单模版
-     * @param id
-     * @return
-     */
-    public BookListModelDTO findById(Integer id) {
-        Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
-        if (!bookListModelDTOOptional.isPresent()) {
-            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
-        }
-        BookListModelDTO bookListModelDTO = bookListModelDTOOptional.get();
-        if (Objects.equals(bookListModelDTO.getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
-            throw new SbcRuntimeException(String.format("bookListModel id: %s is delete", id));
-        }
-        log.info("bookListModel.findById id: {} is :{}", id, JSON.toJSONString(bookListModelDTO));
-        return bookListModelDTO;
-    }
+
 
     /**
      * condition

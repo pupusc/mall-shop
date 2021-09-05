@@ -87,17 +87,19 @@ public class ChooseRuleGoodsListService {
 
     /**
      * 获取 控件和商品列表
-     * @param chooseRuleId
+     * @param bookListId
+     * @param categoryId
      * @return
      */
-    public ChooseRuleProviderResponse findById(Integer chooseRuleId) {
+    public ChooseRuleProviderResponse findByCondition(Integer bookListId, Integer categoryId) {
         ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
-        chooseRuleRequest.setId(chooseRuleId);
+        chooseRuleRequest.setBookListId(bookListId);
+        chooseRuleRequest.setCategory(categoryId);
         ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleRequest);
         if (chooseRuleDTO == null) {
             throw new SbcRuntimeException("chooseRuleId 不存在");
         }
-        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list();
+        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, categoryId);
 
         ChooseRuleProviderResponse chooseRuleProviderResponse = new ChooseRuleProviderResponse();
         chooseRuleProviderResponse.setChooseRuleId(chooseRuleDTO.getId());
@@ -122,6 +124,40 @@ public class ChooseRuleGoodsListService {
         }
         return chooseRuleProviderResponse;
     }
+
+
+//    public ChooseRuleProviderResponse findById(Integer chooseRuleId) {
+//        ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
+//        chooseRuleRequest.setId(chooseRuleId);
+//        ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleRequest);
+//        if (chooseRuleDTO == null) {
+//            throw new SbcRuntimeException("chooseRuleId 不存在");
+//        }
+//        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(chooseRuleId);
+//
+//        ChooseRuleProviderResponse chooseRuleProviderResponse = new ChooseRuleProviderResponse();
+//        chooseRuleProviderResponse.setChooseRuleId(chooseRuleDTO.getId());
+//        chooseRuleProviderResponse.setBookListId(chooseRuleDTO.getBookListId());
+//        chooseRuleProviderResponse.setCategory(chooseRuleDTO.getCategory());
+//        chooseRuleProviderResponse.setFilterRule(chooseRuleDTO.getFilterRule());
+//        chooseRuleProviderResponse.setChooseType(chooseRuleDTO.getChooseType());
+//        chooseRuleProviderResponse.setChooseCondition(chooseRuleDTO.getChooseCondition());
+//        chooseRuleProviderResponse.setCreateTime(chooseRuleDTO.getCreateTime());
+//        chooseRuleProviderResponse.setUpdateTime(chooseRuleDTO.getUpdateTime());
+//
+//        if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
+//            chooseRuleProviderResponse.setBookListGoodsList(new ArrayList<>());
+//        } else {
+//            List<BookListGoodsProviderResponse> bookListGoodsResponseList = new ArrayList<>();
+//            for (BookListGoodsDTO bookListGoodsResponseParam : bookListGoodsDTOList) {
+//                BookListGoodsProviderResponse bookListGoodsModel = new BookListGoodsProviderResponse();
+//                BeanUtils.copyProperties(bookListGoodsResponseParam, bookListGoodsModel);
+//                bookListGoodsResponseList.add(bookListGoodsModel);
+//            }
+//            chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);
+//        }
+//        return chooseRuleProviderResponse;
+//    }
 
 //
 //    public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {

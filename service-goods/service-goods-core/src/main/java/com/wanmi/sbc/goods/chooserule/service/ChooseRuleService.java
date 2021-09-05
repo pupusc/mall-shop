@@ -80,6 +80,10 @@ public class ChooseRuleService {
         if (CollectionUtils.isEmpty(chooseRuleDTOList)) {
             return null;
         }
+        if (chooseRuleDTOList.size() > 1) {
+            throw new SbcRuntimeException("ChooseRuleService.findByCondition 请求参数: {} 返回的数据多条有误",
+                    JSON.toJSONString(chooseRuleRequest));
+        }
         return chooseRuleDTOList.get(0);
     }
 
