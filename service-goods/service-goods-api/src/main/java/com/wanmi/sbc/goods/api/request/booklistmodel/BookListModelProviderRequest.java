@@ -75,6 +75,8 @@ public class BookListModelProviderRequest implements Serializable {
     private Integer publishState;
 
 
+    private String operator;
+
 
     public interface Add{}
     public interface Update{}

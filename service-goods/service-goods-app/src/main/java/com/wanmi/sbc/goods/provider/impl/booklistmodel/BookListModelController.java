@@ -68,7 +68,7 @@ public class BookListModelController implements BookListModelProvider {
     @Override
     public BaseResponse delete(BookListModelProviderRequest bookListModel) {
 
-        bookListModelService.delete(bookListModel.getId(), null);
+        bookListModelService.delete(bookListModel.getId(), bookListModel.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -79,7 +79,7 @@ public class BookListModelController implements BookListModelProvider {
      */
     @Override
     public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
-        bookListModelService.publish(bookListModelProviderRequest.getId(), null);
+        bookListModelService.publish(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
