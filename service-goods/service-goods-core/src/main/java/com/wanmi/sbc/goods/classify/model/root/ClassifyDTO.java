@@ -14,13 +14,13 @@ import java.util.Date;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/5 7:43 下午
+ * Date       : 2021/9/5 8:15 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
 @Entity
-@Table(name = "t_book_list_model_classify_rel")
-public class BookListModelClassifyDTO {
+@Table(name = "t_classify")
+public class ClassifyDTO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,16 +28,40 @@ public class BookListModelClassifyDTO {
     private Integer id;
 
     /**
-     * 书单id
+     * 父订单
      */
-    @Column(name = "book_list_model_id")
-    private Integer bookListModelId;
+    @Column(name = "parent_id")
+    private Integer parentId;
 
     /**
-     * 类目id
+     * 分类名
      */
-    @Column(name = "classify_id")
-    private Integer classifyId;
+    @Column(name = "classify_name")
+    private String classifyName;
+
+    /**
+     *  层级
+     */
+    @Column(name = "level")
+    private Integer level;
+
+    /**
+     * 顺序
+     */
+    @Column(name = "order_name")
+    private Integer orderNum;
+
+    /**
+     * 广告图
+     */
+    @Column(name = "ad_img_url")
+    private String adImgUrl;
+
+    /**
+     * 广告图跳转
+     */
+    @Column(name = "ad_img_href")
+    private String adImgHref;
 
     @Column(name = "create_time")
     private Date createTime;

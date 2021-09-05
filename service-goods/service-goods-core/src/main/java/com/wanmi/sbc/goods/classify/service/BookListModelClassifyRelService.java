@@ -1,15 +1,13 @@
 package com.wanmi.sbc.goods.classify.service;
 
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
-import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyDTO;
-import com.wanmi.sbc.goods.classify.repository.BookListModelClassifyRepository;
-import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRequest;
+import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
+import com.wanmi.sbc.goods.classify.repository.BookListModelClassifyRelRepository;
+import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -31,7 +29,7 @@ import java.util.List;
 public class BookListModelClassifyRelService {
 
     @Resource
-    private BookListModelClassifyRepository bookListModelClassifyRepository;
+    private BookListModelClassifyRelRepository bookListModelClassifyRelRepository;
 
 
     /**
@@ -39,43 +37,43 @@ public class BookListModelClassifyRelService {
      * @param bookListModelClassifyRequest
      */
     @Transactional
-    public void add(BookListModelClassifyRequest bookListModelClassifyRequest) {
+    public void add(BookListModelClassifyRelRequest bookListModelClassifyRequest) {
 
         //获取商品分类，查看当前参数是否有效 TODO
 
 
         //1删除当前 书单对一个的类目
-        List<BookListModelClassifyDTO> bookListModelClassifyList = this.listNoPage(bookListModelClassifyRequest.getBookListModelId());
+        List<BookListModelClassifyRelDTO> bookListModelClassifyList = this.listNoPage(bookListModelClassifyRequest.getBookListModelId());
         if (!CollectionUtils.isEmpty(bookListModelClassifyList)) {
             bookListModelClassifyList.forEach(e -> {
                 e.setDelFlag(DeleteFlagEnum.DELETE.getCode());
                 e.setUpdateTime(new Date());
             });
-            bookListModelClassifyRepository.saveAll(bookListModelClassifyList);
+            bookListModelClassifyRelRepository.saveAll(bookListModelClassifyList);
         }
         //2 新增 书单对应类目
-        List<BookListModelClassifyDTO> addList = new ArrayList<>();
+        List<BookListModelClassifyRelDTO> addList = new ArrayList<>();
         for (Integer classifyIdParam : bookListModelClassifyRequest.getClassifyIdList()) {
-            BookListModelClassifyDTO bookListModelClassifyDTO = new BookListModelClassifyDTO();
+            BookListModelClassifyRelDTO bookListModelClassifyDTO = new BookListModelClassifyRelDTO();
             bookListModelClassifyDTO.setBookListModelId(bookListModelClassifyRequest.getBookListModelId());
             bookListModelClassifyDTO.setClassifyId(classifyIdParam);
             bookListModelClassifyDTO.setCreateTime(new Date());
             bookListModelClassifyDTO.setUpdateTime(new Date());
             bookListModelClassifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         }
-        bookListModelClassifyRepository.saveAll(addList);
+        bookListModelClassifyRelRepository.saveAll(addList);
     }
 
 
-    public List<BookListModelClassifyDTO> listNoPage(Integer bookListModelId) {
-        return bookListModelClassifyRepository.findAll(this.packageWhere(bookListModelId));
+    public List<BookListModelClassifyRelDTO> listNoPage(Integer bookListModelId) {
+        return bookListModelClassifyRelRepository.findAll(this.packageWhere(bookListModelId));
     }
 
 
-    private Specification<BookListModelClassifyDTO> packageWhere(Integer bookListModelId) {
-        return new Specification<BookListModelClassifyDTO>() {
+    private Specification<BookListModelClassifyRelDTO> packageWhere(Integer bookListModelId) {
+        return new Specification<BookListModelClassifyRelDTO>() {
             @Override
-            public Predicate toPredicate(Root<BookListModelClassifyDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+            public Predicate toPredicate(Root<BookListModelClassifyRelDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 final List<Predicate> conditionList = new ArrayList<>();
 
                 //只是获取有效的

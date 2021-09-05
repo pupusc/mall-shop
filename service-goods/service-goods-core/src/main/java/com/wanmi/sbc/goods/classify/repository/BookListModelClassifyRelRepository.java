@@ -1,6 +1,6 @@
 package com.wanmi.sbc.goods.classify.repository;
 
-import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyDTO;
+import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -13,5 +13,5 @@ import org.springframework.stereotype.Repository;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Repository
-public interface BookListModelClassifyRepository extends JpaRepository<BookListModelClassifyDTO, Integer>, JpaSpecificationExecutor<BookListModelClassifyDTO> {
+public interface BookListModelClassifyRelRepository extends JpaRepository<BookListModelClassifyRelDTO, Integer>, JpaSpecificationExecutor<BookListModelClassifyRelDTO> {
 }

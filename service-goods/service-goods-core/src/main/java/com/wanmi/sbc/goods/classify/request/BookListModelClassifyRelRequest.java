@@ -12,7 +12,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListModelClassifyRequest {
+public class BookListModelClassifyRelRequest {
 
     /**
      * 书单id
