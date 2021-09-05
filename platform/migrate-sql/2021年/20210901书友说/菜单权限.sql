@@ -1,0 +1,3 @@
+-- sbc-setting START
+INSERT INTO `authority`(`authority_id`, `system_type_cd`, `function_id`, `authority_title`, `authority_name`, `authority_url`, `request_type`, `remark`, `sort`, `create_time`, `del_flag`) VALUES ('8a9bc76c6a673f39016a67d6d2180013', 3, '8a9bc76c6a673f39016a67d571e4000e', '添加书友说评价', NULL, '/goods/evaluate/bookFriend/add', 'POST', NULL, 30, '2021-09-01 18:44:53', 0);
+-- sbc-setting END

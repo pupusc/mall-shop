@@ -1,11 +1,14 @@
 package com.wanmi.sbc.goods;
 
+import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateAddResponse;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateSaveProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluateimage.GoodsEvaluateImageSaveProvider;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateByIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
@@ -56,10 +59,24 @@ public class GoodsEvaluateController {
      */
     @ApiOperation(value = "分页查询商品评价列表")
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluatePageResponse> page(@RequestBody @Valid GoodsEvaluatePageRequest
-                                                                    goodsEvaluatePageRequest) {
+    public BaseResponse<GoodsEvaluatePageResponse> page(@RequestBody @Valid GoodsEvaluatePageRequest goodsEvaluatePageRequest) {
         goodsEvaluatePageRequest.setStoreId(commonUtil.getStoreId());
         return goodsEvaluateQueryProvider.page(goodsEvaluatePageRequest);
+    }
+
+    /**
+     * 添加书友说评价
+     *
+     * @param evaluateAddRequest
+     * @return
+     */
+    @ApiOperation(value = "添加书友说评价")
+    @RequestMapping(value = "/bookFriend/add", method = RequestMethod.POST)
+    @MultiSubmit
+    public BaseResponse<StoreEvaluateAddResponse> addBookFriendEvaluate(@RequestBody BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest) {
+        bookFriendEvaluateAddRequest.setStoreId(commonUtil.getStoreId());
+        goodsEvaluateSaveProvider.addBookFriendEvaluate(bookFriendEvaluateAddRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

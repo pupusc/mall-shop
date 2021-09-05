@@ -1,12 +1,10 @@
 package com.wanmi.sbc.goods.goodsevaluate.service;
 
 import com.google.common.collect.Lists;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateCountRequset;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateQueryRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.EvaluateImgUpdateIsShowReq;
 import com.wanmi.sbc.goods.api.request.goodsevaluateimage.GoodsEvaluateImageQueryRequest;
 import com.wanmi.sbc.goods.api.request.goodstobeevaluate.GoodsTobeEvaluateQueryRequest;
@@ -21,6 +19,8 @@ import com.wanmi.sbc.goods.goodstobeevaluate.model.root.GoodsTobeEvaluate;
 import com.wanmi.sbc.goods.goodstobeevaluate.repository.GoodsTobeEvaluateRepository;
 import com.wanmi.sbc.goods.goodstobeevaluate.service.GoodsTobeEvaluateWhereCriteriaBuilder;
 import com.wanmi.sbc.goods.images.service.GoodsImageService;
+import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.reponse.GoodsInfoEditResponse;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
@@ -30,12 +30,14 @@ import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -95,12 +97,51 @@ public class GoodsEvaluateService {
         entity.setGoodNum(0);
         entity.setIsShow(0);
         entity.setIsSys(Constants.no);
+        entity.setEvaluateCatetory(0);
         goodsEvaluateRepository.save(entity);
         //增加评论数
         if(entity.getIsShow().intValue() == 1){
             goodsEvaluateNumMqService.updateGoodsEvaluateNum(entity);
         }
         return entity;
+    }
+
+    /**
+     * 新增书友说评价
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void addBookFriendEvaluate(BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest) {
+        if (StringUtils.isEmpty(bookFriendEvaluateAddRequest.skuId) || StringUtils.isEmpty(bookFriendEvaluateAddRequest.customerName)
+                || StringUtils.isEmpty(bookFriendEvaluateAddRequest.evaluateContent)) {
+            throw new SbcRuntimeException("K-000009");
+        }
+
+        GoodsInfoEditResponse res = goodsInfoService.findById(bookFriendEvaluateAddRequest.skuId);
+        GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
+        goodsEvaluate.setStoreId(bookFriendEvaluateAddRequest.storeId);
+        goodsEvaluate.setGoodsId(res.getGoods().getGoodsId());
+        goodsEvaluate.setGoodsInfoId(res.getGoodsInfo().getGoodsInfoId());
+        goodsEvaluate.setGoodsInfoName(res.getGoodsInfo().getGoodsInfoName());
+        goodsEvaluate.setGoodsImg(res.getImages().get(0).getArtworkUrl());
+        goodsEvaluate.setCustomerName(bookFriendEvaluateAddRequest.customerName);
+        goodsEvaluate.setEvaluateContent(bookFriendEvaluateAddRequest.evaluateContent);
+        goodsEvaluate.setEvaluateTime(bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()
+                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ISO_DATE_TIME));
+        goodsEvaluate.setIsShow(bookFriendEvaluateAddRequest.isShow == null ? 0 : bookFriendEvaluateAddRequest.isShow);
+        goodsEvaluate.setIsRecommend(bookFriendEvaluateAddRequest.isRecommend == null ? 0 : bookFriendEvaluateAddRequest.isRecommend);
+        goodsEvaluate.setEvaluateCatetory(3);
+
+        goodsEvaluate.setIsSys(0);
+        goodsEvaluate.setIsAnonymous(0);
+        goodsEvaluate.setDelFlag(0);
+        goodsEvaluate.setIsAnswer(0);
+        goodsEvaluate.setIsEdit(0);
+        goodsEvaluate.setIsUpload(0);
+        goodsEvaluate.setEvaluateScore(5);
+        goodsEvaluate.setOrderNo("null");
+        goodsEvaluate.setCustomerId("null");
+
+        goodsEvaluateRepository.save(goodsEvaluate);
     }
 
     /**
@@ -212,6 +253,13 @@ public class GoodsEvaluateService {
      */
     public List<GoodsEvaluate> getTop(GoodsEvaluatePageRequest request){
         return goodsEvaluateRepository.queryTopData(request, request.getPageRequest());
+    }
+
+    /**
+     * 查询书友说评价
+     */
+    public List<GoodsEvaluate> getBookFriendEvaluate(GoodsEvaluatePageRequest request){
+        return goodsEvaluateRepository.queryBookFriendEvaluate(request, request.getPageRequest());
     }
 
     /**

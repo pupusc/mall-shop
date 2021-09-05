@@ -267,4 +267,14 @@ public class GoodsEvaluateVO implements Serializable {
 	 */
 	@ApiModelProperty(value = "是否系统评价 0：否，1：是")
 	private Integer isSys;
+
+	/**
+	 * 评价类别 0 默认商户，1樊登 2非凡 3 手动-后台
+	 */
+	private Integer evaluateCatetory;
+
+	/**
+	 * 是否推荐 0 不推荐 1推荐
+	 */
+	private Integer isRecommend;
 }

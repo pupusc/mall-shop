@@ -138,9 +138,6 @@ public class EvaluateController {
                 .build());
     }
 
-
-
-
     private void desensitization(GoodsEvaluateVO goodsEvaluateVO) {
         goodsEvaluateVO.setCustomerAccount("");
         String name = goodsEvaluateVO.getCustomerName();
@@ -187,6 +184,7 @@ public class EvaluateController {
     public BaseResponse<GoodsEvaluatePageResponse> evaluatePageLogin(@RequestBody GoodsEvaluatePageRequest pageRequest) {
         pageRequest.putSort("isSys", SortType.ASC.toValue());
         pageRequest.putSort("evaluateTime", SortType.DESC.toValue());
+        pageRequest.setEvaluateCatetory(0);
         GoodsEvaluatePageResponse pageResponse = goodsEvaluateUtil(pageRequest, true);
         return BaseResponse.success(pageResponse);
     }

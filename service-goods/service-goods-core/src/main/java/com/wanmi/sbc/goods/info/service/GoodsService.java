@@ -3098,4 +3098,11 @@ public class GoodsService {
         }
     }
 
+    /**
+     * 根据spu编号查询
+     */
+    public Goods findByGoodsId(String goodsId){
+        return goodsRepository.findByGoodsId(goodsId);
+    }
+
 }

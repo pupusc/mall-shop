@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.*;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -293,5 +294,10 @@ public class GoodsEvaluateQueryRequest extends BaseQueryRequest {
 	 * 查询条件：结束时间
 	 */
 	private String endTime;
+
+	/**
+	 * 评价类别 0 商城用户 1 樊登 2非凡 3 后台
+	 */
+	private Integer evaluateCatetory;
 
 }
