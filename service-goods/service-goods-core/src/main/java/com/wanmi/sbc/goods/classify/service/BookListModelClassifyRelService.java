@@ -43,11 +43,11 @@ public class BookListModelClassifyRelService {
 
 
     /**
-     * 新增商品对应分类
+     * 更改商品对应分类
      * @param bookListModelClassifyRequest
      */
     @Transactional
-    public void add(BookListModelClassifyRelRequest bookListModelClassifyRequest) {
+    public void change(BookListModelClassifyRelRequest bookListModelClassifyRequest) {
 
         //获取商品分类，查看当前参数是否有效
         List<ClassifyDTO> classifyList = classifyService.listNoPage(bookListModelClassifyRequest.getClassifyIdList());
@@ -78,6 +78,7 @@ public class BookListModelClassifyRelService {
             bookListModelClassifyDTO.setCreateTime(new Date());
             bookListModelClassifyDTO.setUpdateTime(new Date());
             bookListModelClassifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
+            addList.add(bookListModelClassifyDTO);
         }
         bookListModelClassifyRelRepository.saveAll(addList);
     }

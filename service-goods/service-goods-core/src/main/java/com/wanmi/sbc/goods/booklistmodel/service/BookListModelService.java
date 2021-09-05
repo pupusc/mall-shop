@@ -18,6 +18,8 @@ import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
+import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
+import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,9 @@ public class BookListModelService {
     @Autowired
     private ChooseRuleGoodsListService chooseRuleGoodsListService;
 
+    @Autowired
+    private BookListModelClassifyRelService bookListModelClassifyRelService;
+
 
 
     /**
@@ -85,7 +90,10 @@ public class BookListModelService {
         bookListModelParam.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
 
         //新增类目关系
-        
+        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+        bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
+        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
 
         //新增对象信息
         BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelParam);
@@ -137,7 +145,16 @@ public class BookListModelService {
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));
-        
+
+        //修改类目
+        if (!CollectionUtils.isEmpty(bookListModelRequest.getClassifyList())){
+            BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+            bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
+            bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+            bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+        }
+
+
         //修改控件和书单列表
         chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
