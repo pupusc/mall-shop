@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -53,7 +54,7 @@ public class BookListGoodsPublishService {
         }
 
         //删除已经发布的
-        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(bookListId, categoryId, operator);
+        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(bookListId, categoryId, null, operator);
         Date now = new Date();
         for (BookListGoodsPublishDTO bookListGoodsPublishParam : rawBookListGoodsPublishDTOList) {
             bookListGoodsPublishParam.setUpdateTime(now);
@@ -76,14 +77,14 @@ public class BookListGoodsPublishService {
      * @param bookListId
      * @return
      */
-    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String operator) {
+    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String spu, String operator) {
         log.info("---->> BookListGoodsPublishService.list operator:{} bookListId:{} categoryId: {}",
                 operator, bookListId, categoryId);
-        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId));
+        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId, spu));
     }
 
 
-    private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId) {
+    private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId, String spu) {
         return new Specification<BookListGoodsPublishDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
@@ -95,6 +96,9 @@ public class BookListGoodsPublishService {
                 }
                 if (categoryId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("category"), categoryId));
+                }
+                if (!StringUtils.isEmpty(spu)) {
+                    predicateList.add(criteriaBuilder.equal(root.get("spu"), spu));
                 }
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }

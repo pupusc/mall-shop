@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +95,7 @@ public class BookListModelController implements BookListModelProvider {
     }
 
     /**
-     * 获取书单列表
+     * 获取书单模版列表
      * @param bookListModelPageProviderRequest
      * @return
      */
@@ -116,6 +118,26 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setContent(bookListModelResponseList);
         return microServicePage;
     }
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

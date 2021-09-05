@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -44,6 +45,12 @@ public class BookListModelProviderRequest implements Serializable {
      */
     @NotNull(groups = Add.class, message = "模板类型为空")
     private Integer businessType;
+
+    /**
+     * 类目
+     */
+    @NotNull(groups = Add.class, message = "类目id")
+    private List<Integer> classifyList;
 
     /**
      * 头图
