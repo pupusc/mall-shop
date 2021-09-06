@@ -64,6 +64,11 @@ public class BookListGoodsResponse {
      */
     private BigDecimal marketPrice;
 
+    /**
+     * 积分
+     */
+    private Integer buyPoint;
+
     private Date createTime;
 
     private Date updateTime;

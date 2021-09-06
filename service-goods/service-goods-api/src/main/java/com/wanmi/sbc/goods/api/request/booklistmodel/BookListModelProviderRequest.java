@@ -71,7 +71,10 @@ public class BookListModelProviderRequest implements Serializable {
      */
     private String pageHref;
 
-
+    /**
+     * 操作人 发布书单使用
+     */
+    private String operator;
 
 
     public interface Add{}
