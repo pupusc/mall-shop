@@ -19,12 +19,13 @@ public class BookListMixRequest {
     /**
      * 书单模版
      */
+    @Valid
+    @NotNull
     private BookListModelRequest bookListModel;
 
     /**
      * 控件模版
      */
     @Valid
-    @NotNull
     private ChooseRuleGoodsListRequest chooseRuleGoodsListModel;
 }

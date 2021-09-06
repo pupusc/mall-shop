@@ -17,7 +17,7 @@ import java.util.Objects;
 public enum CategoryEnum {
 
     BOOK_LIST_MODEL(1, "书单模版"),
-    BOOK_CATEGORY(2, "类目");
+    BOOK_CLASSIFY(2, "类目");
 
     private final Integer code;
     private final String message;

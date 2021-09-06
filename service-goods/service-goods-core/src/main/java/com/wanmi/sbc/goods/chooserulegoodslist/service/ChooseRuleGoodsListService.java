@@ -37,8 +37,6 @@ public class ChooseRuleGoodsListService {
     private ChooseRuleService chooseRuleService;
     @Resource
     private BookListGoodsService bookListGoodsService;
-    @Resource
-    private BookListModelService bookListModelService;
 
 
     @Transactional

@@ -5,6 +5,7 @@ import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
@@ -52,6 +53,7 @@ public class BookListModelController {
         BookListMixProviderRequest request = new BookListMixProviderRequest();
         BeanUtils.copyProperties(bookListMixRequest, request);
         request.setOperator(commonUtil.getOperatorId());
+        request.getChooseRuleGoodsListModel().setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
         bookListModelProvider.add(request);
         return BaseResponse.SUCCESSFUL();
     }
@@ -75,16 +77,16 @@ public class BookListModelController {
 
     /**
      * 删除书单
-     * @param bookListModel
+     * @param id
      * @menu 商城书单
      * @status undone
      * @return
      */
-    @PostMapping("/delete")
-    public BaseResponse delete(@Validated @RequestBody BookListModelRequest bookListModel) {
+    @PostMapping("/delete/{id}")
+    public BaseResponse delete(@PathVariable Integer id) {
 
         BookListModelProviderRequest request = new BookListModelProviderRequest();
-        BeanUtils.copyProperties(bookListModel, request);
+        request.setId(id);
         request.setOperator(commonUtil.getOperatorId());
         bookListModelProvider.delete(request);
         return BaseResponse.SUCCESSFUL();
@@ -109,16 +111,15 @@ public class BookListModelController {
 
     /**
      * 发布书单
-     * @param bookListModelRequest
+     * @param id
      * @menu 商城书单
      * @status undone
      * @return
      */
-    @PostMapping("/publish")
-    public BaseResponse publish(
-            @RequestBody BookListModelRequest bookListModelRequest){
+    @PostMapping("/publish/{id}")
+    public BaseResponse publish(@PathVariable("id") Integer id){
         BookListModelProviderRequest request = new BookListModelProviderRequest();
-        BeanUtils.copyProperties(bookListModelRequest, request);
+        request.setId(id);
         request.setOperator(commonUtil.getOperatorId());
         return bookListModelProvider.publish(request);
     }

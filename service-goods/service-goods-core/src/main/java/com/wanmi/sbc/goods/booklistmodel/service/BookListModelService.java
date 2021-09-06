@@ -89,16 +89,18 @@ public class BookListModelService {
         bookListModelParam.setUpdateTime(new Date());
         bookListModelParam.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
 
-        //新增类目关系
-        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
-        bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
-        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
-        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
-
-        //新增对象信息
+        //新增书单模板
         BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelParam);
         log.info("operator：{} BookListModelService.add BookListModel complete result:{}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModelDTO));
+
+        //新增类目关系
+        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+        bookListModelClassifyRequest.setBookListModelId(bookListModelDTO.getId());
+        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+
+
 
         chooseRuleGoodsListService.add(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
