@@ -52,6 +52,12 @@ public class GoodsEvaluateSaveController implements GoodsEvaluateSaveProvider {
 	}
 
 	@Override
+	public BaseResponse editBookFriendEvaluate(@RequestBody BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest) {
+		goodsEvaluateService.editBookFriendEvaluate(bookFriendEvaluateEditRequest);
+		return BaseResponse.SUCCESSFUL();
+	}
+
+	@Override
 	public BaseResponse addList(@RequestBody GoodsEvaluateAddListRequest goodsEvaluateAddListRequest) {
 		List<GoodsEvaluate> goodsEvaluateList = new ArrayList<>();
 		goodsEvaluateAddListRequest.getGoodsEvaluateAddList().forEach(goodsEvaluateAddRequest -> {

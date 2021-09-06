@@ -8,10 +8,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateSaveProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluateimage.GoodsEvaluateImageSaveProvider;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateByIdRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateAnswerResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateByIdResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluatePageResponse;
@@ -66,9 +63,7 @@ public class GoodsEvaluateController {
 
     /**
      * 添加书友说评价
-     *
-     * @param evaluateAddRequest
-     * @return
+     * @param bookFriendEvaluateAddRequest
      */
     @ApiOperation(value = "添加书友说评价")
     @RequestMapping(value = "/bookFriend/add", method = RequestMethod.POST)
@@ -80,14 +75,26 @@ public class GoodsEvaluateController {
     }
 
     /**
+     * 编辑书友说评价
+     * @param bookFriendEvaluateEditRequest
+     */
+    @ApiOperation(value = "编辑书友说评价")
+    @RequestMapping(value = "/bookFriend/edit", method = RequestMethod.POST)
+    @MultiSubmit
+    public BaseResponse<StoreEvaluateAddResponse> editBookFriendEvaluate(@RequestBody BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest) {
+        bookFriendEvaluateEditRequest.setStoreId(commonUtil.getStoreId());
+        goodsEvaluateSaveProvider.editBookFriendEvaluate(bookFriendEvaluateEditRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * 获取商品评价详情
      * @param goodsEvaluateByIdRequest
      * @return
      */
     @ApiOperation(value = "获取商品评价详情信息")
     @RequestMapping(value = "/detail", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluateByIdResponse> info(@RequestBody @Valid GoodsEvaluateByIdRequest
-                                                                    goodsEvaluateByIdRequest) {
+    public BaseResponse<GoodsEvaluateByIdResponse> info(@RequestBody @Valid GoodsEvaluateByIdRequest goodsEvaluateByIdRequest) {
         BaseResponse<GoodsEvaluateByIdResponse> response = goodsEvaluateQueryProvider.getById(goodsEvaluateByIdRequest);
         return  response;
     }
@@ -99,8 +106,7 @@ public class GoodsEvaluateController {
      */
     @ApiOperation(value = "回复商品评价")
     @RequestMapping(value = "/answer", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluateAnswerResponse> answer(@RequestBody @Valid GoodsEvaluateAnswerRequest
-                                                                        request) {
+    public BaseResponse<GoodsEvaluateAnswerResponse> answer(@RequestBody @Valid GoodsEvaluateAnswerRequest request) {
 
         request.setEvaluateAnswerAccountName(commonUtil.getAccountName());
         request.setEvaluateAnswerEmployeeId(commonUtil.getOperator().getAdminId());

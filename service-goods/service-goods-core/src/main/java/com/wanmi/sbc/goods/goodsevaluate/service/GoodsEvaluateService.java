@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -109,7 +110,7 @@ public class GoodsEvaluateService {
     /**
      * 新增书友说评价
      */
-    @Transactional(rollbackFor = Exception.class)
+//    @Transactional(rollbackFor = Exception.class)
     public void addBookFriendEvaluate(BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest) {
         if (StringUtils.isEmpty(bookFriendEvaluateAddRequest.skuId) || StringUtils.isEmpty(bookFriendEvaluateAddRequest.customerName)
                 || StringUtils.isEmpty(bookFriendEvaluateAddRequest.evaluateContent)) {
@@ -118,6 +119,17 @@ public class GoodsEvaluateService {
 
         GoodsInfoEditResponse res = goodsInfoService.findById(bookFriendEvaluateAddRequest.skuId);
         GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
+        //赋默认值
+        goodsEvaluate.setIsSys(0);
+        goodsEvaluate.setIsAnonymous(0);
+        goodsEvaluate.setDelFlag(0);
+        goodsEvaluate.setIsAnswer(0);
+        goodsEvaluate.setIsEdit(0);
+        goodsEvaluate.setIsUpload(0);
+        goodsEvaluate.setEvaluateScore(5);
+        goodsEvaluate.setOrderNo("null");
+        goodsEvaluate.setCustomerId("null");
+
         goodsEvaluate.setStoreId(bookFriendEvaluateAddRequest.storeId);
         goodsEvaluate.setGoodsId(res.getGoods().getGoodsId());
         goodsEvaluate.setGoodsInfoId(res.getGoodsInfo().getGoodsInfoId());
@@ -131,17 +143,38 @@ public class GoodsEvaluateService {
         goodsEvaluate.setIsRecommend(bookFriendEvaluateAddRequest.isRecommend == null ? 0 : bookFriendEvaluateAddRequest.isRecommend);
         goodsEvaluate.setEvaluateCatetory(3);
 
-        goodsEvaluate.setIsSys(0);
-        goodsEvaluate.setIsAnonymous(0);
-        goodsEvaluate.setDelFlag(0);
-        goodsEvaluate.setIsAnswer(0);
-        goodsEvaluate.setIsEdit(0);
-        goodsEvaluate.setIsUpload(0);
-        goodsEvaluate.setEvaluateScore(5);
-        goodsEvaluate.setOrderNo("null");
-        goodsEvaluate.setCustomerId("null");
-
         goodsEvaluateRepository.save(goodsEvaluate);
+    }
+
+    /**
+     * 编辑书友说评价
+     */
+//    @Transactional(rollbackFor = Exception.class)
+    public void editBookFriendEvaluate(BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest) {
+        if (StringUtils.isEmpty(bookFriendEvaluateEditRequest.skuId) || StringUtils.isEmpty(bookFriendEvaluateEditRequest.customerName)
+                || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateContent) || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateId)) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        Optional<GoodsEvaluate> evaOpt = goodsEvaluateRepository.findById(bookFriendEvaluateEditRequest.evaluateId);
+        if(evaOpt.isPresent()){
+            GoodsEvaluate goodsEvaluate = evaOpt.get();
+            if(!goodsEvaluate.getGoodsInfoId().equals(bookFriendEvaluateEditRequest.skuId)){
+                GoodsInfoEditResponse res = goodsInfoService.findById(bookFriendEvaluateEditRequest.skuId);
+                goodsEvaluate.setGoodsId(res.getGoods().getGoodsId());
+                goodsEvaluate.setGoodsInfoId(res.getGoodsInfo().getGoodsInfoId());
+                goodsEvaluate.setGoodsInfoName(res.getGoodsInfo().getGoodsInfoName());
+                goodsEvaluate.setGoodsImg(res.getImages().get(0).getArtworkUrl());
+            }
+            goodsEvaluate.setStoreId(bookFriendEvaluateEditRequest.storeId);
+            goodsEvaluate.setCustomerName(bookFriendEvaluateEditRequest.customerName);
+            goodsEvaluate.setEvaluateContent(bookFriendEvaluateEditRequest.evaluateContent);
+            goodsEvaluate.setEvaluateTime(bookFriendEvaluateEditRequest.evaluateTime == null ? LocalDateTime.now()
+                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ISO_DATE_TIME));
+            goodsEvaluate.setIsShow(bookFriendEvaluateEditRequest.isShow == null ? 0 : bookFriendEvaluateEditRequest.isShow);
+            goodsEvaluate.setIsRecommend(bookFriendEvaluateEditRequest.isRecommend == null ? 0 : bookFriendEvaluateEditRequest.isRecommend);
+            goodsEvaluate.setEvaluateCatetory(3);
+            goodsEvaluateRepository.save(goodsEvaluate);
+        }
     }
 
     /**
