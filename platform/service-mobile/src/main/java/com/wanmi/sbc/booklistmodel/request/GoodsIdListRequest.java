@@ -12,13 +12,24 @@ import lombok.Data;
 @Data
 public class GoodsIdListRequest {
 
+    /**
+     * spuId ✅add
+     */
     private String spuId;
 
+    /**
+     * spuNo
+     */
     private String spuNo;
 
+    /**
+     *  skuId ✅add
+     */
     private String skuId;
 
+    /**
+     * skuId ✅add
+     */
     private String skuNo;
 
-    private Integer orderNum;
 }

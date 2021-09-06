@@ -24,5 +24,4 @@ public class GoodsIdListProviderRequest implements Serializable {
 
     private String skuNo;
 
-    private Integer orderNum;
 }

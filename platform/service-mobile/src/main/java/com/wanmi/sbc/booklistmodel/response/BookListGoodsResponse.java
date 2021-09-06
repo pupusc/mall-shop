@@ -2,6 +2,7 @@ package com.wanmi.sbc.booklistmodel.response;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -47,6 +48,21 @@ public class BookListGoodsResponse {
     private String skuNo;
 
     private Integer orderNum;
+
+    /**
+     * 商品名称
+     */
+    private String goodsInfoName;
+
+    /**
+     * 规格
+     */
+    private String specText;
+
+    /**
+     * 定价
+     */
+    private BigDecimal marketPrice;
 
     private Date createTime;
 

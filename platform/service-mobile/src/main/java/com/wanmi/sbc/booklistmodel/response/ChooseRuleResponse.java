@@ -55,5 +55,8 @@ public class ChooseRuleResponse {
      */
     private Date updateTime;
 
+    /**
+     * 商品列表
+     */
     private List<BookListGoodsResponse> bookListGoodsList;
 }

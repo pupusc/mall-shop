@@ -72,7 +72,6 @@ public class BookListModelProviderRequest implements Serializable {
     private String pageHref;
 
 
-    private String operator;
 
 
     public interface Add{}

@@ -3,6 +3,7 @@ package com.wanmi.sbc.booklistmodel;
 import com.wanmi.sbc.booklistmodel.request.BookListMixRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
+import com.wanmi.sbc.booklistmodel.response.BookListMixResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
@@ -10,6 +11,7 @@ import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.util.CommonUtil;
 import org.springframework.beans.BeanUtils;
@@ -82,7 +84,7 @@ public class BookListModelController {
      * @status undone
      * @return
      */
-    @PostMapping("/delete/{id}")
+    @GetMapping("/delete/{id}")
     public BaseResponse delete(@PathVariable Integer id) {
 
         BookListModelProviderRequest request = new BookListModelProviderRequest();
@@ -116,7 +118,7 @@ public class BookListModelController {
      * @status undone
      * @return
      */
-    @PostMapping("/publish/{id}")
+    @GetMapping("/publish/{id}")
     public BaseResponse publish(@PathVariable("id") Integer id){
         BookListModelProviderRequest request = new BookListModelProviderRequest();
         request.setId(id);
@@ -132,10 +134,13 @@ public class BookListModelController {
      * @return
      */
     @GetMapping("/findById/{id}")
-    public BaseResponse findById(@PathVariable("id") Integer id){
+    public BaseResponse<BookListMixResponse> findById(@PathVariable("id") Integer id){
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
         bookListModelProviderRequest.setId(id);
-        return bookListModelProvider.findById(bookListModelProviderRequest);
+        BaseResponse<BookListMixProviderResponse> bookListModelProviderByIdResponse = bookListModelProvider.findById(bookListModelProviderRequest);
+        BookListMixResponse bookListMixResponse = new BookListMixResponse();
+        BeanUtils.copyProperties(bookListModelProviderByIdResponse.getContext(), bookListMixResponse);
+        return BaseResponse.success(bookListMixResponse);
     }
 
 }

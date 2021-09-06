@@ -46,7 +46,7 @@ public class ChooseRuleGoodsListRequest {
     private String chooseCondition;
 
     /**
-     * 商品列表
+     * 商品列表 ✅add
      */
     @NotNull(message = "商品列表为空")
     private List<GoodsIdListRequest> goodsIdListRequestList;

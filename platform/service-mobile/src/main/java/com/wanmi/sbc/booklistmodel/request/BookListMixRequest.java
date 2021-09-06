@@ -24,7 +24,7 @@ public class BookListMixRequest {
     private BookListModelRequest bookListModel;
 
     /**
-     * 控件模版
+     * 控件模版✅add
      */
     @Valid
     private ChooseRuleGoodsListRequest chooseRuleGoodsListModel;
