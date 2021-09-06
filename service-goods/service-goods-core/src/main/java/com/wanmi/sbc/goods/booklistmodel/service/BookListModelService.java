@@ -114,7 +114,11 @@ public class BookListModelService {
     public void update(BookListMixProviderRequest bookListMixProviderRequest) {
         log.info("operator：{} BookListModelService.update BookListModel beginning", bookListMixProviderRequest.getOperator());
         BookListModelProviderRequest bookListModelRequest = bookListMixProviderRequest.getBookListModel();
-        if (bookListModelRequest.getId() == null || bookListModelRequest.getId() <= 0) {
+        if (bookListModelRequest.getId() == null) {
+            log.info("operator：{} BookListModelService.update chooseRuleGoodsListModel is null 控件信息不做修改", bookListMixProviderRequest.getOperator());
+            return;
+        }
+        if (bookListModelRequest.getId() <= 0) {
             throw new SbcRuntimeException(String.format("书单:%s id有误", bookListModelRequest.getId()));
         }
 

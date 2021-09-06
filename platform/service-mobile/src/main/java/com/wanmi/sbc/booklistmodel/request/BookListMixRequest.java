@@ -17,7 +17,7 @@ public class BookListMixRequest {
 
 
     /**
-     * 书单模版
+     * 书单模版 ✅add
      */
     @Valid
     @NotNull

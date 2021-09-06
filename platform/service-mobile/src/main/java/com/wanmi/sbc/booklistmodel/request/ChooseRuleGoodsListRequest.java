@@ -1,7 +1,5 @@
 package com.wanmi.sbc.booklistmodel.request;
 
-import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -48,7 +46,7 @@ public class ChooseRuleGoodsListRequest {
     private String chooseCondition;
 
     /**
-     * 商品列表 ✅ Add Update
+     * 商品列表
      */
     @NotNull(message = "商品列表为空")
     private List<GoodsIdListRequest> goodsIdListRequestList;

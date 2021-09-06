@@ -18,9 +18,9 @@ import java.util.List;
 public class BookListModelRequest {
 
     /**
-     * 新增书单模版 ✅update delete publish findById
+     * 新增书单模版 ✅update
      */
-    @NotNull(groups = {BookListModelRequest.Update.class, BookListModelRequest.Delete.class, BookListModelRequest.Publish.class, BookListModelRequest.FindById.class}, message = "id为空")
+    @NotNull(groups = {BookListModelRequest.Update.class}, message = "id为空")
     private Integer id;
 
     /**
@@ -67,7 +67,4 @@ public class BookListModelRequest {
 
     public interface Add{}
     public interface Update{}
-    public interface Delete{}
-    public interface Publish{}
-    public interface FindById{}
 }
