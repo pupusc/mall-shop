@@ -1,55 +1,47 @@
-package com.wanmi.sbc.goods.api.request.booklistmodel;
+package com.wanmi.sbc.booklistmodel.request;
 
-import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/1 5:43 下午
+ * Date       : 2021/9/6 10:35 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@ApiModel
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class BookListModelProviderRequest implements Serializable {
+public class BookListModelRequest {
 
-    @NotNull(groups = {Update.class, Delete.class, Publish.class, FindById.class}, message = "id为空")
+    @NotNull(groups = {BookListModelRequest.Update.class, BookListModelRequest.Delete.class, BookListModelRequest.Publish.class, BookListModelRequest.FindById.class}, message = "id为空")
     private Integer id;
 
     /**
      * 模版名
      */
-    @NotBlank(groups = Add.class, message = "模版名称为空")
+    @NotBlank(groups = BookListModelRequest.Add.class, message = "模版名称为空")
     private String name;
 
     /**
      * 描述
      */
-    @NotBlank(groups = Add.class, message = "描述为空")
+    @NotBlank(groups = BookListModelRequest.Add.class, message = "描述为空")
     private String desc;
 
     /**
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
      */
-    @NotNull(groups = Add.class, message = "模板类型为空")
+    @NotNull(groups = BookListModelRequest.Add.class, message = "模板类型为空")
     private Integer businessType;
 
     /**
      * 类目
      */
-    @NotNull(groups = Add.class, message = "类目id")
+    @NotNull(groups = BookListModelRequest.Add.class, message = "类目id")
     private List<Integer> classifyList;
 
     /**
@@ -68,8 +60,6 @@ public class BookListModelProviderRequest implements Serializable {
      */
     private String pageHref;
 
-
-    private String operator;
 
 
     public interface Add{}

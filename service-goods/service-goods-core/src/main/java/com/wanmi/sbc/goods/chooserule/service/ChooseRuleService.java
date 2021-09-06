@@ -45,7 +45,7 @@ public class ChooseRuleService {
         chooseRuleDTO.setVersion(0);
         chooseRuleDTO.setCreateTime(new Date());
         chooseRuleDTO.setUpdateTime(new Date());
-        chooseRuleDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
+        chooseRuleDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         return chooseRuleRepository.save(chooseRuleDTO);
     }
 
@@ -79,6 +79,10 @@ public class ChooseRuleService {
                 chooseRuleRepository.findAll(this.packageWhere(chooseRuleRequest));
         if (CollectionUtils.isEmpty(chooseRuleDTOList)) {
             return null;
+        }
+        if (chooseRuleDTOList.size() > 1) {
+            throw new SbcRuntimeException("ChooseRuleService.findByCondition 请求参数: {} 返回的数据多条有误",
+                    JSON.toJSONString(chooseRuleRequest));
         }
         return chooseRuleDTOList.get(0);
     }

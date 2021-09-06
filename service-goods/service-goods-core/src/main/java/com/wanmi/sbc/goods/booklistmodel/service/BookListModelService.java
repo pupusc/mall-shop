@@ -2,21 +2,34 @@ package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
+import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelRequest;
-import com.wanmi.sbc.goods.util.GoodsConstants;
+import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
+import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
+import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -25,12 +38,13 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -48,37 +62,68 @@ public class BookListModelService {
     @Resource
     private BookListModelRepository bookListModelRepository;
 
+    @Resource
+    private BookListGoodsPublishService bookListGoodsPublishService;
+
+    @Autowired
+    private ChooseRuleGoodsListService chooseRuleGoodsListService;
+
+    @Autowired
+    private BookListModelClassifyRelService bookListModelClassifyRelService;
+
+
+
     /**
      * 新增 书单模板
      * @return
      */
-    public BookListModelDTO add(BookListModelRequest bookListModelRequest, String operator) {
-        log.info("bookListModel.add operator: {} ", operator);
-        BookListModelDTO bookListModelDTO = new BookListModelDTO();
-        BeanUtils.copyProperties(bookListModelRequest, bookListModelDTO);
-        bookListModelDTO.setId(null);
-        bookListModelDTO.setCreateTime(new Date());
-        bookListModelDTO.setUpdateTime(new Date());
-        bookListModelDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
+    @org.springframework.transaction.annotation.Transactional
+    public void add(BookListMixProviderRequest bookListMixProviderRequest) {
+        log.info("operator：{} BookListModelService.add BookListModel beginning", bookListMixProviderRequest.getOperator());
+        BookListModelProviderRequest bookListModelRequest = bookListMixProviderRequest.getBookListModel();
+        BookListModelDTO bookListModelParam = new BookListModelDTO();
+        BeanUtils.copyProperties(bookListModelRequest, bookListModelParam);
+        bookListModelParam.setId(null);
+        bookListModelParam.setPublishState(PublishStateEnum.UN_PUBLISH.getCode());
+        bookListModelParam.setCreateTime(new Date());
+        bookListModelParam.setUpdateTime(new Date());
+        bookListModelParam.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
+
+        //新增类目关系
+        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+        bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
+        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+
         //新增对象信息
-        return bookListModelRepository.save(bookListModelDTO);
+        BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelParam);
+        log.info("operator：{} BookListModelService.add BookListModel complete result:{}",
+                bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModelDTO));
+
+        chooseRuleGoodsListService.add(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
 
     /**
      * 更新操作
-     * @param bookListModelRequest
+     * @param bookListMixProviderRequest
      * @return
      */
-    public BookListModelDTO update(BookListModelRequest bookListModelRequest, String operator) {
-        log.info("bookListModel.add id:{}, operator:{}", bookListModelRequest.getId(), operator);
-        Optional<BookListModelDTO> bookListModelOptional =
-                bookListModelRepository.findById(bookListModelRequest.getId());
+    @org.springframework.transaction.annotation.Transactional
+    public void update(BookListMixProviderRequest bookListMixProviderRequest) {
+        log.info("operator：{} BookListModelService.update BookListModel beginning", bookListMixProviderRequest.getOperator());
+        BookListModelProviderRequest bookListModelRequest = bookListMixProviderRequest.getBookListModel();
+        if (bookListModelRequest.getId() == null || bookListModelRequest.getId() <= 0) {
+            throw new SbcRuntimeException(String.format("书单:%s id有误", bookListModelRequest.getId()));
+        }
+
+        Optional<BookListModelDTO> bookListModelOptional = bookListModelRepository.findById(bookListModelRequest.getId());
         if (!bookListModelOptional.isPresent() || Objects.equals(bookListModelOptional.get().getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
             throw new SbcRuntimeException("书单" + bookListModelRequest.getId() + "不存在");
         }
         BookListModelDTO existBookListModelDtoUpdate = bookListModelOptional.get();
         existBookListModelDtoUpdate.setUpdateTime(new Date());
         existBookListModelDtoUpdate.setId(bookListModelRequest.getId());
+        existBookListModelDtoUpdate.setPublishState(PublishStateEnum.EDIT_UN_PUBLISH.getCode());
         if (!StringUtils.isEmpty(bookListModelRequest.getName())) {
             existBookListModelDtoUpdate.setName(bookListModelRequest.getName());
         }
@@ -97,10 +142,21 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getPageHref())) {
             existBookListModelDtoUpdate.setPageHref(bookListModelRequest.getPageHref());
         }
-        if (bookListModelRequest.getPublishState() != null) {
-            existBookListModelDtoUpdate.setPublishState(bookListModelRequest.getPublishState());
+        BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
+        log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
+                bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));
+
+        //修改类目
+        if (!CollectionUtils.isEmpty(bookListModelRequest.getClassifyList())){
+            BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+            bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
+            bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+            bookListModelClassifyRelService.change(bookListModelClassifyRequest);
         }
-        return bookListModelRepository.save(existBookListModelDtoUpdate);
+
+
+        //修改控件和书单列表
+        chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
 
     /**
@@ -108,8 +164,8 @@ public class BookListModelService {
      * @param bookListModelId
      * @return
      */
-    public void delete(Integer bookListModelId, String operater) {
-        log.info("bookListModel.delete id {} by user: {}", bookListModelId, operater);
+    public void delete(Integer bookListModelId, String operator) {
+        log.info("bookListModel.delete id {} by user: {}", bookListModelId, operator);
         Optional<BookListModelDTO> bookListModelOptional =
                 bookListModelRepository.findById(bookListModelId);
         if (!bookListModelOptional.isPresent()) {
@@ -128,6 +184,70 @@ public class BookListModelService {
         if (result <= 0) {
             throw new SbcRuntimeException("书单" + bookListModelId + "删除中异常");
         }
+
+        //todo  删除控件和商品列表
+
+
+    }
+
+    /**
+     * 发布书单
+     * @param bookListModelId
+     * @param operator
+     */
+    public void publish(Integer bookListModelId, String operator) {
+
+        BookListModelDTO bookListModelObj = this.findSimpleById(bookListModelId);
+        if (Objects.equals(bookListModelObj.getPublishState(), PublishStateEnum.PUBLISH.getCode())) {
+            log.error("-------->> ChooseRuleGoodsListService.publish id:{} operator:{} publishState is already publish return",
+                    bookListModelId, operator);
+            return ;
+        }
+        bookListGoodsPublishService.publish(bookListModelId, PublishStateEnum.PUBLISH.getCode(), operator);
+        log.info("----->>>ChooseRuleGoodsListService.publish bookListModelId:{} operator:{} complete"
+                , bookListModelId, operator);
+
+        bookListModelObj.setPublishState(PublishStateEnum.PUBLISH.getCode());
+        bookListModelObj.setUpdateTime(new Date());
+        bookListModelRepository.save(bookListModelObj);
+    }
+
+    /**
+     * 获取书单简单信息
+     * @param id
+     * @return
+     */
+    private BookListModelDTO findSimpleById(Integer id){
+        Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
+        if (!bookListModelDTOOptional.isPresent()) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
+        }
+        BookListModelDTO bookListModelDTO = bookListModelDTOOptional.get();
+        if (Objects.equals(bookListModelDTO.getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
+            throw new SbcRuntimeException(String.format("bookListModel id: %s is delete", id));
+        }
+        return bookListModelDTO;
+    }
+
+    /**
+     * 根据id获取 书单模版详细信息
+     * @param id
+     * @return
+     */
+    public BookListMixProviderResponse findById(Integer id) {
+
+        BookListModelDTO bookListModelDTO = this.findSimpleById(id);
+        BookListMixProviderResponse bookListMixProviderResponse = new BookListMixProviderResponse();
+
+        BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
+        BeanUtils.copyProperties(bookListModelDTO, bookListModelProviderResponse);
+        bookListMixProviderResponse.setBookListModel(bookListModelProviderResponse);
+
+        //获取控件信息和商品列表信息
+        ChooseRuleProviderResponse chooseRuleProviderResponse =
+                chooseRuleGoodsListService.findByCondition(bookListModelDTO.getId(), CategoryEnum.BOOK_LIST_MODEL.getCode());
+        bookListMixProviderResponse.setChooseRuleMode(chooseRuleProviderResponse);
+        return bookListMixProviderResponse;
     }
 
 
@@ -144,24 +264,71 @@ public class BookListModelService {
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
 
-
     /**
-     * 根据id获取 书单模版
-     * @param id
+     * 查询模板列表
+     * @param bookListModelPageRequest
      * @return
      */
-    public BookListModelDTO findById(Integer id) {
-        Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
-        if (!bookListModelDTOOptional.isPresent()) {
-            throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));
-        }
-        BookListModelDTO bookListModelDTO = bookListModelDTOOptional.get();
-        if (Objects.equals(bookListModelDTO.getDelFlag(), DeleteFlagEnum.DELETE.getCode())) {
-            throw new SbcRuntimeException(String.format("bookListModel id: %s is delete", id));
-        }
-        log.info("bookListModel.findById id: {} is :{}", id, JSON.toJSONString(bookListModelDTO));
-        return bookListModelDTO;
+    public List<BookListModelDTO> listNoPage(BookListModelPageRequest bookListModelPageRequest) {
+        //查询数量
+        Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
+        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
+        return bookListModelRepository.findAll(requestCondition, orderNum);
     }
+
+
+    public void test() {
+        int businessType = 1; //榜单
+        String spu = "";
+        String operator = "";
+        //榜单
+        if (Objects.equals(businessType, BusinessTypeEnum.RANKING_LIST.getCode())) {
+            //根据商品获取书单
+            List<BookListGoodsPublishDTO> bookListGoodsPublishList = bookListGoodsPublishService.list(null, null, spu, operator);
+            Set<Integer> bookListGoodsPublishIdList = bookListGoodsPublishList.stream()
+                    .filter(e -> Objects.equals(e.getCategory(), CategoryEnum.BOOK_LIST_MODEL.getCode()))
+                    .map(BookListGoodsPublishDTO::getBookListId)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(bookListGoodsPublishIdList)) {
+                //当前为空 则不推荐榜单
+                return;
+            }
+            //表示全部显示
+            List<BookListGoodsPublishDTO> result = null;
+            if (bookListGoodsPublishIdList.size() <= 2) {
+                result = bookListGoodsPublishList;
+            } else {
+                //获取点击最高的 两个榜单
+                //invoke max click top 2
+
+                //根据 书单id 获取书单列表信息
+            }
+
+            BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
+            bookListModelPageRequest.setBusinessType(BusinessTypeEnum.RANKING_LIST.getCode());
+            List<BookListModelDTO> bookListModelList = this.listNoPage(bookListModelPageRequest);
+
+
+        }
+
+        //书单
+        if (Objects.equals(businessType, BusinessTypeEnum.BOOK_LIST.getCode())){
+            //根据商品获取书单
+            List<BookListGoodsPublishDTO> bookListGoodsPublishList = bookListGoodsPublishService.list(null, null, spu, operator);
+            Set<Integer> bookListGoodsPublishIdList = bookListGoodsPublishList.stream()
+                    .filter(e -> Objects.equals(e.getCategory(), CategoryEnum.BOOK_LIST_MODEL.getCode()))
+                    .map(BookListGoodsPublishDTO::getBookListId)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(bookListGoodsPublishIdList)) {
+                //当前为空 则获取类目下的 商品列表
+                return;
+            }
+        }
+
+    }
+
+
+
 
     /**
      * condition

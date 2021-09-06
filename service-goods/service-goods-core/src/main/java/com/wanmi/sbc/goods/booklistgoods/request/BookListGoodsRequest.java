@@ -1,9 +1,8 @@
 package com.wanmi.sbc.goods.booklistgoods.request;
 
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.GoodsIdListProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -29,5 +28,5 @@ public class BookListGoodsRequest implements Serializable {
     /**
      * goodIdList
      */
-    private List<GoodsIdListProviderRequest> goodsIdListProviderRequestList;
+    private List<GoodsIdListProviderRequest> goodsIdListRequestList;
 }
