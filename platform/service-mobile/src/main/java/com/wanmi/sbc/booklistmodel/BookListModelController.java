@@ -1,5 +1,8 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.wanmi.sbc.booklistmodel.request.BookListMixRequest;
+import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
+import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
@@ -8,6 +11,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRe
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.util.CommonUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,29 +42,33 @@ public class BookListModelController {
 
     /**
      * 新增书单
-     * @param bookListMixProviderRequest
+     * @param bookListMixRequest
      * @menu 商城书单
      * @status undone
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse add(@Validated @RequestBody BookListMixProviderRequest bookListMixProviderRequest) {
-        bookListMixProviderRequest.setOperator(commonUtil.getOperatorId());
-        bookListModelProvider.add(bookListMixProviderRequest);
+    public BaseResponse add(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
+        BookListMixProviderRequest request = new BookListMixProviderRequest();
+        BeanUtils.copyProperties(bookListMixRequest, request);
+        request.setOperator(commonUtil.getOperatorId());
+        bookListModelProvider.add(request);
         return BaseResponse.SUCCESSFUL();
     }
 
     /**
      *  修改书单
-     * @param bookListMixProviderRequest
+     * @param bookListMixRequest
      * @menu 商城书单
      * @status undone
      * @return
      */
     @PostMapping("/update")
-    public BaseResponse update(@Validated @RequestBody BookListMixProviderRequest bookListMixProviderRequest) {
-        bookListMixProviderRequest.setOperator(commonUtil.getOperatorId());
-        bookListModelProvider.update(bookListMixProviderRequest);
+    public BaseResponse update(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
+        BookListMixProviderRequest request = new BookListMixProviderRequest();
+        BeanUtils.copyProperties(bookListMixRequest, request);
+        request.setOperator(commonUtil.getOperatorId());
+        bookListModelProvider.update(request);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -73,39 +81,46 @@ public class BookListModelController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse delete(@Validated @RequestBody BookListModelProviderRequest bookListModel) {
-        bookListModel.setOperator(commonUtil.getOperatorId());
-        bookListModelProvider.delete(bookListModel);
+    public BaseResponse delete(@Validated @RequestBody BookListModelRequest bookListModel) {
+
+        BookListModelProviderRequest request = new BookListModelProviderRequest();
+        BeanUtils.copyProperties(bookListModel, request);
+        request.setOperator(commonUtil.getOperatorId());
+        bookListModelProvider.delete(request);
         return BaseResponse.SUCCESSFUL();
     }
 
 
     /**
      * 书单列表书单
-     * @param bookListModelPageProviderRequest
+     * @param bookListModelPageRequest
      * @menu 商城书单
      * @status undone
      * @return
      */
     @PostMapping("/listByPage")
     public MicroServicePage<BookListModelProviderResponse> listByPage(
-            @RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest){
-        return bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+            @RequestBody BookListModelPageRequest bookListModelPageRequest){
+        BookListModelPageProviderRequest request = new BookListModelPageProviderRequest();
+        BeanUtils.copyProperties(bookListModelPageRequest, request);
+        return bookListModelProvider.listByPage(request);
     }
 
 
     /**
      * 发布书单
-     * @param bookListModelProviderRequest
+     * @param bookListModelRequest
      * @menu 商城书单
      * @status undone
      * @return
      */
     @PostMapping("/publish")
     public BaseResponse publish(
-            @RequestBody BookListModelProviderRequest bookListModelProviderRequest){
-        bookListModelProviderRequest.setOperator(commonUtil.getOperatorId());
-        return bookListModelProvider.publish(bookListModelProviderRequest);
+            @RequestBody BookListModelRequest bookListModelRequest){
+        BookListModelProviderRequest request = new BookListModelProviderRequest();
+        BeanUtils.copyProperties(bookListModelRequest, request);
+        request.setOperator(commonUtil.getOperatorId());
+        return bookListModelProvider.publish(request);
     }
 
 
