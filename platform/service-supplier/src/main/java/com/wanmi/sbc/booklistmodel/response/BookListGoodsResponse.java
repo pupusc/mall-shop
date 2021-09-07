@@ -47,8 +47,6 @@ public class BookListGoodsResponse {
 
     private String skuNo;
 
-    private Integer orderNum;
-
     /**
      * 商品名称
      */
