@@ -1,5 +1,6 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.booklistmodel.request.BookListMixRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
@@ -46,7 +47,7 @@ public class BookListModelController {
     /**
      * 新增书单
      * @param bookListMixRequest
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -63,7 +64,7 @@ public class BookListModelController {
     /**
      *  修改书单
      * @param bookListMixRequest
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -80,7 +81,7 @@ public class BookListModelController {
     /**
      * 删除书单
      * @param id
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -98,7 +99,7 @@ public class BookListModelController {
     /**
      * 书单列表书单
      * @param bookListModelPageRequest
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -114,7 +115,7 @@ public class BookListModelController {
     /**
      * 发布书单
      * @param id
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -129,7 +130,7 @@ public class BookListModelController {
 
     /**
      * 根据id获取书单
-     * @menu 商城书单
+     * @menu 商城书单和类目
      * @status undone
      * @return
      */
@@ -137,9 +138,9 @@ public class BookListModelController {
     public BaseResponse<BookListMixResponse> findById(@PathVariable("id") Integer id){
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
         bookListModelProviderRequest.setId(id);
-        BaseResponse<BookListMixProviderResponse> bookListModelProviderByIdResponse = bookListModelProvider.findById(bookListModelProviderRequest);
-        BookListMixResponse bookListMixResponse = new BookListMixResponse();
-        BeanUtils.copyProperties(bookListModelProviderByIdResponse.getContext(), bookListMixResponse);
+        BaseResponse<BookListMixProviderResponse> response = bookListModelProvider.findById(bookListModelProviderRequest);
+        String bookListMixStr = JSON.toJSONString(response);
+        BookListMixResponse bookListMixResponse = JSON.parseObject(bookListMixStr, BookListMixResponse.class);
         return BaseResponse.success(bookListMixResponse);
     }
 

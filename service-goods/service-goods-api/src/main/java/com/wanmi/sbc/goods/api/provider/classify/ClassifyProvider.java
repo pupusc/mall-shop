@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.api.provider.classify;
 
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,5 +13,5 @@ public interface ClassifyProvider {
 
 
     @PostMapping("/goods/${application.goods.version}/classify/all")
-    List<ClassifyProviderResponse> listClassify();
+    BaseResponse<List<ClassifyProviderResponse>> listClassify();
 }

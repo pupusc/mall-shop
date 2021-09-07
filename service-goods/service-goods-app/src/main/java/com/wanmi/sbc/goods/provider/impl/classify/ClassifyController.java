@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.classify;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.service.ClassifyService;
@@ -26,7 +27,7 @@ public class ClassifyController implements ClassifyProvider {
      * @return
      */
     @Override
-    public List<ClassifyProviderResponse> listClassify() {
-        return classifyService.listClassify();
+    public BaseResponse<List<ClassifyProviderResponse>> listClassify() {
+        return BaseResponse.success(classifyService.listClassify());
     }
 }
