@@ -7,8 +7,7 @@ import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
-import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodPublishLinkModelResponse;
-import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -85,18 +84,31 @@ public class BookListGoodsPublishService {
     /**
      * 获取书单 发布商品 列表信息
      * @param businessTypeList 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
-     * @param category 分类 1书单模板 2类目
      * @param spuId 商品 spuId
      * @return
      */
-    public List<BookListGoodPublishLinkModelResponse> listPublishGoodsAndBookListModel(List<Integer> businessTypeList, Integer category, String spuId){
-        if (CollectionUtils.isEmpty(businessTypeList) || category == null || StringUtils.isEmpty(spuId)) {
-            log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} category:{} spuId:{} one of these is null",
-                    JSON.toJSONString(businessTypeList), category, spuId);
+    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelBySpuId(List<Integer> businessTypeList, String spuId){
+        if (CollectionUtils.isEmpty(businessTypeList) || StringUtils.isEmpty(spuId)) {
+            log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} spuId:{} one of these is null",
+                    JSON.toJSONString(businessTypeList), spuId);
         }
-        return bookListGoodsPublishRepository.listGoodsPublishLinkModel(businessTypeList, category, spuId);
+        return bookListGoodsPublishRepository.listGoodsPublishLinkModel(businessTypeList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
     }
 
+
+    /**
+     * 获取书单 类目 发布商品 列表信息
+     * @param businessTypeList 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
+     * @param spuId 商品 spuId
+     * @return
+     */
+    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, String spuId){
+        if (CollectionUtils.isEmpty(businessTypeList) || StringUtils.isEmpty(spuId)) {
+            log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} spuId:{} not in: {} one of these is null",
+                    JSON.toJSONString(businessTypeList), spuId, JSON.toJSONString(notInBookListIdList));
+        }
+        return bookListGoodsPublishRepository.listGoodsPublishLinkClassify(businessTypeList, notInBookListIdList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
+    }
 
 
     private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId, String spuId) {

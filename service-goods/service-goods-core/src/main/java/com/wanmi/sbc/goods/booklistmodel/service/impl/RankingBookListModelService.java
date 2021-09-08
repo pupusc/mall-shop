@@ -2,7 +2,7 @@ package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
-import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodPublishLinkModelResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Description:
+ * Description: 排行榜 书单
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
  * Date       : 2021/9/8 4:04 下午
@@ -22,10 +22,17 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
 
     public static final Integer MAX_SIZE = 2;
 
+//    @Override
+
+    /**
+     * 书单排序
+     * @param spuId
+     * @return
+     */
     @Override
     public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
-        List<BookListGoodPublishLinkModelResponse> bookListModelDTOList = super.listBookListModelBySupId(Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()), spuId);
-        List<BookListGoodPublishLinkModelResponse> resultParam;
+        List<BookListGoodsPublishLinkModelResponse> bookListModelDTOList = super.listBookListModelBySpuId(Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()), spuId);
+        List<BookListGoodsPublishLinkModelResponse> resultParam;
         if (bookListModelDTOList.size() > MAX_SIZE) {
             resultParam = bookListModelDTOList.subList(0, MAX_SIZE);
         } else {
@@ -34,21 +41,17 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
 
         List<BookListModelAndOrderNumProviderResponse> result = new ArrayList<>();
         //根据id列表获取图书信息
-        for (BookListGoodPublishLinkModelResponse bookListGoodPublishLinkModelParam : resultParam) {
-            BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = new BookListModelAndOrderNumProviderResponse();
-            bookListModelAndOrderNumProviderResponse.setBookListModelId(bookListGoodPublishLinkModelParam.getBookListModelId());
-            bookListModelAndOrderNumProviderResponse.setBookListModelName(bookListGoodPublishLinkModelParam.getName());
-            bookListModelAndOrderNumProviderResponse.setOrderNum(bookListGoodPublishLinkModelParam.getOrderNum());
-            result.add(bookListModelAndOrderNumProviderResponse);
+        for (BookListGoodsPublishLinkModelResponse bookListGoodPublishLinkModelParam : resultParam) {
+            result.add(super.packageBookListModelAndOrderNumProviderResponse(bookListGoodPublishLinkModelParam));
         }
         return result;
     }
 
 
 
-    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId){
-        return null;
-    }
+//    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId){
+//        return null;
+//    }
 
 
 //

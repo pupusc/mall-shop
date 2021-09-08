@@ -2,8 +2,10 @@ package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
-import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodPublishLinkModelResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
+import io.swagger.models.auth.In;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -21,19 +23,41 @@ public abstract class BusinessTypeBookListModelAbstract {
     protected BookListGoodsPublishService bookListGoodsPublishService;
 
     /**
-     * 根据商品获取发布书单列表
+     * 根据商品 获取发布书单列表
      * @param businessTypeList
      * @param spuId
      * @return
      */
-    protected List<BookListGoodPublishLinkModelResponse> listBookListModelBySupId(List<Integer> businessTypeList, String spuId) {
+    protected List<BookListGoodsPublishLinkModelResponse> listBookListModelBySpuId(List<Integer> businessTypeList, String spuId) {
         //根据商品获取书单,此处可以获取
-        List<BookListGoodPublishLinkModelResponse> bookListGoodPublishLinkModelList =
-                bookListGoodsPublishService.listPublishGoodsAndBookListModel(businessTypeList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
-
-
-        return bookListGoodPublishLinkModelList;
+        return bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(businessTypeList, spuId);
     }
+
+
+    /**
+     * 根据商品店铺分类 获取发布书单列表
+     * @param spuId
+     * @return
+     */
+    protected List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, String spuId) {
+        return bookListGoodsPublishService.listPublishGoodsAndBookListModelByClassifyAndSupId(businessTypeList, notInBookListIdList, spuId);
+    }
+
+
+    /**
+     * change BookListGoodPublishLinkModelResponse --> BookListModelAndOrderNumProviderResponse
+     * @param bookListGoodPublishLinkModelParam
+     * @return
+     */
+    protected BookListModelAndOrderNumProviderResponse packageBookListModelAndOrderNumProviderResponse(BookListGoodsPublishLinkModelResponse bookListGoodPublishLinkModelParam) {
+        BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = new BookListModelAndOrderNumProviderResponse();
+        bookListModelAndOrderNumProviderResponse.setBookListModelId(bookListGoodPublishLinkModelParam.getBookListModelId());
+        bookListModelAndOrderNumProviderResponse.setBookListModelName(bookListGoodPublishLinkModelParam.getName());
+        bookListModelAndOrderNumProviderResponse.setOrderNum(bookListGoodPublishLinkModelParam.getOrderNum());
+        return bookListModelAndOrderNumProviderResponse;
+    }
+
+
 
     /**
      * 书单排序列表
@@ -43,10 +67,10 @@ public abstract class BusinessTypeBookListModelAbstract {
     public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId);
 
 
-    /**
-     * 书单和详情信息
-     * @param spuId
-     * @return
-     */
-    public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId);
+//    /**
+//     * 书单和详情信息
+//     * @param spuId
+//     * @return
+//     */
+//    public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId);
 }

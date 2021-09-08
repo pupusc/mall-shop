@@ -14,7 +14,7 @@ import java.util.Date;
  ********************************************************************/
 @Data
 @AllArgsConstructor
-public class BookListGoodPublishLinkModelResponse {
+public class BookListGoodsPublishLinkModelResponse {
 
     /**
      * 书单id
