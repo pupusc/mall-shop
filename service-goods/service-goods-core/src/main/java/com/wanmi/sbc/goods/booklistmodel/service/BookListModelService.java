@@ -2,7 +2,6 @@ package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
@@ -11,8 +10,6 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
-import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
-import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
@@ -41,9 +38,10 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +68,6 @@ public class BookListModelService {
 
     @Autowired
     private BookListModelClassifyRelService bookListModelClassifyRelService;
-
 
 
     /**
@@ -271,72 +268,6 @@ public class BookListModelService {
     }
 
     /**
-     * 查询模板列表
-     * @param bookListModelPageRequest
-     * @return
-     */
-    public List<BookListModelDTO> listNoPage(BookListModelPageRequest bookListModelPageRequest) {
-        //查询数量
-        Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
-        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
-        return bookListModelRepository.findAll(requestCondition, orderNum);
-    }
-
-
-    public void test() {
-        int businessType = 1; //榜单
-        String spu = "";
-        String operator = "";
-        //榜单
-        if (Objects.equals(businessType, BusinessTypeEnum.RANKING_LIST.getCode())) {
-            //根据商品获取书单
-            List<BookListGoodsPublishDTO> bookListGoodsPublishList = bookListGoodsPublishService.list(null, null, spu, operator);
-            Set<Integer> bookListGoodsPublishIdList = bookListGoodsPublishList.stream()
-                    .filter(e -> Objects.equals(e.getCategory(), CategoryEnum.BOOK_LIST_MODEL.getCode()))
-                    .map(BookListGoodsPublishDTO::getBookListId)
-                    .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(bookListGoodsPublishIdList)) {
-                //当前为空 则不推荐榜单
-                return;
-            }
-            //表示全部显示
-            List<BookListGoodsPublishDTO> result = null;
-            if (bookListGoodsPublishIdList.size() <= 2) {
-                result = bookListGoodsPublishList;
-            } else {
-                //获取点击最高的 两个榜单
-                //invoke max click top 2
-
-                //根据 书单id 获取书单列表信息
-            }
-
-            BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
-            bookListModelPageRequest.setBusinessType(BusinessTypeEnum.RANKING_LIST.getCode());
-            List<BookListModelDTO> bookListModelList = this.listNoPage(bookListModelPageRequest);
-
-
-        }
-
-        //书单
-        if (Objects.equals(businessType, BusinessTypeEnum.BOOK_LIST.getCode())){
-            //根据商品获取书单
-            List<BookListGoodsPublishDTO> bookListGoodsPublishList = bookListGoodsPublishService.list(null, null, spu, operator);
-            Set<Integer> bookListGoodsPublishIdList = bookListGoodsPublishList.stream()
-                    .filter(e -> Objects.equals(e.getCategory(), CategoryEnum.BOOK_LIST_MODEL.getCode()))
-                    .map(BookListGoodsPublishDTO::getBookListId)
-                    .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(bookListGoodsPublishIdList)) {
-                //当前为空 则获取类目下的 商品列表
-                return;
-            }
-        }
-
-    }
-
-
-
-
-    /**
      * condition
      * @param bookListModelPageRequest
      */
@@ -358,6 +289,14 @@ public class BookListModelService {
 
                 if (bookListModelPageRequest.getPublishState() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("publishState"), bookListModelPageRequest.getPublishState()));
+                }
+
+                if (bookListModelPageRequest.getBusinessType() != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("businessType"), bookListModelPageRequest.getBusinessType()));
+                }
+
+                if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdList())) {
+                    conditionList.add(root.get("id").in(bookListModelPageRequest.getIdList()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }

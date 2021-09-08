@@ -79,12 +79,7 @@ public class ClassifyService {
                 //只是获取有效的
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (!CollectionUtils.isEmpty(classifyIdList)) {
-//                    root.get("id")
-                    CriteriaBuilder.In<Integer> in = criteriaBuilder.in(root.get("id"));
-                    for (Integer id : classifyIdList) {
-                        in.value(id);
-                    }
-                    conditionList.add(in);
+                    conditionList.add(root.get("id").in(classifyIdList));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }

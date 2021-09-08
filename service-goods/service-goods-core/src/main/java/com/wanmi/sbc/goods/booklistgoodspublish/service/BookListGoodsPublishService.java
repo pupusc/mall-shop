@@ -1,11 +1,13 @@
 package com.wanmi.sbc.goods.booklistgoodspublish.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -41,9 +43,6 @@ public class BookListGoodsPublishService {
     @Resource
     private BookListGoodsService bookListGoodsService;
 
-    @Resource
-    private BookListModelService bookListModelService;
-
     @Transactional
     public void publish(Integer bookListId, Integer categoryId, String operator) {
         //获取书单模版对应的 商品列表,即待发布的列表
@@ -77,14 +76,30 @@ public class BookListGoodsPublishService {
      * @param bookListId
      * @return
      */
-    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String spu, String operator) {
+    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String spuId, String operator) {
         log.info("---->> BookListGoodsPublishService.list operator:{} bookListId:{} categoryId: {}",
                 operator, bookListId, categoryId);
-        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId, spu));
+        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId, spuId));
+    }
+
+    /**
+     * 获取书单 发布商品 列表信息
+     * @param businessTypeList 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
+     * @param category 分类 1书单模板 2类目
+     * @param spuId 商品 spuId
+     * @return
+     */
+    public List<BookListGoodPublishLinkModelResponse> listPublishGoodsAndBookListModel(List<Integer> businessTypeList, Integer category, String spuId){
+        if (CollectionUtils.isEmpty(businessTypeList) || category == null || StringUtils.isEmpty(spuId)) {
+            log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} category:{} spuId:{} one of these is null",
+                    JSON.toJSONString(businessTypeList), category, spuId);
+        }
+        return bookListGoodsPublishRepository.listGoodsPublishLinkModel(businessTypeList, category, spuId);
     }
 
 
-    private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId, String spu) {
+
+    private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId, String spuId) {
         return new Specification<BookListGoodsPublishDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
@@ -97,8 +112,8 @@ public class BookListGoodsPublishService {
                 if (categoryId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("category"), categoryId));
                 }
-                if (!StringUtils.isEmpty(spu)) {
-                    predicateList.add(criteriaBuilder.equal(root.get("spu"), spu));
+                if (!StringUtils.isEmpty(spuId)) {
+                    predicateList.add(criteriaBuilder.equal(root.get("spuId"), spuId));
                 }
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
