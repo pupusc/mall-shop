@@ -40,11 +40,9 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 /**
  * Description:
@@ -278,8 +276,8 @@ public class BookListModelService {
      * @param spuId
      * @return
      */
-    public List<BookListModelAndOrderNumProviderResponse> listRankingBookListModel(String spuId){
-        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.RANKING_LIST, spuId);
+    public List<BookListModelAndOrderNumProviderResponse> listBusinessTypeBookListModel(String spuId, Integer businessTypeId){
+        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId), spuId);
         return invoke.listBookListModelAndOrderNum(spuId);
     }
 

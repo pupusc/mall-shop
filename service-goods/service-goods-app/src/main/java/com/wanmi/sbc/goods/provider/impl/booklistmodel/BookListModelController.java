@@ -2,12 +2,12 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -120,8 +119,10 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
-
-    
+    @Override
+    public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId) {
+        return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));
+    }
 
 
 
