@@ -99,10 +99,10 @@ public class EvaluateController {
 
 
     /**
-     * @param skuId
-     * @Description: 获取某店铺某商品评价总数数量、好评率、top3评价信息
-     * @Author: Bob
-     * @Date: 2019-05-21 15:10
+     * @description 获取某店铺某商品评价总数数量、好评率、top3评价信息
+     * @param BookFriendEvaluateEditRequest
+     * @menu 评论信息
+     * @status undone
      */
     @ApiOperation(value = "获取某店铺某商品评价总数数量、好评率、top3评价信息")
     @RequestMapping(value = "/top3EvaluateAndPraiseBySkuId/{skuId}", method = RequestMethod.GET)

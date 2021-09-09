@@ -62,8 +62,10 @@ public class GoodsEvaluateController {
     }
 
     /**
-     * 添加书友说评价
-     * @param bookFriendEvaluateAddRequest
+     * @description 添加书友说评价
+     * @param BookFriendEvaluateAddRequest
+     * @menu 评论信息
+     * @status undone
      */
     @ApiOperation(value = "添加书友说评价")
     @RequestMapping(value = "/bookFriend/add", method = RequestMethod.POST)
@@ -75,8 +77,10 @@ public class GoodsEvaluateController {
     }
 
     /**
-     * 编辑书友说评价
-     * @param bookFriendEvaluateEditRequest
+     * @description 编辑书友说评价
+     * @param BookFriendEvaluateEditRequest
+     * @menu 评论信息
+     * @status undone
      */
     @ApiOperation(value = "编辑书友说评价")
     @RequestMapping(value = "/bookFriend/edit", method = RequestMethod.POST)

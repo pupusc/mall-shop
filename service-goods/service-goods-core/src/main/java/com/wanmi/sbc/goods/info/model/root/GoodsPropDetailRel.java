@@ -43,6 +43,12 @@ public class GoodsPropDetailRel {
     private Long detailId;
 
     /**
+     *属性值（文本框输入）
+     */
+    @Column(name = "prop_value")
+    private String propValue;
+
+    /**
      *属性id
      */
     @Column(name = "prop_id")

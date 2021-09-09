@@ -253,7 +253,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
      * @return 商品视图信息 {@link GoodsViewByIdResponse}
      */
     @Override
-
     public BaseResponse<GoodsViewByIdResponse> getCacheViewById(@RequestBody @Valid GoodsCacheInfoByIdRequest request) {
 
         GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
@@ -275,7 +274,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
         //供应商商品同步库存
         goodsByIdResponse.setGoodsInfos(providerStockSync(goodsByIdResponse.getGoodsInfos()));
-
 
         //预约，预售商品与其他营销活动互斥
         List<String> goodInfoIdList = goodsByIdResponse.getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
@@ -303,7 +301,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
                 });
             }
         }
-
 
         //控制是否显示商品标签
         if(Boolean.TRUE.equals(request.getShowLabelFlag())){
@@ -350,7 +347,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
      * @return 商品视图信息 {@link GoodsViewByIdResponse}
      */
     @Override
-
     public BaseResponse<GoodsViewByIdResponse> getViewById(@RequestBody @Valid GoodsViewByIdRequest request) {
         String goodsId = request.getGoodsId();
         GoodsEditResponse goodsEditResponse = goodsService.findInfoById(goodsId);

@@ -4,6 +4,7 @@ import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.setting.bean.vo.OperateDataLogVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.Tag;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,6 +33,12 @@ public class GoodsViewByIdResponse implements Serializable {
      */
     @ApiModelProperty(value = "商品相关图片")
     private List<GoodsImageVO> images;
+
+    @ApiModelProperty(value = "标签")
+    private List<TagVO> tags;
+
+    @ApiModelProperty(value = "是否书籍")
+    private Integer bookFlag;
 
     /**
      * 商品属性列表

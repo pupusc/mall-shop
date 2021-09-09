@@ -157,6 +157,12 @@ public class GoodsCate implements Serializable {
     private Integer sort;
 
     /**
+     * 是否图书 0-否 1-是
+     */
+    @Column(name = "book_flag")
+    private Integer bookFlag;
+
+    /**
      * 一对多关系，子分类
      */
     @Transient

@@ -85,7 +85,7 @@ public class GoodsPropConvert {
     }
 
     /**
-     * List<GoodsProp> 对象 转换成 List<GoodsPropVO> 对象
+     * List<GoodsProp>对象转换成List<GoodsPropVO>对象
      * @param goodsPropList
      * @return
      */
@@ -93,11 +93,13 @@ public class GoodsPropConvert {
         return goodsPropList.stream().map(goodsProp -> {
             GoodsPropVO goodsPropVO = new GoodsPropVO();
             KsBeanUtil.copyPropertiesThird(goodsProp,goodsPropVO);
-            goodsPropVO.setGoodsPropDetails(goodsProp.getGoodsPropDetails().stream().map(goodsPropDetail -> {
-                GoodsPropDetailVO goodsPropDetailVO = new GoodsPropDetailVO();
-                KsBeanUtil.copyPropertiesThird(goodsPropDetail,goodsPropDetailVO);
-                return goodsPropDetailVO;
-            }).collect(Collectors.toList()));
+            if(CollectionUtils.isNotEmpty(goodsProp.getGoodsPropDetails())){
+                goodsPropVO.setGoodsPropDetails(goodsProp.getGoodsPropDetails().stream().map(goodsPropDetail -> {
+                    GoodsPropDetailVO goodsPropDetailVO = new GoodsPropDetailVO();
+                    KsBeanUtil.copyPropertiesThird(goodsPropDetail,goodsPropDetailVO);
+                    return goodsPropDetailVO;
+                }).collect(Collectors.toList()));
+            }
             return goodsPropVO;
         }).collect(Collectors.toList());
     }

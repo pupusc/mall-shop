@@ -92,6 +92,9 @@ import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
 import com.wanmi.sbc.goods.storegoodstab.repository.GoodsTabRelaRepository;
 import com.wanmi.sbc.goods.storegoodstab.repository.StoreGoodsTabRepository;
+import com.wanmi.sbc.goods.tag.model.Tag;
+import com.wanmi.sbc.goods.tag.model.TagRel;
+import com.wanmi.sbc.goods.tag.service.TagService;
 import com.wanmi.sbc.goods.virtualcoupon.model.root.VirtualCoupon;
 import com.wanmi.sbc.goods.virtualcoupon.service.VirtualCouponService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -251,6 +254,9 @@ public class GoodsService {
 
     @Autowired
     private VirtualCouponService virtualCouponService;
+
+    @Autowired
+    private TagService tagService;
 
     /**
      * 供应商商品删除
@@ -524,10 +530,16 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        //标签
+        response.setTags(tagService.findTagByGoods(goods.getGoodsId()));
+        //是否书籍
+        GoodsCate cate = goodsCateService.findById(goods.getCateId());
+        response.setBookFlag(cate.getBookFlag());
+        //商品属性
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
 
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
-
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setGoodsId(goods.getGoodsId());
@@ -664,9 +676,16 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        //标签
+        response.setTags(tagService.findTagByGoods(goods.getGoodsId()));
+        //是否书籍
+        GoodsCate cate = goodsCateService.findById(goods.getCateId());
+        response.setBookFlag(cate.getBookFlag());
+        //商品属性
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
-
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setGoodsId(goods.getGoodsId());
@@ -858,6 +877,7 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        response.setTags(tagService.findTagByGoods(goodsId));
 
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
@@ -1369,7 +1389,6 @@ public class GoodsService {
         List<GoodsInfo> goodsInfos = saveRequest.getGoodsInfos();
         Goods goods = saveRequest.getGoods();
 
-
         //判断sku编码是否重复，当组合商品时不sku是非必填的
         goodsInfos.forEach(goodsInfo -> {
 
@@ -1388,7 +1407,6 @@ public class GoodsService {
             }
         });
 
-
         //判断sku编码是否重复
         Map<String, List<GoodsInfo>> erpSpuMap = goodsInfos.stream().filter(goodsInfo -> StringUtils.isNotBlank(goodsInfo.getErpGoodsInfoNo())).collect(Collectors.groupingBy(GoodsInfo::getErpGoodsNo));
         erpSpuMap.forEach((key, value) -> {
@@ -1398,9 +1416,6 @@ public class GoodsService {
                 throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
             }
         });
-
-
-
 
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
@@ -1494,6 +1509,9 @@ public class GoodsService {
             });
         }
 
+        //标签
+        tagService.saveAndUpdateTagForGoods(goodsId, saveRequest.getTags());
+
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(goods.getStoreCateIds())) {
             goods.getStoreCateIds().forEach(cateId -> {
                 StoreCateGoodsRela rela = new StoreCateGoodsRela();
@@ -1506,14 +1524,12 @@ public class GoodsService {
         //保存商品属性
         List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
         if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
-
-            //如果是修改则设置修改时间，如果是新增则设置创建时间，
+            //如果是修改则设置修改时间，如果是新增则设置创建时间
             goodsPropDetailRels.forEach(goodsPropDetailRel -> {
                 goodsPropDetailRel.setDelFlag(DeleteFlag.NO);
                 goodsPropDetailRel.setCreateTime(LocalDateTime.now());
                 goodsPropDetailRel.setGoodsId(goodsId);
             });
-
             goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
         }
 
@@ -1698,11 +1714,7 @@ public class GoodsService {
 //        if (osUtil.isS2b() && CheckStatus.CHECKED.toValue() == oldGoods.getAuditStatus().toValue() && (!oldGoods.getCateId().equals(newGoods.getCateId()))) {
 //            throw new SbcRuntimeException(GoodsErrorCode.EDIT_GOODS_CATE);
 //        }
-
-
-
         List<GoodsInfo> goodsInfoList= saveRequest.getGoodsInfos();
-
 
         //判断sku编码是否重复，当组合商品时不sku是非必填的
         goodsInfoList.forEach(goodsInfo -> {
@@ -1733,7 +1745,6 @@ public class GoodsService {
                 throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
             }
         });
-
 
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
@@ -1855,6 +1866,9 @@ public class GoodsService {
                 goodsImageRepository.saveAll(oldImages);
             }
         }
+
+        //更新标签
+        tagService.saveAndUpdateTagForGoods(oldGoods.getGoodsId(), saveRequest.getTags());
 
         //新增图片
         if (CollectionUtils.isNotEmpty(goodsImages)) {
