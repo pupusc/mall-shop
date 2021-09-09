@@ -17,6 +17,9 @@ import java.util.List;
 @Data
 public class ChooseRuleGoodsListProviderRequest implements Serializable {
 
+    /**
+     * 规则id
+     */
     @NotNull(groups = ChooseRuleGoodsListProviderRequest.Update.class, message = "chooseRuleId 不能为空")
     private Integer chooseRuleId;
 

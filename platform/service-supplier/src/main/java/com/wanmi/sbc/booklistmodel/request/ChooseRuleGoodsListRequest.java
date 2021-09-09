@@ -1,7 +1,5 @@
 package com.wanmi.sbc.booklistmodel.request;
 
-import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -18,29 +16,26 @@ import java.util.List;
 public class ChooseRuleGoodsListRequest {
 
 
+    /**
+     * 控件id ✅ Update
+     */
     @NotNull(groups = ChooseRuleGoodsListRequest.Update.class, message = "chooseRuleId 不能为空")
     private Integer chooseRuleId;
 
     /**
-     *  书单模板id或者书单类目id
+     *  书单模板id或者书单类目id ✅ Add
      */
     @NotNull(groups = ChooseRuleGoodsListRequest.Add.class, message = "bookListId不能为空")
     private Integer bookListId;
 
     /**
-     * 过滤规则 1 无库存展示 2 无库存不展示 3 无库存沉底
+     * 过滤规则 1 无库存展示 2 无库存不展示 3 无库存沉底 ✅ Add
      */
     @NotNull(groups = ChooseRuleGoodsListRequest.Add.class, message = "filterRule不能为空")
     private Integer filterRule;
 
     /**
-     * 类 1书单模板 2类目
-     */
-    @NotNull(groups = ChooseRuleGoodsListRequest.Add.class, message = "category不能为空")
-    private Integer category;
-
-    /**
-     * 类型 1按条件 2 按sql 3 制定商品 4 书单
+     * 类型 1按条件 2 按sql 3 制定商品 4 书单 ✅ Add
      */
     @NotNull(groups = ChooseRuleGoodsListRequest.Add.class, message = "filterRule不能为空")
     private Integer chooseType;
@@ -51,8 +46,9 @@ public class ChooseRuleGoodsListRequest {
     private String chooseCondition;
 
     /**
-     * 商品列表
+     * 商品列表 ✅add
      */
+    @NotNull(message = "商品列表为空")
     private List<GoodsIdListRequest> goodsIdListRequestList;
 
 

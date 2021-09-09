@@ -37,8 +37,6 @@ public class ChooseRuleGoodsListService {
     private ChooseRuleService chooseRuleService;
     @Resource
     private BookListGoodsService bookListGoodsService;
-    @Resource
-    private BookListModelService bookListModelService;
 
 
     @Transactional
@@ -77,6 +75,10 @@ public class ChooseRuleGoodsListService {
         ChooseRuleDTO chooseRuleUpdate = chooseRuleService.update(chooseRuleRequest);
         log.info("-------->> ChooseRuleGoodsListService.update operator: {} chooseRule complete", operator);
 
+        if (CollectionUtils.isEmpty(chooseRuleGoodsListProviderRequest.getGoodsIdListRequestList())){
+            log.info("-------->> ChooseRuleGoodsListService.update operator: {} bookListGoods is empty return complete", operator);
+            return;
+        }
         BookListGoodsRequest bookListGoodsRequest = new BookListGoodsRequest();
         bookListGoodsRequest.setChooseRuleId(chooseRuleGoodsListProviderRequest.getChooseRuleId());
         bookListGoodsRequest.setGoodsIdListRequestList(chooseRuleGoodsListProviderRequest.getGoodsIdListRequestList());

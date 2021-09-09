@@ -1,27 +1,29 @@
-package com.wanmi.sbc.goods.api.request.booklistmodel;
+package com.wanmi.sbc.classify.response;
 
 import lombok.Data;
 
-import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/2 2:49 下午
+ * Date       : 2021/9/7 7:11 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsIdListProviderRequest implements Serializable {
+public class ClassifyResponse {
+
     /**
-     *
+     * 分类id
      */
-    private String spuId;
+    private Integer id;
 
-    private String spuNo;
+    /**
+     * 分类名
+     */
+    private String classifyName;
 
-    private String skuId;
 
-    private String skuNo;
-
+    private List<ClassifyResponse> childrenList;
 }

@@ -89,16 +89,18 @@ public class BookListModelService {
         bookListModelParam.setUpdateTime(new Date());
         bookListModelParam.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
 
-        //新增类目关系
-        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
-        bookListModelClassifyRequest.setBookListModelId(bookListModelRequest.getId());
-        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
-        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
-
-        //新增对象信息
+        //新增书单模板
         BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelParam);
         log.info("operator：{} BookListModelService.add BookListModel complete result:{}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModelDTO));
+
+        //新增类目关系
+        BookListModelClassifyRelRequest bookListModelClassifyRequest = new BookListModelClassifyRelRequest();
+        bookListModelClassifyRequest.setBookListModelId(bookListModelDTO.getId());
+        bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
+        bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+
+
 
         chooseRuleGoodsListService.add(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
@@ -112,7 +114,11 @@ public class BookListModelService {
     public void update(BookListMixProviderRequest bookListMixProviderRequest) {
         log.info("operator：{} BookListModelService.update BookListModel beginning", bookListMixProviderRequest.getOperator());
         BookListModelProviderRequest bookListModelRequest = bookListMixProviderRequest.getBookListModel();
-        if (bookListModelRequest.getId() == null || bookListModelRequest.getId() <= 0) {
+        if (bookListModelRequest.getId() == null) {
+            log.info("operator：{} BookListModelService.update chooseRuleGoodsListModel is null 控件信息不做修改", bookListMixProviderRequest.getOperator());
+            return;
+        }
+        if (bookListModelRequest.getId() <= 0) {
             throw new SbcRuntimeException(String.format("书单:%s id有误", bookListModelRequest.getId()));
         }
 
