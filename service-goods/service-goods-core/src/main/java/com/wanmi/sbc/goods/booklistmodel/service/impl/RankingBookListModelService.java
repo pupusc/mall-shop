@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumPr
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +49,15 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
     }
 
 
+    public void getBookListGoodsPublishBySpuId(String spuId) {
+        List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumProviderList = this.listBookListModelAndOrderNum(spuId);
+        if (CollectionUtils.isEmpty(bookListModelAndOrderNumProviderList)) {
+            return;
+        }
+        //获取最新的一条数据
+        BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderModel = bookListModelAndOrderNumProviderList.get(0);
+
+    }
 
 
 

@@ -32,4 +32,14 @@ public class GoodsIdListRequest {
      */
     private String skuNo;
 
+    /**
+     * erpGoodsNo ✅add
+     */
+    private String erpGoodsNo;
+
+    /**
+     * erpGoodsInfoNo ✅add
+     */
+    private String erpGoodsInfoNo;
+
 }

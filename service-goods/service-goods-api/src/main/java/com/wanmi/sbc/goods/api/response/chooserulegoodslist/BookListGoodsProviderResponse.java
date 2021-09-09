@@ -47,6 +47,10 @@ public class BookListGoodsProviderResponse implements Serializable {
 
     private String skuNo;
 
+    private String erpGoodsNo;
+
+    private String erpGoodsInfoNo;
+
     /**
      * 商品名称
      */

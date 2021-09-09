@@ -84,8 +84,7 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
         return result;
     }
 
-//    @Override
-//    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId) {
-//        return null;
-//    }
+
+
+
 }

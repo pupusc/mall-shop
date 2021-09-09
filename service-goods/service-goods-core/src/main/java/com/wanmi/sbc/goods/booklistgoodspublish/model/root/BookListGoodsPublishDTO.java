@@ -62,6 +62,12 @@ public class BookListGoodsPublishDTO {
     @Column(name = "sku_no")
     private String skuNo;
 
+    @Column(name = "erp_goods_no")
+    private String erpGoodsNo;
+
+    @Column(name = "erp_goods_info_no")
+    private String erpGoodsInfoNo;
+
     @Column(name = "order_num")
     private Integer orderNum;
 

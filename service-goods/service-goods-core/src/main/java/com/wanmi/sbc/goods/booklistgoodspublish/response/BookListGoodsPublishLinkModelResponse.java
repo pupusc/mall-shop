@@ -80,6 +80,10 @@ public class BookListGoodsPublishLinkModelResponse {
 
     private String skuNo;
 
+    private String erpGoodsNo;
+
+    private String erpGoodsInfoNo;
+    
     private Integer orderNum;
 
 }
