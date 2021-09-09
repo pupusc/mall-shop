@@ -49,16 +49,4 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
     }
 
 
-    public void getBookListGoodsPublishBySpuId(String spuId) {
-        List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumProviderList = this.listBookListModelAndOrderNum(spuId);
-        if (CollectionUtils.isEmpty(bookListModelAndOrderNumProviderList)) {
-            return;
-        }
-        //获取最新的一条数据
-        BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderModel = bookListModelAndOrderNumProviderList.get(0);
-
-    }
-
-
-
 }

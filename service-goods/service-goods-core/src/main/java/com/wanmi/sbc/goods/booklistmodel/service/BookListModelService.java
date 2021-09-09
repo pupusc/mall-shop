@@ -2,12 +2,14 @@ package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
@@ -68,6 +70,9 @@ public class BookListModelService {
 
     @Autowired
     private BookListModelClassifyRelService bookListModelClassifyRelService;
+
+    @Autowired
+    private BusinessTypeBookListModelFactory businessTypeBookListModelFactory;
 
 
     /**
@@ -266,6 +271,19 @@ public class BookListModelService {
                 Sort.Direction.DESC, "createTime");
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
+
+
+    /**
+     * 获取书单对应不同业务类型的数据信息
+     * @param spuId
+     * @return
+     */
+    public List<BookListModelAndOrderNumProviderResponse> listRankingBookListModel(String spuId){
+        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.RANKING_LIST, spuId);
+        return invoke.listBookListModelAndOrderNum(spuId);
+    }
+
+
 
     /**
      * condition
