@@ -21,7 +21,11 @@ import java.util.List;
 @Service
 public class SpecialBookListModelService extends BusinessTypeBookListModelAbstract {
 
-
+    /**
+     * 专题
+     * @param spuId
+     * @return
+     */
     @Override
     public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
         List<BookListGoodsPublishLinkModelResponse> bookListModelDTOList = super.listBookListModelBySpuId(Collections.singletonList(BusinessTypeEnum.SPECIAL_SUBJECT.getCode()), spuId);

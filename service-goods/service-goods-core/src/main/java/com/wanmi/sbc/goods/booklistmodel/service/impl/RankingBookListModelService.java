@@ -49,52 +49,6 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
 
 
 
-//    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndGoodsDetail(String spuId){
-//        return null;
-//    }
-
-
-//
-//
-//    public void test() {
-//        int businessType = 1; //榜单
-//        String spuId = "";
-//        String operator = "";
-//        //榜单
-//        if (Objects.equals(businessType, BusinessTypeEnum.RANKING_LIST.getCode())) {
-//            //根据商品获取书单,此处可以获取
-//            List<BookListGoodPublishLinkModelResponse> listPublishGoodsAndBookListModel =
-//                    bookListGoodsPublishService.listPublishGoodsAndBookListModel(Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()), CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
-//            if (CollectionUtils.isEmpty(listPublishGoodsAndBookListModel)) {
-//                //当前为空 则不推荐榜单
-//                return;
-//            }
-//
-//            //只是获取前2个
-//            List<BookListGoodPublishLinkModelResponse> result = new ArrayList<>();
-//            for (BookListGoodPublishLinkModelResponse bookListGoodPublishLinkModelParam : listPublishGoodsAndBookListModel) {
-//                result.add(bookListGoodPublishLinkModelParam);
-//                if (result.size() >= 2) {
-//                    break;
-//                }
-//            }
-//
-//            //根据spuId 获取商品列表 TODO
-//        }
-//
-//        //书单
-//        if (Objects.equals(businessType, BusinessTypeEnum.BOOK_LIST.getCode())){
-//            //根据商品获取书单,此处可以获取
-//            List<BookListGoodPublishLinkModelResponse> listPublishGoodsAndBookListModel =
-//                    bookListGoodsPublishService.listPublishGoodsAndBookListModel(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()), CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
-//            if (CollectionUtils.isEmpty(listPublishGoodsAndBookListModel)) {
-//                //当前为空  获取导购类目下的书单 TODO
-//                return;
-//            }
-//
-//        }
-//
-//    }
 
 
 }

@@ -28,6 +28,11 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
 
     public static final Integer MAX_SIZE = 2;
 
+    /**
+     * 推荐
+     * @param spuId
+     * @return
+     */
     @Override
     public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
         log.info("---> BookRecommendBookListModelService.listBookListModelAndOrderNum supId:{}", spuId);
