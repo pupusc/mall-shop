@@ -7,11 +7,16 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 
 @FeignClient(value = "${application.goods.name}", contextId = "BookListModelProvider")
@@ -48,4 +53,7 @@ public interface BookListModelProvider {
                         @Validated(BookListModelProviderRequest.FindById.class)
                         @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
+    @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}")
+    BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(
+            @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId);
 }

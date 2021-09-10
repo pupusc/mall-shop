@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.api.response.chooserulegoodslist;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -46,9 +47,32 @@ public class BookListGoodsProviderResponse implements Serializable {
 
     private String skuNo;
 
-    private Integer orderNum;
+    private String erpGoodsNo;
+
+    private String erpGoodsInfoNo;
+
+    /**
+     * 商品名称
+     */
+    private String goodsInfoName;
+
+    /**
+     * 规格
+     */
+    private String specText;
+
+    /**
+     * 定价
+     */
+    private BigDecimal marketPrice;
+
+    /**
+     * 积分
+     */
+    private Integer buyPoint;
 
     private Date createTime;
 
     private Date updateTime;
+
 }

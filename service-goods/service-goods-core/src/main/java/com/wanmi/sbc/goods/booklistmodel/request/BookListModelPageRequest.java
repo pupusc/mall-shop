@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.booklistmodel.request;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -13,6 +15,11 @@ import lombok.Data;
 public class BookListModelPageRequest {
 
     private Integer id;
+
+    /**
+     * 书单列表
+     */
+    private List<Integer> idList;
 
     /**
      * 名字

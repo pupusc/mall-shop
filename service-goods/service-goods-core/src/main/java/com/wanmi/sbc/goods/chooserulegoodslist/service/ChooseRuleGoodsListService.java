@@ -12,6 +12,9 @@ import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.chooserule.model.root.ChooseRuleDTO;
 import com.wanmi.sbc.goods.chooserule.request.ChooseRuleRequest;
 import com.wanmi.sbc.goods.chooserule.service.ChooseRuleService;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.service.GoodsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,11 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -37,6 +44,8 @@ public class ChooseRuleGoodsListService {
     private ChooseRuleService chooseRuleService;
     @Resource
     private BookListGoodsService bookListGoodsService;
+    @Resource
+    private GoodsInfoRepository goodsInfoRepository;
 
 
     @Transactional
@@ -113,13 +122,31 @@ public class ChooseRuleGoodsListService {
         chooseRuleProviderResponse.setCreateTime(chooseRuleDTO.getCreateTime());
         chooseRuleProviderResponse.setUpdateTime(chooseRuleDTO.getUpdateTime());
 
+        List<BookListGoodsProviderResponse> bookListGoodsResponseList = new ArrayList<>();
         if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
-            chooseRuleProviderResponse.setBookListGoodsList(new ArrayList<>());
+            chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);
         } else {
-            List<BookListGoodsProviderResponse> bookListGoodsResponseList = new ArrayList<>();
+
+            //获取商品列表信息
+            List<String> goodsIdList =
+                    bookListGoodsDTOList.stream().map(BookListGoodsDTO::getSpuId).collect(Collectors.toList());
+
+            List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIds(goodsIdList);
+            Map<String, GoodsInfo> goodsInfoMap = new HashMap<>();
+            if (!CollectionUtils.isEmpty(goodsIdList)) {
+                goodsInfoMap = goodsInfoList.stream().collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+            }
+
             for (BookListGoodsDTO bookListGoodsResponseParam : bookListGoodsDTOList) {
                 BookListGoodsProviderResponse bookListGoodsModel = new BookListGoodsProviderResponse();
                 BeanUtils.copyProperties(bookListGoodsResponseParam, bookListGoodsModel);
+                GoodsInfo goodsInfo = goodsInfoMap.getOrDefault(bookListGoodsResponseParam.getSkuId(), new GoodsInfo());
+                bookListGoodsModel.setGoodsInfoName(goodsInfo.getGoodsInfoName());
+                bookListGoodsModel.setSpecText(goodsInfo.getSpecText());
+                bookListGoodsModel.setMarketPrice(goodsInfo.getMarketPrice());
+                bookListGoodsModel.setBuyPoint(goodsInfo.getBuyPoint() != null ? goodsInfo.getBuyPoint().intValue() : 0);
+
+
                 bookListGoodsResponseList.add(bookListGoodsModel);
             }
             chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);

@@ -52,6 +52,8 @@ public class BookListGoodsService {
             bookListGoodsDTO.setSpuNo(goodsIdListParam.getSpuNo());
             bookListGoodsDTO.setSkuId(goodsIdListParam.getSkuId());
             bookListGoodsDTO.setSkuNo(goodsIdListParam.getSkuNo());
+            bookListGoodsDTO.setErpGoodsNo(goodsIdListParam.getErpGoodsNo());
+            bookListGoodsDTO.setErpGoodsInfoNo(goodsIdListParam.getErpGoodsInfoNo());
             bookListGoodsDTO.setOrderNum(orderNum.incrementAndGet());
             bookListGoodsDTO.setVersion(0);
             bookListGoodsDTO.setCreateTime(new Date());

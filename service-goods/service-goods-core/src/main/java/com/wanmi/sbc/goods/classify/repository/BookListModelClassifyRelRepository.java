@@ -14,4 +14,5 @@ import org.springframework.stereotype.Repository;
  ********************************************************************/
 @Repository
 public interface BookListModelClassifyRelRepository extends JpaRepository<BookListModelClassifyRelDTO, Integer>, JpaSpecificationExecutor<BookListModelClassifyRelDTO> {
+    
 }

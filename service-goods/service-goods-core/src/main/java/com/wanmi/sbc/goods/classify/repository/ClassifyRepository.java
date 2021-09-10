@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClassifyRepository extends JpaRepository<ClassifyDTO, Integer>, JpaSpecificationExecutor<ClassifyDTO> {
+
 }
