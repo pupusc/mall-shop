@@ -1,14 +1,14 @@
 package com.wanmi.sbc.goods;
 
+import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateAddResponse;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateSaveProvider;
 import com.wanmi.sbc.goods.api.provider.goodsevaluateimage.GoodsEvaluateImageSaveProvider;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateAnswerRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateByIdRequest;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.*;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateAnswerResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateByIdResponse;
 import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluatePageResponse;
@@ -56,10 +56,39 @@ public class GoodsEvaluateController {
      */
     @ApiOperation(value = "分页查询商品评价列表")
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluatePageResponse> page(@RequestBody @Valid GoodsEvaluatePageRequest
-                                                                    goodsEvaluatePageRequest) {
+    public BaseResponse<GoodsEvaluatePageResponse> page(@RequestBody @Valid GoodsEvaluatePageRequest goodsEvaluatePageRequest) {
         goodsEvaluatePageRequest.setStoreId(commonUtil.getStoreId());
         return goodsEvaluateQueryProvider.page(goodsEvaluatePageRequest);
+    }
+
+    /**
+     * @description 添加书友说评价
+     * @param BookFriendEvaluateAddRequest
+     * @menu 评论信息
+     * @status undone
+     */
+    @ApiOperation(value = "添加书友说评价")
+    @RequestMapping(value = "/bookFriend/add", method = RequestMethod.POST)
+    @MultiSubmit
+    public BaseResponse<StoreEvaluateAddResponse> addBookFriendEvaluate(@RequestBody BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest) {
+        bookFriendEvaluateAddRequest.setStoreId(commonUtil.getStoreId());
+        goodsEvaluateSaveProvider.addBookFriendEvaluate(bookFriendEvaluateAddRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 编辑书友说评价
+     * @param BookFriendEvaluateEditRequest
+     * @menu 评论信息
+     * @status undone
+     */
+    @ApiOperation(value = "编辑书友说评价")
+    @RequestMapping(value = "/bookFriend/edit", method = RequestMethod.POST)
+    @MultiSubmit
+    public BaseResponse<StoreEvaluateAddResponse> editBookFriendEvaluate(@RequestBody BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest) {
+        bookFriendEvaluateEditRequest.setStoreId(commonUtil.getStoreId());
+        goodsEvaluateSaveProvider.editBookFriendEvaluate(bookFriendEvaluateEditRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -69,8 +98,7 @@ public class GoodsEvaluateController {
      */
     @ApiOperation(value = "获取商品评价详情信息")
     @RequestMapping(value = "/detail", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluateByIdResponse> info(@RequestBody @Valid GoodsEvaluateByIdRequest
-                                                                    goodsEvaluateByIdRequest) {
+    public BaseResponse<GoodsEvaluateByIdResponse> info(@RequestBody @Valid GoodsEvaluateByIdRequest goodsEvaluateByIdRequest) {
         BaseResponse<GoodsEvaluateByIdResponse> response = goodsEvaluateQueryProvider.getById(goodsEvaluateByIdRequest);
         return  response;
     }
@@ -82,8 +110,7 @@ public class GoodsEvaluateController {
      */
     @ApiOperation(value = "回复商品评价")
     @RequestMapping(value = "/answer", method = RequestMethod.POST)
-    public BaseResponse<GoodsEvaluateAnswerResponse> answer(@RequestBody @Valid GoodsEvaluateAnswerRequest
-                                                                        request) {
+    public BaseResponse<GoodsEvaluateAnswerResponse> answer(@RequestBody @Valid GoodsEvaluateAnswerRequest request) {
 
         request.setEvaluateAnswerAccountName(commonUtil.getAccountName());
         request.setEvaluateAnswerEmployeeId(commonUtil.getOperator().getAdminId());

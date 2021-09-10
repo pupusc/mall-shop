@@ -1122,7 +1122,6 @@ public class EsGoodsElasticService {
 
     /**
      * 根据商品spu批量获取商品属性关键Map
-     *
      * @param goodsIds 商品id
      * @return 商品属性关键Map内容<商品id, 商品属性关联list>
      */
@@ -1137,7 +1136,6 @@ public class EsGoodsElasticService {
 
     /**
      * 根据商品sku批量获取区间价键值Map
-     *
      * @param skuIds 商品skuId
      * @return 区间价键值Map内容<商品skuId, 区间价列表>
      */

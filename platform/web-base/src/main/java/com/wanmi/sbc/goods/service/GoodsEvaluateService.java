@@ -1,7 +1,7 @@
 package com.wanmi.sbc.goods.service;
 
 import com.wanmi.sbc.customer.api.response.storeevaluate.StoreEvaluateAddResponse;
-import com.wanmi.sbc.goods.api.response.goodsevaluate.GoodsEvaluateAddResponse;
+import com.wanmi.sbc.goods.api.request.goodsevaluate.BookFriendEvaluateAddRequest;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -41,6 +41,7 @@ import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.evaluateratio.EvaluateRatioQueryProvider;
 import com.wanmi.sbc.setting.bean.vo.EvaluateRatioVO;
 import com.wanmi.sbc.util.CommonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

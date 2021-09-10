@@ -173,8 +173,8 @@ public class GoodsController {
 
     /**
      * @description 新增商品
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @menu 商品
+     * @param request
      * @status done
      */
     @ApiOperation(value = "新增商品")
@@ -316,9 +316,9 @@ public class GoodsController {
 
 
     /**
-     * @description 编辑商品
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @description 商家后台编辑商品
+     * @param request
+     * @menu 商品
      * @status done
      */
     @ApiOperation(value = "编辑商品")
@@ -1022,11 +1022,8 @@ public class GoodsController {
                 redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
             }
         });
-
-
         return BaseResponse.SUCCESSFUL();
     }
-
 
     /**
      * 供应商删除商品
@@ -1159,8 +1156,6 @@ public class GoodsController {
         if (StringUtils.isNotBlank(goodsDetailInfo)) {
             redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + request.getGoodsIds());
         }
-
-
         //ares埋点-商品-后台批量修改商品spu的所有sku上下架状态
         goodsAresProvider.dispatchFunction(new DispatcherFunctionRequest("editGoodsSpuUp",
                 new Object[]{AddedFlag.NO.toValue(), request.getGoodsIds()}));

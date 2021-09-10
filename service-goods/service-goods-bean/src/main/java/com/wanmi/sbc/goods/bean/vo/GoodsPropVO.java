@@ -52,6 +52,9 @@ public class GoodsPropVO implements Serializable {
     @ApiModelProperty(value = "排序")
     private Integer sort;
 
+    @ApiModelProperty(value = "属性类型")
+    private Integer propType;
+
     @ApiModelProperty(value = "商品属性详情")
     private List<GoodsPropDetailVO> goodsPropDetails;
 

@@ -91,6 +91,12 @@ public class Goods {
     private String goodsImg;
 
     /**
+     * 无背景图
+     */
+    @Column(name = "goods_un_back_img")
+    private String goodsUnBackImg;
+
+    /**
      * 商品视频地址
      */
     @Column(name = "goods_video")

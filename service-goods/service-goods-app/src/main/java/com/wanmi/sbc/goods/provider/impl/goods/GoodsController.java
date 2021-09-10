@@ -133,7 +133,6 @@ public class GoodsController implements GoodsProvider {
      * @return 新增结果 {@link GoodsAddResponse}
      */
     @Override
-
     public BaseResponse<GoodsAddResponse> add(@RequestBody @Valid GoodsAddRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
         String result = goodsService.add(goodsSaveRequest);

@@ -391,4 +391,11 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      */
     @Query("select distinct erpGoodsNo from Goods where erpGoodsNo = ?1 and delFlag= 0")
     List<String> findExistsErpGoodsNo(String erpGoodsNos);
+
+    /**
+     * 根据spu编号查询
+     * @param goodsId
+     * @return
+     */
+    Goods findByGoodsId(String goodsId);
 }

@@ -307,6 +307,11 @@ public class GoodsEvaluateWhereCriteriaBuilder {
                 predicates.add(cbuild.lessThanOrEqualTo(root.get("evaluateTime"),
                         DateUtil.parseDay(queryRequest.getEndTime()).plusDays(1)));
             }
+
+            // 评价来源 后台、商城
+            if(queryRequest.getEvaluateCatetory() != null){
+                predicates.add(cbuild.equal(root.get("evaluateCatetory"), queryRequest.getEvaluateCatetory()));
+            }
             cquery.orderBy(cbuild.desc(root.get("evaluateTime")));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

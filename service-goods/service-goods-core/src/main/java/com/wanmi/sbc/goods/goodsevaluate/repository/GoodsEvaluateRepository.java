@@ -30,8 +30,8 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
      * @Date: 2019-04-09 15:44
      */
     @Query(value = "SELECT convert(b.counts/a.counts*100,decimal(15,0)) as praise FROM" +
-            " (SELECT count(*) as counts FROM goods_evaluate t WHERE t.goods_id = :goodsId  and t.del_flag = 0) as a," +
-            "(SELECT count(*) as counts FROM goods_evaluate t WHERE t.evaluate_score >= 4 and t.goods_id = :goodsId  " +
+            " (SELECT count(*) as counts FROM goods_evaluate t WHERE t.goods_id = :goodsId  and t.del_flag = 0 and evaluate_catetory = 0) as a," +
+            "(SELECT count(*) as counts FROM goods_evaluate t WHERE t.evaluate_score >= 4 and t.goods_id = :goodsId and evaluate_catetory = 0 " +
             "and t.del_flag = 0) as b",
             nativeQuery = true)
     String queryPraise(@Param("goodsId") String goodsId);
@@ -47,9 +47,14 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
     @Query("update GoodsEvaluate set goodNum = goodNum + 1 where evaluateId = :evaluateId")
     void updateGoodsEvaluateGoodNum(@Param("evaluateId") String evaluateId);
 
-    @Query("from GoodsEvaluate where goodsId = :#{#req.goodsId} and delFlag = :#{#req.delFlag} and isShow = " +
-            ":#{#req.isShow}")
+    @Query("from GoodsEvaluate where goodsId = :#{#req.goodsId} and delFlag = :#{#req.delFlag} and isShow = :#{#req.isShow} and evaluateCatetory = 0")
     List<GoodsEvaluate> queryTopData(@Param("req")GoodsEvaluatePageRequest req, Pageable pageable);
+
+    /**
+     * 商详页书友说评价查询
+     */
+    @Query("from GoodsEvaluate where goodsId = :#{#req.goodsId} and delFlag = :#{#req.delFlag} and isShow = :#{#req.isShow} and evaluateCatetory = 3 order by isRecommend desc, evaluateTime desc")
+    List<GoodsEvaluate> queryBookFriendEvaluate(@Param("req")GoodsEvaluatePageRequest req, Pageable pageable);
 
     @Modifying
     @Query("update GoodsEvaluate set goodNum = goodNum - 1 where evaluateId = :evaluateId")

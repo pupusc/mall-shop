@@ -20,8 +20,14 @@ import java.io.Serializable;
 public class GoodsEvaluateListResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public GoodsEvaluateListResponse(List<GoodsEvaluateVO> goodsEvaluateVOList){
+        this.goodsEvaluateVOList = goodsEvaluateVOList;
+    }
+
     /**
      * 商品评价列表结果
      */
     private List<GoodsEvaluateVO> goodsEvaluateVOList;
+
+    private List<GoodsEvaluateVO> bookFriendEvaluateVOList;
 }

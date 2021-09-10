@@ -30,6 +30,18 @@ public interface GoodsEvaluateSaveProvider {
 	BaseResponse<GoodsEvaluateAddResponse> add(@RequestBody @Valid GoodsEvaluateAddRequest goodsEvaluateAddRequest);
 
 	/**
+	 * 新增书友说评价API
+	 */
+	@PostMapping("/goods/${application.goods.version}/bookFriendEvaluate/add")
+	BaseResponse addBookFriendEvaluate(@RequestBody @Valid BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest);
+
+	/**
+	 * 编辑书友说评价API
+	 */
+	@PostMapping("/goods/${application.goods.version}/bookFriendEvaluate/edit")
+    BaseResponse editBookFriendEvaluate(@RequestBody BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest);
+
+    /**
 	 * 新增商品评价API
 	 *
 	 * @author liutao

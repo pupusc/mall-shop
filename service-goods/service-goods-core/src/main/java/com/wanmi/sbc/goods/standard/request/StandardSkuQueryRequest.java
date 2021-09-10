@@ -86,7 +86,7 @@ public class StandardSkuQueryRequest extends BaseQueryRequest implements Seriali
             if(CollectionUtils.isNotEmpty(goodsInfoIds)){
                 predicates.add(root.get("goodsInfoId").in(goodsInfoIds));
             }
-            //SPU编号
+            //编号
             if(StringUtils.isNotBlank(goodsId)){
                 predicates.add(cbuild.equal(root.get("goodsId"), goodsId));
             }
