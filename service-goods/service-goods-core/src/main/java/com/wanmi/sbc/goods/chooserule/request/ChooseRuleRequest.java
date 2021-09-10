@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.chooserule.request;
 
 import lombok.Data;
 
+import java.util.Collection;
+
 
 /**
  * Description:
@@ -20,6 +22,11 @@ public class ChooseRuleRequest {
      *  书单模板id或者书单类目id
      */
     private Integer bookListId;
+
+    /**
+     * 书单模板id或者书单类目id 列表
+     */
+    private Collection<Integer> bookListIdCollection;
 
     /**
      * 过滤规则 1 无库存展示 2 无库存不展示 3 无库存沉底

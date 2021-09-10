@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -75,7 +78,15 @@ public class BookListModelController {
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), spuId);
         //根据书单列表 获取商品列表信息，
-        //根据商品列表id 获取商品详情
+        List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumList;
+        if (CollectionUtils.isEmpty(bookListModelAndOrderNumList = listBaseResponse.getContext())) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        //获取书单id
+        Set<Integer> bookListModelList =
+                bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
+        //根据书单id列表 获取商品列表信息
+
         return BaseResponse.success(listBaseResponse.getContext());
     }
 

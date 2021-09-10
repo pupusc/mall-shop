@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class BookListModelController implements BookListModelProvider {
     }
 
     /**
-     * 获取详情
+     * 获取详情 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
      * @param bookListModelProviderRequest
      * @return
      */
@@ -91,6 +92,12 @@ public class BookListModelController implements BookListModelProvider {
     public BaseResponse<BookListMixProviderResponse> findById(BookListModelProviderRequest bookListModelProviderRequest) {
         BookListMixProviderResponse bookListMixProviderResponse = bookListModelService.findById(bookListModelProviderRequest.getId());
         return BaseResponse.success(bookListMixProviderResponse);
+    }
+
+
+    @Override
+    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){
+        return BaseResponse.success(bookListModelService.listPublishGoodsByIds(bookListModelIdCollection));
     }
 
     /**
@@ -124,6 +131,6 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));
     }
 
-    
+
 
 }

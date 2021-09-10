@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -18,6 +19,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,7 +72,7 @@ public class BookListGoodsService {
     public void update(BookListGoodsRequest bookListGoodsRequest) {
         //根据 chooseRuleId 获取所有的商品列表信息
         List<BookListGoodsDTO> bookListGoodsDTOList =
-                bookListGoodsRepository.findAll(this.packageWhere(bookListGoodsRequest.getChooseRuleId(), null, null));
+                bookListGoodsRepository.findAll(this.packageWhere(bookListGoodsRequest.getChooseRuleId(), null, null, null));
         //全部列表删除
         Date now = new Date();
         for (BookListGoodsDTO bookListGoodsParam : bookListGoodsDTOList) {
@@ -83,58 +85,17 @@ public class BookListGoodsService {
     }
 
 
-//    /**
-//     * 排序
-//     * @param bookListGoodsSortProviderRequestList
-//     */
-//    public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {
-//        //批量获取id
-//        Set<Integer> bookListGoodsIdSet =
-//                bookListGoodsSortProviderRequestList.stream().map(BookListGoodsSortProviderRequest::getId).collect(Collectors.toSet());
-//        List<BookListGoodsDTO> allById = bookListGoodsRepository.findAllById(bookListGoodsIdSet);
-//        List<BookListGoodsDTO> rawAllNormalBookListGoods =
-//                allById.stream().filter(ex -> Objects.equals(ex.getDelFlag(), DeleteFlagEnum.NORMAL.getCode())).collect(Collectors.toList());
-//        if (bookListGoodsSortProviderRequestList.size() != rawAllNormalBookListGoods.size()) {
-//            throw new IllegalArgumentException("请求参数数量和根据id获取结果的数据不想等，传递的数据有误");
-//        }
-//
-//        Map<Integer, Integer> bookListGoodsSortMap =
-//                bookListGoodsSortProviderRequestList.stream().collect(Collectors.toMap(BookListGoodsSortProviderRequest::getId, BookListGoodsSortProviderRequest::getSortNum, (k1, k2) -> k1));
-//        if (rawAllNormalBookListGoods.size() != bookListGoodsSortMap.size()) {
-//            log.error(" rawAllNormalBookListGoods --> : {}", JSON.toJSONString(rawAllNormalBookListGoods));
-//            throw new IllegalArgumentException("对象 rawAllNormalBookListGoods 存在重复的id");
-//        }
-//        //重新排序
-//        Date now = new Date();
-//        for (BookListGoodsDTO bookListGoodsParam : rawAllNormalBookListGoods) {
-//            bookListGoodsParam.setUpdateTime(now);
-//            bookListGoodsParam.setOrderNum(bookListGoodsSortMap.getOrDefault(bookListGoodsParam.getId(), 0));
-//        }
-//
-//        bookListGoodsRepository.saveAll(rawAllNormalBookListGoods);
-//    }
-
-//    /**
-//     * 查询商品列表
-//     * @return
-//     */
-//    public List<BookListGoodsDTO> list(Integer chooseRuleId) {
-//
-//        Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
-//        return bookListGoodsRepository.findAll(this.packageWhere(chooseRuleId, null, null), orderNum);
-//    }
-
     /**
      * 查询商品列表
      * @return
      */
-    public List<BookListGoodsDTO> list(Integer bookListId, Integer categoryId) {
+    public List<BookListGoodsDTO> list(Collection<Integer> bookListIdCollection, Integer bookListId, Integer categoryId) {
         Sort orderNum = Sort.by(Sort.Direction.ASC, "orderNum");
-        return bookListGoodsRepository.findAll(this.packageWhere(null, bookListId, categoryId), orderNum);
+        return bookListGoodsRepository.findAll(this.packageWhere(null, bookListId, categoryId, bookListIdCollection), orderNum);
     }
 
 
-    private Specification<BookListGoodsDTO> packageWhere(Integer chooseRuleId, Integer bookListId, Integer categoryId) {
+    private Specification<BookListGoodsDTO> packageWhere(Integer chooseRuleId, Integer bookListId, Integer categoryId, Collection<Integer> bookListIdCollection) {
         return new Specification<BookListGoodsDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
@@ -146,6 +107,9 @@ public class BookListGoodsService {
                 }
                 if (bookListId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("bookListId"), bookListId));
+                }
+                if (!CollectionUtils.isEmpty(bookListIdCollection)) {
+                    predicateList.add(root.get("bookListId").in(bookListIdCollection));
                 }
                 if (categoryId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("category"), categoryId));

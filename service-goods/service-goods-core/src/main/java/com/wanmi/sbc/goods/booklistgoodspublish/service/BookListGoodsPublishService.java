@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishR
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -42,17 +44,18 @@ public class BookListGoodsPublishService {
     @Resource
     private BookListGoodsService bookListGoodsService;
 
+
     @Transactional
     public void publish(Integer bookListId, Integer categoryId, String operator) {
         //获取书单模版对应的 商品列表,即待发布的列表
-        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, categoryId);
+        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(null, bookListId, categoryId);
         if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
             log.error("-------->>> BookListGoodsPublishService.publish bookListId:{}, categoryId: {} is empty return", bookListId, CategoryEnum.BOOK_LIST_MODEL.getCode());
             return;
         }
 
         //删除已经发布的
-        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(bookListId, categoryId, null, operator);
+        List<BookListGoodsPublishDTO> rawBookListGoodsPublishDTOList = this.list(null, bookListId, categoryId, null, operator);
         Date now = new Date();
         for (BookListGoodsPublishDTO bookListGoodsPublishParam : rawBookListGoodsPublishDTOList) {
             bookListGoodsPublishParam.setUpdateTime(now);
@@ -71,14 +74,14 @@ public class BookListGoodsPublishService {
     }
 
     /**
-     * 发布商品列表
+     * 发布商品列表 档期参数都是按照个数传递，后续更改为对象，
      * @param bookListId
      * @return
      */
-    public List<BookListGoodsPublishDTO> list(Integer bookListId, Integer categoryId, String spuId, String operator) {
+    public List<BookListGoodsPublishDTO> list(Collection<Integer> bookListIdCollection, Integer bookListId, Integer categoryId, String spuId, String operator) {
         log.info("---->> BookListGoodsPublishService.list operator:{} bookListId:{} categoryId: {}",
                 operator, bookListId, categoryId);
-        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListId, categoryId, spuId));
+        return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListIdCollection, bookListId, categoryId, spuId));
     }
 
     /**
@@ -111,13 +114,15 @@ public class BookListGoodsPublishService {
     }
 
 
-    private Specification<BookListGoodsPublishDTO> packageWhere(Integer bookListId, Integer categoryId, String spuId) {
+    private Specification<BookListGoodsPublishDTO> packageWhere(Collection<Integer> bookListIdCollection, Integer bookListId, Integer categoryId, String spuId) {
         return new Specification<BookListGoodsPublishDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
             public Predicate toPredicate(Root<BookListGoodsPublishDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
-
+                if (!CollectionUtils.isEmpty(bookListIdCollection)) {
+                    predicateList.add(root.get("bookListId").in(bookListIdCollection));
+                }
                 if (bookListId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("bookListId"), bookListId));
                 }

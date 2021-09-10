@@ -78,19 +78,19 @@ public class ClassifyService {
         return result;
     }
 
-
-    public void test(String spuId, int pageNum, int pageSize) {
-        //根据spuId 获取商品分类列表
-        List<BookListGoodsPublishDTO> bookListGoodsPublishList =
-                bookListGoodsPublishService.list(null, CategoryEnum.BOOK_CLASSIFY.getCode(), spuId, null);
-        //根据类目id列表获取 商品列表
-        List<Integer> collect = bookListGoodsPublishList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
-        //获取有效的类目
-        List<ClassifyDTO> classifyList = classifyRepository.findAll
-                (this.packageWhere(collect), Sort.by(Sort.Direction.DESC, "updateTime"));
-        //根据类目id 获取商品列表
-
-    }
+//
+//    public void test(String spuId, int pageNum, int pageSize) {
+//        //根据spuId 获取商品分类列表
+//        List<BookListGoodsPublishDTO> bookListGoodsPublishList =
+//                bookListGoodsPublishService.list(null, CategoryEnum.BOOK_CLASSIFY.getCode(), spuId, null);
+//        //根据类目id列表获取 商品列表
+//        List<Integer> collect = bookListGoodsPublishList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
+//        //获取有效的类目
+//        List<ClassifyDTO> classifyList = classifyRepository.findAll
+//                (this.packageWhere(collect), Sort.by(Sort.Direction.DESC, "updateTime"));
+//        //根据类目id 获取商品列表
+//
+//    }
 
 
     private Specification<ClassifyDTO> packageWhere(List<Integer> classifyIdList) {

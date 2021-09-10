@@ -19,6 +19,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -73,7 +74,11 @@ public class ChooseRuleService {
         return chooseRuleRepository.save(chooseRuleDTORaw);
     }
 
-
+    /**
+     * 获取单个对象
+     * @param chooseRuleRequest
+     * @return
+     */
     public ChooseRuleDTO findByCondition(ChooseRuleRequest chooseRuleRequest) {
         List<ChooseRuleDTO> chooseRuleDTOList =
                 chooseRuleRepository.findAll(this.packageWhere(chooseRuleRequest));
@@ -87,6 +92,17 @@ public class ChooseRuleService {
         return chooseRuleDTOList.get(0);
     }
 
+    /**
+     * 获取对象列表
+     * @param chooseRuleRequest
+     * @return
+     */
+    public List<ChooseRuleDTO> findByConditionCollection(ChooseRuleRequest chooseRuleRequest) {
+        return chooseRuleRepository.findAll(this.packageWhere(chooseRuleRequest));
+    }
+
+
+
 
     private Specification<ChooseRuleDTO> packageWhere(ChooseRuleRequest chooseRuleRequest) {
         return new Specification<ChooseRuleDTO>() {
@@ -98,6 +114,10 @@ public class ChooseRuleService {
                     predicateList.add(criteriaBuilder.equal(root.get("bookListId"), chooseRuleRequest.getBookListId()));
                 }
 
+                if (!CollectionUtils.isEmpty(chooseRuleRequest.getBookListIdCollection())) {
+                    predicateList.add(root.get("bookListId").in(chooseRuleRequest.getBookListIdCollection()));
+                }
+
                 if (chooseRuleRequest.getCategory() != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("category"), chooseRuleRequest.getCategory()));
                 }
@@ -105,6 +125,8 @@ public class ChooseRuleService {
                 if (chooseRuleRequest.getId() != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("id"), chooseRuleRequest.getId()));
                 }
+
+
                 return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
             }
         };
