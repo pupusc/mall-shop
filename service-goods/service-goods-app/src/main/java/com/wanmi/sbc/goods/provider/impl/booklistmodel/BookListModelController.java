@@ -124,23 +124,6 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
 }

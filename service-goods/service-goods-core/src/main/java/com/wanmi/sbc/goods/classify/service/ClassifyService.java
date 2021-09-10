@@ -1,10 +1,14 @@
 package com.wanmi.sbc.goods.classify.service;
 
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -32,6 +38,9 @@ public class ClassifyService {
 
     @Resource
     private ClassifyRepository classifyRepository;
+
+    @Resource
+    private BookListGoodsPublishService bookListGoodsPublishService;
 
     /**
      * 获取类目列表
@@ -67,6 +76,20 @@ public class ClassifyService {
             }
         });
         return result;
+    }
+
+
+    public void test(String spuId, int pageNum, int pageSize) {
+        //根据spuId 获取商品分类列表
+        List<BookListGoodsPublishDTO> bookListGoodsPublishList =
+                bookListGoodsPublishService.list(null, CategoryEnum.BOOK_CLASSIFY.getCode(), spuId, null);
+        //根据类目id列表获取 商品列表
+        List<Integer> collect = bookListGoodsPublishList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
+        //获取有效的类目
+        List<ClassifyDTO> classifyList = classifyRepository.findAll
+                (this.packageWhere(collect), Sort.by(Sort.Direction.DESC, "updateTime"));
+        //根据类目id 获取商品列表
+
     }
 
 

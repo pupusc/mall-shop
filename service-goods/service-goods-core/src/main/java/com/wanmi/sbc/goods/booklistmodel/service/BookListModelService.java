@@ -266,7 +266,7 @@ public class BookListModelService {
         //查询数量
         Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
         Pageable pageable = PageRequest.of(pageNum, pageSize,
-                Sort.Direction.DESC, "createTime");
+                Sort.Direction.DESC, "updateTime");
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
 
