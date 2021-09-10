@@ -869,9 +869,9 @@ public class GoodsController {
 
 
     /**
-     * @description 获取商品详情信息
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @description 商家后台获取商品详情信息
+     * @param goodsId
+     * @menu 商品
      * @status done
      */
     @ApiOperation(value = "获取商品详情信息")
@@ -900,7 +900,6 @@ public class GoodsController {
                     Map<Long, GoodsBrandVO> goodsBrandVOMap = goodsBrandQueryProvider.listByIds(GoodsBrandByIdsRequest.builder().brandIds(goodsInfos.stream().
                             map(GoodsInfoVO::getBrandId).collect(Collectors.toList())).build()).getContext().getGoodsBrandVOList()
                             .stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, m -> m));
-
 
                     //查询赠品的分类信息
                     Map<Long, GoodsCateVO> goodsCateVOMap = goodsCateQueryProvider.getByIds(new GoodsCateByIdsRequest(goodsInfos.stream().map(GoodsInfoVO::getCateId).

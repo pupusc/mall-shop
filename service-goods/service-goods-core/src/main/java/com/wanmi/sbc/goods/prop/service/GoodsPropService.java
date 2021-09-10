@@ -156,7 +156,7 @@ public class GoodsPropService {
         GoodsProp goodsProp = goodsPropRequest.getGoodsProp();
         Long cateId = goodsProp.getCateId();
         if(goodsProp.getPropType() == null){
-            throw new SbcRuntimeException("K-000009");
+            goodsProp.setPropType(1);
         }
         //验证是否是类目三级节点
         if (!isChildNode(cateId)) {
@@ -195,7 +195,7 @@ public class GoodsPropService {
             //saveDefaultRef(goodsIds,goodsProp.getPropId());
             List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
             //判断属性的属性值是否存在相同
-            if (isGoodsPropDetailRepeat(goodsPropDetails)){
+            if (CollectionUtils.isEmpty(goodsPropDetails) || isGoodsPropDetailRepeat(goodsPropDetails)){
                 throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_REPEAT);
             }
             //检查属性值是否超限
@@ -278,6 +278,9 @@ public class GoodsPropService {
     public Boolean editGoodsProp(GoodsProp goodsProp){
         Long cateId = goodsProp.getCateId();
         List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
+        if(goodsProp.getPropType() == null){
+            goodsProp.setPropType(1);
+        }
         //判断属性的属性值是否存在相同
         if (isGoodsPropDetailRepeat(goodsPropDetails)){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_REPEAT);
