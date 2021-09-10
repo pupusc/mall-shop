@@ -3,6 +3,7 @@ package com.wanmi.sbc.booklistmodel;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,24 +84,17 @@ public class BookListModelController {
             return BaseResponse.success(new ArrayList<>());
         }
         //获取书单id
-        Set<Integer> bookListModelList =
+        Set<Integer> bookListModelSet =
                 bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        //根据书单id列表 获取商品列表信息
+        //根据书单id列表 获取商品列表id信息
+        BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByIds(bookListModelSet);
+        if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        //根据商品id列表 获取商品列表信息
+
 
         return BaseResponse.success(listBaseResponse.getContext());
     }
 
-    public void test() {
-        String spuId = "";
-        //获取排行榜
-        BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
-                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), spuId);
-        List<BookListModelAndOrderNumProviderResponse> context = listBaseResponse.getContext();
-        if (!CollectionUtils.isEmpty(context)) {
-            BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = context.get(0); //获取第一个排行榜书单
-            //根据书单获取发布商品列表
-        }
-
-
-    }
 }
