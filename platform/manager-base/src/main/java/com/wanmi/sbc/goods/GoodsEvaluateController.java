@@ -49,10 +49,10 @@ public class GoodsEvaluateController {
     private CommonUtil commonUtil;
 
     /**
-     * 分页查询商品评价列表
-     *
+     * @description 分页查询商品评价列表
+     * @menu 评论信息
      * @param goodsEvaluatePageRequest
-     * @return
+     * @status done
      */
     @ApiOperation(value = "分页查询商品评价列表")
     @RequestMapping(value = "/page", method = RequestMethod.POST)
