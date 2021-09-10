@@ -30,7 +30,7 @@ public interface GoodsPropRepository extends JpaRepository<GoodsProp, Long>, Jpa
     GoodsProp findByPropId(Long propId);
 
     @Query
-    List<GoodsProp> findAllByCateIdAndIndexFlagAndDelFlagOrderBySortAsc(Long cateId, DefaultFlag indexFlag, DeleteFlag sort, Integer propType);
+    List<GoodsProp> findAllByCateIdAndIndexFlagAndDelFlagOrderBySortAsc(Long cateId, DefaultFlag indexFlag, DeleteFlag sort);
 
     @Modifying
     @Query(value = "update GoodsProp a set a.cateId = :cateId, " +
