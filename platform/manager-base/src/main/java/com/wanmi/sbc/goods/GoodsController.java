@@ -238,6 +238,16 @@ public class GoodsController {
         return BaseResponse.success(goodsId);
     }
 
+    /**
+     * @description 标签
+     * @menu 商品
+     * @status done
+     */
+    @ApiOperation(value = "标签")
+    @RequestMapping(value = "/tags", method = RequestMethod.GET)
+    public BaseResponse<List<GoodsTagVo>> add() {
+        return goodsProvider.tags();
+    }
 
     /**
      * @description 同时新增商品基本和商品设价

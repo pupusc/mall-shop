@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
@@ -23,7 +24,7 @@ import java.time.LocalDateTime;
 public class GoodsPropDetailRel {
 
     /**
-     * 编号，
+     * 编号
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +42,12 @@ public class GoodsPropDetailRel {
      */
     @Column(name = "detail_id")
     private Long detailId;
+
+    /**
+     *属性值id（为了支持多选）
+     */
+    @Transient
+    private String detailId2;
 
     /**
      *属性值（文本框输入）
