@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.response.goods;
+package com.wanmi.sbc.elastic.api.response.goods;
 
 import lombok.Data;
 
@@ -14,7 +14,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsListCustomProviderResponse implements Serializable {
+public class EsGoodsCustomProviderResponse implements Serializable {
 
     /**
      * 商品id
