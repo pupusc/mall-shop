@@ -1,8 +1,9 @@
-package com.wanmi.sbc.elastic.api.response.goods;
+package com.wanmi.sbc.booklistmodel.response;
 
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsGoodsCustomProviderResponse implements Serializable {
+public class GoodsCustomResponse {
 
     /**
      * 商品id
@@ -34,7 +35,7 @@ public class EsGoodsCustomProviderResponse implements Serializable {
     /**
      * goodsInfoNo
      */
-    private String goodsInfo;
+    private String goodsInfoNo;
 
     /**
      * 商品名称
@@ -52,24 +53,34 @@ public class EsGoodsCustomProviderResponse implements Serializable {
     private String goodsCoverImg;
 
     /**
+     * 无背景图
+     */
+    private String goodsUnBackImg;
+
+    /**
+     * 知识顾问专享 0：不是，1：是
+     */
+    private Integer cpsSpecial = 0;
+
+    /**
      * 展示价格[整理显示规则]
      */
-    private String showPrice;
+    private BigDecimal showPrice;
 
     /**
      * 划线价格
      */
-    private String linePrice;
+    private BigDecimal linePrice;
 
     /**
      * 是否有优惠券
      */
-    private List<String> couponLabel;
+    private List<String> couponLabelList;
 
     /**
      * 商品标签
      */
-    private String goodsLabel;
+    private List<String> goodsLabelList;
 
     /**
      * 商品分数

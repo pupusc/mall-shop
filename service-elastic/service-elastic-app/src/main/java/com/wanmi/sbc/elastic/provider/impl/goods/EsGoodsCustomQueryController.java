@@ -2,7 +2,7 @@ package com.wanmi.sbc.elastic.provider.impl.goods;
 
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomProviderRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.goods.service.EsGoodsCustomService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class EsGoodsCustomQueryController implements EsGoodsCustomQueryProvider 
     private EsGoodsCustomService esGoodsCustomService;
 
     @Override
-    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomProviderRequest request) {
+    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
         return esGoodsCustomService.listEsGoodsNormal(request);
     }
     

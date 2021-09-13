@@ -1,6 +1,7 @@
 package com.wanmi.sbc.elastic.api.request.goods;
 
 import lombok.Data;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsGoodsCustomProviderRequest implements Serializable {
+public class EsGoodsCustomQueryProviderRequest implements Serializable {
 
     private int pageNum = 1;
 
@@ -25,8 +26,18 @@ public class EsGoodsCustomProviderRequest implements Serializable {
     private List<String> goodIdList;
 
     /**
+     * 不包含的商品列表
+     */
+    private List<String> unGoodIdList;
+
+    /**
      * 知识顾问专享 0:不是 ，1：是
      */
     private Integer cpsSpecial;
+
+    /**
+     * 字段排序
+     */
+    private List<SortBuilder> sortBuilderList;
 
 }

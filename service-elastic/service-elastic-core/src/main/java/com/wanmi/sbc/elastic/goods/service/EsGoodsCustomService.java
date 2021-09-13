@@ -4,18 +4,20 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomProviderRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.ResultsExtractor;
 import org.springframework.data.elasticsearch.core.ResultsMapper;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -47,14 +49,22 @@ public class EsGoodsCustomService {
      * @param request
      * @return
      */
-    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomProviderRequest request){
+    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request){
 
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
         int pageNum = request.getPageNum() > 0 ? request.getPageNum() - 1 : request.getPageNum();
         builder.withPageable(PageRequest.of(pageNum, request.getPageSize()));
         builder.withQuery(this.packageWhere(request));
-        return elasticsearchTemplate.query(builder.build(), new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {
+        //排序
+        if (!CollectionUtils.isEmpty(request.getSortBuilderList())) {
+            for (SortBuilder sortBuilder : request.getSortBuilderList()) {
+                builder.withSort(sortBuilder);
+            }
+        }
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsGoodsCustomService.listEsGoodsNormal DSL: {}", build.getQuery().toString());
+        return elasticsearchTemplate.query(build, new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {
             @Override
             public MicroServicePage<EsGoodsVO> extract(SearchResponse searchResponse) {
                 MicroServicePage<EsGoodsVO> microServicePage = new MicroServicePage<>();
@@ -105,11 +115,15 @@ public class EsGoodsCustomService {
      * @param request
      * @return
      */
-    private BoolQueryBuilder packageWhere(EsGoodsCustomProviderRequest request) {
+    private BoolQueryBuilder packageWhere(EsGoodsCustomQueryProviderRequest request) {
 
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
-        if (CollectionUtils.isEmpty(request.getGoodIdList())) {
+        if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
             boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
+        }
+
+        if (CollectionUtils.isEmpty(request.getUnGoodIdList())) {
+            boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
         }
 
         /**
