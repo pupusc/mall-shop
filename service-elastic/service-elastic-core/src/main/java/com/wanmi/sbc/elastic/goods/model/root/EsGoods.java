@@ -40,6 +40,12 @@ public class EsGoods implements Serializable {
     private String lowGoodsName;
 
     /**
+     * 无背景图
+     */
+    @Field(type = FieldType.Text)
+    private String goodsUnBackImg;
+
+    /**
      * 转化为小写
      */
     @Field(searchAnalyzer = EsConstants.PINYIN_ANALYZER, analyzer = EsConstants.PINYIN_ANALYZER, type = FieldType.Text)

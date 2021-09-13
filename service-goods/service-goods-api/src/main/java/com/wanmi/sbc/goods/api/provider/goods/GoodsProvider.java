@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +28,12 @@ import java.util.Map;
  */
 @FeignClient(value = "${application.goods.name}", contextId = "GoodsProvider")
 public interface GoodsProvider {
+
+    /**
+     * 商品标签
+     */
+    @PostMapping("/goods/${application.goods.version}/tags")
+    BaseResponse<List<GoodsTagVo>> tags();
 
     /**
      * 新增商品

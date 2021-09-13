@@ -41,8 +41,14 @@ public class GoodsPropDetailRelDTO implements Serializable {
     /**
      * 属性值id
      */
-    @ApiModelProperty(value = "属性值id")
+    @ApiModelProperty(value = "属性值id（不用了）")
     private Long detailId;
+
+    /**
+     * 属性值id
+     */
+    @ApiModelProperty(value = "属性值id")
+    private String detailId2;
 
     /**
      * 属性id

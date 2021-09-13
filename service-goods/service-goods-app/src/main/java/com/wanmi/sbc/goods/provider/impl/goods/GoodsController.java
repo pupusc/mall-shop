@@ -31,6 +31,7 @@ import com.wanmi.sbc.goods.ares.GoodsAresService;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemDelDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
@@ -43,6 +44,8 @@ import com.wanmi.sbc.goods.standard.model.root.StandardGoodsRel;
 import com.wanmi.sbc.goods.standard.repository.StandardGoodsRelRepository;
 import com.wanmi.sbc.goods.standard.service.StandardImportService;
 import com.wanmi.sbc.goods.storecate.service.StoreCateService;
+import com.wanmi.sbc.goods.tag.model.Tag;
+import com.wanmi.sbc.goods.tag.service.TagService;
 import com.wanmi.sbc.goods.thirdgoodscate.model.root.ThirdGoodsCate;
 import com.wanmi.sbc.goods.thirdgoodscate.repository.ThirdGoodsCateRepository;
 import com.wanmi.sbc.goods.thirdgoodscate.service.ThirdGoodsCateService;
@@ -56,6 +59,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -108,7 +112,6 @@ public class GoodsController implements GoodsProvider {
     @Autowired
     private StandardGoodsRelRepository standardGoodsRelRepository;
 
-
     @Autowired
     private ThirdGoodsCateService thirdGoodsCateService;
 
@@ -124,11 +127,22 @@ public class GoodsController implements GoodsProvider {
     @Autowired
     private ProducerService producerService;
 
-//    @Autowired
-//    private GoodsQueryProvider goodsQueryProvider;
+    @Autowired
+    private TagService tagService;
+
+    public BaseResponse<List<GoodsTagVo>> tags(){
+        List<Tag> tags = tagService.findAllTag();
+        List<GoodsTagVo> vos = new ArrayList<>();
+        for (Tag tag : tags) {
+            GoodsTagVo goodsTagVo = new GoodsTagVo();
+            BeanUtils.copyProperties(tag, goodsTagVo);
+            vos.add(goodsTagVo);
+        }
+        return BaseResponse.success(vos);
+    }
+
     /**
      * 新增商品
-     *
      * @param request {@link GoodsAddRequest}
      * @return 新增结果 {@link GoodsAddResponse}
      */

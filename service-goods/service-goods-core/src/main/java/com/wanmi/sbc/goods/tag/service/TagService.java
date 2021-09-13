@@ -29,6 +29,10 @@ public class TagService {
         tagRelRepository.save(tagRel);
     }
 
+    public List<Tag> findAllTag(){
+        return tagRepository.findAll();
+    }
+
     public List<Tag> findTagByGoods(String goodsId){
         return tagRepository.findByGoods(goodsId);
     }

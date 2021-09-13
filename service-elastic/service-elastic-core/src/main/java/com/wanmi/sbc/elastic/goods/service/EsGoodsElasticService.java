@@ -358,13 +358,13 @@ public class EsGoodsElasticService {
                                 .collect(Collectors.toMap(StoreVO::getStoreId, store -> store)));
                     }
 
-
                     //遍历SKU，填充SPU、图片
                     List<IndexQuery> esGoodsList = new ArrayList<>();
                     List<IndexQuery> esSkuList = new ArrayList<>();
                     List<GoodsInfoVO> finalGoodsInfos = goodsinfos;
                     goodsList.forEach(goods -> {
                         EsGoods esGoods = new EsGoods();
+                        esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
