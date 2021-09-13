@@ -4,6 +4,7 @@ import lombok.Data;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -23,12 +24,12 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     /**
      * 商品列表
      */
-    private List<String> goodIdList;
+    private Collection<String> goodIdList;
 
     /**
      * 不包含的商品列表
      */
-    private List<String> unGoodIdList;
+    private Collection<String> unGoodIdList;
 
     /**
      * 知识顾问专享 0:不是 ，1：是
