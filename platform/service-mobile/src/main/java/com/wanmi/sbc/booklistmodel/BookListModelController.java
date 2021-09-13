@@ -120,6 +120,7 @@ public class BookListModelController {
     }
 
 
+
     public void listRankingAndSee(String spuId){
         //排行榜列表
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
@@ -137,6 +138,6 @@ public class BookListModelController {
         }
 
         //看了又看
-        
+
     }
 }

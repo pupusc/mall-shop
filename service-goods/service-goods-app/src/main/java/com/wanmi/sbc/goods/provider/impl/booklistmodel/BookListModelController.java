@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
@@ -95,9 +96,14 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
+    /**
+     * 根据书单id列表获取 书单模版和排序规则 商品列表
+     * @param bookListModelIdCollection
+     * @return
+     */
     @Override
     public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){
-        return BaseResponse.success(bookListModelService.listPublishGoodsByIds(bookListModelIdCollection));
+        return BaseResponse.success(bookListModelService.listPublishGoodsByIds(bookListModelIdCollection, CategoryEnum.BOOK_LIST_MODEL));
     }
 
     /**
@@ -126,6 +132,12 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
+    /**
+     * 获取榜单  书单  推荐 模版列表
+     * @param businessTypeId
+     * @param spuId
+     * @return
+     */
     @Override
     public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId) {
         return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));

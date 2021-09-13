@@ -267,7 +267,7 @@ public class BookListModelService {
      * 批量获取书单模版详细信息 【这里的书单列表都是已经发布的】
      * @param bookListModelIdCollection
      */
-    public List<BookListMixProviderResponse> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection) {
+    public List<BookListMixProviderResponse> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection, CategoryEnum categoryEnum) {
         List<BookListMixProviderResponse> result = new ArrayList<>();
 
         //获取有效的书单
@@ -290,7 +290,7 @@ public class BookListModelService {
         //获取有效书单列表
         Set<Integer> bookListModelIdSet = bookListModelList.stream().map(BookListModelDTO::getId).collect(Collectors.toSet());
         List<ChooseRuleProviderResponse> ruleAndPublishGoodsByConditionList =
-                chooseRuleGoodsListService.findRuleAndPublishGoodsByCondition(bookListModelIdSet, CategoryEnum.BOOK_LIST_MODEL.getCode());
+                chooseRuleGoodsListService.findRuleAndPublishGoodsByCondition(bookListModelIdSet, categoryEnum.getCode());
         if (CollectionUtils.isEmpty(ruleAndPublishGoodsByConditionList)) {
             return result;
         }
