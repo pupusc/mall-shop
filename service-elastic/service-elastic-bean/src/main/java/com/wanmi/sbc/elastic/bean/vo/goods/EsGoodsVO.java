@@ -304,4 +304,10 @@ public class EsGoodsVO implements Serializable {
      */
     @ApiModelProperty(value = "商品副标题")
     private String goodsSubtitle;
+
+    /**
+     * 无背景图片
+     */
+    @ApiModelProperty(value = "无背景图片")
+    private String goodsUnBackImg;
 }
