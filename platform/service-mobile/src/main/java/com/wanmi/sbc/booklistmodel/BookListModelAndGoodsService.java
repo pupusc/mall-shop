@@ -52,7 +52,7 @@ public class BookListModelAndGoodsService {
      */
     public Map<String, BookListModelProviderResponse> mapGoodsIdByBookListModelList(Collection<Integer> bookListModelIdSet) {
         //根据书单id列表 获取商品列表id信息
-        BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByIds(bookListModelIdSet);
+        BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByModelIds(bookListModelIdSet);
         if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
             return new HashMap<>();
         }

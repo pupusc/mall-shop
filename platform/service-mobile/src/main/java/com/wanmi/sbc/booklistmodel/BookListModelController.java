@@ -11,6 +11,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -53,6 +54,8 @@ public class BookListModelController {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     /**
      * 获取榜单
@@ -138,6 +141,6 @@ public class BookListModelController {
         }
 
         //看了又看
-
+        classifyProvider.listPublishGoodsByIds()
     }
 }

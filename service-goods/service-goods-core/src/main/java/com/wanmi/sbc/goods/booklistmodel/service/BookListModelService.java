@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -38,6 +39,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -105,10 +108,18 @@ public class BookListModelService {
         bookListModelClassifyRequest.setBookListModelId(bookListModelDTO.getId());
         bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
         bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+        @Valid @NotNull ChooseRuleGoodsListProviderRequest chooseRuleGoodsListModel = bookListMixProviderRequest.getChooseRuleGoodsListModel();
+        if (chooseRuleGoodsListModel == null) {
+            log.info("operator：{} BookListModelService.add BookListModel complete result:{}",
+                    bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModelDTO));
+            throw new SbcRuntimeException("新增书单异常，bookListMixProviderRequest.getChooseRuleGoodsListModel 为空");
+        } else {
+            chooseRuleGoodsListModel.setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+            chooseRuleGoodsListModel.setBookListId(bookListModelDTO.getId());
+            chooseRuleGoodsListService.add(chooseRuleGoodsListModel, bookListMixProviderRequest.getOperator());
+        }
 
 
-
-        chooseRuleGoodsListService.add(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
 
     /**
@@ -267,7 +278,7 @@ public class BookListModelService {
      * 批量获取书单模版详细信息 【这里的书单列表都是已经发布的】
      * @param bookListModelIdCollection
      */
-    public List<BookListMixProviderResponse> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection, CategoryEnum categoryEnum) {
+    public List<BookListMixProviderResponse> listPublishGoodsByModelIds(Collection<Integer> bookListModelIdCollection, CategoryEnum categoryEnum) {
         List<BookListMixProviderResponse> result = new ArrayList<>();
 
         //获取有效的书单

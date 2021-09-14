@@ -53,10 +53,13 @@ public class BookListModelController {
      */
     @PostMapping("/add")
     public BaseResponse add(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
-        BookListMixProviderRequest request = new BookListMixProviderRequest();
-        BeanUtils.copyProperties(bookListMixRequest, request);
+//        BookListMixProviderRequest request = new BookListMixProviderRequest();
+        String bookListMixRequestStr = JSON.toJSONString(bookListMixRequest);
+        BookListMixProviderRequest request = JSON.parseObject(bookListMixRequestStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());
-        request.getChooseRuleGoodsListModel().setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        if (request.getChooseRuleGoodsListModel() != null) {
+            request.getChooseRuleGoodsListModel().setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        }
         bookListModelProvider.add(request);
         return BaseResponse.SUCCESSFUL();
     }
@@ -104,7 +107,7 @@ public class BookListModelController {
      * @return
      */
     @PostMapping("/listByPage")
-    public MicroServicePage<BookListModelProviderResponse> listByPage(
+    public BaseResponse<MicroServicePage<BookListModelProviderResponse>> listByPage(
             @RequestBody BookListModelPageRequest bookListModelPageRequest){
         BookListModelPageProviderRequest request = new BookListModelPageProviderRequest();
         BeanUtils.copyProperties(bookListModelPageRequest, request);

@@ -102,8 +102,8 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){
-        return BaseResponse.success(bookListModelService.listPublishGoodsByIds(bookListModelIdCollection, CategoryEnum.BOOK_LIST_MODEL));
+    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByModelIds(Collection<Integer> bookListModelIdCollection){
+        return BaseResponse.success(bookListModelService.listPublishGoodsByModelIds(bookListModelIdCollection, CategoryEnum.BOOK_LIST_MODEL));
     }
 
     /**
@@ -112,7 +112,7 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public MicroServicePage<BookListModelProviderResponse> listByPage(BookListModelPageProviderRequest bookListModelPageProviderRequest) {
+    public BaseResponse<MicroServicePage<BookListModelProviderResponse>> listByPage(BookListModelPageProviderRequest bookListModelPageProviderRequest) {
         BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
         BeanUtils.copyProperties(bookListModelPageProviderRequest, bookListModelPageRequest);
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
@@ -128,7 +128,7 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setPageable(pageBookListModel.getPageable());
         microServicePage.setTotal(pageBookListModel.getTotalElements());
         microServicePage.setContent(bookListModelResponseList);
-        return microServicePage;
+        return BaseResponse.success(microServicePage);
     }
 
 

@@ -42,6 +42,6 @@ public class ClassifyController implements ClassifyProvider {
 
     @Override
     public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){
-        return BaseResponse.success(bookListModelService.listPublishGoodsByIds(bookListModelIdCollection, CategoryEnum.BOOK_CLASSIFY));
+        return BaseResponse.success(bookListModelService.listPublishGoodsByModelIds(bookListModelIdCollection, CategoryEnum.BOOK_CLASSIFY));
     }
 }

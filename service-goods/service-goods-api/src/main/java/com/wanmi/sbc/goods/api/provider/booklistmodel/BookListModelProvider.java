@@ -41,7 +41,7 @@ public interface BookListModelProvider {
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
-    MicroServicePage<BookListModelProviderResponse> listByPage(
+    BaseResponse<MicroServicePage<BookListModelProviderResponse>> listByPage(
                         @RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);
 
 
@@ -64,8 +64,8 @@ public interface BookListModelProvider {
      * @param bookListModelIdCollection
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/booklistmodel/listPublishGoodsByIds")
-    BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listPublishGoodsByModelIds")
+    BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByModelIds(
             @NotNull @RequestBody Collection<Integer> bookListModelIdCollection);
 
     /**

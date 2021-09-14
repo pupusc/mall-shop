@@ -48,7 +48,7 @@ public class ClassifyDTO {
     /**
      * 顺序
      */
-    @Column(name = "order_name")
+    @Column(name = "order_num")
     private Integer orderNum;
 
     /**

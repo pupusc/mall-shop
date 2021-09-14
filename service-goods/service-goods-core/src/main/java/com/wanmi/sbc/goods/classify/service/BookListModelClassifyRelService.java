@@ -53,6 +53,8 @@ public class BookListModelClassifyRelService {
         List<ClassifyDTO> classifyList = classifyService.listNoPage(bookListModelClassifyRequest.getClassifyIdList());
         log.info("--->> BookListModelClassifyRelService.add classify result: {}", JSON.toJSONString(classifyList));
         if (bookListModelClassifyRequest.getClassifyIdList().size() != classifyList.size()) {
+            log.error("--->> BookListModelClassifyRelService.add 书单：{} 传递的参数为：{} 结果信息为:{}",
+                    bookListModelClassifyRequest.getBookListModelId(),bookListModelClassifyRequest.getClassifyIdList(), JSON.toJSONString(classifyList));
             throw new SbcRuntimeException(String.format("书单：%s 获取的结果和传递的结果不同，请求参数有误", bookListModelClassifyRequest.getBookListModelId()));
         }
         Set<Integer> classifyIdSet = classifyList.stream().map(ClassifyDTO::getId).collect(Collectors.toSet());
