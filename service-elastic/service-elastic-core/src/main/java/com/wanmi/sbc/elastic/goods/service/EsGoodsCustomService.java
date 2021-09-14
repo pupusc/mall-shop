@@ -130,8 +130,8 @@ public class EsGoodsCustomService {
          * 知识顾问
          */
         if (request.getCpsSpecial() != null) {
-            boolQueryBuilder.must(termsQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
-            boolQueryBuilder.must(termsQuery("cpsSpecial", request.getCpsSpecial()));
+            boolQueryBuilder.must(termQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
+            boolQueryBuilder.must(termQuery("cpsSpecial", request.getCpsSpecial()));
         }
         return boolQueryBuilder;
     }
