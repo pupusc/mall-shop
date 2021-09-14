@@ -139,8 +139,8 @@ public class BookListModelController implements BookListModelProvider {
      * @return
      */
     @Override
-    public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId) {
-        return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));
+    public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId, Integer size) {
+        return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId, size));
     }
 
 

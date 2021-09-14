@@ -74,7 +74,7 @@ public interface BookListModelProvider {
      * @param spuId
      * @return
      */
-    @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}")
+    @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}/{size}")
     BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(
-            @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId);
+            @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId, @PathVariable("size") Integer size);
 }

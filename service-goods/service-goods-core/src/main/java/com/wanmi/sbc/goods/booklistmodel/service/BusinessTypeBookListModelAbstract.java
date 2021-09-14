@@ -1,11 +1,8 @@
 package com.wanmi.sbc.goods.booklistmodel.service;
 
-import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
-import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
-import io.swagger.models.auth.In;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -64,7 +61,7 @@ public abstract class BusinessTypeBookListModelAbstract {
      * @param spuId
      * @return
      */
-    public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId);
+    public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId, Integer size);
 
 
 //    /**

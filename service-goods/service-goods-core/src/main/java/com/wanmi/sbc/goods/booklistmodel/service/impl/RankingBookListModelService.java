@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 public class RankingBookListModelService extends BusinessTypeBookListModelAbstract {
 
-    public static final Integer MAX_SIZE = 2;
+    public static Integer MAX_SIZE = 2;
 
 //    @Override
 
@@ -31,9 +31,12 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
      * @return
      */
     @Override
-    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
+    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId, Integer size) {
         List<BookListGoodsPublishLinkModelResponse> bookListModelDTOList = super.listBookListModelBySpuId(Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()), spuId);
-        List<BookListGoodsPublishLinkModelResponse> resultParam;
+        List<BookListGoodsPublishLinkModelResponse> resultParam = null;
+        if (size != null) {
+            MAX_SIZE = size;
+        }
         if (bookListModelDTOList.size() > MAX_SIZE) {
             resultParam = bookListModelDTOList.subList(0, MAX_SIZE);
         } else {

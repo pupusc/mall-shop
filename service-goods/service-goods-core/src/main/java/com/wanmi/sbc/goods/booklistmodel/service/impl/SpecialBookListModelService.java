@@ -27,7 +27,7 @@ public class SpecialBookListModelService extends BusinessTypeBookListModelAbstra
      * @return
      */
     @Override
-    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
+    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId, Integer size) {
         List<BookListGoodsPublishLinkModelResponse> bookListModelDTOList = super.listBookListModelBySpuId(Collections.singletonList(BusinessTypeEnum.SPECIAL_SUBJECT.getCode()), spuId);
         if (CollectionUtils.isEmpty(bookListModelDTOList)) {
             return new ArrayList<>();
