@@ -1,5 +1,6 @@
 package com.wanmi.sbc.elastic.provider.impl.goods;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
@@ -24,8 +25,8 @@ public class EsGoodsCustomQueryController implements EsGoodsCustomQueryProvider 
     private EsGoodsCustomService esGoodsCustomService;
 
     @Override
-    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
-        return esGoodsCustomService.listEsGoodsNormal(request);
+    public BaseResponse<MicroServicePage<EsGoodsVO>> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
+        return BaseResponse.success(esGoodsCustomService.listEsGoodsNormal(request));
     }
     
 }

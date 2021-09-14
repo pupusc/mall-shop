@@ -141,6 +141,6 @@ public class BookListModelController {
         }
 
         //看了又看
-        classifyProvider.listPublishGoodsByIds()
+//        classifyProvider.listPublishGoodsByIds()
     }
 }

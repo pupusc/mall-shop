@@ -4,9 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.booklistmodel.request.BookListMixRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
+import com.wanmi.sbc.booklistmodel.response.BookListGoodsResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListMixResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
@@ -17,6 +22,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.util.CommonUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +32,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -43,6 +56,10 @@ public class BookListModelController {
 
     @Resource
     private CommonUtil commonUtil;
+
+
+    @Autowired
+    private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
     /**
      * 新增书单
@@ -142,9 +159,54 @@ public class BookListModelController {
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
         bookListModelProviderRequest.setId(id);
         BaseResponse<BookListMixProviderResponse> response = bookListModelProvider.findById(bookListModelProviderRequest);
-        String bookListMixStr = JSON.toJSONString(response.getContext());
+        BookListMixProviderResponse resultResponse = response.getContext();
+        String bookListMixStr = JSON.toJSONString(resultResponse);
         BookListMixResponse bookListMixResponse = JSON.parseObject(bookListMixStr, BookListMixResponse.class);
+        List<BookListGoodsResponse> bookListGoodsList = new ArrayList<>();
+        if (bookListMixResponse != null && bookListMixResponse.getChooseRuleMode() != null && !CollectionUtils.isEmpty(bookListMixResponse.getChooseRuleMode().getBookListGoodsList())) {
+            bookListGoodsList.addAll(bookListMixResponse.getChooseRuleMode().getBookListGoodsList());
+        }
+
+        if (!CollectionUtils.isEmpty(bookListGoodsList)) {
+            Set<String> goodsIdNo = bookListGoodsList.stream().map(BookListGoodsResponse::getSpuId).collect(Collectors.toSet());
+            EsGoodsCustomQueryProviderRequest request = new EsGoodsCustomQueryProviderRequest();
+            request.setGoodIdList(goodsIdNo);
+            BaseResponse<MicroServicePage<EsGoodsVO>> microServicePageBaseResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(request);
+            MicroServicePage<EsGoodsVO> contextPage = microServicePageBaseResponse.getContext();
+            if (!CollectionUtils.isEmpty(contextPage.getContent())) {
+                Map<String, EsGoodsVO> spuId2EsGoodsVoMap = new HashMap<>();
+                for (EsGoodsVO esGoodsParam : contextPage.getContent()) {
+                    spuId2EsGoodsVoMap.put(esGoodsParam.getId(), esGoodsParam);
+                }
+                //填充商品展示信息
+                for (BookListGoodsResponse bookListGoodsResponseParam : bookListGoodsList) {
+                    EsGoodsVO esGoodsVO = spuId2EsGoodsVoMap.get(bookListGoodsResponseParam.getSpuId());
+                    if (esGoodsVO == null) {
+                        continue;
+                    }
+                    //获取最小的 goodsInfo
+                    List<GoodsInfoNestVO> goodsInfos = esGoodsVO.getGoodsInfos();
+                    if (!CollectionUtils.isEmpty(goodsInfos)) {
+                        BigDecimal marketPrice = goodsInfos.get(0).getMarketPrice();
+                        String specText = goodsInfos.get(0).getSpecText();
+                        for (GoodsInfoNestVO goodsInfo : esGoodsVO.getGoodsInfos()) {
+                            if (marketPrice.compareTo(goodsInfo.getMarketPrice()) > 0) {
+                                marketPrice = goodsInfo.getMarketPrice();
+                                specText = goodsInfo.getSpecText();
+                            }
+                        }
+                        bookListGoodsResponseParam.setMarketPrice(marketPrice);
+                        bookListGoodsResponseParam.setSpecText(specText);
+                    }
+
+                    bookListGoodsResponseParam.setBuyPoint(esGoodsVO.getBuyPoint());
+                    bookListGoodsResponseParam.setGoodsInfoName(esGoodsVO.getGoodsName());
+
+                }
+            }
+        }
         return BaseResponse.success(bookListMixResponse);
     }
+
 
 }

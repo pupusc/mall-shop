@@ -1,6 +1,7 @@
 package com.wanmi.sbc.elastic.api.provider.goods;
 
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -18,5 +19,5 @@ public interface EsGoodsCustomQueryProvider {
      * @return
      */
     @PostMapping("/elastic/${application.elastic.version}/goods/custom/list/normal")
-    MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request);
+    BaseResponse<MicroServicePage<EsGoodsVO>> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request);
 }

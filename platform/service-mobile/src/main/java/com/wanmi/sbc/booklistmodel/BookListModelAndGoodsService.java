@@ -106,7 +106,8 @@ public class BookListModelAndGoodsService {
         // goodsId -> BookListModelAndGoodsListResponse
         Map<String, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
 
-        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (!CollectionUtils.isEmpty(content)) {
             for (EsGoodsVO esGoodsVO : content) {
