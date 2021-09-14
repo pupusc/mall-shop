@@ -70,6 +70,8 @@ import com.wanmi.sbc.goods.price.repository.GoodsCustomerPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsIntervalPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsLevelPriceRepository;
 import com.wanmi.sbc.goods.price.service.GoodsIntervalPriceService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
 import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
@@ -194,6 +196,9 @@ public class GoodsService {
 
     @Autowired
     private GoodsPropDetailRelRepository goodsPropDetailRelRepository;
+
+    @Autowired
+    private GoodsPropRepository goodsPropRepository;
 
     @Autowired
     private StandardGoodsRelRepository standardGoodsRelRepository;
@@ -2705,6 +2710,13 @@ public class GoodsService {
             return rels;
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * 根据属性id查询
+     */
+    public List<GoodsProp> findPropByIds(List<Long> ids) {
+        return goodsPropRepository.findAllByPropIdIn(ids);
     }
 
     @Transactional

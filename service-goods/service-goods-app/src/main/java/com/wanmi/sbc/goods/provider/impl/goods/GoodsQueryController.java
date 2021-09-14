@@ -46,6 +46,7 @@ import com.wanmi.sbc.goods.info.service.GoodsInfoService;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
 import com.wanmi.sbc.goods.info.service.S2bGoodsService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
@@ -54,6 +55,7 @@ import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -445,6 +447,21 @@ public class GoodsQueryController implements GoodsQueryProvider {
                 KsBeanUtil.convertList(goodsPropDetailRelList, GoodsPropDetailRelVO.class);
         response.setGoodsPropDetailRelVOList(goodsPropDetailRelVOList);
         return BaseResponse.success(response);
+    }
+
+    /**
+     * 根据属性id查询
+     */
+    @Override
+    public BaseResponse<List<GoodsPropVO>> getPropByIds(@RequestBody List<Long> ids) {
+        List<GoodsProp> props = goodsService.findPropByIds(ids);
+        List<GoodsPropVO> propVos = new ArrayList<>();
+        for (GoodsProp prop : props) {
+            GoodsPropVO goodsPropVO = new GoodsPropVO();
+            BeanUtils.copyProperties(prop, goodsPropVO);
+            propVos.add(goodsPropVO);
+        }
+        return BaseResponse.success(propVos);
     }
 
     /**

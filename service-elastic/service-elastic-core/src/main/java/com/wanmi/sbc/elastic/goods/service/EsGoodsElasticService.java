@@ -1,5 +1,6 @@
 package com.wanmi.sbc.elastic.goods.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -10,13 +11,7 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
-import com.wanmi.sbc.elastic.goods.model.root.EsCateBrand;
-import com.wanmi.sbc.elastic.goods.model.root.EsGoods;
-import com.wanmi.sbc.elastic.goods.model.root.EsGoodsInfo;
-import com.wanmi.sbc.elastic.goods.model.root.GoodsCustomerPriceNest;
-import com.wanmi.sbc.elastic.goods.model.root.GoodsInfoNest;
-import com.wanmi.sbc.elastic.goods.model.root.GoodsLabelNest;
-import com.wanmi.sbc.elastic.goods.model.root.GoodsLevelPriceNest;
+import com.wanmi.sbc.elastic.goods.model.root.*;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoProvider;
@@ -46,14 +41,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
-import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.marketing.api.provider.distribution.DistributionSettingQueryProvider;
 import com.wanmi.sbc.marketing.api.request.distribution.DistributionStoreSettingListByStoreIdsRequest;
 import com.wanmi.sbc.marketing.bean.vo.DistributionStoreSettingVO;
@@ -63,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -70,13 +59,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -231,7 +214,7 @@ public class EsGoodsElasticService {
         Map<String, List<GoodsCustomerPriceNest>> customerPriceMap = new HashMap<>();
         Map<String, List<GoodsIntervalPriceVO>> intervalPriceMap = new HashMap<>();
         Map<String, String> goodsInfoSpecDetailMap = new HashMap<>();
-        Map<String, List<Long>> goodsPropDetailMap = new HashMap<>();
+        Map<String, List<GoodsPropDetailRelVO>> goodsPropDetailMap = new HashMap<>();
         Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
 
         Map<Long, GoodsCateVO> goodsCateMap = goodsCateQueryProvider.listByCondition(new GoodsCateListByConditionRequest())
@@ -410,7 +393,26 @@ public class EsGoodsElasticService {
 
                         //分配属性值
                         if (goodsPropDetailMap.containsKey(goods.getGoodsId())) {
-                            esGoods.setPropDetailIds(goodsPropDetailMap.get(goods.getGoodsId()).stream().distinct().collect(Collectors.toList()));
+                            List<GoodsPropDetailRelVO> goodsPropDetailRelVOS = goodsPropDetailMap.get(goods.getGoodsId());
+                            List<GoodsPropDetailNested> esProps = new ArrayList<>();
+                            Map<Long, List<GoodsPropDetailRelVO>> propDetails = goodsPropDetailRelVOS.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getPropId));
+                            Collection<List<GoodsPropDetailRelVO>> details = propDetails.values();
+                            for (List<GoodsPropDetailRelVO> detailList : details) {
+                                GoodsPropDetailNested goodsPropDetailNested = new GoodsPropDetailNested();
+                                goodsPropDetailNested.setPropId(detailList.get(0).getPropId());
+                                goodsPropDetailNested.setPropName(detailList.get(0).getPropName());
+                                StringBuilder propValue = new StringBuilder(detailList.get(0).getPropValue());
+                                if(detailList.size() > 1){
+                                    for (int j = 1; j < detailList.size(); j++) {
+                                        propValue.append(",").append(detailList.get(j).getPropName());
+                                    }
+                                }
+                                goodsPropDetailNested.setPropValue(propValue.toString());
+                                esProps.add(goodsPropDetailNested);
+                            }
+                            esGoods.setPropDetailNesteds(esProps);
+//                            esGoods.setPropDetailIds(goodsPropDetailMap.get(goods.getGoodsId()).stream().distinct().collect(Collectors.toList()));
+
                         }
                         //设置spu的分类和品牌
                         GoodsCateVO goodsCate = goodsCateMap.get(goods.getCateId());
@@ -688,7 +690,7 @@ public class EsGoodsElasticService {
         Map<String, List<GoodsCustomerPriceNest>> customerPriceMap = new HashMap<>();
         Map<String, List<GoodsIntervalPriceVO>> intervalPriceMap = new HashMap<>();
         Map<String, String> goodsInfoSpecDetailMap = new HashMap<>();
-        Map<String, List<Long>> goodsPropDetailMap = new HashMap<>();
+//        Map<String, List<Long>> goodsPropDetailMap = new HashMap<>();
         Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
 
         Map<Long, GoodsCateVO> goodsCateMap = goodsCateQueryProvider.listByCondition(new GoodsCateListByConditionRequest())
@@ -788,7 +790,7 @@ public class EsGoodsElasticService {
                             .collect(Collectors.toMap(GoodsInfoSpecDetailRelVO::getGoodsInfoId, GoodsInfoSpecDetailRelVO::getDetailName, (a, b) -> a.concat(" ").concat(b))));
 
                     //属性值Map
-                    goodsPropDetailMap.putAll(getPropDetailRelList(goodsIds));
+//                    goodsPropDetailMap.putAll(getPropDetailRelList(goodsIds));
 
                     //商品店铺分类Map
                     storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
@@ -866,9 +868,9 @@ public class EsGoodsElasticService {
                         esGoods.setGoodsFeedbackRate(goodsFeedbackRate);
 
                         //分配属性值
-                        if (goodsPropDetailMap.containsKey(goods.getGoodsId())) {
-                            esGoods.setPropDetailIds(goodsPropDetailMap.get(goods.getGoodsId()).stream().distinct().collect(Collectors.toList()));
-                        }
+//                        if (goodsPropDetailMap.containsKey(goods.getGoodsId())) {
+//                            esGoods.setPropDetailIds(goodsPropDetailMap.get(goods.getGoodsId()).stream().distinct().collect(Collectors.toList()));
+//                        }
                         //设置spu的分类和品牌
                         GoodsCateVO goodsCate = goodsCateMap.get(goods.getCateId());
                         GoodsBrandVO goodsBrand = new GoodsBrandVO();
@@ -1046,7 +1048,7 @@ public class EsGoodsElasticService {
                     //清空缓存
                     intervalPriceMap.clear();
                     goodsInfoSpecDetailMap.clear();
-                    goodsPropDetailMap.clear();
+//                    goodsPropDetailMap.clear();
 //                specMap.clear();
                     levelPriceMap.clear();
                     customerPriceMap.clear();
@@ -1125,13 +1127,25 @@ public class EsGoodsElasticService {
      * @param goodsIds 商品id
      * @return 商品属性关键Map内容<商品id, 商品属性关联list>
      */
-    private Map<String, List<Long>> getPropDetailRelList(List<String> goodsIds) {
+    private Map<String, List<GoodsPropDetailRelVO>> getPropDetailRelList(List<String> goodsIds) {
         GoodsPropDetailRelByIdsRequest relByIdsRequest = new GoodsPropDetailRelByIdsRequest();
         relByIdsRequest.setGoodsIds(goodsIds);
         List<GoodsPropDetailRelVO> goodsPropDetailRelVOList =
                 goodsQueryProvider.getRefByGoodIds(relByIdsRequest).getContext().getGoodsPropDetailRelVOList();
-        return goodsPropDetailRelVOList.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getGoodsId,
-                Collectors.mapping(GoodsPropDetailRelVO::getDetailId, Collectors.toList())));
+        Map<Long, List<GoodsPropDetailRelVO>> idRel = goodsPropDetailRelVOList.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getPropId));
+        BaseResponse<List<GoodsPropVO>> propsRes = goodsQueryProvider.getPropByIds(new ArrayList<>(idRel.keySet()));
+        if(propsRes.getContext() != null){
+            List<GoodsPropVO> props = propsRes.getContext();
+            for (GoodsPropVO prop : props) {
+                List<GoodsPropDetailRelVO> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRelVO goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        Map<String, List<GoodsPropDetailRelVO>> goodsPropRel = goodsPropDetailRelVOList.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getGoodsId));
+        return goodsPropRel;
     }
 
     /**

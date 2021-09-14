@@ -57,6 +57,18 @@ public class GoodsPropDetailRelVO  implements Serializable {
     private Long propId;
 
     /**
+     * 属性名字
+     */
+    @ApiModelProperty(value = "属性名字")
+    private String propName;
+
+    /**
+     * 属性类型
+     */
+    @ApiModelProperty(value = "属性类型")
+    private Integer propType;
+
+    /**
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")
