@@ -1,6 +1,9 @@
 package com.wanmi.sbc.booklistmodel.response;
 
+import com.wanmi.sbc.classify.response.ClassifySimpleResponse;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * Description:
@@ -16,6 +19,11 @@ public class BookListMixResponse {
      * 书单模版
      */
     private BookListModelResponse bookListModel;
+
+    /**
+     * 类目列表
+     */
+    private List<ClassifySimpleResponse> classifyList;
 
     /**
      * 控件

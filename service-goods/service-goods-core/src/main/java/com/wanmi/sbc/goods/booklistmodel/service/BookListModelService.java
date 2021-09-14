@@ -13,14 +13,18 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderRespons
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
+import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
+import com.wanmi.sbc.goods.classify.service.ClassifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +84,10 @@ public class BookListModelService {
 
     @Autowired
     private BusinessTypeBookListModelFactory businessTypeBookListModelFactory;
+
+    @Autowired
+    private ClassifyService classifyService;
+
 
 
     /**
@@ -266,6 +274,21 @@ public class BookListModelService {
         BeanUtils.copyProperties(bookListModelDTO, bookListModelProviderResponse);
         bookListMixProviderResponse.setBookListModel(bookListModelProviderResponse);
 
+        //获取商品分类信息
+        List<BookListModelClassifyRelDTO> bookListModelClassifyRelList = bookListModelClassifyRelService.listNoPage(bookListModelId);
+        if (CollectionUtils.isEmpty(bookListModelClassifyRelList)) {
+            log.error("--->>> BookListModelService.findById bookListModelId: {} 店铺分类关系表为空", bookListModelId);
+            throw new SbcRuntimeException(String.format(" 根据书单模版id %s 查询书单的商品分类为空", bookListModelId));
+        }
+        List<Integer> classifyIdList = bookListModelClassifyRelList.stream().map(BookListModelClassifyRelDTO::getClassifyId).collect(Collectors.toList());
+        List<ClassifyDTO> classifyList = classifyService.listNoPage(classifyIdList);
+        List<ClassifySimpleProviderResponse> classifyResponseList = new ArrayList<>();
+        for (ClassifyDTO classifyParam : classifyList) {
+            ClassifySimpleProviderResponse classifySimpleProviderResponse = new ClassifySimpleProviderResponse();
+            BeanUtils.copyProperties(classifyParam, classifySimpleProviderResponse);
+            classifyResponseList.add(classifySimpleProviderResponse);
+        }
+        bookListMixProviderResponse.setClassifyList(classifyResponseList);
         //获取控件信息和商品列表信息
         ChooseRuleProviderResponse chooseRuleProviderResponse =
                 chooseRuleGoodsListService.findRuleAndGoodsByCondition(bookListModelDTO.getId(), CategoryEnum.BOOK_LIST_MODEL.getCode());
