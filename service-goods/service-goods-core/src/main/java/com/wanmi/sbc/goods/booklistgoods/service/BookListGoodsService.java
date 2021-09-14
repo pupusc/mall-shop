@@ -61,6 +61,7 @@ public class BookListGoodsService {
             bookListGoodsDTO.setCreateTime(new Date());
             bookListGoodsDTO.setUpdateTime(new Date());
             bookListGoodsDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
+            bookListGoodsDTOList.add(bookListGoodsDTO);
         }
         bookListGoodsRepository.saveAll(bookListGoodsDTOList);
     }
@@ -100,7 +101,7 @@ public class BookListGoodsService {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
             public Predicate toPredicate(Root<BookListGoodsDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
+                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
 
                 if (chooseRuleId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("chooseRuleId"), chooseRuleId));

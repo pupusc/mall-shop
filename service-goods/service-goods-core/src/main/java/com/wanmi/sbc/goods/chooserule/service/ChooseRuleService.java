@@ -109,7 +109,7 @@ public class ChooseRuleService {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
             public Predicate toPredicate(Root<ChooseRuleDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
+                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (chooseRuleRequest.getBookListId() != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("bookListId"), chooseRuleRequest.getBookListId()));
                 }

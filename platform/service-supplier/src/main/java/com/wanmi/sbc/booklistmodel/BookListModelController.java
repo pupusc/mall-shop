@@ -142,7 +142,7 @@ public class BookListModelController {
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
         bookListModelProviderRequest.setId(id);
         BaseResponse<BookListMixProviderResponse> response = bookListModelProvider.findById(bookListModelProviderRequest);
-        String bookListMixStr = JSON.toJSONString(response);
+        String bookListMixStr = JSON.toJSONString(response.getContext());
         BookListMixResponse bookListMixResponse = JSON.parseObject(bookListMixStr, BookListMixResponse.class);
         return BaseResponse.success(bookListMixResponse);
     }

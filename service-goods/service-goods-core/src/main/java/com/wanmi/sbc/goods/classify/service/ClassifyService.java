@@ -62,21 +62,25 @@ public class ClassifyService {
         List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null), sort);
         List<ClassifyProviderResponse>  result = new ArrayList<>();
         Map<Integer, ClassifyProviderResponse> resultMap = new HashMap<>();
-        classifyDTOList.forEach(e -> {
-            if (e.getParentId() == null || e.getParentId() == 0) {
+        for (ClassifyDTO classifyParam : classifyDTOList) {
+            if (classifyParam.getParentId() == null || classifyParam.getParentId() == 0) {
                 ClassifyProviderResponse parent = new ClassifyProviderResponse();
-                parent.setId(e.getId());
-                parent.setClassifyName(e.getClassifyName());
+                parent.setId(classifyParam.getId());
+                parent.setClassifyName(classifyParam.getClassifyName());
                 parent.setChildrenList(new ArrayList<>());
-                resultMap.put(e.getId(), parent);
+                resultMap.put(classifyParam.getId(), parent);
+                result.add(parent);
             } else {
-                ClassifyProviderResponse parent = resultMap.get(e.getParentId());
+                ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
+                if (parent == null) {
+                    continue;
+                }
                 ClassifyProviderResponse children = new ClassifyProviderResponse();
-                children.setId(e.getId());
-                children.setClassifyName(e.getClassifyName());
+                children.setId(classifyParam.getId());
+                children.setClassifyName(classifyParam.getClassifyName());
                 parent.getChildrenList().add(children);
             }
-        });
+        };
         return result;
     }
 
