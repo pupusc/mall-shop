@@ -97,7 +97,8 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(termQuery("goodsInfos.addedFlag", AddedFlag.YES.toValue()));
             // 已经审核
             boolQueryBuilder.must(termQuery("auditStatus", AuditStatus.CHECKED.toValue()));
-            boolQueryBuilder.must(termQuery("goodsInfos.auditStatus", AuditStatus.CHECKED.toValue()));
+            //当前字段没有索引，所以要注释掉
+//            boolQueryBuilder.must(termQuery("goodsInfos.auditStatus", AuditStatus.CHECKED.toValue()));
 
             //店铺开启状态
             boolQueryBuilder.must(termQuery("storeState", StoreState.OPENING.toValue()));
@@ -119,11 +120,21 @@ public class EsGoodsCustomService {
 
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
-            boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
+//            if (request.getGoodIdList().size() == 1) {
+//                boolQueryBuilder.must(termQuery("id", request.getGoodIdList().toArray()[0]));
+//            } else {
+                boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
+//            }
+
         }
 
-        if (CollectionUtils.isEmpty(request.getUnGoodIdList())) {
-            boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
+        if (!CollectionUtils.isEmpty(request.getUnGoodIdList())) {
+//            if (request.getUnGoodIdList().size() == 1) {
+//                boolQueryBuilder.mustNot(termQuery("id", request.getUnGoodIdList().toArray()[0]));
+//            } else {
+                boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
+//            }
+
         }
 
         /**
