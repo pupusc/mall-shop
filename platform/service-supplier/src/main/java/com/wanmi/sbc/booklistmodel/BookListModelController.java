@@ -171,6 +171,8 @@ public class BookListModelController {
             Set<String> goodsIdNo = bookListGoodsList.stream().map(BookListGoodsResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest request = new EsGoodsCustomQueryProviderRequest();
             request.setGoodIdList(goodsIdNo);
+            request.setPageNum(1);
+            request.setPageSize(100);
             BaseResponse<MicroServicePage<EsGoodsVO>> microServicePageBaseResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(request);
             MicroServicePage<EsGoodsVO> contextPage = microServicePageBaseResponse.getContext();
             if (!CollectionUtils.isEmpty(contextPage.getContent())) {
