@@ -137,7 +137,8 @@ public class BookListModelService {
      */
     @org.springframework.transaction.annotation.Transactional
     public void update(BookListMixProviderRequest bookListMixProviderRequest) {
-        log.info("operator：{} BookListModelService.update BookListModel beginning", bookListMixProviderRequest.getOperator());
+        log.info("operator：{} BookListModelService.update BookListModel beginning param:{}",
+                bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListMixProviderRequest));
         BookListModelProviderRequest bookListModelRequest = bookListMixProviderRequest.getBookListModel();
         if (bookListModelRequest.getId() == null) {
             log.info("operator：{} BookListModelService.update chooseRuleGoodsListModel is null 控件信息不做修改", bookListMixProviderRequest.getOperator());
@@ -185,9 +186,22 @@ public class BookListModelService {
             bookListModelClassifyRelService.change(bookListModelClassifyRequest);
         }
 
+        /**
+         * 修改控件和商品列表
+         */
+        if (bookListMixProviderRequest.getChooseRuleGoodsListModel() != null) {
+            bookListMixProviderRequest.getChooseRuleGoodsListModel().setBookListId(bookListModelRequest.getId());
+            if (CategoryEnum.getByCode(bookListMixProviderRequest.getChooseRuleGoodsListModel().getCategory()) == null) {
+                log.error("operator：{} BookListModelService.update chooseRuleGoodsListModel category {} not exists",
+                        bookListMixProviderRequest.getOperator(), bookListMixProviderRequest.getChooseRuleGoodsListModel().getCategory());
+                return;
+            }
+            //修改控件和书单列表
+            chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
+        }
 
-        //修改控件和书单列表
-        chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
+
+
     }
 
     /**
