@@ -124,52 +124,11 @@ public class BookListModelAndGoodsService {
                     goodsId2BookListModelAndGoodsListMap.put(esGoodsVO.getId(), bookListModelAndGoodsListResponse);
                     result.add(bookListModelAndGoodsListResponse);
                 } else {
-                    String goodsInfoId = "";
-                    String goodsInfoNo = "";
-                    String goodsInfoImg = "";
-                    List<String> couponLabelNameList = null;
-                    //商品市场价
-                    BigDecimal currentSalePrice = BigDecimal.ZERO;
-                    BigDecimal lineSalePrice = BigDecimal.ZERO;
-                    if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
-                        for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
-                            if (goodsInfoParam.getMarketPrice() != null && currentSalePrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                                currentSalePrice = goodsInfoParam.getSalePrice();
-                                lineSalePrice  = goodsInfoParam.getMarketPrice();
-                            }
-                            if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
-                                couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
-                            }
-                            goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                            goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                            goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
 
-                        }
-                    }
-                    GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
-                    esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());
-                    esGoodsCustomResponse.setGoodsNo(esGoodsVO.getGoodsNo());
-                    //获取最小价格的 goodsInfo
-                    esGoodsCustomResponse.setGoodsInfoId(goodsInfoId);
-                    esGoodsCustomResponse.setGoodsInfoNo(goodsInfoNo);
-                    esGoodsCustomResponse.setGoodsName(esGoodsVO.getGoodsName());
-                    esGoodsCustomResponse.setGoodsSubName(esGoodsVO.getGoodsSubtitle());
-                    esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
-                    esGoodsCustomResponse.setGoodsUnBackImg(esGoodsVO.getGoodsUnBackImg());
-                    esGoodsCustomResponse.setShowPrice(currentSalePrice);
-                    esGoodsCustomResponse.setLinePrice(lineSalePrice);
-                    esGoodsCustomResponse.setCpsSpecial(esGoodsVO.getCpsSpecial());
-                    esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
-                    List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
-                    if (!CollectionUtils.isEmpty(goodsLabelList)) {
-                        esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
-                    } else {
-                        esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
-                    }
 
 //                    esGoodsCustomResponse.setGoodsScore(esGoodsVO.getgoodsco); todo
 //                    esGoodsCustomResponse.setProperties(); todo
-                    bookListModelAndGoodsListResponseTmp.getGoodsList().add(esGoodsCustomResponse);
+                    bookListModelAndGoodsListResponseTmp.getGoodsList().add(this.packageGoodsCustomResponse(esGoodsVO));
                 }
             }
         }
@@ -180,5 +139,57 @@ public class BookListModelAndGoodsService {
         microServicePageResult.setPageable(esGoodsVOMicroServicePage.getPageable());
         microServicePageResult.setContent(result);
         return microServicePageResult;
+    }
+
+
+    /**
+     *  esGoodsVo 转化成 可以返回给前端的对象
+     * @param esGoodsVO
+     * @return
+     */
+    public GoodsCustomResponse packageGoodsCustomResponse(EsGoodsVO esGoodsVO) {
+        String goodsInfoId = "";
+        String goodsInfoNo = "";
+        String goodsInfoImg = "";
+        List<String> couponLabelNameList = null;
+        //商品市场价
+        BigDecimal currentSalePrice = BigDecimal.ZERO;
+        BigDecimal lineSalePrice = BigDecimal.ZERO;
+        if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
+            for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
+                if (goodsInfoParam.getMarketPrice() != null && currentSalePrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
+                    currentSalePrice = goodsInfoParam.getSalePrice();
+                    lineSalePrice  = goodsInfoParam.getMarketPrice();
+                }
+                if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
+                    couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
+                }
+                goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+
+            }
+        }
+        GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
+        esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());
+        esGoodsCustomResponse.setGoodsNo(esGoodsVO.getGoodsNo());
+        //获取最小价格的 goodsInfo
+        esGoodsCustomResponse.setGoodsInfoId(goodsInfoId);
+        esGoodsCustomResponse.setGoodsInfoNo(goodsInfoNo);
+        esGoodsCustomResponse.setGoodsName(esGoodsVO.getGoodsName());
+        esGoodsCustomResponse.setGoodsSubName(esGoodsVO.getGoodsSubtitle());
+        esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
+        esGoodsCustomResponse.setGoodsUnBackImg(esGoodsVO.getGoodsUnBackImg());
+        esGoodsCustomResponse.setShowPrice(currentSalePrice);
+        esGoodsCustomResponse.setLinePrice(lineSalePrice);
+        esGoodsCustomResponse.setCpsSpecial(esGoodsVO.getCpsSpecial());
+        esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
+        List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
+        if (!CollectionUtils.isEmpty(goodsLabelList)) {
+            esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
+        } else {
+            esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
+        }
+        return esGoodsCustomResponse;
     }
 }
