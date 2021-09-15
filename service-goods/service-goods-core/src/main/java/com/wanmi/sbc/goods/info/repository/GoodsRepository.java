@@ -398,4 +398,10 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * @return
      */
     Goods findByGoodsId(String goodsId);
+
+    /**
+     * 查找所有书籍
+     */
+    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
+    List<Goods> findBooks();
 }

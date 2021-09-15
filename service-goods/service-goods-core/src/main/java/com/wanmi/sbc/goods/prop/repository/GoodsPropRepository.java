@@ -31,6 +31,8 @@ public interface GoodsPropRepository extends JpaRepository<GoodsProp, Long>, Jpa
     @Query
     GoodsProp findByPropId(Long propId);
 
+    GoodsProp findByPropName(String propName);
+
     @Query
     List<GoodsProp> findAllByCateIdAndIndexFlagAndDelFlagOrderBySortAsc(Long cateId, DefaultFlag indexFlag, DeleteFlag sort);
 

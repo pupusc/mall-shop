@@ -44,12 +44,6 @@ public class GoodsPropDetailRel {
     private Long detailId;
 
     /**
-     *属性值id（为了支持多选）
-     */
-    @Transient
-    private String detailId2;
-
-    /**
      *属性值（文本框输入）
      */
     @Column(name = "prop_value")
@@ -85,4 +79,10 @@ public class GoodsPropDetailRel {
     @Column(name = "del_flag")
     @Enumerated
     private DeleteFlag delFlag;
+
+    @Transient
+    private Integer propType;
+
+    @Transient
+    private String propName;
 }

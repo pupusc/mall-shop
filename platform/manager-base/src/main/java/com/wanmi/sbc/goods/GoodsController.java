@@ -250,6 +250,18 @@ public class GoodsController {
     }
 
     /**
+     * @description 为书籍设置ISBN
+     * @menu 商品
+     * @status done
+     */
+//    @ApiOperation(value = "标签")
+    @RequestMapping(value = "/setIsbn", method = RequestMethod.POST)
+    public BaseResponse setIsbn() {
+        goodsProvider.setIsbnForGoods();
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * @description 同时新增商品基本和商品设价
      * @menu 商城配合知识顾问
      * @tag feature_d_cps_v3
@@ -462,7 +474,6 @@ public class GoodsController {
         }
         operateDataLogAddRequest.setOperateTime(LocalDateTime.now());
 
-
         StringBuilder operateContent = new StringBuilder();
         StringBuilder operateBeforeData = new StringBuilder();
         StringBuilder operateAfterData = new StringBuilder();
@@ -592,7 +603,6 @@ public class GoodsController {
             operateContent.append("修改销售类型,");
         }
 
-
         //上下架 必填项
         operateBeforeData.append("上下架：").append(oldData.getGoods().getAddedFlag());
         operateAfterData.append("上下架：").append(newData.getGoods().getAddedFlag());
@@ -634,7 +644,6 @@ public class GoodsController {
 
         //属性信息
         boolean proInfoFlag = false;
-
 
         for (GoodsInfoVO goodsInfoVO : oldData.getGoodsInfos()) {
             //商品图片
@@ -828,7 +837,6 @@ public class GoodsController {
         return operateDataLogAddRequest;
     }
 
-
     /**
      * @description 保存商品价格
      * @menu 商城配合知识顾问
@@ -876,7 +884,6 @@ public class GoodsController {
                 "设价：SPU编码" + request.getGoods().getGoodsNo());
         return BaseResponse.SUCCESSFUL();
     }
-
 
     /**
      * @description 商家后台获取商品详情信息

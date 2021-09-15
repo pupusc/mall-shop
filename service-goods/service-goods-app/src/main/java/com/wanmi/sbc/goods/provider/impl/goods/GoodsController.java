@@ -409,6 +409,15 @@ public class GoodsController implements GoodsProvider {
     }
 
     /**
+     * 为商品设置ISBN
+     */
+    @Override
+    public BaseResponse<GoodsModifyResponse> setIsbnForGoods() {
+        goodsService.fillIsbnForGoods();
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * 新增商品定价
      *
      * @param request {@link GoodsAddPriceRequest}

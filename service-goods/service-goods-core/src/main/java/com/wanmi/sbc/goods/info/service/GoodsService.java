@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -27,9 +28,7 @@ import com.wanmi.sbc.goods.api.response.standard.StandardImportStandardRequest;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
 import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
@@ -108,6 +107,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.checkerframework.checker.units.qual.A;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -115,10 +116,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -126,6 +129,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.awt.print.Book;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -140,6 +148,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class GoodsService {
+
+    private static Logger log = LoggerFactory.getLogger(GoodsService.class);
+
     @Autowired
     GoodsAresService goodsAresService;
 
@@ -932,7 +943,19 @@ public class GoodsService {
             }
         }
         //商品属性
-        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
 
         //如果是多规格
         if (Constants.yes.equals(goods.getMoreSpecFlag())) {
@@ -2844,6 +2867,8 @@ public class GoodsService {
         return goodsRepository.findById(goodsId).orElse(null);
     }
 
+
+
     /**
      * 按条件查询数量
      *
@@ -3145,6 +3170,102 @@ public class GoodsService {
      */
     public Goods findByGoodsId(String goodsId){
         return goodsRepository.findByGoodsId(goodsId);
+    }
+
+    /**
+     * 为没有ISBN的书籍设置ISBN
+     */
+    public void fillIsbnForGoods() {
+        List<Goods> books = goodsRepository.findBooks();
+        GoodsProp isbn = goodsPropRepository.findByPropName("ISBN");
+        List<GoodsPropDetailRel> rels = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        for (Goods book : books) {
+            String bookName = fetchIsbn(book.getGoodsName());
+            if(bookName != null){
+                GoodsPropDetailRel rel = goodsPropDetailRelRepository.findByGoodsIdAndIsbn(isbn.getPropId(), book.getGoodsId());
+                if(rel == null){
+                    rel = new GoodsPropDetailRel();
+                    rel.setPropValue(bookName);
+                    rel.setDetailId(0L);
+                    rel.setGoodsId(book.getGoodsId());
+                    rel.setDelFlag(DeleteFlag.NO);
+                    rel.setPropId(isbn.getPropId());
+                    rel.setCreateTime(now);
+                    rel.setUpdateTime(now);
+                }else {
+                    rel.setPropValue(bookName);
+                }
+                rels.add(rel);
+            }
+        }
+        goodsPropDetailRelRepository.saveAll(rels);
+    }
+
+    /**
+     * 从网络上查找ISBN
+     * @param keyWord 书名
+     */
+    private String fetchIsbn(String keyWord) {
+        String DOMAIN = "https://www.dushu.com";
+        RestTemplate restTemplate = new RestTemplate();
+        String searchUrl = DOMAIN + "/search.aspx?wd=" + keyWord;
+        ResponseEntity<String> res = restTemplate.getForEntity(searchUrl, String.class);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBody().getBytes())));
+        try {
+            String line = reader.readLine();
+            while(line != null) {
+                if(line.contains("img152 float")) {
+                    int indexBegin = line.indexOf("/book/");
+                    if(indexBegin != -1) {
+                        StringBuilder sb = new StringBuilder(20);
+                        for (char c : line.toCharArray()) {
+                            if(19968 <= c && c < 40869){
+                                sb.append(c);
+                            }
+                        }
+                        if(sb.toString().equals(keyWord)) {
+                            System.out.println(keyWord);
+                            int indexEnd = line.indexOf("target=") - 2;
+                            String link = line.substring(indexBegin, indexEnd);
+
+                            ResponseEntity<String> res2 = restTemplate.getForEntity(DOMAIN + link, String.class);
+                            BufferedReader reader2 = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res2.getBody().getBytes())));
+                            String line2 = reader2.readLine();
+                            while(line2 != null) {
+                                if(line2.contains("ISBN：")){
+                                    line2 = reader2.readLine();
+                                    int indexBegin2 = line2.indexOf("rt\">") + 4;
+                                    int indexEnd2 = line2.indexOf("</td>");
+                                    String isbn = line2.substring(indexBegin2, indexEnd2);
+                                    return isbn;
+                                }
+                                line2 = reader2.readLine();
+                                if(line2 == null){
+                                    log.warn("{}-找不到ISBN", keyWord);
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+                }
+                line = reader.readLine();
+                if(line == null){
+                    log.warn("{}-找不到ISBN", keyWord);
+                    return null;
+                }
+            }
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        return null;
     }
 
 }
