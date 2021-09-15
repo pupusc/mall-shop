@@ -90,9 +90,12 @@ public class BookListModelController {
      */
     @PostMapping("/update")
     public BaseResponse update(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
-        BookListMixProviderRequest request = new BookListMixProviderRequest();
-        BeanUtils.copyProperties(bookListMixRequest, request);
+        String bookListMixJsonStr = JSON.toJSONString(bookListMixRequest);
+        BookListMixProviderRequest request = JSON.parseObject(bookListMixJsonStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());
+        if (request.getChooseRuleGoodsListModel() != null) {
+            request.getChooseRuleGoodsListModel().setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        }
         bookListModelProvider.update(request);
         return BaseResponse.SUCCESSFUL();
     }
@@ -171,6 +174,8 @@ public class BookListModelController {
             Set<String> goodsIdNo = bookListGoodsList.stream().map(BookListGoodsResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest request = new EsGoodsCustomQueryProviderRequest();
             request.setGoodIdList(goodsIdNo);
+            request.setPageNum(1);
+            request.setPageSize(100);
             BaseResponse<MicroServicePage<EsGoodsVO>> microServicePageBaseResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(request);
             MicroServicePage<EsGoodsVO> contextPage = microServicePageBaseResponse.getContext();
             if (!CollectionUtils.isEmpty(contextPage.getContent())) {

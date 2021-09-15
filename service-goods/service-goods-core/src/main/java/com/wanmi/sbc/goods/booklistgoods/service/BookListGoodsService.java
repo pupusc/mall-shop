@@ -82,6 +82,7 @@ public class BookListGoodsService {
         }
 
         bookListGoodsRepository.saveAll(bookListGoodsDTOList);
+        
         this.add(bookListGoodsRequest);
     }
 

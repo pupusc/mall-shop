@@ -92,7 +92,9 @@ public class ChooseRuleGoodsListService {
             return;
         }
         BookListGoodsRequest bookListGoodsRequest = new BookListGoodsRequest();
-        bookListGoodsRequest.setChooseRuleId(chooseRuleGoodsListProviderRequest.getChooseRuleId());
+        bookListGoodsRequest.setChooseRuleId(chooseRuleUpdate.getId());
+        bookListGoodsRequest.setBookListId(chooseRuleGoodsListProviderRequest.getBookListId());
+        bookListGoodsRequest.setCategory(chooseRuleGoodsListProviderRequest.getCategory());
         bookListGoodsRequest.setGoodsIdListRequestList(chooseRuleGoodsListProviderRequest.getGoodsIdListRequestList());
         bookListGoodsService.update(bookListGoodsRequest);
         log.info("-------->> ChooseRuleGoodsListService.update operator: {} bookListGoods complete", operator);
