@@ -90,7 +90,7 @@ public class EsGoodsCustomService {
         if (isUseBase) {
             //只返回有效规格
             boolQueryBuilder.must(termQuery("goodsInfos.delFlag", DeleteFlag.NO.toValue()));
-            //只是返回有效标签
+            //只是返回有效标签 该标签当前无效
 //            boolQueryBuilder.must(termQuery("goodsLabelList.delFlag", DeleteFlag.NO.toValue()));
             // 已上架
             boolQueryBuilder.must(termQuery("addedFlag", AddedFlag.YES.toValue()));

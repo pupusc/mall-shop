@@ -90,8 +90,8 @@ public class BookListModelController {
      */
     @PostMapping("/update")
     public BaseResponse update(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
-        BookListMixProviderRequest request = new BookListMixProviderRequest();
-        BeanUtils.copyProperties(bookListMixRequest, request);
+        String bookListMixJsonStr = JSON.toJSONString(bookListMixRequest);
+        BookListMixProviderRequest request = JSON.parseObject(bookListMixJsonStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());
         bookListModelProvider.update(request);
         return BaseResponse.SUCCESSFUL();
