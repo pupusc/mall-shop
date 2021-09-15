@@ -245,7 +245,7 @@ public class GoodsController {
      */
     @ApiOperation(value = "标签")
     @RequestMapping(value = "/tags", method = RequestMethod.GET)
-    public BaseResponse<List<GoodsTagVo>> add() {
+    public BaseResponse<List<GoodsTagVo>> tags() {
         return goodsProvider.tags();
     }
 

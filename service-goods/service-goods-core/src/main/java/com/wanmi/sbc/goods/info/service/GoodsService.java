@@ -2716,9 +2716,11 @@ public class GoodsService {
                 Long propId = ((BigInteger) object[0]).longValue();
                 Long detailId = ((BigInteger) object[1]).longValue();
                 String goodsId = String.valueOf(object[2]);
+                String propValue = String.valueOf(object[3]);
                 rel.setPropId(propId);
                 rel.setDetailId(detailId);
                 rel.setGoodsId(goodsId);
+                rel.setPropValue(propValue);
                 rels.add(rel);
             });
             return rels;
