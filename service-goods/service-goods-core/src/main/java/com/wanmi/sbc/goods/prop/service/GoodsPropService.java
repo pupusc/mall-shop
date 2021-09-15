@@ -190,9 +190,9 @@ public class GoodsPropService {
         //排序后保存
         List<GoodsProp> goodsProps = initSort(goodsPropRequest);
         goodsPropRepository.saveAll(goodsProps);
+        //保存默认spu与默认属性的关联
+        saveDefaultRef(goodsIds,goodsProp.getPropId());
         if(goodsProp.getPropType() == 1){
-            //保存默认spu与默认属性的关联
-            //saveDefaultRef(goodsIds,goodsProp.getPropId());
             List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
             //判断属性的属性值是否存在相同
             if (CollectionUtils.isEmpty(goodsPropDetails) || isGoodsPropDetailRepeat(goodsPropDetails)){

@@ -22,7 +22,7 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
     @Query(value = "delete from goods_prop_detail_rel where goods_id=:goodsId", nativeQuery = true)
     void deletePropsForGoods(String goodsId);
 
-    @Query(value = " from GoodsPropDetailRel a where a.goodsId= ?1 and delFlag = 0 ")
+    @Query(value = " from GoodsPropDetailRel a where a.goodsId= ?1 and delFlag = 0")
     List<GoodsPropDetailRel> queryByGoodsId(String goodsId);
 
     @Query
