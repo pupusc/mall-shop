@@ -1,7 +1,5 @@
 package com.wanmi.sbc.booklistmodel;
 
-import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.booklistmodel.response.BookListMixMobileResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
@@ -10,7 +8,6 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
-import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
@@ -18,10 +15,8 @@ import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
-import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +28,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -197,8 +190,10 @@ public class BookListModelController {
     }
 
     /**
-     * 根据书单模版id 获取模版商品信息
+     * 根据书单模版id 获取模版信息
      * @menu 商城详情页
+     * @status undone
+     *
      * @param id
      * @return
      */
@@ -217,6 +212,10 @@ public class BookListModelController {
 
     /**
      * 根据书单模版id 获取书单模版商品列表信息
+     *
+     * @menu 商城详情页
+     * @status undone
+     *
      * @param id
      * @param pageNum
      * @param pageSize
