@@ -6,6 +6,8 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderRespons
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -31,7 +33,8 @@ public interface ClassifyProvider {
      * @param goodsId
      * @return
      */
-    BaseResponse<List<ClassifyGoodsProviderResponse>> listGoodsIdOfChildOfParentByGoodsId(String goodsId);
+    @GetMapping("/goods/${application.goods.version}/classify/listGoodsIdOfChildOfParentByGoodsId/{goodsId}")
+    BaseResponse<List<ClassifyGoodsProviderResponse>> listGoodsIdOfChildOfParentByGoodsId(@PathVariable("goodsId") String goodsId);
 
 //    @PostMapping("/goods/${application.goods.version}/classify/listPublishGoodsByIds")
 //    BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(@NotNull @RequestBody Collection<Integer> bookListModelIdCollection);

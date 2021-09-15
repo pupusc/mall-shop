@@ -3,7 +3,6 @@ package com.wanmi.sbc.booklistmodel;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -52,7 +51,7 @@ public class BookListModelController {
     /**
      * 获取榜单
      *
-     * @menu 商城书单和类目
+     * @menu 商城详情页
      * @status undone
      * @param spuId
      * @return
@@ -66,7 +65,7 @@ public class BookListModelController {
 
     /**
      * 获取更多榜单
-     * @menu 商城书单和类目
+     * @menu 商城详情页
      * @status undone
      * @param spuId
      */
@@ -96,7 +95,7 @@ public class BookListModelController {
      *
      * 获取专题
      *
-     * @menu 商城书单和类目
+     * @menu 商城详情页
      * @status undone
      * @param spuId
      * @return
@@ -112,7 +111,7 @@ public class BookListModelController {
      *
      * 获取推荐
      *
-     * @menu 商城书单和类目
+     * @menu 商城详情页
      * @status undone
      * @param spuId
      * @return
@@ -135,9 +134,9 @@ public class BookListModelController {
 
     /**
      *
-     * 获取更多书单
+     * 获取更多推荐
      *
-     * @menu 商城书单和类目
+     * @menu 商城详情页
      * @status undone
      * @param spuId
      * @return
