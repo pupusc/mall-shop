@@ -63,6 +63,14 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
     List<Object> findRefByGoodIds(List<String> goodsIds);
 
     /**
+     * 根据商品id和isbn查询属性
+     * @param goodsId
+     * @return
+     */
+    @Query(value = "select * from goods_prop_detail_rel where prop_id=?1 and goods_id=?2", nativeQuery = true)
+    GoodsPropDetailRel findByGoodsIdAndIsbn(Long propId, String goodsId);
+
+    /**
      * 根据商品ID编号进行删除
      * @param goodsId 商品ID
      */

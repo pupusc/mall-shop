@@ -1,7 +1,7 @@
 -- sbc-setting 书友说 START
 INSERT INTO `authority`(`authority_id`, `system_type_cd`, `function_id`, `authority_title`, `authority_name`, `authority_url`, `request_type`, `remark`, `sort`, `create_time`, `del_flag`) VALUES ('8a9bc76c6a673f39016a67d6d2180013', 3, '8a9bc76c6a673f39016a67d571e4000e', '添加书友说评价', NULL, '/goods/evaluate/bookFriend/add', 'POST', NULL, 30, '2021-09-01 18:44:53', 0);
 INSERT INTO `authority`(`authority_id`, `system_type_cd`, `function_id`, `authority_title`, `authority_name`, `authority_url`, `request_type`, `remark`, `sort`, `create_time`, `del_flag`) VALUES ('8a9bc76c6a673f39016a67d6d2180014', 3, '8a9bc76c6a673f39016a67d571e4000e', '编辑书友说评价', NULL, '/goods/evaluate/bookFriend/edit', 'POST', NULL, 30, '2021-09-01 18:44:53', 0);
-INSERT INTO `authority`(`authority_id`, `system_type_cd`, `function_id`, `authority_title`, `authority_name`, `authority_url`, `request_type`, `remark`, `sort`, `create_time`, `del_flag`) VALUES ('8a9bc76c6a673f39016a67d6d2180015', 3, 'fc9294833fe311e9828800163e0fc468', '标签查询', NULL, '/goods/tags', 'GET', NULL, 30, '2021-09-01 18:44:53', 0);
+INSERT INTO `authority`(`authority_id`, `system_type_cd`, `function_id`, `authority_title`, `authority_name`, `authority_url`, `request_type`, `remark`, `sort`, `create_time`, `del_flag`) VALUES ('8a9bc76c6a673f39016a67d6d2180015', 3, 'fc924c7c3fe311e9828800163e0fc468', '标签查询', NULL, '/goods/tags', 'GET', NULL, 30, '2021-09-01 18:44:53', 0);
 -- sbc-setting 书友说 END
 
 -- sbc-goods 商品上架 START

@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long>, JpaSpecificationExecutor<Tag> {
 
-    @Query(value = "select t.* from t_tag as t join t_tag_rel as tr on tr.tag_id=t.id where tr.goods_id=:goodsId", nativeQuery = true)
+    @Query(value = "select distinct t.* from t_tag as t join t_tag_rel as tr on tr.tag_id=t.id where tr.goods_id=:goodsId", nativeQuery = true)
     List<Tag> findByGoods(String goodsId);
 
     @Modifying

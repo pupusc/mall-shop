@@ -94,6 +94,9 @@ public interface GoodsProvider {
     @PostMapping("/goods/${application.goods.version}/modify")
     BaseResponse<GoodsModifyResponse> modify(@RequestBody @Valid GoodsModifyRequest request);
 
+    @PostMapping("/goods/${application.goods.version}/setIsbnForGoods")
+    BaseResponse<GoodsModifyResponse> setIsbnForGoods();
+
     /**
      * 新增商品定价
      *
