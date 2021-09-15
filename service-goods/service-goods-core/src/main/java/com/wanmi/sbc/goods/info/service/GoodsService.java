@@ -70,6 +70,8 @@ import com.wanmi.sbc.goods.price.repository.GoodsCustomerPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsIntervalPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsLevelPriceRepository;
 import com.wanmi.sbc.goods.price.service.GoodsIntervalPriceService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
 import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
@@ -194,6 +196,9 @@ public class GoodsService {
 
     @Autowired
     private GoodsPropDetailRelRepository goodsPropDetailRelRepository;
+
+    @Autowired
+    private GoodsPropRepository goodsPropRepository;
 
     @Autowired
     private StandardGoodsRelRepository standardGoodsRelRepository;
@@ -1880,8 +1885,21 @@ public class GoodsService {
                 goodsImageRepository.save(goodsImage);
             });
         }
+
         //保存商品属性
         List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
+        if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
+            goodsPropDetailRelRepository.deletePropsForGoods(newGoods.getGoodsId());
+            //如果是修改则设置修改时间，如果是新增则设置创建时间
+            goodsPropDetailRels.forEach(goodsPropDetailRel -> {
+                goodsPropDetailRel.setDelFlag(DeleteFlag.NO);
+                goodsPropDetailRel.setCreateTime(LocalDateTime.now());
+            });
+            goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
+        }
+
+        //保存商品属性
+        /*List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
         if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
             //修改设置修改时间
             goodsPropDetailRels.forEach(goodsPropDetailRel -> {
@@ -1890,6 +1908,7 @@ public class GoodsService {
                     goodsPropDetailRel.setUpdateTime(LocalDateTime.now());
                 }
             });
+
             //  先获取商品下所有的属性id，与前端传来的对比，id存在的做更新操作反之做保存操作
             List<GoodsPropDetailRel> oldPropList = goodsPropDetailRelRepository.queryByGoodsId(newGoods.getGoodsId());
             List<GoodsPropDetailRel> insertList = new ArrayList<>();
@@ -1908,7 +1927,7 @@ public class GoodsService {
                 });
                 goodsPropDetailRelRepository.saveAll(insertList);
             }
-        }
+        }*/
         //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(newGoods.getStoreCateIds())) {
             storeCateGoodsRelaRepository.deleteByGoodsId(newGoods.getGoodsId());
@@ -2705,6 +2724,13 @@ public class GoodsService {
             return rels;
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * 根据属性id查询
+     */
+    public List<GoodsProp> findPropByIds(List<Long> ids) {
+        return goodsPropRepository.findAllByPropIdIn(ids);
     }
 
     @Transactional

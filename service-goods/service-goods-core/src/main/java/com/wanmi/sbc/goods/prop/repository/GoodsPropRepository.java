@@ -26,6 +26,8 @@ public interface GoodsPropRepository extends JpaRepository<GoodsProp, Long>, Jpa
     @Query(value = "select * from goods_prop as gp join t_goods_prop_cate_rel as gcr on gcr.prop_id=gp.prop_id where gp.del_flag=0 order by gp.sort limit 999", nativeQuery = true)
     List<GoodsProp> findAllNew();
 
+    List<GoodsProp> findAllByPropIdIn(List<Long> propIds);
+
     @Query
     GoodsProp findByPropId(Long propId);
 
