@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BookRecommendBookListModelService extends BusinessTypeBookListModelAbstract {
 
-    public static final Integer MAX_SIZE = 2;
+    public static Integer MAX_SIZE = 2;
 
     /**
      * 推荐
@@ -34,10 +34,13 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
      * @return
      */
     @Override
-    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId) {
+    public List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId, Integer size) {
         log.info("---> BookRecommendBookListModelService.listBookListModelAndOrderNum supId:{}", spuId);
         List<BookListGoodsPublishLinkModelResponse> bookListModelDTOList =
                 super.listBookListModelBySpuId(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(),BusinessTypeEnum.BOOK_RECOMMEND.getCode()), spuId);
+        if (size != null) {
+            MAX_SIZE = size;
+        }
         List<BookListGoodsPublishLinkModelResponse> resultParam;
         if (bookListModelDTOList.size() > MAX_SIZE) {
             resultParam = bookListModelDTOList.subList(0, MAX_SIZE);

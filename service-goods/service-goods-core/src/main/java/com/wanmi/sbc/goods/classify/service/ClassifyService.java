@@ -1,18 +1,9 @@
 package com.wanmi.sbc.goods.classify.service;
 
-import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
-import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
-import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
-import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
-import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
-import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -28,8 +19,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -50,7 +39,7 @@ public class ClassifyService {
      * @return
      */
     public List<ClassifyDTO> listNoPage(List<Integer> classifyIdList) {
-        return classifyRepository.findAll(this.packageWhere(classifyIdList));
+        return classifyRepository.findAll(this.packageWhere(classifyIdList, null));
     }
 
     /**
@@ -59,7 +48,7 @@ public class ClassifyService {
      */
     public List<ClassifyProviderResponse> listClassify(){
         Sort sort = Sort.by(Sort.Direction.ASC, "orderNum");
-        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null), sort);
+        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null, null), sort);
         List<ClassifyProviderResponse>  result = new ArrayList<>();
         Map<Integer, ClassifyProviderResponse> resultMap = new HashMap<>();
         for (ClassifyDTO classifyParam : classifyDTOList) {
@@ -84,8 +73,16 @@ public class ClassifyService {
         return result;
     }
 
+    /**
+     * 根据父id 获取子分类列表
+     * @param parentClassifyIdList
+     * @return
+     */
+    public List<ClassifyDTO> listChildClassifyNoPageByParentId(Collection<Integer> parentClassifyIdList) {
+        return classifyRepository.findAll(this.packageWhere(null, parentClassifyIdList));
+    }
 
-    private Specification<ClassifyDTO> packageWhere(List<Integer> classifyIdList) {
+    private Specification<ClassifyDTO> packageWhere(List<Integer> classifyIdList, Collection<Integer> parentClassifyIdList) {
         return new Specification<ClassifyDTO>() {
             @Override
             public Predicate toPredicate(Root<ClassifyDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -95,6 +92,9 @@ public class ClassifyService {
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (!CollectionUtils.isEmpty(classifyIdList)) {
                     conditionList.add(root.get("id").in(classifyIdList));
+                }
+                if (!CollectionUtils.isEmpty(parentClassifyIdList)) {
+                    conditionList.add(root.get("parentId").in(parentClassifyIdList));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }

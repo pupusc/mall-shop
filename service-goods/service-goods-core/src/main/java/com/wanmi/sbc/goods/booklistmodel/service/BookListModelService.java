@@ -364,9 +364,9 @@ public class BookListModelService {
      * @param spuId
      * @return
      */
-    public List<BookListModelAndOrderNumProviderResponse> listBusinessTypeBookListModel(String spuId, Integer businessTypeId){
+    public List<BookListModelAndOrderNumProviderResponse> listBusinessTypeBookListModel(String spuId, Integer businessTypeId, Integer size){
         BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId), spuId);
-        return invoke.listBookListModelAndOrderNum(spuId);
+        return invoke.listBookListModelAndOrderNum(spuId, size);
     }
 
 
