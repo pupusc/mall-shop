@@ -58,12 +58,12 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
      * @param goodsIds
      * @return
      */
-    @Query(value = "SELECT p.prop_id, IFNULL(r.detail_id, 0) AS detail_id, g.goods_id FROM goods_prop p JOIN goods g ON p.cate_id = g.cate_id LEFT JOIN goods_prop_detail_rel r ON p.prop_id = r.prop_id AND g.goods_id = r.goods_id WHERE g.goods_id in ?1", nativeQuery = true)
+//    @Query(value = "SELECT p.prop_id, IFNULL(r.detail_id, 0) AS detail_id, g.goods_id FROM goods_prop p JOIN goods g ON p.cate_id = g.cate_id LEFT JOIN goods_prop_detail_rel r ON p.prop_id = r.prop_id AND g.goods_id = r.goods_id WHERE g.goods_id in ?1", nativeQuery = true)
+    @Query(value = "SELECT p.prop_id, IFNULL(r.detail_id, 0) AS detail_id, g.goods_id, r.prop_value FROM goods_prop p join t_goods_prop_cate_rel gcr on gcr.prop_id = p.prop_id JOIN goods g ON g.cate_id = gcr.cate_id LEFT JOIN goods_prop_detail_rel r ON p.prop_id = r.prop_id AND g.goods_id = r.goods_id WHERE p.del_flag=0 and g.goods_id in ?1", nativeQuery = true)
     List<Object> findRefByGoodIds(List<String> goodsIds);
 
     /**
      * 根据商品ID编号进行删除
-     *
      * @param goodsId 商品ID
      */
     @Modifying

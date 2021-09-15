@@ -20,7 +20,7 @@ public interface GoodsPropRepository extends JpaRepository<GoodsProp, Long>, Jpa
     @Query
     List<GoodsProp> findAllByCateIdAndDelFlagOrderBySortAsc(Long cateId, DeleteFlag sort);
 
-    @Query("from GoodsProp as gp join GoodsPropCateRel as gcr on gcr.propId=gp.propId where gcr.cateId=:cateId and gp.delFlag=0 order by gp.sort asc")
+    @Query("from GoodsProp as gp left join GoodsPropCateRel as gcr on gcr.propId=gp.propId where gcr.cateId=:cateId and gp.delFlag=0 order by gp.sort asc")
     List<GoodsProp> findAllByCateIdAndDelFlag(Long cateId);
 
     @Query(value = "select * from goods_prop as gp join t_goods_prop_cate_rel as gcr on gcr.prop_id=gp.prop_id where gp.del_flag=0 order by gp.sort limit 999", nativeQuery = true)

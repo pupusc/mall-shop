@@ -1130,8 +1130,7 @@ public class EsGoodsElasticService {
     private Map<String, List<GoodsPropDetailRelVO>> getPropDetailRelList(List<String> goodsIds) {
         GoodsPropDetailRelByIdsRequest relByIdsRequest = new GoodsPropDetailRelByIdsRequest();
         relByIdsRequest.setGoodsIds(goodsIds);
-        List<GoodsPropDetailRelVO> goodsPropDetailRelVOList =
-                goodsQueryProvider.getRefByGoodIds(relByIdsRequest).getContext().getGoodsPropDetailRelVOList();
+        List<GoodsPropDetailRelVO> goodsPropDetailRelVOList = goodsQueryProvider.getRefByGoodIds(relByIdsRequest).getContext().getGoodsPropDetailRelVOList();
         Map<Long, List<GoodsPropDetailRelVO>> idRel = goodsPropDetailRelVOList.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getPropId));
         BaseResponse<List<GoodsPropVO>> propsRes = goodsQueryProvider.getPropByIds(new ArrayList<>(idRel.keySet()));
         if(propsRes.getContext() != null){
