@@ -194,7 +194,7 @@ public class BookListModelService {
             if (CategoryEnum.getByCode(bookListMixProviderRequest.getChooseRuleGoodsListModel().getCategory()) == null) {
                 log.error("operator：{} BookListModelService.update chooseRuleGoodsListModel category {} not exists",
                         bookListMixProviderRequest.getOperator(), bookListMixProviderRequest.getChooseRuleGoodsListModel().getCategory());
-                return;
+                throw new SbcRuntimeException("修改空间和商品列表中 传递的 categoryId 不存在");
             }
             //修改控件和书单列表
             chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());

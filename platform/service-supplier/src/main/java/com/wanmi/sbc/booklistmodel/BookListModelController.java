@@ -93,6 +93,9 @@ public class BookListModelController {
         String bookListMixJsonStr = JSON.toJSONString(bookListMixRequest);
         BookListMixProviderRequest request = JSON.parseObject(bookListMixJsonStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());
+        if (request.getChooseRuleGoodsListModel() != null) {
+            request.getChooseRuleGoodsListModel().setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        }
         bookListModelProvider.update(request);
         return BaseResponse.SUCCESSFUL();
     }
