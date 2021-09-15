@@ -1,10 +1,14 @@
 package com.wanmi.sbc.goods.classify.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
+import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
+import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
 import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
@@ -20,6 +24,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +44,6 @@ public class ClassifyService {
     @Resource
     private ClassifyRepository classifyRepository;
 
-    @Resource
-    private BookListGoodsPublishService bookListGoodsPublishService;
-
     /**
      * 获取类目列表
      * @param classifyIdList
@@ -60,36 +62,26 @@ public class ClassifyService {
         List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null), sort);
         List<ClassifyProviderResponse>  result = new ArrayList<>();
         Map<Integer, ClassifyProviderResponse> resultMap = new HashMap<>();
-        classifyDTOList.forEach(e -> {
-            if (e.getParentId() == null || e.getParentId() == 0) {
+        for (ClassifyDTO classifyParam : classifyDTOList) {
+            if (classifyParam.getParentId() == null || classifyParam.getParentId() == 0) {
                 ClassifyProviderResponse parent = new ClassifyProviderResponse();
-                parent.setId(e.getId());
-                parent.setClassifyName(e.getClassifyName());
+                parent.setId(classifyParam.getId());
+                parent.setClassifyName(classifyParam.getClassifyName());
                 parent.setChildrenList(new ArrayList<>());
-                resultMap.put(e.getId(), parent);
+                resultMap.put(classifyParam.getId(), parent);
+                result.add(parent);
             } else {
-                ClassifyProviderResponse parent = resultMap.get(e.getParentId());
+                ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
+                if (parent == null) {
+                    continue;
+                }
                 ClassifyProviderResponse children = new ClassifyProviderResponse();
-                children.setId(e.getId());
-                children.setClassifyName(e.getClassifyName());
+                children.setId(classifyParam.getId());
+                children.setClassifyName(classifyParam.getClassifyName());
                 parent.getChildrenList().add(children);
             }
-        });
+        };
         return result;
-    }
-
-
-    public void test(String spuId, int pageNum, int pageSize) {
-        //根据spuId 获取商品分类列表
-        List<BookListGoodsPublishDTO> bookListGoodsPublishList =
-                bookListGoodsPublishService.list(null, CategoryEnum.BOOK_CLASSIFY.getCode(), spuId, null);
-        //根据类目id列表获取 商品列表
-        List<Integer> collect = bookListGoodsPublishList.stream().map(BookListGoodsPublishDTO::getBookListId).collect(Collectors.toList());
-        //获取有效的类目
-        List<ClassifyDTO> classifyList = classifyRepository.findAll
-                (this.packageWhere(collect), Sort.by(Sort.Direction.DESC, "updateTime"));
-        //根据类目id 获取商品列表
-
     }
 
 

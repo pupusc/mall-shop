@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,7 +85,7 @@ public class BookListModelController implements BookListModelProvider {
     }
 
     /**
-     * 获取详情
+     * 获取详情 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
      * @param bookListModelProviderRequest
      * @return
      */
@@ -93,13 +95,24 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(bookListMixProviderResponse);
     }
 
+
+    /**
+     * 根据书单id列表获取 书单模版和排序规则 商品列表
+     * @param bookListModelIdCollection
+     * @return
+     */
+    @Override
+    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByModelIds(Collection<Integer> bookListModelIdCollection){
+        return BaseResponse.success(bookListModelService.listPublishGoodsByModelIds(bookListModelIdCollection, CategoryEnum.BOOK_LIST_MODEL));
+    }
+
     /**
      * 获取书单模版列表
      * @param bookListModelPageProviderRequest
      * @return
      */
     @Override
-    public MicroServicePage<BookListModelProviderResponse> listByPage(BookListModelPageProviderRequest bookListModelPageProviderRequest) {
+    public BaseResponse<MicroServicePage<BookListModelProviderResponse>> listByPage(BookListModelPageProviderRequest bookListModelPageProviderRequest) {
         BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
         BeanUtils.copyProperties(bookListModelPageProviderRequest, bookListModelPageRequest);
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
@@ -115,15 +128,21 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setPageable(pageBookListModel.getPageable());
         microServicePage.setTotal(pageBookListModel.getTotalElements());
         microServicePage.setContent(bookListModelResponseList);
-        return microServicePage;
+        return BaseResponse.success(microServicePage);
     }
 
 
+    /**
+     * 获取榜单  书单  推荐 模版列表
+     * @param businessTypeId
+     * @param spuId
+     * @return
+     */
     @Override
     public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId) {
         return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId));
     }
 
-    
+
 
 }

@@ -34,7 +34,7 @@ public class BookListModelClassifyRelDTO {
     private Integer bookListModelId;
 
     /**
-     * 类目id
+     * 分类id
      */
     @Column(name = "classify_id")
     private Integer classifyId;

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -39,7 +41,7 @@ public interface BookListModelProvider {
 
 
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listByPage")
-    MicroServicePage<BookListModelProviderResponse> listByPage(
+    BaseResponse<MicroServicePage<BookListModelProviderResponse>> listByPage(
                         @RequestBody BookListModelPageProviderRequest bookListModelPageProviderRequest);
 
 
@@ -47,12 +49,31 @@ public interface BookListModelProvider {
     BaseResponse publish(@Validated(BookListModelProviderRequest.Publish.class)
                          @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
-
+    /**
+     * 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
+     * @param bookListModelProviderRequest
+     * @return
+     */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/findById")
     BaseResponse<BookListMixProviderResponse> findById(
                         @Validated(BookListModelProviderRequest.FindById.class)
                         @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
+    /**
+     * 根据id获取 书单模版详细信息 【这里获取的书单是发布的】
+     * @param bookListModelIdCollection
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listPublishGoodsByModelIds")
+    BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByModelIds(
+            @NotNull @RequestBody Collection<Integer> bookListModelIdCollection);
+
+    /**
+     * 根据不同的类型获取推荐的书单信息
+     * @param businessTypeId
+     * @param spuId
+     * @return
+     */
     @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}")
     BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(
             @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId);

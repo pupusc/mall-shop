@@ -1,9 +1,11 @@
 package com.wanmi.sbc.goods.api.response.booklistmodel;
 
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -17,6 +19,11 @@ public class BookListMixProviderResponse implements Serializable {
 
 
     private BookListModelProviderResponse bookListModel;
+
+    /**
+     * 类目
+     */
+    private List<ClassifySimpleProviderResponse> classifyList;
 
     private ChooseRuleProviderResponse chooseRuleMode;
     

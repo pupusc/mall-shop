@@ -37,7 +37,7 @@ public class BookListModelDTO {
     /**
      * 描述
      */
-    @Column(name = "desc")
+    @Column(name = "description")
     private String desc;
 
     /**

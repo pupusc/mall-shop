@@ -8,17 +8,23 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.chooserulegoodslist.service.ChooseRuleGoodsListService;
+import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
+import com.wanmi.sbc.goods.classify.service.ClassifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +43,18 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 /**
@@ -72,6 +85,10 @@ public class BookListModelService {
     @Autowired
     private BusinessTypeBookListModelFactory businessTypeBookListModelFactory;
 
+    @Autowired
+    private ClassifyService classifyService;
+
+
 
     /**
      * 新增 书单模板
@@ -99,10 +116,18 @@ public class BookListModelService {
         bookListModelClassifyRequest.setBookListModelId(bookListModelDTO.getId());
         bookListModelClassifyRequest.setClassifyIdList(bookListModelRequest.getClassifyList());
         bookListModelClassifyRelService.change(bookListModelClassifyRequest);
+        @Valid @NotNull ChooseRuleGoodsListProviderRequest chooseRuleGoodsListModel = bookListMixProviderRequest.getChooseRuleGoodsListModel();
+        if (chooseRuleGoodsListModel == null) {
+            log.info("operator：{} BookListModelService.add BookListModel complete result:{}",
+                    bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModelDTO));
+            throw new SbcRuntimeException("新增书单异常，bookListMixProviderRequest.getChooseRuleGoodsListModel 为空");
+        } else {
+            chooseRuleGoodsListModel.setCategory(CategoryEnum.BOOK_LIST_MODEL.getCode());
+            chooseRuleGoodsListModel.setBookListId(bookListModelDTO.getId());
+            chooseRuleGoodsListService.add(chooseRuleGoodsListModel, bookListMixProviderRequest.getOperator());
+        }
 
 
-
-        chooseRuleGoodsListService.add(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
     }
 
     /**
@@ -236,24 +261,87 @@ public class BookListModelService {
     }
 
     /**
-     * 根据id获取 书单模版详细信息
-     * @param id
+     * 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
+     * @param bookListModelId
      * @return
      */
-    public BookListMixProviderResponse findById(Integer id) {
+    public BookListMixProviderResponse findById(Integer bookListModelId) {
 
-        BookListModelDTO bookListModelDTO = this.findSimpleById(id);
+        BookListModelDTO bookListModelDTO = this.findSimpleById(bookListModelId);
         BookListMixProviderResponse bookListMixProviderResponse = new BookListMixProviderResponse();
 
         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
         BeanUtils.copyProperties(bookListModelDTO, bookListModelProviderResponse);
         bookListMixProviderResponse.setBookListModel(bookListModelProviderResponse);
 
+        //获取商品分类信息
+        List<BookListModelClassifyRelDTO> bookListModelClassifyRelList = bookListModelClassifyRelService.listNoPage(bookListModelId);
+        if (CollectionUtils.isEmpty(bookListModelClassifyRelList)) {
+            log.error("--->>> BookListModelService.findById bookListModelId: {} 店铺分类关系表为空", bookListModelId);
+            throw new SbcRuntimeException(String.format(" 根据书单模版id %s 查询书单的商品分类为空", bookListModelId));
+        }
+        List<Integer> classifyIdList = bookListModelClassifyRelList.stream().map(BookListModelClassifyRelDTO::getClassifyId).collect(Collectors.toList());
+        List<ClassifyDTO> classifyList = classifyService.listNoPage(classifyIdList);
+        List<ClassifySimpleProviderResponse> classifyResponseList = new ArrayList<>();
+        for (ClassifyDTO classifyParam : classifyList) {
+            ClassifySimpleProviderResponse classifySimpleProviderResponse = new ClassifySimpleProviderResponse();
+            BeanUtils.copyProperties(classifyParam, classifySimpleProviderResponse);
+            classifyResponseList.add(classifySimpleProviderResponse);
+        }
+        bookListMixProviderResponse.setClassifyList(classifyResponseList);
         //获取控件信息和商品列表信息
         ChooseRuleProviderResponse chooseRuleProviderResponse =
-                chooseRuleGoodsListService.findByCondition(bookListModelDTO.getId(), CategoryEnum.BOOK_LIST_MODEL.getCode());
+                chooseRuleGoodsListService.findRuleAndGoodsByCondition(bookListModelDTO.getId(), CategoryEnum.BOOK_LIST_MODEL.getCode());
         bookListMixProviderResponse.setChooseRuleMode(chooseRuleProviderResponse);
         return bookListMixProviderResponse;
+    }
+
+
+    /**
+     * 批量获取书单模版详细信息 【这里的书单列表都是已经发布的】
+     * @param bookListModelIdCollection
+     */
+    public List<BookListMixProviderResponse> listPublishGoodsByModelIds(Collection<Integer> bookListModelIdCollection, CategoryEnum categoryEnum) {
+        List<BookListMixProviderResponse> result = new ArrayList<>();
+
+        //获取有效的书单
+        BookListModelPageRequest bookListModelPageRequest = new BookListModelPageRequest();
+        bookListModelPageRequest.setIdCollection(bookListModelIdCollection);
+        List<BookListModelDTO> bookListModelList = bookListModelRepository.findAll(this.packageWhere(bookListModelPageRequest));
+        if (CollectionUtils.isEmpty(bookListModelList)) {
+            return result;
+        }
+
+        //封装书单信息
+        for (BookListModelDTO bookListModelParam : bookListModelList) {
+            BookListMixProviderResponse bookListMixProviderResponse = new BookListMixProviderResponse();
+            BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
+            BeanUtils.copyProperties(bookListModelParam, bookListModelProviderResponse);
+            bookListMixProviderResponse.setBookListModel(bookListModelProviderResponse);
+            result.add(bookListMixProviderResponse);
+        }
+
+        //获取有效书单列表
+        Set<Integer> bookListModelIdSet = bookListModelList.stream().map(BookListModelDTO::getId).collect(Collectors.toSet());
+        List<ChooseRuleProviderResponse> ruleAndPublishGoodsByConditionList =
+                chooseRuleGoodsListService.findRuleAndPublishGoodsByCondition(bookListModelIdSet, categoryEnum.getCode());
+        if (CollectionUtils.isEmpty(ruleAndPublishGoodsByConditionList)) {
+            return result;
+        }
+        Map<Integer, ChooseRuleProviderResponse> collect =
+                ruleAndPublishGoodsByConditionList.stream().collect(Collectors.toMap(ChooseRuleProviderResponse::getBookListId, Function.identity(), (k1, k2) -> k1));
+        //书单和有效书列表匹配
+        for (BookListMixProviderResponse bookListMixProviderParam : result) {
+            ChooseRuleProviderResponse chooseRuleProviderModel = collect.get(bookListMixProviderParam.getBookListModel().getId());
+            if (chooseRuleProviderModel == null) {
+                log.error("---> BookListModelService.listPublishGoodsByIds param: {}, chooseRuleProviderModel is null error ",
+                        JSON.toJSONString(bookListMixProviderParam));
+                continue;
+            }
+            bookListMixProviderParam.setChooseRuleMode(chooseRuleProviderModel);
+        }
+
+        return result;
     }
 
 
@@ -280,7 +368,6 @@ public class BookListModelService {
         BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId), spuId);
         return invoke.listBookListModelAndOrderNum(spuId);
     }
-
 
 
     /**
@@ -311,8 +398,8 @@ public class BookListModelService {
                     conditionList.add(criteriaBuilder.equal(root.get("businessType"), bookListModelPageRequest.getBusinessType()));
                 }
 
-                if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdList())) {
-                    conditionList.add(root.get("id").in(bookListModelPageRequest.getIdList()));
+                if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdCollection())) {
+                    conditionList.add(root.get("id").in(bookListModelPageRequest.getIdCollection()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }

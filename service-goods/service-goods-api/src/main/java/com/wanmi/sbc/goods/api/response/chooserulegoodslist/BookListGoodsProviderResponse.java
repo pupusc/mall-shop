@@ -51,25 +51,25 @@ public class BookListGoodsProviderResponse implements Serializable {
 
     private String erpGoodsInfoNo;
 
-    /**
-     * 商品名称
-     */
-    private String goodsInfoName;
-
-    /**
-     * 规格
-     */
-    private String specText;
-
-    /**
-     * 定价
-     */
-    private BigDecimal marketPrice;
-
-    /**
-     * 积分
-     */
-    private Integer buyPoint;
+//    /**
+//     * 商品名称
+//     */
+//    private String goodsInfoName;
+//
+//    /**
+//     * 规格
+//     */
+//    private String specText;
+//
+//    /**
+//     * 定价
+//     */
+//    private BigDecimal marketPrice;
+//
+//    /**
+//     * 积分
+//     */
+//    private Integer buyPoint;
 
     private Date createTime;
 

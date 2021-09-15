@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.booklistmodel.request;
 
 import lombok.Data;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ public class BookListModelPageRequest {
     /**
      * 书单列表
      */
-    private List<Integer> idList;
+    private Collection<Integer> idCollection;
 
     /**
      * 名字

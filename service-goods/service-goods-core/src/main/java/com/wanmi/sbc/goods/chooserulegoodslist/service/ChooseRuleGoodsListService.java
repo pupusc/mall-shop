@@ -8,6 +8,8 @@ import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderRe
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.chooserule.model.root.ChooseRuleDTO;
 import com.wanmi.sbc.goods.chooserule.request.ChooseRuleRequest;
@@ -23,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,7 @@ public class ChooseRuleGoodsListService {
     @Resource
     private BookListGoodsService bookListGoodsService;
     @Resource
-    private GoodsInfoRepository goodsInfoRepository;
+    private BookListGoodsPublishService bookListGoodsPublishService;
 
 
     @Transactional
@@ -102,7 +105,7 @@ public class ChooseRuleGoodsListService {
      * @param categoryId
      * @return
      */
-    public ChooseRuleProviderResponse findByCondition(Integer bookListId, Integer categoryId) {
+    public ChooseRuleProviderResponse findRuleAndGoodsByCondition(Integer bookListId, Integer categoryId) {
         ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
         chooseRuleRequest.setBookListId(bookListId);
         chooseRuleRequest.setCategory(categoryId);
@@ -110,7 +113,7 @@ public class ChooseRuleGoodsListService {
         if (chooseRuleDTO == null) {
             throw new SbcRuntimeException("chooseRuleId 不存在");
         }
-        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(bookListId, categoryId);
+        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(null, bookListId, categoryId);
 
         ChooseRuleProviderResponse chooseRuleProviderResponse = new ChooseRuleProviderResponse();
         chooseRuleProviderResponse.setChooseRuleId(chooseRuleDTO.getId());
@@ -126,27 +129,9 @@ public class ChooseRuleGoodsListService {
         if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
             chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);
         } else {
-
-            //获取商品列表信息
-            List<String> goodsIdList =
-                    bookListGoodsDTOList.stream().map(BookListGoodsDTO::getSpuId).collect(Collectors.toList());
-
-            List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIds(goodsIdList);
-            Map<String, GoodsInfo> goodsInfoMap = new HashMap<>();
-            if (!CollectionUtils.isEmpty(goodsIdList)) {
-                goodsInfoMap = goodsInfoList.stream().collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
-            }
-
             for (BookListGoodsDTO bookListGoodsResponseParam : bookListGoodsDTOList) {
                 BookListGoodsProviderResponse bookListGoodsModel = new BookListGoodsProviderResponse();
                 BeanUtils.copyProperties(bookListGoodsResponseParam, bookListGoodsModel);
-                GoodsInfo goodsInfo = goodsInfoMap.getOrDefault(bookListGoodsResponseParam.getSkuId(), new GoodsInfo());
-                bookListGoodsModel.setGoodsInfoName(goodsInfo.getGoodsInfoName());
-                bookListGoodsModel.setSpecText(goodsInfo.getSpecText());
-                bookListGoodsModel.setMarketPrice(goodsInfo.getMarketPrice());
-                bookListGoodsModel.setBuyPoint(goodsInfo.getBuyPoint() != null ? goodsInfo.getBuyPoint().intValue() : 0);
-
-
                 bookListGoodsResponseList.add(bookListGoodsModel);
             }
             chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);
@@ -155,43 +140,59 @@ public class ChooseRuleGoodsListService {
     }
 
 
-//    public ChooseRuleProviderResponse findById(Integer chooseRuleId) {
-//        ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
-//        chooseRuleRequest.setId(chooseRuleId);
-//        ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleRequest);
-//        if (chooseRuleDTO == null) {
-//            throw new SbcRuntimeException("chooseRuleId 不存在");
-//        }
-//        List<BookListGoodsDTO> bookListGoodsDTOList = bookListGoodsService.list(chooseRuleId);
-//
-//        ChooseRuleProviderResponse chooseRuleProviderResponse = new ChooseRuleProviderResponse();
-//        chooseRuleProviderResponse.setChooseRuleId(chooseRuleDTO.getId());
-//        chooseRuleProviderResponse.setBookListId(chooseRuleDTO.getBookListId());
-//        chooseRuleProviderResponse.setCategory(chooseRuleDTO.getCategory());
-//        chooseRuleProviderResponse.setFilterRule(chooseRuleDTO.getFilterRule());
-//        chooseRuleProviderResponse.setChooseType(chooseRuleDTO.getChooseType());
-//        chooseRuleProviderResponse.setChooseCondition(chooseRuleDTO.getChooseCondition());
-//        chooseRuleProviderResponse.setCreateTime(chooseRuleDTO.getCreateTime());
-//        chooseRuleProviderResponse.setUpdateTime(chooseRuleDTO.getUpdateTime());
-//
-//        if (CollectionUtils.isEmpty(bookListGoodsDTOList)) {
-//            chooseRuleProviderResponse.setBookListGoodsList(new ArrayList<>());
-//        } else {
-//            List<BookListGoodsProviderResponse> bookListGoodsResponseList = new ArrayList<>();
-//            for (BookListGoodsDTO bookListGoodsResponseParam : bookListGoodsDTOList) {
-//                BookListGoodsProviderResponse bookListGoodsModel = new BookListGoodsProviderResponse();
-//                BeanUtils.copyProperties(bookListGoodsResponseParam, bookListGoodsModel);
-//                bookListGoodsResponseList.add(bookListGoodsModel);
-//            }
-//            chooseRuleProviderResponse.setBookListGoodsList(bookListGoodsResponseList);
-//        }
-//        return chooseRuleProviderResponse;
-//    }
+    /**
+     * 获取 控件和商品 已经发布的列表
+     * @param bookListIdCollection
+     * @param categoryId
+     * @return
+     */
+    public List<ChooseRuleProviderResponse> findRuleAndPublishGoodsByCondition(Collection<Integer> bookListIdCollection, Integer categoryId) {
+        ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
+        chooseRuleRequest.setBookListIdCollection(bookListIdCollection);
+        chooseRuleRequest.setCategory(categoryId);
+        Collection<ChooseRuleDTO> chooseRuleCollection = chooseRuleService.findByConditionCollection(chooseRuleRequest);
 
-//
-//    public void sort(List<BookListGoodsSortProviderRequest> bookListGoodsSortProviderRequestList) {
-//        bookListGoodsService.sort(bookListGoodsSortProviderRequestList);
-//    }
+        List<ChooseRuleProviderResponse> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(chooseRuleCollection)) {
+            return result;
+        }
 
+        for (ChooseRuleDTO chooseRuleParam : chooseRuleCollection) {
+            ChooseRuleProviderResponse chooseRuleProviderResponse = new ChooseRuleProviderResponse();
+            chooseRuleProviderResponse.setChooseRuleId(chooseRuleParam.getId());
+            chooseRuleProviderResponse.setBookListId(chooseRuleParam.getBookListId());
+            chooseRuleProviderResponse.setCategory(chooseRuleParam.getCategory());
+            chooseRuleProviderResponse.setFilterRule(chooseRuleParam.getFilterRule());
+            chooseRuleProviderResponse.setChooseType(chooseRuleParam.getChooseType());
+            chooseRuleProviderResponse.setChooseCondition(chooseRuleParam.getChooseCondition());
+            chooseRuleProviderResponse.setCreateTime(chooseRuleParam.getCreateTime());
+            chooseRuleProviderResponse.setUpdateTime(chooseRuleParam.getUpdateTime());
+            chooseRuleProviderResponse.setBookListGoodsList(new ArrayList<>());
+            result.add(chooseRuleProviderResponse);
+        }
+
+        Map<Integer, ChooseRuleProviderResponse> chooseRuleResponseMap =
+                result.stream().collect(Collectors.toMap(ChooseRuleProviderResponse::getBookListId, Function.identity(), (k1, k2) -> k1));
+
+        List<BookListGoodsPublishDTO> bookListGoodsPublishList = bookListGoodsPublishService.list(bookListIdCollection, null, categoryId, null, null);
+        //发布商品列表
+        if (CollectionUtils.isEmpty(bookListGoodsPublishList)) {
+            return result;
+        }
+
+        for (BookListGoodsPublishDTO bookListGoodsPublishParam : bookListGoodsPublishList) {
+            ChooseRuleProviderResponse chooseRuleProviderResponse = chooseRuleResponseMap.get(bookListGoodsPublishParam.getBookListId());
+            if (chooseRuleProviderResponse == null) {
+                log.error("--> ChooseRuleGoodsListService.listByCondition bookListGoodsPublishParam: {}, chooseRuleProviderResponse is null",
+                        JSON.toJSONString(bookListGoodsPublishParam));
+                continue;
+            }
+            BookListGoodsProviderResponse bookListGoodsModel = new BookListGoodsProviderResponse();
+            BeanUtils.copyProperties(bookListGoodsPublishParam, bookListGoodsModel);
+            chooseRuleProviderResponse.getBookListGoodsList().add(bookListGoodsModel);
+        }
+        return result;
+    }
+    
 
 }

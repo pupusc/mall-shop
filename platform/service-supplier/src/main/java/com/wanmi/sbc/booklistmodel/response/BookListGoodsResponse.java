@@ -69,7 +69,7 @@ public class BookListGoodsResponse {
     /**
      * 积分
      */
-    private Integer buyPoint;
+    private Long buyPoint;
 
     private Date createTime;
 

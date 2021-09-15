@@ -1,6 +1,6 @@
 package com.wanmi.sbc.booklistmodel.response;
 
-import com.wanmi.sbc.classify.response.ClassifySimpleResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import lombok.Data;
 
 import java.util.List;
@@ -9,24 +9,19 @@ import java.util.List;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/9/6 3:50 下午
+ * Date       : 2021/9/13 4:53 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListMixResponse {
+public class BookListModelAndGoodsListResponse {
 
     /**
-     * 书单模版
+     * 书单模板对象
      */
-    private BookListModelResponse bookListModel;
+    private BookListModelProviderResponse bookListModel;
 
     /**
-     * 类目列表
+     * 商品列表
      */
-    private List<ClassifySimpleResponse> classifyList;
-
-    /**
-     * 控件
-     */
-    private ChooseRuleResponse chooseRuleMode;
+    private List<GoodsCustomResponse> goodsList;
 }
