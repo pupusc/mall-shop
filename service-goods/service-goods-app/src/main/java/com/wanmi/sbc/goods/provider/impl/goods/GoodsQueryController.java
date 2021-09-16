@@ -268,8 +268,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdNew(goodsId,request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         } else {
-            GoodsResponse response =
-                    JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
+            GoodsResponse response = JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdCache(response.getGoods(),request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         }

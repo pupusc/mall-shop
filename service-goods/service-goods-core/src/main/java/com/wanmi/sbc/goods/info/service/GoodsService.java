@@ -551,8 +551,41 @@ public class GoodsService {
         //是否书籍
         GoodsCate cate = goodsCateService.findById(goods.getCateId());
         response.setBookFlag(cate.getBookFlag());
+
         //商品属性
         response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        Iterator<GoodsPropDetailRel> it = goodsPropDetailRels.iterator();
+        Map<String, String> extProps = new HashMap<>();
+        while (it.hasNext()) {
+            GoodsPropDetailRel rel = it.next();
+            if("作者".equals(rel.getPropName())){
+                extProps.put("author", rel.getPropValue());
+                it.remove();
+            }else if("出版社".equals(rel.getPropName())){
+                extProps.put("publisher", rel.getPropValue());
+                it.remove();
+            }else if("定价".equals(rel.getPropName())){
+                extProps.put("price", rel.getPropValue());
+                it.remove();
+            }else if("评分".equals(rel.getPropName())){
+                extProps.put("score", rel.getPropValue());
+                it.remove();
+            }
+        }
+        response.setExtProps(extProps);
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
 
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
@@ -697,8 +730,41 @@ public class GoodsService {
         //是否书籍
         GoodsCate cate = goodsCateService.findById(goods.getCateId());
         response.setBookFlag(cate.getBookFlag());
+
         //商品属性
         response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        Iterator<GoodsPropDetailRel> it = goodsPropDetailRels.iterator();
+        Map<String, String> extProps = new HashMap<>();
+        while (it.hasNext()) {
+            GoodsPropDetailRel rel = it.next();
+            if("作者".equals(rel.getPropName())){
+                extProps.put("author", rel.getPropValue());
+                it.remove();
+            }else if("出版社".equals(rel.getPropName())){
+                extProps.put("publisher", rel.getPropValue());
+                it.remove();
+            }else if("定价".equals(rel.getPropName())){
+                extProps.put("price", rel.getPropValue());
+                it.remove();
+            }else if("评分".equals(rel.getPropName())){
+                extProps.put("score", rel.getPropValue());
+                it.remove();
+            }
+        }
+        response.setExtProps(extProps);
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
 
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();

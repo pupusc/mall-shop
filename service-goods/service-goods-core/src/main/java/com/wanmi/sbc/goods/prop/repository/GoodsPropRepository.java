@@ -47,6 +47,7 @@ public interface GoodsPropRepository extends JpaRepository<GoodsProp, Long>, Jpa
                       @Param("propName") String propName,
                       @Param("indexFlag") DefaultFlag indexFlag,
                       @Param("updateTime") LocalDateTime updateTime,
+                      @Param("propType") Integer propType,
                       @Param("propId") Long propId);
 
     @Query("from GoodsProp g where g.cateId in(:cateIds) and g.delFlag = '0'")

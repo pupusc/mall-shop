@@ -16,6 +16,7 @@ import com.wanmi.sbc.goods.tag.model.Tag;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品编辑视图响应
@@ -93,5 +94,10 @@ public class GoodsEditResponse {
      * 商品模板配置
      */
     private List<StoreGoodsTab> storeGoodsTabs;
+
+    /**
+     * 商品额外属性
+     */
+    private Map<String, String> extProps;
 
 }

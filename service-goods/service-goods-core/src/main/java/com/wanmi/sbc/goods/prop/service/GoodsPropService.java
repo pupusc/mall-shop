@@ -291,7 +291,7 @@ public class GoodsPropService {
         }
         goodsProp.setUpdateTime(LocalDateTime.now());
         //属性编辑入库
-        goodsPropRepository.editGoodsProp(goodsProp.getCateId(),goodsProp.getPropName(),goodsProp.getIndexFlag(),goodsProp.getUpdateTime(),goodsProp.getPropId());
+        goodsPropRepository.editGoodsProp(goodsProp.getCateId(),goodsProp.getPropName(),goodsProp.getIndexFlag(),goodsProp.getUpdateTime(),goodsProp.getPropType(),goodsProp.getPropId());
         //修改完成数据库后验证商品类目属性名称是否已存在,正常记录数应为1
         if (isGoodsPropNameExist(goodsProp)>1){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPNAME_ALREADY_EXIST);

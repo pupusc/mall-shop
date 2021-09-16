@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse
@@ -125,5 +126,11 @@ public class GoodsViewByIdResponse implements Serializable {
      */
     @ApiModelProperty(value = "周期购活动信息")
     private CycleBuyVO cycleBuyVO;
+
+    /**
+     * 商品额外属性
+     */
+    @ApiModelProperty(value = "商品额外属性")
+    private Map<String, String> extProps;
 
 }
