@@ -26,7 +26,7 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
             "bookList.headImgHref, bookList.pageHref, bookList.publishState, bookList.version, bookList.createTime, bookList.updateTime, bookList.delFlag, " +
             "publish.chooseRuleId, publish.spuId, publish.spuNo, publish.skuId, publish.skuNo, publish.erpGoodsNo, publish.erpGoodsInfoNo, publish.orderNum) " +
             " from BookListGoodsPublishDTO publish, BookListModelDTO bookList where publish.bookListId = bookList.id " +
-            "and bookList.businessType in ?1 and publish.category = ?2 and publish.spuId = ?3 order by bookList.updateTime desc")
+            " and publish.delFlag = 0 and bookList.delFlag = 0 and bookList.businessType in ?1 and publish.category = ?2 and publish.spuId = ?3 order by bookList.updateTime desc")
     List<BookListGoodsPublishLinkModelResponse> listGoodsPublishLinkModel(List<Integer> businessTypeList, Integer category, String spuId);
 
 
@@ -43,6 +43,7 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
             "publish.chooseRuleId, publish.spuId, publish.spuNo, publish.skuId, publish.skuNo, publish.erpGoodsNo, publish.erpGoodsInfoNo, publish.orderNum) " +
             " from BookListGoodsPublishDTO publish, ClassifyDTO classify, BookListModelClassifyRelDTO clasifyRel, BookListModelDTO bookList " +
             " where publish.bookListId = classify.id and classify.id = clasifyRel.classifyId and clasifyRel.bookListModelId = bookList.id" +
+            " and publish.delFlag = 0 and classify.delFlag = 0 and clasifyRel.delFlag = 0 and bookList.delFlag = 0" +
             " and bookList.businessType in ?1 and bookList.id not in ?2 and publish.category = ?3 and publish.spuId = ?4 order by bookList.updateTime desc")
     List<BookListGoodsPublishLinkModelResponse> listGoodsPublishLinkClassify(List<Integer> businessTypeList, List<Integer> notInBookListIdList, Integer category, String spuId);
 }
