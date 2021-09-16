@@ -82,7 +82,7 @@ public class BookListModelController {
      * @status undone
      * @param spuId
      */
-    @GetMapping("/list-ranking-book-list-model/more/{spuId}")
+    @GetMapping("/list-ranking-book-list-model/more/{spuId}/{pageNum}/{pageSize}")
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRankingBookListModelMore(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), spuId, 4);
@@ -116,7 +116,7 @@ public class BookListModelController {
     @GetMapping("/special-book-list-model/{spuId}")
     public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
-                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 2);
+                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 1);
         return BaseResponse.success(listBaseResponse.getContext());
     }
 
@@ -197,8 +197,8 @@ public class BookListModelController {
      * @param id
      * @return
      */
-    @GetMapping("/find-book-list-model-by-id/{id}")
-    public BaseResponse<BookListModelMobileResponse> findById(@PathVariable("id") Integer id){
+    @GetMapping("/find-book-list-model-by-id/{bookListModelId}")
+    public BaseResponse<BookListModelMobileResponse> findById(@PathVariable("bookListModelId") Integer id){
         BookListModelProviderRequest request = new BookListModelProviderRequest();
         request.setId(id);
         BaseResponse<BookListModelProviderResponse> bookListModelProviderResponseBaseResponse = bookListModelProvider.findSimpleById(request);
@@ -221,8 +221,8 @@ public class BookListModelController {
      * @param pageSize
      * @return
      */
-    @GetMapping("/list-goods-by-book-list-model-id/{id}/{pageNum}/{pageSize}")
-    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@PathVariable("id") Integer id,
+    @GetMapping("/list-goods-by-book-list-model-id/{bookListModelId}/{pageNum}/{pageSize}")
+    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@PathVariable("bookListModelId") Integer id,
                                                                         @PathVariable("pageNum") Integer pageNum,
                                                                         @PathVariable("pageSize") Integer pageSize){
 
