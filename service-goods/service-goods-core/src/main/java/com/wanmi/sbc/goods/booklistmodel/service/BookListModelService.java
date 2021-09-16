@@ -240,6 +240,7 @@ public class BookListModelService {
      * @param bookListModelId
      * @param operator
      */
+    @org.springframework.transaction.annotation.Transactional
     public void publish(Integer bookListModelId, String operator) {
 
         BookListModelDTO bookListModelObj = this.findSimpleById(bookListModelId);
@@ -248,13 +249,14 @@ public class BookListModelService {
                     bookListModelId, operator);
             return ;
         }
-        bookListGoodsPublishService.publish(bookListModelId, PublishStateEnum.PUBLISH.getCode(), operator);
+        bookListGoodsPublishService.publish(bookListModelId, CategoryEnum.BOOK_LIST_MODEL.getCode(), operator);
         log.info("----->>>ChooseRuleGoodsListService.publish bookListModelId:{} operator:{} complete"
                 , bookListModelId, operator);
 
         bookListModelObj.setPublishState(PublishStateEnum.PUBLISH.getCode());
         bookListModelObj.setUpdateTime(new Date());
         bookListModelRepository.save(bookListModelObj);
+
     }
 
     /**

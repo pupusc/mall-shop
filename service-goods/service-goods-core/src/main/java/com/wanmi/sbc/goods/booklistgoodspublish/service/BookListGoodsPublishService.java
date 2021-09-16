@@ -119,7 +119,7 @@ public class BookListGoodsPublishService {
             final List<Predicate> predicateList = new ArrayList<>();
             @Override
             public Predicate toPredicate(Root<BookListGoodsPublishDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL));
+                predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (!CollectionUtils.isEmpty(bookListIdCollection)) {
                     predicateList.add(root.get("bookListId").in(bookListIdCollection));
                 }
