@@ -1,16 +1,26 @@
 package com.wanmi.sbc.booklistmodel;
 
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
+import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
+import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +58,9 @@ public class BookListModelController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+    @Autowired
+    private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
+
     /**
      * 获取榜单
      *
@@ -69,7 +82,7 @@ public class BookListModelController {
      * @status undone
      * @param spuId
      */
-    @GetMapping("/list-ranking-book-list-model/more/{spuId}")
+    @GetMapping("/list-ranking-book-list-model/more/{spuId}/{pageNum}/{pageSize}")
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRankingBookListModelMore(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), spuId, 4);
@@ -103,7 +116,7 @@ public class BookListModelController {
     @GetMapping("/special-book-list-model/{spuId}")
     public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
-                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 2);
+                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 1);
         return BaseResponse.success(listBaseResponse.getContext());
     }
 
@@ -160,6 +173,7 @@ public class BookListModelController {
 
     /**
      * 封装 书单模版和商品列表信息
+     * @menu 商城详情页
      * @param spuId
      * @param bookListModelIdCollection
      * @param size
@@ -174,6 +188,73 @@ public class BookListModelController {
                 bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, Collections.singleton(spuId), 0, size);
         return BaseResponse.success(bookListModelAndGoodsListResult.getContent());
     }
+
+    /**
+     * 根据书单模版id 获取模版信息
+     * @menu 商城详情页
+     * @status undone
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/find-book-list-model-by-id/{bookListModelId}")
+    public BaseResponse<BookListModelMobileResponse> findById(@PathVariable("bookListModelId") Integer id){
+        BookListModelProviderRequest request = new BookListModelProviderRequest();
+        request.setId(id);
+        BaseResponse<BookListModelProviderResponse> bookListModelProviderResponseBaseResponse = bookListModelProvider.findSimpleById(request);
+        if (bookListModelProviderResponseBaseResponse.getContext() == null) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        BookListModelMobileResponse response = new BookListModelMobileResponse();
+        BeanUtils.copyProperties(bookListModelProviderResponseBaseResponse.getContext(), response);
+        return BaseResponse.success(response);
+    }
+
+    /**
+     * 根据书单模版id 获取书单模版商品列表信息
+     *
+     * @menu 商城详情页
+     * @status undone
+     *
+     * @param id
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    @GetMapping("/list-goods-by-book-list-model-id/{bookListModelId}/{pageNum}/{pageSize}")
+    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@PathVariable("bookListModelId") Integer id,
+                                                                        @PathVariable("pageNum") Integer pageNum,
+                                                                        @PathVariable("pageSize") Integer pageSize){
+
+        List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
+        BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
+        request.setBookListIdColl(Collections.singletonList(id));
+        request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        request.setOperator("duan");
+        BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
+        List<BookListGoodsPublishProviderResponse> context = bookListGoodsPublishProviderResponses.getContext();
+        if (!CollectionUtils.isEmpty(context)) {
+            //根据书单模版获取商品列表
+            Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
+            EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+            esGoodsCustomRequest.setPageNum(pageNum);
+            esGoodsCustomRequest.setPageSize(pageSize);
+            esGoodsCustomRequest.setGoodIdList(spuIdSet);
+            BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+            MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
+            List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
+            if (CollectionUtils.isEmpty(content)) {
+               return BaseResponse.success(goodsCustomResponseList);
+            }
+
+            for (EsGoodsVO esGoodsVO : content) {
+                goodsCustomResponseList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
+            }
+
+        }
+        return BaseResponse.success(goodsCustomResponseList);
+    }
+
 
 
 

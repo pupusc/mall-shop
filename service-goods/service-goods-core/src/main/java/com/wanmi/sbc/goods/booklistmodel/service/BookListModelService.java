@@ -262,7 +262,7 @@ public class BookListModelService {
      * @param id
      * @return
      */
-    private BookListModelDTO findSimpleById(Integer id){
+    public BookListModelDTO findSimpleById(Integer id){
         Optional<BookListModelDTO> bookListModelDTOOptional = bookListModelRepository.findById(id);
         if (!bookListModelDTOOptional.isPresent()) {
             throw new SbcRuntimeException(String.format("bookListModel id: %s not exists", id));

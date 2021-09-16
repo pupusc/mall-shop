@@ -3,9 +3,11 @@ package com.wanmi.sbc.goods.api.provider.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -49,6 +51,12 @@ public interface BookListModelProvider {
     BaseResponse publish(@Validated(BookListModelProviderRequest.Publish.class)
                          @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
 
+
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/findSimpleById")
+    BaseResponse<BookListModelProviderResponse> findSimpleById(
+            @Validated(BookListModelProviderRequest.FindById.class)
+            @RequestBody BookListModelProviderRequest bookListModelProviderRequest);
+
     /**
      * 根据id获取 书单模版详细信息【这里是获取的书单不一定发布】
      * @param bookListModelProviderRequest
@@ -77,4 +85,13 @@ public interface BookListModelProvider {
     @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}/{size}")
     BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(
             @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId, @PathVariable("size") Integer size);
+
+    /**
+     * 根据bookListId 获取发布商品列表
+     * @param request
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublish")
+    BaseResponse<List<BookListGoodsPublishProviderResponse>> listBookListGoodsPublish(
+            @Validated @RequestBody BookListGoodsPublishProviderRequest request);
 }

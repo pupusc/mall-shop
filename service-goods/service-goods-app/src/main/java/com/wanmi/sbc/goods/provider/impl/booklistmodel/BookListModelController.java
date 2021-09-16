@@ -4,12 +4,16 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
@@ -37,6 +41,9 @@ public class BookListModelController implements BookListModelProvider {
 
     @Autowired
     private BookListModelService bookListModelService;
+
+    @Autowired
+    private BookListGoodsPublishService bookListGoodsPublishService;
 
     /**
      * 新增书单模版
@@ -82,6 +89,19 @@ public class BookListModelController implements BookListModelProvider {
     public BaseResponse publish(BookListModelProviderRequest bookListModelProviderRequest) {
         bookListModelService.publish(bookListModelProviderRequest.getId(), bookListModelProviderRequest.getOperator());
         return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 获取书单信息
+     * @param bookListModelProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<BookListModelProviderResponse> findSimpleById(BookListModelProviderRequest bookListModelProviderRequest) {
+        BookListModelDTO simpleBookListModelDTO = bookListModelService.findSimpleById(bookListModelProviderRequest.getId());
+        BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
+        BeanUtils.copyProperties(simpleBookListModelDTO, bookListModelProviderResponse);
+        return BaseResponse.success(bookListModelProviderResponse);
     }
 
     /**
@@ -144,5 +164,22 @@ public class BookListModelController implements BookListModelProvider {
     }
 
 
+    /**
+     * 根据bookListId 获取商品列表信息
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<List<BookListGoodsPublishProviderResponse>> listBookListGoodsPublish(BookListGoodsPublishProviderRequest request) {
+
+        List<BookListGoodsPublishDTO> list =
+                bookListGoodsPublishService.list(request.getBookListIdColl(), null, request.getCategoryId(), null, request.getOperator());
+        List<BookListGoodsPublishProviderResponse> collect = list.stream().map(ex -> {
+            BookListGoodsPublishProviderResponse response = new BookListGoodsPublishProviderResponse();
+            BeanUtils.copyProperties(ex, response);
+            return response;
+        }).collect(Collectors.toList());
+        return BaseResponse.success(collect);
+    }
 
 }
