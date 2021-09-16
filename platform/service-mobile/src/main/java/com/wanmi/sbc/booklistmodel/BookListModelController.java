@@ -158,7 +158,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 10);
+        return this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 3);
     }
 
     /**
