@@ -83,7 +83,7 @@ public class BookListModelController {
      * @status undone
      * @param spuId
      */
-    @GetMapping("/list-ranking-book-list-model/more/{spuId}/{pageNum}/{pageSize}")
+    @GetMapping("/list-ranking-book-list-model/more/{spuId}")
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRankingBookListModelMore(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), spuId, 4);
@@ -100,7 +100,7 @@ public class BookListModelController {
             return BaseResponse.success(new ArrayList<>());
         }
         MicroServicePage<BookListModelAndGoodsListResponse> bookListModelAndGoodsListResult =
-                bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, Collections.singleton(spuId), 0, 10);
+                bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, Collections.singleton(spuId), 0, 3);
         return BaseResponse.success(bookListModelAndGoodsListResult.getContent());
     }
 
