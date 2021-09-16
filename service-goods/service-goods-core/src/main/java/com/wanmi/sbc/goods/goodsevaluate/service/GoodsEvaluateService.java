@@ -138,7 +138,7 @@ public class GoodsEvaluateService {
         goodsEvaluate.setCustomerName(bookFriendEvaluateAddRequest.customerName);
         goodsEvaluate.setEvaluateContent(bookFriendEvaluateAddRequest.evaluateContent);
         goodsEvaluate.setEvaluateTime(bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()
-                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
         goodsEvaluate.setIsShow(bookFriendEvaluateAddRequest.isShow == null ? 0 : bookFriendEvaluateAddRequest.isShow);
         goodsEvaluate.setIsRecommend(bookFriendEvaluateAddRequest.isRecommend == null ? 0 : bookFriendEvaluateAddRequest.isRecommend);
         goodsEvaluate.setEvaluateCatetory(3);
@@ -169,7 +169,7 @@ public class GoodsEvaluateService {
             goodsEvaluate.setCustomerName(bookFriendEvaluateEditRequest.customerName);
             goodsEvaluate.setEvaluateContent(bookFriendEvaluateEditRequest.evaluateContent);
             goodsEvaluate.setEvaluateTime(bookFriendEvaluateEditRequest.evaluateTime == null ? LocalDateTime.now()
-                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
             goodsEvaluate.setIsShow(bookFriendEvaluateEditRequest.isShow == null ? 0 : bookFriendEvaluateEditRequest.isShow);
             goodsEvaluate.setIsRecommend(bookFriendEvaluateEditRequest.isRecommend == null ? 0 : bookFriendEvaluateEditRequest.isRecommend);
             goodsEvaluate.setEvaluateCatetory(3);
