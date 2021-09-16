@@ -3,6 +3,7 @@ package com.wanmi.sbc.booklistmodel;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.SpecialBookListMobileResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -114,10 +115,25 @@ public class BookListModelController {
      * @return
      */
     @GetMapping("/special-book-list-model/{spuId}")
-    public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
+    public BaseResponse<List<SpecialBookListMobileResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 1);
-        return BaseResponse.success(listBaseResponse.getContext());
+        List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumResponse = listBaseResponse.getContext();
+        if (CollectionUtils.isEmpty(bookListModelAndOrderNumResponse)) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = bookListModelAndOrderNumResponse.get(0);
+        //根据专题封装书单信息
+        BookListModelProviderRequest providerRequest = new BookListModelProviderRequest();
+        providerRequest.setId(bookListModelAndOrderNumProviderResponse.getBookListModelId());
+        BaseResponse<BookListModelProviderResponse> resultTmp = bookListModelProvider.findSimpleById(providerRequest);
+        if (resultTmp.getContext() == null) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        SpecialBookListMobileResponse result = new SpecialBookListMobileResponse();
+        BeanUtils.copyProperties(resultTmp.getContext(), result);
+        result.setBookListModelId(resultTmp.getContext().getId());
+        return BaseResponse.success(Collections.singletonList(result));
     }
 
     /**
