@@ -28,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -239,7 +240,7 @@ public class BookListModelController {
      * @param pageSize
      * @return
      */
-    @GetMapping("/list-goods-by-book-list-model-id")
+    @PostMapping("/list-goods-by-book-list-model-id")
     public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated BookListModelGoodsRequest bookListModelGoodsRequest){
 
         List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
