@@ -265,7 +265,7 @@ public class BookListModelController {
      * @return
      */
     @PostMapping("/list-goods-by-book-list-model-id")
-    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated BookListModelGoodsPageRequest bookListModelGoodsRequest){
+    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated @RequestBody BookListModelGoodsPageRequest bookListModelGoodsRequest){
 
         List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
