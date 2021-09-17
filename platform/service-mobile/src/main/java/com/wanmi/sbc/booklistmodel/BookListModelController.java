@@ -24,6 +24,10 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -315,17 +319,39 @@ public class BookListModelController {
         }
 
         //看了又看
+
+    }
+
+
+    public BaseResponse see(@PathVariable("spuId") String spuId) {
+        List<GoodsCustomResponse> result = new ArrayList<>();
+
         BaseResponse<List<ClassifyGoodsProviderResponse>> listClassifyGoodsAllChildOfParentResponse = classifyProvider.listGoodsIdOfChildOfParentByGoodsId(spuId);
         List<ClassifyGoodsProviderResponse> listClassifyGoodsAllChildOfParent = listClassifyGoodsAllChildOfParentResponse.getContext();
         if (CollectionUtils.isEmpty(listClassifyGoodsAllChildOfParent)) {
-            return ;
+            return BaseResponse.success(new ArrayList<>());
         }
-        Set<String> goodsIdSet = listClassifyGoodsAllChildOfParent.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toSet());
-        //根据商品id 获取排行榜
+        Collection<String> goodsIdCollection = listClassifyGoodsAllChildOfParent.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toSet());
+        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+        esGoodsCustomRequest.setPageNum(1);
+        esGoodsCustomRequest.setPageSize(10);
+        esGoodsCustomRequest.setGoodIdList(goodsIdCollection);
+        List<SortBuilder> sortBuilderList = new ArrayList<>();
+        //按照销售数量排序
+        sortBuilderList.add(new FieldSortBuilder("goodsSalesNum").order(SortOrder.DESC));
+        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
+        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
 
-        //根据商品id 获取书单
+        if (CollectionUtils.isEmpty(content)) {
+            return BaseResponse.success(new ArrayList<>());
+        }
 
+        for (EsGoodsVO esGoodsVO : content) {
+            result.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
+        }
 
-
+        return BaseResponse.success(result);
     }
 }
