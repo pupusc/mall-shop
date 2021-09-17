@@ -69,7 +69,7 @@ public class GoodsPropService {
                 StringBuilder stringBuilder = new StringBuilder();
                 goodsPropDetails.stream().forEach(goodsPropDetail -> {
                     stringBuilder.append(goodsPropDetail.getDetailName());
-                    stringBuilder.append("; ");
+                    stringBuilder.append(";");
                 });
                 goodsProp.setPropDetailStr(stringBuilder.toString());
                 goodsProp.setGoodsPropDetails(goodsPropDetails);
