@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public abstract class BusinessTypeBookListModelAbstract {
      */
     protected List<BookListGoodsPublishLinkModelResponse> listBookListModelBySpuId(List<Integer> businessTypeList, String spuId) {
         //根据商品获取书单,此处可以获取
-        return bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(businessTypeList, spuId);
+        return bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(businessTypeList, Collections.singleton(spuId));
     }
 
 

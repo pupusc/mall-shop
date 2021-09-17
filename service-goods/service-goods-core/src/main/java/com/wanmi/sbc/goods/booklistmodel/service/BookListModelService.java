@@ -11,11 +11,12 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
-import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
@@ -47,6 +48,7 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -398,6 +400,44 @@ public class BookListModelService {
     public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer businessTypeId, Integer size) {
         BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId));
         return invoke.listBookListModelMore(bookListModelId, size);
+    }
+
+
+    /**
+     * 根据商品列表，获取商品列表对应的书单
+     * @param spuIdCollection
+     * @return
+     */
+    public List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl(Collection<String> spuIdCollection) {
+        List<BookListModelGoodsIdProviderResponse> result = new ArrayList<>();
+        //根据spuId 获取书单
+        List<BookListGoodsPublishLinkModelResponse> bookListGoodsPublishLinkModelList = bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(
+                Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()), spuIdCollection);
+        if (CollectionUtils.isEmpty(bookListGoodsPublishLinkModelList)) {
+            return result;
+        }
+        bookListGoodsPublishLinkModelList.forEach(ex -> {
+            BookListModelGoodsIdProviderResponse param = new BookListModelGoodsIdProviderResponse();
+            param.setId(ex.getBookListModelId());
+            param.setName(ex.getName());
+            param.setDesc(ex.getDesc());
+            param.setBusinessType(ex.getBusinessType());
+            param.setHeadImgUrl(ex.getHeadImgUrl());
+            param.setHeadImgHref(ex.getHeadImgUrl());
+            param.setPageHref(ex.getPageHref());
+            param.setPublishState(ex.getPublishState());
+            param.setCreateTime(ex.getCreateTime());
+            param.setUpdateTime(ex.getUpdateTime());
+            param.setSpuId(ex.getSpuId());
+            param.setSpuNo(ex.getSpuNo());
+            param.setSkuId(ex.getSkuId());
+            param.setSkuNo(ex.getSkuNo());
+            param.setErpGoodsNo(ex.getErpGoodsNo());
+            param.setErpGoodsInfoNo(ex.getErpGoodsInfoNo());
+            param.setOrderNum(ex.getOrderNum());
+            result.add(param);
+        });
+        return result;
     }
 
 

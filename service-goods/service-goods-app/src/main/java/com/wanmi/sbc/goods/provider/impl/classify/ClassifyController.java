@@ -69,13 +69,13 @@ public class ClassifyController implements ClassifyProvider {
         }
         //根据父id获取子分类列表
         Set<Integer> classifyParentIdSet = classifyModelList.stream().map(ClassifyDTO::getParentId).collect(Collectors.toSet());
-        List<ClassifyDTO> classifyParentModelList = classifyService.listChildClassifyNoPageByParentId(classifyParentIdSet);
+        List<ClassifyDTO> classifyAllChildOfParentList = classifyService.listChildClassifyNoPageByParentId(classifyParentIdSet);
         //根据子分类id 获取商品列表
-        if (CollectionUtils.isEmpty(classifyParentModelList)) {
+        if (CollectionUtils.isEmpty(classifyAllChildOfParentList)) {
             return BaseResponse.success(result);
         }
         //根据所有子分类获取商品列表
-        Set<Integer> classifyIdOfAllChildSet = classifyParentModelList.stream().map(ClassifyDTO::getId).collect(Collectors.toSet());
+        Set<Integer> classifyIdOfAllChildSet = classifyAllChildOfParentList.stream().map(ClassifyDTO::getId).collect(Collectors.toSet());
         List<ClassifyGoodsRelDTO> classifyGoodsRelResultList = classifyGoodsRelService.listClassifyRelByClassifyId(classifyIdOfAllChildSet);
         if (CollectionUtils.isEmpty(classifyGoodsRelResultList)){
             return BaseResponse.success(result);

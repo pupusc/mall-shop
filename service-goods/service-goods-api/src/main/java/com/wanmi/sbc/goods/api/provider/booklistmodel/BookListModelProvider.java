@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -108,4 +109,13 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublish")
     BaseResponse<List<BookListGoodsPublishProviderResponse>> listBookListGoodsPublish(
             @Validated @RequestBody BookListGoodsPublishProviderRequest request);
+
+    /**
+     * 根据商品spuId列表 获取书单列表和商品列表
+     * @param spuIdCollection
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelNoPageBySpuIdColl")
+    BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(
+            @Validated @RequestBody Collection<String> spuIdCollection);
 }
