@@ -64,28 +64,28 @@ public class BookListModelClassifyLinkResponse {
 
     private Integer delFlag;
 
-    /**
-     * 分类id
-     */
-    private Integer classifyId;
-
-    /**
-     * 父分类
-     */
-    private Integer classifyParentId;
-
-    /**
-     * 分类名字
-     */
-    private String classifyName;
-
-    /**
-     * 图片
-     */
-    private String adImgUrl;
-
-    /**
-     * 跳转
-     */
-    private String adImgHref;
+//    /**
+//     * 分类id
+//     */
+//    private Integer classifyId;
+//
+//    /**
+//     * 父分类
+//     */
+//    private Integer classifyParentId;
+//
+//    /**
+//     * 分类名字
+//     */
+//    private String classifyName;
+//
+//    /**
+//     * 图片
+//     */
+//    private String adImgUrl;
+//
+//    /**
+//     * 跳转
+//     */
+//    private String adImgHref;
 }

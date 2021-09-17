@@ -29,10 +29,10 @@ public interface BookListModelClassifyRelRepository extends JpaRepository<BookLi
      * @param businessTypeList
      * @return
      */
-    @Query("select new com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse " +
+    @Query("select DISTINCT new com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse " +
             "(bookList.id as bookListModelId, bookList.name, bookList.desc, bookList.businessType, bookList.headImgUrl, " +
-            "bookList.headImgHref, bookList.pageHref, bookList.publishState, bookList.version, bookList.createTime, bookList.updateTime, bookList.delFlag, " +
-            "classify.id as classifyId, classify.parentId as classifyParentId, classify.classifyName, classify.adImgUrl, classify.adImgHref) " +
+            "bookList.headImgHref, bookList.pageHref, bookList.publishState, bookList.version, bookList.createTime, bookList.updateTime, bookList.delFlag) " +
+//            "classify.id as classifyId, classify.parentId as classifyParentId, classify.classifyName, classify.adImgUrl, classify.adImgHref) " +
             " from BookListModelClassifyRelDTO classifyRel, BookListModelDTO bookList, ClassifyDTO  classify " +
             " where classifyRel.bookListModelId = bookList.id and classifyRel.classifyId = classify.id" +
             " and classifyRel.delFlag = 0 and bookList.delFlag = 0 and classify.delFlag = 0 " +
