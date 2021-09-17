@@ -82,7 +82,7 @@ public class BookListGoodsService {
         }
 
         bookListGoodsRepository.saveAll(bookListGoodsDTOList);
-        
+
         this.add(bookListGoodsRequest);
     }
 
@@ -103,6 +103,7 @@ public class BookListGoodsService {
             @Override
             public Predicate toPredicate(Root<BookListGoodsDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 predicateList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
+                predicateList.add(root.get("spuId").isNotNull());
 
                 if (chooseRuleId != null) {
                     predicateList.add(criteriaBuilder.equal(root.get("chooseRuleId"), chooseRuleId));

@@ -1,8 +1,10 @@
 package com.wanmi.sbc.booklistmodel;
 
+import com.wanmi.sbc.booklistmodel.request.BookListModelGoodsRequest;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.SpecialBookListMobileResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -23,8 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -82,7 +86,7 @@ public class BookListModelController {
      * @status undone
      * @param spuId
      */
-    @GetMapping("/list-ranking-book-list-model/more/{spuId}/{pageNum}/{pageSize}")
+    @GetMapping("/list-ranking-book-list-model/more/{spuId}")
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRankingBookListModelMore(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), spuId, 4);
@@ -99,7 +103,7 @@ public class BookListModelController {
             return BaseResponse.success(new ArrayList<>());
         }
         MicroServicePage<BookListModelAndGoodsListResponse> bookListModelAndGoodsListResult =
-                bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, Collections.singleton(spuId), 0, 10);
+                bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, Collections.singleton(spuId), 0, 3);
         return BaseResponse.success(bookListModelAndGoodsListResult.getContent());
     }
 
@@ -114,10 +118,25 @@ public class BookListModelController {
      * @return
      */
     @GetMapping("/special-book-list-model/{spuId}")
-    public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
+    public BaseResponse<List<SpecialBookListMobileResponse>> specialBookListModel(@PathVariable("spuId") String spuId){
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.SPECIAL_SUBJECT.getCode(), spuId, 1);
-        return BaseResponse.success(listBaseResponse.getContext());
+        List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumResponse = listBaseResponse.getContext();
+        if (CollectionUtils.isEmpty(bookListModelAndOrderNumResponse)) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = bookListModelAndOrderNumResponse.get(0);
+        //根据专题封装书单信息
+        BookListModelProviderRequest providerRequest = new BookListModelProviderRequest();
+        providerRequest.setId(bookListModelAndOrderNumProviderResponse.getBookListModelId());
+        BaseResponse<BookListModelProviderResponse> resultTmp = bookListModelProvider.findSimpleById(providerRequest);
+        if (resultTmp.getContext() == null) {
+            return BaseResponse.success(new ArrayList<>());
+        }
+        SpecialBookListMobileResponse result = new SpecialBookListMobileResponse();
+        BeanUtils.copyProperties(resultTmp.getContext(), result);
+        result.setBookListModelId(resultTmp.getContext().getId());
+        return BaseResponse.success(Collections.singletonList(result));
     }
 
     /**
@@ -142,7 +161,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 10);
+        return this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 3);
     }
 
     /**
@@ -221,14 +240,12 @@ public class BookListModelController {
      * @param pageSize
      * @return
      */
-    @GetMapping("/list-goods-by-book-list-model-id/{bookListModelId}/{pageNum}/{pageSize}")
-    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@PathVariable("bookListModelId") Integer id,
-                                                                        @PathVariable("pageNum") Integer pageNum,
-                                                                        @PathVariable("pageSize") Integer pageSize){
+    @PostMapping("/list-goods-by-book-list-model-id")
+    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated BookListModelGoodsRequest bookListModelGoodsRequest){
 
         List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
-        request.setBookListIdColl(Collections.singletonList(id));
+        request.setBookListIdColl(Collections.singletonList(bookListModelGoodsRequest.getBookListModelId()));
         request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
         request.setOperator("duan");
         BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
@@ -237,8 +254,8 @@ public class BookListModelController {
             //根据书单模版获取商品列表
             Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-            esGoodsCustomRequest.setPageNum(pageNum);
-            esGoodsCustomRequest.setPageSize(pageSize);
+            esGoodsCustomRequest.setPageNum(bookListModelGoodsRequest.getPageNum());
+            esGoodsCustomRequest.setPageSize(bookListModelGoodsRequest.getPageSize());
             esGoodsCustomRequest.setGoodIdList(spuIdSet);
             BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
             MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();

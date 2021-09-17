@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.booklistmodel.request.BookListMixRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.booklistmodel.request.BookListModelRequest;
+import com.wanmi.sbc.booklistmodel.request.GoodsIdListRequest;
 import com.wanmi.sbc.booklistmodel.response.BookListGoodsResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListMixResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -23,6 +24,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,7 +72,23 @@ public class BookListModelController {
      */
     @PostMapping("/add")
     public BaseResponse add(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
-//        BookListMixProviderRequest request = new BookListMixProviderRequest();
+        if(bookListMixRequest.getChooseRuleGoodsListModel() == null
+                || bookListMixRequest.getBookListModel() == null
+                || CollectionUtils.isEmpty(bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList())
+        ) {
+            throw new IllegalArgumentException("请求参数错误");
+        }
+        List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
+                .filter(ex -> StringUtils.isEmpty(ex.getSkuId()) ||
+                        StringUtils.isEmpty(ex.getSpuId()) ||
+                        StringUtils.isEmpty(ex.getSkuNo()) ||
+                        StringUtils.isEmpty(ex.getErpGoodsNo()) ||
+                        StringUtils.isEmpty(ex.getErpGoodsInfoNo())).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(checkParam)) {
+            throw new IllegalArgumentException("请求参数错误");
+        }
+
+
         String bookListMixRequestStr = JSON.toJSONString(bookListMixRequest);
         BookListMixProviderRequest request = JSON.parseObject(bookListMixRequestStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());
@@ -90,6 +108,22 @@ public class BookListModelController {
      */
     @PostMapping("/update")
     public BaseResponse update(@Validated @RequestBody BookListMixRequest bookListMixRequest) {
+        if(bookListMixRequest.getChooseRuleGoodsListModel() == null
+                || bookListMixRequest.getBookListModel() == null
+                || CollectionUtils.isEmpty(bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList())
+                ) {
+            throw new IllegalArgumentException("请求参数错误");
+        }
+        List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
+                .filter(ex -> StringUtils.isEmpty(ex.getSkuId()) ||
+                        StringUtils.isEmpty(ex.getSpuId()) ||
+                        StringUtils.isEmpty(ex.getSkuNo()) ||
+                        StringUtils.isEmpty(ex.getErpGoodsNo()) ||
+                        StringUtils.isEmpty(ex.getErpGoodsInfoNo())).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(checkParam)) {
+            throw new IllegalArgumentException("请求参数错误");
+        }
+
         String bookListMixJsonStr = JSON.toJSONString(bookListMixRequest);
         BookListMixProviderRequest request = JSON.parseObject(bookListMixJsonStr, BookListMixProviderRequest.class);
         request.setOperator(commonUtil.getOperatorId());

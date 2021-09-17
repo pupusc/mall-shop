@@ -60,7 +60,6 @@ public class BookListModelAndGoodsService {
         //goodsId -> BookListModelProviderResponse
         Map<String, BookListModelProviderResponse> supId2BookListModelMap = new HashMap<>();
 
-        List<String> allSupIdList = new ArrayList<>();
         //获取商品id列表
         for (BookListMixProviderResponse bookListMixProviderParam : listBookListMixResponse.getContext()) {
             if (bookListMixProviderParam.getChooseRuleMode() == null) {
@@ -74,9 +73,6 @@ public class BookListModelAndGoodsService {
                 //这里方便后续 房源查找模版
                 supId2BookListModelMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam.getBookListModel());
             }
-        }
-        if (CollectionUtils.isEmpty(allSupIdList)) {
-            return new HashMap<>();
         }
         return supId2BookListModelMap;
     }
@@ -104,7 +100,7 @@ public class BookListModelAndGoodsService {
 //        esGoodsCustomRequest.setCpsSpecial(); TODO 知识顾问要单独处理
 
         // goodsId -> BookListModelAndGoodsListResponse
-        Map<String, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
+        Map<Integer, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
 
         BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
@@ -116,18 +112,17 @@ public class BookListModelAndGoodsService {
                     log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model supId2BookListModelMap", esGoodsVO.getId());
                     continue;
                 }
-                BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(esGoodsVO.getId());
+                BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(bookListModelProviderResponse.getId());
                 if (bookListModelAndGoodsListResponseTmp == null) {
                     BookListModelAndGoodsListResponse bookListModelAndGoodsListResponse = new BookListModelAndGoodsListResponse();
                     bookListModelAndGoodsListResponse.setBookListModel(bookListModelProviderResponse);
-                    bookListModelAndGoodsListResponse.setGoodsList(new ArrayList<>());
-                    goodsId2BookListModelAndGoodsListMap.put(esGoodsVO.getId(), bookListModelAndGoodsListResponse);
+                    List<GoodsCustomResponse> goodsList = new ArrayList<>();
+                    goodsList.add(this.packageGoodsCustomResponse(esGoodsVO));
+                    bookListModelAndGoodsListResponse.setGoodsList(goodsList);
+                    goodsId2BookListModelAndGoodsListMap.put(bookListModelProviderResponse.getId(), bookListModelAndGoodsListResponse);
                     result.add(bookListModelAndGoodsListResponse);
                 } else {
 
-
-//                    esGoodsCustomResponse.setGoodsScore(esGoodsVO.getgoodsco); todo
-//                    esGoodsCustomResponse.setProperties(); todo
                     bookListModelAndGoodsListResponseTmp.getGoodsList().add(this.packageGoodsCustomResponse(esGoodsVO));
                 }
             }
