@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
@@ -161,6 +162,18 @@ public class BookListModelController implements BookListModelProvider {
     @Override
     public BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(Integer businessTypeId, String spuId, Integer size) {
         return BaseResponse.success(bookListModelService.listBusinessTypeBookListModel(spuId, businessTypeId, size));
+    }
+
+
+    /**
+     * 获取更多书单信息 根据分类去推荐出来
+     * @param bookListModelId
+     * @param businessTypeId
+     * @param size
+     * @return
+     */
+    public BaseResponse<List<BookListModelIdAndClassifyIdProviderResponse>> listBookListModelMore(Integer bookListModelId, Integer businessTypeId, Integer size) {
+        return BaseResponse.success(bookListModelService.listBookListModelMore(bookListModelId, businessTypeId, size));
     }
 
 

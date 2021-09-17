@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
@@ -85,6 +86,12 @@ public interface BookListModelProvider {
     @GetMapping("/goods/${application.goods.version}/booklistmodel/listBusinessTypeBookListModel/{businessTypeId}/{spuId}/{size}")
     BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBusinessTypeBookListModel(
             @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId, @PathVariable("size") Integer size);
+
+
+    @GetMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelMore/{businessTypeId}/{bookListModelId}/{size}")
+    BaseResponse<List<BookListModelIdAndClassifyIdProviderResponse>> listBookListModelMore(
+            @PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("size") Integer size);
+
 
     /**
      * 根据bookListId 获取发布商品列表

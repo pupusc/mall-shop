@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,11 @@ public class SpecialBookListModelService extends BusinessTypeBookListModelAbstra
             return new ArrayList<>();
         }
         return Collections.singletonList(super.packageBookListModelAndOrderNumProviderResponse(bookListModelDTOList.get(0)));
+    }
+
+    @Override
+    public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer size) {
+        return new ArrayList<>();
     }
 
 //    @Override

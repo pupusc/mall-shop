@@ -40,8 +40,8 @@ public class BusinessTypeBookListModelFactory {
      * @param spuId
      * @return
      */
-    public BusinessTypeBookListModelAbstract newInstance(BusinessTypeEnum businessTypeEnum, String spuId) {
-        log.info("---->> BusinessTypeBookListModelFactory.newInstance, businessType is {}, spuId:{}", businessTypeEnum, spuId);
+    public BusinessTypeBookListModelAbstract newInstance(BusinessTypeEnum businessTypeEnum) {
+        log.info("---->> BusinessTypeBookListModelFactory.newInstance, businessType is {}", businessTypeEnum);
         BusinessTypeBookListModelAbstract result;
         if (businessTypeEnum == BusinessTypeEnum.RANKING_LIST) {
             result = rankingBookListModelService;
@@ -51,7 +51,7 @@ public class BusinessTypeBookListModelFactory {
         } else if (businessTypeEnum == BusinessTypeEnum.SPECIAL_SUBJECT) {
             result = specialBookListModelService;
         } else {
-            throw new SbcRuntimeException(String.format("当前获取推荐书单,businessType: %s,spuId:{} 中的 businessType 不存在", businessTypeEnum, spuId));
+            throw new SbcRuntimeException(String.format("当前获取推荐书单,businessType: %s 中的 businessType 不存在", businessTypeEnum));
         }
         return result;
     }

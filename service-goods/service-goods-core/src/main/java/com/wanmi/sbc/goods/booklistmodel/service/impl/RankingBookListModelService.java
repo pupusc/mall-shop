@@ -1,10 +1,15 @@
 package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
+import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
+import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -53,8 +58,17 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
     }
 
     @Override
-    public List<BookListModelProviderResponse> listBookListModelMore(Integer bookListModelId){
-        super.listParentAllChildClassifyByBookListModelId(bookListModelId)
+    public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer size){
+        List<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses = super.listParentAllChildClassifyByBookListModelId(bookListModelId,
+                                Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()),
+                                Collections.singletonList(PublishStateEnum.PUBLISH.getCode()), 1, size);
+        List<BookListModelIdAndClassifyIdProviderResponse> result = new ArrayList<>();
+        for (BookListModelClassifyLinkResponse param : bookListModelClassifyLinkResponses) {
+            BookListModelIdAndClassifyIdProviderResponse bookListModelIdAndClassifyIdModel = new BookListModelIdAndClassifyIdProviderResponse();
+            BeanUtils.copyProperties(param, bookListModelIdAndClassifyIdModel);
+            result.add(bookListModelIdAndClassifyIdModel);
+        }
+        return result;
     }
 
 }

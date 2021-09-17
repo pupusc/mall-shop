@@ -3,13 +3,18 @@ package com.wanmi.sbc.goods.classify.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
-import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
+import com.wanmi.sbc.goods.classify.request.BookListModelClassifyLinkPageRequest;
+import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
 import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.BookListModelClassifyRelRepository;
+import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelPageRequest;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +26,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -90,8 +96,37 @@ public class BookListModelClassifyRelService {
 
 
     public List<BookListModelClassifyRelDTO> listNoPage(Integer bookListModelId) {
-        return bookListModelClassifyRelRepository.findAll(this.packageWhere(bookListModelId));
+        BookListModelClassifyRelPageRequest request = new BookListModelClassifyRelPageRequest();
+        request.setBookListModelId(bookListModelId);
+        return bookListModelClassifyRelRepository.findAll(this.packageWhere(request));
     }
+
+    /**
+     * 根据 发布状态 书单类型 和分类信息，关联表查询 书单列表
+     * @param request
+     */
+    public List<BookListModelClassifyLinkResponse> listBookListModelClassifyLink(BookListModelClassifyLinkPageRequest request) {
+        if (CollectionUtils.isEmpty(request.getBusinessTypeList())
+            || CollectionUtils.isEmpty(request.getClassifyIdColl())
+            || CollectionUtils.isEmpty(request.getPublishStateColl())) {
+            return new ArrayList<>();
+        }
+        Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize());
+        Page<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses =
+                bookListModelClassifyRelRepository.listBookListModelClassifyLink
+                        (request.getBusinessTypeList(), request.getClassifyIdColl(), request.getPublishStateColl(), pageable);
+        return bookListModelClassifyLinkResponses.getContent();
+    }
+
+//    /**
+//     * 分页获取书单 分类关系表信息
+//     * @param request
+//     * @return
+//     */
+//    public Page<BookListModelClassifyRelDTO> list(BookListModelClassifyRelPageRequest request) {
+//        Pageable page = PageRequest.of(request.getPageNum(), request.getPageSize(), Sort.Direction.DESC, "updateTime");
+//        return bookListModelClassifyRelRepository.findAll(this.packageWhere(request), page);
+//    }
 
     /**
      * 根据 书单id 获取父分类下的所有子分类
@@ -122,7 +157,7 @@ public class BookListModelClassifyRelService {
     }
 
 
-    private Specification<BookListModelClassifyRelDTO> packageWhere(Integer bookListModelId) {
+    private Specification<BookListModelClassifyRelDTO> packageWhere(BookListModelClassifyRelPageRequest request) {
         return new Specification<BookListModelClassifyRelDTO>() {
             @Override
             public Predicate toPredicate(Root<BookListModelClassifyRelDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -130,8 +165,11 @@ public class BookListModelClassifyRelService {
 
                 //只是获取有效的
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
-                if (bookListModelId != null) {
-                    conditionList.add(criteriaBuilder.equal(root.get("bookListModelId"), bookListModelId));
+                if (request.getBookListModelId() != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("bookListModelId"), request.getBookListModelId()));
+                }
+                if (!CollectionUtils.isEmpty(request.getClassifyIdColl())) {
+                    conditionList.add(root.get("classifyId").in(request.getClassifyIdColl()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }

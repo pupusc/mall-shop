@@ -2,16 +2,21 @@ package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
+import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,7 +92,19 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
         return result;
     }
 
-
+    @Override
+    public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer size) {
+        List<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses = super.listParentAllChildClassifyByBookListModelId(bookListModelId,
+                Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()),
+                Collections.singletonList(PublishStateEnum.PUBLISH.getCode()), 1, size);
+        List<BookListModelIdAndClassifyIdProviderResponse> result = new ArrayList<>();
+        for (BookListModelClassifyLinkResponse param : bookListModelClassifyLinkResponses) {
+            BookListModelIdAndClassifyIdProviderResponse bookListModelIdAndClassifyIdModel = new BookListModelIdAndClassifyIdProviderResponse();
+            BeanUtils.copyProperties(param, bookListModelIdAndClassifyIdModel);
+            result.add(bookListModelIdAndClassifyIdModel);
+        }
+        return result;
+    }
 
 
 }

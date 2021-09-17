@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
@@ -381,8 +382,21 @@ public class BookListModelService {
      * @return
      */
     public List<BookListModelAndOrderNumProviderResponse> listBusinessTypeBookListModel(String spuId, Integer businessTypeId, Integer size){
-        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId), spuId);
+        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId));
         return invoke.listBookListModelAndOrderNum(spuId, size);
+    }
+
+
+    /**
+     * 更多书单 榜单
+     * @param bookListModelId
+     * @param businessTypeId
+     * @param size
+     * @return
+     */
+    public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer businessTypeId, Integer size) {
+        BusinessTypeBookListModelAbstract invoke = businessTypeBookListModelFactory.newInstance(BusinessTypeEnum.getByCode(businessTypeId));
+        return invoke.listBookListModelMore(bookListModelId, size);
     }
 
 
