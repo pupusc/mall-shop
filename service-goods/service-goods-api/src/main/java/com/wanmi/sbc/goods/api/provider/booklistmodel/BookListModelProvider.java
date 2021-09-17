@@ -88,6 +88,13 @@ public interface BookListModelProvider {
             @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId, @PathVariable("size") Integer size);
 
 
+    /**
+     * 根据书单 获取书单的分类的父级别分类下的所有自己别分类对应的 书单列表信息
+     * @param bookListModelId
+     * @param businessTypeId
+     * @param size
+     * @return
+     */
     @GetMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelMore/{businessTypeId}/{bookListModelId}/{size}")
     BaseResponse<List<BookListModelIdAndClassifyIdProviderResponse>> listBookListModelMore(
             @PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("size") Integer size);
