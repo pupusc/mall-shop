@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.classify.service;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyLinkPageRequest;
 import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
@@ -27,6 +28,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -107,14 +109,13 @@ public class BookListModelClassifyRelService {
      */
     public List<BookListModelClassifyLinkResponse> listBookListModelClassifyLink(BookListModelClassifyLinkPageRequest request) {
         if (CollectionUtils.isEmpty(request.getBusinessTypeList())
-            || CollectionUtils.isEmpty(request.getClassifyIdColl())
-            || CollectionUtils.isEmpty(request.getPublishStateColl())) {
+            || CollectionUtils.isEmpty(request.getClassifyIdColl())) {
             return new ArrayList<>();
         }
         Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize());
         Page<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses =
                 bookListModelClassifyRelRepository.listBookListModelClassifyLink
-                        (request.getBusinessTypeList(), request.getClassifyIdColl(), request.getPublishStateColl(), pageable);
+                        (request.getBusinessTypeList(), request.getClassifyIdColl(), Collections.singleton(CategoryEnum.BOOK_LIST_MODEL.getCode()), pageable);
         return bookListModelClassifyLinkResponses.getContent();
     }
 

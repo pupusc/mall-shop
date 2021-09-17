@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,8 +62,7 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
     @Override
     public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer size){
         List<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses = super.listParentAllChildClassifyByBookListModelId(bookListModelId,
-                                Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()),
-                                Collections.singletonList(PublishStateEnum.PUBLISH.getCode()), 1, size);
+                                Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()), 0, size);
         List<BookListModelIdAndClassifyIdProviderResponse> result = new ArrayList<>();
         for (BookListModelClassifyLinkResponse param : bookListModelClassifyLinkResponses) {
             BookListModelIdAndClassifyIdProviderResponse bookListModelIdAndClassifyIdModel = new BookListModelIdAndClassifyIdProviderResponse();

@@ -95,8 +95,7 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
     @Override
     public List<BookListModelIdAndClassifyIdProviderResponse> listBookListModelMore(Integer bookListModelId, Integer size) {
         List<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses = super.listParentAllChildClassifyByBookListModelId(bookListModelId,
-                Collections.singletonList(BusinessTypeEnum.RANKING_LIST.getCode()),
-                Collections.singletonList(PublishStateEnum.PUBLISH.getCode()), 1, size);
+                Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()), 0, size);
         List<BookListModelIdAndClassifyIdProviderResponse> result = new ArrayList<>();
         for (BookListModelClassifyLinkResponse param : bookListModelClassifyLinkResponses) {
             BookListModelIdAndClassifyIdProviderResponse bookListModelIdAndClassifyIdModel = new BookListModelIdAndClassifyIdProviderResponse();

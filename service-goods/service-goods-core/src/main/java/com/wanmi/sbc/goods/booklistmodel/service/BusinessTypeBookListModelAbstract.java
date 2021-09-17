@@ -60,7 +60,7 @@ public abstract class BusinessTypeBookListModelAbstract {
      * 根据书单id 获取书单所在分类的书单列表
      */
     protected List<BookListModelClassifyLinkResponse> listParentAllChildClassifyByBookListModelId(
-            Integer bookListModelId, Collection<Integer> businessTypeColl, Collection<Integer> publishStateColl, int pageNum, int pageSize) {
+            Integer bookListModelId, Collection<Integer> businessTypeColl, int pageNum, int pageSize) {
         //获取书单 所在分类的父级分类下的 子分类
         List<ClassifyDTO> classifyList = bookListModelClassifyRelService.listParentAllChildClassifyByBookListModelId(bookListModelId);
         if (CollectionUtils.isEmpty(classifyList)) {
@@ -71,7 +71,6 @@ public abstract class BusinessTypeBookListModelAbstract {
         BookListModelClassifyLinkPageRequest request = new BookListModelClassifyLinkPageRequest();
         request.setClassifyIdColl(classifyIdColl);
         request.setBusinessTypeList(businessTypeColl);
-        request.setPublishStateColl(publishStateColl);
         request.setPageNum(pageNum);
         request.setPageSize(pageSize);
         return bookListModelClassifyRelService.listBookListModelClassifyLink(request);
