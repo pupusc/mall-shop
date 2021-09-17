@@ -86,8 +86,9 @@ public class EsGoods implements Serializable {
     /**
      * 商品属性
      */
-    @Field(type = FieldType.Nested)
-    private List<GoodsPropDetailNested> propDetailNesteds;
+    private GoodsExtProps goodsExtProps;
+//    @Field(type = FieldType.Nested)
+//    private List<GoodsPropDetailNested> propDetailNesteds;
 
     @Field(type = FieldType.Long)
     private List<Long> propDetailIds;

@@ -110,13 +110,13 @@ public class GoodsEvaluateService {
     /**
      * 新增书友说评价
      */
-//    @Transactional(rollbackFor = Exception.class)
     public void addBookFriendEvaluate(BookFriendEvaluateAddRequest bookFriendEvaluateAddRequest) {
-        if (StringUtils.isEmpty(bookFriendEvaluateAddRequest.skuId) || StringUtils.isEmpty(bookFriendEvaluateAddRequest.customerName)
-                || StringUtils.isEmpty(bookFriendEvaluateAddRequest.evaluateContent)) {
+        if (StringUtils.isEmpty(bookFriendEvaluateAddRequest.skuId)) {
+            throw new SbcRuntimeException("K-000030");
+        }
+        if (StringUtils.isEmpty(bookFriendEvaluateAddRequest.customerName) || StringUtils.isEmpty(bookFriendEvaluateAddRequest.evaluateContent)) {
             throw new SbcRuntimeException("K-000009");
         }
-
         GoodsInfoEditResponse res = goodsInfoService.findById(bookFriendEvaluateAddRequest.skuId);
         GoodsEvaluate goodsEvaluate = new GoodsEvaluate();
         //赋默认值
@@ -138,7 +138,7 @@ public class GoodsEvaluateService {
         goodsEvaluate.setCustomerName(bookFriendEvaluateAddRequest.customerName);
         goodsEvaluate.setEvaluateContent(bookFriendEvaluateAddRequest.evaluateContent);
         goodsEvaluate.setEvaluateTime(bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()
-                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
+                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         goodsEvaluate.setIsShow(bookFriendEvaluateAddRequest.isShow == null ? 0 : bookFriendEvaluateAddRequest.isShow);
         goodsEvaluate.setIsRecommend(bookFriendEvaluateAddRequest.isRecommend == null ? 0 : bookFriendEvaluateAddRequest.isRecommend);
         goodsEvaluate.setEvaluateCatetory(3);
@@ -151,8 +151,11 @@ public class GoodsEvaluateService {
      */
 //    @Transactional(rollbackFor = Exception.class)
     public void editBookFriendEvaluate(BookFriendEvaluateEditRequest bookFriendEvaluateEditRequest) {
-        if (StringUtils.isEmpty(bookFriendEvaluateEditRequest.skuId) || StringUtils.isEmpty(bookFriendEvaluateEditRequest.customerName)
-                || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateContent) || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateId)) {
+        if (StringUtils.isEmpty(bookFriendEvaluateEditRequest.skuId)) {
+            throw new SbcRuntimeException("K-000030");
+        }
+        if (StringUtils.isEmpty(bookFriendEvaluateEditRequest.customerName) || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateContent)
+                || StringUtils.isEmpty(bookFriendEvaluateEditRequest.evaluateId)) {
             throw new SbcRuntimeException("K-000009");
         }
         Optional<GoodsEvaluate> evaOpt = goodsEvaluateRepository.findById(bookFriendEvaluateEditRequest.evaluateId);
@@ -169,7 +172,7 @@ public class GoodsEvaluateService {
             goodsEvaluate.setCustomerName(bookFriendEvaluateEditRequest.customerName);
             goodsEvaluate.setEvaluateContent(bookFriendEvaluateEditRequest.evaluateContent);
             goodsEvaluate.setEvaluateTime(bookFriendEvaluateEditRequest.evaluateTime == null ? LocalDateTime.now()
-                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
+                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             goodsEvaluate.setIsShow(bookFriendEvaluateEditRequest.isShow == null ? 0 : bookFriendEvaluateEditRequest.isShow);
             goodsEvaluate.setIsRecommend(bookFriendEvaluateEditRequest.isRecommend == null ? 0 : bookFriendEvaluateEditRequest.isRecommend);
             goodsEvaluate.setEvaluateCatetory(3);
