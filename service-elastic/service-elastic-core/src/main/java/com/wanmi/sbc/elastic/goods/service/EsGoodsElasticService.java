@@ -133,7 +133,6 @@ public class EsGoodsElasticService {
         } else { //主要考虑第一次新增商品，此时还没有索引的时候
             isMapping = true;
         }
-
         if (isMapping) {
             //重建商品索引
             elasticsearchTemplate.getClient().admin().indices()
@@ -143,20 +142,16 @@ public class EsGoodsElasticService {
                     .prepareCreate(EsConstants.DOC_GOODS_INFO_TYPE).execute().actionGet();
             elasticsearchTemplate.putMapping(EsGoodsInfo.class);
         }
-
         if (request.getGoodsIds() == null) {
             request.setGoodsIds(new ArrayList<>());
         }
-
         if (StringUtils.isNotBlank(request.getGoodsId())) {
             request.getGoodsIds().add(request.getGoodsId());
         }
-
         if (CollectionUtils.isNotEmpty(request.getSkuIds())) {
             //批量查询所有SKU信息列表
             GoodsInfoListByConditionRequest infoQueryRequest = new GoodsInfoListByConditionRequest();
             infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-
             infoQueryRequest.setCompanyInfoId(request.getCompanyInfoId());
             infoQueryRequest.setGoodsInfoIds(request.getSkuIds());
             infoQueryRequest.setStoreId(request.getStoreId());
@@ -219,9 +214,7 @@ public class EsGoodsElasticService {
 
         Map<Long, GoodsCateVO> goodsCateMap = goodsCateQueryProvider.listByCondition(new GoodsCateListByConditionRequest())
                 .getContext().getGoodsCateVOList().stream().collect(Collectors.toMap(GoodsCateVO::getCateId, goodsCate -> goodsCate));
-
         Map<Long, GoodsLabelNest> labelMap = esGoodsLabelService.getLabelMap();
-
         GoodsPageByConditionRequest goodsPageRequest = new GoodsPageByConditionRequest();
         KsBeanUtil.copyPropertiesThird(goodsCountQueryRequest, goodsPageRequest);
         goodsPageRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -290,10 +283,8 @@ public class EsGoodsElasticService {
                             providerGoodsVOMap.putAll(providerGoods.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, g -> g)));
                         }
                     }
-
                     //区间价Map
                     intervalPriceMap.putAll(getIntervalPriceMapBySkuId(skuIds));
-
                     //等级价Map
                     levelPriceMap.putAll(goodsLevelPriceQueryProvider.listBySkuIds(new GoodsLevelPriceBySkuIdsRequest(skuIds, PriceType.SKU))
                             .getContext().getGoodsLevelPriceList()
@@ -305,7 +296,6 @@ public class EsGoodsElasticService {
                             .getContext().getGoodsCustomerPriceVOList().stream()
                             .map(price -> KsBeanUtil.convert(price, GoodsCustomerPriceNest.class))
                             .collect(Collectors.groupingBy(GoodsCustomerPriceNest::getGoodsInfoId)));
-
 
                     //规格值Map
                     goodsInfoSpecDetailMap.putAll(goodsInfoSpecDetailRelQueryProvider.listBySkuIds(new GoodsInfoSpecDetailRelBySkuIdsRequest(skuIds))
@@ -394,23 +384,26 @@ public class EsGoodsElasticService {
                         //分配属性值
                         if (goodsPropDetailMap.containsKey(goods.getGoodsId())) {
                             List<GoodsPropDetailRelVO> goodsPropDetailRelVOS = goodsPropDetailMap.get(goods.getGoodsId());
-                            List<GoodsPropDetailNested> esProps = new ArrayList<>();
-                            Map<Long, List<GoodsPropDetailRelVO>> propDetails = goodsPropDetailRelVOS.stream().collect(Collectors.groupingBy(GoodsPropDetailRelVO::getPropId));
-                            Collection<List<GoodsPropDetailRelVO>> details = propDetails.values();
-                            for (List<GoodsPropDetailRelVO> detailList : details) {
-                                GoodsPropDetailNested goodsPropDetailNested = new GoodsPropDetailNested();
-                                goodsPropDetailNested.setPropId(detailList.get(0).getPropId());
-                                goodsPropDetailNested.setPropName(detailList.get(0).getPropName());
-                                StringBuilder propValue = new StringBuilder(detailList.get(0).getPropValue());
-                                if(detailList.size() > 1){
-                                    for (int j = 1; j < detailList.size(); j++) {
-                                        propValue.append(",").append(detailList.get(j).getPropName());
-                                    }
+                            Iterator<GoodsPropDetailRelVO> it = goodsPropDetailRelVOS.iterator();
+                            GoodsExtProps goodsExtProps = new GoodsExtProps();
+                            while (it.hasNext()) {
+                                GoodsPropDetailRelVO rel = it.next();
+                                if("作者".equals(rel.getPropName())){
+                                    goodsExtProps.setAuthor(rel.getPropValue());
+                                    it.remove();
+                                }else if("出版社".equals(rel.getPropName())){
+                                    goodsExtProps.setPublisher(rel.getPropValue());
+                                    it.remove();
+                                }else if("定价".equals(rel.getPropName()) && !"null".equals(rel.getPropValue()) && rel.getPropValue() != null){
+                                    goodsExtProps.setPrice(Double.parseDouble(rel.getPropValue()));
+                                    it.remove();
+                                }else if("评分".equals(rel.getPropName()) && !"null".equals(rel.getPropValue()) && rel.getPropValue() != null){
+                                    goodsExtProps.setScore(Double.parseDouble(rel.getPropValue()));
+                                    it.remove();
                                 }
-                                goodsPropDetailNested.setPropValue(propValue.toString());
-                                esProps.add(goodsPropDetailNested);
                             }
-                            esGoods.setPropDetailNesteds(esProps);
+                            esGoods.setGoodsExtProps(goodsExtProps);
+//                            esGoods.setPropDetailNesteds(esProps);
 //                            esGoods.setPropDetailIds(goodsPropDetailMap.get(goods.getGoodsId()).stream().distinct().collect(Collectors.toList()));
 
                         }
