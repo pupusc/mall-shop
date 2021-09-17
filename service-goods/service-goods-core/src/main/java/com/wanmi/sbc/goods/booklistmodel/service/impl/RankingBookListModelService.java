@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.booklistmodel.service.impl;
 
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
 import org.springframework.stereotype.Service;
@@ -51,5 +52,9 @@ public class RankingBookListModelService extends BusinessTypeBookListModelAbstra
         return result;
     }
 
+    @Override
+    public List<BookListModelProviderResponse> listBookListModelMore(Integer bookListModelId){
+        super.listParentAllChildClassifyByBookListModelId(bookListModelId)
+    }
 
 }

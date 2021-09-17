@@ -1,8 +1,12 @@
 package com.wanmi.sbc.goods.booklistmodel.service;
 
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
+import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -18,6 +22,9 @@ public abstract class BusinessTypeBookListModelAbstract {
 
     @Resource
     protected BookListGoodsPublishService bookListGoodsPublishService;
+
+    @Resource
+    protected BookListModelClassifyRelService bookListModelClassifyRelService;
 
     /**
      * 根据商品 获取发布书单列表
@@ -38,6 +45,18 @@ public abstract class BusinessTypeBookListModelAbstract {
      */
     protected List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, String spuId) {
         return bookListGoodsPublishService.listPublishGoodsAndBookListModelByClassifyAndSupId(businessTypeList, notInBookListIdList, spuId);
+    }
+
+    /**
+     * 根据书单id 获取书单所在分类的书单列表
+     */
+    protected void listParentAllChildClassifyByBookListModelId(Integer bookListModelId) {
+        List<ClassifyDTO> classifyList = bookListModelClassifyRelService.listParentAllChildClassifyByBookListModelId(bookListModelId);
+        if (CollectionUtils.isEmpty(classifyList)) {
+            return;
+        }
+        //根据分类获取书单关系表
+        bookListGoodsPublishService.list
     }
 
 
@@ -63,6 +82,13 @@ public abstract class BusinessTypeBookListModelAbstract {
      */
     public abstract List<BookListModelAndOrderNumProviderResponse> listBookListModelAndOrderNum(String spuId, Integer size);
 
+
+    /**
+     * 根据booklistModelId 获取更多的书单
+     * @param bookListModelId
+     * @return
+     */
+    public abstract List<BookListModelProviderResponse> listBookListModelMore(Integer bookListModelId);
 
 //    /**
 //     * 书单和详情信息

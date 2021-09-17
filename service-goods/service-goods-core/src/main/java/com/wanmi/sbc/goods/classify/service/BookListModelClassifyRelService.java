@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.classify.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.classify.model.root.BookListModelClassifyRelDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.repository.BookListModelClassifyRelRepository;
@@ -40,6 +41,8 @@ public class BookListModelClassifyRelService {
     private BookListModelClassifyRelRepository bookListModelClassifyRelRepository;
     @Autowired
     private ClassifyService classifyService;
+    @Resource
+    private BookListModelClassifyRelService bookListModelClassifyRelService;
 
 
     /**
@@ -88,6 +91,34 @@ public class BookListModelClassifyRelService {
 
     public List<BookListModelClassifyRelDTO> listNoPage(Integer bookListModelId) {
         return bookListModelClassifyRelRepository.findAll(this.packageWhere(bookListModelId));
+    }
+
+    /**
+     * 根据 书单id 获取父分类下的所有子分类
+     * @param bookListModelId
+     * @return
+     */
+    public List<ClassifyDTO> listParentAllChildClassifyByBookListModelId(Integer bookListModelId) {
+        //根据书单获取书单分类列表
+        List<BookListModelClassifyRelDTO> bookListModelClassifyRelList = this.listNoPage(bookListModelId);
+        if (CollectionUtils.isEmpty(bookListModelClassifyRelList)) {
+            return new ArrayList<>();
+        }
+        //根据分类列表获取分类详情
+        List<Integer> classifyIdList =
+                bookListModelClassifyRelList.stream().map(BookListModelClassifyRelDTO::getClassifyId).collect(Collectors.toList());
+        List<ClassifyDTO> classifyList = classifyService.listNoPage(classifyIdList);
+        if (CollectionUtils.isEmpty(classifyList)) {
+            return new ArrayList<>();
+        }
+        //获取父分类
+        Set<Integer> parentClssifyList = classifyList.stream().map(ClassifyDTO::getParentId).collect(Collectors.toSet());
+        //获取父分类的子分类列表
+        List<ClassifyDTO> allChildClassifyList = classifyService.listChildClassifyNoPageByParentId(parentClssifyList);
+        if (CollectionUtils.isEmpty(allChildClassifyList)) {
+            return new ArrayList<>();
+        }
+        return allChildClassifyList;
     }
 
 

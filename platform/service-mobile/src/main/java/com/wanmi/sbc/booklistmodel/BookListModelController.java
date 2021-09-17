@@ -265,9 +265,16 @@ public class BookListModelController {
      * @return
      */
     @PostMapping("/list-goods-by-book-list-model-id")
-    public BaseResponse<List<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated @RequestBody BookListModelGoodsPageRequest bookListModelGoodsRequest){
+    public BaseResponse<MicroServicePage<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated @RequestBody BookListModelGoodsPageRequest bookListModelGoodsRequest){
 
         List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
+
+        MicroServicePage<GoodsCustomResponse> result = new MicroServicePage<>();
+        result.setTotal(0L);
+        result.setContent(goodsCustomResponseList);
+        result.setNumber(bookListModelGoodsRequest.getPageNum());
+        result.setSize(bookListModelGoodsRequest.getPageSize());
+
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
         request.setBookListIdColl(Collections.singletonList(bookListModelGoodsRequest.getBookListModelId()));
         request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
@@ -285,15 +292,19 @@ public class BookListModelController {
             MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
             List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
             if (CollectionUtils.isEmpty(content)) {
-               return BaseResponse.success(goodsCustomResponseList);
+               return BaseResponse.success(result);
             }
+
+            result.setTotal(esGoodsVOMicroServicePage.getTotal());
+            result.setNumber(esGoodsVOMicroServicePage.getNumber());
+            result.setSize(esGoodsVOMicroServicePage.getSize());
 
             for (EsGoodsVO esGoodsVO : content) {
                 goodsCustomResponseList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
             }
 
         }
-        return BaseResponse.success(goodsCustomResponseList);
+        return BaseResponse.success(result);
     }
 
 
