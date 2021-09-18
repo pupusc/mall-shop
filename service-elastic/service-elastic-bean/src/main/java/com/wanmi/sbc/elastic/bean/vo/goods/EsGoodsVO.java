@@ -310,4 +310,9 @@ public class EsGoodsVO implements Serializable {
      */
     @ApiModelProperty(value = "无背景图片")
     private String goodsUnBackImg;
+
+    /**
+     * 扩展属性信息
+     */
+    private EsExtPropsVo goodsExtProps;
 }

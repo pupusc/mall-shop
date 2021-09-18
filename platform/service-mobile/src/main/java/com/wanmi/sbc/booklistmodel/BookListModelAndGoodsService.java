@@ -2,6 +2,7 @@ package com.wanmi.sbc.booklistmodel;
 
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -186,6 +188,19 @@ public class BookListModelAndGoodsService {
             esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
         } else {
             esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
+        }
+        if (esGoodsVO.getGoodsExtProps() != null) {
+            esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
+
+            if (!StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor())
+                || !StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher())
+                || esGoodsVO.getGoodsExtProps().getPrice() != null) {
+                GoodsExtPropertiesCustomResponse extProperties = new GoodsExtPropertiesCustomResponse();
+                extProperties.setAuthor(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor()) ? "" : esGoodsVO.getGoodsExtProps().getAuthor());
+                extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
+                extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
+                esGoodsCustomResponse.setGoodsExtProperties(extProperties);
+            }
         }
         return esGoodsCustomResponse;
     }

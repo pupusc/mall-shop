@@ -83,13 +83,14 @@ public class GoodsCustomResponse {
     private List<String> goodsLabelList;
 
     /**
-     * 商品分数
+     * 商品评分
      */
     private String goodsScore;
 
+
     /**
-     * 属性信息
+     * 扩展信息
      */
-    private List<Map<String, String>> properties;
+    private GoodsExtPropertiesCustomResponse goodsExtProperties;
 
 }
