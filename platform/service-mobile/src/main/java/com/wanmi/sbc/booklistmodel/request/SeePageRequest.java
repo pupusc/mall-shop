@@ -1,6 +1,7 @@
 package com.wanmi.sbc.booklistmodel.request;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 /**
@@ -11,6 +12,7 @@ import lombok.NonNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
+@NoArgsConstructor
 public class SeePageRequest {
 
     /**
