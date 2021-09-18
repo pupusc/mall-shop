@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
@@ -195,4 +196,12 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(collect);
     }
 
+
+    /**
+     * 根据商品id列表，获取商品列表对应的书单
+     */
+    @Override
+    public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(Collection<String> spuIdCollection){
+        return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(spuIdCollection));
+    }
 }

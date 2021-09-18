@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public abstract class BusinessTypeBookListModelAbstract {
      */
     protected List<BookListGoodsPublishLinkModelResponse> listBookListModelBySpuId(List<Integer> businessTypeList, String spuId) {
         //根据商品获取书单,此处可以获取
-        return bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(businessTypeList, spuId);
+        return bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(businessTypeList, Collections.singleton(spuId));
     }
 
 
@@ -60,7 +61,7 @@ public abstract class BusinessTypeBookListModelAbstract {
      * 根据书单id 获取书单所在分类的书单列表
      */
     protected List<BookListModelClassifyLinkResponse> listParentAllChildClassifyByBookListModelId(
-            Integer bookListModelId, Collection<Integer> businessTypeColl, Collection<Integer> publishStateColl, int pageNum, int pageSize) {
+            Integer bookListModelId, Collection<Integer> businessTypeColl, int pageNum, int pageSize) {
         //获取书单 所在分类的父级分类下的 子分类
         List<ClassifyDTO> classifyList = bookListModelClassifyRelService.listParentAllChildClassifyByBookListModelId(bookListModelId);
         if (CollectionUtils.isEmpty(classifyList)) {
@@ -71,7 +72,6 @@ public abstract class BusinessTypeBookListModelAbstract {
         BookListModelClassifyLinkPageRequest request = new BookListModelClassifyLinkPageRequest();
         request.setClassifyIdColl(classifyIdColl);
         request.setBusinessTypeList(businessTypeColl);
-        request.setPublishStateColl(publishStateColl);
         request.setPageNum(pageNum);
         request.setPageSize(pageSize);
         return bookListModelClassifyRelService.listBookListModelClassifyLink(request);

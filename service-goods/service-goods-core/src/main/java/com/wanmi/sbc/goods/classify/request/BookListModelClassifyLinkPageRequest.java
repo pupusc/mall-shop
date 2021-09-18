@@ -25,10 +25,6 @@ public class BookListModelClassifyLinkPageRequest {
      */
     private Collection<Integer> classifyIdColl;
 
-    /**
-     * 书单发布状态 列表
-     */
-    private Collection<Integer> publishStateColl;
     private int pageNum = 1;
     private int pageSize = 10;
 }

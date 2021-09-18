@@ -87,16 +87,17 @@ public class BookListGoodsPublishService {
     /**
      * 获取书单 书单 发布商品 列表信息
      * @param businessTypeList 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
-     * @param spuId 商品 spuId
+     * @param spuIdColl 商品 spuId
      * @return
      */
-    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelBySpuId(List<Integer> businessTypeList, String spuId){
-        if (CollectionUtils.isEmpty(businessTypeList) || StringUtils.isEmpty(spuId)) {
+    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelBySpuId(List<Integer> businessTypeList, Collection<String> spuIdColl){
+        if (CollectionUtils.isEmpty(businessTypeList) || CollectionUtils.isEmpty(spuIdColl)) {
             log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} spuId:{} one of these is null",
-                    JSON.toJSONString(businessTypeList), spuId);
+                    JSON.toJSONString(businessTypeList), JSON.toJSONString(spuIdColl));
         }
-        return bookListGoodsPublishRepository.listGoodsPublishLinkModel(businessTypeList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
+        return bookListGoodsPublishRepository.listGoodsPublishLinkModel(businessTypeList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuIdColl);
     }
+
 
 
     /**

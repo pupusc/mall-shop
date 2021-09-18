@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderReques
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -88,6 +89,13 @@ public interface BookListModelProvider {
             @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("spuId") String spuId, @PathVariable("size") Integer size);
 
 
+    /**
+     * 根据书单 获取书单的分类的父级别分类下的所有自己别分类对应的 书单列表信息
+     * @param bookListModelId
+     * @param businessTypeId
+     * @param size
+     * @return
+     */
     @GetMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelMore/{businessTypeId}/{bookListModelId}/{size}")
     BaseResponse<List<BookListModelIdAndClassifyIdProviderResponse>> listBookListModelMore(
             @PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("businessTypeId") Integer businessTypeId, @PathVariable("size") Integer size);
@@ -101,4 +109,13 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListGoodsPublish")
     BaseResponse<List<BookListGoodsPublishProviderResponse>> listBookListGoodsPublish(
             @Validated @RequestBody BookListGoodsPublishProviderRequest request);
+
+    /**
+     * 根据商品spuId列表 获取书单列表和商品列表
+     * @param spuIdCollection
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelNoPageBySpuIdColl")
+    BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(
+            @Validated @RequestBody Collection<String> spuIdCollection);
 }

@@ -29,14 +29,14 @@ public interface BookListModelClassifyRelRepository extends JpaRepository<BookLi
      * @param businessTypeList
      * @return
      */
-    @Query("select new com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse " +
+    @Query("select DISTINCT new com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse " +
             "(bookList.id as bookListModelId, bookList.name, bookList.desc, bookList.businessType, bookList.headImgUrl, " +
-            "bookList.headImgHref, bookList.pageHref, bookList.publishState, bookList.version, bookList.createTime, bookList.updateTime, bookList.delFlag, " +
-            "classify.id as classifyId, classify.parentId as classifyParentId, classify.classifyName, classify.adImgUrl, classify.adImgHref) " +
-            " from BookListModelClassifyRelDTO classifyRel, BookListModelDTO bookList, ClassifyDTO  classify " +
-            " where classifyRel.bookListModelId = bookList.id and classifyRel.classifyId = classify.id" +
-            " and classifyRel.delFlag = 0 and bookList.delFlag = 0 and classify.delFlag = 0 " +
-            "and bookList.businessType in ?1 and classifyRel.classifyId in ?2 and bookList.publishState in ?3 order by bookList.updateTime desc")
+            "bookList.headImgHref, bookList.pageHref, bookList.publishState, bookList.version, bookList.createTime, bookList.updateTime, bookList.delFlag) " +
+//            "classify.id as classifyId, classify.parentId as classifyParentId, classify.classifyName, classify.adImgUrl, classify.adImgHref) " +
+            " from BookListModelClassifyRelDTO classifyRel, BookListModelDTO bookList, ClassifyDTO  classify , BookListGoodsPublishDTO publish" +
+            " where classifyRel.bookListModelId = bookList.id and classifyRel.classifyId = classify.id and bookList.id = publish.bookListId" +
+            " and classifyRel.delFlag = 0 and bookList.delFlag = 0 and classify.delFlag = 0 and publish.delFlag = 0 " +
+            "and bookList.businessType in ?1 and classifyRel.classifyId in ?2 and publish.category in ?3 order by bookList.updateTime desc")
     Page<BookListModelClassifyLinkResponse> listBookListModelClassifyLink
-            (Collection<Integer> businessTypeList, Collection<Integer> classifyIdColl, Collection<Integer> publishStateColl, Pageable pageable);
+            (Collection<Integer> businessTypeList, Collection<Integer> classifyIdColl, Collection<Integer> categoryIdColl, Pageable pageable);
 }
