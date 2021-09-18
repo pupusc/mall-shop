@@ -110,7 +110,7 @@ public class GoodsEvaluateVO implements Serializable {
 	 * 发表评价时间
 	 */
 	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
-//	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime evaluateTime;
 
 	/**
