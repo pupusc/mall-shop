@@ -233,7 +233,6 @@ public class BookListModelController {
         if (bookListModelPageRequest.getBusinessType() == null || BusinessTypeEnum.getByCode(bookListModelPageRequest.getBusinessType()) == null) {
             throw new IllegalArgumentException("参数错误");
         }
-        bookListModelPageRequest.setPageNum(bookListModelPageRequest.getPageNum() <= 0 ? 0 : bookListModelPageRequest.getPageNum() -1);
         BookListModelPageProviderRequest requestProvider = new BookListModelPageProviderRequest();
         requestProvider.setPageNum(bookListModelPageRequest.getPageNum());
         requestProvider.setPageSize(bookListModelPageRequest.getPageSize());
@@ -327,7 +326,6 @@ public class BookListModelController {
         if (StringUtils.isEmpty(rankingPageRequest.getSpuId())) {
             throw new IllegalArgumentException("参数错误");
         }
-        rankingPageRequest.setPageNum(rankingPageRequest.getPageNum() <= 0 ? 0 : rankingPageRequest.getPageNum() -1);
 
         MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
         result.setTotal(0);
