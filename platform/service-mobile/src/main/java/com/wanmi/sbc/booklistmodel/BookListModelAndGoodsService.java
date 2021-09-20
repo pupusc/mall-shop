@@ -52,7 +52,7 @@ public class BookListModelAndGoodsService {
      * @param bookListModelIdSet
      * @return
      */
-    public Map<String, BookListModelProviderResponse> mapGoodsIdByBookListModelList(Collection<Integer> bookListModelIdSet) {
+    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(Collection<Integer> bookListModelIdSet) {
         //根据书单id列表 获取商品列表id信息
         BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByModelIds(bookListModelIdSet);
         if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
@@ -60,7 +60,7 @@ public class BookListModelAndGoodsService {
         }
 
         //goodsId -> BookListModelProviderResponse
-        Map<String, BookListModelProviderResponse> supId2BookListModelMap = new HashMap<>();
+        Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
 
         //获取商品id列表
         for (BookListMixProviderResponse bookListMixProviderParam : listBookListMixResponse.getContext()) {
@@ -73,22 +73,22 @@ public class BookListModelAndGoodsService {
             }
             for (BookListGoodsProviderResponse bookListGoodsProviderParam: bookListGoodsList) {
                 //这里方便后续 房源查找模版
-                supId2BookListModelMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam.getBookListModel());
+                supId2BookListMixMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam);
             }
         }
-        return supId2BookListModelMap;
+        return supId2BookListMixMap;
     }
 
     /**
      * 根据 商品id 书单map 获取商品列表详细信息
-     * @param supId2BookListModelMap
+     * @param supId2BookListMixMap
      * @param unSpuIdCollection
      * @return
      */
     public MicroServicePage<BookListModelAndGoodsListResponse> listGoodsBySpuIdAndBookListModel(
-            Map<String, BookListModelProviderResponse> supId2BookListModelMap, Collection<String> unSpuIdCollection, int pageNum, int pageSize) {
+            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, int pageNum, int pageSize) {
         // supId --> BookListModelProviderResponse
-        Collection<String> spuIdCollection = supId2BookListModelMap.keySet();
+        Collection<String> spuIdCollection = supId2BookListMixMap.keySet();
 
         List<BookListModelAndGoodsListResponse> result = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
@@ -109,9 +109,14 @@ public class BookListModelAndGoodsService {
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (!CollectionUtils.isEmpty(content)) {
             for (EsGoodsVO esGoodsVO : content) {
-                BookListModelProviderResponse bookListModelProviderResponse = supId2BookListModelMap.get(esGoodsVO.getId());
+                BookListMixProviderResponse bookListMixProviderResponse = supId2BookListMixMap.get(esGoodsVO.getId());
+                if (bookListMixProviderResponse == null) {
+                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListMixProviderResponse", esGoodsVO.getId());
+                    continue;
+                }
+                BookListModelProviderResponse bookListModelProviderResponse = bookListMixProviderResponse.getBookListModel();
                 if (bookListModelProviderResponse == null) {
-                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model supId2BookListModelMap", esGoodsVO.getId());
+                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListModelProviderResponse", esGoodsVO.getId());
                     continue;
                 }
                 BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(bookListModelProviderResponse.getId());

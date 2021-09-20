@@ -23,6 +23,7 @@ import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublish
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
@@ -32,7 +33,6 @@ import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -213,11 +213,11 @@ public class BookListModelController {
         result.setSize(pageSize);
         result.setTotal(0);
         result.setContent(new ArrayList<>());
-        Map<String, BookListModelProviderResponse> spuIdBookListModelMap = bookListModelAndGoodsService.mapGoodsIdByBookListModelList(bookListModelIdCollection);
-        if (spuIdBookListModelMap.isEmpty()) {
+        Map<String, BookListMixProviderResponse> spuId2BookListMixMap = bookListModelAndGoodsService.supId2BookListMixMap(bookListModelIdCollection);
+        if (spuId2BookListMixMap.isEmpty()) {
             return result;
         }
-        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuIdBookListModelMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), pageNum, pageSize);
+        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuId2BookListMixMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), pageNum, pageSize);
     }
 
 
@@ -371,6 +371,7 @@ public class BookListModelController {
         if (CollectionUtils.isEmpty(listClassifyGoodsAllChildOfParent)) {
             return BaseResponse.success(result);
         }
+
         Collection<String> goodsIdCollection = listClassifyGoodsAllChildOfParent.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toSet());
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(seePageRequest.getPageNum());
