@@ -31,7 +31,7 @@ public class ChooseRuleController implements ChooseRuleProvider {
      * @return
      */
     @Override
-    public BaseResponse findChooseRuleNoGoodsByCondition(ChooseRuleProviderRequest chooseRuleProviderRequest) {
+    public BaseResponse<ChooseRuleProviderResponse> findChooseRuleNoGoodsByCondition(ChooseRuleProviderRequest chooseRuleProviderRequest) {
         ChooseRuleRequest chooseRuleRequest = new ChooseRuleRequest();
         chooseRuleRequest.setId(chooseRuleProviderRequest.getChooseRuleId());
         ChooseRuleDTO chooseRuleDTO = chooseRuleService.findByCondition(chooseRuleRequest);

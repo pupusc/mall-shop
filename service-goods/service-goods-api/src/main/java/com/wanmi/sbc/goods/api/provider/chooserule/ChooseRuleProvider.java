@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.api.provider.chooserule;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
+import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,5 +18,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ChooseRuleProvider {
 
     @PostMapping("/goods/${application.goods.version}/choose-rule/find-choose-rule-no-goods-by-condition")
-    BaseResponse findChooseRuleNoGoodsByCondition(@RequestBody ChooseRuleProviderRequest chooseRuleProviderRequest);
+    BaseResponse<ChooseRuleProviderResponse> findChooseRuleNoGoodsByCondition(@RequestBody ChooseRuleProviderRequest chooseRuleProviderRequest);
 }
