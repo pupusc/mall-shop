@@ -280,6 +280,9 @@ public class BookListModelController {
         result.setNumber(bookListModelGoodsRequest.getPageNum());
         result.setSize(bookListModelGoodsRequest.getPageSize());
 
+        bookListModelProvider.findById()
+
+
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
         request.setBookListIdColl(Collections.singletonList(bookListModelGoodsRequest.getBookListModelId()));
         request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
@@ -287,6 +290,8 @@ public class BookListModelController {
         BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
         List<BookListGoodsPublishProviderResponse> context = bookListGoodsPublishProviderResponses.getContext();
         if (!CollectionUtils.isEmpty(context)) {
+            //根据控件id 获取排序信息
+
             //根据书单模版获取商品列表
             Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
