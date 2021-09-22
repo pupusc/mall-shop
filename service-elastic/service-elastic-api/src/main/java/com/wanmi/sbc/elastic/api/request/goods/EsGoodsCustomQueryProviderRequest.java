@@ -37,6 +37,11 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     private Integer cpsSpecial;
 
     /**
+     * 是否展示无库存
+     */
+    private Boolean hasShowUnStock;
+
+    /**
      * 字段排序
      */
     private List<SortBuilder> sortBuilderList;

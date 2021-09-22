@@ -120,21 +120,11 @@ public class EsGoodsCustomService {
 
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
-//            if (request.getGoodIdList().size() == 1) {
-//                boolQueryBuilder.must(termQuery("id", request.getGoodIdList().toArray()[0]));
-//            } else {
-                boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
-//            }
-
+            boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
         }
 
         if (!CollectionUtils.isEmpty(request.getUnGoodIdList())) {
-//            if (request.getUnGoodIdList().size() == 1) {
-//                boolQueryBuilder.mustNot(termQuery("id", request.getUnGoodIdList().toArray()[0]));
-//            } else {
-                boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
-//            }
-
+            boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
         }
 
         /**
@@ -143,6 +133,14 @@ public class EsGoodsCustomService {
         if (request.getCpsSpecial() != null) {
             boolQueryBuilder.must(termQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
             boolQueryBuilder.must(termQuery("cpsSpecial", request.getCpsSpecial()));
+        }
+
+        /**
+         * 不展示无库存 库存大于0
+         */
+        if (request.getHasShowUnStock() != null && !request.getHasShowUnStock()) {
+            boolQueryBuilder.must(rangeQuery("stock").gt(0));
+            boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
         return boolQueryBuilder;
     }
