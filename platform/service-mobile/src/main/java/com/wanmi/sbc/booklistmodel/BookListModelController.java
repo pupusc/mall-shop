@@ -280,7 +280,15 @@ public class BookListModelController {
         result.setNumber(bookListModelGoodsRequest.getPageNum());
         result.setSize(bookListModelGoodsRequest.getPageSize());
 
-        bookListModelProvider.findById()
+        //获取书单信息
+        BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
+        bookListModelProviderRequest.setId(bookListModelGoodsRequest.getBookListModelId());
+        BaseResponse<BookListModelProviderResponse> bookListModelProviderResponseBaseResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
+        if (bookListModelProviderResponseBaseResponse.getContext() == null) {
+            throw new IllegalArgumentException("书单id不存在");
+        }
+        //获取控件信息
+
 
 
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
@@ -290,7 +298,6 @@ public class BookListModelController {
         BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
         List<BookListGoodsPublishProviderResponse> context = bookListGoodsPublishProviderResponses.getContext();
         if (!CollectionUtils.isEmpty(context)) {
-            //根据控件id 获取排序信息
 
             //根据书单模版获取商品列表
             Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
@@ -332,16 +339,12 @@ public class BookListModelController {
             throw new IllegalArgumentException("参数错误");
         }
 
-        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
-        result.setTotal(0);
-        result.setSize(rankingPageRequest.getPageSize());
-        result.setNumber(rankingPageRequest.getPageNum());
         //排行榜列表
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), rankingPageRequest.getSpuId(), 1);
         List<BookListModelAndOrderNumProviderResponse> context = listBaseResponse.getContext();
         if (CollectionUtils.isEmpty(context)) {
-            return BaseResponse.success(result);
+            return BaseResponse.success(null);
         }
         BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = context.get(0);
 

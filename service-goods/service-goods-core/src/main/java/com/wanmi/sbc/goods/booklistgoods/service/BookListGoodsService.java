@@ -1,9 +1,7 @@
 package com.wanmi.sbc.goods.booklistgoods.service;
 
-import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.GoodsIdListProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserulegoodslist.BookListGoodsSortProviderRequest;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.repository.BookListGoodsRepository;
 import com.wanmi.sbc.goods.booklistgoods.request.BookListGoodsRequest;
