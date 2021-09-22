@@ -15,8 +15,13 @@ import java.io.Serializable;
 public class ChooseRuleProviderRequest implements Serializable {
 
     /**
-     * 控件id
+     * 书单
      */
-    private Integer chooseRuleId;
+    private Integer bookListModelId;
+
+    /**
+     * 分类id  {@link com.wanmi.sbc.goods.api.enums.CategoryEnum}
+     */
+    private Integer categoryId;
 
 }

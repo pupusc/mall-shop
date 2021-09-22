@@ -18,16 +18,19 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +82,9 @@ public class BookListModelController {
 
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
+
+    @Autowired
+    private ChooseRuleProvider chooseRuleProvider;
 
     /**
      * 获取榜单
@@ -288,7 +294,9 @@ public class BookListModelController {
             throw new IllegalArgumentException("书单id不存在");
         }
         //获取控件信息
-
+        ChooseRuleProviderRequest chooseRuleProviderRequest = new ChooseRuleProviderRequest();
+        chooseRuleProviderRequest.setChooseRuleId();
+        BaseResponse<ChooseRuleProviderResponse> chooseRuleNoGoodsByConditionResponse = chooseRuleProvider.findChooseRuleNoGoodsByCondition();
 
 
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
