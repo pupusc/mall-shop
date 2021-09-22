@@ -279,11 +279,11 @@ public class BookListModelController {
     @PostMapping("/list-goods-by-book-list-model-id")
     public BaseResponse<MicroServicePage<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated @RequestBody BookListModelGoodsPageRequest bookListModelGoodsRequest){
 
-        List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
+//        List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
 
         MicroServicePage<GoodsCustomResponse> result = new MicroServicePage<>();
         result.setTotal(0L);
-        result.setContent(goodsCustomResponseList);
+        result.setContent(new ArrayList<>());
 
         //获取书单信息
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
@@ -306,11 +306,11 @@ public class BookListModelController {
         request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
         request.setOperator("duan");
         BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
-        List<BookListGoodsPublishProviderResponse> context = bookListGoodsPublishProviderResponses.getContext();
-        if (!CollectionUtils.isEmpty(context)) {
+        List<BookListGoodsPublishProviderResponse> goodsContext = bookListGoodsPublishProviderResponses.getContext();
+        if (!CollectionUtils.isEmpty(goodsContext)) {
 
             //根据书单模版获取商品列表
-            Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
+            Set<String> spuIdSet = goodsContext.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
             esGoodsCustomRequest.setPageNum(bookListModelGoodsRequest.getPageNum());
             esGoodsCustomRequest.setPageSize(spuIdSet.size()); //TODO 一次性全部查询出来
@@ -322,28 +322,38 @@ public class BookListModelController {
                return BaseResponse.success(result);
             }
 
-            //无库存沉底
-            List<GoodsCustomResponse> goodsCustomUnStockBottomList = new ArrayList<>();
+            //esGoodsVo to map
+            Map<String, EsGoodsVO> esGoodsId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+
+            List<EsGoodsVO> resultEsGoodsVoList = new ArrayList<>();
+            List<EsGoodsVO> resultEsGoodsVoUnStockList = new ArrayList<>();
+
             int unShowSum = 0;
-            for (EsGoodsVO esGoodsVO : content) {
+
+            for (BookListGoodsPublishProviderResponse bookListGoodsPublishParam : goodsContext) {
+                EsGoodsVO esGoodsVOLocal = esGoodsId2EsGoodsVoMap.get(bookListGoodsPublishParam.getSpuId());
+                //无效的对象信息
+                if (esGoodsVOLocal == null) {
+                    unShowSum++;
+                    continue;
+                }
                 //无库存不展示
-                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_UN_SHOW && esGoodsVO.getStock() <= 0) {
+                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_UN_SHOW && esGoodsVOLocal.getStock() <= 0) {
                     unShowSum++;
                     continue;
                 }
                 //无库存沉底
                 if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_BOTTOM) {
-                    goodsCustomUnStockBottomList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
+                    resultEsGoodsVoUnStockList.add(esGoodsVOLocal);
                     continue;
                 }
-                goodsCustomResponseList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
+                resultEsGoodsVoList.add(esGoodsVOLocal);
             }
 
-            //最终结果吧无库存添加到底部
-            if (!CollectionUtils.isEmpty(goodsCustomUnStockBottomList)) {
-                goodsCustomResponseList.addAll(goodsCustomUnStockBottomList);
-            }
-            long total = esGoodsVOMicroServicePage.getTotal() - unShowSum;
+            resultEsGoodsVoList.addAll(resultEsGoodsVoUnStockList);
+
+
+            long total = goodsContext.size() - unShowSum;
             total = total <= 0 ? 0 : total;
 
             int from = bookListModelGoodsRequest.getPageNum() * bookListModelGoodsRequest.getPageSize();
@@ -355,7 +365,12 @@ public class BookListModelController {
             } else if (to > total) {
                 to = Integer.parseInt(total+"");
             }
-            result.setContent(goodsCustomResponseList.subList(from, to));
+
+            result.setContent(resultEsGoodsVoList.subList(from, to).stream().map(ex -> {
+                GoodsCustomResponse goodsCustomResponse = new GoodsCustomResponse();
+                BeanUtils.copyProperties(ex, goodsCustomResponse);
+                return goodsCustomResponse;
+            }).collect(Collectors.toList()));
             return BaseResponse.success(result);
 
         }
