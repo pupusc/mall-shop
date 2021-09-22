@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,10 +67,15 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
 
 
         log.info("---> BookRecommendBookListModelService.listBookListModelAndOrderNum spuId:{} 从类目中获取", spuId);
+        List<Integer> notInBookListIdList = new ArrayList();
+        if (CollectionUtils.isEmpty(result)) {
+            notInBookListIdList.add(-1);
+        } else {
+            //获取不需要的书单
+            notInBookListIdList =
+                    result.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toList());
+        }
 
-        //获取不需要的书单
-        List<Integer> notInBookListIdList =
-                result.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toList());
 
         //从类目中获取 书单列表
         List<BookListGoodsPublishLinkModelResponse> bookListGoodsPublishListByClassifyAndSpuIdList =
