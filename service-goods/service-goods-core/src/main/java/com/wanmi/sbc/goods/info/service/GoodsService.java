@@ -1976,9 +1976,9 @@ public class GoodsService {
         }
 
         //保存商品属性
+        goodsPropDetailRelRepository.deletePropsForGoods(newGoods.getGoodsId());
         List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
         if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
-            goodsPropDetailRelRepository.deletePropsForGoods(newGoods.getGoodsId());
             //如果是修改则设置修改时间，如果是新增则设置创建时间
             goodsPropDetailRels.forEach(goodsPropDetailRel -> {
                 goodsPropDetailRel.setDelFlag(DeleteFlag.NO);

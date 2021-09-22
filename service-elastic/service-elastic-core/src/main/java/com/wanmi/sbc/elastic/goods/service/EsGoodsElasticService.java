@@ -394,10 +394,10 @@ public class EsGoodsElasticService {
                                 }else if("出版社".equals(rel.getPropName())){
                                     goodsExtProps.setPublisher(rel.getPropValue());
                                     it.remove();
-                                }else if("定价".equals(rel.getPropName()) && !"null".equals(rel.getPropValue()) && rel.getPropValue() != null){
+                                }else if("定价".equals(rel.getPropName()) && StringUtils.isNotEmpty(rel.getPropValue())){
                                     goodsExtProps.setPrice(Double.parseDouble(rel.getPropValue()));
                                     it.remove();
-                                }else if("评分".equals(rel.getPropName()) && !"null".equals(rel.getPropValue()) && rel.getPropValue() != null){
+                                }else if("评分".equals(rel.getPropName()) && StringUtils.isNotEmpty(rel.getPropValue())){
                                     goodsExtProps.setScore(Double.parseDouble(rel.getPropValue()));
                                     it.remove();
                                 }
