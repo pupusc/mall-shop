@@ -17,6 +17,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
+import com.wanmi.sbc.goods.api.enums.FilterRuleEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -283,8 +284,6 @@ public class BookListModelController {
         MicroServicePage<GoodsCustomResponse> result = new MicroServicePage<>();
         result.setTotal(0L);
         result.setContent(goodsCustomResponseList);
-        result.setNumber(bookListModelGoodsRequest.getPageNum());
-        result.setSize(bookListModelGoodsRequest.getPageSize());
 
         //获取书单信息
         BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
@@ -295,10 +294,13 @@ public class BookListModelController {
         }
         //获取控件信息
         ChooseRuleProviderRequest chooseRuleProviderRequest = new ChooseRuleProviderRequest();
-        chooseRuleProviderRequest.setChooseRuleId();
-        BaseResponse<ChooseRuleProviderResponse> chooseRuleNoGoodsByConditionResponse = chooseRuleProvider.findChooseRuleNoGoodsByCondition();
-
-
+        chooseRuleProviderRequest.setBookListModelId(bookListModelGoodsRequest.getBookListModelId());
+        chooseRuleProviderRequest.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
+        BaseResponse<ChooseRuleProviderResponse> chooseRuleNoGoodsByConditionResponse = chooseRuleProvider.findChooseRuleNoGoodsByCondition(chooseRuleProviderRequest);
+        ChooseRuleProviderResponse chooseRuleProviderResponse = chooseRuleNoGoodsByConditionResponse.getContext();
+        if (chooseRuleProviderResponse == null) {
+            throw new IllegalArgumentException("书单控件不存在");
+        }
         BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
         request.setBookListIdColl(Collections.singletonList(bookListModelGoodsRequest.getBookListModelId()));
         request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
@@ -311,7 +313,7 @@ public class BookListModelController {
             Set<String> spuIdSet = context.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
             esGoodsCustomRequest.setPageNum(bookListModelGoodsRequest.getPageNum());
-            esGoodsCustomRequest.setPageSize(bookListModelGoodsRequest.getPageSize());
+            esGoodsCustomRequest.setPageSize(spuIdSet.size()); //TODO 一次性全部查询出来
             esGoodsCustomRequest.setGoodIdList(spuIdSet);
             BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
             MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
@@ -320,13 +322,41 @@ public class BookListModelController {
                return BaseResponse.success(result);
             }
 
-            result.setTotal(esGoodsVOMicroServicePage.getTotal());
-            result.setNumber(esGoodsVOMicroServicePage.getNumber());
-            result.setSize(esGoodsVOMicroServicePage.getSize());
-
+            //无库存沉底
+            List<GoodsCustomResponse> goodsCustomUnStockBottomList = new ArrayList<>();
+            int unShowSum = 0;
             for (EsGoodsVO esGoodsVO : content) {
+                //无库存不展示
+                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_UN_SHOW && esGoodsVO.getStock() <= 0) {
+                    unShowSum++;
+                    continue;
+                }
+                //无库存沉底
+                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_BOTTOM) {
+                    goodsCustomUnStockBottomList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
+                    continue;
+                }
                 goodsCustomResponseList.add(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
             }
+
+            //最终结果吧无库存添加到底部
+            if (!CollectionUtils.isEmpty(goodsCustomUnStockBottomList)) {
+                goodsCustomResponseList.addAll(goodsCustomUnStockBottomList);
+            }
+            long total = esGoodsVOMicroServicePage.getTotal() - unShowSum;
+            total = total <= 0 ? 0 : total;
+
+            int from = bookListModelGoodsRequest.getPageNum() * bookListModelGoodsRequest.getPageSize();
+            int to = (bookListModelGoodsRequest.getPageNum() + 1) * bookListModelGoodsRequest.getPageSize();
+
+            result.setTotal(total);
+            if (from > total) {
+                return BaseResponse.success(result);
+            } else if (to > total) {
+                to = Integer.parseInt(total+"");
+            }
+            result.setContent(goodsCustomResponseList.subList(from, to));
+            return BaseResponse.success(result);
 
         }
         return BaseResponse.success(result);
