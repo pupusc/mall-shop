@@ -158,11 +158,13 @@ public class BookListModelAndGoodsService {
         List<String> couponLabelNameList = null;
         //商品市场价
         BigDecimal currentSalePrice = BigDecimal.ZERO;
+
+        BigDecimal currentSalePriceTmp = BigDecimal.ZERO;
         BigDecimal lineSalePrice = BigDecimal.ZERO;
         if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
             for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
-                if (goodsInfoParam.getMarketPrice() != null && currentSalePrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                    currentSalePrice = goodsInfoParam.getSalePrice();
+                if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
+                    currentSalePriceTmp = goodsInfoParam.getSalePrice();
                     lineSalePrice  = goodsInfoParam.getMarketPrice();
                 }
                 if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
@@ -174,6 +176,12 @@ public class BookListModelAndGoodsService {
 
             }
         }
+
+        boolean isBuyPoint = esGoodsVO.getBuyPoint() != null && esGoodsVO.getBuyPoint() > 0;
+        if (isBuyPoint) {
+            currentSalePrice = currentSalePriceTmp;
+        }
+
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
         esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());
         esGoodsCustomResponse.setGoodsNo(esGoodsVO.getGoodsNo());

@@ -169,7 +169,7 @@ public class BookListModelController {
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRecommendBookListModel(@PathVariable("spuId") String spuId){
 
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
-                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), spuId, 4);
+                bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), spuId, 2);
         //根据书单列表 获取商品列表信息，
         List<BookListModelAndOrderNumProviderResponse> bookListModelAndOrderNumList;
         if (CollectionUtils.isEmpty(bookListModelAndOrderNumList = listBaseResponse.getContext())) {
@@ -178,7 +178,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return BaseResponse.success(this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 0, 3).getContent());
+        return BaseResponse.success(this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 0, 10).getContent());
 
     }
 
@@ -366,11 +366,8 @@ public class BookListModelController {
                 to = Integer.parseInt(total+"");
             }
 
-            result.setContent(resultEsGoodsVoList.subList(from, to).stream().map(ex -> {
-                GoodsCustomResponse goodsCustomResponse = new GoodsCustomResponse();
-                BeanUtils.copyProperties(ex, goodsCustomResponse);
-                return goodsCustomResponse;
-            }).collect(Collectors.toList()));
+            result.setContent(resultEsGoodsVoList.subList(from, to).stream()
+                    .map(ex -> bookListModelAndGoodsService.packageGoodsCustomResponse(ex)).collect(Collectors.toList()));
             return BaseResponse.success(result);
 
         }
