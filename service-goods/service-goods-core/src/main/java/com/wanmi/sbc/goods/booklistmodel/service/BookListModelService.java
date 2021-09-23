@@ -371,7 +371,6 @@ public class BookListModelService {
      */
     public Page<BookListModelDTO> list(BookListModelPageRequest bookListModelPageRequest, int pageNum, int pageSize) {
         //查询数量
-        pageNum = pageNum <= 0 ? 0 : pageNum -1;
         Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
         Pageable pageable = PageRequest.of(pageNum, pageSize,
                 Sort.Direction.DESC, "updateTime");
