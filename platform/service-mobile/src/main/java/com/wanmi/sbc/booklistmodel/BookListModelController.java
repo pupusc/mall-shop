@@ -12,6 +12,9 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SpecialBookListMobileResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
@@ -35,6 +38,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassify
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
+import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -58,6 +62,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -90,6 +95,29 @@ public class BookListModelController {
     @Autowired
     private ChooseRuleProvider chooseRuleProvider;
 
+    @Autowired
+    private CommonUtil commonUtil;
+
+    @Autowired
+    private CustomerProvider customerProvider;
+
+    /**
+     * 获取是否是知识顾问
+     * @return
+     */
+    private boolean getIsCounselor() {
+        CustomerVO customerVO = commonUtil.getCanNullCustomer();
+        if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
+            return false;
+        } else {
+            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
+            if (counselorDto == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * 获取榜单
      *
@@ -113,6 +141,7 @@ public class BookListModelController {
      */
     @GetMapping("/list-ranking-book-list-model/more/{bookListModelId}")
     public BaseResponse<List<BookListModelAndGoodsListResponse>> listRankingBookListModelMore(@PathVariable("bookListModelId") Integer bookListModelId){
+
         BaseResponse<List<BookListModelIdAndClassifyIdProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBookListModelMore(bookListModelId, BusinessTypeEnum.RANKING_LIST.getCode(), 4);
         //根据书单列表 获取商品列表信息，
@@ -123,7 +152,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelAndClassifyIdList.stream().map(BookListModelIdAndClassifyIdProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return BaseResponse.success(this.packageBookListModelAndGoodsList(null, bookListModelIdSet, 0, 3).getContent());
+        return BaseResponse.success(this.packageBookListModelAndGoodsList(null, bookListModelIdSet, this.getIsCounselor(), 0, 3).getContent());
     }
 
 
@@ -181,7 +210,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelAndOrderNumList.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return BaseResponse.success(this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, 0, 10).getContent());
+        return BaseResponse.success(this.packageBookListModelAndGoodsList(spuId, bookListModelIdSet, this.getIsCounselor(), 0, 10).getContent());
 
     }
 
@@ -207,7 +236,7 @@ public class BookListModelController {
         //获取书单id
         Set<Integer> bookListModelIdSet =
                 bookListModelIdAndClassifyIdList.stream().map(BookListModelIdAndClassifyIdProviderResponse::getBookListModelId).collect(Collectors.toSet());
-        return BaseResponse.success(this.packageBookListModelAndGoodsList(null, bookListModelIdSet, 0, 3).getContent());
+        return BaseResponse.success(this.packageBookListModelAndGoodsList(null, bookListModelIdSet, this.getIsCounselor(), 0, 3).getContent());
     }
 
     /**
@@ -217,7 +246,7 @@ public class BookListModelController {
      * @param bookListModelIdCollection
      * @return
      */
-    private MicroServicePage<BookListModelAndGoodsListResponse> packageBookListModelAndGoodsList(String spuId, Collection<Integer> bookListModelIdCollection, Integer pageNum, Integer pageSize){
+    private MicroServicePage<BookListModelAndGoodsListResponse> packageBookListModelAndGoodsList(String spuId, Collection<Integer> bookListModelIdCollection, boolean isCpsSpecial, Integer pageNum, Integer pageSize){
         MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
         result.setNumber(pageNum);
         result.setSize(pageSize);
@@ -227,7 +256,7 @@ public class BookListModelController {
         if (spuId2BookListMixMap.isEmpty()) {
             return result;
         }
-        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuId2BookListMixMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), pageNum, pageSize);
+        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuId2BookListMixMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), isCpsSpecial, pageNum, pageSize);
     }
 
 
@@ -327,6 +356,10 @@ public class BookListModelController {
             esGoodsCustomRequest.setPageNum(bookListModelGoodsRequest.getPageNum());
             esGoodsCustomRequest.setPageSize(spuIdSet.size()); //TODO 一次性全部查询出来
             esGoodsCustomRequest.setGoodIdList(spuIdSet);
+            boolean isCpsSpecial = this.getIsCounselor();
+            if (!isCpsSpecial) {
+                esGoodsCustomRequest.setCpsSpecial(0); //设置cps
+            }
             BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
             MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
             List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
@@ -411,7 +444,7 @@ public class BookListModelController {
         BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = context.get(0);
 
         MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = this.packageBookListModelAndGoodsList(
-                null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()),
+                null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
                 rankingPageRequest.getPageNum(), rankingPageRequest.getPageSize());
         return BaseResponse.success(microServicePageResult);
     }
@@ -429,6 +462,7 @@ public class BookListModelController {
         if (StringUtils.isEmpty(seePageRequest.getSpuId())) {
             throw new IllegalArgumentException("参数错误");
         }
+        boolean isCpsSpecial = this.getIsCounselor();
         seePageRequest.setPageNum(seePageRequest.getPageNum() <= 0 ? 0 : seePageRequest.getPageNum() -1);
 
         MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
@@ -447,6 +481,9 @@ public class BookListModelController {
         esGoodsCustomRequest.setPageNum(seePageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(seePageRequest.getPageSize());
         esGoodsCustomRequest.setGoodIdList(goodsIdCollection);
+        if (!isCpsSpecial) {
+            esGoodsCustomRequest.setCpsSpecial(0); //设置非知识顾问
+        }
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
         //按照销售数量排序
         sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));

@@ -86,7 +86,7 @@ public class BookListModelAndGoodsService {
      * @return
      */
     public MicroServicePage<BookListModelAndGoodsListResponse> listGoodsBySpuIdAndBookListModel(
-            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, int pageNum, int pageSize) {
+            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, boolean isCpsSpecial, int pageNum, int pageSize) {
         // supId --> BookListModelProviderResponse
         Collection<String> spuIdCollection = supId2BookListMixMap.keySet();
 
@@ -99,7 +99,11 @@ public class BookListModelAndGoodsService {
         if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
             esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
         }
-//        esGoodsCustomRequest.setCpsSpecial(); TODO 知识顾问要单独处理
+
+        //如果非知识顾问，则需要过滤，是知识顾问就不用过滤
+        if (!isCpsSpecial) {
+            esGoodsCustomRequest.setCpsSpecial(0); //TODO 知识顾问要单独处理
+        }
 
         // goodsId -> BookListModelAndGoodsListResponse
         Map<Integer, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
