@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -36,10 +37,17 @@ public class BookListModelPageProviderRequest implements Serializable {
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布
      */
-    private Integer publishState;
+//    private Integer publishState;
+
+    private List<Integer> publishStateList;
 
     /**
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
      */
-    private Integer businessType;
+//    private Integer businessType;
+
+    /**
+     * 获取多个
+     */
+    private List<Integer> businessTypeList;
 }

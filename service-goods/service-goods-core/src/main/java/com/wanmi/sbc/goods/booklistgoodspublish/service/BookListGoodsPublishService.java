@@ -103,15 +103,15 @@ public class BookListGoodsPublishService {
     /**
      * 获取书单 类目 发布商品 列表信息
      * @param businessTypeList 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
-     * @param spuId 商品 spuId
      * @return
      */
-    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, String spuId){
-        if (CollectionUtils.isEmpty(businessTypeList) || StringUtils.isEmpty(spuId)) {
+    public List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, Collection<Integer> classifyIdColl){
+        if (CollectionUtils.isEmpty(businessTypeList) || CollectionUtils.isEmpty(classifyIdColl)) {
             log.error("--->> BookListGoodsPublishService.listPublishGoodsAndBookListModel param businessType:{} spuId:{} not in: {} one of these is null",
-                    JSON.toJSONString(businessTypeList), spuId, JSON.toJSONString(notInBookListIdList));
+                    JSON.toJSONString(businessTypeList), JSON.toJSONString(classifyIdColl), JSON.toJSONString(notInBookListIdList));
         }
-        return bookListGoodsPublishRepository.listGoodsPublishLinkClassify(businessTypeList, notInBookListIdList, CategoryEnum.BOOK_LIST_MODEL.getCode(), spuId);
+
+        return bookListGoodsPublishRepository.listGoodsPublishLinkClassify(businessTypeList, notInBookListIdList, CategoryEnum.BOOK_LIST_MODEL.getCode(), classifyIdColl);
     }
 
 

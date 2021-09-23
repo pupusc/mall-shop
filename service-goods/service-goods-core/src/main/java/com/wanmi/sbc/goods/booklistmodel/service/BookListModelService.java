@@ -460,12 +460,20 @@ public class BookListModelService {
                     conditionList.add(criteriaBuilder.like(root.get("name"), bookListModelPageRequest.getName() + "%"));
                 }
 
-                if (bookListModelPageRequest.getPublishState() != null) {
-                    conditionList.add(criteriaBuilder.equal(root.get("publishState"), bookListModelPageRequest.getPublishState()));
+//                if (bookListModelPageRequest.getPublishState() != null) {
+//                    conditionList.add(criteriaBuilder.equal(root.get("publishState"), bookListModelPageRequest.getPublishState()));
+//                }
+//
+//                if (bookListModelPageRequest.getBusinessType() != null) {
+//                    conditionList.add(criteriaBuilder.equal(root.get("businessType"), bookListModelPageRequest.getBusinessType()));
+//                }
+
+                if (!CollectionUtils.isEmpty(bookListModelPageRequest.getBusinessTypeList())) {
+                    conditionList.add(root.get("businessType").in(bookListModelPageRequest.getBusinessTypeList()));
                 }
 
-                if (bookListModelPageRequest.getBusinessType() != null) {
-                    conditionList.add(criteriaBuilder.equal(root.get("businessType"), bookListModelPageRequest.getBusinessType()));
+                if (!CollectionUtils.isEmpty(bookListModelPageRequest.getPublishStateList())) {
+                    conditionList.add(root.get("publishState").in(bookListModelPageRequest.getPublishStateList()));
                 }
 
                 if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdCollection())) {

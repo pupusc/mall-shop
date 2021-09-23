@@ -177,10 +177,7 @@ public class BookListModelAndGoodsService {
             }
         }
 
-        boolean isBuyPoint = esGoodsVO.getBuyPoint() != null && esGoodsVO.getBuyPoint() > 0;
-        if (isBuyPoint) {
-            currentSalePrice = currentSalePriceTmp;
-        }
+
 
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
         esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());

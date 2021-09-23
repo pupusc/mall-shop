@@ -19,6 +19,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.FilterRuleEnum;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -244,7 +246,16 @@ public class BookListModelController {
         BookListModelPageProviderRequest requestProvider = new BookListModelPageProviderRequest();
         requestProvider.setPageNum(bookListModelPageRequest.getPageNum());
         requestProvider.setPageSize(bookListModelPageRequest.getPageSize());
-        requestProvider.setBusinessType(bookListModelPageRequest.getBusinessType());
+        requestProvider.setBusinessTypeList(Arrays.asList(PublishStateEnum.PUBLISH.getCode(), PublishStateEnum.EDIT_UN_PUBLISH.getCode()));
+        if (bookListModelPageRequest.getBusinessType() != null) {
+            BusinessTypeEnum byCode = BusinessTypeEnum.getByCode(bookListModelPageRequest.getBusinessType());
+            if (byCode == BusinessTypeEnum.BOOK_RECOMMEND || byCode == BusinessTypeEnum.BOOK_LIST) {
+                requestProvider.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.BOOK_LIST.getCode()));
+            } else {
+                requestProvider.setBusinessTypeList(Collections.singletonList(bookListModelPageRequest.getBusinessType()));
+            }
+
+        }
         return bookListModelProvider.listByPage(requestProvider);
     }
 
