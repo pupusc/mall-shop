@@ -5,13 +5,16 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
+import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -58,8 +61,8 @@ public class EsGoodsCustomService {
         builder.withQuery(this.packageWhere(request));
         //排序
         if (!CollectionUtils.isEmpty(request.getSortBuilderList())) {
-            for (SortBuilder sortBuilder : request.getSortBuilderList()) {
-                builder.withSort(sortBuilder);
+            for (SortCustomBuilder sortBuilder : request.getSortBuilderList()) {
+                builder.withSort(new FieldSortBuilder(sortBuilder.getFieldName()).order(sortBuilder.getSortOrder()));
             }
         }
         NativeSearchQuery build = builder.build();

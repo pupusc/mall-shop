@@ -44,6 +44,6 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     /**
      * 字段排序
      */
-    private List<SortBuilder> sortBuilderList;
+    private List<SortCustomBuilder> sortBuilderList;
 
 }
