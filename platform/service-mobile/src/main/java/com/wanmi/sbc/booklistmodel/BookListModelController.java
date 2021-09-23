@@ -344,7 +344,7 @@ public class BookListModelController {
                     continue;
                 }
                 //无库存沉底
-                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_BOTTOM) {
+                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_BOTTOM && esGoodsVOLocal.getStock() <= 0) {
                     resultEsGoodsVoUnStockList.add(esGoodsVOLocal);
                     continue;
                 }
