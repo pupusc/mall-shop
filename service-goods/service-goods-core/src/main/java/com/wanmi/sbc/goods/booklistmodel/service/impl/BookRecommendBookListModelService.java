@@ -19,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,9 +99,16 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
 
         List<BookListModelAndOrderNumProviderResponse> resultOtherParam = new ArrayList<>();
         //获取店铺分类id列表
-        for (int i = 0; i < surplusCount; i++) {
-            BookListGoodsPublishLinkModelResponse bookListGoodPublishLinkModelParam = bookListGoodsPublishListByClassifyAndSpuIdList.get(i);
+        Map<Integer, BookListGoodsPublishLinkModelResponse> existsBookListModelMap = new HashMap<>();
+        for (BookListGoodsPublishLinkModelResponse bookListGoodPublishLinkModelParam : bookListGoodsPublishListByClassifyAndSpuIdList) {
+            if (existsBookListModelMap.get(bookListGoodPublishLinkModelParam.getBookListModelId()) != null) {
+                continue;
+            }
+            existsBookListModelMap.put(bookListGoodPublishLinkModelParam.getBookListModelId(), bookListGoodPublishLinkModelParam);
             resultOtherParam.add(super.packageBookListModelAndOrderNumProviderResponse(bookListGoodPublishLinkModelParam));
+            if (resultOtherParam.size() >= surplusCount) {
+                break;
+            }
         }
         result.addAll(resultOtherParam);
         log.info("---> BookRecommendBookListModelService.listBookListModelAndOrderNum spuId:{} 从类目中获取 书单为：{}",
