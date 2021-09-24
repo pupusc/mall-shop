@@ -78,6 +78,10 @@ public class BookListModelController {
         ) {
             throw new IllegalArgumentException("请求参数错误");
         }
+
+        if (bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().size() > 100) {
+            throw new IllegalArgumentException("商品最大为100");
+        }
         List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
                 .filter(ex -> StringUtils.isEmpty(ex.getSkuId()) ||
                         StringUtils.isEmpty(ex.getSpuId()) ||
@@ -113,6 +117,9 @@ public class BookListModelController {
                 || CollectionUtils.isEmpty(bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList())
                 ) {
             throw new IllegalArgumentException("请求参数错误");
+        }
+        if (bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().size() > 100) {
+            throw new IllegalArgumentException("商品最大为100");
         }
         List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
                 .filter(ex -> StringUtils.isEmpty(ex.getSkuId()) ||
@@ -208,7 +215,7 @@ public class BookListModelController {
             Set<String> goodsIdNo = bookListGoodsList.stream().map(BookListGoodsResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest request = new EsGoodsCustomQueryProviderRequest();
             request.setGoodIdList(goodsIdNo);
-            request.setPageNum(1);
+            request.setPageNum(0);
             request.setPageSize(100);
             BaseResponse<MicroServicePage<EsGoodsVO>> microServicePageBaseResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(request);
             MicroServicePage<EsGoodsVO> contextPage = microServicePageBaseResponse.getContext();

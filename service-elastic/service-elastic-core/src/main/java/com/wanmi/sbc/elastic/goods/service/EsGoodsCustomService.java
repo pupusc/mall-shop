@@ -1,5 +1,6 @@
 package com.wanmi.sbc.elastic.goods.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.EsConstants;
@@ -67,7 +68,7 @@ public class EsGoodsCustomService {
         }
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsGoodsCustomService.listEsGoodsNormal DSL: {}", build.getQuery().toString());
-        return elasticsearchTemplate.query(build, new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {
+        MicroServicePage<EsGoodsVO> query = elasticsearchTemplate.query(build, new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {
             @Override
             public MicroServicePage<EsGoodsVO> extract(SearchResponse searchResponse) {
                 MicroServicePage<EsGoodsVO> microServicePage = new MicroServicePage<>();
@@ -82,6 +83,8 @@ public class EsGoodsCustomService {
                 return microServiceResult;
             }
         });
+        log.info("--->> result: {}", JSON.toJSONString(query));
+        return query;
     }
 
 

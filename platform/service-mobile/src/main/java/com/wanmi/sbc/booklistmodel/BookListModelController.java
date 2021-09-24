@@ -454,8 +454,35 @@ public class BookListModelController {
 
         MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = this.packageBookListModelAndGoodsList(
                 null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
-                rankingPageRequest.getPageNum(), rankingPageRequest.getPageSize());
-        return BaseResponse.success(microServicePageResult);
+                0, 100); //当前最大是100个
+
+        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
+        result.setTotal(microServicePageResult.getTotal());
+        result.setContent(new ArrayList<>());
+
+        //手动进行分页
+        //此处只是获取一个
+        if (!CollectionUtils.isEmpty(microServicePageResult.getContent())) {
+            BookListModelAndGoodsListResponse bookListModelAndGoodsListModel = microServicePageResult.getContent().get(0);
+            if (bookListModelAndGoodsListModel.getBookListModel() == null || CollectionUtils.isEmpty(bookListModelAndGoodsListModel.getGoodsList())) {
+                return BaseResponse.success(result);
+            }
+
+            BookListModelAndGoodsListResponse resultBookListModelAndGoodsList = new BookListModelAndGoodsListResponse();
+            resultBookListModelAndGoodsList.setBookListModel(bookListModelAndGoodsListModel.getBookListModel());
+
+            int from = rankingPageRequest.getPageNum() * rankingPageRequest.getPageSize();
+            int to = (rankingPageRequest.getPageNum() + 1) * rankingPageRequest.getPageSize();
+            if (from > bookListModelAndGoodsListModel.getGoodsList().size()) {
+                return BaseResponse.success(result);
+            } else if (to > bookListModelAndGoodsListModel.getGoodsList().size()) {
+                to = microServicePageResult.getContent().size();
+            }
+            resultBookListModelAndGoodsList.setGoodsList(bookListModelAndGoodsListModel.getGoodsList().subList(from, to));
+            result.setContent(Collections.singletonList(resultBookListModelAndGoodsList));
+        }
+
+        return BaseResponse.success(result);
     }
 
     /**
