@@ -56,7 +56,7 @@ public class EsGoodsCustomService {
 
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
-        int pageNum = request.getPageNum() > 0 ? request.getPageNum() - 1 : request.getPageNum();
+        int pageNum = request.getPageNum();
         builder.withPageable(PageRequest.of(pageNum, request.getPageSize()));
         builder.withQuery(this.packageWhere(request));
         //排序
