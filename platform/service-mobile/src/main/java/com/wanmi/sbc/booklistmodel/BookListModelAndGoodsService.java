@@ -163,11 +163,12 @@ public class BookListModelAndGoodsService {
             spuIdSet.addAll(spuIdSetTmp);
         }
 
+        int maxSize = 100;
         List<BookListModelAndGoodsListResponse> result = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(pageNum);
-        esGoodsCustomRequest.setPageSize(Math.min(spuIdSet.size(), 100)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
+        esGoodsCustomRequest.setPageSize(Math.min(spuIdSet.size(), maxSize)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
         esGoodsCustomRequest.setGoodIdList(spuIdSet);
         if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
             esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
@@ -219,7 +220,7 @@ public class BookListModelAndGoodsService {
             }
         }
 
-        microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal());
+        microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal() > maxSize ? maxSize : esGoodsVOMicroServicePage.getTotal());
         microServicePageResult.setContent(result);
         return microServicePageResult;
     }
