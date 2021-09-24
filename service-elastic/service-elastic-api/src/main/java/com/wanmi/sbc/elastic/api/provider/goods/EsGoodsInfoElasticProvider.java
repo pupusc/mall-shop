@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Author: songhanlin
@@ -21,6 +22,9 @@ public interface EsGoodsInfoElasticProvider {
 
     @PostMapping("/elastic/${application.elastic.version}/goods/init")
     BaseResponse initEsGoodsInfo(@RequestBody @Valid EsGoodsInfoRequest request);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/setExtProp")
+    BaseResponse setExtPropForGoods(@RequestBody List<Object[]> props);
 
     @PostMapping("/elastic/${application.elastic.version}/goods/modify/distribution/goods/audit")
     BaseResponse<Boolean> modifyDistributionGoodsAudit(@RequestBody @Valid EsGoodsInfoModifyDistributionGoodsAuditRequest request);

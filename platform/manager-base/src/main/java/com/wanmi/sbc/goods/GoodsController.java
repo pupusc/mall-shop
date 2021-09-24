@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSONArray;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -73,12 +74,20 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -254,10 +263,27 @@ public class GoodsController {
      * @menu 商品
      * @status done
      */
-//    @ApiOperation(value = "标签")
-    @RequestMapping(value = "/setIsbn", method = RequestMethod.POST)
-    public BaseResponse setIsbn() {
-        goodsProvider.setIsbnForGoods();
+    @RequestMapping(value = "/setExtProp", method = RequestMethod.POST)
+    public BaseResponse setIsbn(HttpServletRequest request) throws Exception {
+
+        ServletInputStream in = request.getInputStream();
+        Workbook wb = WorkbookFactory.create(in);
+        Sheet sheet = wb.getSheetAt(0);
+        List<Object[]> props = new ArrayList<>();
+        int i = 1;
+        Row row = sheet.getRow(1);
+        while (row != null) {
+            String spuNumber = row.getCell(0).getStringCellValue();
+            String author = row.getCell(1).getStringCellValue();
+            String publisher = row.getCell(2).getStringCellValue();
+            double price = row.getCell(3).getNumericCellValue();
+            double score = row.getCell(4).getNumericCellValue();
+            String isbn = row.getCell(5).getStringCellValue();
+            props.add(new Object[]{spuNumber, author, publisher, price, score, isbn});
+            row = sheet.getRow(++i);
+        }
+        BaseResponse<List<Object[]>> listBaseResponse = goodsProvider.setExtPropForGoods(props);
+        esGoodsInfoElasticProvider.setExtPropForGoods(listBaseResponse.getContext());
         return BaseResponse.SUCCESSFUL();
     }
 

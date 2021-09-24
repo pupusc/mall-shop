@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.stylesheets.LinkStyle;
 import sun.awt.SunHints;
 
 import java.util.List;
@@ -398,6 +399,13 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * @return
      */
     Goods findByGoodsId(String goodsId);
+
+    /**
+     * 根据goodsNumber找到goodsId
+     * @return
+     */
+    @Query(value = "select goods_id,goods_no from goods where goods_no in ?1 and del_flag=0", nativeQuery = true)
+    List<Object[]> findIdByNumber(List<String> numbers);
 
     /**
      * 查找所有书籍

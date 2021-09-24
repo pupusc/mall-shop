@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -94,8 +95,8 @@ public interface GoodsProvider {
     @PostMapping("/goods/${application.goods.version}/modify")
     BaseResponse<GoodsModifyResponse> modify(@RequestBody @Valid GoodsModifyRequest request);
 
-    @PostMapping("/goods/${application.goods.version}/setIsbnForGoods")
-    BaseResponse<GoodsModifyResponse> setIsbnForGoods();
+    @PostMapping("/goods/${application.goods.version}/setExtPropForGoods")
+    BaseResponse<List<Object[]>> setExtPropForGoods(@RequestBody List<Object[]> props);
 
     /**
      * 新增商品定价
