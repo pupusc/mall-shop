@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassify
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BusinessTypeBookListModelAbstract;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -16,8 +17,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,15 +69,28 @@ public class BookRecommendBookListModelService extends BusinessTypeBookListModel
 
 
         log.info("---> BookRecommendBookListModelService.listBookListModelAndOrderNum spuId:{} 从类目中获取", spuId);
+        List<Integer> notInBookListIdList = new ArrayList();
+        if (CollectionUtils.isEmpty(result)) {
+            notInBookListIdList.add(-1);
+        } else {
+            //获取不需要的书单
+            notInBookListIdList =
+                    result.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toList());
+        }
 
-        //获取不需要的书单
-        List<Integer> notInBookListIdList =
-                result.stream().map(BookListModelAndOrderNumProviderResponse::getBookListModelId).collect(Collectors.toList());
+        //获取商品对应的 分类
+        List<ClassifyGoodsRelDTO> classifyGoodsList = classifyGoodsRelService.listClassifyIdByGoodsId(Collections.singletonList(spuId));
+        if (CollectionUtils.isEmpty(classifyGoodsList)) {
+            return result;
+        }
+
+        //获取所有分类id
+        Set<Integer> classifyIdSet = classifyGoodsList.stream().map(ClassifyGoodsRelDTO::getClassifyId).collect(Collectors.toSet());
 
         //从类目中获取 书单列表
         List<BookListGoodsPublishLinkModelResponse> bookListGoodsPublishListByClassifyAndSpuIdList =
                 super.listPublishGoodsAndBookListModelByClassifyAndSupId(
-                        Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(),BusinessTypeEnum.BOOK_RECOMMEND.getCode()),notInBookListIdList, spuId);
+                        Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(),BusinessTypeEnum.BOOK_RECOMMEND.getCode()),notInBookListIdList, classifyIdSet);
         if (CollectionUtils.isEmpty(bookListGoodsPublishListByClassifyAndSpuIdList)) {
             return result;
         }

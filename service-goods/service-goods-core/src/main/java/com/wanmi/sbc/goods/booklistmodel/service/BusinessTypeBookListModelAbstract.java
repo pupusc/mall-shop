@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.classify.request.BookListModelClassifyLinkPageRequest
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelPageRequest;
 import com.wanmi.sbc.goods.classify.response.BookListModelClassifyLinkResponse;
 import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
+import com.wanmi.sbc.goods.classify.service.ClassifyGoodsRelService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
 
@@ -36,6 +37,9 @@ public abstract class BusinessTypeBookListModelAbstract {
     @Resource
     protected BookListModelClassifyRelService bookListModelClassifyRelService;
 
+    @Resource
+    protected ClassifyGoodsRelService classifyGoodsRelService;
+
     /**
      * 根据商品 获取发布书单列表
      * @param businessTypeList
@@ -53,8 +57,8 @@ public abstract class BusinessTypeBookListModelAbstract {
      * @param spuId
      * @return
      */
-    protected List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, String spuId) {
-        return bookListGoodsPublishService.listPublishGoodsAndBookListModelByClassifyAndSupId(businessTypeList, notInBookListIdList, spuId);
+    protected List<BookListGoodsPublishLinkModelResponse> listPublishGoodsAndBookListModelByClassifyAndSupId(List<Integer> businessTypeList, List<Integer> notInBookListIdList, Collection<Integer> classifyIdColl) {
+        return bookListGoodsPublishService.listPublishGoodsAndBookListModelByClassifyAndSupId(businessTypeList, notInBookListIdList, classifyIdColl);
     }
 
     /**

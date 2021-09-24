@@ -5,13 +5,16 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
+import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -58,8 +61,8 @@ public class EsGoodsCustomService {
         builder.withQuery(this.packageWhere(request));
         //排序
         if (!CollectionUtils.isEmpty(request.getSortBuilderList())) {
-            for (SortBuilder sortBuilder : request.getSortBuilderList()) {
-                builder.withSort(sortBuilder);
+            for (SortCustomBuilder sortBuilder : request.getSortBuilderList()) {
+                builder.withSort(new FieldSortBuilder(sortBuilder.getFieldName()).order(sortBuilder.getSortOrder()));
             }
         }
         NativeSearchQuery build = builder.build();
@@ -120,21 +123,11 @@ public class EsGoodsCustomService {
 
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
-//            if (request.getGoodIdList().size() == 1) {
-//                boolQueryBuilder.must(termQuery("id", request.getGoodIdList().toArray()[0]));
-//            } else {
-                boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
-//            }
-
+            boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
         }
 
         if (!CollectionUtils.isEmpty(request.getUnGoodIdList())) {
-//            if (request.getUnGoodIdList().size() == 1) {
-//                boolQueryBuilder.mustNot(termQuery("id", request.getUnGoodIdList().toArray()[0]));
-//            } else {
-                boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
-//            }
-
+            boolQueryBuilder.mustNot(termsQuery("id", request.getUnGoodIdList()));
         }
 
         /**
@@ -143,6 +136,14 @@ public class EsGoodsCustomService {
         if (request.getCpsSpecial() != null) {
             boolQueryBuilder.must(termQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
             boolQueryBuilder.must(termQuery("cpsSpecial", request.getCpsSpecial()));
+        }
+
+        /**
+         * 不展示无库存 库存大于0
+         */
+        if (request.getHasShowUnStock() != null && !request.getHasShowUnStock()) {
+            boolQueryBuilder.must(rangeQuery("stock").gt(0));
+            boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
         return boolQueryBuilder;
     }
