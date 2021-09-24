@@ -250,17 +250,22 @@ public class BookListModelController {
      * @param bookListModelIdCollection
      * @return
      */
+//    private MicroServicePage<BookListModelAndGoodsListResponse> packageBookListModelAndGoodsList(String spuId, Collection<Integer> bookListModelIdCollection, boolean isCpsSpecial, Integer pageNum, Integer pageSize){
+//        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
+//        result.setNumber(pageNum);
+//        result.setSize(pageSize);
+//        result.setTotal(0);
+//        result.setContent(new ArrayList<>());
+//        Map<String, BookListMixProviderResponse> spuId2BookListMixMap = bookListModelAndGoodsService.supId2BookListMixMap(bookListModelIdCollection);
+//        if (spuId2BookListMixMap.isEmpty()) {
+//            return result;
+//        }
+//        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuId2BookListMixMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), isCpsSpecial, pageNum, pageSize);
+//    }
+
+
     private MicroServicePage<BookListModelAndGoodsListResponse> packageBookListModelAndGoodsList(String spuId, Collection<Integer> bookListModelIdCollection, boolean isCpsSpecial, Integer pageNum, Integer pageSize){
-        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
-        result.setNumber(pageNum);
-        result.setSize(pageSize);
-        result.setTotal(0);
-        result.setContent(new ArrayList<>());
-        Map<String, BookListMixProviderResponse> spuId2BookListMixMap = bookListModelAndGoodsService.supId2BookListMixMap(bookListModelIdCollection);
-        if (spuId2BookListMixMap.isEmpty()) {
-            return result;
-        }
-        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(spuId2BookListMixMap, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), isCpsSpecial, pageNum, pageSize);
+        return bookListModelAndGoodsService.listGoodsBySpuIdAndBookListModel(bookListModelIdCollection, StringUtils.isEmpty(spuId) ? null : Collections.singleton(spuId), isCpsSpecial, pageNum, pageSize);
     }
 
 
@@ -450,9 +455,6 @@ public class BookListModelController {
         MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = this.packageBookListModelAndGoodsList(
                 null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
                 rankingPageRequest.getPageNum(), rankingPageRequest.getPageSize());
-//        if (!CollectionUtils.isEmpty(microServicePageResult.getContent())) {
-//
-//        }
         return BaseResponse.success(microServicePageResult);
     }
 

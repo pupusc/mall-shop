@@ -25,8 +25,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -47,15 +50,61 @@ public class BookListModelAndGoodsService {
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
 
+
+
+//    /**
+//     * 根据 书单模版id 获取 商品spuId 书单Map信息
+//     * @param bookListModelIdSet
+//     * @return
+//     */
+//    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(Collection<Integer> bookListModelIdSet) {
+//        //根据书单id列表 获取商品列表id信息
+//        BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByModelIds(bookListModelIdSet);
+//        if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
+//            return new HashMap<>();
+//        }
+//
+//        //goodsId -> BookListModelProviderResponse
+//        Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
+//
+//        //获取商品id列表
+//        for (BookListMixProviderResponse bookListMixProviderParam : listBookListMixResponse.getContext()) {
+//            if (bookListMixProviderParam.getChooseRuleMode() == null) {
+//                continue;
+//            }
+//            List<BookListGoodsProviderResponse> bookListGoodsList = bookListMixProviderParam.getChooseRuleMode().getBookListGoodsList();
+//            if (CollectionUtils.isEmpty(bookListGoodsList)) {
+//                continue;
+//            }
+//            for (BookListGoodsProviderResponse bookListGoodsProviderParam: bookListGoodsList) {
+//                //这里方便后续 房源查找模版
+//                supId2BookListMixMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam);
+//            }
+//        }
+//        return supId2BookListMixMap;
+//    }
+
     /**
-     * 根据 书单模版id 获取 商品spuId 书单Map信息
+     * 批量获取书单详细信息
      * @param bookListModelIdSet
      * @return
      */
-    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(Collection<Integer> bookListModelIdSet) {
-        //根据书单id列表 获取商品列表id信息
+    public List<BookListMixProviderResponse> listBookListMixProvider(Collection<Integer> bookListModelIdSet) {
         BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByModelIds(bookListModelIdSet);
         if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
+            return new ArrayList<>();
+        }
+        return listBookListMixResponse.getContext();
+    }
+
+
+    /**
+     * 根据 书单模版id 获取 商品spuId 书单Map信息
+     * @return
+     */
+    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(List<BookListMixProviderResponse> bookListMixList) {
+        //根据书单id列表 获取商品列表id信息
+        if (CollectionUtils.isEmpty(bookListMixList)) {
             return new HashMap<>();
         }
 
@@ -63,7 +112,7 @@ public class BookListModelAndGoodsService {
         Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
 
         //获取商品id列表
-        for (BookListMixProviderResponse bookListMixProviderParam : listBookListMixResponse.getContext()) {
+        for (BookListMixProviderResponse bookListMixProviderParam : bookListMixList) {
             if (bookListMixProviderParam.getChooseRuleMode() == null) {
                 continue;
             }
@@ -81,75 +130,171 @@ public class BookListModelAndGoodsService {
 
     /**
      * 根据 商品id 书单map 获取商品列表详细信息
-     * @param supId2BookListMixMap
      * @param unSpuIdCollection
      * @return
      */
     public MicroServicePage<BookListModelAndGoodsListResponse> listGoodsBySpuIdAndBookListModel(
-            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, boolean isCpsSpecial, int pageNum, int pageSize) {
-        // supId --> BookListModelProviderResponse
-        Collection<String> spuIdCollection = supId2BookListMixMap.keySet();
+            Collection<Integer> bookListModelIdCollection, Collection<String> unSpuIdCollection, boolean isCpsSpecial, int pageNum, int pageSize) {
+        List<BookListMixProviderResponse> bookListMixList = this.listBookListMixProvider(bookListModelIdCollection);
+
+        MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = new MicroServicePage<>();
+        microServicePageResult.setTotal(0);
+        microServicePageResult.setContent(new ArrayList<>());
+
+        if (CollectionUtils.isEmpty(bookListMixList)) {
+            return microServicePageResult;
+        }
+        Set<String> spuIdSet = new HashSet<>();
+        //获取所有商品信息
+        for (BookListMixProviderResponse bookListMixParam : bookListMixList) {
+            if (bookListMixParam.getBookListModel() == null) {
+                continue;
+            }
+
+            if (bookListMixParam.getChooseRuleMode() == null) {
+                continue;
+            }
+
+            if (CollectionUtils.isEmpty(bookListMixParam.getChooseRuleMode().getBookListGoodsList())) {
+                continue;
+            }
+            Set<String> spuIdSetTmp =
+                    bookListMixParam.getChooseRuleMode().getBookListGoodsList().stream().map(BookListGoodsProviderResponse::getSpuId).collect(Collectors.toSet());
+            spuIdSet.addAll(spuIdSetTmp);
+        }
 
         List<BookListModelAndGoodsListResponse> result = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(pageNum);
-        esGoodsCustomRequest.setPageSize(Math.min(spuIdCollection.size(), 100)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
-        esGoodsCustomRequest.setGoodIdList(spuIdCollection);
+        esGoodsCustomRequest.setPageSize(Math.min(spuIdSet.size(), 100)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
+        esGoodsCustomRequest.setGoodIdList(spuIdSet);
         if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
             esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
         }
-
         //如果非知识顾问，则需要过滤，是知识顾问就不用过滤
         if (!isCpsSpecial) {
-            esGoodsCustomRequest.setCpsSpecial(0); //TODO 知识顾问要单独处理
+            esGoodsCustomRequest.setCpsSpecial(0); //知识顾问要单独处理
         }
 
         // goodsId -> BookListModelAndGoodsListResponse
-        Map<Integer, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
-
         BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (!CollectionUtils.isEmpty(content)) {
-            for (EsGoodsVO esGoodsVO : content) {
-                BookListMixProviderResponse bookListMixProviderResponse = supId2BookListMixMap.get(esGoodsVO.getId());
-                if (bookListMixProviderResponse == null) {
-                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListMixProviderResponse", esGoodsVO.getId());
+            // EsGoods -> Map
+            Map<String, EsGoodsVO> spuId2EsGoodsMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+
+            for (BookListMixProviderResponse bookListMixParam : bookListMixList) {
+                if (bookListMixParam.getBookListModel() == null) {
                     continue;
                 }
-                BookListModelProviderResponse bookListModelProviderResponse = bookListMixProviderResponse.getBookListModel();
-                if (bookListModelProviderResponse == null) {
-                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListModelProviderResponse", esGoodsVO.getId());
+
+                if (bookListMixParam.getChooseRuleMode() == null) {
                     continue;
                 }
-                BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(bookListModelProviderResponse.getId());
-                if (bookListModelAndGoodsListResponseTmp == null) {
-                    BookListModelAndGoodsListResponse bookListModelAndGoodsListResponse = new BookListModelAndGoodsListResponse();
-                    bookListModelAndGoodsListResponse.setBookListModel(bookListModelProviderResponse);
-                    List<GoodsCustomResponse> goodsList = new ArrayList<>();
-                    goodsList.add(this.packageGoodsCustomResponse(esGoodsVO));
-                    bookListModelAndGoodsListResponse.setGoodsList(goodsList);
-                    goodsId2BookListModelAndGoodsListMap.put(bookListModelProviderResponse.getId(), bookListModelAndGoodsListResponse);
-                    result.add(bookListModelAndGoodsListResponse);
-                } else {
-                    if (bookListModelAndGoodsListResponseTmp.getGoodsList().size() >= pageSize) {
+
+                if (CollectionUtils.isEmpty(bookListMixParam.getChooseRuleMode().getBookListGoodsList())) {
+                    continue;
+                }
+
+                BookListModelAndGoodsListResponse resultTmp = new BookListModelAndGoodsListResponse();
+                resultTmp.setBookListModel(bookListMixParam.getBookListModel());
+                List<GoodsCustomResponse> goodsCustomTmpList = new ArrayList<>();
+                for (BookListGoodsProviderResponse bookListGoodsTmpParam : bookListMixParam.getChooseRuleMode().getBookListGoodsList()) {
+                    EsGoodsVO esGoodsVO = spuId2EsGoodsMap.get(bookListGoodsTmpParam.getSpuId());
+                    if (esGoodsVO == null) {
                         continue;
                     }
-                    bookListModelAndGoodsListResponseTmp.getGoodsList().add(this.packageGoodsCustomResponse(esGoodsVO));
+                    if (goodsCustomTmpList.size() >= pageSize) {
+                        break;
+                    }
+                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(esGoodsVO));
+                }
+                resultTmp.setGoodsList(goodsCustomTmpList);
+
+                if (!CollectionUtils.isEmpty(goodsCustomTmpList)) {
+                    result.add(resultTmp);
                 }
             }
         }
-        MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = new MicroServicePage<>();
-        microServicePageResult.setNumber(esGoodsVOMicroServicePage.getNumber());
-        microServicePageResult.setSize(esGoodsVOMicroServicePage.getSize());
+
         microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal());
-        microServicePageResult.setPageable(esGoodsVOMicroServicePage.getPageable());
         microServicePageResult.setContent(result);
         return microServicePageResult;
     }
 
+//    /**
+//     * 根据 商品id 书单map 获取商品列表详细信息
+//     * @param supId2BookListMixMap
+//     * @param unSpuIdCollection
+//     * @return
+//     */
+//    public MicroServicePage<BookListModelAndGoodsListResponse> listGoodsBySpuIdAndBookListModel(
+//            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, boolean isCpsSpecial, int pageNum, int pageSize) {
+//        // supId --> BookListModelProviderResponse
+//        Collection<String> spuIdCollection = supId2BookListMixMap.keySet();
 //
+//        List<BookListModelAndGoodsListResponse> result = new ArrayList<>();
+//        //根据商品id列表 获取商品列表信息
+//        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+//        esGoodsCustomRequest.setPageNum(pageNum);
+//        esGoodsCustomRequest.setPageSize(Math.min(spuIdCollection.size(), 100)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
+//        esGoodsCustomRequest.setGoodIdList(spuIdCollection);
+//        if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
+//            esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
+//        }
+//
+//        //如果非知识顾问，则需要过滤，是知识顾问就不用过滤
+//        if (!isCpsSpecial) {
+//            esGoodsCustomRequest.setCpsSpecial(0); //TODO 知识顾问要单独处理
+//        }
+//
+//        // goodsId -> BookListModelAndGoodsListResponse
+//        Map<Integer, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
+//
+//        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+//        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
+//        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
+//        if (!CollectionUtils.isEmpty(content)) {
+//            for (EsGoodsVO esGoodsVO : content) {
+//                BookListMixProviderResponse bookListMixProviderResponse = supId2BookListMixMap.get(esGoodsVO.getId());
+//                if (bookListMixProviderResponse == null) {
+//                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListMixProviderResponse", esGoodsVO.getId());
+//                    continue;
+//                }
+//                BookListModelProviderResponse bookListModelProviderResponse = bookListMixProviderResponse.getBookListModel();
+//                if (bookListModelProviderResponse == null) {
+//                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListModelProviderResponse", esGoodsVO.getId());
+//                    continue;
+//                }
+//                BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(bookListModelProviderResponse.getId());
+//                if (bookListModelAndGoodsListResponseTmp == null) {
+//                    BookListModelAndGoodsListResponse bookListModelAndGoodsListResponse = new BookListModelAndGoodsListResponse();
+//                    bookListModelAndGoodsListResponse.setBookListModel(bookListModelProviderResponse);
+//                    List<GoodsCustomResponse> goodsList = new ArrayList<>();
+//                    goodsList.add(this.packageGoodsCustomResponse(esGoodsVO));
+//                    bookListModelAndGoodsListResponse.setGoodsList(goodsList);
+//                    goodsId2BookListModelAndGoodsListMap.put(bookListModelProviderResponse.getId(), bookListModelAndGoodsListResponse);
+//                    result.add(bookListModelAndGoodsListResponse);
+//                } else {
+//                    if (bookListModelAndGoodsListResponseTmp.getGoodsList().size() >= pageSize) {
+//                        continue;
+//                    }
+//                    bookListModelAndGoodsListResponseTmp.getGoodsList().add(this.packageGoodsCustomResponse(esGoodsVO));
+//                }
+//            }
+//        }
+//        MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = new MicroServicePage<>();
+//        microServicePageResult.setNumber(esGoodsVOMicroServicePage.getNumber());
+//        microServicePageResult.setSize(esGoodsVOMicroServicePage.getSize());
+//        microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal());
+//        microServicePageResult.setPageable(esGoodsVOMicroServicePage.getPageable());
+//        microServicePageResult.setContent(result);
+//        return microServicePageResult;
+//    }
+
+
 //    public List<EsGoodsVO> sort(List<EsGoodsVO> esGoodsVOList, ) {
 //
 //    }
