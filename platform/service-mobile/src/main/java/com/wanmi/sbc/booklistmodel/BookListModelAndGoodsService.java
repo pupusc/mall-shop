@@ -149,6 +149,11 @@ public class BookListModelAndGoodsService {
         return microServicePageResult;
     }
 
+//
+//    public List<EsGoodsVO> sort(List<EsGoodsVO> esGoodsVOList, ) {
+//
+//    }
+
 
     /**
      *  esGoodsVo 转化成 可以返回给前端的对象

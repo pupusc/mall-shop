@@ -106,6 +106,10 @@ public class BookListModelController {
      * @return
      */
     private boolean getIsCounselor() {
+        String operatorId = commonUtil.getOperatorId();
+        if (StringUtils.isEmpty(operatorId)) {
+            return false;
+        }
         CustomerVO customerVO = commonUtil.getCanNullCustomer();
         if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
             return false;
@@ -446,6 +450,9 @@ public class BookListModelController {
         MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = this.packageBookListModelAndGoodsList(
                 null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
                 rankingPageRequest.getPageNum(), rankingPageRequest.getPageSize());
+//        if (!CollectionUtils.isEmpty(microServicePageResult.getContent())) {
+//
+//        }
         return BaseResponse.success(microServicePageResult);
     }
 
