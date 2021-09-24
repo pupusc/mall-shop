@@ -284,7 +284,7 @@ public class BookListModelController {
         BookListModelPageProviderRequest requestProvider = new BookListModelPageProviderRequest();
         requestProvider.setPageNum(bookListModelPageRequest.getPageNum());
         requestProvider.setPageSize(bookListModelPageRequest.getPageSize());
-        requestProvider.setBusinessTypeList(Arrays.asList(PublishStateEnum.PUBLISH.getCode()));
+        requestProvider.setPublishStateList(Arrays.asList(PublishStateEnum.PUBLISH.getCode()));
         if (bookListModelPageRequest.getBusinessType() != null) {
             BusinessTypeEnum byCode = BusinessTypeEnum.getByCode(bookListModelPageRequest.getBusinessType());
             if (byCode == BusinessTypeEnum.BOOK_RECOMMEND || byCode == BusinessTypeEnum.BOOK_LIST) {
