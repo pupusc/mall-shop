@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.response.booklistmodel;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -53,8 +54,10 @@ public class BookListModelProviderResponse implements Serializable {
      */
     private Integer publishState;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date createTime;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date updateTime;
 
 }
