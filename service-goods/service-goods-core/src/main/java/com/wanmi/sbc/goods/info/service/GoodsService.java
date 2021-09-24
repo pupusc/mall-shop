@@ -3239,99 +3239,110 @@ public class GoodsService {
     }
 
     /**
-     * 为没有ISBN的书籍设置ISBN
+     * 为书籍设置历史属性数据
      */
-    public void fillIsbnForGoods() {
-        List<Goods> books = goodsRepository.findBooks();
-        GoodsProp isbn = goodsPropRepository.findByPropName("ISBN");
-        List<GoodsPropDetailRel> rels = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        for (Goods book : books) {
-            String bookName = fetchIsbn(book.getGoodsName());
-            if(bookName != null){
-                GoodsPropDetailRel rel = goodsPropDetailRelRepository.findByGoodsIdAndIsbn(isbn.getPropId(), book.getGoodsId());
-                if(rel == null){
-                    rel = new GoodsPropDetailRel();
-                    rel.setPropValue(bookName);
-                    rel.setDetailId(0L);
-                    rel.setGoodsId(book.getGoodsId());
-                    rel.setDelFlag(DeleteFlag.NO);
-                    rel.setPropId(isbn.getPropId());
-                    rel.setCreateTime(now);
-                    rel.setUpdateTime(now);
-                }else {
-                    rel.setPropValue(bookName);
+    @Transactional
+    public List<Object[]> setExtPropForGoods(List<Object[]> props) {
+        List<String> goodsNumbers = new ArrayList<>();
+        for (Object[] prop : props) {
+            goodsNumbers.add((String) prop[0]);
+        }
+        List<Object[]> goodsParam = goodsRepository.findIdByNumber(goodsNumbers);
+        List<Object[]> propList = new ArrayList<>();
+        List<String> goodsIds = new ArrayList();
+        for (Object[] prop : props) {
+            for (Object[] param : goodsParam) {
+                if(prop[0].equals(param[1])){
+                    propList.add(new Object[]{param[0], prop[1], prop[2], prop[3], prop[4], prop[5]});
+                    goodsIds.add((String) param[0]);
+                    break;
                 }
-                rels.add(rel);
             }
         }
-        goodsPropDetailRelRepository.saveAll(rels);
+        List<GoodsPropDetailRel> propRels = goodsPropDetailRelRepository.findByGoodsIds(goodsIds);
+        Map<String, List<GoodsPropDetailRel>> goodsProp = propRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getGoodsId));
+
+        GoodsProp authorProp = goodsPropRepository.findByPropName("作者");
+        GoodsProp publisherProp = goodsPropRepository.findByPropName("出版社");
+        GoodsProp scoreProp = goodsPropRepository.findByPropName("评分");
+        GoodsProp priceProp = goodsPropRepository.findByPropName("定价");
+        GoodsProp isbnProp = goodsPropRepository.findByPropName("ISBN");
+
+        List<GoodsPropDetailRel> createList = new ArrayList<>();
+        for (Object[] prop : propList) {
+            String goodsId = (String) prop[0];
+            String author = (String) prop[1];
+            String publisher = (String) prop[2];
+            double price = (double) prop[3];
+            double score = (double) prop[4];
+            String isbn = (String) prop[5];
+            LocalDateTime now = LocalDateTime.now();
+            List<GoodsPropDetailRel> goodsPropDetailRels = goodsProp.get(goodsId);
+            boolean authorFlag = false;
+            boolean publisherFlag = false;
+            boolean scoreFlag = false;
+            boolean priceFlag = false;
+            boolean isbnFlag = false;
+            //已有的更新
+            for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
+                if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(author);
+                    authorFlag = true;
+                }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(publisher);
+                    publisherFlag = true;
+                }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(score + "");
+                    scoreFlag = true;
+                }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(price + "");
+                    priceFlag = true;
+                }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(isbn);
+                    isbnFlag = true;
+                }
+            }
+            //没有的新建
+            if(authorProp != null && !authorFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(authorProp.getPropId());
+                rel.setPropValue(author);
+            }
+            if(publisherProp != null && !publisherFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(publisherProp.getPropId());
+                rel.setPropValue(publisher);
+            }
+            if(scoreProp != null && !scoreFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(scoreProp.getPropId());
+                rel.setPropValue(score + "");
+            }
+            if(priceProp != null && !priceFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(priceProp.getPropId());
+                rel.setPropValue(price + "");
+            }
+            if(isbnProp != null && !isbnFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(isbnProp.getPropId());
+                rel.setPropValue(isbn);
+            }
+        }
+        goodsPropDetailRelRepository.saveAll(propRels);
+        goodsPropDetailRelRepository.saveAll(createList);
+        return propList;
     }
 
-    /**
-     * 从网络上查找ISBN
-     * @param keyWord 书名
-     */
-    private String fetchIsbn(String keyWord) {
-        String DOMAIN = "https://www.dushu.com";
-        RestTemplate restTemplate = new RestTemplate();
-        String searchUrl = DOMAIN + "/search.aspx?wd=" + keyWord;
-        ResponseEntity<String> res = restTemplate.getForEntity(searchUrl, String.class);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBody().getBytes())));
-        try {
-            String line = reader.readLine();
-            while(line != null) {
-                if(line.contains("img152 float")) {
-                    int indexBegin = line.indexOf("/book/");
-                    if(indexBegin != -1) {
-                        StringBuilder sb = new StringBuilder(20);
-                        for (char c : line.toCharArray()) {
-                            if(19968 <= c && c < 40869){
-                                sb.append(c);
-                            }
-                        }
-                        if(sb.toString().equals(keyWord)) {
-                            System.out.println(keyWord);
-                            int indexEnd = line.indexOf("target=") - 2;
-                            String link = line.substring(indexBegin, indexEnd);
-
-                            ResponseEntity<String> res2 = restTemplate.getForEntity(DOMAIN + link, String.class);
-                            BufferedReader reader2 = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res2.getBody().getBytes())));
-                            String line2 = reader2.readLine();
-                            while(line2 != null) {
-                                if(line2.contains("ISBN：")){
-                                    line2 = reader2.readLine();
-                                    int indexBegin2 = line2.indexOf("rt\">") + 4;
-                                    int indexEnd2 = line2.indexOf("</td>");
-                                    String isbn = line2.substring(indexBegin2, indexEnd2);
-                                    return isbn;
-                                }
-                                line2 = reader2.readLine();
-                                if(line2 == null){
-                                    log.warn("{}-找不到ISBN", keyWord);
-                                    return null;
-                                }
-                            }
-                        }
-                    }
-                }
-                line = reader.readLine();
-                if(line == null){
-                    log.warn("{}-找不到ISBN", keyWord);
-                    return null;
-                }
-            }
-        }catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }finally {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-        return null;
+    private GoodsPropDetailRel createRel(List<GoodsPropDetailRel> rels, String goodsId, LocalDateTime now){
+        GoodsPropDetailRel rel = new GoodsPropDetailRel();
+        rels.add(rel);
+        rel.setUpdateTime(now);
+        rel.setCreateTime(now);
+        rel.setDelFlag(DeleteFlag.NO);
+        rel.setGoodsId(goodsId);
+        rel.setDetailId(0L);
+        return rel;
     }
 
 }

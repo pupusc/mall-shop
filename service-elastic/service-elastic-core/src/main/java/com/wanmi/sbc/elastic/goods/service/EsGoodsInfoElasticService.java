@@ -885,6 +885,13 @@ public class EsGoodsInfoElasticService {
     }
 
     /**
+     * 更新spu扩展属性
+     * @param props
+     */
+    public void updateEsGoodsExtProp(List<Object[]> props){
+        esGoodsElasticService.setExtPropForGoods(props);
+    }
+    /**
      * 上下架
      *
      * @param addedFlag    上下架状态

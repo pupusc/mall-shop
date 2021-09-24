@@ -49,12 +49,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQueryBuilder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -400,6 +403,9 @@ public class EsGoodsElasticService {
                                 }else if("评分".equals(rel.getPropName()) && StringUtils.isNotEmpty(rel.getPropValue())){
                                     goodsExtProps.setScore(Double.parseDouble(rel.getPropValue()));
                                     it.remove();
+                                }else if("ISBN".equals(rel.getPropName())){
+                                    goodsExtProps.setIsbn(rel.getPropValue());
+                                    it.remove();
                                 }
                             }
                             esGoods.setGoodsExtProps(goodsExtProps);
@@ -606,7 +612,38 @@ public class EsGoodsElasticService {
         logger.info(String.format("商品所有索引结束->花费%s毫秒", (System.currentTimeMillis() - startTime)));
     }
 
+    /**
+     * 更新spu扩展属性
+     * @param props
+     */
+    public void setExtPropForGoods(List<Object[]> props){
+        List<UpdateQuery> updateQueries = new ArrayList<>();
+        for (Object[] prop : props) {
+            String goodsId = (String) prop[0];
+            String author = (String) prop[1];
+            String publisher = (String) prop[2];
+            double price = (double) prop[3];
+            double score = (double) prop[4];
+            String isbn = (String) prop[5];
 
+            Map<String, Object> params = new HashMap<>();
+            Map<String, Object> wrapper = new HashMap<>();
+            params.put("score", score);
+            params.put("price", price);
+            params.put("publisher", publisher);
+            params.put("author", author);
+            params.put("isbn", isbn);
+            wrapper.put("goodsExtProps", params);
+
+            UpdateRequest updateRequest = new UpdateRequest();
+            updateRequest.doc(wrapper);
+            UpdateQueryBuilder updateQueryBuilder = new UpdateQueryBuilder();
+            UpdateQuery build = updateQueryBuilder.withId(goodsId).withUpdateRequest(updateRequest)
+                    .withClass(EsGoods.class).build();
+            updateQueries.add(build);
+        }
+        elasticsearchTemplate.bulkUpdate(updateQueries);
+    }
 
     /**
      * 初始化SPU持化于ES

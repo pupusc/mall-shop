@@ -412,9 +412,9 @@ public class GoodsController implements GoodsProvider {
      * 为商品设置ISBN
      */
     @Override
-    public BaseResponse<GoodsModifyResponse> setIsbnForGoods() {
-        goodsService.fillIsbnForGoods();
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<List<Object[]>> setExtPropForGoods(List<Object[]> props) {
+        List list = goodsService.setExtPropForGoods(props);
+        return BaseResponse.success(list);
     }
 
     /**

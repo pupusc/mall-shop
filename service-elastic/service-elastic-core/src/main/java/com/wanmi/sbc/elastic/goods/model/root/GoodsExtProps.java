@@ -16,6 +16,9 @@ public class GoodsExtProps {
     @ApiModelProperty(value = "出版社")
     private String publisher;
 
+    @ApiModelProperty(value = "ISBN")
+    private String isbn;
+
     @Field(type = FieldType.Double)
     @ApiModelProperty(value = "价格")
     private Double price;
