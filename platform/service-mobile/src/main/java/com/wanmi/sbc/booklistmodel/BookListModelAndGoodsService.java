@@ -5,16 +5,25 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
+import com.wanmi.sbc.customer.api.request.level.CustomerLevelMapByCustomerIdAndStoreIdsRequest;
+import com.wanmi.sbc.customer.api.response.level.CustomerLevelMapGetResponse;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +37,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,40 +59,13 @@ public class BookListModelAndGoodsService {
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
+    @Autowired
+    private StoreCateQueryProvider storeCateQueryProvider;
+
+    @Autowired
+    private CustomerLevelQueryProvider customerLevelQueryProvider;
 
 
-
-//    /**
-//     * 根据 书单模版id 获取 商品spuId 书单Map信息
-//     * @param bookListModelIdSet
-//     * @return
-//     */
-//    public Map<String, BookListMixProviderResponse> supId2BookListMixMap(Collection<Integer> bookListModelIdSet) {
-//        //根据书单id列表 获取商品列表id信息
-//        BaseResponse<List<BookListMixProviderResponse>> listBookListMixResponse = bookListModelProvider.listPublishGoodsByModelIds(bookListModelIdSet);
-//        if (CollectionUtils.isEmpty(listBookListMixResponse.getContext())) {
-//            return new HashMap<>();
-//        }
-//
-//        //goodsId -> BookListModelProviderResponse
-//        Map<String, BookListMixProviderResponse> supId2BookListMixMap = new HashMap<>();
-//
-//        //获取商品id列表
-//        for (BookListMixProviderResponse bookListMixProviderParam : listBookListMixResponse.getContext()) {
-//            if (bookListMixProviderParam.getChooseRuleMode() == null) {
-//                continue;
-//            }
-//            List<BookListGoodsProviderResponse> bookListGoodsList = bookListMixProviderParam.getChooseRuleMode().getBookListGoodsList();
-//            if (CollectionUtils.isEmpty(bookListGoodsList)) {
-//                continue;
-//            }
-//            for (BookListGoodsProviderResponse bookListGoodsProviderParam: bookListGoodsList) {
-//                //这里方便后续 房源查找模版
-//                supId2BookListMixMap.put(bookListGoodsProviderParam.getSpuId(), bookListMixProviderParam);
-//            }
-//        }
-//        return supId2BookListMixMap;
-//    }
 
     /**
      * 批量获取书单详细信息
@@ -225,80 +208,60 @@ public class BookListModelAndGoodsService {
         return microServicePageResult;
     }
 
+//    private void test() {
+//        goodsInfos.forEach(item -> {
+//            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),storeCateIdMap.get(item.getGoodsId()));
+//            List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
+//                    CouponLabelVO.builder()
+//                            .couponActivityId(cache.getCouponActivityId())
+//                            .couponInfoId(cache.getCouponInfoId())
+//                            .couponDesc(getLabelMap(cache))
+//                            .build()
+//            ).collect(Collectors.toList());
+//        });
+//    }
+
 //    /**
-//     * 根据 商品id 书单map 获取商品列表详细信息
-//     * @param supId2BookListMixMap
-//     * @param unSpuIdCollection
-//     * @return
+//     * 获取优惠券
 //     */
-//    public MicroServicePage<BookListModelAndGoodsListResponse> listGoodsBySpuIdAndBookListModel(
-//            Map<String, BookListMixProviderResponse> supId2BookListMixMap, Collection<String> unSpuIdCollection, boolean isCpsSpecial, int pageNum, int pageSize) {
-//        // supId --> BookListModelProviderResponse
-//        Collection<String> spuIdCollection = supId2BookListMixMap.keySet();
-//
-//        List<BookListModelAndGoodsListResponse> result = new ArrayList<>();
-//        //根据商品id列表 获取商品列表信息
-//        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-//        esGoodsCustomRequest.setPageNum(pageNum);
-//        esGoodsCustomRequest.setPageSize(Math.min(spuIdCollection.size(), 100)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
-//        esGoodsCustomRequest.setGoodIdList(spuIdCollection);
-//        if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
-//            esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
+//    private Map<String, List<Long>> getStoreCateIdMap(List<String> goodsIds) {
+//        if (CollectionUtils.isEmpty(goodsIds)) {
+//            return new HashMap<>();
 //        }
+//        //商品-店铺分类关联实体类
+//        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
+//                new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
 //
-//        //如果非知识顾问，则需要过滤，是知识顾问就不用过滤
-//        if (!isCpsSpecial) {
-//            esGoodsCustomRequest.setCpsSpecial(0); //TODO 知识顾问要单独处理
-//        }
-//
-//        // goodsId -> BookListModelAndGoodsListResponse
-//        Map<Integer, BookListModelAndGoodsListResponse> goodsId2BookListModelAndGoodsListMap = new HashMap<>();
-//
-//        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
-//        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
-//        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
-//        if (!CollectionUtils.isEmpty(content)) {
-//            for (EsGoodsVO esGoodsVO : content) {
-//                BookListMixProviderResponse bookListMixProviderResponse = supId2BookListMixMap.get(esGoodsVO.getId());
-//                if (bookListMixProviderResponse == null) {
-//                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListMixProviderResponse", esGoodsVO.getId());
-//                    continue;
-//                }
-//                BookListModelProviderResponse bookListModelProviderResponse = bookListMixProviderResponse.getBookListModel();
-//                if (bookListModelProviderResponse == null) {
-//                    log.error("--->>> BookListModelAndGoodsService.recommendBookListModel goodsId:{} can't find in model bookListModelProviderResponse", esGoodsVO.getId());
-//                    continue;
-//                }
-//                BookListModelAndGoodsListResponse bookListModelAndGoodsListResponseTmp = goodsId2BookListModelAndGoodsListMap.get(bookListModelProviderResponse.getId());
-//                if (bookListModelAndGoodsListResponseTmp == null) {
-//                    BookListModelAndGoodsListResponse bookListModelAndGoodsListResponse = new BookListModelAndGoodsListResponse();
-//                    bookListModelAndGoodsListResponse.setBookListModel(bookListModelProviderResponse);
-//                    List<GoodsCustomResponse> goodsList = new ArrayList<>();
-//                    goodsList.add(this.packageGoodsCustomResponse(esGoodsVO));
-//                    bookListModelAndGoodsListResponse.setGoodsList(goodsList);
-//                    goodsId2BookListModelAndGoodsListMap.put(bookListModelProviderResponse.getId(), bookListModelAndGoodsListResponse);
-//                    result.add(bookListModelAndGoodsListResponse);
-//                } else {
-//                    if (bookListModelAndGoodsListResponseTmp.getGoodsList().size() >= pageSize) {
-//                        continue;
-//                    }
-//                    bookListModelAndGoodsListResponseTmp.getGoodsList().add(this.packageGoodsCustomResponse(esGoodsVO));
-//                }
+//        //商品店铺分类
+//        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
+//        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
+//            List<Long> storeCateId=new ArrayList<>();
+//            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
+//            if(i==0){
+//                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
 //            }
 //        }
-//        MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = new MicroServicePage<>();
-//        microServicePageResult.setNumber(esGoodsVOMicroServicePage.getNumber());
-//        microServicePageResult.setSize(esGoodsVOMicroServicePage.getSize());
-//        microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal());
-//        microServicePageResult.setPageable(esGoodsVOMicroServicePage.getPageable());
-//        microServicePageResult.setContent(result);
-//        return microServicePageResult;
+//        return storeCateIdMap;
 //    }
-
-
-//    public List<EsGoodsVO> sort(List<EsGoodsVO> esGoodsVOList, ) {
 //
+//    /**
+//     * 获取用户等级
+//     * @param goodsInfoList
+//     * @param customerId
+//     * @return
+//     */
+//    private Map<Long, CommonLevelVO> getCustomerLevelsMap(List<GoodsInfoVO> goodsInfoList, String customerId) {
+//        if (CollectionUtils.isEmpty(goodsInfoList) || StringUtils.isEmpty(customerId)) {
+//            return new HashMap<>();
+//        }
+//        List<Long> storeIds = goodsInfoList.stream().map(GoodsInfoVO::getStoreId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+//        CustomerLevelMapByCustomerIdAndStoreIdsRequest customerLevelMapByCustomerIdAndStoreIdsRequest = new CustomerLevelMapByCustomerIdAndStoreIdsRequest();
+//        customerLevelMapByCustomerIdAndStoreIdsRequest.setCustomerId(customerId);
+//        customerLevelMapByCustomerIdAndStoreIdsRequest.setStoreIds(storeIds);
+//        BaseResponse<CustomerLevelMapGetResponse> customerLevelMapGetResponseBaseResponse = customerLevelQueryProvider.listCustomerLevelMapByCustomerIdAndIds(customerLevelMapByCustomerIdAndStoreIdsRequest);
+//        return customerLevelMapGetResponseBaseResponse.getContext().getCommonLevelVOMap();
 //    }
+
 
 
     /**
@@ -311,8 +274,7 @@ public class BookListModelAndGoodsService {
         String goodsInfoNo = "";
         String goodsInfoImg = "";
         List<String> couponLabelNameList = null;
-        //商品市场价
-        BigDecimal currentSalePrice = BigDecimal.ZERO;
+
 
         BigDecimal currentSalePriceTmp = BigDecimal.ZERO;
         BigDecimal lineSalePrice = BigDecimal.ZERO;
@@ -332,6 +294,8 @@ public class BookListModelAndGoodsService {
             }
         }
 
+        //商品展示价格
+        BigDecimal currentSalePrice = currentSalePriceTmp;
 
 
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
@@ -365,6 +329,7 @@ public class BookListModelAndGoodsService {
                 extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
                 extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
                 esGoodsCustomResponse.setGoodsExtProperties(extProperties);
+                esGoodsCustomResponse.setLinePrice(extProperties.getPrice());
             }
         }
         return esGoodsCustomResponse;
