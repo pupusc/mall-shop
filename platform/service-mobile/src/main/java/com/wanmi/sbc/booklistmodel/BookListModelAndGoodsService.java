@@ -16,13 +16,18 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +70,8 @@ public class BookListModelAndGoodsService {
     @Autowired
     private CustomerLevelQueryProvider customerLevelQueryProvider;
 
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
 
     /**
@@ -166,8 +173,16 @@ public class BookListModelAndGoodsService {
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (!CollectionUtils.isEmpty(content)) {
+
+            List<GoodsVO> goodsVOList = this.changeEsGoods2GoodsVo(content);
+            if (CollectionUtils.isEmpty(goodsVOList)) {
+                return microServicePageResult;
+            }
+
             // EsGoods -> Map
-            Map<String, EsGoodsVO> spuId2EsGoodsMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+            Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+            Map<String, EsGoodsVO> spuId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+
 
             for (BookListMixProviderResponse bookListMixParam : bookListMixList) {
                 if (bookListMixParam.getBookListModel() == null) {
@@ -186,14 +201,15 @@ public class BookListModelAndGoodsService {
                 resultTmp.setBookListModel(bookListMixParam.getBookListModel());
                 List<GoodsCustomResponse> goodsCustomTmpList = new ArrayList<>();
                 for (BookListGoodsProviderResponse bookListGoodsTmpParam : bookListMixParam.getChooseRuleMode().getBookListGoodsList()) {
-                    EsGoodsVO esGoodsVO = spuId2EsGoodsMap.get(bookListGoodsTmpParam.getSpuId());
-                    if (esGoodsVO == null) {
+                    GoodsVO goodsVO = spuId2GoodsVoMap.get(bookListGoodsTmpParam.getSpuId());
+                    EsGoodsVO esGoodsVO = spuId2EsGoodsVoMap.get(bookListGoodsTmpParam.getSpuId());
+                    if (goodsVO == null || esGoodsVO == null) {
                         continue;
                     }
                     if (goodsCustomTmpList.size() >= pageSize) {
                         break;
                     }
-                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(esGoodsVO));
+                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(goodsVO, esGoodsVO));
                 }
                 resultTmp.setGoodsList(goodsCustomTmpList);
 
@@ -206,6 +222,27 @@ public class BookListModelAndGoodsService {
         microServicePageResult.setTotal(esGoodsVOMicroServicePage.getTotal() > maxSize ? maxSize : esGoodsVOMicroServicePage.getTotal());
         microServicePageResult.setContent(result);
         return microServicePageResult;
+    }
+
+    /**
+     * 转化EsGoodsVo to goodsVo
+     * @param content
+     * @return
+     */
+    public List<GoodsVO> changeEsGoods2GoodsVo(List<EsGoodsVO> content){
+        if (CollectionUtils.isEmpty(content)){
+            return new ArrayList<>();
+        }
+
+        List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
+        GoodsByConditionRequest goodsByConditionRequest = new GoodsByConditionRequest();
+        goodsByConditionRequest.setGoodsIds(goodsIdList);
+        GoodsByConditionResponse goodsByConditionResponseBaseResponse = goodsQueryProvider.listByCondition(goodsByConditionRequest).getContext();
+        List<GoodsVO> goodsVOList = goodsByConditionResponseBaseResponse.getGoodsVOList();
+        if (CollectionUtils.isEmpty(goodsVOList)) {
+            return new ArrayList<>();
+        }
+        return goodsVOList;
     }
 
 //    private void test() {
@@ -263,75 +300,83 @@ public class BookListModelAndGoodsService {
     }
 
 
-
     /**
      *  esGoodsVo 转化成 可以返回给前端的对象
-     * @param esGoodsVO
+     * @param
      * @return
      */
-    public GoodsCustomResponse packageGoodsCustomResponse(EsGoodsVO esGoodsVO) {
+    public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO) {
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
         List<String> couponLabelNameList = null;
 
+        GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
         BigDecimal currentSalePriceTmp = BigDecimal.ZERO;
         BigDecimal lineSalePrice = BigDecimal.ZERO;
-        if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
-            for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
-                if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                    currentSalePriceTmp = goodsInfoParam.getSalePrice();
-                    lineSalePrice  = goodsInfoParam.getMarketPrice();
-                }
-                if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
-                    couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
-                }
-                goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
 
+        if (esGoodsVO != null) {
+            if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
+                for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
+                    if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
+                        currentSalePriceTmp = goodsInfoParam.getSalePrice();
+                        lineSalePrice  = goodsInfoParam.getMarketPrice();
+                    }
+                    if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
+                        couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
+                    }
+                    goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                    goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                    goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+
+                }
+            }
+
+            List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
+            if (!CollectionUtils.isEmpty(goodsLabelList)) {
+                esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
+            } else {
+                esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
+            }
+
+            if (esGoodsVO.getGoodsExtProps() != null) {
+                esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
+
+                if (!StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor())
+                        || !StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher())
+                        || esGoodsVO.getGoodsExtProps().getPrice() != null) {
+                    GoodsExtPropertiesCustomResponse extProperties = new GoodsExtPropertiesCustomResponse();
+                    extProperties.setAuthor(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor()) ? "" : esGoodsVO.getGoodsExtProps().getAuthor());
+                    extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
+                    extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
+                    esGoodsCustomResponse.setGoodsExtProperties(extProperties);
+                    lineSalePrice = extProperties.getPrice();
+                }
             }
         }
+
 
         //商品展示价格
         BigDecimal currentSalePrice = currentSalePriceTmp;
 
-
-        GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
-        esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());
-        esGoodsCustomResponse.setGoodsNo(esGoodsVO.getGoodsNo());
+        esGoodsCustomResponse.setGoodsId(goodsVO.getGoodsId());
+        esGoodsCustomResponse.setGoodsNo(goodsVO.getGoodsNo());
         //获取最小价格的 goodsInfo
         esGoodsCustomResponse.setGoodsInfoId(goodsInfoId);
         esGoodsCustomResponse.setGoodsInfoNo(goodsInfoNo);
-        esGoodsCustomResponse.setGoodsName(esGoodsVO.getGoodsName());
-        esGoodsCustomResponse.setGoodsSubName(esGoodsVO.getGoodsSubtitle());
+        esGoodsCustomResponse.setGoodsName(goodsVO.getGoodsName());
+        esGoodsCustomResponse.setGoodsSubName(goodsVO.getGoodsSubtitle());
         esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
-        esGoodsCustomResponse.setGoodsUnBackImg(esGoodsVO.getGoodsUnBackImg());
+        esGoodsCustomResponse.setGoodsUnBackImg(goodsVO.getGoodsUnBackImg());
         esGoodsCustomResponse.setShowPrice(currentSalePrice);
         esGoodsCustomResponse.setLinePrice(lineSalePrice);
-        esGoodsCustomResponse.setCpsSpecial(esGoodsVO.getCpsSpecial());
+        esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
-        List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
-        if (!CollectionUtils.isEmpty(goodsLabelList)) {
-            esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
-        } else {
-            esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
-        }
-        if (esGoodsVO.getGoodsExtProps() != null) {
-            esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
 
-            if (!StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor())
-                || !StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher())
-                || esGoodsVO.getGoodsExtProps().getPrice() != null) {
-                GoodsExtPropertiesCustomResponse extProperties = new GoodsExtPropertiesCustomResponse();
-                extProperties.setAuthor(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor()) ? "" : esGoodsVO.getGoodsExtProps().getAuthor());
-                extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
-                extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
-                esGoodsCustomResponse.setGoodsExtProperties(extProperties);
-                esGoodsCustomResponse.setLinePrice(extProperties.getPrice());
-            }
-        }
+
         return esGoodsCustomResponse;
     }
+
+
 }

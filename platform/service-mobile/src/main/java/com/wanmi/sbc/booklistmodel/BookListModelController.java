@@ -38,6 +38,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassify
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -420,8 +421,13 @@ public class BookListModelController {
                 to = Integer.parseInt(total+"");
             }
 
-            result.setContent(resultEsGoodsVoList.subList(from, to).stream()
-                    .map(ex -> bookListModelAndGoodsService.packageGoodsCustomResponse(ex)).collect(Collectors.toList()));
+            List<EsGoodsVO> esGoodsVOList = resultEsGoodsVoList.subList(from, to);
+            Map<String, EsGoodsVO> spuId2EsGoodsVoMap = esGoodsVOList.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+            List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOList);
+
+            result.setContent(goodsVOList.stream()
+                    .map(ex ->
+                        bookListModelAndGoodsService.packageGoodsCustomResponse(ex, spuId2EsGoodsVoMap.get(ex.getGoodsId()))).collect(Collectors.toList()));
             return BaseResponse.success(result);
 
         }
@@ -554,10 +560,14 @@ public class BookListModelController {
                 listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
         //书单和商品的映射
         List<BookListModelAndGoodsCustomResponse> resultTmp = new ArrayList<>();
-        for (EsGoodsVO esGoodsVO : content) {
+
+        Map<String, EsGoodsVO> spuId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(content);
+
+        for (GoodsVO goodsVO : goodsVOList) {
             BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
-            param.setGoodsCustomVo(bookListModelAndGoodsService.packageGoodsCustomResponse(esGoodsVO));
-            BookListModelGoodsIdProviderResponse bookListModelGoodsIdProviderResponse = bookListModelGoodsIdMap.get(esGoodsVO.getId());
+            param.setGoodsCustomVo(bookListModelAndGoodsService.packageGoodsCustomResponse(goodsVO, spuId2EsGoodsVoMap.get(goodsVO.getGoodsId())));
+            BookListModelGoodsIdProviderResponse bookListModelGoodsIdProviderResponse = bookListModelGoodsIdMap.get(goodsVO.getGoodsId());
             if (bookListModelGoodsIdProviderResponse != null) {
                 BookListModelSimpleResponse bookListModelSimpleResponse = new BookListModelSimpleResponse();
                 BeanUtils.copyProperties(bookListModelGoodsIdProviderResponse, bookListModelSimpleResponse);
