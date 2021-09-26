@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Author: songhanlin
@@ -32,6 +33,12 @@ public class EsGoodsInfoElasticController implements EsGoodsInfoElasticProvider 
     @Override
     public BaseResponse initEsGoodsInfo(@RequestBody @Valid EsGoodsInfoRequest request) {
         esGoodsInfoElasticService.initEsGoodsInfo(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse setExtPropForGoods(List<Object[]> props){
+        esGoodsInfoElasticService.updateEsGoodsExtProp(props);
         return BaseResponse.SUCCESSFUL();
     }
 

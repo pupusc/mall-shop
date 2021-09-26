@@ -1,5 +1,7 @@
 package com.wanmi.sbc.goods.prop.service;
 
+import com.wanmi.sbc.goods.prop.model.root.GoodsPropCateRel;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropCateRelRepository;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -43,6 +45,9 @@ public class GoodsPropService {
     GoodsPropDetailRelRepository goodsPropDetailRelRepository;
     @Autowired
     GoodsRepository goodsRepository;
+    @Autowired
+    GoodsPropCateRelRepository goodsPropCateRelRepository;
+
 
     /**
      *  根据类目ID查询商品属性
@@ -51,19 +56,24 @@ public class GoodsPropService {
      * @throws Exception
      */
     public List<GoodsProp> queryAllGoodPropsByCate(Long cateId){
+        if(cateId == 0){
+            return goodsPropRepository.findAllNew();
+        }
         if (!isChildNode(cateId)) {
             throw new SbcRuntimeException(GoodsPropErrorCode.NOT_CHILD_NODE);
         }
-        List<GoodsProp> goodsProps = goodsPropRepository.findAllByCateIdAndDelFlagOrderBySortAsc(cateId,DeleteFlag.NO);
+        List<GoodsProp> goodsProps = goodsPropRepository.findAllByCateIdAndDelFlag(cateId);
         goodsProps.stream().map(goodsProp -> {
-            List<GoodsPropDetail> goodsPropDetails = goodsPropDetailRepository.findAllByPropIdAndDelFlagOrderBySortAsc(goodsProp.getPropId(),DeleteFlag.NO);
-            StringBuilder stringBuilder = new StringBuilder();
-            goodsPropDetails.stream().forEach(goodsPropDetail -> {
-                stringBuilder.append(goodsPropDetail.getDetailName());
-                stringBuilder.append("; ");
-            });
-            goodsProp.setPropDetailStr(stringBuilder.toString());
-            goodsProp.setGoodsPropDetails(goodsPropDetails);
+            if(goodsProp.getPropType() == 1 || goodsProp.getPropType() == 2){
+                List<GoodsPropDetail> goodsPropDetails = goodsPropDetailRepository.findAllByPropIdAndDelFlagOrderBySortAsc(goodsProp.getPropId(),DeleteFlag.NO);
+                StringBuilder stringBuilder = new StringBuilder();
+                goodsPropDetails.stream().forEach(goodsPropDetail -> {
+                    stringBuilder.append(goodsPropDetail.getDetailName());
+                    stringBuilder.append(";");
+                });
+                goodsProp.setPropDetailStr(stringBuilder.toString());
+                goodsProp.setGoodsPropDetails(goodsPropDetails);
+            }
             return goodsProp;
         }).collect(Collectors.toList());
         return goodsProps;
@@ -106,7 +116,7 @@ public class GoodsPropService {
         }
         GoodsProp goodsProp = goodsPropRequest.getGoodsProp();
         Long cateId = goodsProp.getCateId();
-        List<GoodsProp> goodsProps = goodsPropRepository.findAllByCateIdAndDelFlagOrderBySortAsc(cateId,DeleteFlag.NO);
+        List<GoodsProp> goodsProps = goodsPropRepository.findAllByCateIdAndDelFlag(cateId);
         int lastIndex = 0;
         for (GoodsProp prop:goodsProps) {
             lastIndex++;
@@ -141,27 +151,28 @@ public class GoodsPropService {
      * @return
      * @throws Exception
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<String> addGoodsProp(GoodsPropRequest goodsPropRequest){
         GoodsProp goodsProp = goodsPropRequest.getGoodsProp();
         Long cateId = goodsProp.getCateId();
+        if(goodsProp.getPropType() == null){
+            goodsProp.setPropType(1);
+        }
         //验证是否是类目三级节点
         if (!isChildNode(cateId)) {
             throw new SbcRuntimeException(GoodsPropErrorCode.NOT_CHILD_NODE);
         }
         //验证是否商品类目下属性是否超限
-        List<GoodsProp> goodsPropList =goodsPropRepository.findAllByCateIdAndDelFlagOrderBySortAsc(cateId,DeleteFlag.NO);
+        List<GoodsProp> goodsPropList = goodsPropRepository.findAllByCateIdAndDelFlag(cateId);
         if (goodsPropList.size()>=Constants.GOODS_PROP_REAL_SIZE) {
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROP_OVERSTEP);
         }
-
         //验证商品类目属性名称是否已存在
         if (isGoodsPropNameExist(goodsProp)>0){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPNAME_ALREADY_EXIST);
         }
-
         //验证商品类目属性值是否为空
-        if(CollectionUtils.isEmpty(goodsProp.getGoodsPropDetails())){
+        if(goodsProp.getPropType() == 1 && CollectionUtils.isEmpty(goodsProp.getGoodsPropDetails())){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROP_NOT_EMPTY);
         }
         List<String> goodsIds = findGoodsIdsByCateId(cateId);
@@ -174,31 +185,45 @@ public class GoodsPropService {
         }
         //保存类目属性
         goodsPropRepository.save(goodsProp);
-        //保存默认spu与默认属性的关联
-        saveDefaultRef(goodsIds,goodsProp.getPropId());
+
+        saveGoodsPropCateRel(goodsProp);
         //排序后保存
         List<GoodsProp> goodsProps = initSort(goodsPropRequest);
         goodsPropRepository.saveAll(goodsProps);
-        List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
-        //判断属性的属性值是否存在相同
-        if (isGoodsPropDetailRepeat(goodsPropDetails)){
-            throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_REPEAT);
+        //保存默认spu与默认属性的关联
+        saveDefaultRef(goodsIds,goodsProp.getPropId());
+        if(goodsProp.getPropType() == 1){
+            List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
+            //判断属性的属性值是否存在相同
+            if (CollectionUtils.isEmpty(goodsPropDetails) || isGoodsPropDetailRepeat(goodsPropDetails)){
+                throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_REPEAT);
+            }
+            //检查属性值是否超限
+            boolean detailOverStep = isDetailOverStep(goodsPropDetails);
+            if (detailOverStep) {
+                throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_OVERSTEP);
+            }
+            //保存属性值
+            Long propId = goodsProp.getPropId();
+            goodsPropDetails.stream().forEach(goodsPropDetail -> {
+                goodsPropDetail.setPropId(propId);
+                goodsPropDetail.setCreateTime(LocalDateTime.now());
+                goodsPropDetailRepository.save(goodsPropDetail);
+                deleteRef(goodsPropDetail);
+            });
         }
-
-        //检查属性值是否超限
-        boolean detailOverStep = isDetailOverStep(goodsPropDetails);
-        if (detailOverStep) {
-            throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_OVERSTEP);
-        }
-        //保存属性值
-        Long propId = goodsProp.getPropId();
-        goodsPropDetails.stream().forEach(goodsPropDetail -> {
-            goodsPropDetail.setPropId(propId);
-            goodsPropDetail.setCreateTime(LocalDateTime.now());
-            goodsPropDetailRepository.save(goodsPropDetail);
-            deleteRef(goodsPropDetail);
-        });
         return goodsIds;
+    }
+
+    public void saveGoodsPropCateRel(GoodsProp goodsProp){
+        GoodsPropCateRel goodsPropCateRel = new GoodsPropCateRel();
+        LocalDateTime now = LocalDateTime.now();
+        goodsPropCateRel.setCateId(goodsProp.getCateId());
+        goodsPropCateRel.setCreateTime(now);
+        goodsPropCateRel.setUpdateTime(now);
+        goodsPropCateRel.setDelFlag(DeleteFlag.NO);
+        goodsPropCateRel.setPropId(goodsProp.getPropId());
+        goodsPropCateRelRepository.save(goodsPropCateRel);
     }
 
     /**
@@ -208,7 +233,7 @@ public class GoodsPropService {
      */
     public long isGoodsPropNameExist(GoodsProp goodsProp){
         GoodsPropQueryRequest goodsPropQueryRequest = new GoodsPropQueryRequest();
-        goodsPropQueryRequest.setCateId(goodsProp.getCateId());
+//        goodsPropQueryRequest.setCateId(goodsProp.getCateId());
         goodsPropQueryRequest.setPropName(goodsProp.getPropName());
         goodsPropQueryRequest.setDelFlag(DeleteFlag.NO);
         long count = goodsPropRepository.count(goodsPropQueryRequest.getWhereCriteria());
@@ -253,6 +278,9 @@ public class GoodsPropService {
     public Boolean editGoodsProp(GoodsProp goodsProp){
         Long cateId = goodsProp.getCateId();
         List<GoodsPropDetail> goodsPropDetails = goodsProp.getGoodsPropDetails();
+        if(goodsProp.getPropType() == null){
+            goodsProp.setPropType(1);
+        }
         //判断属性的属性值是否存在相同
         if (isGoodsPropDetailRepeat(goodsPropDetails)){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_REPEAT);
@@ -263,7 +291,7 @@ public class GoodsPropService {
         }
         goodsProp.setUpdateTime(LocalDateTime.now());
         //属性编辑入库
-        goodsPropRepository.editGoodsProp(goodsProp.getCateId(),goodsProp.getPropName(),goodsProp.getIndexFlag(),goodsProp.getUpdateTime(),goodsProp.getPropId());
+        goodsPropRepository.editGoodsProp(goodsProp.getCateId(),goodsProp.getPropName(),goodsProp.getIndexFlag(),goodsProp.getUpdateTime(),goodsProp.getPropType(),goodsProp.getPropId());
         //修改完成数据库后验证商品类目属性名称是否已存在,正常记录数应为1
         if (isGoodsPropNameExist(goodsProp)>1){
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPNAME_ALREADY_EXIST);
@@ -273,19 +301,21 @@ public class GoodsPropService {
         if (detailOverStep) {
             throw new SbcRuntimeException(GoodsPropErrorCode.GOODSPROPDETAIL_OVERSTEP);
         }
-        //保存属性值
-        goodsPropDetails.stream().forEach(goodsPropDetail -> {
-            goodsPropDetail.setPropId(goodsProp.getPropId());
-            if (Objects.isNull(goodsPropDetail.getDetailId())) {
-                goodsPropDetail.setCreateTime(LocalDateTime.now());
-                goodsPropDetailRepository.save(goodsPropDetail);
-            } else {
-                goodsPropDetail.setUpdateTime(LocalDateTime.now());
-                goodsPropDetailRepository.editPropDetail(goodsPropDetail.getPropId(),goodsPropDetail.getDetailName(),goodsPropDetail.getUpdateTime(),goodsPropDetail.getDelFlag(),goodsPropDetail.getSort(),goodsPropDetail.getDetailId());
-            }
-            //解除SPU与属性值的关联
-            deleteRef(goodsPropDetail);
-        });
+        if(goodsProp.getPropType() == 1){
+            //保存属性值
+            goodsPropDetails.stream().forEach(goodsPropDetail -> {
+                goodsPropDetail.setPropId(goodsProp.getPropId());
+                if (Objects.isNull(goodsPropDetail.getDetailId())) {
+                    goodsPropDetail.setCreateTime(LocalDateTime.now());
+                    goodsPropDetailRepository.save(goodsPropDetail);
+                } else {
+                    goodsPropDetail.setUpdateTime(LocalDateTime.now());
+                    goodsPropDetailRepository.editPropDetail(goodsPropDetail.getPropId(),goodsPropDetail.getDetailName(),goodsPropDetail.getUpdateTime(),goodsPropDetail.getDelFlag(),goodsPropDetail.getSort(),goodsPropDetail.getDetailId());
+                }
+                //解除SPU与属性值的关联
+                deleteRef(goodsPropDetail);
+            });
+        }
         return true;
     }
 

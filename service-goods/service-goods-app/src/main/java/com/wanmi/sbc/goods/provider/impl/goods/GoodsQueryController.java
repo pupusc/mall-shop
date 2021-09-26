@@ -46,6 +46,7 @@ import com.wanmi.sbc.goods.info.service.GoodsInfoService;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
 import com.wanmi.sbc.goods.info.service.S2bGoodsService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
@@ -54,6 +55,7 @@ import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -253,7 +255,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
      * @return 商品视图信息 {@link GoodsViewByIdResponse}
      */
     @Override
-
     public BaseResponse<GoodsViewByIdResponse> getCacheViewById(@RequestBody @Valid GoodsCacheInfoByIdRequest request) {
 
         GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
@@ -267,15 +268,13 @@ public class GoodsQueryController implements GoodsQueryProvider {
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdNew(goodsId,request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         } else {
-            GoodsResponse response =
-                    JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
+            GoodsResponse response = JSONObject.parseObject(goodsDetailInfo, GoodsResponse.class);
             GoodsEditResponse goodsEditResponse = goodsService.findInfoByIdCache(response.getGoods(),request.getCustomerId());
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         }
 
         //供应商商品同步库存
         goodsByIdResponse.setGoodsInfos(providerStockSync(goodsByIdResponse.getGoodsInfos()));
-
 
         //预约，预售商品与其他营销活动互斥
         List<String> goodInfoIdList = goodsByIdResponse.getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
@@ -303,7 +302,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
                 });
             }
         }
-
 
         //控制是否显示商品标签
         if(Boolean.TRUE.equals(request.getShowLabelFlag())){
@@ -350,7 +348,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
      * @return 商品视图信息 {@link GoodsViewByIdResponse}
      */
     @Override
-
     public BaseResponse<GoodsViewByIdResponse> getViewById(@RequestBody @Valid GoodsViewByIdRequest request) {
         String goodsId = request.getGoodsId();
         GoodsEditResponse goodsEditResponse = goodsService.findInfoById(goodsId);
@@ -449,6 +446,21 @@ public class GoodsQueryController implements GoodsQueryProvider {
                 KsBeanUtil.convertList(goodsPropDetailRelList, GoodsPropDetailRelVO.class);
         response.setGoodsPropDetailRelVOList(goodsPropDetailRelVOList);
         return BaseResponse.success(response);
+    }
+
+    /**
+     * 根据属性id查询
+     */
+    @Override
+    public BaseResponse<List<GoodsPropVO>> getPropByIds(@RequestBody List<Long> ids) {
+        List<GoodsProp> props = goodsService.findPropByIds(ids);
+        List<GoodsPropVO> propVos = new ArrayList<>();
+        for (GoodsProp prop : props) {
+            GoodsPropVO goodsPropVO = new GoodsPropVO();
+            BeanUtils.copyProperties(prop, goodsPropVO);
+            propVos.add(goodsPropVO);
+        }
+        return BaseResponse.success(propVos);
     }
 
     /**

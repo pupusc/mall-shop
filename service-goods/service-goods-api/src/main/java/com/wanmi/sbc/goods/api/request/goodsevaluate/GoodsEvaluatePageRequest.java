@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.*;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -288,5 +289,9 @@ public class GoodsEvaluatePageRequest extends BaseQueryRequest {
 	 * 查询条件：结束时间
 	 */
 	private String endTime;
+
+	private Integer evaluateCatetory;
+
+	private Integer isRecommend;
 
 }

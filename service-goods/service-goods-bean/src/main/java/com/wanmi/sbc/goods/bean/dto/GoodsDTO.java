@@ -88,6 +88,12 @@ public class GoodsDTO implements Serializable {
     private String goodsImg;
 
     /**
+     * 无背景图
+     */
+    @ApiModelProperty(value = "无背景图")
+    private String goodsUnBackImg;
+
+    /**
      * 商品重量
      */
     @ApiModelProperty(value = "商品重量")

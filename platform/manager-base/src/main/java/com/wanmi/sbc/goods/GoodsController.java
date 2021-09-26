@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSONArray;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -73,12 +74,20 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -173,8 +182,8 @@ public class GoodsController {
 
     /**
      * @description 新增商品
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @menu 商品
+     * @param request
      * @status done
      */
     @ApiOperation(value = "新增商品")
@@ -238,6 +247,45 @@ public class GoodsController {
         return BaseResponse.success(goodsId);
     }
 
+    /**
+     * @description 标签
+     * @menu 商品
+     * @status done
+     */
+    @ApiOperation(value = "标签")
+    @RequestMapping(value = "/tags", method = RequestMethod.GET)
+    public BaseResponse<List<GoodsTagVo>> tags() {
+        return goodsProvider.tags();
+    }
+
+    /**
+     * @description 为书籍设置ISBN
+     * @menu 商品
+     * @status done
+     */
+    @RequestMapping(value = "/setExtProp", method = RequestMethod.POST)
+    public BaseResponse setIsbn(HttpServletRequest request) throws Exception {
+
+        ServletInputStream in = request.getInputStream();
+        Workbook wb = WorkbookFactory.create(in);
+        Sheet sheet = wb.getSheetAt(0);
+        List<Object[]> props = new ArrayList<>();
+        int i = 1;
+        Row row = sheet.getRow(1);
+        while (row != null) {
+            String spuNumber = row.getCell(0).getStringCellValue();
+            String author = row.getCell(1).getStringCellValue();
+            String publisher = row.getCell(2).getStringCellValue();
+            double price = row.getCell(3).getNumericCellValue();
+            double score = row.getCell(4).getNumericCellValue();
+            String isbn = row.getCell(5).getStringCellValue();
+            props.add(new Object[]{spuNumber, author, publisher, price, score, isbn});
+            row = sheet.getRow(++i);
+        }
+        BaseResponse<List<Object[]>> listBaseResponse = goodsProvider.setExtPropForGoods(props);
+        esGoodsInfoElasticProvider.setExtPropForGoods(listBaseResponse.getContext());
+        return BaseResponse.SUCCESSFUL();
+    }
 
     /**
      * @description 同时新增商品基本和商品设价
@@ -316,9 +364,9 @@ public class GoodsController {
 
 
     /**
-     * @description 编辑商品
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @description 商家后台编辑商品
+     * @param request
+     * @menu 商品
      * @status done
      */
     @ApiOperation(value = "编辑商品")
@@ -452,7 +500,6 @@ public class GoodsController {
         }
         operateDataLogAddRequest.setOperateTime(LocalDateTime.now());
 
-
         StringBuilder operateContent = new StringBuilder();
         StringBuilder operateBeforeData = new StringBuilder();
         StringBuilder operateAfterData = new StringBuilder();
@@ -582,7 +629,6 @@ public class GoodsController {
             operateContent.append("修改销售类型,");
         }
 
-
         //上下架 必填项
         operateBeforeData.append("上下架：").append(oldData.getGoods().getAddedFlag());
         operateAfterData.append("上下架：").append(newData.getGoods().getAddedFlag());
@@ -624,7 +670,6 @@ public class GoodsController {
 
         //属性信息
         boolean proInfoFlag = false;
-
 
         for (GoodsInfoVO goodsInfoVO : oldData.getGoodsInfos()) {
             //商品图片
@@ -818,7 +863,6 @@ public class GoodsController {
         return operateDataLogAddRequest;
     }
 
-
     /**
      * @description 保存商品价格
      * @menu 商城配合知识顾问
@@ -867,11 +911,10 @@ public class GoodsController {
         return BaseResponse.SUCCESSFUL();
     }
 
-
     /**
-     * @description 获取商品详情信息
-     * @menu 商城配合知识顾问
-     * @tag feature_d_cps_v3
+     * @description 商家后台获取商品详情信息
+     * @param goodsId
+     * @menu 商品
      * @status done
      */
     @ApiOperation(value = "获取商品详情信息")
@@ -900,7 +943,6 @@ public class GoodsController {
                     Map<Long, GoodsBrandVO> goodsBrandVOMap = goodsBrandQueryProvider.listByIds(GoodsBrandByIdsRequest.builder().brandIds(goodsInfos.stream().
                             map(GoodsInfoVO::getBrandId).collect(Collectors.toList())).build()).getContext().getGoodsBrandVOList()
                             .stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, m -> m));
-
 
                     //查询赠品的分类信息
                     Map<Long, GoodsCateVO> goodsCateVOMap = goodsCateQueryProvider.getByIds(new GoodsCateByIdsRequest(goodsInfos.stream().map(GoodsInfoVO::getCateId).
@@ -1022,11 +1064,8 @@ public class GoodsController {
                 redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
             }
         });
-
-
         return BaseResponse.SUCCESSFUL();
     }
-
 
     /**
      * 供应商删除商品
@@ -1159,8 +1198,6 @@ public class GoodsController {
         if (StringUtils.isNotBlank(goodsDetailInfo)) {
             redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + request.getGoodsIds());
         }
-
-
         //ares埋点-商品-后台批量修改商品spu的所有sku上下架状态
         goodsAresProvider.dispatchFunction(new DispatcherFunctionRequest("editGoodsSpuUp",
                 new Object[]{AddedFlag.NO.toValue(), request.getGoodsIds()}));

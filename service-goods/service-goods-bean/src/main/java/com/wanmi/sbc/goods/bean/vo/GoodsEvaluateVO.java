@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.bean.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
@@ -108,7 +109,7 @@ public class GoodsEvaluateVO implements Serializable {
 	/**
 	 * 发表评价时间
 	 */
-	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime evaluateTime;
 
@@ -267,4 +268,14 @@ public class GoodsEvaluateVO implements Serializable {
 	 */
 	@ApiModelProperty(value = "是否系统评价 0：否，1：是")
 	private Integer isSys;
+
+	/**
+	 * 评价类别 0 默认商户，1樊登 2非凡 3 手动-后台
+	 */
+	private Integer evaluateCatetory;
+
+	/**
+	 * 是否推荐 0 不推荐 1推荐
+	 */
+	private Integer isRecommend;
 }

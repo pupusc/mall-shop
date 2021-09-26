@@ -7,6 +7,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -105,6 +106,13 @@ public interface GoodsQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/ref-by-goods-ids")
     BaseResponse<GoodsPropDetailRelByIdsResponse> getRefByGoodIds(@RequestBody @Valid GoodsPropDetailRelByIdsRequest goodsPropDetailRelByIdsRequest);
+
+    /**
+     * 根据属性id查询属性
+     * @param ids 属性id集合
+     */
+    @PostMapping("/goods/${application.goods.version}/props")
+    BaseResponse<List<GoodsPropVO>> getPropByIds(@RequestBody List<Long> ids);
 
     /**
      * 待审核商品统计

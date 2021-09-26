@@ -325,4 +325,16 @@ public class GoodsEvaluate implements Serializable {
     @Column(name = "terminal_source")
     private TerminalSource terminalSource;
 
+	/**
+	 * 评价类别 0 商城用户 1 樊登 2非凡 3 后台
+	 */
+	@Column(name = "evaluate_catetory")
+    private Integer evaluateCatetory;
+
+	/**
+	 * 是否推荐 0 不推荐 1推荐
+	 */
+	@Column(name = "is_recommend")
+	private Integer isRecommend;
+
 }

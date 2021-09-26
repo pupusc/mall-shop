@@ -55,7 +55,6 @@ public class LogisticsLogService {
     private SystemConfigQueryProvider systemConfigQueryProvider;
 
 
-    @Transactional
     public void add(LogisticsLog logisticsLog) {
         //获取快递100配置信息
         ConfigQueryRequest request = new ConfigQueryRequest();
@@ -85,7 +84,6 @@ public class LogisticsLogService {
      *
      * @param noticeDTO
      */
-    @Transactional
     public void modifyForKuaiDi100(KuaidiHundredNoticeDTO noticeDTO) {
         LogisticsLog log = query(LogisticsLogQueryRequest.builder().id(noticeDTO.getId()).build()).stream().findFirst().orElse(null);
         if (Objects.nonNull(log)) {
