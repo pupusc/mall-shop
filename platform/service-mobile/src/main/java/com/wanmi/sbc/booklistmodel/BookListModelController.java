@@ -443,22 +443,24 @@ public class BookListModelController {
             throw new IllegalArgumentException("参数错误");
         }
 
+        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
+        result.setTotal(0);
+        result.setContent(new ArrayList<>());
+
         //排行榜列表
         BaseResponse<List<BookListModelAndOrderNumProviderResponse>> listBaseResponse =
                 bookListModelProvider.listBusinessTypeBookListModel(BusinessTypeEnum.RANKING_LIST.getCode(), rankingPageRequest.getSpuId(), 1);
         List<BookListModelAndOrderNumProviderResponse> context = listBaseResponse.getContext();
         if (CollectionUtils.isEmpty(context)) {
-            return BaseResponse.success(null);
+            return BaseResponse.success(result);
         }
         BookListModelAndOrderNumProviderResponse bookListModelAndOrderNumProviderResponse = context.get(0);
 
         MicroServicePage<BookListModelAndGoodsListResponse> microServicePageResult = this.packageBookListModelAndGoodsList(
-                null, Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
+                rankingPageRequest.getSpuId(), Collections.singletonList(bookListModelAndOrderNumProviderResponse.getBookListModelId()), this.getIsCounselor(),
                 0, 100); //当前最大是100个
 
-        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
         result.setTotal(microServicePageResult.getTotal());
-        result.setContent(new ArrayList<>());
 
         //手动进行分页
         //此处只是获取一个
