@@ -446,7 +446,7 @@ public class BookListModelController {
             if (from > bookListModelAndGoodsListModel.getGoodsList().size()) {
                 return BaseResponse.success(result);
             } else if (to > bookListModelAndGoodsListModel.getGoodsList().size()) {
-                to = microServicePageResult.getContent().size();
+                to = bookListModelAndGoodsListModel.getGoodsList().size();
             }
             resultBookListModelAndGoodsList.setGoodsList(bookListModelAndGoodsListModel.getGoodsList().subList(from, to));
             result.setContent(Collections.singletonList(resultBookListModelAndGoodsList));
