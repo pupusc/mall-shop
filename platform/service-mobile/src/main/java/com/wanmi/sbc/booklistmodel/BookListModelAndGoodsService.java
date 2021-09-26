@@ -221,46 +221,46 @@ public class BookListModelAndGoodsService {
 //        });
 //    }
 
-//    /**
-//     * 获取优惠券
-//     */
-//    private Map<String, List<Long>> getStoreCateIdMap(List<String> goodsIds) {
-//        if (CollectionUtils.isEmpty(goodsIds)) {
-//            return new HashMap<>();
-//        }
-//        //商品-店铺分类关联实体类
-//        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
-//                new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
-//
-//        //商品店铺分类
-//        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
-//        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
-//            List<Long> storeCateId=new ArrayList<>();
-//            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
-//            if(i==0){
-//                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
-//            }
-//        }
-//        return storeCateIdMap;
-//    }
-//
-//    /**
-//     * 获取用户等级
-//     * @param goodsInfoList
-//     * @param customerId
-//     * @return
-//     */
-//    private Map<Long, CommonLevelVO> getCustomerLevelsMap(List<GoodsInfoVO> goodsInfoList, String customerId) {
-//        if (CollectionUtils.isEmpty(goodsInfoList) || StringUtils.isEmpty(customerId)) {
-//            return new HashMap<>();
-//        }
-//        List<Long> storeIds = goodsInfoList.stream().map(GoodsInfoVO::getStoreId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
-//        CustomerLevelMapByCustomerIdAndStoreIdsRequest customerLevelMapByCustomerIdAndStoreIdsRequest = new CustomerLevelMapByCustomerIdAndStoreIdsRequest();
-//        customerLevelMapByCustomerIdAndStoreIdsRequest.setCustomerId(customerId);
-//        customerLevelMapByCustomerIdAndStoreIdsRequest.setStoreIds(storeIds);
-//        BaseResponse<CustomerLevelMapGetResponse> customerLevelMapGetResponseBaseResponse = customerLevelQueryProvider.listCustomerLevelMapByCustomerIdAndIds(customerLevelMapByCustomerIdAndStoreIdsRequest);
-//        return customerLevelMapGetResponseBaseResponse.getContext().getCommonLevelVOMap();
-//    }
+    /**
+     * 获取优惠券
+     */
+    private Map<String, List<Long>> getStoreCateIdMap(List<String> goodsIds) {
+        if (CollectionUtils.isEmpty(goodsIds)) {
+            return new HashMap<>();
+        }
+        //商品-店铺分类关联实体类
+        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
+                new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
+
+        //商品店铺分类
+        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
+        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
+            List<Long> storeCateId=new ArrayList<>();
+            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
+            if(i==0){
+                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
+            }
+        }
+        return storeCateIdMap;
+    }
+
+    /**
+     * 获取用户等级
+     * @param goodsInfoList
+     * @param customerId
+     * @return
+     */
+    private Map<Long, CommonLevelVO> getCustomerLevelsMap(List<GoodsInfoVO> goodsInfoList, String customerId) {
+        if (CollectionUtils.isEmpty(goodsInfoList) || StringUtils.isEmpty(customerId)) {
+            return new HashMap<>();
+        }
+        List<Long> storeIds = goodsInfoList.stream().map(GoodsInfoVO::getStoreId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        CustomerLevelMapByCustomerIdAndStoreIdsRequest customerLevelMapByCustomerIdAndStoreIdsRequest = new CustomerLevelMapByCustomerIdAndStoreIdsRequest();
+        customerLevelMapByCustomerIdAndStoreIdsRequest.setCustomerId(customerId);
+        customerLevelMapByCustomerIdAndStoreIdsRequest.setStoreIds(storeIds);
+        BaseResponse<CustomerLevelMapGetResponse> customerLevelMapGetResponseBaseResponse = customerLevelQueryProvider.listCustomerLevelMapByCustomerIdAndIds(customerLevelMapByCustomerIdAndStoreIdsRequest);
+        return customerLevelMapGetResponseBaseResponse.getContext().getCommonLevelVOMap();
+    }
 
 
 

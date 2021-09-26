@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.ms.util.Utils;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.AntPathMatcher;
@@ -69,6 +70,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                 return; // ignore options request
             }
 
+            //不知道什么时候使用
             if (excludedRestUrlMap != null && !excludedRestUrlMap.isEmpty()) {
                 List<String> list = excludedRestUrlMap.keySet().stream().filter(excludedRestUrl -> antPathMatcher.match
                         (excludedRestUrl, requestURI)).collect(Collectors.toList());
@@ -77,6 +79,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                         String reqMethodStr = excludedRestUrlMap.getString(restUrl);
                         if (reqMethodStr != null) {
                             if (reqMethodStr.contains(httpMethod.name())) {
+
                                 return;
                             }
                         }
@@ -84,15 +87,25 @@ public class JwtInterceptor implements WebRequestInterceptor {
                 }
             }
 
-            final String authHeader = request.getHeader(this.jwtHeaderKey);
             String token;
+
+            final String authHeader = request.getHeader(this.jwtHeaderKey);
             // 1.优先从header中截取"Bearer "后的token
-            if (authHeader != null && authHeader.startsWith(this.jwtHeaderPrefix)) {
+            if (StringUtils.isNotBlank(authHeader) && authHeader.startsWith(this.jwtHeaderPrefix)) {
                 token = authHeader.substring(7);
             } else {
                 // 2.再从请求路径中获取token
                 token = parseExportUrlToken(requestURI);
-                if(token == null){
+            }
+
+            //如果是书单信息，则访问的时候，如果有token则添加，没有token则不添加
+            if (requestURI.startsWith("/mobile/booklistmodel")) {
+                if (StringUtils.isBlank(token)) {
+                    log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);
+                    return;
+                }
+            } else {
+                if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} Missing jwtToken']", requestURI);
                     throw new SignatureException("Missing jwtToken.");
                 }
