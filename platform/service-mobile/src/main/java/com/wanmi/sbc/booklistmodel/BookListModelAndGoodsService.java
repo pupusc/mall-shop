@@ -5,9 +5,13 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelMapByCustomerIdAndStoreIdsRequest;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelMapGetResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -24,11 +28,17 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderRespons
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
+import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,14 +74,52 @@ public class BookListModelAndGoodsService {
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
-    @Autowired
-    private StoreCateQueryProvider storeCateQueryProvider;
-
-    @Autowired
-    private CustomerLevelQueryProvider customerLevelQueryProvider;
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private CommonUtil commonUtil;
+
+    @Autowired
+    private CustomerProvider customerProvider;
+
+
+    /**
+     * 获取是否是知识顾问
+     * @return
+     */
+    public boolean getIsCounselor() {
+
+        CustomerVO customerVO = this.getCustomerVo();
+        if (customerVO == null) {
+            return false;
+        }
+        if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
+            return false;
+        } else {
+            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
+            if (counselorDto == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 获取客户信息
+     * @return
+     */
+    public CustomerVO getCustomerVo() {
+        String operatorId = commonUtil.getOperatorId();
+        if (StringUtils.isEmpty(operatorId)) {
+            return null;
+        }
+        return commonUtil.getCanNullCustomer();
+    }
 
 
     /**
@@ -116,6 +164,39 @@ public class BookListModelAndGoodsService {
             }
         }
         return supId2BookListMixMap;
+    }
+
+
+    /**
+     * 打包goodsInfo详细信息
+     * @param esGoodsVOList
+     * @param customer
+     * @return
+     */
+    public List<GoodsInfoVO> packageGoodsInfoList(List<EsGoodsVO> esGoodsVOList, CustomerVO customer) {
+        List<GoodsInfoVO> goodsInfoList = esGoodsVOList.stream().map(EsGoodsVO::getGoodsInfos)
+                .flatMap(Collection::stream).map(goods -> {
+                    GoodsInfoVO goodsInfoVO = KsBeanUtil.convert(goods, GoodsInfoVO.class);
+                    goodsInfoVO.setVendibility(goods.getVendibilityStatus());
+                    Integer enterPriseAuditStatus = goods.getEnterPriseAuditStatus();
+                    if (Objects.nonNull(enterPriseAuditStatus)) {
+                        goodsInfoVO.setEnterPriseAuditState(EnterpriseAuditState.CHECKED.toValue() == enterPriseAuditStatus ?
+                                EnterpriseAuditState.CHECKED : null);
+                    }
+                    return goodsInfoVO;
+                }).collect(Collectors.toList());
+
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoList, GoodsInfoDTO.class));
+        if (Objects.nonNull(customer)) {
+            filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        }
+//        filterRequest.setMoFangFlag(queryRequest.getMoFangFlag());
+        GoodsInfoListByGoodsInfoResponse filterResponse = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        if (Objects.nonNull(filterResponse) && org.apache.commons.collections4.CollectionUtils.isNotEmpty(filterResponse.getGoodsInfoVOList())) {
+            goodsInfoList = filterResponse.getGoodsInfoVOList();
+        }
+        return goodsInfoList;
     }
 
     /**
@@ -179,10 +260,14 @@ public class BookListModelAndGoodsService {
                 return microServicePageResult;
             }
 
+            List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(content, this.getCustomerVo());
+            if (CollectionUtils.isEmpty(goodsInfoVOList)) {
+                return microServicePageResult;
+            }
+
             // EsGoods -> Map
             Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
             Map<String, EsGoodsVO> spuId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
-
 
             for (BookListMixProviderResponse bookListMixParam : bookListMixList) {
                 if (bookListMixParam.getBookListModel() == null) {
@@ -209,7 +294,7 @@ public class BookListModelAndGoodsService {
                     if (goodsCustomTmpList.size() >= pageSize) {
                         break;
                     }
-                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(goodsVO, esGoodsVO));
+                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(goodsVO, esGoodsVO, goodsInfoVOList));
                 }
                 resultTmp.setGoodsList(goodsCustomTmpList);
 
@@ -245,67 +330,13 @@ public class BookListModelAndGoodsService {
         return goodsVOList;
     }
 
-//    private void test() {
-//        goodsInfos.forEach(item -> {
-//            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),storeCateIdMap.get(item.getGoodsId()));
-//            List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
-//                    CouponLabelVO.builder()
-//                            .couponActivityId(cache.getCouponActivityId())
-//                            .couponInfoId(cache.getCouponInfoId())
-//                            .couponDesc(getLabelMap(cache))
-//                            .build()
-//            ).collect(Collectors.toList());
-//        });
-//    }
-
-    /**
-     * 获取优惠券
-     */
-    private Map<String, List<Long>> getStoreCateIdMap(List<String> goodsIds) {
-        if (CollectionUtils.isEmpty(goodsIds)) {
-            return new HashMap<>();
-        }
-        //商品-店铺分类关联实体类
-        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
-                new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
-
-        //商品店铺分类
-        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
-        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
-            List<Long> storeCateId=new ArrayList<>();
-            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
-            if(i==0){
-                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
-            }
-        }
-        return storeCateIdMap;
-    }
-
-    /**
-     * 获取用户等级
-     * @param goodsInfoList
-     * @param customerId
-     * @return
-     */
-    private Map<Long, CommonLevelVO> getCustomerLevelsMap(List<GoodsInfoVO> goodsInfoList, String customerId) {
-        if (CollectionUtils.isEmpty(goodsInfoList) || StringUtils.isEmpty(customerId)) {
-            return new HashMap<>();
-        }
-        List<Long> storeIds = goodsInfoList.stream().map(GoodsInfoVO::getStoreId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
-        CustomerLevelMapByCustomerIdAndStoreIdsRequest customerLevelMapByCustomerIdAndStoreIdsRequest = new CustomerLevelMapByCustomerIdAndStoreIdsRequest();
-        customerLevelMapByCustomerIdAndStoreIdsRequest.setCustomerId(customerId);
-        customerLevelMapByCustomerIdAndStoreIdsRequest.setStoreIds(storeIds);
-        BaseResponse<CustomerLevelMapGetResponse> customerLevelMapGetResponseBaseResponse = customerLevelQueryProvider.listCustomerLevelMapByCustomerIdAndIds(customerLevelMapByCustomerIdAndStoreIdsRequest);
-        return customerLevelMapGetResponseBaseResponse.getContext().getCommonLevelVOMap();
-    }
-
 
     /**
      *  esGoodsVo 转化成 可以返回给前端的对象
      * @param
      * @return
      */
-    public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO) {
+    public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO, List<GoodsInfoVO> goodsInfoVOList) {
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
@@ -313,23 +344,22 @@ public class BookListModelAndGoodsService {
 
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
-        BigDecimal currentSalePriceTmp = BigDecimal.ZERO;
-        BigDecimal lineSalePrice = BigDecimal.ZERO;
+        BigDecimal currentSalePriceTmp = new BigDecimal("100000");
+        BigDecimal lineSalePrice = new BigDecimal("100000");
 
         if (esGoodsVO != null) {
-            if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
-                for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
+            if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
+                for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
                     if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                        currentSalePriceTmp = goodsInfoParam.getSalePrice();
+                        currentSalePriceTmp = goodsInfoParam.getMarketPrice();
                         lineSalePrice  = goodsInfoParam.getMarketPrice();
+                        goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                        goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                        goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
                     }
                     if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
                         couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
                     }
-                    goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                    goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                    goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
-
                 }
             }
 
@@ -358,7 +388,6 @@ public class BookListModelAndGoodsService {
 
 
         //商品展示价格
-        BigDecimal currentSalePrice = currentSalePriceTmp;
 
         esGoodsCustomResponse.setGoodsId(goodsVO.getGoodsId());
         esGoodsCustomResponse.setGoodsNo(goodsVO.getGoodsNo());
@@ -369,7 +398,7 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setGoodsSubName(goodsVO.getGoodsSubtitle());
         esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
         esGoodsCustomResponse.setGoodsUnBackImg(goodsVO.getGoodsUnBackImg());
-        esGoodsCustomResponse.setShowPrice(currentSalePrice);
+        esGoodsCustomResponse.setShowPrice(currentSalePriceTmp);
         esGoodsCustomResponse.setLinePrice(lineSalePrice);
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
