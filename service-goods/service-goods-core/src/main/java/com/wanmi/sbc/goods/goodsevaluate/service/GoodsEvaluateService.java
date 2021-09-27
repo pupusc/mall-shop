@@ -137,8 +137,11 @@ public class GoodsEvaluateService {
         goodsEvaluate.setGoodsImg(res.getImages().get(0).getArtworkUrl());
         goodsEvaluate.setCustomerName(bookFriendEvaluateAddRequest.customerName);
         goodsEvaluate.setEvaluateContent(bookFriendEvaluateAddRequest.evaluateContent);
-        goodsEvaluate.setEvaluateTime(bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()
-                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime time = bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()
+                : LocalDateTime.parse(bookFriendEvaluateAddRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        goodsEvaluate.setEvaluateTime(time);
+        goodsEvaluate.setCreateTime(time);
+        goodsEvaluate.setUpdateTime(time);
         goodsEvaluate.setIsShow(bookFriendEvaluateAddRequest.isShow == null ? 0 : bookFriendEvaluateAddRequest.isShow);
         goodsEvaluate.setIsRecommend(bookFriendEvaluateAddRequest.isRecommend == null ? 0 : bookFriendEvaluateAddRequest.isRecommend);
         goodsEvaluate.setEvaluateCatetory(3);
@@ -171,8 +174,10 @@ public class GoodsEvaluateService {
             goodsEvaluate.setStoreId(bookFriendEvaluateEditRequest.storeId);
             goodsEvaluate.setCustomerName(bookFriendEvaluateEditRequest.customerName);
             goodsEvaluate.setEvaluateContent(bookFriendEvaluateEditRequest.evaluateContent);
-            goodsEvaluate.setEvaluateTime(bookFriendEvaluateEditRequest.evaluateTime == null ? LocalDateTime.now()
-                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            LocalDateTime time = bookFriendEvaluateEditRequest.evaluateTime == null ? LocalDateTime.now()
+                    : LocalDateTime.parse(bookFriendEvaluateEditRequest.evaluateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            goodsEvaluate.setEvaluateTime(time);
+            goodsEvaluate.setUpdateTime(time);
             goodsEvaluate.setIsShow(bookFriendEvaluateEditRequest.isShow == null ? 0 : bookFriendEvaluateEditRequest.isShow);
             goodsEvaluate.setIsRecommend(bookFriendEvaluateEditRequest.isRecommend == null ? 0 : bookFriendEvaluateEditRequest.isRecommend);
             goodsEvaluate.setEvaluateCatetory(3);
