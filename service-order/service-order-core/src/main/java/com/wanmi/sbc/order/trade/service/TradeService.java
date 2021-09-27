@@ -1350,6 +1350,7 @@ public class TradeService {
                                     .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
                                     .cycleBuyInfo(group.getCycleBuyInfo())
+                                    .promoteUserId(tradeCommitRequest.getPromoteUserId())
                                     .build()));
                 }
         );
@@ -1934,7 +1935,8 @@ public class TradeService {
 
         // 校验加价购是否满足条件
         verifyService.verifyMarkup(trade);
-
+        // 推广人用户id
+        trade.setPromoteUserId(tradeParams.getPromoteUserId());
 
         log.info("==================周期购订单1：{}===============",trade);
 
