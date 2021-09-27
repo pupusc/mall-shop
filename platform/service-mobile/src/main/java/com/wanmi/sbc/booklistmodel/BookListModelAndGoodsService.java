@@ -34,6 +34,7 @@ import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -340,7 +341,7 @@ public class BookListModelAndGoodsService {
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
-        List<String> couponLabelNameList = null;
+        List<String> couponLabelNameList = new ArrayList<>();
 
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
@@ -366,15 +367,28 @@ public class BookListModelAndGoodsService {
                     goodsInfoVoListLast = new ArrayList<>();
                 }
                 for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
-                    if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                        currentSalePriceTmp = goodsInfoParam.getMarketPrice();
-                        lineSalePrice  = goodsInfoParam.getMarketPrice();
-                        goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                        goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                        goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+                    if (goodsInfoParam.getMarketPrice() == null || currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) < 0) {
+                        continue;
                     }
+                    currentSalePriceTmp = goodsInfoParam.getMarketPrice();
+                    lineSalePrice  = goodsInfoParam.getMarketPrice();
+                    goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                    goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                    goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+                    int maxLabelSize = 2; //只是显示2个标签
+
+                    //折扣
+                    if (!CollectionUtils.isEmpty(goodsInfoParam.getMarketingLabels())) {
+                        for (int i = 0; i < maxLabelSize && i < goodsInfoParam.getMarketingLabels().size(); i++) {
+                            couponLabelNameList.add(goodsInfoParam.getMarketingLabels().get(i).getMarketingDesc());
+                        }
+                    }
+
+                    //满减
                     if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
-                        couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
+                        for (int i = 0; i < (maxLabelSize - couponLabelNameList.size()) && i < goodsInfoParam.getCouponLabels().size(); i++) {
+                            couponLabelNameList.add(goodsInfoParam.getCouponLabels().get(i).getCouponDesc());
+                        }
                     }
                 }
             }
