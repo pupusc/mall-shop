@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.info.model.entity.GoodsInfoLiveGoods;
 import com.wanmi.sbc.goods.info.model.entity.GoodsInfoParams;
 import com.wanmi.sbc.goods.info.model.entity.GoodsMarketingPrice;
+import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import io.swagger.models.auth.In;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -519,4 +520,22 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     @Query("select distinct erpGoodsInfoNo from GoodsInfo  where erpGoodsInfoNo in ?1 and delFlag = 0")
     List<String> findExistsErpGoodsInfoNo(List<String> erpGoodsInfoNos);
+
+
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo) " +
+            " from GoodsInfo g where g.erpGoodsNo = ?1 and g.delFlag = 0 ")
+    GoodsStockInfo findGoodsInfoId(String erpGoodsNo);
+
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo) " +
+            " from GoodsInfo g where g.erpGoodsNo in ?1 and g.delFlag = 0 ")
+    List<GoodsStockInfo> findGoodsInfoByGoodsNos(List<String> erpGoodsNos);
+
+
+    @Modifying
+    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ,gi.marketPrice = :marketPrice, " +
+            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId and gi.delFlag = 0")
+    int updateGoodsPriceById(@Param("goodsInfoId") String goodsInfoId,
+                                    @Param("costPrice") BigDecimal costPrice,
+                                    @Param("marketPrice") BigDecimal marketPrice
+    );
 }

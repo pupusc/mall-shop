@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import sun.awt.SunHints;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -391,4 +392,9 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      */
     @Query("select distinct erpGoodsNo from Goods where erpGoodsNo = ?1 and delFlag= 0")
     List<String> findExistsErpGoodsNo(String erpGoodsNos);
+
+
+    @Modifying
+    @Query("update Goods w set w.costPrice = ?2 ,w.marketPrice = ?3 where w.goodsId = ?1")
+    void resetGoodsPriceById(String goodsId, BigDecimal costPrice,BigDecimal marketPrice);
 }

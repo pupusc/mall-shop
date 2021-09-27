@@ -60,4 +60,10 @@ public class EsGoodsStockController implements EsGoodsStockProvider {
         esGoodsStockService.batchResetStockBySkuId(request.getSkusMap());
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse batchResetGoodsInfoStockBySpuId(@Valid EsGoodsSpuStockSubRequest request) {
+        esGoodsStockService.batchResetGoodsInfoStockBySpuId(request.getSpusMap());
+        return BaseResponse.SUCCESSFUL();
+    }
 }

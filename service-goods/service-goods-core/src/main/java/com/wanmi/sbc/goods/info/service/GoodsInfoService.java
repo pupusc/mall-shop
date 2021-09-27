@@ -56,13 +56,16 @@ import com.wanmi.sbc.goods.images.GoodsImageRepository;
 import com.wanmi.sbc.goods.info.model.entity.GoodsInfoLiveGoods;
 import com.wanmi.sbc.goods.info.model.entity.GoodsInfoParams;
 import com.wanmi.sbc.goods.info.model.entity.GoodsMarketingPrice;
+import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.model.root.GoodsPriceSync;
 import com.wanmi.sbc.goods.info.reponse.DistributionGoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.EnterPriseGoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsInfoEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsInfoResponse;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.request.*;
@@ -93,16 +96,19 @@ import com.wanmi.sbc.setting.api.request.thirdplatformconfig.ThirdPlatformConfig
 import com.wanmi.sbc.setting.api.response.thirdplatformconfig.ThirdPlatformConfigResponse;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import io.seata.spring.annotation.GlobalTransactional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -117,6 +123,7 @@ import java.util.stream.Collectors;
  * Created by daiyitian on 2017/4/11.
  */
 @Service
+@Slf4j
 public class GoodsInfoService {
 
     @Autowired
@@ -204,6 +211,11 @@ public class GoodsInfoService {
     @Autowired
     private GoodsIntervalPriceService goodsIntervalPriceService;
 
+    @Autowired
+    private GoodsPriceSyncRepository goodsPriceSyncRepository;
+
+    @Autowired
+    private GoodsInfoService goodsInfoService;
     /**
      * SKU分页
      *
@@ -2652,5 +2664,68 @@ public class GoodsInfoService {
         response.setMinMap(minMap);
         response.setMaxMap(maxMap);
         return response;
+    }
+
+    public long countGoodPriceSync() {
+        Specification<GoodsPriceSync> request = (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cbuild.equal(root.get("status"), 0));
+            predicates.add(cbuild.equal(root.get("deleted"), 0));
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+        return goodsPriceSyncRepository.count(request);
+    }
+
+    /**
+     * 更新商品价格
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public List<String> syncGoodsPrice(int pageNum, int pageSize) {
+        GoodsPriceSyncQueryRequest priceSyncQueryRequest = new GoodsPriceSyncQueryRequest();
+        priceSyncQueryRequest.setStatus(0);
+        priceSyncQueryRequest.setDeleted(0);
+        if (pageNum >= 0) {
+            priceSyncQueryRequest.setPageNum(pageNum);
+        }
+        priceSyncQueryRequest.setPageSize(pageSize);
+        Page<GoodsPriceSync> pricePage = goodsPriceSyncRepository.findAll(priceSyncQueryRequest.getWhereCriteria(),
+                priceSyncQueryRequest.getPageRequest());
+        if(pricePage == null || CollectionUtils.isNotEmpty(pricePage.getContent())){
+            return null;
+        }
+        List<GoodsPriceSync> goodsPriceList = pricePage.getContent();
+        // 3 遍历商品列表并更新价格
+        List<String> result = new ArrayList<>();
+        //根据goodsno查询sku列表
+        List<GoodsStockInfo> goodsInfoList = goodsInfoRepository.findGoodsInfoByGoodsNos(goodsPriceList.stream().map(GoodsPriceSync::getGoodsNo).distinct().collect(Collectors.toList()));
+        if(CollectionUtils.isEmpty(goodsInfoList)){
+            log.info("there is no goods info list,price:{}",goodsPriceList);
+            goodsPriceSyncRepository.updateStatusByIds(goodsPriceList.stream().map(GoodsPriceSync::getId).collect(Collectors.toList()))
+            return result;
+        }
+        goodsPriceList.forEach(price -> {
+            goodsInfoService.updateGoodsPriceSingle(price,result,goodsInfoList);
+        });
+        return result;
+    }
+
+    @Transactional
+    public void updateGoodsPriceSingle(GoodsPriceSync price,List<String> result,List<GoodsStockInfo> goodsInfoList){
+        //查询sku信息
+        if (CollectionUtils.isEmpty(goodsInfoList) || !goodsInfoList.stream().anyMatch(p->p.getGoodsNo().equals(price.getGoodsNo()))) {
+            goodsPriceSyncRepository.updateStatus(price.getId());
+            log.info("there is no sku,stock:{}", price);
+            return;
+        }
+        GoodsStockInfo goodsInfo = goodsInfoList.stream().filter(p->p.getGoodsNo().equals(price.getGoodsNo())).findFirst().get();
+        goodsInfoRepository.updateGoodsPriceById(goodsInfo.getGoodsInfoId(),price.getPrice(),price.getSellPrice());
+        //更新spu价格
+        goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),price.getPrice(),price.getSellPrice());
+        result.add(goodsInfo.getGoodsInfoId());
+        //更新状态
+        goodsPriceSyncRepository.updateStatus(price.getId());
     }
 }

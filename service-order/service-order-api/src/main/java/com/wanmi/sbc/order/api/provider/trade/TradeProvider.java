@@ -418,4 +418,20 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/query-trade-information")
     BaseResponse<TradeGetBookingTypeByIdResponse> queryTradeInformation(@RequestBody @Valid String tradeId);
 
+    /**
+     * 推送发货单同步状态
+     * @param request 订单号
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-status")
+    BaseResponse syncProviderTradeStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
+
+    /**
+     * 同步物流状态
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
+    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
+
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
+import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
@@ -11,6 +12,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
@@ -46,20 +48,14 @@ import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
-import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
+import com.wanmi.sbc.goods.info.model.root.*;
 import com.wanmi.sbc.goods.info.reponse.GoodsDetailResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
-import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsRepository;
-import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
-import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
-import com.wanmi.sbc.goods.info.request.GoodsRequest;
-import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
+import com.wanmi.sbc.goods.info.repository.*;
+import com.wanmi.sbc.goods.info.request.*;
 import com.wanmi.sbc.goods.pointsgoods.model.root.PointsGoods;
 import com.wanmi.sbc.goods.pointsgoods.repository.PointsGoodsRepository;
 import com.wanmi.sbc.goods.pointsgoods.service.PointsGoodsWhereCriteriaBuilder;
@@ -92,6 +88,7 @@ import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
 import com.wanmi.sbc.goods.storegoodstab.repository.GoodsTabRelaRepository;
 import com.wanmi.sbc.goods.storegoodstab.repository.StoreGoodsTabRepository;
+import com.wanmi.sbc.goods.util.XssUtils;
 import com.wanmi.sbc.goods.virtualcoupon.model.root.VirtualCoupon;
 import com.wanmi.sbc.goods.virtualcoupon.service.VirtualCouponService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -109,6 +106,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,6 +132,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class GoodsService {
     @Autowired
     GoodsAresService goodsAresService;
@@ -251,6 +250,15 @@ public class GoodsService {
 
     @Autowired
     private VirtualCouponService virtualCouponService;
+
+    @Autowired
+    private GoodsSyncRepository goodsSyncRepository;
+
+    @Autowired
+    private GoodsStockSyncRepository goodsStockSyncRepository;
+
+    @Autowired
+    private GoodsPriceSyncRepository goodsPriceSyncRepository;
 
     /**
      * 供应商商品删除
@@ -1674,7 +1682,8 @@ public class GoodsService {
         if (goods.getAuditStatus() == CheckStatus.CHECKED && NumberUtils.INTEGER_ZERO.equals(goods.getGoodsSource())) {
             List<String> standardIds = standardImportService.importStandard(GoodsRequest.builder().goodsIds(Arrays.asList(goodsId)).build());
         }
-
+        //更新sync状态
+        goodsSyncRepository.updateStatus(goods.getErpGoodsNo());
         return goodsId;
     }
 
@@ -3097,5 +3106,16 @@ public class GoodsService {
             throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_H_EXIST, new Object[]{StringUtils.join(erpSkuNos, ",")});
         }
     }
+
+    public List<GoodsSync> listGoodsSync(){
+       return goodsSyncRepository.findByStatus(2);
+    }
+
+
+
+
+
+
+
 
 }

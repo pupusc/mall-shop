@@ -255,4 +255,20 @@ public interface GoodsProvider {
     @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
     BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
+    /**
+     * 同步商品库存
+     * @param goodsInfoListByIdRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-stock")
+    BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
+    /**
+     * 同步商品价格
+     * @param goodsInfoListByIdRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-price")
+    BaseResponse<List<String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
 }

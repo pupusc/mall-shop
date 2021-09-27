@@ -41,6 +41,7 @@ import org.bson.Document;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -134,6 +135,8 @@ public class ProviderTradeService {
 
     private final String BATCH_PUSH_NORMAL_ORDER_LOCKS = "autoBatchNormalPushOrder";
 
+    @Value("${default.providerId}")
+    private Long defaultProviderId;
 
     /**
      * 新增文档

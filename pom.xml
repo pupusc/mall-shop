@@ -28,6 +28,7 @@
         <module>service-pay</module>
         <module>service-order</module>
         <module>platform</module>
+        <module>biz-supplier</module>
 
     </modules>
 
