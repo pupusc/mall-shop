@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
@@ -201,7 +202,7 @@ public class BookListModelController implements BookListModelProvider {
      * 根据商品id列表，获取商品列表对应的书单
      */
     @Override
-    public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(Collection<String> spuIdCollection){
-        return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(spuIdCollection));
+    public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest){
+        return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest));
     }
 }

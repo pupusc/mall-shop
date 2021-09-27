@@ -27,6 +27,7 @@ import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
@@ -405,13 +406,13 @@ public class BookListModelController {
      *
      */
     @PostMapping("/list-ranking")
-    public BaseResponse<MicroServicePage<BookListModelAndGoodsListResponse>> listRanking(@Validated @RequestBody RankingPageRequest rankingPageRequest){
+    public BaseResponse<MicroServicePage<BookListModelAndGoodsCustomResponse>> listRanking(@Validated @RequestBody RankingPageRequest rankingPageRequest){
 
         if (StringUtils.isEmpty(rankingPageRequest.getSpuId())) {
             throw new IllegalArgumentException("参数错误");
         }
 
-        MicroServicePage<BookListModelAndGoodsListResponse> result = new MicroServicePage<>();
+        MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
         result.setTotal(0);
         result.setContent(new ArrayList<>());
 
@@ -438,8 +439,6 @@ public class BookListModelController {
                 return BaseResponse.success(result);
             }
 
-            BookListModelAndGoodsListResponse resultBookListModelAndGoodsList = new BookListModelAndGoodsListResponse();
-            resultBookListModelAndGoodsList.setBookListModel(bookListModelAndGoodsListModel.getBookListModel());
 
             int from = rankingPageRequest.getPageNum() * rankingPageRequest.getPageSize();
             int to = (rankingPageRequest.getPageNum() + 1) * rankingPageRequest.getPageSize();
@@ -448,8 +447,36 @@ public class BookListModelController {
             } else if (to > bookListModelAndGoodsListModel.getGoodsList().size()) {
                 to = bookListModelAndGoodsListModel.getGoodsList().size();
             }
-            resultBookListModelAndGoodsList.setGoodsList(bookListModelAndGoodsListModel.getGoodsList().subList(from, to));
-            result.setContent(Collections.singletonList(resultBookListModelAndGoodsList));
+            List<GoodsCustomResponse> goodsCustomResponseList = bookListModelAndGoodsListModel.getGoodsList().subList(from, to);
+
+            //获取商品所属书单
+            BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest = new BookListModelBySpuIdCollQueryRequest();
+            bookListModelBySpuIdCollQueryRequest.setSpuIdCollection(goodsCustomResponseList.stream().map(GoodsCustomResponse::getGoodsId).collect(Collectors.toSet()));
+            bookListModelBySpuIdCollQueryRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+            BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdCollResponse =
+                    bookListModelProvider.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest);
+            List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
+            if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
+                return BaseResponse.success(result);
+            }
+            //list转化成map
+            Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdMap =
+                    listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
+
+            List<BookListModelAndGoodsCustomResponse> resultTmp = new ArrayList<>();
+            for (GoodsCustomResponse goodsCustomParam : goodsCustomResponseList) {
+                BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
+                param.setGoodsCustomVo(goodsCustomParam);
+                BookListModelGoodsIdProviderResponse bookListModelGoodsIdProviderResponse = bookListModelGoodsIdMap.get(goodsCustomParam.getGoodsId());
+                if (bookListModelGoodsIdProviderResponse != null) {
+                    BookListModelSimpleResponse bookListModelSimpleResponse = new BookListModelSimpleResponse();
+                    BeanUtils.copyProperties(bookListModelGoodsIdProviderResponse, bookListModelSimpleResponse);
+                    param.setBookListModel(bookListModelSimpleResponse);
+                }
+                resultTmp.add(param);
+            }
+
+            result.setContent(resultTmp);
         }
 
         return BaseResponse.success(result);
@@ -510,8 +537,11 @@ public class BookListModelController {
         //获取商品id信息
         Collection<String> spuIdCollection = content.stream().map(EsGoodsVO::getId).collect(Collectors.toSet());
         //根据商品id 获取书单信息
+        BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest = new BookListModelBySpuIdCollQueryRequest();
+        bookListModelBySpuIdCollQueryRequest.setSpuIdCollection(spuIdCollection);
+        bookListModelBySpuIdCollQueryRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
         BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdCollResponse =
-                bookListModelProvider.listBookListModelNoPageBySpuIdColl(spuIdCollection);
+                bookListModelProvider.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest);
         List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
         if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
             return BaseResponse.success(result);
