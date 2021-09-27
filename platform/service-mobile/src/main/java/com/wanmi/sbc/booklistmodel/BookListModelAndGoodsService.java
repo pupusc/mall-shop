@@ -5,9 +5,13 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelMapByCustomerIdAndStoreIdsRequest;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelMapGetResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -16,14 +20,26 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProviderResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
+import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
+import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,12 +75,52 @@ public class BookListModelAndGoodsService {
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
-    @Autowired
-    private StoreCateQueryProvider storeCateQueryProvider;
 
     @Autowired
-    private CustomerLevelQueryProvider customerLevelQueryProvider;
+    private GoodsQueryProvider goodsQueryProvider;
 
+    @Autowired
+    private MarketingPluginProvider marketingPluginProvider;
+
+    @Autowired
+    private CommonUtil commonUtil;
+
+    @Autowired
+    private CustomerProvider customerProvider;
+
+
+    /**
+     * 获取是否是知识顾问
+     * @return
+     */
+    public boolean getIsCounselor() {
+
+        CustomerVO customerVO = this.getCustomerVo();
+        if (customerVO == null) {
+            return false;
+        }
+        if (StringUtils.isEmpty(customerVO.getFanDengUserNo())) {
+            return false;
+        } else {
+            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customerVO.getFanDengUserNo())).getContext();
+            if (counselorDto == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 获取客户信息
+     * @return
+     */
+    public CustomerVO getCustomerVo() {
+        String operatorId = commonUtil.getOperatorId();
+        if (StringUtils.isEmpty(operatorId)) {
+            return null;
+        }
+        return commonUtil.getCanNullCustomer();
+    }
 
 
     /**
@@ -109,6 +165,39 @@ public class BookListModelAndGoodsService {
             }
         }
         return supId2BookListMixMap;
+    }
+
+
+    /**
+     * 打包goodsInfo详细信息
+     * @param esGoodsVOList
+     * @param customer
+     * @return
+     */
+    public List<GoodsInfoVO> packageGoodsInfoList(List<EsGoodsVO> esGoodsVOList, CustomerVO customer) {
+        List<GoodsInfoVO> goodsInfoList = esGoodsVOList.stream().map(EsGoodsVO::getGoodsInfos)
+                .flatMap(Collection::stream).map(goods -> {
+                    GoodsInfoVO goodsInfoVO = KsBeanUtil.convert(goods, GoodsInfoVO.class);
+                    goodsInfoVO.setVendibility(goods.getVendibilityStatus());
+                    Integer enterPriseAuditStatus = goods.getEnterPriseAuditStatus();
+                    if (Objects.nonNull(enterPriseAuditStatus)) {
+                        goodsInfoVO.setEnterPriseAuditState(EnterpriseAuditState.CHECKED.toValue() == enterPriseAuditStatus ?
+                                EnterpriseAuditState.CHECKED : null);
+                    }
+                    return goodsInfoVO;
+                }).collect(Collectors.toList());
+
+        MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
+        filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfoList, GoodsInfoDTO.class));
+        if (Objects.nonNull(customer)) {
+            filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
+        }
+//        filterRequest.setMoFangFlag(queryRequest.getMoFangFlag());
+        GoodsInfoListByGoodsInfoResponse filterResponse = marketingPluginProvider.goodsListFilter(filterRequest).getContext();
+        if (Objects.nonNull(filterResponse) && org.apache.commons.collections4.CollectionUtils.isNotEmpty(filterResponse.getGoodsInfoVOList())) {
+            goodsInfoList = filterResponse.getGoodsInfoVOList();
+        }
+        return goodsInfoList;
     }
 
     /**
@@ -166,8 +255,20 @@ public class BookListModelAndGoodsService {
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (!CollectionUtils.isEmpty(content)) {
+
+            List<GoodsVO> goodsVOList = this.changeEsGoods2GoodsVo(content);
+            if (CollectionUtils.isEmpty(goodsVOList)) {
+                return microServicePageResult;
+            }
+
+            List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(content, this.getCustomerVo());
+            if (CollectionUtils.isEmpty(goodsInfoVOList)) {
+                return microServicePageResult;
+            }
+
             // EsGoods -> Map
-            Map<String, EsGoodsVO> spuId2EsGoodsMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+            Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+            Map<String, EsGoodsVO> spuId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
 
             for (BookListMixProviderResponse bookListMixParam : bookListMixList) {
                 if (bookListMixParam.getBookListModel() == null) {
@@ -186,14 +287,15 @@ public class BookListModelAndGoodsService {
                 resultTmp.setBookListModel(bookListMixParam.getBookListModel());
                 List<GoodsCustomResponse> goodsCustomTmpList = new ArrayList<>();
                 for (BookListGoodsProviderResponse bookListGoodsTmpParam : bookListMixParam.getChooseRuleMode().getBookListGoodsList()) {
-                    EsGoodsVO esGoodsVO = spuId2EsGoodsMap.get(bookListGoodsTmpParam.getSpuId());
-                    if (esGoodsVO == null) {
+                    GoodsVO goodsVO = spuId2GoodsVoMap.get(bookListGoodsTmpParam.getSpuId());
+                    EsGoodsVO esGoodsVO = spuId2EsGoodsVoMap.get(bookListGoodsTmpParam.getSpuId());
+                    if (goodsVO == null || esGoodsVO == null) {
                         continue;
                     }
                     if (goodsCustomTmpList.size() >= pageSize) {
                         break;
                     }
-                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(esGoodsVO));
+                    goodsCustomTmpList.add(this.packageGoodsCustomResponse(goodsVO, esGoodsVO, goodsInfoVOList));
                 }
                 resultTmp.setGoodsList(goodsCustomTmpList);
 
@@ -208,130 +310,147 @@ public class BookListModelAndGoodsService {
         return microServicePageResult;
     }
 
-//    private void test() {
-//        goodsInfos.forEach(item -> {
-//            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),storeCateIdMap.get(item.getGoodsId()));
-//            List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
-//                    CouponLabelVO.builder()
-//                            .couponActivityId(cache.getCouponActivityId())
-//                            .couponInfoId(cache.getCouponInfoId())
-//                            .couponDesc(getLabelMap(cache))
-//                            .build()
-//            ).collect(Collectors.toList());
-//        });
-//    }
+    /**
+     * 转化EsGoodsVo to goodsVo
+     * @param content
+     * @return
+     */
+    public List<GoodsVO> changeEsGoods2GoodsVo(List<EsGoodsVO> content){
+        if (CollectionUtils.isEmpty(content)){
+            return new ArrayList<>();
+        }
 
-//    /**
-//     * 获取优惠券
-//     */
-//    private Map<String, List<Long>> getStoreCateIdMap(List<String> goodsIds) {
-//        if (CollectionUtils.isEmpty(goodsIds)) {
-//            return new HashMap<>();
-//        }
-//        //商品-店铺分类关联实体类
-//        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
-//                new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
-//
-//        //商品店铺分类
-//        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
-//        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
-//            List<Long> storeCateId=new ArrayList<>();
-//            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
-//            if(i==0){
-//                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
-//            }
-//        }
-//        return storeCateIdMap;
-//    }
-//
-//    /**
-//     * 获取用户等级
-//     * @param goodsInfoList
-//     * @param customerId
-//     * @return
-//     */
-//    private Map<Long, CommonLevelVO> getCustomerLevelsMap(List<GoodsInfoVO> goodsInfoList, String customerId) {
-//        if (CollectionUtils.isEmpty(goodsInfoList) || StringUtils.isEmpty(customerId)) {
-//            return new HashMap<>();
-//        }
-//        List<Long> storeIds = goodsInfoList.stream().map(GoodsInfoVO::getStoreId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
-//        CustomerLevelMapByCustomerIdAndStoreIdsRequest customerLevelMapByCustomerIdAndStoreIdsRequest = new CustomerLevelMapByCustomerIdAndStoreIdsRequest();
-//        customerLevelMapByCustomerIdAndStoreIdsRequest.setCustomerId(customerId);
-//        customerLevelMapByCustomerIdAndStoreIdsRequest.setStoreIds(storeIds);
-//        BaseResponse<CustomerLevelMapGetResponse> customerLevelMapGetResponseBaseResponse = customerLevelQueryProvider.listCustomerLevelMapByCustomerIdAndIds(customerLevelMapByCustomerIdAndStoreIdsRequest);
-//        return customerLevelMapGetResponseBaseResponse.getContext().getCommonLevelVOMap();
-//    }
-
+        List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
+        GoodsByConditionRequest goodsByConditionRequest = new GoodsByConditionRequest();
+        goodsByConditionRequest.setGoodsIds(goodsIdList);
+        GoodsByConditionResponse goodsByConditionResponseBaseResponse = goodsQueryProvider.listByCondition(goodsByConditionRequest).getContext();
+        List<GoodsVO> goodsVOList = goodsByConditionResponseBaseResponse.getGoodsVOList();
+        if (CollectionUtils.isEmpty(goodsVOList)) {
+            return new ArrayList<>();
+        }
+        return goodsVOList;
+    }
 
 
     /**
      *  esGoodsVo 转化成 可以返回给前端的对象
-     * @param esGoodsVO
+     * @param
      * @return
      */
-    public GoodsCustomResponse packageGoodsCustomResponse(EsGoodsVO esGoodsVO) {
+    public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO, List<GoodsInfoVO> goodsInfoVOList) {
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
-        List<String> couponLabelNameList = null;
+        List<String> couponLabelNameList = new ArrayList<>();
 
+        GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
-        BigDecimal currentSalePriceTmp = BigDecimal.ZERO;
-        BigDecimal lineSalePrice = BigDecimal.ZERO;
-        if (!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())) {
-            for (GoodsInfoNestVO goodsInfoParam : esGoodsVO.getGoodsInfos()) {
-                if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
-                    currentSalePriceTmp = goodsInfoParam.getSalePrice();
-                    lineSalePrice  = goodsInfoParam.getMarketPrice();
+        BigDecimal currentSalePrice = new BigDecimal("100000");
+        BigDecimal currentMarketingPrice = new BigDecimal("100000");
+        BigDecimal lineSalePrice = null;
+
+        if (esGoodsVO != null) {
+            if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
+                Map<String, List<GoodsInfoVO>> goodsId2GoodsInfoListMap = new HashMap<>();
+                for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
+                    List<GoodsInfoVO> goodsInfoVOListParam = goodsId2GoodsInfoListMap.get(goodsInfoParam.getGoodsId());
+                    if (CollectionUtils.isEmpty(goodsInfoVOListParam)) {
+                        List<GoodsInfoVO> tmp = new ArrayList<>();
+                        tmp.add(goodsInfoParam);
+                        goodsId2GoodsInfoListMap.put(goodsInfoParam.getGoodsId(), tmp);
+                    } else {
+                        goodsInfoVOListParam.add(goodsInfoParam);
+                    }
                 }
-                if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
-                    couponLabelNameList = goodsInfoParam.getCouponLabels().stream().map(CouponLabelVO::getCouponDesc).collect(Collectors.toList());
-                }
-                goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
 
+                List<GoodsInfoVO> goodsInfoVoListLast = goodsId2GoodsInfoListMap.get(esGoodsVO.getId());
+                if (CollectionUtils.isEmpty(goodsInfoVoListLast)) {
+                    goodsInfoVoListLast = new ArrayList<>();
+                }
+
+
+                //填充价格
+                for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
+                    BigDecimal tmpSalePrice = null;
+                    BigDecimal tmpMarketingPrice = null;
+                    //会员价
+                    if (goodsInfoParam.getSalePrice() != null && currentSalePrice.compareTo(goodsInfoParam.getSalePrice()) > 0) {
+                        tmpSalePrice = goodsInfoParam.getSalePrice();
+                    }
+
+                    if (goodsInfoParam.getMarketPrice() != null && currentMarketingPrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
+                        tmpMarketingPrice = goodsInfoParam.getMarketPrice();
+                    }
+
+                    if (tmpSalePrice != null) {
+                        currentSalePrice = tmpSalePrice;
+                        tmpMarketingPrice = tmpMarketingPrice;
+                        goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                        goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                        goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+                        int maxLabelSize = 2; //只是显示2个标签
+
+                        //折扣
+                        if (!CollectionUtils.isEmpty(goodsInfoParam.getMarketingLabels())) {
+                            for (int i = 0; i < maxLabelSize && i < goodsInfoParam.getMarketingLabels().size(); i++) {
+                                couponLabelNameList.add(goodsInfoParam.getMarketingLabels().get(i).getMarketingDesc());
+                            }
+                        }
+
+                        //满减
+                        if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
+                            for (int i = 0; i < (maxLabelSize - couponLabelNameList.size()) && i < goodsInfoParam.getCouponLabels().size(); i++) {
+                                couponLabelNameList.add(goodsInfoParam.getCouponLabels().get(i).getCouponDesc());
+                            }
+                        }
+                    }
+                }
+            }
+
+            List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
+            if (!CollectionUtils.isEmpty(goodsLabelList)) {
+                esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
+            } else {
+                esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
+            }
+
+
+            if (esGoodsVO.getGoodsExtProps() != null) {
+                esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
+
+                if (!StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor())
+                        || !StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher())
+                        || esGoodsVO.getGoodsExtProps().getPrice() != null) {
+                    GoodsExtPropertiesCustomResponse extProperties = new GoodsExtPropertiesCustomResponse();
+                    extProperties.setAuthor(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor()) ? "" : esGoodsVO.getGoodsExtProps().getAuthor());
+                    extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
+                    extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
+                    esGoodsCustomResponse.setGoodsExtProperties(extProperties);
+                    lineSalePrice = extProperties.getPrice();
+                }
             }
         }
 
+
         //商品展示价格
-        BigDecimal currentSalePrice = currentSalePriceTmp;
 
-
-        GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
-        esGoodsCustomResponse.setGoodsId(esGoodsVO.getId());
-        esGoodsCustomResponse.setGoodsNo(esGoodsVO.getGoodsNo());
+        esGoodsCustomResponse.setGoodsId(goodsVO.getGoodsId());
+        esGoodsCustomResponse.setGoodsNo(goodsVO.getGoodsNo());
         //获取最小价格的 goodsInfo
         esGoodsCustomResponse.setGoodsInfoId(goodsInfoId);
         esGoodsCustomResponse.setGoodsInfoNo(goodsInfoNo);
-        esGoodsCustomResponse.setGoodsName(esGoodsVO.getGoodsName());
-        esGoodsCustomResponse.setGoodsSubName(esGoodsVO.getGoodsSubtitle());
+        esGoodsCustomResponse.setGoodsName(goodsVO.getGoodsName());
+        esGoodsCustomResponse.setGoodsSubName(goodsVO.getGoodsSubtitle());
         esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
-        esGoodsCustomResponse.setGoodsUnBackImg(esGoodsVO.getGoodsUnBackImg());
+        esGoodsCustomResponse.setGoodsUnBackImg(goodsVO.getGoodsUnBackImg());
         esGoodsCustomResponse.setShowPrice(currentSalePrice);
-        esGoodsCustomResponse.setLinePrice(lineSalePrice);
-        esGoodsCustomResponse.setCpsSpecial(esGoodsVO.getCpsSpecial());
+        esGoodsCustomResponse.setLinePrice(lineSalePrice == null ? currentMarketingPrice : lineSalePrice);
+        esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
-        List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
-        if (!CollectionUtils.isEmpty(goodsLabelList)) {
-            esGoodsCustomResponse.setGoodsLabelList(goodsLabelList.stream().map(GoodsLabelNestVO::getLabelName).collect(Collectors.toList()));
-        } else {
-            esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
-        }
-        if (esGoodsVO.getGoodsExtProps() != null) {
-            esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
 
-            if (!StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor())
-                || !StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher())
-                || esGoodsVO.getGoodsExtProps().getPrice() != null) {
-                GoodsExtPropertiesCustomResponse extProperties = new GoodsExtPropertiesCustomResponse();
-                extProperties.setAuthor(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getAuthor()) ? "" : esGoodsVO.getGoodsExtProps().getAuthor());
-                extProperties.setPublisher(StringUtils.isEmpty(esGoodsVO.getGoodsExtProps().getPublisher()) ? "" : esGoodsVO.getGoodsExtProps().getPublisher());
-                extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
-                esGoodsCustomResponse.setGoodsExtProperties(extProperties);
-                esGoodsCustomResponse.setLinePrice(extProperties.getPrice());
-            }
-        }
+
         return esGoodsCustomResponse;
     }
+
+
 }
