@@ -345,8 +345,9 @@ public class BookListModelAndGoodsService {
 
         GoodsCustomResponse esGoodsCustomResponse = new GoodsCustomResponse();
 
-        BigDecimal currentSalePriceTmp = new BigDecimal("100000");
-        BigDecimal lineSalePrice = new BigDecimal("100000");
+        BigDecimal currentSalePrice = new BigDecimal("100000");
+        BigDecimal currentMarketingPrice = new BigDecimal("100000");
+        BigDecimal lineSalePrice = null;
 
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
@@ -366,28 +367,41 @@ public class BookListModelAndGoodsService {
                 if (CollectionUtils.isEmpty(goodsInfoVoListLast)) {
                     goodsInfoVoListLast = new ArrayList<>();
                 }
+
+
+                //填充价格
                 for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
-                    if (goodsInfoParam.getMarketPrice() == null || currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) < 0) {
-                        continue;
+                    BigDecimal tmpSalePrice = null;
+                    BigDecimal tmpMarketingPrice = null;
+                    //会员价
+                    if (goodsInfoParam.getSalePrice() != null && currentSalePrice.compareTo(goodsInfoParam.getSalePrice()) > 0) {
+                        tmpSalePrice = goodsInfoParam.getSalePrice();
                     }
-                    currentSalePriceTmp = goodsInfoParam.getMarketPrice();
-                    lineSalePrice  = goodsInfoParam.getMarketPrice();
-                    goodsInfoId = goodsInfoParam.getGoodsInfoId();
-                    goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
-                    goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
-                    int maxLabelSize = 2; //只是显示2个标签
 
-                    //折扣
-                    if (!CollectionUtils.isEmpty(goodsInfoParam.getMarketingLabels())) {
-                        for (int i = 0; i < maxLabelSize && i < goodsInfoParam.getMarketingLabels().size(); i++) {
-                            couponLabelNameList.add(goodsInfoParam.getMarketingLabels().get(i).getMarketingDesc());
+                    if (goodsInfoParam.getMarketPrice() != null && currentMarketingPrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
+                        tmpMarketingPrice = goodsInfoParam.getMarketPrice();
+                    }
+
+                    if (tmpSalePrice != null) {
+                        currentSalePrice = tmpSalePrice;
+                        tmpMarketingPrice = tmpMarketingPrice;
+                        goodsInfoId = goodsInfoParam.getGoodsInfoId();
+                        goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
+                        goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
+                        int maxLabelSize = 2; //只是显示2个标签
+
+                        //折扣
+                        if (!CollectionUtils.isEmpty(goodsInfoParam.getMarketingLabels())) {
+                            for (int i = 0; i < maxLabelSize && i < goodsInfoParam.getMarketingLabels().size(); i++) {
+                                couponLabelNameList.add(goodsInfoParam.getMarketingLabels().get(i).getMarketingDesc());
+                            }
                         }
-                    }
 
-                    //满减
-                    if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
-                        for (int i = 0; i < (maxLabelSize - couponLabelNameList.size()) && i < goodsInfoParam.getCouponLabels().size(); i++) {
-                            couponLabelNameList.add(goodsInfoParam.getCouponLabels().get(i).getCouponDesc());
+                        //满减
+                        if (!CollectionUtils.isEmpty(goodsInfoParam.getCouponLabels())) {
+                            for (int i = 0; i < (maxLabelSize - couponLabelNameList.size()) && i < goodsInfoParam.getCouponLabels().size(); i++) {
+                                couponLabelNameList.add(goodsInfoParam.getCouponLabels().get(i).getCouponDesc());
+                            }
                         }
                     }
                 }
@@ -399,6 +413,7 @@ public class BookListModelAndGoodsService {
             } else {
                 esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
             }
+
 
             if (esGoodsVO.getGoodsExtProps() != null) {
                 esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
@@ -428,8 +443,8 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setGoodsSubName(goodsVO.getGoodsSubtitle());
         esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
         esGoodsCustomResponse.setGoodsUnBackImg(goodsVO.getGoodsUnBackImg());
-        esGoodsCustomResponse.setShowPrice(currentSalePriceTmp);
-        esGoodsCustomResponse.setLinePrice(lineSalePrice);
+        esGoodsCustomResponse.setShowPrice(currentSalePrice);
+        esGoodsCustomResponse.setLinePrice(lineSalePrice == null ? currentMarketingPrice : lineSalePrice);
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
 

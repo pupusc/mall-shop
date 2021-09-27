@@ -378,19 +378,21 @@ public class BookListModelController {
             }
 
             List<EsGoodsVO> esGoodsVOList = resultEsGoodsVoList.subList(from, to);
-            Map<String, EsGoodsVO> spuId2EsGoodsVoMap = esGoodsVOList.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
+
             List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOList);
             if (CollectionUtils.isEmpty(goodsVOList)) {
                 return BaseResponse.success(result);
             }
+            Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+
             List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOList, bookListModelAndGoodsService.getCustomerVo());
             if (CollectionUtils.isEmpty(goodsInfoVOList)) {
                 return BaseResponse.success(result);
             }
 
-            result.setContent(goodsVOList.stream()
+            result.setContent(esGoodsVOList.stream()
                     .map(ex ->
-                        bookListModelAndGoodsService.packageGoodsCustomResponse(ex, spuId2EsGoodsVoMap.get(ex.getGoodsId()), goodsInfoVOList)).collect(Collectors.toList()));
+                        bookListModelAndGoodsService.packageGoodsCustomResponse(spuId2GoodsVoMap.get(ex.getId()), ex, goodsInfoVOList)).collect(Collectors.toList()));
             return BaseResponse.success(result);
 
         }
