@@ -382,9 +382,9 @@ public class BookListModelAndGoodsService {
                         tmpMarketingPrice = goodsInfoParam.getMarketPrice();
                     }
 
-                    if (tmpSalePrice != null) {
+                    if (tmpSalePrice != null || tmpMarketingPrice != null) {
                         currentSalePrice = tmpSalePrice;
-                        tmpMarketingPrice = tmpMarketingPrice;
+                        currentMarketingPrice = tmpMarketingPrice;
                         goodsInfoId = goodsInfoParam.getGoodsInfoId();
                         goodsInfoNo = goodsInfoParam.getGoodsInfoNo();
                         goodsInfoImg = goodsInfoParam.getGoodsInfoImg();
@@ -443,7 +443,7 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setGoodsSubName(goodsVO.getGoodsSubtitle());
         esGoodsCustomResponse.setGoodsCoverImg(goodsInfoImg);
         esGoodsCustomResponse.setGoodsUnBackImg(goodsVO.getGoodsUnBackImg());
-        esGoodsCustomResponse.setShowPrice(currentSalePrice);
+        esGoodsCustomResponse.setShowPrice(currentSalePrice == null ? currentMarketingPrice : currentSalePrice);
         esGoodsCustomResponse.setLinePrice(lineSalePrice == null ? currentMarketingPrice : lineSalePrice);
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
