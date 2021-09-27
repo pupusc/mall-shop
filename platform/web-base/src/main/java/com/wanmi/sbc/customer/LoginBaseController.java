@@ -1494,6 +1494,7 @@ public class LoginBaseController {
             //返回值
             loginResponse = commonUtil.getLoginResponse(customerVO, jwtSecretKey);
             loginResponse.setNewFlag(Boolean.FALSE);
+            loginResponse.setFanDengUserStates(authLogin.getContext().getUserStatus());
             if (Objects.isNull(customerVO.getLoginTime())) {
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);

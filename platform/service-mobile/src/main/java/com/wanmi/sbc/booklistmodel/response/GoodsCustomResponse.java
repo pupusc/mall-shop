@@ -73,6 +73,11 @@ public class GoodsCustomResponse {
     private BigDecimal linePrice;
 
     /**
+     * 市场价
+     */
+    private BigDecimal marketingPrice;
+
+    /**
      * 是否有优惠券
      */
     private List<String> couponLabelList;

@@ -384,6 +384,7 @@ public final class CommonUtil {
                 .customerDetail(customer.getCustomerDetail())
                 .enterpriseInfoVO(enterpriseInfoVO)
                 .inviteCode(inviteCode)
+                .fanDengUserNo(customer.getFanDengUserNo())
                 .build();
     }
 
