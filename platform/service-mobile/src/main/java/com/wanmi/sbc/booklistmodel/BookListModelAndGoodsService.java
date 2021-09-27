@@ -349,7 +349,23 @@ public class BookListModelAndGoodsService {
 
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
+                Map<String, List<GoodsInfoVO>> goodsId2GoodsInfoListMap = new HashMap<>();
                 for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
+                    List<GoodsInfoVO> goodsInfoVOListParam = goodsId2GoodsInfoListMap.get(goodsInfoParam.getGoodsId());
+                    if (CollectionUtils.isEmpty(goodsInfoVOListParam)) {
+                        List<GoodsInfoVO> tmp = new ArrayList<>();
+                        tmp.add(goodsInfoParam);
+                        goodsId2GoodsInfoListMap.put(goodsInfoParam.getGoodsId(), tmp);
+                    } else {
+                        goodsInfoVOListParam.add(goodsInfoParam);
+                    }
+                }
+
+                List<GoodsInfoVO> goodsInfoVoListLast = goodsId2GoodsInfoListMap.get(esGoodsVO.getId());
+                if (CollectionUtils.isEmpty(goodsInfoVoListLast)) {
+                    goodsInfoVoListLast = new ArrayList<>();
+                }
+                for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
                     if (goodsInfoParam.getMarketPrice() != null && currentSalePriceTmp.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
                         currentSalePriceTmp = goodsInfoParam.getMarketPrice();
                         lineSalePrice  = goodsInfoParam.getMarketPrice();

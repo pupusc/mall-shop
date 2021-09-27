@@ -319,7 +319,7 @@ public class BookListModelController {
             //根据书单模版获取商品列表
             Set<String> spuIdSet = goodsContext.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-            esGoodsCustomRequest.setPageNum(bookListModelGoodsRequest.getPageNum());
+            esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(spuIdSet.size()); //TODO 一次性全部查询出来
             esGoodsCustomRequest.setGoodIdList(spuIdSet);
             if (!bookListModelAndGoodsService.getIsCounselor()) {
@@ -382,7 +382,7 @@ public class BookListModelController {
             if (CollectionUtils.isEmpty(goodsVOList)) {
                 return BaseResponse.success(result);
             }
-            List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(content, bookListModelAndGoodsService.getCustomerVo());
+            List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOList, bookListModelAndGoodsService.getCustomerVo());
             if (CollectionUtils.isEmpty(goodsInfoVOList)) {
                 return BaseResponse.success(result);
             }
