@@ -246,4 +246,11 @@ public class TradeParams {
      * 周期购信息
      */
     private CycleBuyInfoDTO cycleBuyInfo;
+
+    /**
+     * 推广人用户id
+     */
+    private String promoteUserId;
+
+
 }
