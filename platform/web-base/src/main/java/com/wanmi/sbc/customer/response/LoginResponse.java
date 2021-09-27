@@ -95,4 +95,10 @@ public class LoginResponse implements Serializable{
      */
     @ApiModelProperty(value = "新用户初始登录标志")
     private Boolean newFlag;
+
+    /**
+     * 樊登编号
+     */
+    @ApiModelProperty(value = "樊登用户id")
+    private String fanDengUserNo;
 }
