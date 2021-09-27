@@ -10,6 +10,8 @@ import com.wanmi.sbc.goods.api.provider.hotgoods.HotGoodsProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.bean.dto.HotGoodsDto;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -60,9 +63,15 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         esGoodsCustomRequest.setPageSize(goodIds.size()); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
         esGoodsCustomRequest.setGoodIdList(goodIds);
         List<EsGoodsVO> esGoodsVOS = goodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest).getContext().getContent();
+        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
+        Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+
+        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, bookListModelAndGoodsService.getCustomerVo());
+
         List<SortGoodsCustomResponse> goodList = new ArrayList<>();
         for (EsGoodsVO goodsVo:esGoodsVOS) {
-            SortGoodsCustomResponse goodsCustomResponse = (SortGoodsCustomResponse) bookListModelAndGoodsService.packageGoodsCustomResponse(goodsVo);
+            SortGoodsCustomResponse goodsCustomResponse = (SortGoodsCustomResponse) bookListModelAndGoodsService
+                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
             goodsCustomResponse.setSort(sortMap.get(goodsVo.getId()));
             goodList.add(goodsCustomResponse);
         }
