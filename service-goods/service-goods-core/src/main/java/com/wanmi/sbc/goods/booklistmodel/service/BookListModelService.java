@@ -7,6 +7,7 @@ import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.chooserulegoodslist.ChooseRuleGoodsListProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
@@ -404,14 +405,22 @@ public class BookListModelService {
 
     /**
      * 根据商品列表，获取商品列表对应的书单
-     * @param spuIdCollection
+     * @param bookListModelBySpuIdCollQueryRequest
      * @return
      */
-    public List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl(Collection<String> spuIdCollection) {
+    public List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest) {
         List<BookListModelGoodsIdProviderResponse> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(bookListModelBySpuIdCollQueryRequest.getBusinessTypeList())
+                || CollectionUtils.isEmpty(bookListModelBySpuIdCollQueryRequest.getSpuIdCollection())) {
+            return result;
+        }
+
+//        if (businessTypeList.isEmpty()) {
+//            businessTypeList = Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode());
+//        }
         //根据spuId 获取书单
         List<BookListGoodsPublishLinkModelResponse> bookListGoodsPublishLinkModelList = bookListGoodsPublishService.listPublishGoodsAndBookListModelBySpuId(
-                Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()), spuIdCollection);
+                bookListModelBySpuIdCollQueryRequest.getBusinessTypeList(), bookListModelBySpuIdCollQueryRequest.getSpuIdCollection());
         if (CollectionUtils.isEmpty(bookListGoodsPublishLinkModelList)) {
             return result;
         }
