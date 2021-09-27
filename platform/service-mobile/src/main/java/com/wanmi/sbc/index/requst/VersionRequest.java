@@ -1,21 +1,23 @@
 package com.wanmi.sbc.index.requst;
 
-import com.wanmi.sbc.common.base.BaseRequest;
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
- * <p>积分订单商品兑换请求结构</p>
+ * <p>热销榜请求类</p>
  * Created by yinxianzhi on 2019-05-20-上午9:20.
  */
 @Data
-public class VersionRequest extends BaseRequest {
+public class VersionRequest extends BaseQueryRequest implements Serializable {
 
     private static final long serialVersionUID = 3228778527828317959L;
 
     /**
-     * 积分商品Id
+     * 是否刷新商品
      */
-    private Boolean falshFlag = Boolean.FALSE;
+    private Boolean falshFlag = Boolean.TRUE;
 
 
 
