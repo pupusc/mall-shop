@@ -58,6 +58,7 @@ import com.wanmi.sbc.pay.bean.enums.TerminalType;
 import com.wanmi.sbc.pay.bean.enums.WxPayTradeType;
 import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.bean.vo.PayGatewayConfigVO;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.WechatAuthProvider;
 import com.wanmi.sbc.setting.api.provider.storewechatminiprogramconfig.StoreWechatMiniProgramConfigQueryProvider;
 import com.wanmi.sbc.setting.api.response.MiniProgramSetGetResponse;
@@ -74,6 +75,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -88,6 +90,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -167,6 +170,9 @@ public class PayController {
 
     @Autowired
     private EsCustomerFundsProvider esCustomerFundsProvider;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 创建Charges
@@ -448,6 +454,10 @@ public class PayController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单号", required = true)
     @RequestMapping(value = "/aliPay/check/{tid}", method = RequestMethod.GET)
     public BaseResponse checkPayState(@PathVariable String tid) {
+        Boolean check = redisService.setNx("pay:" + tid, "1", 4L);
+        if(BooleanUtils.isFalse(check)){
+            throw new SbcRuntimeException("请稍后再试");
+        }
         TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder()
                 .tid(tid).build()).getContext().getTradeVO();
         //0:未支付
@@ -472,6 +482,10 @@ public class PayController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单号", required = true)
     @RequestMapping(value = "/weiXinPay/checkOrderPayState/{tid}", method = RequestMethod.GET)
     public BaseResponse checkOrderPayState(@PathVariable String tid) {
+        Boolean check = redisService.setNx("pay:" + tid, "1", 4L);
+        if(BooleanUtils.isFalse(check)){
+            throw new SbcRuntimeException("请稍后再试");
+        }
         String flag = "0";
         List<TradeVO> tradeVOList = new ArrayList<>();
         if (tid.startsWith(GeneratorService._PREFIX_TRADE_ID)) {
