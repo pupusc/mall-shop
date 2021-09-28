@@ -458,9 +458,7 @@ public class BookListModelController {
             BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdCollResponse =
                     bookListModelProvider.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest);
             List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
-            if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
-                return BaseResponse.success(result);
-            }
+
             //list转化成map
             Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdMap =
                     listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
@@ -545,9 +543,9 @@ public class BookListModelController {
         BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdCollResponse =
                 bookListModelProvider.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest);
         List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
-        if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
-            return BaseResponse.success(result);
-        }
+//        if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
+//            return BaseResponse.success(result);
+//        }
         //list转化成map
         Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdMap =
                 listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
