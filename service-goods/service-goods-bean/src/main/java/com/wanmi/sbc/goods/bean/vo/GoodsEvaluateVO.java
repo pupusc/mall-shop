@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSecondSerializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -109,7 +110,7 @@ public class GoodsEvaluateVO implements Serializable {
 	/**
 	 * 发表评价时间
 	 */
-	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+	@JsonSerialize(using = CustomLocalDateTimeSecondSerializer.class)
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime evaluateTime;
 
