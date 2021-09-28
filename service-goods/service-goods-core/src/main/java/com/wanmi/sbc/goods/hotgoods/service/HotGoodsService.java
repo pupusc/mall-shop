@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.hotgoods.model.root.HotGoods;
 import com.wanmi.sbc.goods.hotgoods.repository.HotGoodsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class HotGoodsService {
     /**
      * 刷新排序
      */
+    @Transactional
     public Integer updateSort() {
         Integer count = hotGoodsRepository.updateSort();
         return count;

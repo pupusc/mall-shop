@@ -55,6 +55,10 @@ public class IndexConfigResponse implements Serializable {
      */
     private List<IndexConfigChild1Response> dp6zfdConfig;
 
+    /**
+     * 更多地址
+     */
+    private IndexConfigChild4Response moreJumpUrl;
 
 
 

@@ -17,5 +17,9 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse{
      */
     private Integer sort;
 
+    /**
+     * 类型  1商品 2书单
+     */
+    private Integer type;
 
 }

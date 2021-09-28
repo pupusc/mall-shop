@@ -31,8 +31,8 @@ public class RedisListService<T> {
      */
     public boolean putAll(final String key, List<T> list, long seconds) {
         ListOperations operations = redisTemplate.opsForList();
-        operations.leftPushAll(key, list);
-        redisTemplate.expire(key, seconds, TimeUnit.SECONDS);
+        operations.rightPushAll(key, list);
+        redisTemplate.expire(key, seconds, TimeUnit.MINUTES);
         return true;
     }
 

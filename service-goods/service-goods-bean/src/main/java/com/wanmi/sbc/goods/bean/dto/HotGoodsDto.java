@@ -1,8 +1,9 @@
 package com.wanmi.sbc.goods.bean.dto;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * t_hot_goods
@@ -17,7 +18,7 @@ public class HotGoodsDto implements Serializable {
     /**
      * 1-商品  2-书单
      */
-    private Byte type;
+    private Integer type;
 
     private Integer sort;
 

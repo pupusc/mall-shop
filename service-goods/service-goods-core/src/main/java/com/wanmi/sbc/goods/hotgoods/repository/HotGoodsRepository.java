@@ -23,13 +23,13 @@ public interface HotGoodsRepository extends JpaRepository<HotGoods, String>,
      * @return
      */
     @Modifying
-    @Query(value = "UPDATE t_hot_goods set sort = CEILING(RAND()*9000+1000)", nativeQuery = true)
-    Integer updateSort();
+    @Query("UPDATE HotGoods set sort = CEILING(RAND()*9000+1000 )")
+    int updateSort();
 
     /**
      * 获取所有数据并排序
      * @return
      */
-    @Query(value = "select * from  t_hot_goods order by sort desc", nativeQuery = true)
+    @Query("from HotGoods order by sort desc")
     List<HotGoods> selectAllBySort();
 }

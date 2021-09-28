@@ -14,13 +14,13 @@ import java.util.Date;
  * t_hot_goods
  * @author 
  */
-@Table(name = "t_counselor")
+@Table(name = "t_hot_goods")
 @Data
 @Entity
 public class HotGoods implements Serializable {
     @Id
     @GeneratedValue(generator = "JDBC")
-    private Integer id;
+    private String id;
     
     @Column(name = "spu_id")
     private String spuId;
@@ -28,7 +28,7 @@ public class HotGoods implements Serializable {
     /**
      * 1-商品  2-书单
      */
-    private Byte type;
+    private Integer type;
 
     private Integer sort;
     @Column(name = "create_time")
