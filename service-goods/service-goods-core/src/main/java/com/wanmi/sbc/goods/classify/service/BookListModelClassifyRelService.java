@@ -115,7 +115,8 @@ public class BookListModelClassifyRelService {
         Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize());
         Page<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses =
                 bookListModelClassifyRelRepository.listBookListModelClassifyLink
-                        (request.getBusinessTypeList(), request.getClassifyIdColl(), Collections.singleton(CategoryEnum.BOOK_LIST_MODEL.getCode()), pageable);
+                        (request.getBusinessTypeList(), request.getClassifyIdColl(),
+                                Collections.singleton(CategoryEnum.BOOK_LIST_MODEL.getCode()), request.getUnShowBookListModelIdList(), pageable);
         return bookListModelClassifyLinkResponses.getContent();
     }
 

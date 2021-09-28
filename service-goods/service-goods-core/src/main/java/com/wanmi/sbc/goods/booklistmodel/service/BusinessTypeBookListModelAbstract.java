@@ -76,6 +76,7 @@ public abstract class BusinessTypeBookListModelAbstract {
         BookListModelClassifyLinkPageRequest request = new BookListModelClassifyLinkPageRequest();
         request.setClassifyIdColl(classifyIdColl);
         request.setBusinessTypeList(businessTypeColl);
+        request.setUnShowBookListModelIdList(Collections.singletonList(bookListModelId));
         request.setPageNum(pageNum);
         request.setPageSize(pageSize);
         return bookListModelClassifyRelService.listBookListModelClassifyLink(request);
