@@ -2,6 +2,7 @@ package com.wanmi.sbc.order.configuration;
 
 import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
 import com.sensorsdata.analytics.javasdk.consumer.ConcurrentLoggingConsumer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,8 +19,11 @@ import java.io.IOException;
 @Configuration
 public class SensorsDataConfigure {
 
+    @Value("${sensors.data.path}")
+    private String sensorsDataPath;
+
     @Bean
     public SensorsAnalytics sensorsAnalytics() throws IOException {
-        return new SensorsAnalytics(new ConcurrentLoggingConsumer("./sensors/data/path"));
+        return new SensorsAnalytics(new ConcurrentLoggingConsumer(sensorsDataPath));
     }
 }
