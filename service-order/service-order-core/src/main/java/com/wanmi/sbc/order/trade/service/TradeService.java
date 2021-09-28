@@ -609,6 +609,7 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
+
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
     /**
@@ -5210,6 +5211,8 @@ public class TradeService {
                 //推送订单到ERP系统()
                 providerTradeService.defalutPayOrderAsycToERP(tid);
             }
+
+            this.addSensorsData(Arrays.asList(trade), trade.getId());
             return true;
         }
 
@@ -6669,6 +6672,8 @@ public class TradeService {
                         }
                         //支付回调处理成功
                         payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+
+                        this.addSensorsData(trades, businessId);
                     } else {
                         log.info("微信支付异步回调验证签名结果[失败].");
                         //支付处理结果回写回执支付结果表
@@ -6923,24 +6928,7 @@ public class TradeService {
 //                        this.pushTradeToErp(out_trade_no);
 //                    }
 
-                    //推送埋点, 推送埋点异常不影响
-                    try {
-                        for (Trade trade : trades) {
-                            NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
-                            request.setCustomerAccount(trade.getBuyer().getAccount());
-                            BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount();
-                            String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
-                            log.info(" 订单：{}上传埋点的 账户是：{}", out_trade_no, fandengUserNo);
-                            if (StringUtils.isNotBlank(fandengUserNo)) {
-                                for (TradeItem tradeItem : trade.getTradeItems()) {
-                                    log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
-                                    sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice().toString());
-                                }
-                            }
-                        }
-                    } catch (Exception ex) {
-                        log.error("支付推送埋点异常", ex);
-                    }
+                    this.addSensorsData(trades, out_trade_no);
 
                     Trade trade = null;
                     if (isTailPayOrder(out_trade_no)) {
@@ -6968,6 +6956,31 @@ public class TradeService {
                 log.error("支付宝回调异常：", e);
                 payCallBackResultService.updateStatus(out_trade_no, PayCallBackResultStatus.FAILED);
             }
+        }
+    }
+
+    /**
+     * 新增埋点
+     * @param trades
+     */
+    private void addSensorsData(List<Trade> trades, String out_trade_no){
+        //推送埋点, 推送埋点异常不影响
+        try {
+            for (Trade trade : trades) {
+                NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
+                request.setCustomerAccount(trade.getBuyer().getAccount());
+                BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
+                String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
+                log.info(" 订单：{}上传埋点的 账户是：{}", out_trade_no, fandengUserNo);
+                if (StringUtils.isNotBlank(fandengUserNo)) {
+                    for (TradeItem tradeItem : trade.getTradeItems()) {
+                        log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
+                        sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice().toString());
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            log.error("支付推送埋点异常", ex);
         }
     }
 
