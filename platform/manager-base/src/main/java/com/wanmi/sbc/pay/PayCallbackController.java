@@ -699,6 +699,7 @@ public class PayCallbackController {
         try{
             payCallBackResultProvider.add(resultAddRequest);
         } catch (SbcRuntimeException e) {
+            log.error("addPayCallBackResult error ", e);
             //business_id唯一索引报错捕获，不影响流程处理
             if(!e.getErrorCode().equals(ErrorCodeConstant.PAY_CALL_BACK_RESULT_EXIT)){
                 throw e;
