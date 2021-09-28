@@ -6934,7 +6934,7 @@ public class TradeService {
                             if (StringUtils.isNotBlank(fandengUserNo)) {
                                 for (TradeItem tradeItem : trade.getTradeItems()) {
                                     log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
-                                    sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
+                                    sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice().toString());
                                 }
                             }
                         }
