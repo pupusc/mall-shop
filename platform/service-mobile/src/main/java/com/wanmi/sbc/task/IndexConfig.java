@@ -3,6 +3,7 @@ package com.wanmi.sbc.task;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
  ********************************************************************/
 @Data
 @Component
-@RefreshScope
+@RefreshScope(proxyMode = ScopedProxyMode.DEFAULT)
 public class IndexConfig {
     @Value("${index.config}")
     private volatile String indexConfig;

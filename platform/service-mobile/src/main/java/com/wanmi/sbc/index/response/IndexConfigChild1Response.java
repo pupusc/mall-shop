@@ -27,4 +27,8 @@ public class IndexConfigChild1Response implements Serializable {
      * 跳转ID
      */
     private String id;
+    /**
+     * 书单价格
+     */
+    private String price = "0";
 }

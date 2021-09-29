@@ -13,8 +13,5 @@ public class IndexConfigChild2Response extends IndexConfigChild1Response impleme
      */
     private String title;
 
-    /**
-     * 售价
-     */
-    private String price;
+
 }

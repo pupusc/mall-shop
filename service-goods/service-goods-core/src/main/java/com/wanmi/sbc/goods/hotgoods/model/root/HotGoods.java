@@ -36,5 +36,8 @@ public class HotGoods implements Serializable {
     @Column(name = "update_time")
     private Date updateTime;
 
+    @Column(name = "is_refresh")
+    private Integer isRefresh;
+
     private static final long serialVersionUID = 1L;
 }

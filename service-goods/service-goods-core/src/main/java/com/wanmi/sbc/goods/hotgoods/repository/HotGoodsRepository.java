@@ -30,6 +30,6 @@ public interface HotGoodsRepository extends JpaRepository<HotGoods, String>,
      * 获取所有数据并排序
      * @return
      */
-    @Query("from HotGoods order by sort desc")
+    @Query("from HotGoods where isRefresh = 1 order by sort desc ")
     List<HotGoods> selectAllBySort();
 }
