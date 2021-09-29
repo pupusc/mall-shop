@@ -38,6 +38,7 @@ import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.root.GoodsSync;
 import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
@@ -47,6 +48,7 @@ import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
 import com.wanmi.sbc.goods.info.service.S2bGoodsService;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.info.service.*;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
@@ -122,6 +124,9 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
     private GoodsCateMapper goodsCateMapper;
+
+    @Autowired
+    private GoodsStockService goodsStockService;
 
     /**
      * 分页查询商品信息
@@ -570,5 +575,24 @@ public class GoodsQueryController implements GoodsQueryProvider {
         List<GoodsInfo> list = KsBeanUtil.convert(goodsInfoVOList, GoodsInfo.class);
         goodsInfoService.updateGoodsInfoSupplyPriceAndStock(list);
         return KsBeanUtil.convert(list, GoodsInfoVO.class);
+    }
+
+    @Override
+    public BaseResponse<List<GoodsSyncVO>> listGoodsSync() {
+        List<GoodsSync> list= goodsService.listGoodsSync();
+        if(CollectionUtils.isEmpty(list)){
+            return BaseResponse.success(Collections.emptyList());
+        }
+        return BaseResponse.success(KsBeanUtil.convert(list, GoodsSyncVO.class));
+    }
+
+    @Override
+    public BaseResponse<Integer> countGoodsStockSync() {
+        return BaseResponse.success((int)goodsStockService.countGoodsStockSync());
+    }
+
+    @Override
+    public BaseResponse<Integer> countGoodsPriceSync() {
+        return BaseResponse.success((int)goodsInfoService.countGoodPriceSync());
     }
 }

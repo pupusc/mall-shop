@@ -4,14 +4,17 @@ import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.common.util.StringUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.UpdateByQueryAction;
 import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 
 /**
  * ES商品信息数据源操作
@@ -169,6 +174,24 @@ public class EsGoodsStockService {
                             .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_INFO_TYPE).addIds(skuId))
                             //修改操作
                             .script(new Script("ctx._source.goodsInfo.stock = " + stock));
+                    updateByQuery.get().getUpdated();
+                }
+            }
+        }
+    }
+
+    public void batchResetGoodsInfoStockBySpuId(Map<String, Integer> spusMap){
+        if (!spusMap.isEmpty()){
+            Client client = elasticsearchTemplate.getClient();
+            UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
+            for (String skuId : spusMap.keySet()){
+                Long stock = Long.valueOf(spusMap.get(skuId));
+                if (StringUtils.isNotEmpty(skuId) && Objects.nonNull(stock)) {
+                    updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_TYPE)
+                            //查询要修改的结果集
+                            .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_TYPE).addIds(skuId))
+                            //修改操作
+                            .script(new Script("ctx._source.goodsInfos[0]['stock'] = " + stock));
                     updateByQuery.get().getUpdated();
                 }
             }

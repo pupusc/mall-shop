@@ -39,4 +39,6 @@ public class RefundTradeRequest implements Serializable {
      */
     @ApiModelProperty(value = "商城退款状态")
     private int refundState;
+
+    private Long providerId;
 }

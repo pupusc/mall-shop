@@ -8,7 +8,9 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -200,4 +202,13 @@ public interface GoodsQueryProvider {
      */
     @PostMapping("/goods/${application.goods.version}/list-erp-no")
     BaseResponse vaildErpNo(@RequestBody @Valid GoodsErpNoRequest request);
+
+    @PostMapping("/goods/${application.goods.version}/list-goods-sync")
+    BaseResponse<List<GoodsSyncVO>> listGoodsSync();
+
+    @GetMapping("/goods/${application.goods.version}/count-goods-stock-sync")
+    BaseResponse<Integer> countGoodsStockSync();
+
+    @GetMapping("/goods/${application.goods.version}/count-goods-price-sync")
+    BaseResponse<Integer> countGoodsPriceSync();
 }

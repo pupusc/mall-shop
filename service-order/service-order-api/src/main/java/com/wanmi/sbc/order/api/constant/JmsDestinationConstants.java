@@ -118,4 +118,14 @@ public interface JmsDestinationConstants {
      * 新增会员权益处理订单成长值 临时表
      */
     String  GROWTH_VALUE_MEMBER_EQUITY_ORDER = "growth.value.member.equity.order";
+
+    String PROVIDER_TRADE_ORDER_PUSH = "provider.trade.order.push";
+
+    String PROVIDER_TRADE_DELIVERY_STATUS_SYNC = "provider.trade.delivery.status.sync";
+
+    String PROVIDER_TRADE_ORDER_PUSH_CONFIRM="provider.trade.order.push.confirm";
+
+    String PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE="provider.trade.order.push.confirm.group-1";
+
+    String PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE="provider.trade.delivery.status.sync.confirm.group-1";
 }

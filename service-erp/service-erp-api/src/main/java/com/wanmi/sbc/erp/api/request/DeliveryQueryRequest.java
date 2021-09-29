@@ -32,4 +32,6 @@ public class DeliveryQueryRequest implements Serializable {
      * 发货状态 0:未发货、发货中、发货失败，1:发货成功
      */
     private Integer delivery;
+
+    private Long providerId;
 }

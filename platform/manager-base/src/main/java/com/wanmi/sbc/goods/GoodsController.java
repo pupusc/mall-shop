@@ -373,29 +373,31 @@ public class GoodsController {
     @RequestMapping(value = "/spu", method = RequestMethod.PUT)
     public BaseResponse edit(@RequestBody @Valid GoodsModifyRequest request) {
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+        //todo 改为让前端传过来
+        //request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
 
-
-        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<GoodsInfoVO> goodsInfoVOS= request.getGoodsInfos();
-        goodsInfoVOS.forEach(goodsInfoVO -> {
-            if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo())) {
-                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
+        if(Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
+            //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
+            List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
+            goodsInfoVOS.forEach(goodsInfoVO -> {
+                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo())) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoVO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
                     }
-                } else {
-                    throw new SbcRuntimeException("K-800003");
                 }
-            }
-        });
+            });
+        }
 
 
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
