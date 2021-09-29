@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,6 +173,9 @@ public class BookListModelController {
             @RequestBody BookListModelPageRequest bookListModelPageRequest){
         BookListModelPageProviderRequest request = new BookListModelPageProviderRequest();
         BeanUtils.copyProperties(bookListModelPageRequest, request);
+        if (bookListModelPageRequest.getBusinessType() != null) {
+            request.setBusinessTypeList(Collections.singletonList(bookListModelPageRequest.getBusinessType()));
+        }
         return bookListModelProvider.listByPage(request);
     }
 

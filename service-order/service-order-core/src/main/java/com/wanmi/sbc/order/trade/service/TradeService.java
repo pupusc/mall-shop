@@ -5,8 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
-import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
-import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+//import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
+//import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
+//import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+//import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -250,7 +252,7 @@ import com.wanmi.sbc.order.receivables.service.ReceivableService;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
-import com.wanmi.sbc.order.sensorsdata.SensorsDataService;
+//import com.wanmi.sbc.order.sensorsdata.SensorsDataService;
 import com.wanmi.sbc.order.thirdplatformtrade.model.entity.LinkedMallTradeResult;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
@@ -608,10 +610,10 @@ public class TradeService {
     private ExceptionOfTradePointsService exceptionOfTradePointsService;
     @Autowired
     private CustomerProvider customerProvider;
-    @Autowired
-    private SensorsDataService sensorsDataService;
-    @Autowired
-    private SensorsAnalytics sensorsAnalytics;
+//    @Autowired
+//    private SensorsDataService sensorsDataService;
+//    @Autowired
+//    private SensorsAnalytics sensorsAnalytics;
 
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
@@ -5216,7 +5218,7 @@ public class TradeService {
                 providerTradeService.defalutPayOrderAsycToERP(tid);
             }
 
-            this.addSensorsData(Arrays.asList(trade), trade.getId());
+//            this.addSensorsData(Arrays.asList(trade), trade.getId());
             return true;
         }
 
@@ -6677,7 +6679,7 @@ public class TradeService {
                         //支付回调处理成功
                         payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
 
-                        this.addSensorsData(trades, businessId);
+//                        this.addSensorsData(trades, businessId);
                     } else {
                         log.info("微信支付异步回调验证签名结果[失败].");
                         //支付处理结果回写回执支付结果表
@@ -6932,7 +6934,7 @@ public class TradeService {
 //                        this.pushTradeToErp(out_trade_no);
 //                    }
 
-                    this.addSensorsData(trades, out_trade_no);
+//                    this.addSensorsData(trades, out_trade_no);
 
                     Trade trade = null;
                     if (isTailPayOrder(out_trade_no)) {
@@ -6963,31 +6965,31 @@ public class TradeService {
         }
     }
 
-    /**
-     * 新增埋点
-     * @param trades
-     */
-    private void addSensorsData(List<Trade> trades, String out_trade_no){
-        //推送埋点, 推送埋点异常不影响
-        try {
-            for (Trade trade : trades) {
-                NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
-                request.setCustomerAccount(trade.getBuyer().getAccount());
-                BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
-                String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
-                log.info(" 订单：{}上传埋点的 账户是：{}", out_trade_no, fandengUserNo);
-                if (StringUtils.isNotBlank(fandengUserNo)) {
-                    for (TradeItem tradeItem : trade.getTradeItems()) {
-                        log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
-                        EventRecord builder = sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), trade.getTradePrice().getTotalPrice().toString());
-                        sensorsAnalytics.track(builder);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            log.error("支付推送埋点异常", ex);
-        }
-    }
+//    /**
+//     * 新增埋点
+//     * @param trades
+//     */
+//    private void addSensorsData(List<Trade> trades, String out_trade_no){
+//        //推送埋点, 推送埋点异常不影响
+//        try {
+//            for (Trade trade : trades) {
+//                NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
+//                request.setCustomerAccount(trade.getBuyer().getAccount());
+//                BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
+//                String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
+//                log.info(" 订单：{}上传埋点的 账户是：{}", out_trade_no, fandengUserNo);
+//                if (StringUtils.isNotBlank(fandengUserNo)) {
+//                    for (TradeItem tradeItem : trade.getTradeItems()) {
+//                        log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
+//                        EventRecord builder = sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), trade.getTradePrice().getTotalPrice().toString());
+//                        sensorsAnalytics.track(builder);
+//                    }
+//                }
+//            }
+//        } catch (Exception ex) {
+//            log.error("支付推送埋点异常", ex);
+//        }
+//    }
 
     /**
      * 支付宝退款处理
