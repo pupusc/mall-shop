@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdReq
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -159,6 +160,7 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setCateId(1203L);
         goodsDTO.setFreightTempId(461L);
         goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
+        goodsDTO.setGoodsSource(0);
         request.setGoods(goodsDTO);
 
         GoodsInfoDTO goodsInfoDTO = new GoodsInfoDTO();
@@ -185,6 +187,21 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         List<GoodsSpecDTO> specs = new ArrayList<>(1);
         specs.add(goodsSpecDTO);
         request.setGoodsSpecs(specs);
+
+        List<GoodsImageDTO> images = new ArrayList<>();
+        //图片
+        if(StringUtils.isNotEmpty(goods.getLargeImageUrl())){
+            String[] imgs = goods.getLargeImageUrl().split("\\|");
+            if(imgs!=null && imgs.length >0){
+                for(int i=0;i<imgs.length;i++){
+                    GoodsImageDTO image = new GoodsImageDTO();
+                    image.setSort(i);
+                    image.setArtworkUrl(i== 0? imgs[i] :("http://images.bookuu.com"+imgs[i]));
+                    images.add(image);
+                }
+            }
+        }
+        request.setImages(images);
         //todo属性待确认
         return request;
     }

@@ -2,6 +2,7 @@ package com.fangdeng.server.job;
 
 import com.fangdeng.server.dto.SyncGoodsQueryDTO;
 import com.fangdeng.server.service.GoodsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
@@ -26,18 +27,22 @@ public class SyncGoodsPriceJobHandler extends IJobHandler {
     @Autowired
     private GoodsService goodsService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Override
     public ReturnT<String> execute(String params) throws Exception {
         log.info("=====同步博库价格start======");
-        LocalDate startTime = LocalDate.now();
-        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(startTime);
+        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
         String eTime = sTime;
-        if(StringUtils.isNotBlank(params)) {
-            String[] paramterArray = params.split(",");
-             sTime = paramterArray[0];
-             eTime = paramterArray[1];
+        SyncGoodsQueryDTO queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
+        if(StringUtils.isEmpty(queryDTO.getStime())) {
+             queryDTO.setStime(sTime);
         }
-        goodsService.syncGoodsPrice(sTime,eTime);
+        if(StringUtils.isEmpty(queryDTO.getEtime())) {
+            queryDTO.setEtime(eTime);
+        }
+        goodsService.syncGoodsPrice(queryDTO);
         log.info("=====同步博库价格end======");
         return SUCCESS;
     }

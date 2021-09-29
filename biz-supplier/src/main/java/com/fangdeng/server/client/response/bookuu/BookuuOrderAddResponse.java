@@ -23,4 +23,6 @@ public class BookuuOrderAddResponse implements Serializable {
     private String orderID;
     @XmlElement(name = "price")
     private BigDecimal price;
+    @XmlElement(name = "StatusDesc")
+    private String statusDesc;
 }

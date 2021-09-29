@@ -23,6 +23,7 @@ public interface GoodsPriceSyncRepository extends JpaRepository<GoodsPriceSync, 
     @Query("update GoodsPriceSync set status = 1,updateTime = now() where id = ?1")
     int updateStatus(Long id);
 
+    @Transactional
     @Modifying
     @Query("update GoodsPriceSync set status = 1,updateTime = now() where id in ?1")
     int updateStatusByIds(List<Long> ids);

@@ -299,7 +299,7 @@ public class GoodsBaseController {
 
     /**
      * Spu商品详情，放开删除的sku商品和下架的sku商品，前端判断多规格自动切换
-     *
+
      * @return 返回分页结果
      */
     @ApiOperation(value = "查询Spu商品详情")

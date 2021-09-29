@@ -1,11 +1,11 @@
 package com.fangdeng.server.client.response.bookuu;
 
+import com.fangdeng.server.dto.GoodsItemDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -33,5 +33,10 @@ public class BookuuOrderStatusQueryResponse implements Serializable {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
         private Date postDate;
 
+        @XmlElement(name = "BookRec")
+        private List<GoodsItemDTO> bookRecs;
+
     }
+
+
 }

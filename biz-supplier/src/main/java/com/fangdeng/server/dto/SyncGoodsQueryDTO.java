@@ -21,4 +21,8 @@ public class SyncGoodsQueryDTO {
     @ApiModelProperty("上架日期结束，格式：2014-09-23")
     private String etime;
 
+    private String bookId;
+
+    private Boolean isAllSync = false;
+
 }

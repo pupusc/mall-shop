@@ -37,7 +37,7 @@ public class BookuuGoodsDTO implements Serializable {
     private String publishing;
     @XmlElement(name="title")
     private String title;
-    @XmlElement(name="BasePrice")
+    @XmlElement(name="Baseprice")
     private BigDecimal basePrice;
     @XmlElement(name="price")
     private BigDecimal price;

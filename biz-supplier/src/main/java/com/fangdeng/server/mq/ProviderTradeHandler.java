@@ -50,12 +50,8 @@ public class ProviderTradeHandler {
         log.info("order push consumer,message:{},payload:{}",message,orderTradeDTO);
         BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
         BookuuOrderAddResponse response = bookuuClient.addOrder(request);
-        if(response ==null || StringUtils.isEmpty(response.getOrderID())){
-            log.warn("order push error,body:{}",body);
-
-        }
-        ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
-        //成功之后再回传消息
+        ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().status(response.getStatus()).statusDesc(response.getStatusDesc()).orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
+        //回传消息
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
         //手动确认
 
@@ -84,6 +80,7 @@ public class ProviderTradeHandler {
                 .postNumber(response.getStatusDTOS().get(0).getPostNumber())
                 .postDate(response.getStatusDTOS().get(0).getPostDate())
                 .orderStatus(response.getStatusDTOS().get(0).getOrderStatus())
+                .goodsList(response.getStatusDTOS().get(0).getBookRecs())
                 .build();
         //成功之后再回传消息
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));

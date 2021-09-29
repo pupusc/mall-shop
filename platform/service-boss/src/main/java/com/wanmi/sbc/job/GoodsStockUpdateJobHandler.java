@@ -1,6 +1,7 @@
 package com.wanmi.sbc.job;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -10,10 +11,12 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
+import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,9 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
 
     @Autowired
     private RedissonClient redissonClient;
+
+    @Autowired
+    private RedisService redisService;
 
     //分布式锁名称
     private static final String BATCH_GET_GOODS_STOCK_AND_SYNC_LOCKS = "BATCH_GET_GOODS_STOCK_AND_SYNC_LOCKS";
@@ -75,7 +81,15 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
                 esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
                 log.info("============Es更新spu中的goodsInfo的库存:{}==================", spusMap);
                 esGoodsStockProvider.batchResetGoodsInfoStockBySpuId(esGoodsSpuStockSubRequest);
-
+                //更新redis商品基本数据
+                if(!skusMap.isEmpty()){
+                    for(String key:spusMap.keySet()){
+                        String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+                        if (StringUtils.isNotBlank(goodsDetailInfo)) {
+                            redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+                        }
+                    }
+                }
             }
             return SUCCESS;
         } catch (RuntimeException e) {

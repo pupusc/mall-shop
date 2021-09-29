@@ -2683,7 +2683,7 @@ public class GoodsInfoService {
      * @param pageSize
      * @return
      */
-    public List<String> syncGoodsPrice(int pageNum, int pageSize) {
+    public Map<String,String> syncGoodsPrice(int pageNum, int pageSize) {
         GoodsPriceSyncQueryRequest priceSyncQueryRequest = new GoodsPriceSyncQueryRequest();
         priceSyncQueryRequest.setStatus(0);
         priceSyncQueryRequest.setDeleted(0);
@@ -2693,17 +2693,17 @@ public class GoodsInfoService {
         priceSyncQueryRequest.setPageSize(pageSize);
         Page<GoodsPriceSync> pricePage = goodsPriceSyncRepository.findAll(priceSyncQueryRequest.getWhereCriteria(),
                 priceSyncQueryRequest.getPageRequest());
-        if(pricePage == null || CollectionUtils.isNotEmpty(pricePage.getContent())){
+        if(pricePage == null || CollectionUtils.isEmpty(pricePage.getContent())){
             return null;
         }
         List<GoodsPriceSync> goodsPriceList = pricePage.getContent();
         // 3 遍历商品列表并更新价格
-        List<String> result = new ArrayList<>();
+        Map<String,String> result = new HashMap<>();
         //根据goodsno查询sku列表
         List<GoodsStockInfo> goodsInfoList = goodsInfoRepository.findGoodsInfoByGoodsNos(goodsPriceList.stream().map(GoodsPriceSync::getGoodsNo).distinct().collect(Collectors.toList()));
         if(CollectionUtils.isEmpty(goodsInfoList)){
             log.info("there is no goods info list,price:{}",goodsPriceList);
-            goodsPriceSyncRepository.updateStatusByIds(goodsPriceList.stream().map(GoodsPriceSync::getId).collect(Collectors.toList()))
+            goodsPriceSyncRepository.updateStatusByIds(goodsPriceList.stream().map(GoodsPriceSync::getId).collect(Collectors.toList()));
             return result;
         }
         goodsPriceList.forEach(price -> {
@@ -2713,7 +2713,7 @@ public class GoodsInfoService {
     }
 
     @Transactional
-    public void updateGoodsPriceSingle(GoodsPriceSync price,List<String> result,List<GoodsStockInfo> goodsInfoList){
+    public void updateGoodsPriceSingle(GoodsPriceSync price,Map<String,String> result,List<GoodsStockInfo> goodsInfoList){
         //查询sku信息
         if (CollectionUtils.isEmpty(goodsInfoList) || !goodsInfoList.stream().anyMatch(p->p.getGoodsNo().equals(price.getGoodsNo()))) {
             goodsPriceSyncRepository.updateStatus(price.getId());
@@ -2724,7 +2724,7 @@ public class GoodsInfoService {
         goodsInfoRepository.updateGoodsPriceById(goodsInfo.getGoodsInfoId(),price.getPrice(),price.getSellPrice());
         //更新spu价格
         goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),price.getPrice(),price.getSellPrice());
-        result.add(goodsInfo.getGoodsInfoId());
+        result.put(goodsInfo.getGoodsId(),goodsInfo.getGoodsInfoId());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());
     }

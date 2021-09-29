@@ -1,10 +1,9 @@
 package com.wanmi.sbc.goods.api.provider.goods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
@@ -269,6 +268,7 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
-    BaseResponse<List<String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+    BaseResponse<Map<String,String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
 
 }

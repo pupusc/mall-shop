@@ -7,6 +7,7 @@ import com.fangdeng.server.util.OkHttpUtil;
 import com.fangdeng.server.util.XmlUtil;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -72,7 +73,7 @@ public class BookuuClient {
         request.setChannelID(channelID);
         request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
 
-        String url = String.format(path, "stock");
+        String url = String.format(path, "hzstock");
 
         String result = null;
         try {
@@ -172,7 +173,12 @@ public class BookuuClient {
         try {
             response = XmlUtil.convertToJavaBean(result, BookuuOrderAddResponse.class);
         } catch (Exception e) {
-
+            log.warn("book add order xml to response error,result:{}",result,e);
+        }
+        if(response == null){
+            response = new BookuuOrderAddResponse();
+            response.setStatus(1);
+            response.setStatusDesc(StringUtils.isEmpty(result)?result:"add order fail:result is empty");
         }
         return response;
     }

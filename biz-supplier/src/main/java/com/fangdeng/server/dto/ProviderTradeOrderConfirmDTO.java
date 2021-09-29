@@ -8,8 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -28,4 +28,9 @@ public class ProviderTradeOrderConfirmDTO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date postDate;
     private Integer orderStatus;
+    @ApiModelProperty("下单状态0成功1失败")
+    private Integer status;
+    @ApiModelProperty("下单失败描述")
+    private String statusDesc;
+    private List<GoodsItemDTO> goodsList;
 }

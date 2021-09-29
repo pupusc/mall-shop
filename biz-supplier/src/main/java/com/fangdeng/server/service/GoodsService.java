@@ -17,6 +17,7 @@ import com.fangdeng.server.mapper.GoodsSyncMapper;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,13 +45,20 @@ public class GoodsService {
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
         Integer page = 1;
-        request.setEtime(queryDTO.getEtime());
-        request.setPage(page);
-        request.setStime(queryDTO.getStime());
+        if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+            request.setId(queryDTO.getBookId());
+        }else {
+            request.setEtime(queryDTO.getEtime());
+            request.setPage(page);
+            request.setStime(queryDTO.getStime());
+        }
         while (true) {
             BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
             if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
                 batchAdd(response.getBookList());
+                if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+                    break;
+                }
                 request.setPage(++page);
             } else {
                 break;
@@ -58,8 +66,10 @@ public class GoodsService {
         }
     }
 
+
     private void batchAdd(List<BookuuGoodsDTO> goodsDTOS) {
         List<GoodsSyncDTO> list = new ArrayList(30);
+        List<GoodsImageSyncDTO> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
             list.add(GoodsAssembler.convertGoodsDTO(g));
         });
@@ -74,19 +84,17 @@ public class GoodsService {
     /**
      * 更新商品价格
      *
-     * @param sTime
-     * @param eTime
      */
-    public void syncGoodsPrice(String sTime, String eTime) {
-        Integer maxPage = getMaxPage(sTime, eTime);
+    public void syncGoodsPrice(SyncGoodsQueryDTO queryDTO) {
+        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
         if (maxPage < 1) {
             log.info("max page is 0");
             return;
         }
         for (int page = 1; page <= maxPage; page++) {
-            BookuuPriceQueryResponse response = queryBookuuPrice(sTime, eTime, page);
+            BookuuPriceQueryResponse response = queryBookuuPrice(queryDTO.getStime(), queryDTO.getEtime(), page);
             if (response == null || CollectionUtils.isEmpty(response.getPriceList())) {
-                log.warn("there is no list,stime:{},etime:{},page:{}", sTime, eTime, page);
+                log.warn("there is no list,stime:{},etime:{},page:{}", queryDTO.getStime(), queryDTO.getEtime(), page);
                 return;
             }
             //落表
@@ -132,15 +140,21 @@ public class GoodsService {
     /**
      * 同步库存并落表
      */
-    public void syncGoodsStock(String startTime,String endTime) {
+    public void syncGoodsStock(SyncGoodsQueryDTO queryDTO) {
 //        LocalDateTime eTime = LocalDateTime.now();
 //        LocalDateTime sTime = eTime.minusMinutes(5);
 //        String startTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(sTime);
 //        String endTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(eTime);
-        BookuuStockQueryRequest request = BookuuStockQueryRequest.builder().stime(startTime).etime(endTime).build();
+        BookuuStockQueryRequest request = new BookuuStockQueryRequest();
+        if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+            request.setBookID(queryDTO.getBookId());
+        }else{
+            request.setStime(queryDTO.getStime());
+            request.setEtime(queryDTO.getEtime());
+        }
         BookuuStockQueryResponse response = bookuuClient.queryStock(request);
         if (response == null || CollectionUtils.isEmpty(response.getBookList())) {
-            log.info("there is no stock change,stime:{},etime:{}", startTime, endTime);
+            log.info("there is no stock change,queryDTO:{}", queryDTO);
             return;
         }
         goodsStockSyncMapper.batchInsert(GoodsAssembler.convertStockList(response.getBookList()));

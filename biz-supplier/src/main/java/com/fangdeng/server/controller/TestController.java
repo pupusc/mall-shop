@@ -1,6 +1,8 @@
 package com.fangdeng.server.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.fangdeng.server.dto.OrderTradeDTO;
+import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
 import com.fangdeng.server.job.SyncGoodsStockJobHandler;
@@ -54,6 +56,17 @@ public class TestController {
     public void stock(String param){
         try {
             stockJobHandler.execute(param);
+        }catch (Exception e){
+
+        }
+    }
+
+    @GetMapping("/status")
+    public void status(String param){
+        try {
+            ProviderTradeDeliveryStatusSyncDTO syncDTO = new ProviderTradeDeliveryStatusSyncDTO();
+            syncDTO.setTid(param);
+            providerTradeHandler.deliveryStatusSyncConsumer(null, JSON.toJSONString(syncDTO));
         }catch (Exception e){
 
         }

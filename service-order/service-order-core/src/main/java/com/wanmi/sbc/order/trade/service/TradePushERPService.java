@@ -13,6 +13,7 @@ import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
@@ -1380,16 +1381,21 @@ public class TradePushERPService {
     }
 
     public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
+        if(request == null || request.getStatus() == null){
+          throw new SbcRuntimeException(CommonErrorCode.FAILED,new Object[]{"入参为空"});
+        }
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
+        if(providerTrade == null){
+            throw new SbcRuntimeException(CommonErrorCode.FAILED,new Object[]{"未找到对应订单号"});
+        }
         try {
-
-            if (StringUtils.isEmpty(request.getOrderId())) {
+            if (request.getStatus().equals(1)) {
                 //推送订单失败,更新订单推送状态
-                this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, "fail", LocalDateTime.now());
+                this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, request.getStatusDesc(), LocalDateTime.now());
             } else {
                 this.updateTradeInfo(request.getPlatformCode(), true, true, providerTrade.getTradeState().getPushCount() + 1, "success", LocalDateTime.now());
-                return BaseResponse.SUCCESSFUL();
             }
+            return BaseResponse.SUCCESSFUL();
         } catch (Exception e) {
             log.error("更新订单{}发生异常", providerTrade.getId(), e);
             //推送订单失败,更新订单推送状态
@@ -1404,12 +1410,28 @@ public class TradePushERPService {
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
-            DeliveryInfoVO deliveryInfoVO = DeliveryInfoVO.builder()
-                    .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
-                    .expressName(request.getPost())
-                    .expressCode(request.getPostNumber())
-                    .platformCode(request.getPlatformCode()).build();
-            deliveryInfoVOListVo.add(deliveryInfoVO);
+            if(request.getOrderStatus().equals(5)) {
+                DeliveryInfoVO deliveryInfoVO = DeliveryInfoVO.builder()
+                        .expressName(request.getPost())
+                        .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
+                        .expressCode(request.getPostNumber())
+                        .platformCode(request.getPlatformCode()).build();
+                List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
+
+                request.getGoodsList().stream().filter(p -> p.getStatus().equals(5)).forEach(g -> {
+                    if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()))) {
+                        DeliveryItemVO deliveryItemVO = new DeliveryItemVO();
+                        deliveryItemVO.setQty(g.getBookSendNum().longValue());
+                        deliveryItemVO.setOid(providerTrade.getTradeItems().stream().filter(p -> p.getErpSpuNo().equals(g.getSourceSpbs())).findFirst().get().getOid());
+                        deliveryItemVOS.add(deliveryItemVO);
+                    }
+                });
+                deliveryInfoVO.setItemVOList(deliveryItemVOS);
+                if(request.getGoodsList().stream().anyMatch(g->!g.getBookNum().equals(g.getBookSendNum()))){
+                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.PART_DELIVERY);
+                }
+                deliveryInfoVOListVo.add(deliveryInfoVO);
+            }
             //周期购订单和普通订单分开处理
             if (providerTrade.getCycleBuyFlag()) {
                 this.updateCycleBuyDeliveryStatus(providerTrade, deliveryInfoVOListVo);
