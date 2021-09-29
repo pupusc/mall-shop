@@ -1,4 +1,4 @@
-package com.wanmi.sbc.task;
+package com.wanmi.sbc.index;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @RefreshScope
-public class IndexConfig {
+public class RefreshConfig {
     @Value("${index.config}")
     private volatile String indexConfig;
 }

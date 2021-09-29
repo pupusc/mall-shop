@@ -8,7 +8,6 @@ import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
-import com.wanmi.sbc.task.IndexConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +29,7 @@ public class IndexHomeController {
 
 
     @Autowired
-    private IndexConfig indexConfig;
+    private RefreshConfig refreshConfig;
 
     @Autowired
     private RedisListService redisService;
@@ -47,7 +46,7 @@ public class IndexHomeController {
      */
     @PostMapping(value = "/config")
     public BaseResponse<IndexConfigResponse> config() {
-        IndexConfigResponse indexConfigResponse = JSON.parseObject(indexConfig.getIndexConfig(), IndexConfigResponse.class);
+        IndexConfigResponse indexConfigResponse = JSON.parseObject(refreshConfig.getIndexConfig(), IndexConfigResponse.class);
         return BaseResponse.success(indexConfigResponse);
     }
 
