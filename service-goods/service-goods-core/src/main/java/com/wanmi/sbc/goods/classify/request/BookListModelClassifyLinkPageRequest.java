@@ -20,6 +20,8 @@ public class BookListModelClassifyLinkPageRequest {
      */
     private Collection<Integer> businessTypeList;
 
+    private Collection<Integer> unShowBookListModelIdList;
+
     /**
      * 分类id列表
      */

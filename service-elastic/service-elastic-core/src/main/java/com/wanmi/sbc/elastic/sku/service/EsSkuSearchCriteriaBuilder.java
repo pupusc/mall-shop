@@ -49,22 +49,23 @@ public class EsSkuSearchCriteriaBuilder {
         if(CollectionUtils.isNotEmpty(request.getNotGoodsInfoIds())){
             boolQb.mustNot(idsQuery().addIds(request.getNotGoodsInfoIds().toArray(new String[]{})));
         }
+
         //SPU编号
         if(StringUtils.isNotBlank(request.getGoodsId())){
             boolQb.must(termQuery("goodsInfo.goodsId", request.getGoodsId()));
         }
-
         //批量SPU编号
         if(CollectionUtils.isNotEmpty(request.getGoodsIds())){
             boolQb.must(termsQuery("goodsInfo.goodsId", request.getGoodsIds()));
         }
 
-        //批量SKU编号
+        //批量SKU No编号
         if(CollectionUtils.isNotEmpty(request.getGoodsInfoNos())){
             boolQb.must(termsQuery("goodsInfo.goodsInfoNo", request.getGoodsInfoNos()));
         }
-        if(CollectionUtils.isNotEmpty(request.getGoodsInfoNos())){
-            boolQb.must(termsQuery("goodsInfo.goodsInfoNo", request.getGoodsInfoNos()));
+        //批量SPU NO编号
+        if(CollectionUtils.isNotEmpty(request.getGoodsNos())){
+            boolQb.must(termsQuery("goodsNo", request.getGoodsNos()));
         }
 
         //SPU编码

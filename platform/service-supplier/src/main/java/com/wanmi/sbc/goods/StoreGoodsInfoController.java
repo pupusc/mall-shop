@@ -168,7 +168,7 @@ public class StoreGoodsInfoController {
     }
 
     /**
-     * 分页显示商品
+     * 分页显示商品 duanlsh 书单获取商品列表
      *
      * @param queryRequest
      * @return 商品详情
@@ -270,6 +270,7 @@ public class StoreGoodsInfoController {
         EsSkuPageResponse response = esSkuQueryProvider.page(queryRequest).getContext();
 
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfoPage().getContent();
+        Map<String, String> goodsInfoId2GoodsNoMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, GoodsInfoVO::getGoodsNo, (k1, k2) -> k1));
 
         if (customer != null && StringUtils.isNotBlank(customer.getCustomerId())) {
             GoodsIntervalPriceByCustomerIdResponse priceResponse =
@@ -293,6 +294,10 @@ public class StoreGoodsInfoController {
         }
         if (Objects.nonNull(customer)) {
             goodsInfoVOList = this.setRestrictedNum(goodsInfoVOList, customer);
+        }
+
+        for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
+            goodsInfoParam.setGoodsNo(goodsInfoId2GoodsNoMap.get(goodsInfoParam.getGoodsInfoId()));
         }
 
         response.setGoodsInfoPage(new MicroServicePage<>(goodsInfoVOList, queryRequest.getPageRequest(),

@@ -664,6 +664,10 @@ public class GoodsInfoVO implements Serializable {
     @ApiModelProperty(value = "商品副标题")
     private String goodsSubtitle;
 
+    /**
+     *
+     */
+    private String goodsNo;
 
 
     public Integer getVendibility() {

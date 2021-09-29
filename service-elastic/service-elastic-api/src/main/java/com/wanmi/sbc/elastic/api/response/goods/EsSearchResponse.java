@@ -108,6 +108,7 @@ public class EsSearchResponse implements Serializable {
     private EsSearchResponse addQueryResults(SearchResponse response, ResultsMapper resultsMapper) {
         if (Objects.nonNull(resultsMapper)) {
             data = resultsMapper.mapResults(response, EsGoodsInfoVO.class, null).getContent();
+//            this.goodsData = resultsMapper.mapResults(response, EsGoodsVO.class, null).getContent();
         }
 
         if (CollectionUtils.isNotEmpty(data)) {

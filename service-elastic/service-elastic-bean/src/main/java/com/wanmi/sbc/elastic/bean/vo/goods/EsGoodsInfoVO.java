@@ -158,4 +158,6 @@ public class EsGoodsInfoVO implements Serializable {
     @ApiModelProperty(value = "商品副标题")
     private String goodsSubtitle;
 
+    @ApiModelProperty(value = "商品SPU NO")
+    private String goodsNo;
 }
