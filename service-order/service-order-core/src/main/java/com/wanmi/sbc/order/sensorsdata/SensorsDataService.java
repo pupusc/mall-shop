@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.sensorsdata;
 
 import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+import com.sensorsdata.analytics.javasdk.exceptions.InvalidArgumentException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,19 +14,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SensorsDataService {
 
-    /**
-     * 基础信息
-     * @param eventName
-     * @return
-     */
-    private EventRecord.Builder addBaseEventRecord(String eventName) {
-        return EventRecord.builder()
-                .isLoginId(Boolean.FALSE)
-                .setEventName(eventName)
-                .addProperty("$platform_type", "H5")
-                .addProperty("to_sensors", "1"); //表示的是商城
-
-    }
 
     /**
      * 支付成功埋点
@@ -33,14 +21,17 @@ public class SensorsDataService {
      * @param goodsInfoId
      * @return
      */
-    public EventRecord.Builder addPaySuccessEventRecord(String distinctId, String goodsInfoId, String price) {
+    public EventRecord addPaySuccessEventRecord(String distinctId, String goodsInfoId, String price) throws InvalidArgumentException {
 
-        EventRecord.Builder builder = this.addBaseEventRecord("shop_pay_0_success");
-        builder.setDistinctId(distinctId)
+        return EventRecord.builder()
+                .isLoginId(Boolean.FALSE)
+                .setDistinctId(distinctId)
+                .setEventName("shop_pay_0_success")
+                .addProperty("$platform_type", "H5")
+                .addProperty("to_sensors", "1")
                 .addProperty("click_type", "付款成功")
                 .addProperty("var_id", goodsInfoId)
-                .addProperty("price", price);
-        return builder;
+                .addProperty("price", price).build();
     }
 
 }

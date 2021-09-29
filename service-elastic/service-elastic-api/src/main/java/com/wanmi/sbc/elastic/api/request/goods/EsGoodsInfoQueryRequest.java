@@ -357,7 +357,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder.must(termsQuery("id", goodsIds));
         }
 
-        if ( CollectionUtils.isNotEmpty(goodsIds)&& !isQueryGoods) {
+        if ( CollectionUtils.isNotEmpty(unGoodsIds)&& !isQueryGoods) {
             boolQueryBuilder.mustNot(termsQuery(queryName.concat(".goodsId"), unGoodsIds));
         }
 

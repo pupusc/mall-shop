@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
+import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -608,6 +610,8 @@ public class TradeService {
     private CustomerProvider customerProvider;
     @Autowired
     private SensorsDataService sensorsDataService;
+    @Autowired
+    private SensorsAnalytics sensorsAnalytics;
 
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
@@ -6975,7 +6979,8 @@ public class TradeService {
                 if (StringUtils.isNotBlank(fandengUserNo)) {
                     for (TradeItem tradeItem : trade.getTradeItems()) {
                         log.info(" 订单：{}上传埋点的 账户是：{} skuId:{} price:{}", out_trade_no, fandengUserNo, tradeItem.getSkuId(), tradeItem.getPrice());
-                        sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), trade.getTradePrice().getTotalPrice().toString());
+                        EventRecord builder = sensorsDataService.addPaySuccessEventRecord(fandengUserNo, tradeItem.getSkuId(), trade.getTradePrice().getTotalPrice().toString());
+                        sensorsAnalytics.track(builder);
                     }
                 }
             }
