@@ -30,6 +30,12 @@ public class BossGoodsPropController {
     @Autowired
     private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
+    /**
+     * @description 新增商品属性
+     * @param GoodsPropAddRequest
+     * @menu 商品
+     * @status undone
+     */
     @ApiOperation(value = "新增商品属性")
     @RequestMapping(value = "/goodsProp",method = RequestMethod.POST)
     public BaseResponse addGoodsProps(@RequestBody GoodsPropAddRequest goodsPropRequest){

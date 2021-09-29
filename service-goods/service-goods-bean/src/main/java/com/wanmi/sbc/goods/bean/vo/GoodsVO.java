@@ -479,6 +479,9 @@ public class GoodsVO  implements Serializable {
     @ApiModelProperty(value = "标签名称，用于敏感词验证", hidden = true)
     private String labelName;
 
+    @ApiModelProperty(value = "无背景图")
+    private String goodsUnBackImg;
+
     /**
      * 商品标签列表
      */

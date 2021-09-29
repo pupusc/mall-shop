@@ -95,4 +95,15 @@ public class LoginResponse implements Serializable{
      */
     @ApiModelProperty(value = "新用户初始登录标志")
     private Boolean newFlag;
+
+    /**
+     * 樊登编号
+     */
+    @ApiModelProperty(value = "樊登用户id")
+    private String fanDengUserNo;
+
+    /**
+     * 用户状态（0：未入会 1：体验中 2：体验过期 3：正式会员 4：会员过期 5：停用 ）
+     */
+    private Integer fanDengUserStates;
 }

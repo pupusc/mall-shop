@@ -40,6 +40,12 @@ public class EsGoods implements Serializable {
     private String lowGoodsName;
 
     /**
+     * 无背景图
+     */
+    @Field(type = FieldType.Text)
+    private String goodsUnBackImg;
+
+    /**
      * 转化为小写
      */
     @Field(searchAnalyzer = EsConstants.PINYIN_ANALYZER, analyzer = EsConstants.PINYIN_ANALYZER, type = FieldType.Text)
@@ -76,6 +82,13 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Nested)
     private List<GoodsInfoSpecDetailRelNest> specDetails;
+
+    /**
+     * 商品属性
+     */
+    private GoodsExtProps goodsExtProps;
+//    @Field(type = FieldType.Nested)
+//    private List<GoodsPropDetailNested> propDetailNesteds;
 
     @Field(type = FieldType.Long)
     private List<Long> propDetailIds;

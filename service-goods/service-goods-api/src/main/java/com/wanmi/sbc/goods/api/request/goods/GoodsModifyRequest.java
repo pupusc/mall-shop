@@ -42,6 +42,9 @@ public class GoodsModifyRequest extends BaseRequest {
     @ApiModelProperty(value = "商品相关图片")
     private List<GoodsImageVO> images;
 
+    @ApiModelProperty(value = "标签")
+    private String tags;
+
     /**
      * 商品属性列表
      */

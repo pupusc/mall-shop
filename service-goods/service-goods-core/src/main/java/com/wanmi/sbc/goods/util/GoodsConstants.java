@@ -11,4 +11,5 @@ public class GoodsConstants {
      * 库存在redis中key的前缀，后缀为skuId
      */
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
+
 }

@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Enumerated;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -40,14 +41,26 @@ public class GoodsPropDetailRelDTO implements Serializable {
     /**
      * 属性值id
      */
-    @ApiModelProperty(value = "属性值id")
+    @ApiModelProperty(value = "属性值id（不用了）")
     private Long detailId;
+
+    /**
+     * 属性值id
+     */
+    @ApiModelProperty(value = "属性值id")
+    private String detailId2;
 
     /**
      * 属性id
      */
     @ApiModelProperty(value = "属性id")
     private Long propId;
+
+    /**
+     *属性值（文本框输入）
+     */
+    @Column(name = "prop_value")
+    private String propValue;
 
     /**
      * 创建时间
@@ -71,4 +84,6 @@ public class GoodsPropDetailRelDTO implements Serializable {
     @ApiModelProperty(value = "删除标记", notes = "0: 否, 1: 是")
     @Enumerated
     private DeleteFlag delFlag;
+
+
 }

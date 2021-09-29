@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -27,9 +28,7 @@ import com.wanmi.sbc.goods.api.response.standard.StandardImportStandardRequest;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
 import com.wanmi.sbc.goods.bean.enums.*;
-import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
@@ -70,6 +69,8 @@ import com.wanmi.sbc.goods.price.repository.GoodsCustomerPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsIntervalPriceRepository;
 import com.wanmi.sbc.goods.price.repository.GoodsLevelPriceRepository;
 import com.wanmi.sbc.goods.price.service.GoodsIntervalPriceService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
 import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
@@ -92,6 +93,9 @@ import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
 import com.wanmi.sbc.goods.storegoodstab.repository.GoodsTabRelaRepository;
 import com.wanmi.sbc.goods.storegoodstab.repository.StoreGoodsTabRepository;
+import com.wanmi.sbc.goods.tag.model.Tag;
+import com.wanmi.sbc.goods.tag.model.TagRel;
+import com.wanmi.sbc.goods.tag.service.TagService;
 import com.wanmi.sbc.goods.virtualcoupon.model.root.VirtualCoupon;
 import com.wanmi.sbc.goods.virtualcoupon.service.VirtualCouponService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -103,6 +107,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.checkerframework.checker.units.qual.A;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -110,10 +116,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -121,6 +129,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.awt.print.Book;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -135,6 +148,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class GoodsService {
+
+    private static Logger log = LoggerFactory.getLogger(GoodsService.class);
+
     @Autowired
     GoodsAresService goodsAresService;
 
@@ -191,6 +207,9 @@ public class GoodsService {
 
     @Autowired
     private GoodsPropDetailRelRepository goodsPropDetailRelRepository;
+
+    @Autowired
+    private GoodsPropRepository goodsPropRepository;
 
     @Autowired
     private StandardGoodsRelRepository standardGoodsRelRepository;
@@ -251,6 +270,9 @@ public class GoodsService {
 
     @Autowired
     private VirtualCouponService virtualCouponService;
+
+    @Autowired
+    private TagService tagService;
 
     /**
      * 供应商商品删除
@@ -524,10 +546,49 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        //标签
+        response.setTags(tagService.findTagByGoods(goods.getGoodsId()));
+        //是否书籍
+        GoodsCate cate = goodsCateService.findById(goods.getCateId());
+        response.setBookFlag(cate.getBookFlag());
+
+        //商品属性
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        Iterator<GoodsPropDetailRel> it = goodsPropDetailRels.iterator();
+        Map<String, String> extProps = new HashMap<>();
+        while (it.hasNext()) {
+            GoodsPropDetailRel rel = it.next();
+            if("作者".equals(rel.getPropName())){
+                extProps.put("author", rel.getPropValue());
+                it.remove();
+            }else if("出版社".equals(rel.getPropName())){
+                extProps.put("publisher", rel.getPropValue());
+                it.remove();
+            }else if("定价".equals(rel.getPropName())){
+                extProps.put("price", rel.getPropValue());
+                it.remove();
+            }else if("评分".equals(rel.getPropName())){
+                extProps.put("score", rel.getPropValue());
+                it.remove();
+            }
+        }
+        response.setExtProps(extProps);
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
 
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
-
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setGoodsId(goods.getGoodsId());
@@ -664,9 +725,49 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        //标签
+        response.setTags(tagService.findTagByGoods(goods.getGoodsId()));
+        //是否书籍
+        GoodsCate cate = goodsCateService.findById(goods.getCateId());
+        response.setBookFlag(cate.getBookFlag());
+
+        //商品属性
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        Iterator<GoodsPropDetailRel> it = goodsPropDetailRels.iterator();
+        Map<String, String> extProps = new HashMap<>();
+        while (it.hasNext()) {
+            GoodsPropDetailRel rel = it.next();
+            if("作者".equals(rel.getPropName())){
+                extProps.put("author", rel.getPropValue());
+                it.remove();
+            }else if("出版社".equals(rel.getPropName())){
+                extProps.put("publisher", rel.getPropValue());
+                it.remove();
+            }else if("定价".equals(rel.getPropName())){
+                extProps.put("price", rel.getPropValue());
+                it.remove();
+            }else if("评分".equals(rel.getPropName())){
+                extProps.put("score", rel.getPropValue());
+                it.remove();
+            }
+        }
+        response.setExtProps(extProps);
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
+
         List<String> enterpriseGoodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
-
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setGoodsId(goods.getGoodsId());
@@ -858,6 +959,7 @@ public class GoodsService {
 
         //查询商品图片
         response.setImages(goodsImageRepository.findByGoodsId(goods.getGoodsId()));
+        response.setTags(tagService.findTagByGoods(goodsId));
 
         //查询SKU列表
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
@@ -907,7 +1009,19 @@ public class GoodsService {
             }
         }
         //商品属性
-        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId()));
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+        Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+        List<GoodsProp> props = findPropByIds(new ArrayList<>(idRel.keySet()));
+        if(CollectionUtils.isNotEmpty(props)){
+            for (GoodsProp prop : props) {
+                List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                    goodsPropDetailRelVo.setPropName(prop.getPropName());
+                    goodsPropDetailRelVo.setPropType(prop.getPropType());
+                }
+            }
+        }
+        response.setGoodsPropDetailRels(goodsPropDetailRels);
 
         //如果是多规格
         if (Constants.yes.equals(goods.getMoreSpecFlag())) {
@@ -1369,7 +1483,6 @@ public class GoodsService {
         List<GoodsInfo> goodsInfos = saveRequest.getGoodsInfos();
         Goods goods = saveRequest.getGoods();
 
-
         //判断sku编码是否重复，当组合商品时不sku是非必填的
         goodsInfos.forEach(goodsInfo -> {
 
@@ -1388,7 +1501,6 @@ public class GoodsService {
             }
         });
 
-
         //判断sku编码是否重复
         Map<String, List<GoodsInfo>> erpSpuMap = goodsInfos.stream().filter(goodsInfo -> StringUtils.isNotBlank(goodsInfo.getErpGoodsInfoNo())).collect(Collectors.groupingBy(GoodsInfo::getErpGoodsNo));
         erpSpuMap.forEach((key, value) -> {
@@ -1398,9 +1510,6 @@ public class GoodsService {
                 throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
             }
         });
-
-
-
 
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
@@ -1494,6 +1603,9 @@ public class GoodsService {
             });
         }
 
+        //标签
+        tagService.saveAndUpdateTagForGoods(goodsId, saveRequest.getTags());
+
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(goods.getStoreCateIds())) {
             goods.getStoreCateIds().forEach(cateId -> {
                 StoreCateGoodsRela rela = new StoreCateGoodsRela();
@@ -1506,14 +1618,12 @@ public class GoodsService {
         //保存商品属性
         List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
         if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
-
-            //如果是修改则设置修改时间，如果是新增则设置创建时间，
+            //如果是修改则设置修改时间，如果是新增则设置创建时间
             goodsPropDetailRels.forEach(goodsPropDetailRel -> {
                 goodsPropDetailRel.setDelFlag(DeleteFlag.NO);
                 goodsPropDetailRel.setCreateTime(LocalDateTime.now());
                 goodsPropDetailRel.setGoodsId(goodsId);
             });
-
             goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
         }
 
@@ -1698,11 +1808,7 @@ public class GoodsService {
 //        if (osUtil.isS2b() && CheckStatus.CHECKED.toValue() == oldGoods.getAuditStatus().toValue() && (!oldGoods.getCateId().equals(newGoods.getCateId()))) {
 //            throw new SbcRuntimeException(GoodsErrorCode.EDIT_GOODS_CATE);
 //        }
-
-
-
         List<GoodsInfo> goodsInfoList= saveRequest.getGoodsInfos();
-
 
         //判断sku编码是否重复，当组合商品时不sku是非必填的
         goodsInfoList.forEach(goodsInfo -> {
@@ -1733,7 +1839,6 @@ public class GoodsService {
                 throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_EXIST);
             }
         });
-
 
         //验证SPU编码重复
         GoodsQueryRequest queryRequest = new GoodsQueryRequest();
@@ -1856,6 +1961,9 @@ public class GoodsService {
             }
         }
 
+        //更新标签
+        tagService.saveAndUpdateTagForGoods(oldGoods.getGoodsId(), saveRequest.getTags());
+
         //新增图片
         if (CollectionUtils.isNotEmpty(goodsImages)) {
             goodsImages.stream().filter(goodsImage -> goodsImage.getImageId() == null).forEach(goodsImage -> {
@@ -1866,8 +1974,21 @@ public class GoodsService {
                 goodsImageRepository.save(goodsImage);
             });
         }
+
         //保存商品属性
+        goodsPropDetailRelRepository.deletePropsForGoods(newGoods.getGoodsId());
         List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
+        if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
+            //如果是修改则设置修改时间，如果是新增则设置创建时间
+            goodsPropDetailRels.forEach(goodsPropDetailRel -> {
+                goodsPropDetailRel.setDelFlag(DeleteFlag.NO);
+                goodsPropDetailRel.setCreateTime(LocalDateTime.now());
+            });
+            goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
+        }
+
+        //保存商品属性
+        /*List<GoodsPropDetailRel> goodsPropDetailRels = saveRequest.getGoodsPropDetailRels();
         if (CollectionUtils.isNotEmpty(goodsPropDetailRels)) {
             //修改设置修改时间
             goodsPropDetailRels.forEach(goodsPropDetailRel -> {
@@ -1876,6 +1997,7 @@ public class GoodsService {
                     goodsPropDetailRel.setUpdateTime(LocalDateTime.now());
                 }
             });
+
             //  先获取商品下所有的属性id，与前端传来的对比，id存在的做更新操作反之做保存操作
             List<GoodsPropDetailRel> oldPropList = goodsPropDetailRelRepository.queryByGoodsId(newGoods.getGoodsId());
             List<GoodsPropDetailRel> insertList = new ArrayList<>();
@@ -1894,7 +2016,7 @@ public class GoodsService {
                 });
                 goodsPropDetailRelRepository.saveAll(insertList);
             }
-        }
+        }*/
         //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(newGoods.getStoreCateIds())) {
             storeCateGoodsRelaRepository.deleteByGoodsId(newGoods.getGoodsId());
@@ -2683,14 +2805,23 @@ public class GoodsService {
                 Long propId = ((BigInteger) object[0]).longValue();
                 Long detailId = ((BigInteger) object[1]).longValue();
                 String goodsId = String.valueOf(object[2]);
+                String propValue = String.valueOf(object[3]);
                 rel.setPropId(propId);
                 rel.setDetailId(detailId);
                 rel.setGoodsId(goodsId);
+                rel.setPropValue(propValue);
                 rels.add(rel);
             });
             return rels;
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * 根据属性id查询
+     */
+    public List<GoodsProp> findPropByIds(List<Long> ids) {
+        return goodsPropRepository.findAllByPropIdIn(ids);
     }
 
     @Transactional
@@ -2801,6 +2932,8 @@ public class GoodsService {
     public Goods getGoodsById(String goodsId) {
         return goodsRepository.findById(goodsId).orElse(null);
     }
+
+
 
     /**
      * 按条件查询数量
@@ -3096,6 +3229,120 @@ public class GoodsService {
         if(erpSkuNos.size() > 0) {
             throw new SbcRuntimeException(GoodsErrorCode.ERP_SKU_NO_H_EXIST, new Object[]{StringUtils.join(erpSkuNos, ",")});
         }
+    }
+
+    /**
+     * 根据spu编号查询
+     */
+    public Goods findByGoodsId(String goodsId){
+        return goodsRepository.findByGoodsId(goodsId);
+    }
+
+    /**
+     * 为书籍设置历史属性数据
+     */
+    @Transactional
+    public List<Object[]> setExtPropForGoods(List<Object[]> props) {
+        List<String> goodsNumbers = new ArrayList<>();
+        for (Object[] prop : props) {
+            goodsNumbers.add((String) prop[0]);
+        }
+        List<Object[]> goodsParam = goodsRepository.findIdByNumber(goodsNumbers);
+        List<Object[]> propList = new ArrayList<>();
+        List<String> goodsIds = new ArrayList();
+        for (Object[] prop : props) {
+            for (Object[] param : goodsParam) {
+                if(prop[0].equals(param[1])){
+                    propList.add(new Object[]{param[0], prop[1], prop[2], prop[3], prop[4], prop[5]});
+                    goodsIds.add((String) param[0]);
+                    break;
+                }
+            }
+        }
+        List<GoodsPropDetailRel> propRels = goodsPropDetailRelRepository.findByGoodsIds(goodsIds);
+        Map<String, List<GoodsPropDetailRel>> goodsProp = propRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getGoodsId));
+
+        GoodsProp authorProp = goodsPropRepository.findByPropName("作者");
+        GoodsProp publisherProp = goodsPropRepository.findByPropName("出版社");
+        GoodsProp scoreProp = goodsPropRepository.findByPropName("评分");
+        GoodsProp priceProp = goodsPropRepository.findByPropName("定价");
+        GoodsProp isbnProp = goodsPropRepository.findByPropName("ISBN");
+
+        List<GoodsPropDetailRel> createList = new ArrayList<>();
+        for (Object[] prop : propList) {
+            String goodsId = (String) prop[0];
+            String author = (String) prop[1];
+            String publisher = (String) prop[2];
+            double price = (double) prop[3];
+            double score = (double) prop[4];
+            String isbn = (String) prop[5];
+            LocalDateTime now = LocalDateTime.now();
+            List<GoodsPropDetailRel> goodsPropDetailRels = goodsProp.get(goodsId);
+            boolean authorFlag = false;
+            boolean publisherFlag = false;
+            boolean scoreFlag = false;
+            boolean priceFlag = false;
+            boolean isbnFlag = false;
+            //已有的更新
+            for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
+                if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(author);
+                    authorFlag = true;
+                }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(publisher);
+                    publisherFlag = true;
+                }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(score + "");
+                    scoreFlag = true;
+                }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(price + "");
+                    priceFlag = true;
+                }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                    goodsPropDetailRel.setPropValue(isbn);
+                    isbnFlag = true;
+                }
+            }
+            //没有的新建
+            if(authorProp != null && !authorFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(authorProp.getPropId());
+                rel.setPropValue(author);
+            }
+            if(publisherProp != null && !publisherFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(publisherProp.getPropId());
+                rel.setPropValue(publisher);
+            }
+            if(scoreProp != null && !scoreFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(scoreProp.getPropId());
+                rel.setPropValue(score + "");
+            }
+            if(priceProp != null && !priceFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(priceProp.getPropId());
+                rel.setPropValue(price + "");
+            }
+            if(isbnProp != null && !isbnFlag){
+                GoodsPropDetailRel rel = createRel(createList, goodsId, now);
+                rel.setPropId(isbnProp.getPropId());
+                rel.setPropValue(isbn);
+            }
+        }
+        goodsPropDetailRelRepository.saveAll(propRels);
+        goodsPropDetailRelRepository.saveAll(createList);
+        return propList;
+    }
+
+    private GoodsPropDetailRel createRel(List<GoodsPropDetailRel> rels, String goodsId, LocalDateTime now){
+        GoodsPropDetailRel rel = new GoodsPropDetailRel();
+        rels.add(rel);
+        rel.setUpdateTime(now);
+        rel.setCreateTime(now);
+        rel.setDelFlag(DeleteFlag.NO);
+        rel.setGoodsId(goodsId);
+        rel.setDetailId(0L);
+        return rel;
     }
 
 }

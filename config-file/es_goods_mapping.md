@@ -605,6 +605,40 @@ curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods/e
             {
                 "type": "long"
             },
+            "goodsExtProps": {
+                "properties": {
+                  "author": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    },
+                    "analyzer": "ik_max_word"
+                  },
+                  "isbn": {
+                    "type": "keyword"
+                  },
+                  "price": {
+                    "type": "double",
+                    "index": false
+                  },
+                  "publisher": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  },
+                  "score": {
+                    "type": "double",
+                    "index": false
+                  }
+                }
+              },
             "providerGoodsId":
             {
                 "type": "keyword"

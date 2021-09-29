@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.stylesheets.LinkStyle;
 import sun.awt.SunHints;
 
 import java.util.List;
@@ -391,4 +392,24 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      */
     @Query("select distinct erpGoodsNo from Goods where erpGoodsNo = ?1 and delFlag= 0")
     List<String> findExistsErpGoodsNo(String erpGoodsNos);
+
+    /**
+     * 根据spu编号查询
+     * @param goodsId
+     * @return
+     */
+    Goods findByGoodsId(String goodsId);
+
+    /**
+     * 根据goodsNumber找到goodsId
+     * @return
+     */
+    @Query(value = "select goods_id,goods_no from goods where goods_no in ?1 and del_flag=0", nativeQuery = true)
+    List<Object[]> findIdByNumber(List<String> numbers);
+
+    /**
+     * 查找所有书籍
+     */
+    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
+    List<Goods> findBooks();
 }

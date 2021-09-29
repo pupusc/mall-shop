@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Enumerated;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -44,10 +45,28 @@ public class GoodsPropDetailRelVO  implements Serializable {
     private Long detailId;
 
     /**
+     *属性值（文本框输入）
+     */
+    @Column(name = "prop_value")
+    private String propValue;
+
+    /**
      * 属性id
      */
     @ApiModelProperty(value = "属性id")
     private Long propId;
+
+    /**
+     * 属性名字
+     */
+    @ApiModelProperty(value = "属性名字")
+    private String propName;
+
+    /**
+     * 属性类型
+     */
+    @ApiModelProperty(value = "属性类型")
+    private Integer propType;
 
     /**
      * 创建时间

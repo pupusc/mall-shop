@@ -248,6 +248,7 @@ public class ExternalService {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(MEMBER_AUTH_LOGIN_URL + PARAMETER, body),
                 body);
+        log.info("authLogin param: {}", result);
         FanDengLoginResponse response =
                 (FanDengLoginResponse) exchange(result, FanDengLoginResponse.class);
 //        //实现商城登陆注册 逻辑
@@ -689,6 +690,7 @@ public class ExternalService {
      */
     private String getUrl(String url, String body) {
         try {
+            log.info("樊登请求接口：{},请求参数{}", url, body);
             HttpResponse httpResponse = HttpUtils.doPost(host,
                     url, getMap(), null, body);
             if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
@@ -697,7 +699,7 @@ public class ExternalService {
                         url, getMap(), null, body);
             }
             log.info("樊登请求接口直接返回：{}", httpResponse);
-            log.info("樊登请求接口：{},请求参数{}", url, body);
+
 
             if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
 //                log.info("请求接口：{},请求参数：{}", host + url, body);

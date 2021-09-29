@@ -37,14 +37,12 @@ import java.util.stream.Collectors;
  */
 public class BossApiIntercepter implements HandlerInterceptor {
 
-    public BossApiIntercepter() {
-    }
+    public BossApiIntercepter() { }
 
     public BossApiIntercepter(String jwtExcludedRestUrls, String apiExcludedRestUrls) {
         this.jwtExcludedRestUrlsMap = JSONObject.parseObject(jwtExcludedRestUrls);
         this.apiExcludedRestUrlsMap = JSONObject.parseObject(apiExcludedRestUrls);
     }
-
 
     @Autowired
     private EmployeeQueryProvider employeeQueryProvider;
@@ -69,6 +67,11 @@ public class BossApiIntercepter implements HandlerInterceptor {
      * 路径比较器
      */
     private static AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+    /**
+     * 有些一次性的接口，没必要搞权限
+     */
+    private static List<String> SECURE_PATH = Arrays.asList("/goods/setExtProp");
 
     /**
      * 权限的统一拦截入口
@@ -141,10 +144,12 @@ public class BossApiIntercepter implements HandlerInterceptor {
 
         if (authorityList.stream().noneMatch(authority -> antPathMatcher.match(authority.getAuthorityUrl(), uri)
                 && authority.getRequestType().equals(requestType))) {
+            if(SECURE_PATH.contains(uri)){
+                return true;
+            }
             notAllowed(request, response);
             return false;
         }
-
         return true;
     }
 

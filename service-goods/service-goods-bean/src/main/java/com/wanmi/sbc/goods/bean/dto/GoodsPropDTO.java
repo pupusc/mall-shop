@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Enumerated;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,6 +52,10 @@ public class GoodsPropDTO implements Serializable {
 
     @ApiModelProperty(value = "排序")
     private Integer sort;
+
+    @NotNull
+    @ApiModelProperty(value = "属性类型")
+    private Integer propType;
 
     @ApiModelProperty(value = "商品属性详情")
     private List<GoodsPropDetailDTO> goodsPropDetails;

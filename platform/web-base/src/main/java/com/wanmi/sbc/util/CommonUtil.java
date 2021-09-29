@@ -96,8 +96,8 @@ public final class CommonUtil {
     /**
      * 正则表达式：验证手机号 匹配最新的正则表达式
      */
-    public String REGEX_MOBILE = "^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[1589])\\d{8}$";
-
+//    public String REGEX_MOBILE = "^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[1589])\\d{8}$";
+    public String REGEX_MOBILE = "^(13[0-9]|15[012356789]|17[01235678]|18[0-9]|167|14[579]|19[1589]|166|165)[0-9]{8}$";
     /**
      * 正则表达式：验证邮箱
      */
@@ -384,6 +384,7 @@ public final class CommonUtil {
                 .customerDetail(customer.getCustomerDetail())
                 .enterpriseInfoVO(enterpriseInfoVO)
                 .inviteCode(inviteCode)
+                .fanDengUserNo(customer.getFanDengUserNo())
                 .build();
     }
 
