@@ -6,6 +6,7 @@ import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
@@ -87,7 +88,8 @@ public class IndexHomeController {
             refreshHotCount = refreshHotCount - 1;
         }
 
-        List<SortGoodsCustomResponse> goodsCustomResponseList = redisService.findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
+        List<SortGoodsCustomResponse> goodsCustomResponseList = KsBeanUtil.convertList(redisService
+                .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1), SortGoodsCustomResponse.class);
         goodsCustomResponseList.addAll(redisService.findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * versionRequest.getPageNum() * BOOKS_SIZE, BOOKS_SIZE - 1));
 
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
