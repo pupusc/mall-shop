@@ -90,7 +90,8 @@ public class IndexHomeController {
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = KsBeanUtil.convertList(redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1), SortGoodsCustomResponse.class);
-        goodsCustomResponseList.addAll(redisService.findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * versionRequest.getPageNum() * BOOKS_SIZE, BOOKS_SIZE - 1));
+        goodsCustomResponseList.addAll(KsBeanUtil.convertList(redisService
+                .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * versionRequest.getPageNum() * BOOKS_SIZE, BOOKS_SIZE - 1), SortGoodsCustomResponse.class));
 
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         Map<String, ProductConfigResponse> productConfigResponseMap = list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity()));
