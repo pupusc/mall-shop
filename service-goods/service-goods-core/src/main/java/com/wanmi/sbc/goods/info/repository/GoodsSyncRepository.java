@@ -17,8 +17,8 @@ public interface GoodsSyncRepository extends JpaRepository<GoodsSync, String>, J
 //    @Query
     List<GoodsSync> findByStatus(Integer status);
     @Modifying
-    @Query("update GoodsSync w set w.status =3, w.updateTime = now() where w.goodsNo = ?1")
-    int updateStatus(String goodsNo);
+    @Query("update GoodsSync w set w.status = ?2, w.updateTime = now() where w.goodsNo = ?1")
+    int updateStatus(String goodsNo,Integer status);
 
 }
 

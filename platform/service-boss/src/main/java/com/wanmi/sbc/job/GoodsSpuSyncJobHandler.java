@@ -1,6 +1,7 @@
 package com.wanmi.sbc.job;
 
 
+import com.wanmi.sbc.common.RiskVerifyController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -84,7 +85,6 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             log.info("没有审核通过待发布的商品");
             return SUCCESS;
         }
-        List<GoodsSyncVO> list= response.getContext();
         response.getContext().forEach(g->{
             addGoods(g);
         });

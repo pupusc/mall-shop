@@ -8,4 +8,5 @@ public class ImageVerifyRequest {
     private String hitReason;
     private String requestId;
     private String suggestion;
+    private String ocrStr;
 }

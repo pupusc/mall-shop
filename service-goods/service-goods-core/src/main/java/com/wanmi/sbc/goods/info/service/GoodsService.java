@@ -1683,7 +1683,7 @@ public class GoodsService {
             List<String> standardIds = standardImportService.importStandard(GoodsRequest.builder().goodsIds(Arrays.asList(goodsId)).build());
         }
         //更新sync状态
-        goodsSyncRepository.updateStatus(goods.getErpGoodsNo());
+        goodsSyncRepository.updateStatus(goods.getErpGoodsNo(),3);
         return goodsId;
     }
 
