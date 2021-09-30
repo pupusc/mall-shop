@@ -40,7 +40,7 @@ public class XxlJobConfiguration {
 
     @Bean(initMethod = "start", destroyMethod = "destroy")
     public XxlJobSpringExecutor xxlJobExecutor() {
-        log.info(">>>>>>>>>>> xxl-job config init.");
+        log.info(String.format(">>>>>>>>>>> xxl-job config init. adminAddresses:%s,appName:%s,accessToken:%s,port:%s", adminAddresses, appName, accessToken, port));
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
         xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
         xxlJobSpringExecutor.setAppName(appName);

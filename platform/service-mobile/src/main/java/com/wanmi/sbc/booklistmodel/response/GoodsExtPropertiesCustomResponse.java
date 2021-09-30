@@ -2,6 +2,7 @@ package com.wanmi.sbc.booklistmodel.response;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -12,8 +13,9 @@ import java.math.BigDecimal;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsExtPropertiesCustomResponse {
+public class GoodsExtPropertiesCustomResponse implements Serializable {
 
+    private static final long serialVersionUID = 3872157165783460801L;
     /**
      * 作者
      */
