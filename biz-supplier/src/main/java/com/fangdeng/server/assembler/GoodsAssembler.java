@@ -1,12 +1,10 @@
 package com.fangdeng.server.assembler;
 
-import com.fangdeng.server.client.request.bookuu.BookuuStockQueryRequest;
 import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
-import com.fangdeng.server.dto.BookuuGoodsDTO;
-import com.fangdeng.server.dto.GoodsPriceSyncDTO;
-import com.fangdeng.server.dto.GoodsStockSyncDTO;
-import com.fangdeng.server.dto.GoodsSyncDTO;
+import com.fangdeng.server.dto.*;
+import com.fangdeng.server.enums.GoodsSyncStatusEnum;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -44,7 +42,7 @@ public class GoodsAssembler {
                 .imageUrl(goodsDTO.getPicurl())
                 .largeImageUrl(goodsDTO.getPicurllarge())
                 .copyrightUrl(goodsDTO.getBcy())
-                .status((byte) 1)
+                .status(GoodsSyncStatusEnum.UN_AUDIT.getKey())
                 // todo 改配置
                 .providerId(123458074L)
                 .createTime(LocalDateTime.now())
@@ -65,6 +63,29 @@ public class GoodsAssembler {
         stockList.forEach(p -> {
             list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(p.getZjtbkcsj()).build());
         });
+        return list;
+    }
+
+    public static List<RiskVerify> getImageList(BookuuGoodsDTO goodsDTO){
+        List<RiskVerify> list= new ArrayList<>();
+        if(StringUtils.isNotEmpty(goodsDTO.getPicurllarge())){
+            String[] imgs = goodsDTO.getPicurllarge().split("\\|");
+            if(imgs!=null && imgs.length >0){
+                for(int i=0;i<imgs.length;i++){
+                    String url = i== 0? imgs[i] :("http://images.bookuu.com"+imgs[i]);
+                    list.add(RiskVerify.builder().imageUrl(url).goodsNo(goodsDTO.getBookId()).verifyType(1).errorMsg("").status(0).build());
+                }
+            }
+        }
+        if(StringUtils.isNotEmpty(goodsDTO.getXqt())){
+            String[] imgs = goodsDTO.getXqt().split("\\|");
+            if(imgs!=null && imgs.length >0){
+                for(int i=0;i<imgs.length;i++){
+                    String url = "http://images.bookuu.com"+imgs[i];
+                    list.add(RiskVerify.builder().imageUrl(url).goodsNo(goodsDTO.getBookId()).verifyType(2).errorMsg("").status(0).build());
+                }
+            }
+        }
         return list;
     }
 

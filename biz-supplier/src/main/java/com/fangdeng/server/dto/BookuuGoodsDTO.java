@@ -69,4 +69,6 @@ public class BookuuGoodsDTO implements Serializable {
     private String bcy;
     @XmlElement(name="fd")
     private String fd;
+    @XmlElement(name="xqt")
+    private String xqt;
 }

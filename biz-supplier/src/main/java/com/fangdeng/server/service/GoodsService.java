@@ -11,9 +11,11 @@ import com.fangdeng.server.client.response.bookuu.BookuuPriceChangeResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
+import com.fangdeng.server.enums.GoodsSyncStatusEnum;
 import com.fangdeng.server.mapper.GoodsPriceSyncMapper;
 import com.fangdeng.server.mapper.GoodsStockSyncMapper;
 import com.fangdeng.server.mapper.GoodsSyncMapper;
+import com.fangdeng.server.mapper.RiskVerifyMapper;
 import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -42,6 +44,9 @@ public class GoodsService {
     @Autowired
     private GoodsStockSyncMapper goodsStockSyncMapper;
 
+    @Autowired
+    private RiskVerifyMapper riskVerifyMapper;
+
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
         Integer page = 1;
@@ -69,16 +74,26 @@ public class GoodsService {
 
     private void batchAdd(List<BookuuGoodsDTO> goodsDTOS) {
         List<GoodsSyncDTO> list = new ArrayList(30);
-        List<GoodsImageSyncDTO> imageList = new ArrayList<>();
+        List<RiskVerify> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
-            list.add(GoodsAssembler.convertGoodsDTO(g));
+            GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g);
+            List<RiskVerify> imgList = GoodsAssembler.getImageList(g);
+            if(CollectionUtils.isEmpty(imgList)){
+                goodsSyncDTO.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());
+            }
+            list.add(goodsSyncDTO);
+            imageList.addAll(imgList);
+
         });
         try {
             goodsSyncMapper.batchInsert(list);
+            riskVerifyMapper.batchInsert(imageList);
+
         } catch (Exception e) {
             log.warn("batch insert goods sync error,goods:{}", list, e);
         }
     }
+
 
 
     /**
