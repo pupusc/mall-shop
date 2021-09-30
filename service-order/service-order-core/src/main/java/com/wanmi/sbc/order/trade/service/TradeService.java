@@ -1357,6 +1357,7 @@ public class TradeService {
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
                                     .cycleBuyInfo(group.getCycleBuyInfo())
                                     .promoteUserId(tradeCommitRequest.getPromoteUserId())
+                                    .source(tradeCommitRequest.getSource())
                                     .build()));
                 }
         );
