@@ -22,4 +22,17 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse{
      */
     private Integer type;
 
+    /**
+     * 丝带第一行文字
+     */
+    private String atmosphereFirstTitle;
+    /**
+     * 丝带第二行文字
+     */
+    private String atmosphereSecondTitle;
+    /**
+     * 价格
+     */
+    private String atmospherePrice;
+
 }

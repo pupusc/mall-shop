@@ -10,7 +10,10 @@ import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
+import com.wanmi.sbc.liveroom.DateUtils;
 import com.wanmi.sbc.redis.RedisListService;
+import com.xxl.job.core.util.DateUtil;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +93,21 @@ public class IndexHomeController {
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = redisService.findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         goodsCustomResponseList.addAll(redisService.findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * versionRequest.getPageNum() * BOOKS_SIZE, BOOKS_SIZE - 1));
+
+        List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
+        Map<String, ProductConfigResponse> productConfigResponseMap = list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity()));
+        if (!productConfigResponseMap.isEmpty()) {
+            goodsCustomResponseList.forEach(
+                    goodsCustomResponse -> {
+                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsId());
+                        if (productConfigResponse != null) {
+                            goodsCustomResponse.setAtmosphereFirstTitle(productConfigResponse.getTitle());
+                            goodsCustomResponse.setAtmosphereSecondTitle(productConfigResponse.getContent());
+                            goodsCustomResponse.setAtmospherePrice(productConfigResponse.getPrice());
+                        }
+                    }
+            );
+        }
         page.setContent(goodsCustomResponseList);
 
         page.setNumber(versionRequest.getPageNum());
