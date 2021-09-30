@@ -83,7 +83,7 @@ public class IndexHomeController {
             refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
             redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
         }
-        if (redisTemplate.hasKey("hotGoods" + refreshHotCount) && redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
+        if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) || !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
             refreshHotCount = refreshHotCount - 1;
         }
 
