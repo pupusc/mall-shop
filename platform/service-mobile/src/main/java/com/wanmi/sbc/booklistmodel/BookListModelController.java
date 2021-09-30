@@ -495,7 +495,6 @@ public class BookListModelController {
         if (StringUtils.isEmpty(seePageRequest.getSpuId())) {
             throw new IllegalArgumentException("参数错误");
         }
-        seePageRequest.setPageNum(seePageRequest.getPageNum() <= 0 ? 0 : seePageRequest.getPageNum() -1);
 
         MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
         result.setTotal(0);
