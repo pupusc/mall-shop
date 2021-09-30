@@ -107,7 +107,7 @@ public class IndexHomeController {
         if (skuIdsRequest == null || skuIdsRequest.getSkuIds() == null || skuIdsRequest.getSkuIds().size() == 0) {
             return BaseResponse.success(productConfigResponseList);
         }
-        List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getIndexConfig(), ProductConfigResponse.class);
+        List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         if (list == null || list.size() == 0) {
             return BaseResponse.success(productConfigResponseList);
         }

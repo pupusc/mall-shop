@@ -21,4 +21,7 @@ import org.springframework.stereotype.Component;
 public class RefreshConfig {
     @Value("${index.config}")
     private volatile String indexConfig;
+
+    @Value("${ribbon.config}")
+    private volatile String ribbonConfig;
 }
