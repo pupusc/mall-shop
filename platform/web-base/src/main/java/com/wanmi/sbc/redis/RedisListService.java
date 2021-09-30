@@ -30,7 +30,7 @@ public class RedisListService<T> {
      * 从redis 中查询数据
      */
     public boolean putAll(final String key, List<T> list, long seconds) {
-        ListOperations operations = redisTemplate.opsForList();
+        ListOperations<String, T> operations = redisTemplate.opsForList();
         operations.rightPushAll(key, list);
         redisTemplate.expire(key, seconds, TimeUnit.MINUTES);
         return true;
@@ -40,7 +40,7 @@ public class RedisListService<T> {
      * 从redis 中查询数据
      */
     public List<T> findByRange(final String key, Integer start, Integer end) {
-        ListOperations operations = redisTemplate.opsForList();
+        ListOperations<String, T> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
             return Collections.emptyList();

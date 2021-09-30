@@ -47,7 +47,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     @Autowired
     private HotGoodsProvider hotGoodsProvider;
     @Autowired
-    private RedisListService redisService;
+    private RedisListService<SortGoodsCustomResponse> redisService;
     @Autowired
     private EsGoodsCustomQueryProvider goodsCustomQueryProvider;
 
@@ -110,8 +110,8 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         }
         bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
         Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
-        redisService.putAll("hotGoods" + refreshHotCount, goodList, 30);
-        redisService.putAll("hotBooks" + refreshHotCount, bookList, 30);
+        redisService.putAll("hotGoods" + refreshHotCount, goodList, 45);
+        redisService.putAll("hotBooks" + refreshHotCount, bookList, 45);
         return SUCCESS;
     }
 
