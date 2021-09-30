@@ -90,7 +90,7 @@ public class IndexHomeController {
         List objectList = redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
-                .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * versionRequest.getPageNum() * BOOKS_SIZE, BOOKS_SIZE - 1));
+                .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = JSONArray.parseArray(JSON.toJSONString(objectList), SortGoodsCustomResponse.class);
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
