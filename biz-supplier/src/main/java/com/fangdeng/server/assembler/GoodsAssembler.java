@@ -3,7 +3,6 @@ package com.fangdeng.server.assembler;
 import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
-import com.fangdeng.server.enums.GoodsSyncStatusEnum;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +41,7 @@ public class GoodsAssembler {
                 .imageUrl(goodsDTO.getPicurl())
                 .largeImageUrl(goodsDTO.getPicurllarge())
                 .copyrightUrl(goodsDTO.getBcy())
-                .status(GoodsSyncStatusEnum.UN_AUDIT.getKey())
+                .status(1)
                 // todo 改配置
                 .providerId(123458074L)
                 .createTime(LocalDateTime.now())

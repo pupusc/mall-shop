@@ -1410,7 +1410,7 @@ public class TradePushERPService {
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
-            if(request.getOrderStatus().equals(5)) {
+            if(request.getOrderStatus() != null && request.getOrderStatus().equals(5)) {
                 DeliveryInfoVO deliveryInfoVO = DeliveryInfoVO.builder()
                         .expressName(request.getPost())
                         .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)

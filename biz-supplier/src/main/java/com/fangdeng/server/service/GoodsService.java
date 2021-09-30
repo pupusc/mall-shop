@@ -16,15 +16,12 @@ import com.fangdeng.server.mapper.GoodsPriceSyncMapper;
 import com.fangdeng.server.mapper.GoodsStockSyncMapper;
 import com.fangdeng.server.mapper.GoodsSyncMapper;
 import com.fangdeng.server.mapper.RiskVerifyMapper;
-import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

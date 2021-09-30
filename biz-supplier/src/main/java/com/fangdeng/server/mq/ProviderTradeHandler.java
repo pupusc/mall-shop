@@ -72,6 +72,12 @@ public class ProviderTradeHandler {
          BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
         if(response ==null || CollectionUtils.isEmpty(response.getStatusDTOS())){
            log.warn("query order delivery status error,body:{}",body);
+           ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
+                    .platformCode(syncDTO.getTid())
+                    .orderStatus(-1)
+                    .build();
+            rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
+            return;
         }
         ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
                 .orderId(response.getStatusDTOS().get(0).getOrderId())
