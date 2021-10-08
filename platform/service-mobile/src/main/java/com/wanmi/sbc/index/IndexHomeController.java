@@ -11,6 +11,7 @@ import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -151,7 +152,9 @@ public class IndexHomeController {
      */
     @PostMapping(value = "/isActivity")
     public BaseResponse<Boolean> isActivity() {
-        return BaseResponse.success(refreshConfig.getActivityStartTime().after(new Date()));
+        String dateStr = refreshConfig.getActivityStartTime();
+        Date date = DateUtil.parseDateTime(dateStr);
+        return BaseResponse.success(date.after(new Date()));
     }
 
 
