@@ -154,7 +154,7 @@ public class IndexHomeController {
     public BaseResponse<Boolean> isActivity() {
         String dateStr = refreshConfig.getActivityStartTime();
         Date date = DateUtil.parseDateTime(dateStr);
-        return BaseResponse.success(date.after(new Date()));
+        return BaseResponse.success(new Date().after(date));
     }
 
 
