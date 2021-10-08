@@ -60,6 +60,10 @@ public class IndexConfigResponse implements Serializable {
      */
     private IndexConfigChild4Response moreJumpUrl;
 
+    /**
+     * 搜索文案
+     */
+    private String searchText;
 
 
 }
