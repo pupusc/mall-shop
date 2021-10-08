@@ -11,6 +11,7 @@ import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,18 +74,19 @@ public class IndexHomeController {
         }
         Long refreshHotCount;
         String ip = HttpUtil.getIpAddr();
-        if (!versionRequest.getFalshFlag()) {
-            refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("ip" + ip).toString());
-            if (redisTemplate.hasKey("hotGoods" + refreshHotCount) && redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
-                refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
+        if (versionRequest.getPageNum() > 1) {
+            if (!redisTemplate.hasKey("ip:" + ip)) {
+                refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("ip:" + ip).toString());
                 redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+            } else {
+                refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
             }
         } else {
             refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
+            if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
+                refreshHotCount = refreshHotCount - 1;
+            }
             redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
-        }
-        if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) || !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
-            refreshHotCount = refreshHotCount - 1;
         }
 
         List objectList = redisService
@@ -99,7 +101,7 @@ public class IndexHomeController {
         if (!productConfigResponseMap.isEmpty()) {
             goodsCustomResponseList.forEach(
                     goodsCustomResponse -> {
-                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsId());
+                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsInfoId());
                         if (productConfigResponse != null) {
                             goodsCustomResponse.setAtmosphereFirstTitle(productConfigResponse.getTitle());
                             goodsCustomResponse.setAtmosphereSecondTitle(productConfigResponse.getContent());
@@ -151,7 +153,9 @@ public class IndexHomeController {
      */
     @PostMapping(value = "/isActivity")
     public BaseResponse<Boolean> isActivity() {
-        return BaseResponse.success(refreshConfig.getActivityStartTime().after(new Date()));
+        String dateStr = refreshConfig.getActivityStartTime();
+        Date date = DateUtil.parseDateTime(dateStr);
+        return BaseResponse.success(new Date().after(date));
     }
 
 

@@ -28,5 +28,5 @@ public class RefreshConfig {
     private volatile String ribbonConfig;
 
     @Value("${activity.start.time}")
-    private volatile Date activityStartTime;
+    private volatile String activityStartTime;
 }
