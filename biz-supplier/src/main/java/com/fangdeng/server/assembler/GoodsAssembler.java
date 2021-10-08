@@ -3,7 +3,9 @@ package com.fangdeng.server.assembler;
 import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,8 +15,11 @@ import java.util.List;
 @Service
 public class GoodsAssembler {
 
-    public static GoodsSyncDTO convertGoodsDTO(BookuuGoodsDTO goodsDTO) {
-        return GoodsSyncDTO.builder().goodsNo(goodsDTO.getBookId())
+    @Value("${bookuu.providerId}")
+    private static Long providerId;
+
+    public static GoodsSyncDTO convertGoodsDTO(BookuuGoodsDTO goodsDTO,BookuuPriceQueryResponse priceResponse) {
+        GoodsSyncDTO goodsSyncDTO =  GoodsSyncDTO.builder().goodsNo(goodsDTO.getBookId())
                 .goodsSupplierType((byte) 1)
                 .isbn(goodsDTO.getIsbn())
                 .author(goodsDTO.getAuthor())
@@ -42,11 +47,17 @@ public class GoodsAssembler {
                 .largeImageUrl(goodsDTO.getPicurllarge())
                 .copyrightUrl(goodsDTO.getBcy())
                 .status(1)
-                // todo 改配置
-                .providerId(123458074L)
+                .providerId(providerId)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();
+        //设置成本价
+        if(priceResponse ==null || CollectionUtils.isEmpty(priceResponse.getPriceList()) || !priceResponse.getPriceList().stream().anyMatch(p->p.getBookID().equals(goodsDTO.getBookId()))){
+            return goodsSyncDTO;
+        }
+        goodsSyncDTO.setBasePrice(priceResponse.getPriceList().stream().filter(p->p.getBookID().equals(goodsDTO.getBookId())).findFirst().get().getSellPrice());
+
+        return goodsSyncDTO;
     }
 
     public static List<GoodsPriceSyncDTO> convertPriceList(List<BookuuPriceQueryResponse.BookuuPrice> priceList) {

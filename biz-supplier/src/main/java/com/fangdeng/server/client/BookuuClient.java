@@ -73,7 +73,7 @@ public class BookuuClient {
         request.setChannelID(channelID);
         request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
 
-        String url = String.format(path, "hzstock");
+        String url = String.format(path, "stock");
 
         String result = null;
         try {
@@ -178,7 +178,7 @@ public class BookuuClient {
         if(response == null){
             response = new BookuuOrderAddResponse();
             response.setStatus(1);
-            response.setStatusDesc(StringUtils.isEmpty(result)?result:"add order fail:result is empty");
+            response.setStatusDesc(StringUtils.isNotEmpty(result)?result:"add order fail:result is empty");
         }
         return response;
     }
