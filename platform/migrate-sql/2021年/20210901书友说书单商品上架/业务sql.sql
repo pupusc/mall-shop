@@ -11,11 +11,6 @@ alter table goods_prop_detail_rel add column prop_value varchar(255) comment '�
 
 alter table goods_prop add column prop_type tinyint comment '属性类型';
 
-INSERT INTO `sbc-goods`.`goods_prop`(`prop_name`, `index_flag`, `create_time`, `update_time`, `del_flag`, `sort`, `prop_type`) VALUES ('作者', 1, '2021-09-07 16:39:50', '2021-09-28 13:22:10', 0, 1, 3);
-INSERT INTO `sbc-goods`.`goods_prop`(`prop_name`, `index_flag`, `create_time`, `update_time`, `del_flag`, `sort`, `prop_type`) VALUES ('出版社', 1, '2021-09-07 16:39:50', '2021-09-28 13:22:10', 0, 1, 1);
-INSERT INTO `sbc-goods`.`goods_prop`(`prop_name`, `index_flag`, `create_time`, `update_time`, `del_flag`, `sort`, `prop_type`) VALUES ('评分', 1, '2021-09-07 16:39:50', '2021-09-28 13:22:10', 0, 1, 4);
-INSERT INTO `sbc-goods`.`goods_prop`(`prop_name`, `index_flag`, `create_time`, `update_time`, `del_flag`, `sort`, `prop_type`) VALUES ('定价', 1, '2021-09-07 16:39:50', '2021-09-28 13:22:10', 0, 1, 4);
-INSERT INTO `sbc-goods`.`goods_prop`(`prop_name`, `index_flag`, `create_time`, `update_time`, `del_flag`, `sort`, `prop_type`) VALUES ('ISBN', 1, '2021-09-07 16:39:50', '2021-09-28 13:22:10', 0, 1, 3);
 -- alter table goods_prop drop column cate_id;
 
 CREATE TABLE `t_goods_prop_cate_rel` (
