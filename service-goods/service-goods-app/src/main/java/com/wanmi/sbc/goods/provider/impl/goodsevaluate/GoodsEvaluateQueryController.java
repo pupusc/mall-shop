@@ -17,6 +17,7 @@ import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import io.seata.common.util.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -114,7 +115,16 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	public BaseResponse<GoodsEvaluateListResponse> getGoodsEvaluateTopData(@RequestBody @Valid GoodsEvaluatePageRequest request) {
 		List<GoodsEvaluate> goodsEvaluateList = goodsEvaluateService.getTop(request);
 		List<GoodsEvaluateVO> newList = goodsEvaluateList.stream().map(entity -> goodsEvaluateService.wrapperVo(entity)).collect(Collectors.toList());
-		return BaseResponse.success(new GoodsEvaluateListResponse(newList));
+
+		//书友说查询
+		request.setPageSize(6);
+		List<GoodsEvaluate> bookFriendEvaluate = goodsEvaluateService.getBookFriendEvaluate(request);
+		List<GoodsEvaluateVO> bookFriendEvaluateVO = bookFriendEvaluate.stream().map(e -> {
+			GoodsEvaluateVO eva = new GoodsEvaluateVO();
+			BeanUtils.copyProperties(e, eva);
+			return eva;
+		}).collect(Collectors.toList());
+		return BaseResponse.success(new GoodsEvaluateListResponse(newList, bookFriendEvaluateVO));
 	}
 
 	/**
@@ -131,9 +141,9 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 		if (CollectionUtils.isNotEmpty(goodsInfos)) {
 			//商品详情中的评价总数
 			GoodsEvaluateQueryRequest queryRequest =
-					GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId()).delFlag(0).build();
-//			Long count = goodsService.getGoodsEvaluateNumByGoodsId(goodsInfos.get(0).getGoodsId());
+					GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId()).delFlag(0).evaluateCatetory(0).build();
 			Long count = goodsEvaluateService.getGoodsEvaluateNum(GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId())
+					.evaluateCatetory(0)
 					.delFlag(DeleteFlag.NO.toValue())
 					.isShow(1).build());
 			queryRequest.setIsUpload(1);

@@ -177,5 +177,8 @@ public class TradeCommitRequest extends BaseRequest {
     @ApiModelProperty(value = "订单营销信息快照")
     private List<TradeMarketingDTO> tradeMarketingList;
 
-
+    /**
+     * 推广人用户id
+     */
+    private String promoteUserId;
 }

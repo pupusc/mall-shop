@@ -1186,7 +1186,6 @@ public class GoodsInfoService {
                         }
                     }
                 }
-
             }
         }
         return goodsInfo;

@@ -43,21 +43,24 @@ public class GoodsProp implements Serializable {
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
-
     @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 
-
     @Column(name = "del_flag")
     @Enumerated
     private DeleteFlag delFlag;
 
-
     @Column(name = "sort")
     private Integer sort;
+
+    /**
+     * 属性类型 1-下拉单选 2-下拉多选 3-文本 4-数字
+     */
+    @Column(name = "prop_type")
+    private Integer propType;
 
     @Transient
     private List<GoodsPropDetail> goodsPropDetails;

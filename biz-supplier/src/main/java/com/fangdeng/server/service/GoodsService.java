@@ -55,15 +55,19 @@ public class GoodsService {
             request.setStime(queryDTO.getStime());
         }
         while (true) {
-            BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
-            if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
-                batchAdd(response.getBookList());
-                if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+            try {
+                BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
+                if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
+                    batchAdd(response.getBookList());
+                    if (StringUtils.isNotEmpty(queryDTO.getBookId())) {
+                        break;
+                    }
+                    request.setPage(++page);
+                } else {
                     break;
                 }
-                request.setPage(++page);
-            } else {
-                break;
+            }catch (Exception e){
+                log.warn("get book error,request:{}",request,e);
             }
         }
     }
@@ -85,7 +89,6 @@ public class GoodsService {
         try {
             goodsSyncMapper.batchInsert(list);
             riskVerifyMapper.batchInsert(imageList);
-
         } catch (Exception e) {
             log.warn("batch insert goods sync error,goods:{}", list, e);
         }

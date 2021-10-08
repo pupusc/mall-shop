@@ -42,6 +42,9 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
     @ApiModelProperty(value = "精准条件-批量SPU编码")
     private List<String> goodsNos;
 
+    @ApiModelProperty(value = "精准条件-批量SKU编码")
+    private List<String> goodsInfoNos;
+
     /**
      * 模糊条件-SPU编码
      */

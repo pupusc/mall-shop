@@ -62,6 +62,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     private List<String> goodsIds;
 
     /**
+     * 不显示的商品id
+     */
+    @ApiModelProperty(value = "批量不展示商品ID")
+    private List<String> unGoodsIds;
+
+    /**
      * 批量SKU编号
      */
     @ApiModelProperty(value = "批量SKU编号")
@@ -346,10 +352,18 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder.must(termsQuery(queryName.concat(".goodsId"), goodsIds));
         }
 
-
         //批量商品ID
         if (CollectionUtils.isNotEmpty(goodsIds) && isQueryGoods) {
             boolQueryBuilder.must(termsQuery("id", goodsIds));
+        }
+
+        if ( CollectionUtils.isNotEmpty(unGoodsIds)&& !isQueryGoods) {
+            boolQueryBuilder.mustNot(termsQuery(queryName.concat(".goodsId"), unGoodsIds));
+        }
+
+        //批量不访问商品id
+        if (CollectionUtils.isNotEmpty(unGoodsIds) && isQueryGoods) {
+            boolQueryBuilder.mustNot(termsQuery("id", unGoodsIds));
         }
 
         // 批量SKU编号

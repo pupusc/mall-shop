@@ -12,9 +12,11 @@ import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
 import com.wanmi.sbc.goods.spec.model.root.GoodsSpecDetail;
 import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
+import com.wanmi.sbc.goods.tag.model.Tag;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品编辑视图响应
@@ -32,6 +34,16 @@ public class GoodsEditResponse {
      * 商品相关图片
      */
     private List<GoodsImage> images;
+
+    /**
+     * 标签
+     */
+    private List<Tag> tags;
+
+    /**
+     * 是否图书
+     */
+    private Integer bookFlag;
 
     /**
      * 商品属性列表
@@ -82,5 +94,10 @@ public class GoodsEditResponse {
      * 商品模板配置
      */
     private List<StoreGoodsTab> storeGoodsTabs;
+
+    /**
+     * 商品额外属性
+     */
+    private Map<String, String> extProps;
 
 }

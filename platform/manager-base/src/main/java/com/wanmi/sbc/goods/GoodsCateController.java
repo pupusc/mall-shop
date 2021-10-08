@@ -46,8 +46,10 @@ public class GoodsCateController {
     }
 
     /**
-     * 查询分类下所有的属性信息
-     * @return
+     * @description 查询分类下所有的属性信息
+     * @param Long
+     * @menu 商品
+     * @status undone
      */
     @ApiOperation(value = "查询分类下所有的属性信息")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "cateId", value = "分类ID", required = true)

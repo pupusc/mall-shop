@@ -37,6 +37,9 @@ public class GoodsSaveRequest extends BaseRequest {
      */
     private List<GoodsImage> images;
 
+    @ApiModelProperty(value = "标签")
+    private String tags;
+
     /**
      * 商品属性列表
      */
@@ -86,4 +89,5 @@ public class GoodsSaveRequest extends BaseRequest {
      */
     @ApiModelProperty(value = "更新人", hidden = true)
     private String updatePerson;
+
 }

@@ -1299,9 +1299,10 @@ public class TradePushERPService {
                 }
             }
 
-            providerTradeService.updateProviderTrade(providerTrade);
             // 物流信息表写入
             this.writeLogistics(providerTrade);
+            providerTradeService.updateProviderTrade(providerTrade);
+
 
             // 同步Trade商品对应发货数和发货状态,发货清单
             tradeVO.getTradeDelivers().addAll(tradeDeliverVOs);

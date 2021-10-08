@@ -10,6 +10,7 @@ import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.goods.EsSearchResponse;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.spu.mapper.EsSpuMapper;
 import com.wanmi.sbc.elastic.storeInformation.model.root.StoreInformation;
@@ -34,6 +35,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.UpdateByQueryAction;
 import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.script.Script;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -129,12 +131,30 @@ public class EsSkuService {
             }
         }
 
-        MicroServicePage<EsGoodsInfoVO> esGoodsVOS = this.basePage(request);
-        if(CollectionUtils.isEmpty(esGoodsVOS.getContent())){
+        EsSearchResponse esSearchResponse = this.basePage(request);
+        MicroServicePage<EsGoodsInfoVO> esGoodsInfoVOS = new MicroServicePage<>(esSearchResponse.getData() == null ? Collections.emptyList() : esSearchResponse.getData(), PageRequest.of(request.getPageNum(),
+                request.getPageSize()), esSearchResponse.getTotal());
+
+        if(CollectionUtils.isEmpty(esGoodsInfoVOS.getContent())){
             return response;
         }
 
-        List<EsGoodsInfoVO> skuList = esGoodsVOS.getContent();
+        List<GoodsVO> resultGoodsVo = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(esSearchResponse.getGoodsData())) {
+
+            for (EsGoodsVO esGoodsParam : esSearchResponse.getGoodsData()) {
+                GoodsVO goodsVO = new GoodsVO();
+                BeanUtils.copyProperties(esGoodsParam, goodsVO);
+                goodsVO.setGoodsId(esGoodsParam.getId());
+                goodsVO.setGoodsNo(esGoodsParam.getGoodsNo());
+                goodsVO.setGoodsName(esGoodsParam.getGoodsName());
+                resultGoodsVo.add(goodsVO);
+            }
+        }
+        response.setGoodses(resultGoodsVo);
+
+
+        List<EsGoodsInfoVO> skuList = esGoodsInfoVOS.getContent();
         List<String> skuIds = skuList.stream().map(EsGoodsInfoVO::getId).collect(Collectors.toList());
         GoodsInfoListByConditionRequest pageReq = new GoodsInfoListByConditionRequest();
         pageReq.setGoodsInfoIds(skuIds);
@@ -192,10 +212,11 @@ public class EsSkuService {
                     sku.setGoodsCubage(goodsVO.getGoodsCubage());
                     sku.setGoodsWeight(goodsVO.getGoodsWeight());
                     sku.setFreightTempId(goodsVO.getFreightTempId());
+                    sku.setGoodsNo(g.getGoodsNo());
                     return sku;
                 }).collect(Collectors.toList());
 
-        response.setGoodsInfoPage(new MicroServicePage<>(goodsInfoVOS, request.getPageable(), esGoodsVOS.getTotal()));
+        response.setGoodsInfoPage(new MicroServicePage<>(goodsInfoVOS, request.getPageable(), esGoodsInfoVOS.getTotal()));
 
         //填充品牌
         response.setBrands(skuList.stream()
@@ -212,16 +233,25 @@ public class EsSkuService {
         return response;
     }
 
+//    /**
+//     * 最基础的分页查询
+//     * @param request
+//     * @return
+//     */
+//    private MicroServicePage<EsGoodsInfoVO> basePage(EsSkuPageRequest request) {
+//        EsSearchResponse esResponse = elasticsearchTemplate.query(EsSkuSearchCriteriaBuilder.getSearchCriteria(request),
+//                searchResponse -> EsSearchResponse.build(searchResponse, resultsMapper));
+//        return new MicroServicePage<>(esResponse.getData() == null ? Collections.emptyList() : esResponse.getData(), PageRequest.of(request.getPageNum(),
+//                request.getPageSize()), esResponse.getTotal());
+//    }
 
     /**
      * 最基础的分页查询
      * @param request
      * @return
      */
-    private MicroServicePage<EsGoodsInfoVO> basePage(EsSkuPageRequest request) {
-        EsSearchResponse esResponse = elasticsearchTemplate.query(EsSkuSearchCriteriaBuilder.getSearchCriteria(request),
+    private EsSearchResponse basePage(EsSkuPageRequest request) {
+        return elasticsearchTemplate.query(EsSkuSearchCriteriaBuilder.getSearchCriteria(request),
                 searchResponse -> EsSearchResponse.build(searchResponse, resultsMapper));
-        return new MicroServicePage<>(esResponse.getData() == null ? Collections.emptyList() : esResponse.getData(), PageRequest.of(request.getPageNum(),
-                request.getPageSize()), esResponse.getTotal());
     }
 }

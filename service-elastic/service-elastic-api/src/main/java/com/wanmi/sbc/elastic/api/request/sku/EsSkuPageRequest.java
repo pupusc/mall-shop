@@ -87,6 +87,12 @@ public class EsSkuPageRequest extends BaseQueryRequest implements Serializable {
     private String likeGoodsName;
 
     /**
+     * 精确条件-批量SPU编码
+     */
+    @ApiModelProperty(value = "精确条件-批量SPU编码")
+    private List<String> goodsNos;
+
+    /**
      * 精确条件-批量SKU编码
      */
     @ApiModelProperty(value = "精确条件-批量SKU编码")

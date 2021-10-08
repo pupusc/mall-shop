@@ -10,9 +10,11 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -26,6 +28,12 @@ import java.util.Map;
  */
 @FeignClient(value = "${application.goods.name}", contextId = "GoodsProvider")
 public interface GoodsProvider {
+
+    /**
+     * 商品标签
+     */
+    @PostMapping("/goods/${application.goods.version}/tags")
+    BaseResponse<List<GoodsTagVo>> tags();
 
     /**
      * 新增商品
@@ -85,6 +93,9 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/modify")
     BaseResponse<GoodsModifyResponse> modify(@RequestBody @Valid GoodsModifyRequest request);
+
+    @PostMapping("/goods/${application.goods.version}/setExtPropForGoods")
+    BaseResponse<List<Object[]>> setExtPropForGoods(@RequestBody List<Object[]> props);
 
     /**
      * 新增商品定价
