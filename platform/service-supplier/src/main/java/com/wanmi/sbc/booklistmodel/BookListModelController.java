@@ -176,6 +176,9 @@ public class BookListModelController {
         if (bookListModelPageRequest.getBusinessType() != null) {
             request.setBusinessTypeList(Collections.singletonList(bookListModelPageRequest.getBusinessType()));
         }
+        if (bookListModelPageRequest.getPublishState() != null) {
+            request.setPublishStateList(Collections.singletonList(bookListModelPageRequest.getPublishState()));
+        }
         return bookListModelProvider.listByPage(request);
     }
 
