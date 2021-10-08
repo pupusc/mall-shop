@@ -21,6 +21,12 @@
 			<groupId>com.wanmi.sbc</groupId>
 			<artifactId>service-pay-core</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>servlet-api</artifactId>
+					<groupId>javax.servlet</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

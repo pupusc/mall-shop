@@ -268,11 +268,11 @@
             <version>${wm.micro.service.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.sensorsdata.analytics.javasdk</groupId>
-            <artifactId>SensorsAnalyticsSDK</artifactId>
-            <version>3.2.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.sensorsdata.analytics.javasdk</groupId>-->
+<!--            <artifactId>SensorsAnalyticsSDK</artifactId>-->
+<!--            <version>3.2.0</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 
