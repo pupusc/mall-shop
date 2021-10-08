@@ -74,7 +74,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
         queryRequest.setPageNum(0);
         queryRequest.setPageSize(goodIds.size()); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
-        queryRequest.setGoodsInfoIds(goodIds);
+        queryRequest.setGoodsIds(goodIds);
         //获取会员和等级
         queryRequest.setQueryGoods(true);
         queryRequest.setAddedFlag(AddedFlag.YES.toValue());
@@ -93,7 +93,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
                     .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
             SortGoodsCustomResponse goodsCustomResponse = KsBeanUtil.copyPropertiesThird(goodsCustom, SortGoodsCustomResponse.class);
-            goodsCustomResponse.setSort(sortMap.get(goodsCustomResponse.getGoodsInfoId()));
+            goodsCustomResponse.setSort(sortMap.get(goodsVo.getId()));
             goodsCustomResponse.setType(1);
             goodList.add(goodsCustomResponse);
         }
