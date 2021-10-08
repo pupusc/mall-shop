@@ -75,6 +75,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -282,7 +283,7 @@ public class StoreReturnOrderController {
     @ApiOperation(value = "商家操作退款校验erp订单是否发货")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
-    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
+    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag, @Param("intercept") Integer isIntercept){
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid)
                 .build()).getContext();
         TradeGetByIdRequest tradeGetByIdRequest = TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build();
@@ -339,7 +340,11 @@ public class StoreReturnOrderController {
             tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
                 //拦截主商品
                 providerTradeVO.getTradeItems().forEach(tradeItemVO -> {
-                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeVO.getId()).oid(tradeItemVO.getOid()).build();
+                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
+                            .tid(providerTradeVO.getId())
+                            .oid(tradeItemVO.getOid())
+                            .isIntercept(isIntercept)
+                            .build();
                     guanyierpProvider.RefundTrade(refundTradeRequest);
                 });
                 //拦截赠品
@@ -347,7 +352,9 @@ public class StoreReturnOrderController {
                     providerTradeVO.getGifts().forEach(giftVO -> {
                         RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
                                 .tid(providerTradeVO.getId())
-                                .oid(giftVO.getOid()).build();
+                                .oid(giftVO.getOid())
+                                .isIntercept(isIntercept)
+                                .build();
                         guanyierpProvider.RefundTrade(refundTradeRequest);
                     });
                 }
@@ -362,13 +369,21 @@ public class StoreReturnOrderController {
                 if (CollectionUtils.isNotEmpty(deliverCalendar)) {
                     String  oid=providerTradeVO.getTradeItems().get(0).getOid();
                     deliverCalendar.forEach(deliverCalendarVO -> {
-                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).build();
+                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
+                                                                    .tid(deliverCalendarVO.getErpTradeCode())
+                                                                    .oid(oid)
+                                                                    .isIntercept(isIntercept)
+                                                                    .build();
                         guanyierpProvider.RefundTrade(refundTradeRequest);
                         //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
                         String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
                         if (CollectionUtils.isNotEmpty(providerTradeVO.getGifts()) && Objects.equals(cyclNum,"1")) {
                             providerTradeVO.getGifts().forEach(giftVO -> {
-                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).build();
+                                RefundTradeRequest refundRequest = RefundTradeRequest.builder()
+                                        .tid(deliverCalendarVO.getErpTradeCode())
+                                        .oid(giftVO.getOid())
+                                        .isIntercept(isIntercept)
+                                        .build();
                                 guanyierpProvider.RefundTrade(refundRequest);
                             });
                         }
@@ -393,7 +408,11 @@ public class StoreReturnOrderController {
                 if (CollectionUtils.isNotEmpty(totalTradeItemList)) {
                     totalTradeItemList.forEach(tradeItem -> {
                         if (Objects.nonNull(tradeItem.getCombinedCommodity()) && tradeItem.getCombinedCommodity() && returnItemSkuIds.contains(tradeItem.getSkuId())) {
-                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).build();
+                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
+                                    .tid(providerTrade.getId())
+                                    .oid(tradeItem.getOid())
+                                    .isIntercept(isIntercept)
+                                    .build();
                             //如果是组合商品,查询ERP订单发货状态，ERP订单已发货就不需要走拦截
                             TradeQueryRequest tradeQueryRequest = TradeQueryRequest.builder().tid(providerTrade.getId()).flag(0).build();
                             BaseResponse<QueryTradeResponse> tradeInfoResponse= guanyierpProvider.getTradeInfo(tradeQueryRequest);
