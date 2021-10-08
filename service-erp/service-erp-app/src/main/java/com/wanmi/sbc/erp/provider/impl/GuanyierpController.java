@@ -16,6 +16,7 @@ import com.wanmi.sbc.erp.entity.*;
 import com.wanmi.sbc.erp.request.*;
 import com.wanmi.sbc.erp.response.*;
 import com.wanmi.sbc.erp.service.GuanyierpService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
  **/
 @RestController
 @Validated
+@Slf4j
 public class GuanyierpController implements GuanyierpProvider {
 
     @Autowired
@@ -188,6 +190,11 @@ public class GuanyierpController implements GuanyierpProvider {
         Optional<ERPRefundUpdateResponse> refundUpdateReponseOptional =
                 guanyierpService.refundOrderUpdate(refundUpdateRequest);
         if (refundUpdateReponseOptional.isPresent()){
+            log.info("--->> guanyierpController RefundTrade tid:{} oid:{} isIntercept:{}", request.getTid(), request.getOid(), request.getIsIntercept());
+            if (request.getIsIntercept() != null && Objects.equals(request.getIsIntercept(), 1)) {
+                log.info("--->> guanyierpController RefundTrade tid:{} oid:{} 当前强制退款，不需要管易云执行终止操作", request.getTid(), request.getOid());
+                return BaseResponse.SUCCESSFUL();
+            }
            //进行订单拦截
             ERPTradeInterceptRequest tradeInterceptRequest = ERPTradeInterceptRequest.builder()
                     .operateType(1)

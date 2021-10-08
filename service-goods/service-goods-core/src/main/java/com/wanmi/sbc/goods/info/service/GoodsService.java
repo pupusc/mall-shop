@@ -3293,22 +3293,24 @@ public class GoodsService {
             boolean priceFlag = false;
             boolean isbnFlag = false;
             //已有的更新
-            for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
-                if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(author);
-                    authorFlag = true;
-                }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(publisher);
-                    publisherFlag = true;
-                }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(score + "");
-                    scoreFlag = true;
-                }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(price + "");
-                    priceFlag = true;
-                }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(isbn);
-                    isbnFlag = true;
+            if(CollectionUtils.isNotEmpty(goodsPropDetailRels)){
+                for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
+                    if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(author);
+                        authorFlag = true;
+                    }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(publisher);
+                        publisherFlag = true;
+                    }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(score + "");
+                        scoreFlag = true;
+                    }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(price + "");
+                        priceFlag = true;
+                    }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(isbn);
+                        isbnFlag = true;
+                    }
                 }
             }
             //没有的新建
