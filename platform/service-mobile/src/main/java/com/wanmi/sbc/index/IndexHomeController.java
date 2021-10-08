@@ -75,13 +75,19 @@ public class IndexHomeController {
         Long refreshHotCount;
         String ip = HttpUtil.getIpAddr();
         if (versionRequest.getPageNum() > 1) {
-            if (!redisTemplate.hasKey("ip:" + ip)) {
-                refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("ip:" + ip).toString());
-                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+            //翻页浏览，获取用户缓存浏览队列，若过期，取最新队列
+            Object refresObject = redisTemplate.opsForValue().get("ip:" + ip);
+            if (refresObject != null) {
+                refreshHotCount = Long.valueOf(refresObject.toString());
             } else {
                 refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
+                if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
+                    refreshHotCount = refreshHotCount - 1;
+                }
+                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
             }
         } else {
+            //首页浏览，获取缓存最新队列，缓存用户浏览队列
             refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
             if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
                 refreshHotCount = refreshHotCount - 1;
