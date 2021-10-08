@@ -55,7 +55,7 @@ public class ExternalService {
     /**
      * 图片
      */
-    public static final String AUDIT_IMAGE_URL = "/member/login/confirm";
+    public static final String AUDIT_IMAGE_URL = "/content/verifyImg";
 
 
 

@@ -12,12 +12,8 @@ import com.fangdeng.server.constant.ConsumerConstants;
 import com.fangdeng.server.dto.OrderTradeDTO;
 import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
 import com.fangdeng.server.dto.ProviderTradeOrderConfirmDTO;
-import com.sun.xml.internal.ws.developer.StreamingAttachment;
-import io.swagger.annotations.ApiModelProperty;
-import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -26,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * 发货单消费
@@ -72,6 +65,12 @@ public class ProviderTradeHandler {
          BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
         if(response ==null || CollectionUtils.isEmpty(response.getStatusDTOS())){
            log.warn("query order delivery status error,body:{}",body);
+           ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
+                    .platformCode(syncDTO.getTid())
+                    .orderStatus(-1)
+                    .build();
+            rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
+            return;
         }
         ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
                 .orderId(response.getStatusDTOS().get(0).getOrderId())

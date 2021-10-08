@@ -126,12 +126,13 @@ public class GoodsController implements GoodsProvider {
     private ProducerService producerService;
 
     @Autowired
+    private TagService tagService;
+
+    @Autowired
     private GoodsInfoService goodsInfoService;
 
 //    @Autowired
 //    private GoodsQueryProvider goodsQueryProvider;
-    @Autowired
-    private TagService tagService;
 
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();

@@ -204,7 +204,7 @@ public class BookuuClient {
         }
         BookuuOrderStatusQueryResponse response = null;
         try {
-            response = XmlUtil.convertToJavaBean(result, BookuuOrderStatusQueryResponse.class);
+             response = XmlUtil.convertToJavaBean(result, BookuuOrderStatusQueryResponse.class);
         } catch (Exception e) {
 
         }

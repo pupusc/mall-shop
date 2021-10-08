@@ -15,7 +15,10 @@ public interface RiskVerifyProvider {
      * @param imageVerifyRequest
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/image-audit")
-    BaseResponse verifyImage(@RequestBody @Valid ImageVerifyRequest imageVerifyRequest);
+    @PostMapping("/goods/${application.goods.version}/image-verify-callback")
+    BaseResponse verifyImageCallBack(@RequestBody @Valid ImageVerifyRequest imageVerifyRequest);
+
+    @PostMapping("/goods/${application.goods.version}/image-verify")
+    BaseResponse verifyImage();
 
 }

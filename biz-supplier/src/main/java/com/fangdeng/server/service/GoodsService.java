@@ -11,18 +11,17 @@ import com.fangdeng.server.client.response.bookuu.BookuuPriceChangeResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
+import com.fangdeng.server.enums.GoodsSyncStatusEnum;
 import com.fangdeng.server.mapper.GoodsPriceSyncMapper;
 import com.fangdeng.server.mapper.GoodsStockSyncMapper;
 import com.fangdeng.server.mapper.GoodsSyncMapper;
-import jodd.util.StringUtil;
+import com.fangdeng.server.mapper.RiskVerifyMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +41,9 @@ public class GoodsService {
     @Autowired
     private GoodsStockSyncMapper goodsStockSyncMapper;
 
+    @Autowired
+    private RiskVerifyMapper riskVerifyMapper;
+
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
         Integer page = 1;
@@ -53,15 +55,19 @@ public class GoodsService {
             request.setStime(queryDTO.getStime());
         }
         while (true) {
-            BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
-            if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
-                batchAdd(response.getBookList());
-                if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+            try {
+                BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
+                if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
+                    batchAdd(response.getBookList());
+                    if (StringUtils.isNotEmpty(queryDTO.getBookId())) {
+                        break;
+                    }
+                    request.setPage(++page);
+                } else {
                     break;
                 }
-                request.setPage(++page);
-            } else {
-                break;
+            }catch (Exception e){
+                log.warn("get book error,request:{}",request,e);
             }
         }
     }
@@ -69,16 +75,25 @@ public class GoodsService {
 
     private void batchAdd(List<BookuuGoodsDTO> goodsDTOS) {
         List<GoodsSyncDTO> list = new ArrayList(30);
-        List<GoodsImageSyncDTO> imageList = new ArrayList<>();
+        List<RiskVerify> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
-            list.add(GoodsAssembler.convertGoodsDTO(g));
+            GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g);
+            List<RiskVerify> imgList = GoodsAssembler.getImageList(g);
+            if(CollectionUtils.isEmpty(imgList)){
+                goodsSyncDTO.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());
+            }
+            list.add(goodsSyncDTO);
+            imageList.addAll(imgList);
+
         });
         try {
             goodsSyncMapper.batchInsert(list);
+            riskVerifyMapper.batchInsert(imageList);
         } catch (Exception e) {
             log.warn("batch insert goods sync error,goods:{}", list, e);
         }
     }
+
 
 
     /**

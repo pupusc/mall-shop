@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.info.request;
 
 import com.wanmi.sbc.common.base.BaseQueryRequest;
+import com.wanmi.sbc.goods.common.model.root.RiskVerify;
 import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,6 +46,20 @@ public class GoodsStockSyncQueryRequest extends BaseQueryRequest {
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
         };
     }
+
+    public Specification<RiskVerify> getVerifyWhereCriteria() {
+        return (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            //批量商品编号
+            if (status != null) {
+                predicates.add(cbuild.equal(root.get("status"), status));
+            }
+            predicates.add(cbuild.equal(root.get("deleted"), deleted));
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+    }
+
 
 }
 

@@ -270,7 +270,8 @@ public class GoodsService {
     @Autowired
     private VirtualCouponService virtualCouponService;
 
-    @Autowired
+    private TagService tagService;
+
     private GoodsSyncRepository goodsSyncRepository;
 
     @Autowired
@@ -279,8 +280,6 @@ public class GoodsService {
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
 
-    @Autowired
-    private TagService tagService;
 
     /**
      * 供应商商品删除
@@ -1793,7 +1792,7 @@ public class GoodsService {
             List<String> standardIds = standardImportService.importStandard(GoodsRequest.builder().goodsIds(Arrays.asList(goodsId)).build());
         }
         //更新sync状态
-        goodsSyncRepository.updateStatus(goods.getErpGoodsNo());
+        goodsSyncRepository.updateStatus(goods.getErpGoodsNo(),3);
         return goodsId;
     }
 
@@ -3240,6 +3239,7 @@ public class GoodsService {
         }
     }
 
+
     /**
      * 根据spu编号查询
      */
@@ -3355,14 +3355,7 @@ public class GoodsService {
     }
 
     public List<GoodsSync> listGoodsSync(){
-       return goodsSyncRepository.findByStatus(2);
+        return goodsSyncRepository.findByStatus(2);
     }
-
-
-
-
-
-
-
 
 }
