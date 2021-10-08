@@ -879,9 +879,10 @@ public class GoodsBaseController {
                 item -> StringUtils.equals(item.getGoodsInfoId(), skuId))
                 .collect(Collectors.toList());
         DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
-        if (DefaultFlag.NO.equals(openFlag) || DefaultFlag.NO.equals(distributionCacheService.queryStoreOpenFlag
-                (String.valueOf(response.getGoods().getStoreId()))) || !DistributionGoodsAudit.CHECKED.equals(goodsInfo.get(0)
-                .getDistributionGoodsAudit())) {
+        if (DefaultFlag.NO.equals(openFlag)
+                || DefaultFlag.NO.equals(distributionCacheService.queryStoreOpenFlag(String.valueOf(response.getGoods().getStoreId())))
+                || CollectionUtils.isEmpty(goodsInfo)
+                || !DistributionGoodsAudit.CHECKED.equals(goodsInfo.get(0).getDistributionGoodsAudit())) {
             response.setDistributionGoods(Boolean.FALSE);
         } else {
             response.setDistributionGoods(Boolean.TRUE);
