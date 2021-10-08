@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * Description: 类的描述
  *
@@ -24,4 +26,7 @@ public class RefreshConfig {
 
     @Value("${ribbon.config}")
     private volatile String ribbonConfig;
+
+    @Value("${activity.start.time}")
+    private volatile Date activityStartTime;
 }
