@@ -100,7 +100,7 @@ public class IndexHomeController {
         if (!productConfigResponseMap.isEmpty()) {
             goodsCustomResponseList.forEach(
                     goodsCustomResponse -> {
-                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsId());
+                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsInfoId());
                         if (productConfigResponse != null) {
                             goodsCustomResponse.setAtmosphereFirstTitle(productConfigResponse.getTitle());
                             goodsCustomResponse.setAtmosphereSecondTitle(productConfigResponse.getContent());
