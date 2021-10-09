@@ -727,6 +727,7 @@ public class OrderConsumerService {
     @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE)
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body){
+        log.info("order push confirm message:{}",body);
         ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
         tradeProvider.syncProviderTradeStatus(request);
     }
@@ -739,6 +740,7 @@ public class OrderConsumerService {
     @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
     @RabbitHandler
     public void deliveryStatusSyncConsumer(Message message, @Payload String body){
+        log.info("order delivery status sync confirm message:{}",body);
         ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
         tradeProvider.syncProviderTradeDeliveryStatus(request);
     }

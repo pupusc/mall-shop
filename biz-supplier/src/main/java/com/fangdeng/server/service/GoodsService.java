@@ -58,7 +58,12 @@ public class GoodsService {
             try {
                 BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
                 if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
-                    batchAdd(response.getBookList());
+                    //查询价格
+                    String goodsIDs = String.join(",",response.getBookList().stream().map(BookuuGoodsDTO::getBookId).collect(Collectors.toList()));
+                    BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
+                    priceQueryRequest.setBookID(goodsIDs);
+                    BookuuPriceQueryResponse bookuuPriceQueryResponse = bookuuClient.queryPrice(priceQueryRequest);
+                    batchAdd(response.getBookList(),bookuuPriceQueryResponse);
                     if (StringUtils.isNotEmpty(queryDTO.getBookId())) {
                         break;
                     }
@@ -73,11 +78,11 @@ public class GoodsService {
     }
 
 
-    private void batchAdd(List<BookuuGoodsDTO> goodsDTOS) {
+    private void batchAdd(List<BookuuGoodsDTO> goodsDTOS,BookuuPriceQueryResponse priceQueryResponse) {
         List<GoodsSyncDTO> list = new ArrayList(30);
         List<RiskVerify> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
-            GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g);
+            GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g,priceQueryResponse);
             List<RiskVerify> imgList = GoodsAssembler.getImageList(g);
             if(CollectionUtils.isEmpty(imgList)){
                 goodsSyncDTO.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());

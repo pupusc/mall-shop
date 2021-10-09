@@ -1,6 +1,7 @@
 package com.fangdeng.server.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.fangdeng.server.dto.OrderTradeDTO;
 import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
@@ -29,7 +30,8 @@ public class TestController {
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
         try {
-            providerTradeHandler.orderPushConsumer(null,null);
+            //providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
+            providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");
         }catch (Exception e){
 
         }
