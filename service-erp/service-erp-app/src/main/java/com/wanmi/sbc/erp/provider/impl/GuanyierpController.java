@@ -190,7 +190,7 @@ public class GuanyierpController implements GuanyierpProvider {
         Optional<ERPRefundUpdateResponse> refundUpdateReponseOptional =
                 guanyierpService.refundOrderUpdate(refundUpdateRequest);
         if (refundUpdateReponseOptional.isPresent()){
-            log.info("--->> guanyierpController RefundTrade tid:{} oid:{} isIntercept:{}", request.getTid(), request.getOid(), request.getIsIntercept());
+ //           log.info("--->> guanyierpController RefundTrade tid:{} oid:{} isIntercept:{}", request.getTid(), request.getOid(), request.getIsIntercept());
 //            if (request.getIsIntercept() != null && Objects.equals(request.getIsIntercept(), 1)) {
 //                log.info("--->> guanyierpController RefundTrade tid:{} oid:{} 当前强制退款，不需要管易云执行终止操作", request.getTid(), request.getOid());
 //                return BaseResponse.SUCCESSFUL();
