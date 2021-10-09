@@ -29,10 +29,11 @@ public class TradeMongoDbTrigger implements BeforeSaveCallback<Trade>, Ordered {
 
     @Override
     public Trade onBeforeSave(Trade entity, Document document, String collection) {
-        log.info("TradeMongoDbTrigger.onBeforeSave trade {}", JSON.toJSONString(entity));
+        log.info("TradeMongoDbTrigger.onBeforeSave before trade {}", JSON.toJSONString(entity));
         if (entity.getTradeState() != null) {
             entity.getTradeState().setModifyTime(LocalDateTime.now());
         }
+        log.info("TradeMongoDbTrigger.onBeforeSave end trade {}", JSON.toJSONString(entity));
         return entity;
     }
 }
