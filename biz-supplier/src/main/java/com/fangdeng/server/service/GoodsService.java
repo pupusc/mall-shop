@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,6 +44,9 @@ public class GoodsService {
 
     @Autowired
     private RiskVerifyMapper riskVerifyMapper;
+
+    @Value("${bookuu.providerId}")
+    private  Long providerId;
 
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
@@ -83,6 +87,7 @@ public class GoodsService {
         List<RiskVerify> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
             GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g,priceQueryResponse);
+            goodsSyncDTO.setProviderId(providerId);
             List<RiskVerify> imgList = GoodsAssembler.getImageList(g);
             if(CollectionUtils.isEmpty(imgList)){
                 goodsSyncDTO.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());

@@ -5,7 +5,6 @@ import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,8 +14,7 @@ import java.util.List;
 @Service
 public class GoodsAssembler {
 
-    @Value("${bookuu.providerId}")
-    private static Long providerId;
+
 
     public static GoodsSyncDTO convertGoodsDTO(BookuuGoodsDTO goodsDTO,BookuuPriceQueryResponse priceResponse) {
         GoodsSyncDTO goodsSyncDTO =  GoodsSyncDTO.builder().goodsNo(goodsDTO.getBookId())
@@ -47,7 +45,6 @@ public class GoodsAssembler {
                 .largeImageUrl(goodsDTO.getPicurllarge())
                 .copyrightUrl(goodsDTO.getBcy())
                 .status(1)
-                .providerId(providerId)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();
