@@ -1363,6 +1363,7 @@ public class TradeService {
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
                                     .cycleBuyInfo(group.getCycleBuyInfo())
                                     .promoteUserId(tradeCommitRequest.getPromoteUserId())
+                                    .source(tradeCommitRequest.getSource())
                                     .build()));
                 }
         );
@@ -1949,7 +1950,7 @@ public class TradeService {
         verifyService.verifyMarkup(trade);
         // 推广人用户id
         trade.setPromoteUserId(tradeParams.getPromoteUserId());
-
+        trade.setSource(tradeParams.getSource());
         log.info("==================周期购订单1：{}===============",trade);
 
 

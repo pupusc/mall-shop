@@ -20,11 +20,18 @@ import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.model.root.GoodsPriceSync;
+import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
+import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
+import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
 import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +40,14 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.persistence.criteria.Predicate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -71,15 +81,23 @@ public class GoodsStockService {
     @Autowired
     private GoodsService goodsService;
 
+    @Autowired
+    private GoodsStockSyncRepository goodsStockSyncRepository;
+
     private static final Integer MAX_THREADS_POOL = 50;
 
+    @Autowired
+    private GoodsStockService goodsStockService;
+
+    @Autowired
+    private GoodsPriceSyncRepository goodsPriceSyncRepository;
     /**
      * 批量加库存
      *
      * @param dtoList 增量库存参数
      */
     public void batchAddStock(List<GoodsPlusStockDTO> dtoList) {
-        if(CollectionUtils.isEmpty(dtoList)){
+        if (CollectionUtils.isEmpty(dtoList)) {
             return;
         }
         //缓存是扣库存性缓存，加库存则扣除
@@ -91,10 +109,10 @@ public class GoodsStockService {
     /**
      * 批量减库存
      *
-     * @param dtoList       减量库存参数
+     * @param dtoList 减量库存参数
      */
     public void batchSubStock(List<GoodsMinusStockDTO> dtoList) {
-        if(CollectionUtils.isEmpty(dtoList)){
+        if (CollectionUtils.isEmpty(dtoList)) {
             return;
         }
         List<RedisHIncrBean> beans = dtoList.stream().map(g -> new RedisHIncrBean(g.getGoodsId(), g.getStock()))
@@ -117,7 +135,7 @@ public class GoodsStockService {
                         //持久至mysql
                         goodsRepository.subStockById(tmpStock, goodsId);
                         resetStock.add(new GoodsPlusStockDTO(tmpStock, goodsId));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         log.error("扣除spu库存异常", e);
                         errStock.add(new GoodsMinusStockDTO(tmpStock, goodsId));
                     }
@@ -126,12 +144,12 @@ public class GoodsStockService {
 
 
             LocalTime nowTime = LocalTime.now();
-            if(nowTime.getHour() > 0 && nowTime.getHour() < 8){
+            if (nowTime.getHour() > 0 && nowTime.getHour() < 8) {
                 //如果在夜间，全清
                 redisService.delete(CacheKeyConstant.GOODS_STOCK_SUB_CACHE);
                 //保留错误数据，以便下次同步继续
                 batchSubStock(errStock);
-            }else{//重置-扣除redis
+            } else {//重置-扣除redis
                 batchAddStock(resetStock);
             }
         }
@@ -141,15 +159,15 @@ public class GoodsStockService {
      * 同步ERP商品库存
      */
 //    @Transactional
-    public Map<String,Map<String,Integer>> syncERPGoodsStock(String skuNo,int pageNum,int pageSize){
+    public Map<String, Map<String, Integer>> syncERPGoodsStock(String skuNo, int pageNum, int pageSize) {
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         infoQueryRequest.setGoodsType(GoodsType.VIRTUAL_COUPON.toValue());
-        infoQueryRequest.setAddedFlags(Lists.newArrayList(AddedFlag.YES.toValue(),AddedFlag.PART.toValue()));
-        if (StringUtils.isNoneBlank(skuNo)){
+        infoQueryRequest.setAddedFlags(Lists.newArrayList(AddedFlag.YES.toValue(), AddedFlag.PART.toValue()));
+        if (StringUtils.isNoneBlank(skuNo)) {
             infoQueryRequest.setLikeGoodsInfoNo(skuNo);
         }
-        if (pageNum >=0){
+        if (pageNum >= 0) {
             infoQueryRequest.setPageNum(pageNum);
         }
         infoQueryRequest.setPageSize(pageSize);
@@ -157,28 +175,28 @@ public class GoodsStockService {
                 infoQueryRequest.getPageRequest());
         List<GoodsInfo> goodsInfoList = goodsInfoPage.getContent();
         // 3 遍历商品列表
-        Map<String,Map<String,Integer>> resultMap = new HashMap<>();
-        Map<String,Integer> skuStockMap = new HashMap<>();
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        Map<String, Integer> skuStockMap = new HashMap<>();
         goodsInfoList.forEach(goodsInfo -> {
             //判断是否是组合商品，组合商品的库存不同步
-            log.info("========GoodsInfoId:{} ========  GoodsId：{}==========",goodsInfo.getGoodsInfoId(),goodsInfo.getGoodsId());
+            log.info("========GoodsInfoId:{} ========  GoodsId：{}==========", goodsInfo.getGoodsInfoId(), goodsInfo.getGoodsId());
             if (Objects.nonNull(goodsInfo.getCombinedCommodity()) && !goodsInfo.getCombinedCommodity()) {
                 SynGoodsInfoRequest erpSynGoodsStockRequest =
                         SynGoodsInfoRequest.builder().skuCode(goodsInfo.getErpGoodsInfoNo()).build();
                 BaseResponse<SyncGoodsInfoResponse> erpSyncGoodsStockResponseBaseResponse =
                         guanyierpProvider.syncGoodsStock(erpSynGoodsStockRequest);
-                if (!ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse) && !ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse.getContext())){
+                if (!ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse) && !ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse.getContext())) {
                     List<ERPGoodsInfoVO> erpGoodsStockVOList =
                             erpSyncGoodsStockResponseBaseResponse.getContext().getErpGoodsInfoVOList();
-                    if (CollectionUtils.isNotEmpty(erpGoodsStockVOList)){
+                    if (CollectionUtils.isNotEmpty(erpGoodsStockVOList)) {
                         //根据SKU维度查询库存,接口只会返回一条数据,所有只需要取List.get(0)
                         ERPGoodsInfoVO erpGoodsInfoVO = erpGoodsStockVOList.stream().max(Comparator.comparing(ERPGoodsInfoVO::getSalableQty)).get();
-                        log.info("========GoodsInfoId:{} ========  erpGoodsInfoVO：{}==========",goodsInfo.getGoodsInfoId(),erpGoodsInfoVO);
+                        log.info("========GoodsInfoId:{} ========  erpGoodsInfoVO：{}==========", goodsInfo.getGoodsInfoId(), erpGoodsInfoVO);
                         // 只有大于0的库存才能同步
-                        if (Long.valueOf(erpGoodsInfoVO.getSalableQty()) > 0){
+                        if (Long.valueOf(erpGoodsInfoVO.getSalableQty()) > 0) {
                             goodsInfoStockService.resetGoodsById(Long.valueOf(erpGoodsInfoVO.getSalableQty()),
                                     goodsInfo.getGoodsInfoId());
-                            skuStockMap.put(goodsInfo.getGoodsInfoId(),erpGoodsInfoVO.getSalableQty());
+                            skuStockMap.put(goodsInfo.getGoodsInfoId(), erpGoodsInfoVO.getSalableQty());
                         }
                     }
                 }
@@ -186,51 +204,120 @@ public class GoodsStockService {
         });
 
         //同步更新SPU库存
-        Map<String,Integer> spuStockMap = new HashMap<>();
+        Map<String, Integer> spuStockMap = new HashMap<>();
         List<String> goodsIds = goodsInfoList.stream().map(GoodsInfo::getGoodsId).distinct().collect(Collectors.toList());
         List<Goods> goodsList = goodsService.listByGoodsIds(goodsIds);
         goodsList.stream().forEach(goodsVO -> {
-                List<GoodsInfo> goodsInfos= goodsInfoRepository.findByGoodsIds(Lists.newArrayList(goodsVO.getGoodsId()));
-                List<Long> salableQty=new ArrayList<>();
-                goodsInfos.forEach(goodsInfo -> {
-                            log.info("========同步spu库存GoodsInfoId:{} ==================",goodsInfo.getGoodsInfoId());
-                            if (Objects.nonNull(goodsInfo.getCombinedCommodity()) && !goodsInfo.getCombinedCommodity()) {
-                                SynGoodsInfoRequest erpSynGoodsStockRequest =
-                                        SynGoodsInfoRequest.builder().skuCode(goodsInfo.getErpGoodsInfoNo()).build();
-                                BaseResponse<SyncGoodsInfoResponse> erpSyncGoodsStockResponseBaseResponse =
-                                        guanyierpProvider.syncGoodsStock(erpSynGoodsStockRequest);
-                                if (!ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse)
-                                        && Objects.nonNull(erpSyncGoodsStockResponseBaseResponse.getContext())){
+            List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsIds(Lists.newArrayList(goodsVO.getGoodsId()));
+            List<Long> salableQty = new ArrayList<>();
+            goodsInfos.forEach(goodsInfo -> {
+                log.info("========同步spu库存GoodsInfoId:{} ==================", goodsInfo.getGoodsInfoId());
+                if (Objects.nonNull(goodsInfo.getCombinedCommodity()) && !goodsInfo.getCombinedCommodity()) {
+                    SynGoodsInfoRequest erpSynGoodsStockRequest =
+                            SynGoodsInfoRequest.builder().skuCode(goodsInfo.getErpGoodsInfoNo()).build();
+                    BaseResponse<SyncGoodsInfoResponse> erpSyncGoodsStockResponseBaseResponse =
+                            guanyierpProvider.syncGoodsStock(erpSynGoodsStockRequest);
+                    if (!ObjectUtils.isEmpty(erpSyncGoodsStockResponseBaseResponse)
+                            && Objects.nonNull(erpSyncGoodsStockResponseBaseResponse.getContext())) {
 
-                                    List<ERPGoodsInfoVO> erpGoodsStockVOList =
-                                            erpSyncGoodsStockResponseBaseResponse.getContext().getErpGoodsInfoVOList();
-                                    if (CollectionUtils.isNotEmpty(erpGoodsStockVOList)){
-                                        ERPGoodsInfoVO erpGoodsInfoVO = erpGoodsStockVOList.stream().max(Comparator.comparing(ERPGoodsInfoVO::getSalableQty)).get();
-                                        // 只有大于0的库存才能同步
-                                        log.info("========同步spu库存GoodsInfoId:{} ========  ERPGoodsInfoVO：{}==========",goodsInfo.getGoodsInfoId(),erpGoodsInfoVO);
-                                        if (Long.valueOf(erpGoodsInfoVO.getSalableQty()) > 0){
-                                            salableQty.add(Long.valueOf(erpGoodsInfoVO.getSalableQty()));
-                                        }
-                                    }
-                                }
-                            } else {
-                                salableQty.add(goodsInfo.getStock());
-                                log.info("========同步spu库存组合购商品GoodsInfoId:{}==========",goodsInfo.getGoodsInfoId());
+                        List<ERPGoodsInfoVO> erpGoodsStockVOList =
+                                erpSyncGoodsStockResponseBaseResponse.getContext().getErpGoodsInfoVOList();
+                        if (CollectionUtils.isNotEmpty(erpGoodsStockVOList)) {
+                            ERPGoodsInfoVO erpGoodsInfoVO = erpGoodsStockVOList.stream().max(Comparator.comparing(ERPGoodsInfoVO::getSalableQty)).get();
+                            // 只有大于0的库存才能同步
+                            log.info("========同步spu库存GoodsInfoId:{} ========  ERPGoodsInfoVO：{}==========", goodsInfo.getGoodsInfoId(), erpGoodsInfoVO);
+                            if (Long.valueOf(erpGoodsInfoVO.getSalableQty()) > 0) {
+                                salableQty.add(Long.valueOf(erpGoodsInfoVO.getSalableQty()));
                             }
-                });
-                //计算spu的商品总数
-               if (CollectionUtils.isNotEmpty(salableQty)){
-                   Long salableQtySum = salableQty.stream().reduce(Long::sum).get();
-                   if (salableQtySum > 0){
-                       goodsRepository.resetGoodsStockById(Long.valueOf(salableQtySum),goodsVO.getGoodsId());
-                       spuStockMap.put(goodsVO.getGoodsId(),salableQtySum.intValue());
-                       log.info("========goodsVOId:{} ========  salableQtySum：{}==========",goodsVO.getGoodsId(),salableQtySum);
-                   }
-               }
+                        }
+                    }
+                } else {
+                    salableQty.add(goodsInfo.getStock());
+                    log.info("========同步spu库存组合购商品GoodsInfoId:{}==========", goodsInfo.getGoodsInfoId());
+                }
+            });
+            //计算spu的商品总数
+            if (CollectionUtils.isNotEmpty(salableQty)) {
+                Long salableQtySum = salableQty.stream().reduce(Long::sum).get();
+                if (salableQtySum > 0) {
+                    goodsRepository.resetGoodsStockById(Long.valueOf(salableQtySum), goodsVO.getGoodsId());
+                    spuStockMap.put(goodsVO.getGoodsId(), salableQtySum.intValue());
+                    log.info("========goodsVOId:{} ========  salableQtySum：{}==========", goodsVO.getGoodsId(), salableQtySum);
+                }
+            }
         });
-        resultMap.put("skus",skuStockMap);
-        resultMap.put("spus",spuStockMap);
-        log.info("resultMap====================>:{}",resultMap);
+        resultMap.put("skus", skuStockMap);
+        resultMap.put("spus", spuStockMap);
+        log.info("resultMap====================>:{}", resultMap);
         return resultMap;
     }
+
+    public long countGoodsStockSync() {
+        Specification<GoodsStockSync> request = (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cbuild.equal(root.get("status"), 0));
+            predicates.add(cbuild.equal(root.get("deleted"), 0));
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+        return goodsStockSyncRepository.count(request);
+    }
+
+    /**
+     * 查询goods_stock_sync并同步库存
+     *
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public Map<String, Map<String, Integer>> syncGoodsStock(int pageNum, int pageSize) {
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        GoodsStockSyncQueryRequest stockSyncQueryRequest = new GoodsStockSyncQueryRequest();
+        stockSyncQueryRequest.setStatus(0);
+        if (pageNum >= 0) {
+            stockSyncQueryRequest.setPageNum(pageNum);
+        }
+        stockSyncQueryRequest.setPageSize(pageSize);
+        Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(),
+                stockSyncQueryRequest.getPageRequest());
+        if(stockPage == null || CollectionUtils.isEmpty(stockPage.getContent())){
+            return resultMap;
+        }
+        List<GoodsStockSync> goodsStockList = stockPage.getContent();
+        // 3 遍历商品列表并更新sku库存
+        Map<String, Integer> skuStockMap = new HashMap<>();
+        Map<String, Integer> spuStockMap = new HashMap<>();
+        goodsStockList.forEach(stock -> {
+            goodsStockService.updateGoodsStockSingle(stock,skuStockMap,spuStockMap);
+        });
+        resultMap.put("skus", skuStockMap);
+        resultMap.put("spus", spuStockMap);
+        log.info("resultMap====================>:{}", resultMap);
+        return resultMap;
+    }
+
+    @Transactional
+    public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
+        if (stock.getStock() <= 10) {
+            log.info("goods stock is less than 10,stock:{}", stock);
+            stock.setStock(0);
+        }
+        //查询sku信息
+        GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
+        if (goodsInfo ==null) {
+            goodsStockSyncRepository.updateStatus(stock.getId());
+            log.info("there is no sku,stock:{}", stock);
+            return;
+        }
+        goodsInfoStockService.resetGoodsById(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId());
+        skuStockMap.put(goodsInfo.getGoodsInfoId(), stock.getStock());
+        //更新spu库存
+        goodsRepository.resetGoodsStockById(Long.valueOf(stock.getStock()), goodsInfo.getGoodsId());
+        spuStockMap.put(goodsInfo.getGoodsId(), stock.getStock());
+        //更新状态
+        goodsStockSyncRepository.updateStatus(stock.getId());
+    }
+
+
+
 }

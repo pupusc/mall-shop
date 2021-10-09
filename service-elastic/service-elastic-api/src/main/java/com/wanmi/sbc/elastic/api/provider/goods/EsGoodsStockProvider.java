@@ -35,4 +35,7 @@ public interface EsGoodsStockProvider {
     @PostMapping("/elastic/${application.elastic.version}/goods/sku/batchReset/stock")
     BaseResponse batchResetStockBySkuId(@RequestBody @Valid EsGoodsSkuStockSubRequest request);
 
+    @PostMapping("/elastic/${application.elastic.version}/goods/goodsinfo/batchReset/stock")
+    BaseResponse batchResetGoodsInfoStockBySpuId(@RequestBody @Valid EsGoodsSpuStockSubRequest request);
+
 }

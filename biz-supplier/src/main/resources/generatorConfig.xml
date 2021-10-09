@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+
+  <context id="Mysql" targetRuntime="MyBatis3" defaultModelType="flat">
+    <property name="beginningDelimiter" value="`"/>
+    <property name="endingDelimiter" value="`"/>
+
+
+
+    <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                    connectionURL="jdbc:mysql://rm-bp182fitehfamv41c.mysql.rds.aliyuncs.com:3306/sbc-goods"
+                    userId="fddsh_mall"
+                    password="malladmin@2018">
+    </jdbcConnection>
+
+    <javaModelGenerator targetPackage="com.fangdeng.server.dto" targetProject="src/main/java" />
+
+    <sqlMapGenerator targetPackage="com.fangdeng.server.mapper"  targetProject="src/main/java"/>
+
+    <javaClientGenerator targetPackage="com.fangdeng.server.mapper" targetProject="src/main/java"  type="XMLMAPPER" />
+
+    <table tableName="goods_stock_sync" domainObjectName="GoodsStockSyncDTO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+  </context>
+</generatorConfiguration>
+

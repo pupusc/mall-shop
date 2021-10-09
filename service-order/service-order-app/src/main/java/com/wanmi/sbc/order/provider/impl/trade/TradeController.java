@@ -777,4 +777,14 @@ public class TradeController implements TradeProvider {
 
         return BaseResponse.success(tradeResponse);
     }
+
+    @Override
+    public BaseResponse syncProviderTradeStatus(ProviderTradeStatusSyncRequest request) {
+        return tradePushERPService.syncProviderTradeStatus(request);
+    }
+
+    @Override
+    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeStatusSyncRequest request) {
+        return tradePushERPService.syncProviderTradeDeliveryStatus(request);
+    }
 }

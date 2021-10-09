@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.aop.EmployeeCheck;
+import com.wanmi.sbc.client.BizSupplierClient;
+import com.wanmi.sbc.client.CancelOrderRequest;
 import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -75,6 +77,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -136,6 +139,12 @@ public class StoreReturnOrderController {
 
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+
+    @Value("${default.providerId}")
+    private Long defaultProviderId;
+
+    @Autowired
+    private BizSupplierClient bizSupplierClient;
 
 
     /**
@@ -303,10 +312,11 @@ public class StoreReturnOrderController {
         if (tradeVO.getCycleBuyFlag()) {
             List<DeliverCalendarVO> deliverCalendar=tradeVO.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendarVO -> deliverCalendarVO.getCycleDeliverStatus()==CycleDeliverStatus.PUSHED).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(deliverCalendar)) {
+                Long providerId = tradeVO.getTradeItems().get(0).getProviderId();
                 deliverCalendar.forEach(deliverCalendarVO -> {
                     //查询providerId查询订单的发货记录
-                    DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).build();
-                    BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
+                    DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).providerId(providerId).build();
+                    BaseResponse<DeliveryStatusResponse> response = this.getDeliveryStatus(deliveryQueryRequest);
                     //已发货并且没有确认收货的订单无法退款
                     if(!tradeVO.getTradeState().getFlowState().equals(FlowState.VOID)
                             && !CollectionUtils.isEmpty(response.getContext().getDeliveryInfoVOList())){
@@ -339,16 +349,16 @@ public class StoreReturnOrderController {
             tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
                 //拦截主商品
                 providerTradeVO.getTradeItems().forEach(tradeItemVO -> {
-                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeVO.getId()).oid(tradeItemVO.getOid()).build();
-                    guanyierpProvider.RefundTrade(refundTradeRequest);
+                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeVO.getId()).oid(tradeItemVO.getOid()).providerId(tradeItemVO.getProviderId()).build();
+                    this.refundTrade(refundTradeRequest);
                 });
                 //拦截赠品
                 if (!CollectionUtils.isEmpty(providerTradeVO.getGifts())){
                     providerTradeVO.getGifts().forEach(giftVO -> {
                         RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
                                 .tid(providerTradeVO.getId())
-                                .oid(giftVO.getOid()).build();
-                        guanyierpProvider.RefundTrade(refundTradeRequest);
+                                .oid(giftVO.getOid()).providerId(giftVO.getProviderId()).build();
+                        this.refundTrade(refundTradeRequest);
                     });
                 }
             });
@@ -361,15 +371,16 @@ public class StoreReturnOrderController {
                 List<DeliverCalendarVO> deliverCalendar=tradeCycleBuyInfo.getDeliverCalendar().stream().filter(deliverCalendarVO -> deliverCalendarVO.getCycleDeliverStatus()== CycleDeliverStatus.PUSHED).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(deliverCalendar)) {
                     String  oid=providerTradeVO.getTradeItems().get(0).getOid();
+                    Long providerId = providerTradeVO.getTradeItems().get(0).getProviderId();
                     deliverCalendar.forEach(deliverCalendarVO -> {
-                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).build();
-                        guanyierpProvider.RefundTrade(refundTradeRequest);
+                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).build();
+                        this.refundTrade(refundTradeRequest);
                         //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
                         String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
                         if (CollectionUtils.isNotEmpty(providerTradeVO.getGifts()) && Objects.equals(cyclNum,"1")) {
                             providerTradeVO.getGifts().forEach(giftVO -> {
-                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).build();
-                                guanyierpProvider.RefundTrade(refundRequest);
+                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).providerId(providerId).build();
+                                this.refundTrade(refundRequest);
                             });
                         }
                     });
@@ -393,7 +404,7 @@ public class StoreReturnOrderController {
                 if (CollectionUtils.isNotEmpty(totalTradeItemList)) {
                     totalTradeItemList.forEach(tradeItem -> {
                         if (Objects.nonNull(tradeItem.getCombinedCommodity()) && tradeItem.getCombinedCommodity() && returnItemSkuIds.contains(tradeItem.getSkuId())) {
-                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).build();
+                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).providerId(tradeItem.getProviderId()).build();
                             //如果是组合商品,查询ERP订单发货状态，ERP订单已发货就不需要走拦截
                             TradeQueryRequest tradeQueryRequest = TradeQueryRequest.builder().tid(providerTrade.getId()).flag(0).build();
                             BaseResponse<QueryTradeResponse> tradeInfoResponse= guanyierpProvider.getTradeInfo(tradeQueryRequest);
@@ -404,14 +415,14 @@ public class StoreReturnOrderController {
                                 if (StringUtils.isNoneBlank(historyTradeResponse.getContext().getPlatformCode())) {
                                     if (DeliverStatus.NOT_YET_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())
                                             || DeliverStatus.PART_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())) {
-                                        guanyierpProvider.RefundTrade(refundTradeRequest);
+                                        this.refundTrade(refundTradeRequest);
                                         log.info("=============组合商品退货退款拦截未发货的商品：{}==================", refundTradeRequest);
                                     }
                                 }
                             }else {
                                 if (DeliverStatus.NOT_YET_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())
                                         || DeliverStatus.PART_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())){
-                                    guanyierpProvider.RefundTrade(refundTradeRequest);
+                                    this.refundTrade(refundTradeRequest);
                                     log.info("=============组合商品退货退款拦截未发货的商品：{}==================",refundTradeRequest);
                                 }
                             }
@@ -473,6 +484,23 @@ public class StoreReturnOrderController {
                 throw new SbcRuntimeException("K-050208");
             }
         }
+    }
+
+    public void refundTrade(RefundTradeRequest refundTradeRequest){
+        if(!Objects.equals(refundTradeRequest.getProviderId(),defaultProviderId)) {
+            CancelOrderRequest request = new CancelOrderRequest();
+            request.setPid(refundTradeRequest.getTid());
+            bizSupplierClient.cancelOrder(request);
+            return;
+        }
+        guanyierpProvider.RefundTrade(refundTradeRequest);
+    }
+
+    private BaseResponse<DeliveryStatusResponse> getDeliveryStatus(DeliveryQueryRequest deliveryQueryRequest){
+        if(!Objects.equals(deliveryQueryRequest.getProviderId(),defaultProviderId)) {
+             return bizSupplierClient.getDeliveryStatus(deliveryQueryRequest.getTid());
+        }
+        return guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
     }
 
 

@@ -95,4 +95,6 @@ public final class RedisKeyConstant {
      * virtual_coupon_code:coupon-no-check:{couponId}
      */
     public static final String VIRTUAL_COUPON_NO_CHECK_KEY= "virtual_coupon_code:coupon-no-check:";
+
+    public static final  String ACCESS_TOKEN_KEY="access:token";
 }

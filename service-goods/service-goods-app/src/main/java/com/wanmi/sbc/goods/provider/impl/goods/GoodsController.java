@@ -35,10 +35,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
-import com.wanmi.sbc.goods.info.service.GoodsService;
-import com.wanmi.sbc.goods.info.service.GoodsStockService;
-import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
-import com.wanmi.sbc.goods.info.service.S2bGoodsService;
+import com.wanmi.sbc.goods.info.service.*;
 import com.wanmi.sbc.goods.mq.ProducerService;
 import com.wanmi.sbc.goods.standard.model.root.StandardGoodsRel;
 import com.wanmi.sbc.goods.standard.repository.StandardGoodsRelRepository;
@@ -63,6 +60,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -129,6 +127,12 @@ public class GoodsController implements GoodsProvider {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private GoodsInfoService goodsInfoService;
+
+//    @Autowired
+//    private GoodsQueryProvider goodsQueryProvider;
 
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();
@@ -664,5 +668,23 @@ public class GoodsController implements GoodsProvider {
             }
             return path;
         }
+    }
+
+    @Override
+    public BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncGoodsStock(
+                goodsInfoListByIdRequest.getPageNum(),
+                goodsInfoListByIdRequest.getPageSize());
+        return BaseResponse.success(resultMap);
+
+    }
+
+    @Override
+    public BaseResponse<Map<String,String>> syncGoodsPrice(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+        Map<String,String> resultMap = goodsInfoService.syncGoodsPrice(
+                goodsInfoListByIdRequest.getPageNum(),
+                goodsInfoListByIdRequest.getPageSize());
+        return BaseResponse.success(resultMap);
+
     }
 }

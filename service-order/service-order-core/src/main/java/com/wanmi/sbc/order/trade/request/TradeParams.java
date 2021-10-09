@@ -252,5 +252,10 @@ public class TradeParams {
      */
     private String promoteUserId;
 
+    /**
+     * cps来源
+     */
+    private String source;
+
 
 }

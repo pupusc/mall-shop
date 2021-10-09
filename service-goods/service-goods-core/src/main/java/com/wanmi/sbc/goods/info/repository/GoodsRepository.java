@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.stylesheets.LinkStyle;
 import sun.awt.SunHints;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -412,4 +413,8 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      */
     @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
     List<Goods> findBooks();
+
+    @Modifying
+    @Query("update Goods w set w.costPrice = ?2 ,w.marketPrice = ?3 where w.goodsId = ?1")
+    void resetGoodsPriceById(String goodsId, BigDecimal costPrice,BigDecimal marketPrice);
 }

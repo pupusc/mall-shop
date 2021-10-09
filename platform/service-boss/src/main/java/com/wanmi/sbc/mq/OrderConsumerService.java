@@ -43,10 +43,7 @@ import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.distribution.ConsumeRecordAddRequest;
 import com.wanmi.sbc.order.api.request.thirdplatformtrade.ThirdPlatformTradeAddRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeFinalTimeUpdateRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeQueryFirstCompleteRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateCommissionFlagRequest;
+import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.distribution.ConsumeRecordAddResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeQueryFirstCompleteResponse;
@@ -63,10 +60,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -715,6 +716,33 @@ public class OrderConsumerService {
                 .build();
         DistributionPerformanceEnteringRequest request = new DistributionPerformanceEnteringRequest(dto);
         distributionPerformanceProvider.enteringPerformance(request);
+    }
+
+
+    /**
+     * 订单推送第三方成功
+     * @param
+     */
+
+    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE)
+    @RabbitHandler
+    public void orderPushConsumer(Message message, @Payload String body){
+        log.info("order push confirm message:{}",body);
+        ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+        tradeProvider.syncProviderTradeStatus(request);
+    }
+
+    /**
+     * 物流状态查询成功
+     * @param message
+     * @param body
+     */
+    @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
+    @RabbitHandler
+    public void deliveryStatusSyncConsumer(Message message, @Payload String body){
+        log.info("order delivery status sync confirm message:{}",body);
+        ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+        tradeProvider.syncProviderTradeDeliveryStatus(request);
     }
 
 }

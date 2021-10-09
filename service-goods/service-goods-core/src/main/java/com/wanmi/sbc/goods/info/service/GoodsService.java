@@ -5,6 +5,7 @@ import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
+import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
@@ -12,6 +13,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
@@ -45,20 +47,14 @@ import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
-import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
+import com.wanmi.sbc.goods.info.model.root.*;
 import com.wanmi.sbc.goods.info.reponse.GoodsDetailResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
-import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsRepository;
-import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
-import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
-import com.wanmi.sbc.goods.info.request.GoodsRequest;
-import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
+import com.wanmi.sbc.goods.info.repository.*;
+import com.wanmi.sbc.goods.info.request.*;
 import com.wanmi.sbc.goods.pointsgoods.model.root.PointsGoods;
 import com.wanmi.sbc.goods.pointsgoods.repository.PointsGoodsRepository;
 import com.wanmi.sbc.goods.pointsgoods.service.PointsGoodsWhereCriteriaBuilder;
@@ -93,6 +89,7 @@ import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
 import com.wanmi.sbc.goods.storegoodstab.repository.GoodsTabRelaRepository;
 import com.wanmi.sbc.goods.storegoodstab.repository.StoreGoodsTabRepository;
+import com.wanmi.sbc.goods.util.XssUtils;
 import com.wanmi.sbc.goods.tag.model.Tag;
 import com.wanmi.sbc.goods.tag.model.TagRel;
 import com.wanmi.sbc.goods.tag.service.TagService;
@@ -115,6 +112,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -147,6 +145,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class GoodsService {
 
     private static Logger log = LoggerFactory.getLogger(GoodsService.class);
@@ -270,9 +269,17 @@ public class GoodsService {
 
     @Autowired
     private VirtualCouponService virtualCouponService;
-
     @Autowired
     private TagService tagService;
+    @Autowired
+    private GoodsSyncRepository goodsSyncRepository;
+
+    @Autowired
+    private GoodsStockSyncRepository goodsStockSyncRepository;
+
+    @Autowired
+    private GoodsPriceSyncRepository goodsPriceSyncRepository;
+
 
     /**
      * 供应商商品删除
@@ -1784,7 +1791,8 @@ public class GoodsService {
         if (goods.getAuditStatus() == CheckStatus.CHECKED && NumberUtils.INTEGER_ZERO.equals(goods.getGoodsSource())) {
             List<String> standardIds = standardImportService.importStandard(GoodsRequest.builder().goodsIds(Arrays.asList(goodsId)).build());
         }
-
+        //更新sync状态
+        goodsSyncRepository.updateStatus(goods.getErpGoodsNo(),3);
         return goodsId;
     }
 
@@ -3231,6 +3239,7 @@ public class GoodsService {
         }
     }
 
+
     /**
      * 根据spu编号查询
      */
@@ -3284,22 +3293,24 @@ public class GoodsService {
             boolean priceFlag = false;
             boolean isbnFlag = false;
             //已有的更新
-            for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
-                if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(author);
-                    authorFlag = true;
-                }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(publisher);
-                    publisherFlag = true;
-                }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(score + "");
-                    scoreFlag = true;
-                }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(price + "");
-                    priceFlag = true;
-                }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
-                    goodsPropDetailRel.setPropValue(isbn);
-                    isbnFlag = true;
+            if(CollectionUtils.isNotEmpty(goodsPropDetailRels)){
+                for (GoodsPropDetailRel goodsPropDetailRel : goodsPropDetailRels) {
+                    if(authorProp != null && authorProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(author);
+                        authorFlag = true;
+                    }else if(publisherProp != null && publisherProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(publisher);
+                        publisherFlag = true;
+                    }else if(scoreProp != null && scoreProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(score + "");
+                        scoreFlag = true;
+                    }else if(priceProp != null && priceProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(price + "");
+                        priceFlag = true;
+                    }else if(isbnProp != null && isbnProp.getPropId().equals(goodsPropDetailRel.getPropId())){
+                        goodsPropDetailRel.setPropValue(isbn);
+                        isbnFlag = true;
+                    }
                 }
             }
             //没有的新建
@@ -3343,6 +3354,10 @@ public class GoodsService {
         rel.setGoodsId(goodsId);
         rel.setDetailId(0L);
         return rel;
+    }
+
+    public List<GoodsSync> listGoodsSync(){
+        return goodsSyncRepository.findByStatus(2);
     }
 
 }

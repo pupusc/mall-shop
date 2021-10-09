@@ -1,10 +1,9 @@
 package com.wanmi.sbc.goods.api.provider.goods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
@@ -265,5 +264,22 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
     BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
+    /**
+     * 同步商品库存
+     * @param goodsInfoListByIdRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-stock")
+    BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
+    /**
+     * 同步商品价格
+     * @param goodsInfoListByIdRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-price")
+    BaseResponse<Map<String,String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+
 
 }

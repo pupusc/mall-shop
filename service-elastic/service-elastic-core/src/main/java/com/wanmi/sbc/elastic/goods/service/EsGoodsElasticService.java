@@ -391,6 +391,9 @@ public class EsGoodsElasticService {
                             GoodsExtProps goodsExtProps = new GoodsExtProps();
                             while (it.hasNext()) {
                                 GoodsPropDetailRelVO rel = it.next();
+                                if(Objects.equals(rel.getPropValue(),"null")){
+                                    continue;
+                                }
                                 if("作者".equals(rel.getPropName())){
                                     goodsExtProps.setAuthor(rel.getPropValue());
                                     it.remove();
