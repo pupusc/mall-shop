@@ -1,7 +1,7 @@
 package com.wanmi.sbc.job;
 
 
-import com.wanmi.sbc.common.RiskVerifyController;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -18,10 +18,7 @@ import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
+import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -32,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -71,9 +68,24 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
     private static final String GOODS_BUY_TYPES = "0,1";
 
     // todo 跟产品确认
-    private Long defaultCompanyId = 1183L;
+    @Value("${bookuu.default.companyId}")
+    private Long defaultCompanyId;
 
-    private Long defaultStoreId = 123458039L;
+    @Value("${bookuu.default.storeId}")
+    private Long defaultStoreId;
+
+
+    @Value("${prop.list}")
+    private String propDetailStr;
+
+    @Value("${bookuu.default.cateId}")
+    private Long defaultCateId;
+
+    @Value("${bookuu.default.store.cateId}")
+    private Long defaultStoreCateId;
+
+    @Value("${bookuu.default.freight.tempId}")
+    private Long defaultFreightTempId;
 
 
     @Override
@@ -156,9 +168,9 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setGoodsUnit("本");
         goodsDTO.setGoodsWeight(new BigDecimal(0.25));
         goodsDTO.setGoodsCubage(new BigDecimal(0.006));
-        goodsDTO.setStoreCateIds(Arrays.asList(1424L, 1423L));
-        goodsDTO.setCateId(1203L);
-        goodsDTO.setFreightTempId(461L);
+        goodsDTO.setStoreCateIds(Arrays.asList(defaultStoreCateId));
+        goodsDTO.setCateId(defaultCateId);
+        goodsDTO.setFreightTempId(defaultFreightTempId);
         goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
         goodsDTO.setGoodsSource(0);
         request.setGoods(goodsDTO);
@@ -168,14 +180,25 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsInfoDTO.setGoodsType(0);
         goodsInfoDTO.setErpGoodsNo(goods.getGoodsNo());
         goodsInfoDTO.setCombinedCommodity(false);
-        //todo 待确认 暂定市场价=建议销售价
-        goodsInfoDTO.setMarketPrice(goods.getSalePrice());
         goodsInfoDTO.setGoodsInfoNo(getRandomGoodsNo("8"));
         goodsInfoDTO.setStock(goods.getQty().longValue());
         goodsInfoDTO.setIsbnNo(goods.getIsbn());
         goodsInfoDTO.setRetailPrice(goods.getSalePrice());
         goodsInfoDTO.setCostPrice(goods.getBasePrice());
-
+        //1. 定价规则：市场价=合作伙伴成本价 * 10% > 建议销售价【数字不填写，人工处理】
+        //合作伙伴成本价 * 10% <= 建议销售价 <= 合作伙伴成本价 * 20%【使用，建议销售价】
+        //合作伙伴成本价 * 20% <= 建议销售价【使用，合作伙伴成本价 * 20%】
+        goodsInfoDTO.setMarketPrice(goods.getSalePrice());
+        if(goods.getBasePrice() != null && goods.getSalePrice() !=null){
+            if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.1))) >=0 && goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) < 0){
+                goodsInfoDTO.setMarketPrice(goods.getSalePrice());
+            }else if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) >=0){
+                goodsInfoDTO.setMarketPrice(goods.getBasePrice().multiply(new BigDecimal(1.2)));
+            }else{
+                goodsInfoDTO.setMarketPrice(null);
+                goodsDTO.setAddedFlag(0);
+            }
+        }
         List<GoodsInfoDTO> infos = new ArrayList<>(1);
         infos.add(goodsInfoDTO);
         request.setGoodsInfos(infos);
@@ -202,7 +225,20 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             }
         }
         request.setImages(images);
-        //todo属性待确认
+        //属性
+        List<GoodsPropDetailRelDTO> propDetails = new ArrayList<>();
+        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(goods));
+        List<GoodsPropDetailRelDTO> propDetail = JSONObject.parseArray(propDetailStr,GoodsPropDetailRelDTO.class);
+        propDetail.forEach(p->{
+            if(jsonObject.get(p.getPropValue()) != null){
+                GoodsPropDetailRelDTO prop = new GoodsPropDetailRelDTO();
+                prop.setDetailId(0L);
+                prop.setPropId(p.getPropId());
+                prop.setPropValue(String.valueOf(jsonObject.get(p.getPropValue())));
+                propDetails.add(prop);
+            }
+        });
+        request.setGoodsPropDetailRels(propDetails);
         return request;
     }
 

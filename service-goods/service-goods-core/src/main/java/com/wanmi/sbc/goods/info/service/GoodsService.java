@@ -269,9 +269,9 @@ public class GoodsService {
 
     @Autowired
     private VirtualCouponService virtualCouponService;
-
+    @Autowired
     private TagService tagService;
-
+    @Autowired
     private GoodsSyncRepository goodsSyncRepository;
 
     @Autowired

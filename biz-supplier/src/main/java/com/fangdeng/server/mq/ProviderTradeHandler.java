@@ -82,6 +82,7 @@ public class ProviderTradeHandler {
                 .goodsList(response.getStatusDTOS().get(0).getBookRecs())
                 .build();
         //成功之后再回传消息
+        log.info("order delivery status confirm,request:{}",JSONObject.toJSONString(confirmDTO));
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
         //手动确认
 
