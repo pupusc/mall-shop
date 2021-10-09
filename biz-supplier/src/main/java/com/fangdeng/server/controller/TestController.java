@@ -30,7 +30,8 @@ public class TestController {
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
         try {
-            providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
+            //providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
+            providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");
         }catch (Exception e){
 
         }
