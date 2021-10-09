@@ -206,8 +206,9 @@ public class BookuuClient {
         try {
              response = XmlUtil.convertToJavaBean(result, BookuuOrderStatusQueryResponse.class);
         } catch (Exception e) {
-
+            log.warn("bookuu order status convert error,request:{},error",request,e);
         }
+        log.info("bookuu order status request:{}, response: {}",JSONObject.toJSONString(request),JSONObject.toJSONString(response));
         return response;
     }
 
