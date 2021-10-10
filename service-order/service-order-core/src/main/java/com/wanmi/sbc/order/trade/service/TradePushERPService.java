@@ -150,9 +150,9 @@ public class TradePushERPService {
             }
             if (baseResponse.getCode().equals(CommonErrorCode.FAILED)) {
                 //推送订单失败,更新订单推送状态
-                this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now());
+                this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
             } else {
-                this.updateTradeInfo(providerTrade.getId(), true, true, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now());
+                this.updateTradeInfo(providerTrade.getId(), true, true, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
                 return BaseResponse.SUCCESSFUL();
             }
         } catch (Exception e) {
@@ -160,7 +160,7 @@ public class TradePushERPService {
             //推送订单失败,更新订单推送状态
             this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1,
                     "订单推送erp出现异常",
-                    LocalDateTime.now());
+                    LocalDateTime.now(),"");
         }
         return BaseResponse.FAILED();
     }
@@ -478,13 +478,14 @@ public class TradePushERPService {
      * @return
      */
     public boolean updateTradeInfo(String tid, boolean isPush, boolean pushStatus, int pushCount, String response,
-                                   LocalDateTime pushTime) {
+                                   LocalDateTime pushTime,String deliveryOrderId) {
         log.info("updateTradeInfo===============>tid:{},isPush:{},pushStatus:{},pushCount:{},response:{}",
                 tid, isPush, pushStatus, pushCount, response);
         Update update = new Update();
         if (isPush) {
             if (pushStatus) {
                 update.set("tradeState.erpTradeState", ERPTradePushStatus.PUSHED_SUCCESS.toValue());
+                update.set("deliveryOrderId",deliveryOrderId);
             } else {
                 update.set("tradeState.erpTradeState", ERPTradePushStatus.PUSHED_FAIL.toValue());
             }
@@ -1385,9 +1386,9 @@ public class TradePushERPService {
         try {
             if (request.getStatus().equals(1)) {
                 //推送订单失败,更新订单推送状态
-                this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, request.getStatusDesc(), LocalDateTime.now());
+                this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, request.getStatusDesc(), LocalDateTime.now(),"");
             } else {
-                this.updateTradeInfo(request.getPlatformCode(), true, true, providerTrade.getTradeState().getPushCount() + 1, "success", LocalDateTime.now());
+                this.updateTradeInfo(request.getPlatformCode(), true, true, providerTrade.getTradeState().getPushCount() + 1, "success", LocalDateTime.now(),request.getOrderId());
             }
             return BaseResponse.SUCCESSFUL();
         } catch (Exception e) {
@@ -1395,7 +1396,7 @@ public class TradePushERPService {
             //推送订单失败,更新订单推送状态
             this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1,
                     "更新订单出现异常",
-                    LocalDateTime.now());
+                    LocalDateTime.now(),"");
         }
         return BaseResponse.FAILED();
     }
@@ -1411,8 +1412,9 @@ public class TradePushERPService {
                         .expressCode(request.getPostNumber())
                         .platformCode(request.getPlatformCode()).build();
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
-
-                request.getGoodsList().stream().filter(p -> p.getStatus().equals(5)).forEach(g -> {
+                // todo 记得确认
+                //request.getGoodsList().stream().filter(p -> p.getStatus().equals(5)).forEach(g -> {
+                request.getGoodsList().forEach(g -> {
                     if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();
                         deliveryItemVO.setQty(g.getBookSendNum().longValue());

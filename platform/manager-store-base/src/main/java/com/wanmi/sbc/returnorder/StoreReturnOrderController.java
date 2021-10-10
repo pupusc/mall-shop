@@ -331,7 +331,7 @@ public class StoreReturnOrderController {
         }else {
             //已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(returnOrder.getPtid()).build();
-            BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
+            BaseResponse<DeliveryStatusResponse> response = this.getDeliveryStatus(deliveryQueryRequest);
             if(!tradeVO.getTradeState().getFlowState().equals(FlowState.VOID)
                     && !tradeVO.getTradeState().getFlowState().equals(FlowState.COMPLETED)
                     && !CollectionUtils.isEmpty(response.getContext().getDeliveryInfoVOList())){
@@ -347,18 +347,22 @@ public class StoreReturnOrderController {
         //通知erp系统停止发货,走系统退款逻辑
         if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
             tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
+                if(!Objects.equals(providerTradeVO.getTradeItems().get(0).getProviderId(),defaultProviderId)){
+                    bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
+                    return;
+                }
                 //拦截主商品
                 providerTradeVO.getTradeItems().forEach(tradeItemVO -> {
-                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeVO.getId()).oid(tradeItemVO.getOid()).providerId(tradeItemVO.getProviderId()).build();
-                    this.refundTrade(refundTradeRequest);
+                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeVO.getId()).oid(tradeItemVO.getOid()).build();
+                    guanyierpProvider.RefundTrade(refundTradeRequest);
                 });
                 //拦截赠品
                 if (!CollectionUtils.isEmpty(providerTradeVO.getGifts())){
                     providerTradeVO.getGifts().forEach(giftVO -> {
                         RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder()
                                 .tid(providerTradeVO.getId())
-                                .oid(giftVO.getOid()).providerId(giftVO.getProviderId()).build();
-                        this.refundTrade(refundTradeRequest);
+                                .oid(giftVO.getOid()).build();
+                        guanyierpProvider.RefundTrade(refundTradeRequest);
                     });
                 }
             });
@@ -372,18 +376,33 @@ public class StoreReturnOrderController {
                 if (CollectionUtils.isNotEmpty(deliverCalendar)) {
                     String  oid=providerTradeVO.getTradeItems().get(0).getOid();
                     Long providerId = providerTradeVO.getTradeItems().get(0).getProviderId();
+
                     deliverCalendar.forEach(deliverCalendarVO -> {
-                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).build();
-                        this.refundTrade(refundTradeRequest);
+                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).deliveryOrderId("").build();
+                        guanyierpProvider.RefundTrade(refundTradeRequest);
                         //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
                         String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
                         if (CollectionUtils.isNotEmpty(providerTradeVO.getGifts()) && Objects.equals(cyclNum,"1")) {
                             providerTradeVO.getGifts().forEach(giftVO -> {
-                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).providerId(providerId).build();
-                                this.refundTrade(refundRequest);
+                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).build();
+                                guanyierpProvider.RefundTrade(refundRequest);
                             });
                         }
                     });
+
+
+//                    deliverCalendar.forEach(deliverCalendarVO -> {
+//                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).build();
+//                        this.refundTrade(refundTradeRequest);
+//                        //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
+//                        String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
+//                        if (CollectionUtils.isNotEmpty(providerTradeVO.getGifts()) && Objects.equals(cyclNum,"1")) {
+//                            providerTradeVO.getGifts().forEach(giftVO -> {
+//                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).providerId(providerId).build();
+//                                this.refundTrade(refundRequest);
+//                            });
+//                        }
+//                    });
                 }
             }
         });

@@ -533,4 +533,6 @@ public class TradeVO implements Serializable {
      */
     @ApiModelProperty(value = "周期购信息")
     private TradeCycleBuyInfoVO tradeCycleBuyInfo;
+
+    private String deliveryOrderId;
 }

@@ -52,7 +52,7 @@ public class GoodsAssembler {
         if(priceResponse ==null || CollectionUtils.isEmpty(priceResponse.getPriceList()) || !priceResponse.getPriceList().stream().anyMatch(p->p.getBookID().equals(goodsDTO.getBookId()))){
             return goodsSyncDTO;
         }
-        goodsSyncDTO.setBasePrice(priceResponse.getPriceList().stream().filter(p->p.getBookID().equals(goodsDTO.getBookId())).findFirst().get().getSellPrice());
+        goodsSyncDTO.setBasePrice(priceResponse.getPriceList().stream().filter(p->p.getBookID().equals(goodsDTO.getBookId())).findFirst().get().getPrice());
 
         return goodsSyncDTO;
     }
