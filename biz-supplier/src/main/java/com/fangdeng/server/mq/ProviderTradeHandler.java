@@ -36,6 +36,8 @@ public class ProviderTradeHandler {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+
+
     @RabbitListener(queues = ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_QUEUE)
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body) {
@@ -43,7 +45,11 @@ public class ProviderTradeHandler {
         log.info("order push consumer,message:{},payload:{}",message,orderTradeDTO);
         BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
         BookuuOrderAddResponse response = bookuuClient.addOrder(request);
+        if(response.getStatus() == 1 && response.getStatusDesc().contains("已被导入")){
+            return;
+        }
         ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().status(response.getStatus()).statusDesc(response.getStatusDesc()).orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
+        log.info("order push consumer confirm,request:{}",confirmDTO);
         //回传消息
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
         //手动确认

@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class ProviderTradeStatusSyncRequest {
+public class ProviderTradeStatusSyncRequest implements Serializable {
     @ApiModelProperty("第三方订单号")
     private String orderId;
     @ApiModelProperty("发货单号")
