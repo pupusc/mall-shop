@@ -436,9 +436,14 @@ public class Trade implements Serializable {
     private String deductCode;
 
     /**
-     * 推广人用户id
+     * cps推广人用户id
      */
     private String promoteUserId;
+
+    /**
+     * cps来源
+     */
+    private String source;
 
     /**
      * 增加

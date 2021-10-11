@@ -37,6 +37,12 @@
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-common</artifactId>
             <version>${wm.micro.service.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>okio</artifactId>
+                    <groupId>com.squareup.okio</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -88,12 +94,12 @@
         <repository>
             <id>dushu-RELEASES</id>
             <name>NexusReleaseRepository</name>
-            <url>http://resp.dushuclub.io/nexus/content/repositories/releases/</url>
+            <url>http://maven.dushu365.com/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>dushu-SNAPSHOTS</id>
             <name>NexusSnapshotRepository</name>
-            <url>http://resp.dushuclub.io/nexus/content/repositories/snapshots/</url>
+            <url>http://maven.dushu365.com/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 

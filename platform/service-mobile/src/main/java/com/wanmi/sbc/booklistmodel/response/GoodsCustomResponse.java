@@ -5,7 +5,6 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Description: 商品列表简化对象
@@ -15,8 +14,9 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsCustomResponse {
+public class GoodsCustomResponse implements Serializable{
 
+    private static final long serialVersionUID = 7583391826867054305L;
     /**
      * 商品id
      */

@@ -49,6 +49,7 @@ import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
 import com.wanmi.sbc.goods.info.service.S2bGoodsService;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.info.service.*;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;

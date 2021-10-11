@@ -181,4 +181,9 @@ public class TradeCommitRequest extends BaseRequest {
      * 推广人用户id
      */
     private String promoteUserId;
+
+    /**
+     * 推广人用户id
+     */
+    private String source;
 }

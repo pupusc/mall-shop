@@ -121,12 +121,14 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -153,6 +155,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/goods")
 @Api(tags = "GoodsBaseController", description = "S2B web公用-商品信息API")
+@RefreshScope
+@Slf4j
 public class GoodsBaseController {
 
     @Autowired
@@ -245,6 +249,9 @@ public class GoodsBaseController {
     private CustomerProvider customerProvider;
     @Value("${know.ordinary.good.ids}")
     private String goodIds;
+
+    @Value("${search.unshow.goodsIds}")
+    private String searchUnShowGoodsIds;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -467,6 +474,11 @@ public class GoodsBaseController {
         if(CYCLE_BUY.equals(queryRequest.getKeywords())) {
             queryRequest.setGoodsType(GoodsType.CYCLE_BUY);
             queryRequest.setKeywords(null);
+        }
+        if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
+            log.info("---->>> 搜索过滤的 goodsIdi is {}", searchUnShowGoodsIds);
+            String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
+            queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
         }
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
@@ -877,9 +889,10 @@ public class GoodsBaseController {
                 item -> StringUtils.equals(item.getGoodsInfoId(), skuId))
                 .collect(Collectors.toList());
         DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
-        if (DefaultFlag.NO.equals(openFlag) || DefaultFlag.NO.equals(distributionCacheService.queryStoreOpenFlag
-                (String.valueOf(response.getGoods().getStoreId()))) || !DistributionGoodsAudit.CHECKED.equals(goodsInfo.get(0)
-                .getDistributionGoodsAudit())) {
+        if (DefaultFlag.NO.equals(openFlag)
+                || DefaultFlag.NO.equals(distributionCacheService.queryStoreOpenFlag(String.valueOf(response.getGoods().getStoreId())))
+                || CollectionUtils.isEmpty(goodsInfo)
+                || !DistributionGoodsAudit.CHECKED.equals(goodsInfo.get(0).getDistributionGoodsAudit())) {
             response.setDistributionGoods(Boolean.FALSE);
         } else {
             response.setDistributionGoods(Boolean.TRUE);
