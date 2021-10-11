@@ -1413,8 +1413,7 @@ public class TradePushERPService {
                         .platformCode(request.getPlatformCode()).build();
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
                 // todo 记得确认
-                //request.getGoodsList().stream().filter(p -> p.getStatus().equals(5)).forEach(g -> {
-                request.getGoodsList().forEach(g -> {
+                request.getGoodsList().stream().filter(p -> p.getStatus().equals(9)).forEach(g -> {
                     if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();
                         deliveryItemVO.setQty(g.getBookSendNum().longValue());
