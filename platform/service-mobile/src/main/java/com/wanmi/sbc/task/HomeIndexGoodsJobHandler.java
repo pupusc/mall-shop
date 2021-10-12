@@ -1,6 +1,6 @@
 package com.wanmi.sbc.task;
 
-import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
@@ -111,14 +111,15 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         }
         bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
 
+        Gson gson = new Gson();
         Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
         List<String> goodStrList = new ArrayList<>();
         for (SortGoodsCustomResponse sortGoodsCustomResponse:goodList) {
-            goodStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
+            goodStrList.add(gson.toJson(sortGoodsCustomResponse));
         }
         List<String> bookStrList = new ArrayList<>();
         for (SortGoodsCustomResponse sortGoodsCustomResponse:bookList) {
-            bookStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
+            bookStrList.add(gson.toJson(sortGoodsCustomResponse));
         }
         redisService.putAll("hotGoods" + refreshHotCount, goodStrList, 45);
         redisService.putAll("hotBooks" + refreshHotCount, bookStrList, 45);
