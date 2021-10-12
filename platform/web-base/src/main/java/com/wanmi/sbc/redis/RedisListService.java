@@ -1,6 +1,7 @@
 package com.wanmi.sbc.redis;
 
 
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * @author djk
  */
 @Service
-public class RedisListService<T> {
+public class RedisListService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisListService.class);
 
@@ -29,9 +30,9 @@ public class RedisListService<T> {
     /**
      * 从redis 中查询数据
      */
-    public boolean putAll(final String key, List<T> list, long seconds) {
-        ListOperations<String, T> operations = redisTemplate.opsForList();
-        for (T t:list) {
+    public boolean putAll(final String key, List<String> list, long seconds) {
+        ListOperations<String, String> operations = redisTemplate.opsForList();
+        for (String t:list) {
             operations.rightPush(key, t);
         }
         redisTemplate.expire(key, seconds, TimeUnit.MINUTES);
@@ -41,8 +42,8 @@ public class RedisListService<T> {
     /**
      * 从redis 中查询数据
      */
-    public List<T> findByRange(final String key, Integer start, Integer end) {
-        ListOperations<String, T> operations = redisTemplate.opsForList();
+    public List<String> findByRange(final String key, Integer start, Integer end) {
+        ListOperations<String, String> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
             return Collections.emptyList();
@@ -50,7 +51,7 @@ public class RedisListService<T> {
         if (end > size) {
             end = size.intValue();
         }
-        List<T> lists = operations.range(key, start, end);
+        List<String> lists = operations.range(key, start, end);
         return lists;
     }
 
