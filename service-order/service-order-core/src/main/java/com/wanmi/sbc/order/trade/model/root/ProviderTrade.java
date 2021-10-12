@@ -438,4 +438,11 @@ public class ProviderTrade implements Serializable {
                 gifts.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity())));
     }
 
+    /**
+     * 更新时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime modifyTime;
+
 }
