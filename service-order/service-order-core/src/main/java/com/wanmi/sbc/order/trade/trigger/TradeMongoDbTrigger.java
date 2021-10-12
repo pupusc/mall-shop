@@ -33,7 +33,7 @@ public class TradeMongoDbTrigger implements BeforeSaveCallback<Trade>, Ordered {
         if (entity.getTradeState() != null) {
             entity.getTradeState().setModifyTime(LocalDateTime.now());
         }
-        entity.setModifyTime(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
         log.info("TradeMongoDbTrigger.onBeforeSave end trade {}", JSON.toJSONString(entity));
         return entity;
     }

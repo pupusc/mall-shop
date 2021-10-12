@@ -29,7 +29,7 @@ public class ReturnOrderMongoDbTrigger implements BeforeSaveCallback<ReturnOrder
     @Override
     public ReturnOrder onBeforeSave(ReturnOrder entity, Document document, String collection) {
         log.info("ReturnOrderMongoDbTrigger.onBeforeSave before ReturnOrder {}", JSON.toJSONString(entity));
-        entity.setModifyTime(LocalDateTime.now());
+        entity.setUpdateTime(LocalDateTime.now());
         log.info("ReturnOrderMongoDbTrigger.onBeforeSave end ReturnOrder {}", JSON.toJSONString(entity));
         return entity;
     }

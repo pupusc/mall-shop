@@ -489,6 +489,6 @@ public class Trade implements Serializable {
      */
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime modifyTime;
+    private LocalDateTime updateTime;
 
 }
