@@ -18,7 +18,6 @@ import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
-import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.util.OperateLogMQUtil;
