@@ -7,10 +7,10 @@ import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.HttpUtil;
-import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
+import com.wanmi.sbc.configure.SpringUtil;
+import com.wanmi.sbc.index.requst.KeyRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
-import com.wanmi.sbc.index.response.IndexConfigChild2Response;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +52,8 @@ public class IndexHomeController {
     private RedisTemplate redisTemplate;
     public static final Integer GOODS_SIZE = 5;
     public static final Integer BOOKS_SIZE = 1;
+
+
     /**
      * @description 获取首页配置数据
      * @menu 商城首页
@@ -172,24 +176,21 @@ public class IndexHomeController {
 
 
     /**
-     * @description 获取商品详情页配置数据
+     * @description 根据KEY取配置值
      * @menu 商城首页
      * @tag feature_d_1111_index
      * @status done
      */
-    @PostMapping(value = "/wlsd")
-    public BaseResponse<IndexConfigChild2Response> wlsdCoverMessage(@RequestBody GoodsDetailProperBySkuIdRequest skuIdRequest) {
-        List<IndexConfigChild2Response> indexConfigResponseList = JSONArray.parseArray(refreshConfig.getWlsdConfig(), IndexConfigChild2Response.class);
-        Map<String, IndexConfigChild2Response> indexConfigChild2ResponseMap = indexConfigResponseList.stream().collect(Collectors.toMap(IndexConfigChild2Response::getId, Function.identity(), (v1, v2) -> v1));
-
-        IndexConfigChild2Response indexConfigChild2Response;
-        if (indexConfigChild2ResponseMap.containsKey(skuIdRequest.getSkuId())) {
-            indexConfigChild2Response = indexConfigChild2ResponseMap.get(skuIdRequest.getSkuId());
-        } else {
-            indexConfigChild2Response = indexConfigChild2ResponseMap.get("default");
-            indexConfigChild2Response.setId(skuIdRequest.getSkuId());
+    @PostMapping(value = "/configByKey")
+    public BaseResponse<Map<String, String>> configByKey(@RequestBody KeyRequest keyRequest) {
+        List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
+        Map<String, String> configMap = new HashMap<>();
+        for (String key:keyRequest.getKeys()) {
+            if (allowKeyList.contains(key)) {
+                configMap.put(key, SpringUtil.getBean(key));
+            }
         }
-        return BaseResponse.success(indexConfigChild2Response);
+        return BaseResponse.success(configMap);
     }
 
 }

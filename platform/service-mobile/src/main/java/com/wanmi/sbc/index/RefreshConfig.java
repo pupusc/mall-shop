@@ -28,6 +28,6 @@ public class RefreshConfig {
     @Value("${activity.start.time}")
     private volatile String activityStartTime;
 
-    @Value("${wlsd.config}")
-    private volatile String wlsdConfig;
+    @Value("${allow.keys}")
+    private volatile String allowKeys;
 }
