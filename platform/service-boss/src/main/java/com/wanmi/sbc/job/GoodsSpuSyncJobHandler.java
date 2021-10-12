@@ -194,7 +194,7 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             if(goods.getSalePrice().compareTo(math1) >=0 && goods.getSalePrice().compareTo(math2) <= 0){
                 goodsInfoDTO.setMarketPrice(goods.getSalePrice());
             }else if(goods.getSalePrice().compareTo(math2) > 0){
-                goodsInfoDTO.setMarketPrice(goods.getBasePrice().multiply(new BigDecimal(1.2)));
+                goodsInfoDTO.setMarketPrice(math2);
             }else{
                 goodsInfoDTO.setMarketPrice(null);
                 goodsDTO.setAddedFlag(0);
