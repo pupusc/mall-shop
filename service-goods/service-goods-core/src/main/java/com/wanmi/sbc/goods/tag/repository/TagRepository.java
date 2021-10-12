@@ -19,4 +19,6 @@ public interface TagRepository extends JpaRepository<Tag, Long>, JpaSpecificatio
     @Modifying
     @Query(value = "delete from t_tag_rel where goods_id=:goodsId", nativeQuery = true)
     void deleteTagsForGoods(String goodsId);
+
+    List<Tag> findAllByTagName(String tagName);
 }

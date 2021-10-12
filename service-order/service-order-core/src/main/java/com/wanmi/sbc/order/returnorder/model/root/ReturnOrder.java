@@ -340,6 +340,14 @@ public class ReturnOrder implements Serializable {
      */
     private ReturnAddress returnAddress;
 
+
+    /**
+     * 更新时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime updateTime;
+
     /**
      * 增加操作日志
      *

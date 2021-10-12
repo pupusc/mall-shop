@@ -447,6 +447,7 @@ public class TradeController implements TradeProvider {
     @Override
     public BaseResponse<TradeDefaultPayResponse> defaultPay(@RequestBody @Valid TradeDefaultPayRequest tradeDefaultPayRequest) {
         Trade trade = tradeService.detail(tradeDefaultPayRequest.getTid());
+        log.info("0元支付:{}", trade.getId());
         if (Objects.isNull(trade)) {
             throw new SbcRuntimeException("K-050100", new Object[]{tradeDefaultPayRequest.getTid()});
         }
