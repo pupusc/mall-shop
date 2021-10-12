@@ -2,7 +2,7 @@ package com.wanmi.sbc.index;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -109,9 +109,8 @@ public class IndexHomeController {
                 .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
-        Gson gson = new Gson();
         for (String goodStr:objectList) {
-            goodsCustomResponseList.add(gson.fromJson(goodStr, SortGoodsCustomResponse.class));
+            goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
         }
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
