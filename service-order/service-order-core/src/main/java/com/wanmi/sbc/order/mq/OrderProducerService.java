@@ -15,6 +15,7 @@ import com.wanmi.sbc.order.api.constant.MessageConstants;
 import com.wanmi.sbc.order.api.request.esCustomerFunds.EsCustomerFundsSaveListRequest;
 import com.wanmi.sbc.order.api.request.esCustomerFunds.EsCustomerFundsSaveRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeBackRestrictedRequest;
+import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.vo.GrouponInstanceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -43,8 +44,6 @@ public class OrderProducerService {
 
     @Autowired
     private BinderAwareChannelResolver resolver;
-
-
 
     /**
      * 订单支付后，发送MQ消息
@@ -256,6 +255,17 @@ public class OrderProducerService {
         }
     }
 
+    /**
+     * 发送神策埋点消息
+     * @param sensorsMessageDto
+     */
+    public void sendSensorsMessage(List<SensorsMessageDto> sensorsMessageDto) {
+        try {
+            resolver.resolveDestination(JmsDestinationConstants.Q_SENSORS_MESSAGE_PRODUCER).send(new GenericMessage<>(sensorsMessageDto));
+        }catch (Exception e){
+            log.error("发送神策埋点失败", e);
+        }
+    }
 
 //    /**
 //     * 新增会员权益处理订单成长值临时表

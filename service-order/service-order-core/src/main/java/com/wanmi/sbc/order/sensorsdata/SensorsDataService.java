@@ -1,37 +1,63 @@
-//package com.wanmi.sbc.order.sensorsdata;
-//
-//import com.sensorsdata.analytics.javasdk.bean.EventRecord;
-//import com.sensorsdata.analytics.javasdk.exceptions.InvalidArgumentException;
-//import org.springframework.stereotype.Service;
-//
-///**
-// * Description:
-// * Company    : 上海黄豆网络科技有限公司
-// * Author     : duanlongshan@dushu365.com
-// * Date       : 2021/9/28 4:56 下午
-// * Modify     : 修改日期          修改人员        修改说明          JIRA编号
-// ********************************************************************/
-//@Service
-//public class SensorsDataService {
-//
-//
-//    /**
-//     * 支付成功埋点
-//     * @param distinctId
-//     * @param goodsInfoId
-//     * @return
-//     */
-//    public EventRecord addPaySuccessEventRecord(String distinctId, String goodsInfoId, String price) throws InvalidArgumentException {
-//
-//        return EventRecord.builder()
-//                .isLoginId(Boolean.FALSE)
-//                .setDistinctId(distinctId)
-//                .setEventName("shop_pay_0_success")
-//                .addProperty("$platform_type", "H5")
-//                .addProperty("to_sensors", "1")
-//                .addProperty("click_type", "付款成功")
-//                .addProperty("var_id", goodsInfoId)
-//                .addProperty("price", price).build();
-//    }
-//
-//}
+package com.wanmi.sbc.order.sensorsdata;
+
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
+import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
+import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
+import com.wanmi.sbc.order.mq.OrderProducerService;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import sun.rmi.runtime.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 神策埋点处理
+ */
+@Service
+@Slf4j
+public class SensorsDataService {
+
+    private static final String PAY_SUCCESS_EVENT = "shop_pay_0_success";
+
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+    @Autowired
+    private OrderProducerService orderProducerService;
+
+    /**
+     * 支付成功埋点
+     */
+    public void sendPaySuccessEvent(List<Trade> trades) {
+        List<SensorsMessageDto> sensorsMessageDtos = new ArrayList<>();
+        log.info("支付成功埋点数据:{}", trades.get(0).getId());
+        for (Trade trade : trades) {
+            NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
+            request.setCustomerAccount(trade.getBuyer().getAccount());
+            BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
+            String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
+            if (StringUtils.isNotBlank(fandengUserNo)) {
+                for (TradeItem tradeItem : trade.getTradeItems()) {
+                    SensorsMessageDto sensorsMessageDto = new SensorsMessageDto();
+                    sensorsMessageDto.setEventName(PAY_SUCCESS_EVENT);
+                    sensorsMessageDto.setDistinctId(fandengUserNo);
+                    sensorsMessageDto.setLoginId(false);
+                    sensorsMessageDto.addProperty("click_type", "付款成功");
+                    sensorsMessageDto.addProperty("var_id", tradeItem.getSkuId());
+                    sensorsMessageDto.addProperty("goods_name", tradeItem.getSkuName());
+                    sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().toString());
+                    sensorsMessageDtos.add(sensorsMessageDto);
+                }
+            }
+            orderProducerService.sendSensorsMessage(sensorsMessageDtos);
+            log.info("支付成功埋点数据2:{},{}", trades.get(0).getId(), sensorsMessageDtos.size());
+        }
+    }
+
+}

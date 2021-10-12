@@ -128,4 +128,9 @@ public interface JmsDestinationConstants {
     String PROVIDER_TRADE_ORDER_PUSH_CONFIRM_QUEUE="provider.trade.order.push.confirm.group-1";
 
     String PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE="provider.trade.delivery.status.sync.confirm.group-1";
+
+    /**
+     * 神策埋点消息
+     */
+    String Q_SENSORS_MESSAGE_PRODUCER = "sensorsMessageProducer";
 }

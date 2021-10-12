@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.tag.model.Tag;
 import com.wanmi.sbc.goods.tag.model.TagRel;
 import com.wanmi.sbc.goods.tag.repository.TagRelRepository;
 import com.wanmi.sbc.goods.tag.repository.TagRepository;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,13 +57,19 @@ public class TagService {
                 tagRel.setDelFlag(DeleteFlag.NO);
                 tagRel.setCategory(1);
                 if(tag.startsWith("&")){
-                    Tag tagDb = new Tag();
-                    tagDb.setCreateTime(now);
-                    tagDb.setUpdateTime(now);
-                    tagDb.setDelFlag(DeleteFlag.NO);
-                    tagDb.setTagName(tag.substring(1));
-                    tagRepository.save(tagDb);
-                    tagRel.setTagId(tagDb.getId());
+                    String tagName = tag.substring(1);
+                    List<Tag> tagDb = tagRepository.findAllByTagName(tagName);
+                    if(CollectionUtils.isNotEmpty(tagDb)){
+                        tagRel.setTagId(tagDb.get(0).getId());
+                    }else{
+                        Tag t = new Tag();
+                        t.setCreateTime(now);
+                        t.setUpdateTime(now);
+                        t.setDelFlag(DeleteFlag.NO);
+                        t.setTagName(tag.substring(1));
+                        tagRepository.save(t);
+                        tagRel.setTagId(t.getId());
+                    }
                 }else{
                     tagRel.setTagId(Long.parseLong(tag));
                 }
