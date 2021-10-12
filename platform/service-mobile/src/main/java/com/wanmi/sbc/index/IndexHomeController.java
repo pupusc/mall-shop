@@ -7,8 +7,10 @@ import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
+import com.wanmi.sbc.index.response.IndexConfigChild2Response;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
@@ -168,5 +170,26 @@ public class IndexHomeController {
         return BaseResponse.success(new Date().after(date));
     }
 
+
+    /**
+     * @description 获取商品详情页配置数据
+     * @menu 商城首页
+     * @tag feature_d_1111_index
+     * @status done
+     */
+    @PostMapping(value = "/wlsd")
+    public BaseResponse<IndexConfigChild2Response> wlsdCoverMessage(@RequestBody GoodsDetailProperBySkuIdRequest skuIdRequest) {
+        List<IndexConfigChild2Response> indexConfigResponseList = JSONArray.parseArray(refreshConfig.getWlsdConfig(), IndexConfigChild2Response.class);
+        Map<String, IndexConfigChild2Response> indexConfigChild2ResponseMap = indexConfigResponseList.stream().collect(Collectors.toMap(IndexConfigChild2Response::getId, Function.identity(), (v1, v2) -> v1));
+
+        IndexConfigChild2Response indexConfigChild2Response;
+        if (indexConfigChild2ResponseMap.containsKey(skuIdRequest.getSkuId())) {
+            indexConfigChild2Response = indexConfigChild2ResponseMap.get(skuIdRequest.getSkuId());
+        } else {
+            indexConfigChild2Response = indexConfigChild2ResponseMap.get("default");
+            indexConfigChild2Response.setId(skuIdRequest.getSkuId());
+        }
+        return BaseResponse.success(indexConfigChild2Response);
+    }
 
 }
