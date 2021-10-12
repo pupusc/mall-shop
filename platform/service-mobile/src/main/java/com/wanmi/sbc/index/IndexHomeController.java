@@ -42,7 +42,7 @@ public class IndexHomeController {
     private RefreshConfig refreshConfig;
 
     @Autowired
-    private RedisListService<SortGoodsCustomResponse> redisService;
+    private RedisListService redisService;
 
     @Autowired
     private RedisTemplate redisTemplate;

@@ -48,7 +48,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     @Autowired
     private HotGoodsProvider hotGoodsProvider;
     @Autowired
-    private RedisListService<SortGoodsCustomResponse> redisService;
+    private RedisListService redisService;
     @Autowired
     private EsGoodsCustomQueryProvider goodsCustomQueryProvider;
 
