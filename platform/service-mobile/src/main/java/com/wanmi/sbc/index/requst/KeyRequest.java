@@ -3,6 +3,7 @@ package com.wanmi.sbc.index.requst;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class KeyRequest implements Serializable {
     /**
      * key
      */
+    @NotEmpty(message = "keys不能为空！")
     private List<String> keys;
 
 
