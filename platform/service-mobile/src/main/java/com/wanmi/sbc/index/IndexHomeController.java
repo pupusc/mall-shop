@@ -17,6 +17,7 @@ import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -182,7 +183,7 @@ public class IndexHomeController {
      * @status done
      */
     @PostMapping(value = "/configByKey")
-    public BaseResponse<Map<String, String>> configByKey(@RequestBody KeyRequest keyRequest) {
+    public BaseResponse<Map<String, String>> configByKey(@RequestBody @Validated KeyRequest keyRequest) {
         List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
         Map<String, String> configMap = new HashMap<>();
         for (String key:keyRequest.getKeys()) {
