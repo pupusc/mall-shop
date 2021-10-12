@@ -173,6 +173,7 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setFreightTempId(defaultFreightTempId);
         goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
         goodsDTO.setGoodsSource(0);
+
         request.setGoods(goodsDTO);
 
         GoodsInfoDTO goodsInfoDTO = new GoodsInfoDTO();

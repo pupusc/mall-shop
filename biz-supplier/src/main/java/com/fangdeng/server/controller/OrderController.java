@@ -26,7 +26,7 @@ public class OrderController {
 
     @PostMapping("/cancel")
     public BaseResponse<CancelOrderVO> cancelOrder(@RequestBody CancelOrderDTO cancelOrderDTO) {
-        log.info("cancel order request:{},cancelOrderDTO");
+        log.info("cancel order request:{}",cancelOrderDTO);
         return orderService.cancelOrder(cancelOrderDTO);
     }
 }

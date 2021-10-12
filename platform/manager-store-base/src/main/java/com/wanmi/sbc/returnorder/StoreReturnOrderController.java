@@ -7,6 +7,7 @@ import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.aop.EmployeeCheck;
 import com.wanmi.sbc.client.BizSupplierClient;
 import com.wanmi.sbc.client.CancelOrderRequest;
+import com.wanmi.sbc.client.CancelOrderResponse;
 import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -348,7 +349,10 @@ public class StoreReturnOrderController {
         if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
             tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
                 if(!Objects.equals(providerTradeVO.getTradeItems().get(0).getProviderId(),defaultProviderId)){
-                    bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
+                    BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
+                    if(response == null || response.getContext() == null || Objects.equals(response.getContext().getStatus,1)){
+                        throw new SbcRuntimeException("K-050106");
+                    }
                     return;
                 }
                 //拦截主商品
