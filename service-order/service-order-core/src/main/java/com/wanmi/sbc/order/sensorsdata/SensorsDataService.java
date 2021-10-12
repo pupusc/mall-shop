@@ -8,9 +8,11 @@ import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.mq.OrderProducerService;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sun.rmi.runtime.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.List;
  * 神策埋点处理
  */
 @Service
+@Slf4j
 public class SensorsDataService {
 
     private static final String PAY_SUCCESS_EVENT = "shop_pay_0_success";
@@ -33,6 +36,7 @@ public class SensorsDataService {
      */
     public void sendPaySuccessEvent(List<Trade> trades) {
         List<SensorsMessageDto> sensorsMessageDtos = new ArrayList<>();
+        log.info("支付成功埋点数据:{}", trades.get(0).getId());
         for (Trade trade : trades) {
             NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
             request.setCustomerAccount(trade.getBuyer().getAccount());
@@ -52,6 +56,7 @@ public class SensorsDataService {
                 }
             }
             orderProducerService.sendSensorsMessage(sensorsMessageDtos);
+            log.info("支付成功埋点数据2:{},{}", trades.get(0).getId(), sensorsMessageDtos.size());
         }
     }
 
