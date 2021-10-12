@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-            <version>${spring-cloud-stream-binder-rabbit.version}</version>
+<!--            <version>${spring-cloud-stream-binder-rabbit.version}</version>-->
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-databind</artifactId>
