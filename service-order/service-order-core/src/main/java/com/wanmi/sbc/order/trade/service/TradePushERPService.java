@@ -1409,7 +1409,7 @@ public class TradePushERPService {
                 DeliveryInfoVO deliveryInfoVO = DeliveryInfoVO.builder()
                         .expressName(request.getPost())
                         .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
-                        .expressCode(request.getPostNumber())
+                        .expressNo(request.getPostNumber())
                         .platformCode(request.getPlatformCode()).build();
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
                 // todo 记得确认
