@@ -11,6 +11,8 @@ import com.fangdeng.server.mq.ProviderTradeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping(value = "/test")
 public class TestController {
@@ -29,6 +31,13 @@ public class TestController {
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
+        BigDecimal a = new BigDecimal(6);
+        BigDecimal b = new BigDecimal(6.6);
+        BigDecimal c = a.multiply(new BigDecimal(1.1));
+        BigDecimal d = a.multiply(new BigDecimal(1.2));
+        BigDecimal dd = new BigDecimal("6.6");
+        BigDecimal math1 = new BigDecimal(String.valueOf("6")).multiply(new BigDecimal("1.1"));
+        BigDecimal math2 = new BigDecimal(String.valueOf("6")).multiply(new BigDecimal("1.2"));
         try {
             //providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
             providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");

@@ -190,9 +190,11 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         //合作伙伴成本价 * 20% <= 建议销售价【使用，合作伙伴成本价 * 20%】
         goodsInfoDTO.setMarketPrice(goods.getSalePrice());
         if(goods.getBasePrice() != null && goods.getSalePrice() !=null){
-            if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.1))) >=0 && goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) < 0){
+            BigDecimal math1= new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.1")).setScale(2,BigDecimal.ROUND_UP);
+            BigDecimal math2= new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.2")).setScale(2,BigDecimal.ROUND_UP);
+            if(goods.getSalePrice().compareTo(math1) >=0 && goods.getSalePrice().compareTo(math2) <= 0){
                 goodsInfoDTO.setMarketPrice(goods.getSalePrice());
-            }else if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) >=0){
+            }else if(goods.getSalePrice().compareTo(math2) > 0){
                 goodsInfoDTO.setMarketPrice(goods.getBasePrice().multiply(new BigDecimal(1.2)));
             }else{
                 goodsInfoDTO.setMarketPrice(null);
