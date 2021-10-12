@@ -34,6 +34,7 @@ public class ProviderTradeMongoDbTrigger implements BeforeSaveCallback<ProviderT
         if (entity.getTradeState() != null) {
             entity.getTradeState().setModifyTime(LocalDateTime.now());
         }
+        entity.setModifyTime(LocalDateTime.now());
         log.info("TradeMongoDbTrigger.onBeforeSave end ProviderTrade {}", JSON.toJSONString(entity));
         return entity;
     }
