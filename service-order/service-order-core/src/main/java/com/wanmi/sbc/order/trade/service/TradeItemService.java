@@ -641,8 +641,13 @@ public class TradeItemService {
 
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, customer);
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-        Map<String, String> goodMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, GoodsInfoVO::getGoodsInfoId));
-        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().filter(good -> good.getCpsSpecial() != null).collect(Collectors.toMap(goods -> goodMap.get(goods.getGoodsId()), GoodsVO::getCpsSpecial));
+//        Map<String, String> goodMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsId, GoodsInfoVO::getGoodsInfoId));
+//        Map<String, Integer> cpsSpecialMap = response.getGoodses().stream().filter(good -> good.getCpsSpecial() != null).collect(Collectors.toMap(goods -> goodMap.get(goods.getGoodsId()), GoodsVO::getCpsSpecial));
+
+        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null)
+                .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
+                .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
 
         ChannelType channelType = request.getChannelType();
         DistributeChannel distributeChannel = request.getDistributeChannel();
