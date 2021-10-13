@@ -1,8 +1,11 @@
 package com.wanmi.perseus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
@@ -14,9 +17,11 @@ import java.net.UnknownHostException;
  * Created by of628-wenzhi on 2017-09-22-下午2:06.
  */
 @SpringBootApplication
+@EnableDiscoveryClient
 @EnableAsync
 @Slf4j
-public class PerseusBootstrap {
+public class PerseusBootstrap{
+
     public static void main(String[] args) throws UnknownHostException {
         System.setProperty("nacos.logging.default.config.enabled","false");
         Environment env = SpringApplication.run(PerseusBootstrap.class, args).getEnvironment();
@@ -34,4 +39,5 @@ public class PerseusBootstrap {
                 actPort
         );
     }
+
 }

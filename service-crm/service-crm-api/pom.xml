@@ -42,5 +42,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-dw-bean</artifactId>
+            <version>${service.dw.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.task;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
@@ -47,7 +48,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     @Autowired
     private HotGoodsProvider hotGoodsProvider;
     @Autowired
-    private RedisListService<SortGoodsCustomResponse> redisService;
+    private RedisListService redisService;
     @Autowired
     private EsGoodsCustomQueryProvider goodsCustomQueryProvider;
 
@@ -109,9 +110,18 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             bookList.add(goodsCustomResponse);
         }
         bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
+
         Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
-        redisService.putAll("hotGoods" + refreshHotCount, goodList, 45);
-        redisService.putAll("hotBooks" + refreshHotCount, bookList, 45);
+        List<String> goodStrList = new ArrayList<>();
+        for (SortGoodsCustomResponse sortGoodsCustomResponse:goodList) {
+            goodStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
+        }
+        List<String> bookStrList = new ArrayList<>();
+        for (SortGoodsCustomResponse sortGoodsCustomResponse:bookList) {
+            bookStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
+        }
+        redisService.putAll("hotGoods" + refreshHotCount, goodStrList, 45);
+        redisService.putAll("hotBooks" + refreshHotCount, bookStrList, 45);
         return SUCCESS;
     }
 

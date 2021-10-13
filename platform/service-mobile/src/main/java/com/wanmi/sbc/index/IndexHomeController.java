@@ -2,10 +2,13 @@ package com.wanmi.sbc.index;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.configure.SpringUtil;
+import com.wanmi.sbc.index.requst.KeyRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
@@ -14,13 +17,16 @@ import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -41,12 +47,14 @@ public class IndexHomeController {
     private RefreshConfig refreshConfig;
 
     @Autowired
-    private RedisListService<SortGoodsCustomResponse> redisService;
+    private RedisListService redisService;
 
     @Autowired
     private RedisTemplate redisTemplate;
     public static final Integer GOODS_SIZE = 5;
     public static final Integer BOOKS_SIZE = 1;
+
+
     /**
      * @description 获取首页配置数据
      * @menu 商城首页
@@ -95,12 +103,15 @@ public class IndexHomeController {
             redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
         }
 
-        List objectList = redisService
+        List<String> objectList = redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
                 .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
 
-        List<SortGoodsCustomResponse> goodsCustomResponseList = JSONArray.parseArray(JSON.toJSONString(objectList), SortGoodsCustomResponse.class);
+        List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
+        for (String goodStr:objectList) {
+            goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
+        }
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
                 .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity()));
@@ -164,5 +175,23 @@ public class IndexHomeController {
         return BaseResponse.success(new Date().after(date));
     }
 
+
+    /**
+     * @description 根据KEY取配置值
+     * @menu 商城首页
+     * @tag feature_d_1111_index
+     * @status done
+     */
+    @PostMapping(value = "/configByKey")
+    public BaseResponse<Map<String, String>> configByKey(@RequestBody @Validated KeyRequest keyRequest) {
+        List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
+        Map<String, String> configMap = new HashMap<>();
+        for (String key:keyRequest.getKeys()) {
+            if (allowKeyList.contains(key)) {
+                configMap.put(key, SpringUtil.getBean(key));
+            }
+        }
+        return BaseResponse.success(configMap);
+    }
 
 }
