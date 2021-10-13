@@ -18,6 +18,11 @@ import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsPropDetailRelDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -32,6 +37,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 
 
 /**
@@ -91,17 +103,17 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         log.info("=====发布商品start======");
         //查询审核通过待发布的商品信息
         BaseResponse<List<GoodsSyncVO>> response = goodsQueryProvider.listGoodsSync();
-        if(response == null || CollectionUtils.isEmpty(response.getContext())){
+        if (response == null || CollectionUtils.isEmpty(response.getContext())) {
             log.info("没有审核通过待发布的商品");
             return SUCCESS;
         }
-        response.getContext().forEach(g->{
+        response.getContext().forEach(g -> {
             addGoods(g);
         });
         return SUCCESS;
     }
 
-    private void addGoods(GoodsSyncVO goodsSync){
+    private void addGoods(GoodsSyncVO goodsSync) {
         try {
             GoodsAddRequest request = convertBean(goodsSync);
             request.setUpdatePerson("goodsSpuSyncJob");
@@ -144,8 +156,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             operateLogMQUtil.convertAndSend("商品", "直接发布",
                     "直接发布：SPU编码" + request.getGoods().getGoodsNo());
             return;
-        }catch (Exception e){
-            log.warn("同步商品失败",e);
+        } catch (Exception e) {
+            log.warn("同步商品失败", e);
         }
     }
 
@@ -188,14 +200,14 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         //合作伙伴成本价 * 10% <= 建议销售价 <= 合作伙伴成本价 * 20%【使用，建议销售价】
         //合作伙伴成本价 * 20% <= 建议销售价【使用，合作伙伴成本价 * 20%】
         goodsInfoDTO.setMarketPrice(goods.getSalePrice());
-        if(goods.getBasePrice() != null && goods.getSalePrice() !=null){
-            BigDecimal math1= new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.1")).setScale(2,BigDecimal.ROUND_UP);
-            BigDecimal math2= new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.2")).setScale(2,BigDecimal.ROUND_UP);
-            if(goods.getSalePrice().compareTo(math1) >=0 && goods.getSalePrice().compareTo(math2) <= 0){
+        if (goods.getBasePrice() != null && goods.getSalePrice() != null) {
+            BigDecimal math1 = new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.1")).setScale(2, BigDecimal.ROUND_UP);
+            BigDecimal math2 = new BigDecimal(String.valueOf(goods.getBasePrice())).multiply(new BigDecimal("1.2")).setScale(2, BigDecimal.ROUND_UP);
+            if (goods.getSalePrice().compareTo(math1) >= 0 && goods.getSalePrice().compareTo(math2) <= 0) {
                 goodsInfoDTO.setMarketPrice(goods.getSalePrice());
-            }else if(goods.getSalePrice().compareTo(math2) > 0){
+            } else if (goods.getSalePrice().compareTo(math2) > 0) {
                 goodsInfoDTO.setMarketPrice(math2);
-            }else{
+            } else {
                 goodsInfoDTO.setMarketPrice(null);
                 goodsDTO.setAddedFlag(0);
             }
@@ -214,13 +226,13 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
 
         List<GoodsImageDTO> images = new ArrayList<>();
         //图片
-        if(StringUtils.isNotEmpty(goods.getLargeImageUrl())){
+        if (StringUtils.isNotEmpty(goods.getLargeImageUrl())) {
             String[] imgs = goods.getLargeImageUrl().split("\\|");
-            if(imgs!=null && imgs.length >0){
-                for(int i=0;i<imgs.length;i++){
+            if (imgs != null && imgs.length > 0) {
+                for (int i = 0; i < imgs.length; i++) {
                     GoodsImageDTO image = new GoodsImageDTO();
                     image.setSort(i);
-                    image.setArtworkUrl(i== 0? imgs[i] :("http://images.bookuu.com"+imgs[i]));
+                    image.setArtworkUrl(i == 0 ? imgs[i] : ("http://images.bookuu.com" + imgs[i]));
                     images.add(image);
                 }
             }
@@ -229,9 +241,9 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         //属性
         List<GoodsPropDetailRelDTO> propDetails = new ArrayList<>();
         JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(goods));
-        List<GoodsPropDetailRelDTO> propDetail = JSONObject.parseArray(propDetailStr,GoodsPropDetailRelDTO.class);
-        propDetail.forEach(p->{
-            if(jsonObject.get(p.getPropValue()) != null){
+        List<GoodsPropDetailRelDTO> propDetail = JSONObject.parseArray(propDetailStr, GoodsPropDetailRelDTO.class);
+        propDetail.forEach(p -> {
+            if (jsonObject.get(p.getPropValue()) != null) {
                 GoodsPropDetailRelDTO prop = new GoodsPropDetailRelDTO();
                 prop.setDetailId(0L);
                 prop.setPropId(p.getPropId());

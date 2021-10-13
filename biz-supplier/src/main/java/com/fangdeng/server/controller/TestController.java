@@ -4,14 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fangdeng.server.dto.OrderTradeDTO;
 import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
+import com.fangdeng.server.dto.TagDTO;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
 import com.fangdeng.server.job.SyncGoodsStockJobHandler;
+import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/test")
@@ -28,6 +31,9 @@ public class TestController {
 
     @Autowired
     private SyncGoodsStockJobHandler stockJobHandler;
+
+    @Autowired
+    private TagMapper tagMapper;
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
@@ -80,6 +86,16 @@ public class TestController {
             providerTradeHandler.deliveryStatusSyncConsumer(null, JSON.toJSONString(syncDTO));
         }catch (Exception e){
 
+        }
+    }
+
+    @PostMapping("/goods/label/init")
+    public void initLabel(@RequestBody List<TagDTO> labels){
+        try {
+            tagMapper.batchInsert(labels);
+            
+        }catch (Exception e){
+            String a="";
         }
     }
 }
