@@ -299,11 +299,10 @@ public class StoreReturnOrderController {
         if (tradeVO.getCycleBuyFlag()) {
             List<DeliverCalendarVO> deliverCalendar=tradeVO.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendarVO -> deliverCalendarVO.getCycleDeliverStatus()==CycleDeliverStatus.PUSHED).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(deliverCalendar)) {
-                Long providerId = tradeVO.getTradeItems().get(0).getProviderId();
                 deliverCalendar.forEach(deliverCalendarVO -> {
                     //查询providerId查询订单的发货记录
-                    DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).providerId(providerId).build();
-                    BaseResponse<DeliveryStatusResponse> response = this.getDeliveryStatus(deliveryQueryRequest);
+                    DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).build();
+                    BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
                     //已发货并且没有确认收货的订单无法退款
                     if(!tradeVO.getTradeState().getFlowState().equals(FlowState.VOID)
                             && !CollectionUtils.isEmpty(response.getContext().getDeliveryInfoVOList())){
@@ -318,7 +317,7 @@ public class StoreReturnOrderController {
         }else {
             //已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(returnOrder.getPtid()).build();
-            BaseResponse<DeliveryStatusResponse> response = this.getDeliveryStatus(deliveryQueryRequest);
+            BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
             if(!tradeVO.getTradeState().getFlowState().equals(FlowState.VOID)
                     && !tradeVO.getTradeState().getFlowState().equals(FlowState.COMPLETED)
                     && !CollectionUtils.isEmpty(response.getContext().getDeliveryInfoVOList())){
@@ -365,10 +364,8 @@ public class StoreReturnOrderController {
                 List<DeliverCalendarVO> deliverCalendar=tradeCycleBuyInfo.getDeliverCalendar().stream().filter(deliverCalendarVO -> deliverCalendarVO.getCycleDeliverStatus()== CycleDeliverStatus.PUSHED).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(deliverCalendar)) {
                     String  oid=providerTradeVO.getTradeItems().get(0).getOid();
-                    Long providerId = providerTradeVO.getTradeItems().get(0).getProviderId();
-
                     deliverCalendar.forEach(deliverCalendarVO -> {
-                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).deliveryOrderId("").build();
+                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).build();
                         guanyierpProvider.RefundTrade(refundTradeRequest);
                         //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
                         String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
@@ -379,20 +376,6 @@ public class StoreReturnOrderController {
                             });
                         }
                     });
-
-
-//                    deliverCalendar.forEach(deliverCalendarVO -> {
-//                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(oid).providerId(providerId).build();
-//                        this.refundTrade(refundTradeRequest);
-//                        //获取订单期数，判断是否是第一期，周期购订单只有第一期才有赠品
-//                        String cyclNum= deliverCalendarVO.getErpTradeCode().substring(deliverCalendarVO.getErpTradeCode().length()-1);
-//                        if (CollectionUtils.isNotEmpty(providerTradeVO.getGifts()) && Objects.equals(cyclNum,"1")) {
-//                            providerTradeVO.getGifts().forEach(giftVO -> {
-//                                RefundTradeRequest refundRequest = RefundTradeRequest.builder().tid(deliverCalendarVO.getErpTradeCode()).oid(giftVO.getOid()).providerId(providerId).build();
-//                                this.refundTrade(refundRequest);
-//                            });
-//                        }
-//                    });
                 }
             }
         });

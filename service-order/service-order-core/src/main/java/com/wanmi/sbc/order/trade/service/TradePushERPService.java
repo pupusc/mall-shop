@@ -25,10 +25,7 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
 import com.wanmi.sbc.order.bean.enums.*;
-import com.wanmi.sbc.order.bean.vo.LogisticsVO;
-import com.wanmi.sbc.order.bean.vo.ShippingItemVO;
-import com.wanmi.sbc.order.bean.vo.TradeDeliverVO;
-import com.wanmi.sbc.order.bean.vo.TradeVO;
+import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.logistics.model.root.LogisticsLog;
 import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
@@ -1073,6 +1070,8 @@ public class TradePushERPService {
                 .eventType("ERP订单发货清单")
                 .eventTime(LocalDateTime.now())
                 .build();
+        //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(tradeVO.getId());
 
         //修改订单发货状态(排除发货单是未发货状态的)
         deliveryInfoVOList.stream().
@@ -1261,6 +1260,11 @@ public class TradePushERPService {
                     TradeDeliverVO tradeDeliver =  tradeDeliverVOList.get(0);
                     providerTrade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
                     tradeVO.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
+                    if(CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.NOT_YET_SHIPPED).contains(p.getTradeState().getDeliverStatus()))){
+                        tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                        tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                        tradeVO.getTradeState().setDeliverTime(null);
+                    }
 
 
                 } else if (totalDeliverStatusList.get(0) == DeliverStatus.PART_SHIPPED) {
@@ -1301,17 +1305,24 @@ public class TradePushERPService {
             // 同步Trade商品对应发货数和发货状态,发货清单
             tradeVO.getTradeDelivers().addAll(tradeDeliverVOs);
             Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
-            trade.setTradeItems(providerTrade.getTradeItems());
-            trade.setGifts(providerTrade.getGifts());
+           // trade.setTradeItems(providerTrade.getTradeItems());
+            //trade.setGifts(providerTrade.getGifts());
 
             // 添加日志
             tradeEventLog.setEventDetail(String.format("主订单同步ERP订单%s发货清单", trade.getId()));
             //更新主订单发货记录
             List<TradeDeliver> tradeDelivers = KsBeanUtil.copyListProperties(tradeDeliverVOList, TradeDeliver.class);
             trade.getTradeDelivers().addAll(tradeDelivers);
-            //更新主订单TradeItem/Gift
-            trade.setTradeItems(providerTrade.getTradeItems());
-            trade.setGifts(providerTrade.getGifts());
+            //更新主订单TradeItem/Gift,多供应商不能直接覆盖-update
+            List<TradeItem> tradeItems = new ArrayList<>();
+            List<TradeItem> gifts = new ArrayList<>();
+            tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
+            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList());
+            tradeItems.addAll(providerTrade.getTradeItems());
+            gifts.addAll(providerTrade.getGifts());
+            trade.setTradeItems(tradeItems);
+            trade.setGifts(gifts);
+
             trade.appendTradeEventLog(tradeEventLog);
             tradeService.updateTrade(trade);
 
