@@ -1317,7 +1317,7 @@ public class TradePushERPService {
             List<TradeItem> tradeItems = new ArrayList<>();
             List<TradeItem> gifts = new ArrayList<>();
             tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
-            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList());
+            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
             tradeItems.addAll(providerTrade.getTradeItems());
             gifts.addAll(providerTrade.getGifts());
             trade.setTradeItems(tradeItems);
