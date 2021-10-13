@@ -625,7 +625,10 @@ public class TradeService {
      * @param trade
      */
     public void addTrade(Trade trade) {
-        tradeRepository.save(trade);
+        Trade tradeNew = trade;
+//        tradeNew.setUpdateTime(LocalDateTime.now());
+        logger.info("TradeService addTrade param:{}", JSONObject.toJSONString(tradeNew));
+        tradeRepository.save(tradeNew);
     }
 
     /**
