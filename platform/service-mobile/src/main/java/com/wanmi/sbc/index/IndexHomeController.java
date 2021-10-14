@@ -15,7 +15,6 @@ import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.util.DateUtil;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
