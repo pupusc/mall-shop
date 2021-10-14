@@ -14,7 +14,7 @@ public class ActivityBranchResponse implements Serializable {
     /**
      * 分会场配置内容
      */
-    private List<Object> branchVenueConfigs;
+    private List<IndexConfigChild1Response> branchVenueConfigs;
 
     /**
      * 分会场模块内容
