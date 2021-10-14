@@ -115,7 +115,7 @@ public class IndexHomeController {
                 goodStr = goodStr.substring(1);
             }
             if (goodStr.endsWith("\"")) {
-                goodStr = goodStr.substring(0, goodStr.length() - 2);
+                goodStr = goodStr.substring(0, goodStr.length() - 1);
             }
             goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
         }
