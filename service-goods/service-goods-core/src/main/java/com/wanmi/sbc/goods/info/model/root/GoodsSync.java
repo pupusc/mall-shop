@@ -215,5 +215,5 @@ public class GoodsSync {
     private Long providerId;
 
     @Column(name = "detail_image_url")
-    private Long detailImageUrl;
+    private String detailImageUrl;
 }
