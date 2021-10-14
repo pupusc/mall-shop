@@ -8,15 +8,21 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.configure.SpringUtil;
+import com.wanmi.sbc.index.requst.BranchVenueIdRequest;
 import com.wanmi.sbc.index.requst.KeyRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
+import com.wanmi.sbc.index.response.ActivityBranchConfigResponse;
+import com.wanmi.sbc.index.response.ActivityBranchContentDetailResponse;
+import com.wanmi.sbc.index.response.ActivityBranchContentResponse;
+import com.wanmi.sbc.index.response.ActivityBranchResponse;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -109,7 +115,7 @@ public class IndexHomeController {
                 .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
-        for (String goodStr:objectList) {
+        for (String goodStr : objectList) {
             goodStr = goodStr.replaceAll("\\\\", "");
             if (goodStr.startsWith("\"")) {
                 goodStr = goodStr.substring(1);
@@ -193,7 +199,7 @@ public class IndexHomeController {
     public BaseResponse<Map<String, String>> configByKey(@RequestBody @Validated KeyRequest keyRequest) {
         List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
         Map<String, String> configMap = new HashMap<>();
-        for (String key:keyRequest.getKeys()) {
+        for (String key : keyRequest.getKeys()) {
             if (allowKeyList.contains(key)) {
                 configMap.put(key, SpringUtil.getBean(key));
             }
@@ -201,4 +207,49 @@ public class IndexHomeController {
         return BaseResponse.success(configMap);
     }
 
+
+    /**
+     * @description 根据会场ID获取相应内容
+     * @menu 商城首页
+     * @tag feature_d_1111_index
+     * @status done
+     */
+    @PostMapping(value = "/shopActivityBranchConfig")
+    public BaseResponse<ActivityBranchResponse> shopActivityBranchConfig(@RequestBody @Validated BranchVenueIdRequest branchVenueIdRequest) {
+        ActivityBranchResponse activityBranchResponse = new ActivityBranchResponse();
+        //todo 配置
+
+        List<ActivityBranchConfigResponse> branchConfigResponseList = JSONArray.parseArray(refreshConfig.getShopActivityBranchConfig(), ActivityBranchConfigResponse.class);
+        Map<Integer, ActivityBranchConfigResponse> branchConfigResponseMap = branchConfigResponseList.stream()
+                .collect(Collectors.toMap(ActivityBranchConfigResponse::getBranchVenueId, Function.identity()));
+        ActivityBranchConfigResponse activityBranchConfigResponse = branchConfigResponseMap.get(branchVenueIdRequest.getBranchVenueId());
+        if (activityBranchConfigResponse == null || CollectionUtils.isEmpty(activityBranchConfigResponse.getBranchVenueContents())) {
+            return BaseResponse.success(activityBranchResponse);
+        }
+
+
+        List<ActivityBranchContentDetailResponse> detailResponseList = new ArrayList<>();
+        ActivityBranchContentDetailResponse detailResponse;
+        for (ActivityBranchContentResponse contentResponse : activityBranchConfigResponse.getBranchVenueContents()) {
+            detailResponse = new ActivityBranchContentDetailResponse();
+            detailResponse.setTitle(contentResponse.getTitle());
+            List<String> objectList = redisService.findAll("hotGoods");
+            List<SortGoodsCustomResponse> sortGoodsCustomResponses = new ArrayList<>();
+            for (String goodStr : objectList) {
+                goodStr = goodStr.replaceAll("\\\\", "");
+                if (goodStr.startsWith("\"")) {
+                    goodStr = goodStr.substring(1);
+                }
+                if (goodStr.endsWith("\"")) {
+                    goodStr = goodStr.substring(0, goodStr.length() - 1);
+                }
+                sortGoodsCustomResponses.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
+            }
+            detailResponse.setActivityBranchContentResponses(sortGoodsCustomResponses);
+
+            detailResponseList.add(detailResponse);
+        }
+        activityBranchResponse.setBranchVenueContents(detailResponseList);
+        return BaseResponse.success(activityBranchResponse);
+    }
 }

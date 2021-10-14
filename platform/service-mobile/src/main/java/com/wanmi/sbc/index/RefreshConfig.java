@@ -30,4 +30,7 @@ public class RefreshConfig {
 
     @Value("${allow.keys}")
     private volatile String allowKeys;
+
+    @Value("${shop.activity.branch.config}")
+    private volatile String shopActivityBranchConfig;
 }

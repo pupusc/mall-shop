@@ -1,6 +1,7 @@
 package com.wanmi.sbc.redis;
 
 
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,16 @@ public class RedisListService {
      */
     public boolean delKey(final String key) {
         return redisTemplate.delete(key);
+    }
+
+    /**
+     * 从redis 中查询数据
+     */
+    public List<String> findAll(final String key) {
+        ListOperations<String, String> operations = redisTemplate.opsForList();
+        Long size = operations.size(key);
+        List<String> lists = operations.range(key, 0, size - 1);
+        return lists;
     }
 
 }
