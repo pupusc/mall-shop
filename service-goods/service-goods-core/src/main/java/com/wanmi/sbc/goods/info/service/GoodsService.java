@@ -107,6 +107,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
@@ -280,6 +281,11 @@ public class GoodsService {
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
 
+    @Autowired
+    private GoodsSyncRelationRepository goodsSyncRelationRepository;
+
+    @Value("${default.providerId}")
+    private Long defaultProvider;
 
     /**
      * 供应商商品删除
@@ -1792,7 +1798,17 @@ public class GoodsService {
             List<String> standardIds = standardImportService.importStandard(GoodsRequest.builder().goodsIds(Arrays.asList(goodsId)).build());
         }
         //更新sync状态
-        goodsSyncRepository.updateStatus(goods.getErpGoodsNo(),3);
+        if(!Objects.equals(goods.getProviderId(),defaultProvider)) {
+            goodsSyncRepository.updateStatus(goods.getErpGoodsNo(), 3);
+            GoodsSyncRelation goodsSyncRelation = new GoodsSyncRelation();
+            goodsSyncRelation.setGoodsNo(goods.getErpGoodsNo());
+            goodsSyncRelation.setGoodsId(goodsId);
+            goodsSyncRelation.setDeleted(0);
+            goodsSyncRelation.setCreateTime(LocalDateTime.now());
+            goodsSyncRelation.setUpdateTime(LocalDateTime.now());
+            goodsSyncRelationRepository.save(goodsSyncRelation);
+
+        }
         return goodsId;
     }
 

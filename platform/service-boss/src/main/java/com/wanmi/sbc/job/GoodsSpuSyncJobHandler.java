@@ -184,7 +184,6 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
         goodsDTO.setGoodsSource(0);
 
-        request.setGoods(goodsDTO);
 
         GoodsInfoDTO goodsInfoDTO = new GoodsInfoDTO();
         goodsInfoDTO.setErpGoodsInfoNo(goods.getGoodsNo());
@@ -237,6 +236,23 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
                 }
             }
         }
+        //详情图
+        if(StringUtils.isNotEmpty(goods.getDetailImageUrl())){
+            StringBuilder sb = new StringBuilder();
+            String[] imgs = goods.getDetailImageUrl().split("\\|");
+            if(imgs!=null && imgs.length >0){
+                for(int i=0;i<imgs.length;i++){
+                    sb.append("<p><img src=\"")
+                            .append("http://images.bookuu.com"+imgs[i])
+                            .append("\" title=\"\" alt=\"undefined/\"/></p><br/>");
+                }
+            }
+            goodsDTO.setGoodsDetail(sb.toString());
+        }
+        if(CollectionUtils.isNotEmpty(images)){
+           goodsDTO.setGoodsUnBackImg(images.get(0).getArtworkUrl());
+        }
+        request.setGoods(goodsDTO);
         request.setImages(images);
         //属性
         List<GoodsPropDetailRelDTO> propDetails = new ArrayList<>();

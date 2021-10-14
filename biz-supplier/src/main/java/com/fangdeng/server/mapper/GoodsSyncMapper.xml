@@ -40,6 +40,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="provider_id" property="providerId" jdbcType="BIGINT" />
+    <result column="detail_image_url" property="detailImageUrl" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Base_Column_List" >
     <!--
@@ -51,7 +52,7 @@
     print_date, publish_name, base_price, sale_price, author, format, page_number, guide, content,
     author_desc, recommend, diretory, wonderful_content, copyright_url, bottom_url, category, 
     title, price, image_url, large_image_url, status, aduit_error, create_time, update_time, 
-    provider_id
+    provider_id,detail_image_url
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     <!--
@@ -474,7 +475,7 @@
     copyright_url, bottom_url, category,
     title, price, image_url,
     large_image_url, status,
-    create_time, update_time, provider_id) values
+    create_time, update_time, provider_id,detail_image_url) values
     <foreach collection="list" separator="," item="item" index="index">
       (#{item.goodsNo,jdbcType=VARCHAR}, #{item.goodsSupplierType,jdbcType=TINYINT},
       #{item.isbn,jdbcType=VARCHAR}, #{item.qty,jdbcType=INTEGER}, #{item.editionNumber,jdbcType=VARCHAR},
@@ -486,7 +487,7 @@
       #{item.copyrightUrl,jdbcType=VARCHAR}, #{item.bottomUrl,jdbcType=VARCHAR}, #{item.category,jdbcType=BIGINT},
       #{item.title,jdbcType=VARCHAR}, #{item.price,jdbcType=DECIMAL}, #{item.imageUrl,jdbcType=VARCHAR},
       #{item.largeImageUrl,jdbcType=VARCHAR}, #{item.status,jdbcType=TINYINT},
-      now(), now(), #{item.providerId,jdbcType=BIGINT}
+      now(), now(), #{item.providerId,jdbcType=BIGINT},#{item.detailImageUrl}
       )
     </foreach>
   </insert>

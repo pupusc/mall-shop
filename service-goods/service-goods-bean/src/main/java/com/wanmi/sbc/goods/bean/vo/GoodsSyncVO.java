@@ -165,4 +165,6 @@ public class GoodsSyncVO implements Serializable {
 
 
     private Long providerId;
+
+    private String detailImageUrl;
 }

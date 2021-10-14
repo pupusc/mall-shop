@@ -47,6 +47,7 @@ public class GoodsAssembler {
                 .status(1)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
+                .detailImageUrl(goodsDTO.getXqt())
                 .build();
         //设置成本价
         if(priceResponse ==null || CollectionUtils.isEmpty(priceResponse.getPriceList()) || !priceResponse.getPriceList().stream().anyMatch(p->p.getBookID().equals(goodsDTO.getBookId()))){

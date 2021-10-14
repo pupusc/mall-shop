@@ -33,16 +33,16 @@ public class SyncGoodsPriceJobHandler extends IJobHandler {
     @Override
     public ReturnT<String> execute(String params) throws Exception {
         log.info("=====同步博库价格start======");
-        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
-        String eTime = sTime;
-        SyncGoodsQueryDTO queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
-        if(StringUtils.isEmpty(queryDTO.getStime())) {
-             queryDTO.setStime(sTime);
-        }
-        if(StringUtils.isEmpty(queryDTO.getEtime())) {
-            queryDTO.setEtime(eTime);
-        }
-        goodsService.syncGoodsPrice(queryDTO);
+//        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
+//        String eTime = sTime;
+//        SyncGoodsQueryDTO queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
+//        if(StringUtils.isEmpty(queryDTO.getStime())) {
+//             queryDTO.setStime(sTime);
+//        }
+//        if(StringUtils.isEmpty(queryDTO.getEtime())) {
+//            queryDTO.setEtime(eTime);
+//        }
+        goodsService.syncGoodsPrice();
         log.info("=====同步博库价格end======");
         return SUCCESS;
     }

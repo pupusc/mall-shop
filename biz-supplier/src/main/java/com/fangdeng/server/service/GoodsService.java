@@ -12,10 +12,7 @@ import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
 import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
 import com.fangdeng.server.enums.GoodsSyncStatusEnum;
-import com.fangdeng.server.mapper.GoodsPriceSyncMapper;
-import com.fangdeng.server.mapper.GoodsStockSyncMapper;
-import com.fangdeng.server.mapper.GoodsSyncMapper;
-import com.fangdeng.server.mapper.RiskVerifyMapper;
+import com.fangdeng.server.mapper.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +43,9 @@ public class GoodsService {
 
     @Autowired
     private RiskVerifyMapper riskVerifyMapper;
+
+    @Autowired
+    private GoodsSyncRelationMapper goodsSyncRelationMapper;
 
     @Value("${bookuu.providerId}")
     private  Long providerId;
@@ -110,21 +112,39 @@ public class GoodsService {
      * 更新商品价格
      *
      */
-    public void syncGoodsPrice(SyncGoodsQueryDTO queryDTO) {
-        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
-        if (maxPage < 1) {
-            log.info("max page is 0");
-            return;
-        }
-        for (int page = 1; page <= maxPage; page++) {
-            BookuuPriceQueryResponse response = queryBookuuPrice(queryDTO.getStime(), queryDTO.getEtime(), page);
-            if (response == null || CollectionUtils.isEmpty(response.getPriceList())) {
-                log.warn("there is no list,stime:{},etime:{},page:{}", queryDTO.getStime(), queryDTO.getEtime(), page);
+    public void syncGoodsPrice() {
+//        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
+//        if (maxPage < 1) {
+//            log.info("max page is 0");
+//            return;
+//        }
+//        for (int page = 1; page <= maxPage; page++) {
+//            BookuuPriceQueryResponse response = queryBookuuPrice(queryDTO.getStime(), queryDTO.getEtime(), page);
+//            if (response == null || CollectionUtils.isEmpty(response.getPriceList())) {
+//                log.warn("there is no list,stime:{},etime:{},page:{}", queryDTO.getStime(), queryDTO.getEtime(), page);
+//                return;
+//            }
+//            //落表
+//            goodsPriceSyncMapper.batchInsert(GoodsAssembler.convertPriceList(response.getPriceList()));
+//        }
+        //plan b 根据发布商品同步价格
+        Long startId = 0L;
+        while (true){
+            List<GoodsSyncRelationDTO> goodsNo = goodsSyncRelationMapper.list(startId);
+            if(CollectionUtils.isEmpty(goodsNo)){
+                break;
+            }
+            startId = goodsNo.stream().mapToLong(GoodsSyncRelationDTO::getId).max().getAsLong();
+            BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
+            priceQueryRequest.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelationDTO::getGoodsNo).collect(Collectors.toList())));
+            BookuuPriceQueryResponse response = bookuuClient.queryPrice(priceQueryRequest);
+            if(response == null || CollectionUtils.isEmpty(response.getPriceList())){
                 return;
             }
             //落表
             goodsPriceSyncMapper.batchInsert(GoodsAssembler.convertPriceList(response.getPriceList()));
         }
+
     }
 
     private Integer getMaxPage(String startTime, String eTime) {
@@ -165,24 +185,41 @@ public class GoodsService {
     /**
      * 同步库存并落表
      */
-    public void syncGoodsStock(SyncGoodsQueryDTO queryDTO) {
-//        LocalDateTime eTime = LocalDateTime.now();
-//        LocalDateTime sTime = eTime.minusMinutes(5);
-//        String startTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(sTime);
-//        String endTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(eTime);
-        BookuuStockQueryRequest request = new BookuuStockQueryRequest();
-        if(StringUtils.isNotEmpty(queryDTO.getBookId())){
-            request.setBookID(queryDTO.getBookId());
-        }else{
-            request.setStime(queryDTO.getStime());
-            request.setEtime(queryDTO.getEtime());
+    public void syncGoodsStock() {
+
+//        BookuuStockQueryRequest request = new BookuuStockQueryRequest();
+//        if(StringUtils.isNotEmpty(queryDTO.getBookId())){
+//            request.setBookID(queryDTO.getBookId());
+//        }else{
+//            request.setStime(queryDTO.getStime());
+//            request.setEtime(queryDTO.getEtime());
+//            LocalDateTime eTime = LocalDateTime.now();
+//            if(StringUtils.isEmpty(request.getEtime())){
+//                request.setEtime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(eTime));
+//            }
+//            if(StringUtils.isEmpty(request.getStime())){
+//                LocalDateTime sTime = eTime.minusMinutes(5);
+//                request.setStime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(sTime));
+//            }
+//        }
+        //plan b
+        Long startId = 0L;
+        while (true){
+            List<GoodsSyncRelationDTO> goodsNo = goodsSyncRelationMapper.list(startId);
+            if(CollectionUtils.isEmpty(goodsNo)){
+                break;
+            }
+            startId = goodsNo.stream().mapToLong(GoodsSyncRelationDTO::getId).max().getAsLong();
+            BookuuStockQueryRequest request = new BookuuStockQueryRequest();
+            request.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelationDTO::getGoodsNo).collect(Collectors.toList())));
+            BookuuStockQueryResponse response = bookuuClient.queryStock(request);
+            if (response == null || CollectionUtils.isEmpty(response.getBookList())) {
+                log.info("there is no stock change,queryDTO:{}", request);
+                return;
+            }
+            //落表
+            goodsStockSyncMapper.batchInsert(GoodsAssembler.convertStockList(response.getBookList()));
         }
-        BookuuStockQueryResponse response = bookuuClient.queryStock(request);
-        if (response == null || CollectionUtils.isEmpty(response.getBookList())) {
-            log.info("there is no stock change,queryDTO:{}", queryDTO);
-            return;
-        }
-        goodsStockSyncMapper.batchInsert(GoodsAssembler.convertStockList(response.getBookList()));
     }
 
 }
