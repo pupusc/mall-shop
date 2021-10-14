@@ -127,7 +127,8 @@ public class IndexHomeController {
         }
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
-                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity()));
+                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime()))
+                .collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity(),  (k1, k2) -> k1));
         if (!productConfigResponseMap.isEmpty()) {
             goodsCustomResponseList.forEach(
                     goodsCustomResponse -> {
