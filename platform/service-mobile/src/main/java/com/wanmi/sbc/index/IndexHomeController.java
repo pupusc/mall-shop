@@ -15,6 +15,7 @@ import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.xxl.job.core.util.DateUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.validation.annotation.Validated;
@@ -92,7 +93,7 @@ public class IndexHomeController {
                 if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
                     refreshHotCount = refreshHotCount - 1;
                 }
-                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
             }
         } else {
             //首页浏览，获取缓存最新队列，缓存用户浏览队列
@@ -100,7 +101,7 @@ public class IndexHomeController {
             if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
                 refreshHotCount = refreshHotCount - 1;
             }
-            redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
         }
 
         List<String> objectList = redisService
@@ -110,6 +111,13 @@ public class IndexHomeController {
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (String goodStr:objectList) {
+            goodStr = goodStr.replaceAll("\\\\", "");
+            if (goodStr.startsWith("\"")) {
+                goodStr = goodStr.substring(1);
+            }
+            if (goodStr.endsWith("\"")) {
+                goodStr = goodStr.substring(0, goodStr.length() - 2);
+            }
             goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
         }
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
