@@ -92,7 +92,7 @@ public class IndexHomeController {
                 if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
                     refreshHotCount = refreshHotCount - 1;
                 }
-                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
             }
         } else {
             //首页浏览，获取缓存最新队列，缓存用户浏览队列
@@ -100,7 +100,7 @@ public class IndexHomeController {
             if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
                 refreshHotCount = refreshHotCount - 1;
             }
-            redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount, 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
         }
 
         List<String> objectList = redisService
@@ -110,11 +110,19 @@ public class IndexHomeController {
 
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (String goodStr:objectList) {
+            goodStr = goodStr.replaceAll("\\\\", "");
+            if (goodStr.startsWith("\"")) {
+                goodStr = goodStr.substring(1);
+            }
+            if (goodStr.endsWith("\"")) {
+                goodStr = goodStr.substring(0, goodStr.length() - 1);
+            }
             goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
         }
         List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
         Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
-                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity()));
+                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime()))
+                .collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity(),  (k1, k2) -> k1));
         if (!productConfigResponseMap.isEmpty()) {
             goodsCustomResponseList.forEach(
                     goodsCustomResponse -> {

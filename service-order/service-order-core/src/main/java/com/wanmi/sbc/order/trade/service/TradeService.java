@@ -6630,13 +6630,13 @@ public class TradeService {
                             } else {
                                 trade = tradeService.detail(businessId);
                             }
+                            trades.add(trade);
                             if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
                                     .getPayState() == PayState.PAID
                                     && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
                                 //同一批订单重复支付或过期作废，直接退款
                                 wxRefundHandle(wxPayResultResponse, businessId, -1L);
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
-                                trades.add(trade);
                                 wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
                             }
                             //单笔支付
@@ -6694,7 +6694,7 @@ public class TradeService {
                 }
                 log.info("微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("微信支付异步通知回调end2---------", e);
                 //支付处理结果回写回执支付结果表
                 payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
