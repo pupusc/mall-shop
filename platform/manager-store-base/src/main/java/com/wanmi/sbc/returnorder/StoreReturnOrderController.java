@@ -314,7 +314,7 @@ public class StoreReturnOrderController {
                     }
                 });
             }
-        }else {
+        }else if(Objects.equals(returnOrder.getProviderId(),defaultProviderId)){
             //已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(returnOrder.getPtid()).build();
             BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
@@ -330,9 +330,9 @@ public class StoreReturnOrderController {
         }
 
 
-        //通知erp系统停止发货,走系统退款逻辑
+        //通知erp系统停止发货,走系统退款逻辑,只退此审核单的
         if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
-            tradeResponse.getContext().getTradeVO().getTradeVOList().forEach(providerTradeVO -> {
+            tradeResponse.getContext().getTradeVO().getTradeVOList().stream().filter(p->p.getId().equals(returnOrder.getPtid())).forEach(providerTradeVO -> {
                 if(!Objects.equals(providerTradeVO.getTradeItems().get(0).getProviderId(),defaultProviderId)){
                     BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
                     if(response == null || response.getContext() == null || Objects.equals(response.getContext().getStatus(),1)){
@@ -381,6 +381,10 @@ public class StoreReturnOrderController {
         });
 
         if (returnOrder.getReturnType().equals(ReturnType.RETURN)) {
+            if(!Objects.equals(defaultProviderId,returnOrder.getProviderId())){
+                log.info("博库退货退款请走博库平台");
+                return BaseResponse.SUCCESSFUL();
+            }
             log.info("=============组合商品退货退款拦截未发货的商品：{}==================",tradeVO.getId());
             List<ReturnItemVO> returnGoods = returnOrder.getReturnItems();
             List<ReturnItemVO> returnGifts = returnOrder.getReturnGifts();
@@ -396,7 +400,7 @@ public class StoreReturnOrderController {
                 if (CollectionUtils.isNotEmpty(totalTradeItemList)) {
                     totalTradeItemList.forEach(tradeItem -> {
                         if (Objects.nonNull(tradeItem.getCombinedCommodity()) && tradeItem.getCombinedCommodity() && returnItemSkuIds.contains(tradeItem.getSkuId())) {
-                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).providerId(tradeItem.getProviderId()).build();
+                            RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTrade.getId()).oid(tradeItem.getOid()).build();
                             //如果是组合商品,查询ERP订单发货状态，ERP订单已发货就不需要走拦截
                             TradeQueryRequest tradeQueryRequest = TradeQueryRequest.builder().tid(providerTrade.getId()).flag(0).build();
                             BaseResponse<QueryTradeResponse> tradeInfoResponse= guanyierpProvider.getTradeInfo(tradeQueryRequest);
@@ -407,14 +411,14 @@ public class StoreReturnOrderController {
                                 if (StringUtils.isNoneBlank(historyTradeResponse.getContext().getPlatformCode())) {
                                     if (DeliverStatus.NOT_YET_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())
                                             || DeliverStatus.PART_SHIPPED.equals(historyTradeResponse.getContext().getDeliveryState())) {
-                                        this.refundTrade(refundTradeRequest);
+                                        guanyierpProvider.RefundTrade(refundTradeRequest);
                                         log.info("=============组合商品退货退款拦截未发货的商品：{}==================", refundTradeRequest);
                                     }
                                 }
                             }else {
                                 if (DeliverStatus.NOT_YET_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())
                                         || DeliverStatus.PART_SHIPPED.equals(tradeInfoResponse.getContext().getDeliveryState())){
-                                    this.refundTrade(refundTradeRequest);
+                                    guanyierpProvider.RefundTrade(refundTradeRequest);
                                     log.info("=============组合商品退货退款拦截未发货的商品：{}==================",refundTradeRequest);
                                 }
                             }
