@@ -5,6 +5,7 @@ import com.wanmi.sbc.order.trade.model.root.Trade;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.core.Ordered;
+import org.springframework.data.mongodb.core.mapping.event.BeforeConvertCallback;
 import org.springframework.data.mongodb.core.mapping.event.BeforeSaveCallback;
 import org.springframework.stereotype.Component;
 
@@ -20,21 +21,16 @@ import java.time.LocalDateTime;
  ********************************************************************/
 @Component
 @Slf4j
-public class TradeMongoDbTrigger implements BeforeSaveCallback<Trade>, Ordered {
+public class TradeMongoDbTrigger implements BeforeConvertCallback<Trade> {
 
     @Override
-    public int getOrder() {
-        return 100;
-    }
-
-    @Override
-    public Trade onBeforeSave(Trade entity, Document document, String collection) {
-        log.info("TradeMongoDbTrigger.onBeforeSave before trade {}", JSON.toJSONString(entity));
+    public Trade onBeforeConvert(Trade entity, String collection) {
+        log.info("TradeMongoDbTrigger.onBeforeConvert before trade {}", JSON.toJSONString(entity));
         if (entity.getTradeState() != null) {
             entity.getTradeState().setModifyTime(LocalDateTime.now());
         }
-        entity.setModifyTime(LocalDateTime.now());
-        log.info("TradeMongoDbTrigger.onBeforeSave end trade {}", JSON.toJSONString(entity));
+        entity.setUpdateTime(LocalDateTime.now());
+        log.info("TradeMongoDbTrigger.onBeforeConvert end trade {}", JSON.toJSONString(entity));
         return entity;
     }
 }
