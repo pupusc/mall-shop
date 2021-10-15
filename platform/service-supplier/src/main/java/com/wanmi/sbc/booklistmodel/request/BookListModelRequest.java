@@ -36,6 +36,11 @@ public class BookListModelRequest {
     private String desc;
 
     /**
+     * 名家名称 ✅Add feature_d_v0.02
+     */
+    private String famousName;
+
+    /**
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题 ✅Add
      */
     @NotNull(groups = BookListModelRequest.Add.class, message = "模板类型为空")
@@ -54,6 +59,12 @@ public class BookListModelRequest {
     private String headImgUrl;
 
     /**
+     * 方图 ✅Add feature_d_v0.02
+     */
+    @NotBlank(message = "方图不能为空")
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     private String headImgHref;
@@ -63,6 +74,10 @@ public class BookListModelRequest {
      */
     private String pageHref;
 
+//    /**
+//     * 是否置顶 0否 1是 ✅Add feature_d_v0.02
+//     */
+//    private Integer hasTop;
 
 
     public interface Add{}

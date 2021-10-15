@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.enums.HasTopEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
@@ -105,6 +106,7 @@ public class BookListModelService {
         BookListModelDTO bookListModelParam = new BookListModelDTO();
         BeanUtils.copyProperties(bookListModelRequest, bookListModelParam);
         bookListModelParam.setId(null);
+        bookListModelParam.setHasTop(HasTopEnum.NO.getCode());
         bookListModelParam.setPublishState(PublishStateEnum.UN_PUBLISH.getCode());
         bookListModelParam.setCreateTime(new Date());
         bookListModelParam.setUpdateTime(new Date());
@@ -163,6 +165,9 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getName())) {
             existBookListModelDtoUpdate.setName(bookListModelRequest.getName());
         }
+        if (!StringUtils.isEmpty(bookListModelRequest.getFamousName())) {
+            existBookListModelDtoUpdate.setFamousName(bookListModelRequest.getFamousName());
+        }
         if (!StringUtils.isEmpty(bookListModelRequest.getDesc())) {
             existBookListModelDtoUpdate.setDesc(bookListModelRequest.getDesc());
         }
@@ -172,12 +177,18 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgUrl())) {
             existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadImgUrl());
         }
+        if (!StringUtils.isEmpty(bookListModelRequest.getHeadSquareImgUrl())) {
+            existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadSquareImgUrl());
+        }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgHref())) {
             existBookListModelDtoUpdate.setHeadImgHref(bookListModelRequest.getHeadImgHref());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getPageHref())) {
             existBookListModelDtoUpdate.setPageHref(bookListModelRequest.getPageHref());
         }
+//        if (bookListModelRequest.getHasTop() != null) {
+//            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
+//        }
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));
@@ -491,5 +502,25 @@ public class BookListModelService {
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };
+    }
+
+
+
+    /**
+     * 置顶或取消
+     * @param bookListModelId
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public BookListModelDTO top(Integer bookListModelId, Integer hasTop) {
+
+        BookListModelDTO bookListModelObj = this.findSimpleById(bookListModelId);
+        if (Objects.equals(bookListModelObj.getHasTop(), hasTop)) {
+            return bookListModelObj;
+        }
+        bookListModelObj.setHasTop(hasTop);
+        bookListModelObj.setUpdateTime(new Date());
+        BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelObj);
+        log.info("----->>>bookListModel.top bookListModelId:{} hasTop:{} complete", bookListModelId, hasTop);
+        return bookListModelDTO;
     }
 }

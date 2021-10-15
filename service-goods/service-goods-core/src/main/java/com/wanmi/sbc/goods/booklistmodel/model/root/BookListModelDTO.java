@@ -35,6 +35,12 @@ public class BookListModelDTO {
     private String name;
 
     /**
+     * 名家名人
+     */
+    @Column(name = "famous_name")
+    private String famousName;
+
+    /**
      * 描述
      */
     @Column(name = "description")
@@ -53,6 +59,12 @@ public class BookListModelDTO {
     private String headImgUrl;
 
     /**
+     * 头图方图
+     */
+    @Column(name = "head_square_img_url")
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     @Column(name = "head_img_href")
@@ -63,6 +75,12 @@ public class BookListModelDTO {
      */
     @Column(name = "page_href")
     private String pageHref;
+
+    /**
+     * 是否置顶 0否 1 是
+     */
+    @Column(name = "has_top")
+    private Integer hasTop;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布

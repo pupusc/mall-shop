@@ -107,7 +107,7 @@ public class SbcExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public BaseResponse illegalStateExceptionHandle(IllegalStateException ex) {
-        log.error("{}", ex.getMessage());
+        log.info("{}", ex.getMessage());
         return new BaseResponse(CommonErrorCode.PARAMETER_ERROR);
     }
 

@@ -205,4 +205,16 @@ public class BookListModelController implements BookListModelProvider {
     public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest){
         return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest));
     }
+
+
+    /**
+     * 根据书单id 进行置顶或者取消置顶 0取消 1置顶操作
+     * @param bookListModelId
+     * @param hasTop
+     * @return
+     */
+    @Override
+    public BaseResponse top(Integer bookListModelId, Integer hasTop) {
+        return BaseResponse.success(bookListModelService.top(bookListModelId, hasTop));
+    }
 }

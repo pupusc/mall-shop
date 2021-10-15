@@ -25,6 +25,11 @@ public class BookListModelResponse {
     private String name;
 
     /**
+     * 名家名人
+     */
+    private String famousName;
+
+    /**
      * 描述
      */
     private String desc;
@@ -40,6 +45,11 @@ public class BookListModelResponse {
     private String headImgUrl;
 
     /**
+     * 头图方图
+     */
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     private String headImgHref;
@@ -48,6 +58,11 @@ public class BookListModelResponse {
      *  书单链接地址
      */
     private String pageHref;
+
+    /**
+     * 是否置顶 0否 1 是
+     */
+    private Integer hasTop;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布

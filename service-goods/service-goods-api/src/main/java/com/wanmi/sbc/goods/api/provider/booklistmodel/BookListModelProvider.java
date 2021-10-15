@@ -119,4 +119,13 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelNoPageBySpuIdColl")
     BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(
             @Validated @RequestBody BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest);
+
+    /**
+     * 根据书单id 进行置顶 或者取消置顶操作操作 0表示取消置顶 1表示置顶
+     * @param bookListModelId
+     * @param hasTop
+     * @return
+     */
+    @GetMapping("/goods/${application.goods.version}/booklistmodel/top/{bookListModelId}/{hasTop}")
+    BaseResponse top(@PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("hasTop") Integer hasTop);
 }
