@@ -25,7 +25,7 @@ public class BookListModelResponse {
     private String name;
 
     /**
-     * 名家名人
+     * 名家名人 feature_d_v0.02
      */
     private String famousName;
 
@@ -45,7 +45,7 @@ public class BookListModelResponse {
     private String headImgUrl;
 
     /**
-     * 头图方图
+     * 头图方图 feature_d_v0.02
      */
     private String headSquareImgUrl;
 
@@ -60,7 +60,7 @@ public class BookListModelResponse {
     private String pageHref;
 
     /**
-     * 是否置顶 0否 1 是
+     * 是否置顶 0否 1 是 feature_d_v0.02
      */
     private Integer hasTop;
 

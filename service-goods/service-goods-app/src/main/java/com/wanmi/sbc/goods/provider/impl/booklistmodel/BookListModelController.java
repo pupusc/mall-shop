@@ -208,7 +208,7 @@ public class BookListModelController implements BookListModelProvider {
 
 
     /**
-     * 根据书单id 进行置顶或者取消置顶 0取消 1置顶操作
+     * 根据书单id 进行置顶或者取消置顶 0取消 1置顶操作 feature_d_v0.02
      * @param bookListModelId
      * @param hasTop
      * @return

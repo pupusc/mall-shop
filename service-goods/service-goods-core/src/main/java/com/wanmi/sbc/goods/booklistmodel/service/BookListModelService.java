@@ -507,7 +507,7 @@ public class BookListModelService {
 
 
     /**
-     * 置顶或取消
+     * 置顶或取消 feature_d_v0.02
      * @param bookListModelId
      */
     @org.springframework.transaction.annotation.Transactional
