@@ -2,6 +2,8 @@ package com.wanmi.sbc.redis;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,26 +26,26 @@ public class RedisListService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisListService.class);
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, JSONObject> redisTemplate;
 
 
     /**
      * 从redis 中查询数据
      */
-    public boolean putAll(final String key, List<String> list, long seconds) {
-        ListOperations<String, String> operations = redisTemplate.opsForList();
-        for (String t:list) {
-            operations.rightPush(key, t);
-        }
-        redisTemplate.expire(key, seconds, TimeUnit.MINUTES);
+    public boolean putAll(final String key, List<JSONObject> list, long minutes) {
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(JSONObject.class));
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        redisTemplate.expire(key, minutes, TimeUnit.MINUTES);
         return true;
     }
 
     /**
      * 从redis 中查询数据
      */
-    public List<String> findByRange(final String key, Integer start, Integer end) {
-        ListOperations<String, String> operations = redisTemplate.opsForList();
+    public List<JSONObject> findByRange(final String key, Integer start, Integer end) {
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(JSONObject.class));
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
             return Collections.emptyList();
@@ -51,7 +53,7 @@ public class RedisListService {
         if (end > size) {
             end = size.intValue();
         }
-        List<String> lists = operations.range(key, start, end);
+        List<JSONObject> lists = operations.range(key, start, end);
         return lists;
     }
 
@@ -62,14 +64,5 @@ public class RedisListService {
         return redisTemplate.delete(key);
     }
 
-    /**
-     * 从redis 中查询数据
-     */
-    public List<String> findAll(final String key) {
-        ListOperations<String, String> operations = redisTemplate.opsForList();
-        Long size = operations.size(key);
-        List<String> lists = operations.range(key, 0, size - 1);
-        return lists;
-    }
 
 }

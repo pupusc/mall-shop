@@ -1,5 +1,6 @@
 package com.wanmi.sbc.task;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
@@ -15,13 +16,20 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.hotgoods.HotGoodsProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.goods.HotGoodsTypeRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.bean.dto.HotGoodsDto;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.index.RefreshConfig;
+import com.wanmi.sbc.index.response.ActivityBranchConfigResponse;
+import com.wanmi.sbc.index.response.ActivityBranchContentDetailResponse;
+import com.wanmi.sbc.index.response.ActivityBranchContentResponse;
+import com.wanmi.sbc.index.response.ActivityBranchResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
@@ -48,7 +56,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     @Autowired
     private HotGoodsProvider hotGoodsProvider;
     @Autowired
-    private RedisListService redisService;
+    private RedisListService<SortGoodsCustomResponse> redisService;
     @Autowired
     private EsGoodsCustomQueryProvider goodsCustomQueryProvider;
 
@@ -56,11 +64,16 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
     @Autowired
-    private  BookListModelProvider bookListModelProvider;
+    private BookListModelProvider bookListModelProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
     @Autowired
     private RedisTemplate redisTemplate;
+
+
+    @Autowired
+    private RefreshConfig refreshConfig;
+
 
     @Override
     public ReturnT<String> execute(String paramStr) throws Exception {
@@ -71,6 +84,85 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
 
         List<String> goodIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 1).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
         List<String> bookIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 2).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
+        List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds);
+        for (SortGoodsCustomResponse goodsVo : goodList) {
+            goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()));
+        }
+        goodList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
+        List<SortGoodsCustomResponse> bookList = new ArrayList<>();
+        for (String bookId : bookIds) {
+            BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
+            bookListModelProviderRequest.setId(Integer.valueOf(bookId));
+            BookListModelProviderResponse bookListModelProviderResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest).getContext();
+            SortGoodsCustomResponse goodsCustomResponse = packageGoodsCustomResponse(bookListModelProviderResponse);
+            goodsCustomResponse.setSort(sortMap.get(bookId));
+            goodsCustomResponse.setType(2);
+            bookList.add(goodsCustomResponse);
+        }
+        bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
+
+        Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
+
+        redisService.putAll("hotGoods" + refreshHotCount, KsBeanUtil.convertList(goodList, JSONObject.class), 45);
+        redisService.putAll("hotBooks" + refreshHotCount, KsBeanUtil.convertList(bookList, JSONObject.class), 45);
+        fenHuiChangRedis();
+        return SUCCESS;
+    }
+
+    @Autowired
+    private RedisService redis;
+
+    /**
+     * 分会场缓存数据
+     */
+    private void fenHuiChangRedis() {
+        List<ActivityBranchConfigResponse> branchConfigResponseList = JSONArray.parseArray(refreshConfig.getShopActivityBranchConfig(), ActivityBranchConfigResponse.class);
+        List<ActivityBranchContentResponse> branchVenueContents = new ArrayList<>();
+        List<Integer> types = new ArrayList<>();
+        branchConfigResponseList.forEach(configResponse -> {
+            branchVenueContents.addAll(configResponse.getBranchVenueContents());
+            types.add(configResponse.getBranchVenueId());
+        });
+        types.addAll(branchVenueContents.stream().map(content -> content.getType()).collect(Collectors.toList()));
+
+        HotGoodsTypeRequest hotGoodsTypeRequest = new HotGoodsTypeRequest();
+        hotGoodsTypeRequest.setTypes(types);
+        List<HotGoodsDto> hotGoodsDtos = hotGoodsProvider.selectAllByTypes(hotGoodsTypeRequest).getContext();
+        List<String> goodIds = hotGoodsDtos.stream().map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
+        Map<String, HotGoodsDto> sortMap = hotGoodsDtos.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, Function.identity(), (a1, a2) -> a1));
+
+        List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds);
+        for (SortGoodsCustomResponse goodsVo : goodList) {
+            goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()).getSort());
+            goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()).getType());
+        }
+        for (ActivityBranchConfigResponse activityBranchConfigResponse : branchConfigResponseList) {
+            //分会场栏目数据
+            ActivityBranchResponse activityBranchResponse = new ActivityBranchResponse();
+            List<ActivityBranchContentDetailResponse> branchVenueContentList = new ArrayList<>();
+            activityBranchConfigResponse.getBranchVenueContents().forEach(content -> {
+                        ActivityBranchContentDetailResponse detailResponse = new ActivityBranchContentDetailResponse();
+                        detailResponse.setTitle(content.getTitle());
+                        detailResponse.setActivityBranchContentResponses(goodList.stream().filter(good -> good.getHotType().equals(content.getType()))
+                                .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList()));
+                        branchVenueContentList.add(detailResponse);
+                    }
+            );
+            activityBranchResponse.setBranchVenueContents(branchVenueContentList);
+            redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
+            List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
+                    .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
+            redisService.putAll("activityBranch:hot:" + activityBranchConfigResponse.getBranchVenueId(), KsBeanUtil.convertList(hots, JSONObject.class), 30);
+
+
+        }
+
+
+    }
+
+
+    private List<SortGoodsCustomResponse> traneserSortGoodsCustomResponseByHotGoodsDto(List<String> goodIds) {
+        List<SortGoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
         queryRequest.setPageNum(0);
@@ -86,48 +178,16 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-
         List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, null);
-
-        List<SortGoodsCustomResponse> goodList = new ArrayList<>();
-        for (EsGoodsVO goodsVo:esGoodsVOS) {
+        for (EsGoodsVO goodsVo : esGoodsVOS) {
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
                     .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
             SortGoodsCustomResponse goodsCustomResponse = KsBeanUtil.copyPropertiesThird(goodsCustom, SortGoodsCustomResponse.class);
-            goodsCustomResponse.setSort(sortMap.get(goodsVo.getGoodsInfos().get(0).getGoodsInfoId()));
             goodsCustomResponse.setType(1);
             goodList.add(goodsCustomResponse);
         }
-        goodList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
-        List<SortGoodsCustomResponse> bookList = new ArrayList<>();
-        for (String bookId:bookIds) {
-            BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
-            bookListModelProviderRequest.setId(Integer.valueOf(bookId));
-            BookListModelProviderResponse bookListModelProviderResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest).getContext();
-            SortGoodsCustomResponse goodsCustomResponse = packageGoodsCustomResponse(bookListModelProviderResponse);
-            goodsCustomResponse.setSort(sortMap.get(bookId));
-            goodsCustomResponse.setType(2);
-            bookList.add(goodsCustomResponse);
-        }
-        bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
-
-        Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
-        List<String> goodStrList = new ArrayList<>();
-        for (SortGoodsCustomResponse sortGoodsCustomResponse:goodList) {
-            goodStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
-        }
-        List<String> bookStrList = new ArrayList<>();
-        for (SortGoodsCustomResponse sortGoodsCustomResponse:bookList) {
-            bookStrList.add(JSONObject.toJSONString(sortGoodsCustomResponse));
-        }
-        redisService.putAll("hotGoods" + refreshHotCount, goodStrList, 45);
-        redisService.putAll("hotBooks" + refreshHotCount, bookStrList, 45);
-        return SUCCESS;
+        return goodList;
     }
-
-
-
-
 
 
     private SortGoodsCustomResponse packageGoodsCustomResponse(BookListModelProviderResponse bookListModelProviderResponse) {

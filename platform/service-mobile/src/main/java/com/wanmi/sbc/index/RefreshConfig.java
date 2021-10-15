@@ -33,4 +33,7 @@ public class RefreshConfig {
 
     @Value("${shop.activity.branch.config}")
     private volatile String shopActivityBranchConfig;
+
+    @Value("${shop.activity.branch.top.config}")
+    private volatile String shopActivityBranchTopConfig;
 }

@@ -12,17 +12,15 @@ import com.wanmi.sbc.index.requst.BranchVenueIdRequest;
 import com.wanmi.sbc.index.requst.KeyRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
-import com.wanmi.sbc.index.response.ActivityBranchConfigResponse;
-import com.wanmi.sbc.index.response.ActivityBranchContentDetailResponse;
-import com.wanmi.sbc.index.response.ActivityBranchContentResponse;
 import com.wanmi.sbc.index.response.ActivityBranchResponse;
+import com.wanmi.sbc.index.response.IndexConfigChild1Response;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +58,8 @@ public class IndexHomeController {
     public static final Integer GOODS_SIZE = 5;
     public static final Integer BOOKS_SIZE = 1;
 
+    @Autowired
+    private RedisService redis;
 
     /**
      * @description 获取首页配置数据
@@ -108,39 +108,15 @@ public class IndexHomeController {
             }
             redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
         }
-
-        List<String> objectList = redisService
+        List<JSONObject> objectList = redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
                 .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
-
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
-        for (String goodStr : objectList) {
-            goodStr = goodStr.replaceAll("\\\\", "");
-            if (goodStr.startsWith("\"")) {
-                goodStr = goodStr.substring(1);
-            }
-            if (goodStr.endsWith("\"")) {
-                goodStr = goodStr.substring(0, goodStr.length() - 1);
-            }
-            goodsCustomResponseList.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
+        for (JSONObject goodStr : objectList) {
+            goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
         }
-        List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
-        Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
-                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime()))
-                .collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity(),  (k1, k2) -> k1));
-        if (!productConfigResponseMap.isEmpty()) {
-            goodsCustomResponseList.forEach(
-                    goodsCustomResponse -> {
-                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsInfoId());
-                        if (productConfigResponse != null) {
-                            goodsCustomResponse.setAtmosphereFirstTitle(productConfigResponse.getTitle());
-                            goodsCustomResponse.setAtmosphereSecondTitle(productConfigResponse.getContent());
-                            goodsCustomResponse.setAtmospherePrice(productConfigResponse.getPrice());
-                        }
-                    }
-            );
-        }
+        packageAtmosphereMessage(goodsCustomResponseList);
         page.setContent(goodsCustomResponseList);
 
         page.setNumber(versionRequest.getPageNum());
@@ -216,41 +192,55 @@ public class IndexHomeController {
      * @status done
      */
     @PostMapping(value = "/shopActivityBranchConfig")
-    public BaseResponse<ActivityBranchResponse> shopActivityBranchConfig(@RequestBody @Validated BranchVenueIdRequest branchVenueIdRequest) {
-        ActivityBranchResponse activityBranchResponse = new ActivityBranchResponse();
-        //todo 配置
-
-        List<ActivityBranchConfigResponse> branchConfigResponseList = JSONArray.parseArray(refreshConfig.getShopActivityBranchConfig(), ActivityBranchConfigResponse.class);
-        Map<Integer, ActivityBranchConfigResponse> branchConfigResponseMap = branchConfigResponseList.stream()
-                .collect(Collectors.toMap(ActivityBranchConfigResponse::getBranchVenueId, Function.identity()));
-        ActivityBranchConfigResponse activityBranchConfigResponse = branchConfigResponseMap.get(branchVenueIdRequest.getBranchVenueId());
-        if (activityBranchConfigResponse == null || CollectionUtils.isEmpty(activityBranchConfigResponse.getBranchVenueContents())) {
-            return BaseResponse.success(activityBranchResponse);
-        }
-
-
-        List<ActivityBranchContentDetailResponse> detailResponseList = new ArrayList<>();
-        ActivityBranchContentDetailResponse detailResponse;
-        for (ActivityBranchContentResponse contentResponse : activityBranchConfigResponse.getBranchVenueContents()) {
-            detailResponse = new ActivityBranchContentDetailResponse();
-            detailResponse.setTitle(contentResponse.getTitle());
-            List<String> objectList = redisService.findAll("hotGoods");
-            List<SortGoodsCustomResponse> sortGoodsCustomResponses = new ArrayList<>();
-            for (String goodStr : objectList) {
-                goodStr = goodStr.replaceAll("\\\\", "");
-                if (goodStr.startsWith("\"")) {
-                    goodStr = goodStr.substring(1);
-                }
-                if (goodStr.endsWith("\"")) {
-                    goodStr = goodStr.substring(0, goodStr.length() - 1);
-                }
-                sortGoodsCustomResponses.add(JSONObject.parseObject(goodStr, SortGoodsCustomResponse.class));
-            }
-            detailResponse.setActivityBranchContentResponses(sortGoodsCustomResponses);
-
-            detailResponseList.add(detailResponse);
-        }
-        activityBranchResponse.setBranchVenueContents(detailResponseList);
+    public BaseResponse<ActivityBranchResponse> shopActivityBranchConfig(@RequestBody BranchVenueIdRequest branchVenueIdRequest) {
+        ActivityBranchResponse activityBranchResponse = redis.getObj("activityBranch:" + branchVenueIdRequest.getBranchVenueId(), ActivityBranchResponse.class);
+        List<IndexConfigChild1Response> branchVenueConfigs = JSONArray.parseArray(refreshConfig.getShopActivityBranchTopConfig(), IndexConfigChild1Response.class);
+        activityBranchResponse.setBranchVenueConfigs(branchVenueConfigs.stream().filter(
+                config -> config.getBranchVenueId().equals(branchVenueIdRequest.getBranchVenueId())
+        ).collect(Collectors.toList()));
         return BaseResponse.success(activityBranchResponse);
+    }
+
+
+    private void packageAtmosphereMessage(List<SortGoodsCustomResponse> goodsCustomResponseList) {
+        List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
+        Map<String, ProductConfigResponse> productConfigResponseMap = list.stream()
+                .filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime()))
+                .collect(Collectors.toMap(ProductConfigResponse::getSkuId, Function.identity(), (k1, k2) -> k1));
+        if (!productConfigResponseMap.isEmpty()) {
+            goodsCustomResponseList.forEach(
+                    goodsCustomResponse -> {
+                        ProductConfigResponse productConfigResponse = productConfigResponseMap.get(goodsCustomResponse.getGoodsInfoId());
+                        if (productConfigResponse != null) {
+                            goodsCustomResponse.setAtmosphereFirstTitle(productConfigResponse.getTitle());
+                            goodsCustomResponse.setAtmosphereSecondTitle(productConfigResponse.getContent());
+                            goodsCustomResponse.setAtmospherePrice(productConfigResponse.getPrice());
+                        }
+                    }
+            );
+        }
+    }
+
+    /**
+     * @description 热销榜
+     * @menu 商城首页
+     * @tag feature_d_1111_index
+     * @status done
+     */
+    @PostMapping(value = "/shopActivityBranchHot")
+    public BaseResponse<MicroServicePage<SortGoodsCustomResponse>> shopActivityBranchHot(@RequestBody BranchVenueIdRequest branchVenueIdRequest) {
+        MicroServicePage<SortGoodsCustomResponse> page = new MicroServicePage();
+        if (branchVenueIdRequest.getPageNum() == 0) {
+            branchVenueIdRequest.setPageNum(1);
+        }
+        List<JSONObject> objectList = redisService
+                .findByRange("activityBranch:hot:" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
+        List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
+        for (JSONObject goodStr : objectList) {
+            goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
+        }
+        page.setContent(goodsCustomResponseList);
+        page.setNumber(branchVenueIdRequest.getPageNum());
+        return BaseResponse.success(page);
     }
 }

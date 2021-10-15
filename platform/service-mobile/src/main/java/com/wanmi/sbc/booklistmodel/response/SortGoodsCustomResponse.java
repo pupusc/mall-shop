@@ -26,6 +26,11 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse implements Seri
     private Integer type;
 
     /**
+     * 热榜类型
+     */
+    private Integer hotType;
+
+    /**
      * 丝带第一行文字
      */
     private String atmosphereFirstTitle;
