@@ -14,6 +14,7 @@ import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
 import com.fangdeng.server.dto.ProviderTradeOrderConfirmDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -22,7 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * 发货单消费
@@ -83,10 +87,16 @@ public class ProviderTradeHandler {
                 .platformCode(syncDTO.getTid())
                 .post(response.getStatusDTOS().get(0).getPost())
                 .postNumber(response.getStatusDTOS().get(0).getPostNumber())
-                .postDate(response.getStatusDTOS().get(0).getPostDate())
                 .orderStatus(response.getStatusDTOS().get(0).getOrderStatus())
                 .goodsList(response.getStatusDTOS().get(0).getBookRecs())
                 .build();
+        if(StringUtils.isNotEmpty(response.getStatusDTOS().get(0).getPostDate())) {
+            try {
+                confirmDTO.setPostDate(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(response.getStatusDTOS().get(0).getPostDate()));
+            }catch (Exception e){
+                confirmDTO.setPostDate(new Date());
+            }
+        }
         //成功之后再回传消息
         log.info("order delivery status confirm,request:{}",JSONObject.toJSONString(confirmDTO));
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
