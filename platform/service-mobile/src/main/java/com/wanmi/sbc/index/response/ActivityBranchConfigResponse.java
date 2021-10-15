@@ -17,6 +17,11 @@ public class ActivityBranchConfigResponse implements Serializable {
     private Integer branchVenueId;
 
     /**
+     * 主题色
+     */
+    private String themeColor;
+
+    /**
      * 活动会场内容
      */
     private List<ActivityBranchContentResponse> branchVenueContents;

@@ -136,6 +136,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         for (ActivityBranchConfigResponse activityBranchConfigResponse : branchConfigResponseList) {
             //分会场栏目数据
             ActivityBranchResponse activityBranchResponse = new ActivityBranchResponse();
+            activityBranchResponse.setThemeColor(activityBranchConfigResponse.getThemeColor());
             List<ActivityBranchContentDetailResponse> branchVenueContentList = new ArrayList<>();
             activityBranchConfigResponse.getBranchVenueContents().forEach(content -> {
                         ActivityBranchContentDetailResponse detailResponse = new ActivityBranchContentDetailResponse();

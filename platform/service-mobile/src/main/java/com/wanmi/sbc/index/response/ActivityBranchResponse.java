@@ -12,6 +12,10 @@ public class ActivityBranchResponse implements Serializable {
 
     private static final long serialVersionUID = -6502332422409885243L;
     /**
+     * 主题色
+     */
+    private String themeColor;
+    /**
      * 分会场配置内容
      */
     private List<IndexConfigChild1Response> branchVenueConfigs;
