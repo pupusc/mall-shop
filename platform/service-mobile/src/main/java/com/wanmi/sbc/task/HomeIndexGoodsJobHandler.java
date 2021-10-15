@@ -143,6 +143,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             activityBranchConfigResponse.getBranchVenueContents().forEach(content -> {
                         ActivityBranchContentDetailResponse detailResponse = new ActivityBranchContentDetailResponse();
                         detailResponse.setTitle(content.getTitle());
+                        detailResponse.setId(content.getId());
                         detailResponse.setActivityBranchContentResponses(goodList.stream().filter(good -> good.getHotType().equals(content.getType()))
                                 .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList()));
                         branchVenueContentList.add(detailResponse);
