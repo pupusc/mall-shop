@@ -105,7 +105,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
 
         redisService.putAll("hotGoods" + refreshHotCount, KsBeanUtil.convertList(goodList, JSONObject.class), 45);
         redisService.putAll("hotBooks" + refreshHotCount, KsBeanUtil.convertList(bookList, JSONObject.class), 45);
-        fenHuiChangRedis();
+        fenHuiChangRedis(refreshHotCount);
         return SUCCESS;
     }
 
@@ -115,7 +115,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     /**
      * 分会场缓存数据
      */
-    private void fenHuiChangRedis() {
+    private void fenHuiChangRedis(Long refreshHotCount) {
         List<ActivityBranchConfigResponse> branchConfigResponseList = JSONArray.parseArray(refreshConfig.getShopActivityBranchConfig(), ActivityBranchConfigResponse.class);
         List<ActivityBranchContentResponse> branchVenueContents = new ArrayList<>();
         List<Integer> types = new ArrayList<>();
@@ -152,7 +152,8 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
             List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
                     .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
-            redisService.putAll("activityBranch:hot:" + activityBranchConfigResponse.getBranchVenueId(), KsBeanUtil.convertList(hots, JSONObject.class), 30);
+
+            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), KsBeanUtil.convertList(hots, JSONObject.class), 30);
 
 
         }

@@ -233,8 +233,9 @@ public class IndexHomeController {
         if (branchVenueIdRequest.getPageNum() == 0) {
             branchVenueIdRequest.setPageNum(1);
         }
+        String refreshHotCount = redisTemplate.opsForValue().get("refreshHotCount").toString();
         List<JSONObject> objectList = redisService
-                .findByRange("activityBranch:hot:" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
+                .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (JSONObject goodStr : objectList) {
             goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
