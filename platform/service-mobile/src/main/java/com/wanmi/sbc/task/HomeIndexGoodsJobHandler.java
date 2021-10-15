@@ -81,26 +81,22 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         Map<String, Integer> sortMap = hotGoods.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, HotGoodsDto::getSort, (a1, a2) -> a1));
 
         List<String> goodIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 1).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
-        List<String> bookIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 2).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
+        List<Integer> bookIds = bookListModelProvider.findPublishBook().getContext();
         List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds);
         for (SortGoodsCustomResponse goodsVo : goodList) {
             goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()));
         }
         goodList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
         List<SortGoodsCustomResponse> bookList = new ArrayList<>();
-        for (String bookId : bookIds) {
+        for (Integer bookId : bookIds) {
             BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
             bookListModelProviderRequest.setId(Integer.valueOf(bookId));
             BookListModelProviderResponse bookListModelProviderResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest).getContext();
             SortGoodsCustomResponse goodsCustomResponse = packageGoodsCustomResponse(bookListModelProviderResponse);
-            goodsCustomResponse.setSort(sortMap.get(bookId));
             goodsCustomResponse.setType(2);
             bookList.add(goodsCustomResponse);
         }
-        bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
-
         Long refreshHotCount = redis.incrKey("refreshHotCount");
-
         redisService.putAll("hotGoods" + refreshHotCount, goodList, 45);
         redisService.putAll("hotBooks" + refreshHotCount, bookList, 45);
         fenHuiChangRedis(refreshHotCount);
@@ -150,7 +146,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
             List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
                     .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
-            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 30);
+            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 45);
         }
     }
 

@@ -85,29 +85,7 @@ public class IndexHomeController {
         if (versionRequest.getPageNum() == 0) {
             versionRequest.setPageNum(1);
         }
-        Long refreshHotCount;
-        String ip = HttpUtil.getIpAddr();
-        if (versionRequest.getPageNum() > 1) {
-            //翻页浏览，获取用户缓存浏览队列，若过期，取最新队列
-            String refresObject = redis.getString("ip:" + ip);
-
-            if (refresObject != null) {
-                refreshHotCount = Long.valueOf(refresObject);
-            } else {
-                refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
-                if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
-                    refreshHotCount = refreshHotCount - 1;
-                }
-                redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
-            }
-        } else {
-            //首页浏览，获取缓存最新队列，缓存用户浏览队列
-            refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
-            if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
-                refreshHotCount = refreshHotCount - 1;
-            }
-            redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
-        }
+        Long refreshHotCount = getRefreshHotCount(versionRequest.getPageNum());
         List<JSONObject> objectList = redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
@@ -233,16 +211,51 @@ public class IndexHomeController {
         if (branchVenueIdRequest.getPageNum() == 0) {
             branchVenueIdRequest.setPageNum(1);
         }
+        Long refreshHotCount = getRefreshHotCount(branchVenueIdRequest.getPageNum());
 
-        String refreshHotCount = redis.getString("refreshHotCount");
         List<JSONObject> objectList = redisService
                 .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
+        objectList.addAll(redisService
+                .findByRange("hotBooks" + refreshHotCount, (branchVenueIdRequest.getPageNum() - 1) * BOOKS_SIZE, branchVenueIdRequest.getPageNum() * BOOKS_SIZE - 1));
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (JSONObject goodStr : objectList) {
             goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
         }
+        packageAtmosphereMessage(goodsCustomResponseList);
         page.setContent(goodsCustomResponseList);
         page.setNumber(branchVenueIdRequest.getPageNum());
         return BaseResponse.success(page);
+    }
+
+    /**
+     * 获取当前缓存批次
+     * @param pageNum
+     * @return
+     */
+    private Long getRefreshHotCount(Integer pageNum) {
+        Long refreshHotCount;
+        String ip = HttpUtil.getIpAddr();
+        if (pageNum > 1) {
+            //翻页浏览，获取用户缓存浏览队列，若过期，取最新队列
+            String refresObject = redis.getString("ip:" + ip);
+
+            if (refresObject != null) {
+                refreshHotCount = Long.valueOf(refresObject);
+            } else {
+                refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
+                if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
+                    refreshHotCount = refreshHotCount - 1;
+                }
+                redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
+            }
+        } else {
+            //首页浏览，获取缓存最新队列，缓存用户浏览队列
+            refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
+            if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
+                refreshHotCount = refreshHotCount - 1;
+            }
+            redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
+        }
+        return refreshHotCount;
     }
 }
