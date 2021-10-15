@@ -1,7 +1,6 @@
 package com.wanmi.sbc.task;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
@@ -102,8 +101,8 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
 
         Long refreshHotCount = redis.incrKey("refreshHotCount");
 
-        redisService.putAll("hotGoods" + refreshHotCount, KsBeanUtil.convertList(goodList, JSONObject.class), 45);
-        redisService.putAll("hotBooks" + refreshHotCount, KsBeanUtil.convertList(bookList, JSONObject.class), 45);
+        redisService.putAll("hotGoods" + refreshHotCount, goodList, 45);
+        redisService.putAll("hotBooks" + refreshHotCount, bookList, 45);
         fenHuiChangRedis(refreshHotCount);
         return SUCCESS;
     }
@@ -151,13 +150,8 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
             List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
                     .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
-
-            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), KsBeanUtil.convertList(hots, JSONObject.class), 30);
-
-
+            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 30);
         }
-
-
     }
 
 

@@ -32,8 +32,8 @@ public class RedisListService {
     /**
      * 从redis 中查询数据
      */
-    public boolean putAll(final String key, List<JSONObject> list, long minutes) {
-        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(JSONObject.class));
+    public boolean putAll(final String key, List list, long minutes) {
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
         ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
         operations.rightPushAll(key, list);
         redisTemplate.expire(key, minutes, TimeUnit.MINUTES);
@@ -44,7 +44,7 @@ public class RedisListService {
      * 从redis 中查询数据
      */
     public List<JSONObject> findByRange(final String key, Integer start, Integer end) {
-        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(JSONObject.class));
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
         ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
