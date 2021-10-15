@@ -20,4 +20,9 @@ public class ActivityBranchContentResponse implements Serializable {
      */
     private String title;
 
+    /**
+     * 模块ID
+     */
+    private String id;
+
 }
