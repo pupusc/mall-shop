@@ -25,6 +25,11 @@ public class BookListModelMobileResponse {
     private String name;
 
     /**
+     * 名家名人 feature_d_v0.02
+     */
+    private String famousName;
+
+    /**
      * 描述
      */
     private String desc;
@@ -38,6 +43,11 @@ public class BookListModelMobileResponse {
      * 头图
      */
     private String headImgUrl;
+
+    /**
+     * 头图方图 feature_d_v0.02
+     */
+    private String headSquareImgUrl;
 
     /**
      * 头图跳转地址

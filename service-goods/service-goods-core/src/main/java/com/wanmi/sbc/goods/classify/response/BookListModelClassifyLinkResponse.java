@@ -27,6 +27,11 @@ public class BookListModelClassifyLinkResponse {
     private String name;
 
     /**
+     * 名家名人 feature_d_v0.02
+     */
+    private String famousName;
+
+    /**
      * 描述
      */
     private String desc;
@@ -42,6 +47,11 @@ public class BookListModelClassifyLinkResponse {
     private String headImgUrl;
 
     /**
+     * 头图方图 feature_d_v0.02
+     */
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     private String headImgHref;
@@ -50,6 +60,11 @@ public class BookListModelClassifyLinkResponse {
      * 书单链接地址
      */
     private String pageHref;
+
+    /**
+     * 是否置顶 0否 1 是 feature_d_v0.02
+     */
+    private Integer hasTop;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布
