@@ -55,31 +55,62 @@ public class GoodsService {
         Integer page = 1;
         if(StringUtils.isNotEmpty(queryDTO.getBookId())){
             request.setId(queryDTO.getBookId());
-        }else {
-            request.setEtime(queryDTO.getEtime());
-            request.setPage(page);
-            request.setStime(queryDTO.getStime());
+            syncGoods(request);
+            return;
         }
-        while (true) {
-            try {
-                BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
-                if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
-                    //查询价格
-                    String goodsIDs = String.join(",",response.getBookList().stream().map(BookuuGoodsDTO::getBookId).collect(Collectors.toList()));
-                    BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
-                    priceQueryRequest.setBookID(goodsIDs);
-                    BookuuPriceQueryResponse bookuuPriceQueryResponse = bookuuClient.queryPrice(priceQueryRequest);
-                    batchAdd(response.getBookList(),bookuuPriceQueryResponse);
-                    if (StringUtils.isNotEmpty(queryDTO.getBookId())) {
+
+
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime startTime = LocalDateTime.parse(queryDTO.getStime(),df);
+        LocalDateTime endTime = LocalDateTime.parse(queryDTO.getEtime(),df);
+        LocalDateTime tempTime = startTime.minusDays(-5);
+        if(tempTime.compareTo(endTime) >0){
+            tempTime = endTime;
+        }
+        while(tempTime.compareTo(endTime) <= 0 && startTime.compareTo(tempTime) <0 ){
+            request.setStime(startTime.format(df));
+            request.setPage(1);
+            request.setEtime(tempTime.format(df));
+            while (true){
+                try {
+                    BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
+                    if (CollectionUtils.isEmpty(response.getBookList()) && response.getFlag().equals(0)) {
                         break;
                     }
-                    request.setPage(++page);
-                } else {
-                    break;
+                    syncPriceAndAdd(response.getBookList());
+                }catch (Exception e){
+                    log.warn("get book error,request:{}",request,e);
                 }
-            }catch (Exception e){
-                log.warn("get book error,request:{}",request,e);
+                request.setPage(request.getPage() + 1);
             }
+            startTime=tempTime;
+            tempTime = tempTime.minusDays(-5);
+            if(tempTime.compareTo(endTime) >0){
+                tempTime = endTime;
+            }
+
+
+        }
+    }
+
+    private void syncPriceAndAdd(List<BookuuGoodsDTO> bookList){
+        //查询价格
+        String goodsIDs = String.join(",", bookList.stream().map(BookuuGoodsDTO::getBookId).collect(Collectors.toList()));
+        BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
+        priceQueryRequest.setBookID(goodsIDs);
+        BookuuPriceQueryResponse bookuuPriceQueryResponse = bookuuClient.queryPrice(priceQueryRequest);
+        batchAdd(bookList, bookuuPriceQueryResponse);
+    }
+
+    private void syncGoods(BookuuGoodsQueryRequest request){
+        try {
+            BookuuGoodsQueryResponse response = bookuuClient.getGoodsList(request);
+            if (response != null && CollectionUtils.isNotEmpty(response.getBookList())) {
+                //查询价格
+                syncPriceAndAdd(response.getBookList());
+            }
+        }catch (Exception e){
+            log.warn("get book error,request:{}",request,e);
         }
     }
 

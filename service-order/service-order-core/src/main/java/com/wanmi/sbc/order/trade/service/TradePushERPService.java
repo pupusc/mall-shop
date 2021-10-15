@@ -1421,9 +1421,9 @@ public class TradePushERPService {
                         .expressName(request.getPost())
                         .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
                         .expressNo(request.getPostNumber())
+                        .code(generatorService.generate("TD"))
                         .platformCode(request.getPlatformCode()).build();
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
-                // todo 记得确认
                 request.getGoodsList().stream().filter(p -> p.getStatus().equals(9)).forEach(g -> {
                     if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();

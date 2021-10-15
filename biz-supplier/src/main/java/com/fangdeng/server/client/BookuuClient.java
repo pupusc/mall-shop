@@ -47,17 +47,20 @@ public class BookuuClient {
         String url = String.format(path, "product");
 
         String result = null;
+        BookuuGoodsQueryResponse response = new BookuuGoodsQueryResponse();
         try {
             result = OkHttpUtil.postXml(url, XmlUtil.convertToXml(request));
             log.info("get bookuu goods info request:{}, response: {}", JSONObject.toJSONString(request), result);
         } catch (Exception e) {
             log.warn("get bookuu goods info error,request:{},error:{}", request, e.getMessage());
+            response.setFlag(1);
+            return response;
         }
-        BookuuGoodsQueryResponse response = null;
         try {
             response = XmlUtil.convertToJavaBean(result, BookuuGoodsQueryResponse.class);
         } catch (Exception e) {
-
+            log.warn("getGoodsList xml to bean error,request:{}",request,e);
+            response.setFlag(1);
         }
         return response;
     }
