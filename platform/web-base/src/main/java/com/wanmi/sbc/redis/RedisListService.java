@@ -24,6 +24,7 @@ public class RedisListService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisListService.class);
 
+
     @Autowired
     private RedisTemplate redisTemplate;
 

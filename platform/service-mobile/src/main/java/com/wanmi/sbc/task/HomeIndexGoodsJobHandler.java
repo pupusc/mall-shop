@@ -36,7 +36,6 @@ import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -67,9 +66,9 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     private BookListModelProvider bookListModelProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
-    @Autowired
-    private RedisTemplate redisTemplate;
 
+    @Autowired
+    private RedisService redis;
 
     @Autowired
     private RefreshConfig refreshConfig;
@@ -101,7 +100,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         }
         bookList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
 
-        Long refreshHotCount = redisTemplate.opsForValue().increment("refreshHotCount", 1);
+        Long refreshHotCount = redis.incrKey("refreshHotCount");
 
         redisService.putAll("hotGoods" + refreshHotCount, KsBeanUtil.convertList(goodList, JSONObject.class), 45);
         redisService.putAll("hotBooks" + refreshHotCount, KsBeanUtil.convertList(bookList, JSONObject.class), 45);
@@ -109,8 +108,6 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         return SUCCESS;
     }
 
-    @Autowired
-    private RedisService redis;
 
     /**
      * 分会场缓存数据

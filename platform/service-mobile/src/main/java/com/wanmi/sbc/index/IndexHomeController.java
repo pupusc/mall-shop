@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,23 +89,24 @@ public class IndexHomeController {
         String ip = HttpUtil.getIpAddr();
         if (versionRequest.getPageNum() > 1) {
             //翻页浏览，获取用户缓存浏览队列，若过期，取最新队列
-            Object refresObject = redisTemplate.opsForValue().get("ip:" + ip);
+            String refresObject = redis.getString("ip:" + ip);
+
             if (refresObject != null) {
-                refreshHotCount = Long.valueOf(refresObject.toString());
+                refreshHotCount = Long.valueOf(refresObject);
             } else {
-                refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
-                if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
+                refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
+                if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
                     refreshHotCount = refreshHotCount - 1;
                 }
-                redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
+                redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
             }
         } else {
             //首页浏览，获取缓存最新队列，缓存用户浏览队列
-            refreshHotCount = Long.valueOf(redisTemplate.opsForValue().get("refreshHotCount").toString());
-            if (!redisTemplate.hasKey("hotGoods" + refreshHotCount) && !redisTemplate.hasKey("hotBooks" + refreshHotCount)) {
+            refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
+            if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
                 refreshHotCount = refreshHotCount - 1;
             }
-            redisTemplate.opsForValue().set("ip:" + ip, refreshHotCount.toString(), 30, TimeUnit.MINUTES);
+            redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
         }
         List<JSONObject> objectList = redisService
                 .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
@@ -233,7 +233,8 @@ public class IndexHomeController {
         if (branchVenueIdRequest.getPageNum() == 0) {
             branchVenueIdRequest.setPageNum(1);
         }
-        String refreshHotCount = redisTemplate.opsForValue().get("refreshHotCount").toString();
+
+        String refreshHotCount = redis.getString("refreshHotCount");
         List<JSONObject> objectList = redisService
                 .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
