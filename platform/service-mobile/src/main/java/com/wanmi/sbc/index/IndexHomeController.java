@@ -176,6 +176,11 @@ public class IndexHomeController {
         activityBranchResponse.setBranchVenueConfigs(branchVenueConfigs.stream().filter(
                 config -> config.getBranchVenueId().equals(branchVenueIdRequest.getBranchVenueId())
         ).collect(Collectors.toList()));
+        activityBranchResponse.getBranchVenueContents().forEach(
+                branchVenueContent -> {
+                    packageAtmosphereMessage(branchVenueContent.getActivityBranchContentResponses());
+                }
+        );
         return BaseResponse.success(activityBranchResponse);
     }
 
