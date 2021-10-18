@@ -132,7 +132,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
                 listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSkuId, Function.identity(), (k1, k2) -> k1));
         goodList.forEach(
                good -> {
-                   BookListModelGoodsIdProviderResponse goodsIdProviderResponse = bookListModelGoodsIdMap.get(good.getGoodsId());
+                   BookListModelGoodsIdProviderResponse goodsIdProviderResponse = bookListModelGoodsIdMap.get(good.getGoodsInfoId());
                    if (goodsIdProviderResponse != null) {
                        good.setBookModelName(goodsIdProviderResponse.getBusinessType() == 1
                                ? String.format("榜单名称[%s]第%s名", goodsIdProviderResponse.getName(), goodsIdProviderResponse.getOrderNum())
