@@ -15,6 +15,12 @@ public class ActivityBranchResponse implements Serializable {
      * 主题色
      */
     private String themeColor;
+
+    /**
+     * 埋点键
+     */
+    private String buriedPoint;
+
     /**
      * 分会场配置内容
      */
