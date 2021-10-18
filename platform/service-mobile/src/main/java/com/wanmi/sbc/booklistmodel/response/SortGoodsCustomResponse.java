@@ -43,4 +43,9 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse implements Seri
      */
     private String atmospherePrice;
 
+    /**
+     * 显示在书单中
+     */
+    private String bookModelName;
+
 }
