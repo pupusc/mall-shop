@@ -1,5 +1,7 @@
 package com.wanmi.sbc.home;
 
+import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -7,11 +9,15 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.home.request.HomeNewBookRequest;
 import com.wanmi.sbc.util.RandomUtil;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -35,13 +45,33 @@ public class HomePageController {
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
+    @Autowired
+    private BookListModelAndGoodsService bookListModelAndGoodsService;
+
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    /**
+     * 新上书籍
+     */
+    private final static String KEY_HOME_NEW_BOOK_LIST = "KEY_HOME_NEW_BOOK_LIST";
+
     /**
      * 获取新上书籍
      * @param homeNewBookRequest
      * @return
      */
     public BaseResponse<List<GoodsCustomResponse>> newBookList(@RequestBody HomeNewBookRequest homeNewBookRequest){
+        List<GoodsCustomResponse> result = new ArrayList<>();
+        if (homeNewBookRequest.getPageSize() <= 0) {
+            return BaseResponse.success(result);
+        }
 
+        String newBookListStr = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST) + "";
+        if (!StringUtils.isEmpty(newBookListStr)) {
+            return BaseResponse.success(JSON.parseArray(newBookListStr, GoodsCustomResponse.class));
+        }
         //根据书单模版获取商品列表
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(0);
@@ -54,18 +84,34 @@ public class HomePageController {
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
         List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
         if (CollectionUtils.isEmpty(content)) {
-            return null;
+            return BaseResponse.success(result);
         }
 
         //获取随机书籍
         Collection<Integer> randomIndex = RandomUtil.getRandom(content.size(), homeNewBookRequest.getPageSize());
-        List<EsGoodsVO> result = new ArrayList<>();
+        List<EsGoodsVO> resultEsGoodsList = new ArrayList<>();
         for (Integer index : randomIndex) {
-            result.add(content.get(index));
+            resultEsGoodsList.add(content.get(index));
         }
 
-        //书籍存入到redis中
+        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(resultEsGoodsList);
+        if (CollectionUtils.isEmpty(goodsVOList)) {
+            return BaseResponse.success(result);
+        }
+        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(content, bookListModelAndGoodsService.getCustomerVo());
+        if (CollectionUtils.isEmpty(goodsInfoVOList)) {
+            return BaseResponse.success(result);
+        }
+        Map<String, GoodsVO> supId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        for (EsGoodsVO esGoodsVO : resultEsGoodsList) {
+            result.add(bookListModelAndGoodsService.packageGoodsCustomResponse(supId2GoodsVoMap.get(esGoodsVO.getId()), esGoodsVO, goodsInfoVOList));
+        }
 
-        return null;
+        if (!CollectionUtils.isEmpty(result)) {
+            //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
+            redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(result), 30, TimeUnit.MINUTES);
+        }
+        //书籍存入到redis中
+        return BaseResponse.success(result);
     }
 }
