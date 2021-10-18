@@ -2,12 +2,14 @@ package com.fangdeng.server.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.fangdeng.server.dto.GoodsCateSyncDTO;
 import com.fangdeng.server.dto.OrderTradeDTO;
 import com.fangdeng.server.dto.ProviderTradeDeliveryStatusSyncDTO;
 import com.fangdeng.server.dto.TagDTO;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
 import com.fangdeng.server.job.SyncGoodsStockJobHandler;
+import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class TestController {
 
     @Autowired
     private TagMapper tagMapper;
+
+    @Autowired
+    private GoodsCateSyncMapper goodsCateSyncMapper;
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
@@ -94,6 +99,16 @@ public class TestController {
         try {
             tagMapper.batchInsert(labels);
             
+        }catch (Exception e){
+            String a="";
+        }
+    }
+
+    @PostMapping("/goods/cate/init")
+    public void initCate(@RequestBody List<GoodsCateSyncDTO> cates){
+        try {
+            goodsCateSyncMapper.batchInsert(cates);
+
         }catch (Exception e){
             String a="";
         }
