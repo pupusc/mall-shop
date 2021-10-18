@@ -145,11 +145,12 @@
   </update>
   <insert id="batchInsert">
     insert into goods_cate_sync(id, parent_id, name,
-    deleted, create_time, update_time) values
+    deleted, create_time, update_time,label_ids) values
     <foreach collection="list" separator="," item="item" index="index">
       (#{item.id,jdbcType=INTEGER}, #{item.parentId,jdbcType=INTEGER},
-      #{item.name,jdbcType=VARCHAR}, 0,now(),now()
+      #{item.name,jdbcType=VARCHAR}, 0,now(),now(),#{item.labelIds}
       )
     </foreach>
   </insert>
+
 </mapper>

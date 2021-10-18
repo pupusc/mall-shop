@@ -10,27 +10,14 @@ import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
 import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByReturnOrderCodeAndTypeRequest;
-import com.wanmi.sbc.account.bean.enums.AccountRecordType;
-import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
-import com.wanmi.sbc.account.bean.enums.PayType;
-import com.wanmi.sbc.account.bean.enums.PayWay;
-import com.wanmi.sbc.account.bean.enums.RefundStatus;
+import com.wanmi.sbc.account.bean.enums.*;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MessageMQRequest;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.CompanySourceType;
-import com.wanmi.sbc.common.enums.NodeType;
-import com.wanmi.sbc.common.enums.Platform;
-import com.wanmi.sbc.common.enums.StoreType;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.enums.node.ReturnOrderProcessType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.GeneratorService;
-import com.wanmi.sbc.common.util.IteratorUtils;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.UUIDUtil;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountProvider;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -94,16 +81,7 @@ import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
-import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
-import com.wanmi.sbc.order.bean.enums.BookingType;
-import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
-import com.wanmi.sbc.order.bean.enums.DeliverStatus;
-import com.wanmi.sbc.order.bean.enums.FlowState;
-import com.wanmi.sbc.order.bean.enums.RefundChannel;
-import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
-import com.wanmi.sbc.order.bean.enums.ReturnReason;
-import com.wanmi.sbc.order.bean.enums.ReturnType;
-import com.wanmi.sbc.order.bean.enums.ReturnWay;
+import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.TradeDistributeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.common.GoodsStockService;
@@ -2211,6 +2189,17 @@ public class ReturnOrderService {
                 //作废主订单
                 tradeService.voidTrade(returnOrder.getTid(), operator);
                 trade.getTradeState().setEndTime(LocalDateTime.now());
+            }else if(providerTradeAllEnd(returnOrder)){
+                //zi订单或作废或已经全部发货，修改主订单为待收货
+                StateRequest stateRequest = StateRequest
+                        .builder()
+                        .tid(returnOrder.getTid())
+                        .operator(operator)
+                        .event(TradeEvent.DELIVER)
+                        .data("子单作废和发货")
+                        .build();
+                tradeFSMService.changeState(stateRequest);
+
             }
         }
         if (returnOrder.getPayType() == PayType.OFFLINE) {
@@ -2234,6 +2223,22 @@ public class ReturnOrderService {
                 .collect(Collectors.toList());
         return CollectionUtils.isEmpty(noVoidProviderTrades);
     }
+
+    /**
+     * 判断子单是否全部终态，
+     *
+     * @param returnOrder
+     * @return
+     */
+    public boolean providerTradeAllEnd(ReturnOrder returnOrder) {
+        //子订单
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(returnOrder.getTid());
+        List<ProviderTrade> noVoidProviderTrades = providerTrades.stream()
+                .filter(trade -> trade.getTradeState().getFlowState() != FlowState.VOID && trade.getTradeState().getFlowState() != FlowState.DELIVERED)
+                .collect(Collectors.toList());
+        return CollectionUtils.isEmpty(noVoidProviderTrades);
+    }
+
 
     /**
      * 保存退款对账明细
@@ -3857,9 +3862,11 @@ public class ReturnOrderService {
         }
         // 查询退款单
         RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(returnOrderCode);
+
         Trade trade = tradeService.detail(returnOrder.getTid());
 
-
+       //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
         //判断周期购订单赠品是否是虚拟或者电子卡券
         if (trade.getCycleBuyFlag()) {
             List<TradeItem> gifts = trade.getGifts().stream().filter(tradeItem -> tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS || tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON).collect(Collectors.toList());
@@ -3874,7 +3881,7 @@ public class ReturnOrderService {
 
         } else {
             //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
-            if (returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
+           if (returnOrder.getReturnType().equals(ReturnType.REFUND) && providerTrades.stream().anyMatch(p->Objects.equals(p.getId(),returnOrder.getPtid()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.SHIPPED).contains(p.getTradeState().getDeliverStatus()))) {
                 //退款单更新，已拒绝
                 this.refundReject(returnOrder, refundOrder);
                 return null;

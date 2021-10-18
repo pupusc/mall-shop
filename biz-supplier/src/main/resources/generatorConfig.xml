@@ -25,7 +25,7 @@
 
     <javaClientGenerator targetPackage="com.fangdeng.server.mapper" targetProject="src/main/java"  type="XMLMAPPER" />
 
-    <table tableName="goods_cate_sync" domainObjectName="GoodsCateSyncDTO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+    <table tableName="goods_label" domainObjectName="GoodsLabelDTO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
   </context>
 </generatorConfiguration>
 

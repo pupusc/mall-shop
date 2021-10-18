@@ -17,14 +17,14 @@ public interface RiskVerifyRepository extends JpaRepository<RiskVerify, Long>, J
 
    @Transactional
    @Modifying
-   @Query("update RiskVerify set status = ?1,updateTime =now() where id = ?2")
-   void updateStatusById(Integer status,Long id);
+   @Query("update RiskVerify set status = ?1,updateTime =now(),requestId = ?3 where id = ?2")
+   void updateStatusById(Integer status,Long id,String requestId);
 
 
 
    @Modifying
-   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , requestId = ?3 , content = ?4,updateTime =now() where id = ?5")
-   void updateStatus(Integer status,String errorMsg,String requestId,String content,Long id);
+   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , content = ?3,updateTime =now() where requestId = ?4)
+   void updateStatus(Integer status,String errorMsg,String content,String requestId);
 
 
 

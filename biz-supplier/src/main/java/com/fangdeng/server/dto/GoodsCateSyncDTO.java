@@ -53,5 +53,6 @@ public class GoodsCateSyncDTO {
      * @mbggenerated Mon Oct 18 09:23:12 CST 2021
      */
     private Date updateTime;
-    
+
+    private String labelIds;
 }

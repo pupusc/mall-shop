@@ -1,5 +1,8 @@
 package com.wanmi.sbc.goods.common;
 
+import com.aliyuncs.utils.StringUtils;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.request.common.ImageAuditRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.common.model.root.RiskVerify;
@@ -41,8 +44,10 @@ public class RiskVerifyService {
         }
         pageList.getContent().stream().forEach(p->{
             try {
-                externalService.aduitImage(ImageAuditRequest.builder().verifyTool("GreenVerifyTongdun").content(p.getImageUrl()).imgType("ADS").customerId(p.getId().toString()).build());
-                riskVerifyRepository.updateStatusById(1,p.getId());
+                BaseResponse<GoodsImageAuditResponse> response =  externalService.aduitImage(ImageAuditRequest.builder().verifyTool("GreenVerifyTongdun").content(p.getImageUrl()).imgType("ADS").customerId(p.getId().toString()).build());
+                if(response != null && response.getContext() != null &&  StringUtils.isEmpty(response.getContext().getRequestId())) {
+                    riskVerifyRepository.updateStatusById(1,p.getId(),response.getContext().getRequestId());
+                }
             }catch (Exception e){
                 log.warn("");
             }
@@ -53,10 +58,6 @@ public class RiskVerifyService {
 
     @Transactional
     public void verifyImageCallBack(ImageVerifyRequest imageVerifyRequest){
-        RiskVerify riskVerify = riskVerifyRepository.getOne(Long.valueOf(imageVerifyRequest.getCustomerId()));
-        if(riskVerify==null){
-            return;
-        }
         riskVerify.setRequestId(imageVerifyRequest.getRequestId());
         riskVerify.setStatus(imageVerifyRequest.getSuggestion().equals("PASS")?2:imageVerifyRequest.getSuggestion().equals("BLOCK")?3:1);
         if(imageVerifyRequest.getSuggestion().equals("BLOCK")){
