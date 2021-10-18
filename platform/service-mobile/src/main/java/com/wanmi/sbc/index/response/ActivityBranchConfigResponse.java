@@ -28,6 +28,11 @@ public class ActivityBranchConfigResponse implements Serializable {
     private String buriedPoint;
 
     /**
+     * 分会场名称
+     */
+    private String branchVenueName;
+
+    /**
      * 活动会场内容
      */
     private List<ActivityBranchContentResponse> branchVenueContents;
