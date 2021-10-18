@@ -59,4 +59,6 @@ public interface TagMapper {
     int updateByPrimaryKey(TagDTO record);
 
     int batchInsert(@Param("list") List<TagDTO> list);
+
+    List<TagDTO> list();
 }

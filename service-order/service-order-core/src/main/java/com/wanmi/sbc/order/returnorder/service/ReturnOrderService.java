@@ -104,16 +104,15 @@ import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrderTransfer;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnKnowledge;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
-import com.wanmi.sbc.order.returnorder.model.value.ReturnPrice;
+import com.wanmi.sbc.order.returnorder.model.value.*;
 import com.wanmi.sbc.order.returnorder.mq.ReturnOrderProducerService;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderTransferRepository;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
+import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
+import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
+import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -161,16 +160,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -327,6 +317,8 @@ public class ReturnOrderService {
     @Autowired
     private PlatformAddressQueryProvider platformAddressQueryProvider;
 
+    @Autowired
+    private TradeFSMService tradeFSMService;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用

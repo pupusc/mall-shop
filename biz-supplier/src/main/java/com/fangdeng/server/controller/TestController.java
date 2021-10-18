@@ -1,13 +1,11 @@
 package com.fangdeng.server.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.fangdeng.server.dto.*;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
 import com.fangdeng.server.job.SyncGoodsStockJobHandler;
 import com.fangdeng.server.mapper.GoodsCateSyncMapper;
-import com.fangdeng.server.mapper.GoodsLabelMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +38,7 @@ public class TestController {
 
     @Autowired
     private GoodsCateSyncMapper goodsCateSyncMapper;
-
-    @Autowired
-    private GoodsLabelMapper goodsLabelMapper;
+    
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
@@ -112,11 +108,11 @@ public class TestController {
     public void initCate(@RequestBody List<GoodsCateSyncDTO> cates){
         try {
 
-            List<GoodsLabelDTO> labels = goodsLabelMapper.list();
+            List<TagDTO> tagDTOS = tagMapper.list();
             cates.forEach(c->{
                 List<String> names = getName(c,cates);
-                List<String> labelIds = labels.stream().filter(p->names.contains(p.getLabelName())).map(p->p.getGoodsLabelId().toString()).collect(Collectors.toList());
-                String.join(",",labelIds);
+                List<String> labelIds = tagDTOS.stream().filter(p->names.contains(p.getTagName())).map(p->p.getId().toString()).collect(Collectors.toList());
+                c.setLabelIds(String.join(",",labelIds));
             });
             goodsCateSyncMapper.batchInsert(cates);
 

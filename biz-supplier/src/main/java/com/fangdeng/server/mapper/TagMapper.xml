@@ -138,4 +138,10 @@
       )
     </foreach>
   </insert>
+  <select id="list" resultType="com.fangdeng.server.dto.TagDTO">
+    select
+    <include refid="Base_Column_List"/>
+    from t_tag
+    where del_flag =0
+  </select>
 </mapper>
