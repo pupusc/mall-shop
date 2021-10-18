@@ -3,9 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
-import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
@@ -13,7 +11,6 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
@@ -37,8 +34,10 @@ import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
 import com.wanmi.sbc.goods.brand.request.ContractBrandQueryRequest;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
+import com.wanmi.sbc.goods.cate.model.root.GoodsCateSync;
 import com.wanmi.sbc.goods.cate.repository.ContractCateRepository;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
+import com.wanmi.sbc.goods.cate.repository.GoodsCateSyncRepository;
 import com.wanmi.sbc.goods.cate.request.ContractCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
@@ -98,12 +97,10 @@ import com.wanmi.sbc.goods.virtualcoupon.service.VirtualCouponService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import com.wanmi.sbc.linkedmall.api.request.stock.GoodsStockGetRequest;
 import io.seata.spring.annotation.GlobalTransactional;
-import jdk.nashorn.internal.runtime.linker.LinkerCallSite;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,14 +110,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.repository.support.PageableExecutionUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -128,11 +122,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.awt.print.Book;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -286,6 +275,9 @@ public class GoodsService {
 
     @Value("${default.providerId}")
     private Long defaultProvider;
+
+    @Autowired
+    private GoodsCateSyncRepository goodsCateSyncRepository;
 
     /**
      * 供应商商品删除
@@ -3375,5 +3367,10 @@ public class GoodsService {
     public List<GoodsSync> listGoodsSync(){
         return goodsSyncRepository.findByStatus(2);
     }
+
+    public List<GoodsCateSync> listGoodsCateSync(){
+        return goodsCateSyncRepository.query();
+    }
+
 
 }

@@ -25,7 +25,10 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
 import com.wanmi.sbc.order.bean.enums.*;
-import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.order.bean.vo.LogisticsVO;
+import com.wanmi.sbc.order.bean.vo.ShippingItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeDeliverVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.logistics.model.root.LogisticsLog;
 import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
@@ -59,7 +62,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1260,7 +1265,7 @@ public class TradePushERPService {
                     TradeDeliverVO tradeDeliver =  tradeDeliverVOList.get(0);
                     providerTrade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
                     tradeVO.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
-                    if(CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.NOT_YET_SHIPPED).contains(p.getTradeState().getDeliverStatus()))){
+                    if(CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(),FlowState.VOID))))){
                         tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                         tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                         tradeVO.getTradeState().setDeliverTime(null);
@@ -1423,6 +1428,17 @@ public class TradePushERPService {
                         .expressNo(request.getPostNumber())
                         .code(generatorService.generate("TD"))
                         .platformCode(request.getPlatformCode()).build();
+                if(request.getPostDate() !=null){
+                    try{
+                        Instant instant = request.getPostDate().toInstant();
+                        ZoneId zoneId = ZoneId.systemDefault();
+                        deliveryInfoVO.setDeliverTime(instant.atZone(zoneId).toLocalDateTime());
+
+                    }catch (Exception e){
+                        log.warn("syncProviderTradeDeliveryStatus trans time error,request:{}",request,e);
+                        deliveryInfoVO.setDeliverTime(LocalDateTime.now());
+                    }
+                }
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
                 request.getGoodsList().stream().filter(p -> p.getStatus().equals(9)).forEach(g -> {
                     if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
