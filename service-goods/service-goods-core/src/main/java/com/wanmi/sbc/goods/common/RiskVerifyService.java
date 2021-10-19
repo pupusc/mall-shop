@@ -46,7 +46,7 @@ public class RiskVerifyService {
         pageList.getContent().stream().forEach(p->{
             try {
                 BaseResponse<GoodsImageAuditResponse> response =  externalService.aduitImage(ImageAuditRequest.builder().verifyTool("GreenVerifyTongdun").content(p.getImageUrl()).imgType("ADS").customerId(p.getId().toString()).build());
-                if(response != null && response.getContext() != null &&  StringUtils.isEmpty(response.getContext().getRequestId())) {
+                if(response != null && response.getContext() != null &&  !StringUtils.isEmpty(response.getContext().getRequestId())) {
                     riskVerifyRepository.updateStatusById(1,p.getId(),response.getContext().getRequestId());
                 }
             }catch (Exception e){

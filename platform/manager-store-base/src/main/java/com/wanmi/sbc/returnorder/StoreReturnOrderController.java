@@ -335,7 +335,7 @@ public class StoreReturnOrderController {
             tradeResponse.getContext().getTradeVO().getTradeVOList().stream().filter(p->p.getId().equals(returnOrder.getPtid())).forEach(providerTradeVO -> {
                 if(!Objects.equals(providerTradeVO.getTradeItems().get(0).getProviderId(),defaultProviderId)){
                     BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
-                    if(response == null || response.getContext() == null || Objects.equals(response.getContext().getStatus(),1)){
+                    if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
                         throw new SbcRuntimeException("K-050106");
                     }
                     return;
