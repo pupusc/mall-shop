@@ -35,6 +35,6 @@ public class IndexConfigChild3Response implements Serializable {
     /**
      * 樊登解读相关书单URL
      */
-    private IndexConfigChild1Response fdjdxgsdUrl;
+    private String fdjdxgsdUrl;
 
 }
