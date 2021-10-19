@@ -138,9 +138,11 @@ public class IndexHomeController {
      */
     @PostMapping(value = "/isActivity")
     public BaseResponse<Boolean> isActivity() {
-        String dateStr = refreshConfig.getActivityStartTime();
-        Date date = DateUtil.parseDateTime(dateStr);
-        return BaseResponse.success(new Date().after(date));
+        String dateStartStr = refreshConfig.getActivityStartTime();
+        String dateEndStr = refreshConfig.getActivityEndTime();
+        Date dateStr = DateUtil.parseDateTime(dateStartStr);
+        Date dateEnd = DateUtil.parseDateTime(dateEndStr);
+        return BaseResponse.success(new Date().after(dateStr) && new Date().before(dateEnd));
     }
 
 
