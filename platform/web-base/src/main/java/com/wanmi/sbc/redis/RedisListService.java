@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,9 @@ public class RedisListService {
      * 从redis 中查询数据
      */
     public boolean putAll(final String key, List list, long minutes) {
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
+        }
         redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
         ListOperations<String, JSONObject> operations = redisTemplate.opsForList();

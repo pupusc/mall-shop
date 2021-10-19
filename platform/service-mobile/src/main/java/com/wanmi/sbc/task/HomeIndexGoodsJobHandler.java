@@ -79,6 +79,12 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     private RefreshConfig refreshConfig;
 
 
+    /**
+     * 首页热榜数据存缓存
+     * @param paramStr
+     * @return
+     * @throws Exception
+     */
     @Override
     public ReturnT<String> execute(String paramStr) throws Exception {
         //刷新排序
@@ -113,10 +119,10 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     }
 
     /**
-     * 书单信息
+     * 封装收录书单信息
      * @param goodList
      */
-    private void packageBookModelMsg(List<SortGoodsCustomResponse> goodList){
+    private void packageBookModelMsg(List<SortGoodsCustomResponse> goodList) {
         //获取商品id信息
         Collection<String> spuIdCollection = goodList.stream().map(SortGoodsCustomResponse::getGoodsId).collect(Collectors.toSet());
         //根据商品id 获取书单信息
@@ -184,15 +190,22 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
                     }
             );
             activityBranchResponse.setBranchVenueContents(branchVenueContentList);
+            //缓存分分场配置信息
             redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
             List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
                     .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
             packageBookModelMsg(goodList);
+            //缓存分分场热榜信息
             redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 45);
         }
     }
 
 
+    /**
+     * 根据商品Id封装对像
+     * @param goodIds
+     * @return
+     */
     private List<SortGoodsCustomResponse> traneserSortGoodsCustomResponseByHotGoodsDto(List<String> goodIds) {
         List<SortGoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
@@ -222,6 +235,11 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     }
 
 
+    /**
+     * 书单对像转换
+     * @param bookListModelProviderResponse
+     * @return
+     */
     private SortGoodsCustomResponse packageGoodsCustomResponse(BookListModelProviderResponse bookListModelProviderResponse) {
         SortGoodsCustomResponse goodsCustomResponse = new SortGoodsCustomResponse();
         goodsCustomResponse.setGoodsId(bookListModelProviderResponse.getId().toString());
