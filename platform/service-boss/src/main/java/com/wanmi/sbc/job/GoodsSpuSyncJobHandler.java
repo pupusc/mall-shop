@@ -18,12 +18,9 @@ import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsPropDetailRelDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
+import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.util.OperateLogMQUtil;
 import com.xxl.job.core.biz.model.ReturnT;
@@ -37,13 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 
 /**
@@ -107,15 +98,19 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             log.info("没有审核通过待发布的商品");
             return SUCCESS;
         }
+        BaseResponse<List<GoodsCateSyncVO>> labels = goodsQueryProvider.listGoodsCateSync();
         response.getContext().forEach(g -> {
-            addGoods(g);
+            addGoods(g,labels);
         });
         return SUCCESS;
     }
 
-    private void addGoods(GoodsSyncVO goodsSync) {
+    private void addGoods(GoodsSyncVO goodsSync,BaseResponse<List<GoodsCateSyncVO>> labels) {
         try {
             GoodsAddRequest request = convertBean(goodsSync);
+            if(labels != null && CollectionUtils.isNotEmpty(labels.getContext())){
+                request.getGoods().setLabelIdStr(labels.getContext().stream().filter(p->p.getId().equals(goodsSync.getCategory())).findFirst().get().get);
+            }
             request.setUpdatePerson("goodsSpuSyncJob");
             //默认模版
             Long fId = request.getGoods().getFreightTempId();
@@ -252,6 +247,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         if(CollectionUtils.isNotEmpty(images)){
            goodsDTO.setGoodsUnBackImg(images.get(0).getArtworkUrl());
         }
+
+
         request.setGoods(goodsDTO);
         request.setImages(images);
         //属性
@@ -277,4 +274,5 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         return sb.toString();
 
     }
+
 }

@@ -34,4 +34,7 @@ public class GoodsCateSync {
 
     @Column(name = "deleted")
     private Integer deleted;
+
+    @Column(name = "label_ids")
+    private String labelIds;
 }

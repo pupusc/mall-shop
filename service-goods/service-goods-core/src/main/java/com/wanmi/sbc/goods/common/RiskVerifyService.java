@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.model.root.GoodsSync;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
 import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsImageAuditResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +59,13 @@ public class RiskVerifyService {
 
     @Transactional
     public void verifyImageCallBack(ImageVerifyRequest imageVerifyRequest){
+        RiskVerify riskVerify = riskVerifyRepository.getByRequestId(imageVerifyRequest.getRequestId());
         riskVerify.setRequestId(imageVerifyRequest.getRequestId());
         riskVerify.setStatus(imageVerifyRequest.getSuggestion().equals("PASS")?2:imageVerifyRequest.getSuggestion().equals("BLOCK")?3:1);
         if(imageVerifyRequest.getSuggestion().equals("BLOCK")){
             riskVerify.setErrorMsg(imageVerifyRequest.getHitReason());
         }
-        riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),riskVerify.getRequestId(),imageVerifyRequest.getOcrStr(),riskVerify.getId());
+        riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
         if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo()) == 0){
             //全部审核通过
             goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),2);

@@ -134,7 +134,7 @@
     insert into t_tag (tag_name, create_time,
     update_time, del_flag) values
     <foreach collection="list" separator="," item="item" index="index">
-      ( #{item.tagName,jdbcType=VARCHAR}, now(),now() ,0
+      ( #{item}, now(),now() ,0
       )
     </foreach>
   </insert>

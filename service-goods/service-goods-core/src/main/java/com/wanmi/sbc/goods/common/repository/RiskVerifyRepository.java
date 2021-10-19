@@ -23,11 +23,14 @@ public interface RiskVerifyRepository extends JpaRepository<RiskVerify, Long>, J
 
 
    @Modifying
-   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , content = ?3,updateTime =now() where requestId = ?4)
+   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , content = ?3,updateTime =now() where requestId = ?4")
    void updateStatus(Integer status,String errorMsg,String content,String requestId);
 
 
 
    @Query(value = "SELECT COUNT(id) FROM RiskVerify where deleted = 0 and status in(0,1,3) and goodsNo = :goodsNo")
    Integer queryCount(@Param("goodsNo") String goodsNo);
+
+   @Query("from RiskVerify w where w.requestId = ?1")
+   RiskVerify getByRequestId(@Param("requestId") String requestId);
 }
