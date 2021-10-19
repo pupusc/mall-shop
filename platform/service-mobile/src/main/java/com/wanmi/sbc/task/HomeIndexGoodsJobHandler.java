@@ -135,8 +135,8 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
                    BookListModelGoodsIdProviderResponse goodsIdProviderResponse = bookListModelGoodsIdMap.get(good.getGoodsInfoId());
                    if (goodsIdProviderResponse != null) {
                        good.setBookModelName(goodsIdProviderResponse.getBusinessType() == 1
-                               ? String.format("榜单名称[%s]第%s名", goodsIdProviderResponse.getName(), goodsIdProviderResponse.getOrderNum())
-                               : String.format("收入在[%s]书单中", goodsIdProviderResponse.getName()));
+                               ? String.format("%s第%s名", goodsIdProviderResponse.getName(), goodsIdProviderResponse.getOrderNum())
+                               : String.format("收录在[%s]书单中", goodsIdProviderResponse.getName()));
                    }
                }
         );
