@@ -66,7 +66,7 @@ public class RiskVerifyService {
             riskVerify.setErrorMsg(imageVerifyRequest.getHitReason());
         }
         riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
-        if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo()) == 0){
+        if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo(),imageVerifyRequest.getRequestId()) == 0){
             //全部审核通过
             goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),2);
         }

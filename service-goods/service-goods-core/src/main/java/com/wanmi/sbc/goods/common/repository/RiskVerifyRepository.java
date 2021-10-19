@@ -28,8 +28,8 @@ public interface RiskVerifyRepository extends JpaRepository<RiskVerify, Long>, J
 
 
 
-   @Query(value = "SELECT COUNT(id) FROM RiskVerify where deleted = 0 and status in(0,1,3) and goodsNo = :goodsNo")
-   Integer queryCount(@Param("goodsNo") String goodsNo);
+   @Query(value = "SELECT COUNT(id) FROM RiskVerify where deleted = 0 and status in(0,1,3) and goodsNo = :goodsNo and requestId != :requestId")
+   Integer queryCount(@Param("goodsNo") String goodsNo,@Param("requestId")String requestId);
 
    @Query("from RiskVerify w where w.requestId = ?1")
    RiskVerify getByRequestId(@Param("requestId") String requestId);
