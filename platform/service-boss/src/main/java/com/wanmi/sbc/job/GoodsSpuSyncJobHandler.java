@@ -108,8 +108,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
     private void addGoods(GoodsSyncVO goodsSync,BaseResponse<List<GoodsCateSyncVO>> labels) {
         try {
             GoodsAddRequest request = convertBean(goodsSync);
-            if(labels != null && CollectionUtils.isNotEmpty(labels.getContext()) &&labels.getContext().stream().anyMatch(p->p.getId().equals(goodsSync.getCategory()))){
-                request.getGoods().setLabelIdStr(labels.getContext().stream().filter(p->p.getId().equals(goodsSync.getCategory())).findFirst().get().getLabelIds());
+            if(labels != null && CollectionUtils.isNotEmpty(labels.getContext()) && goodsSync.getCategory() != null && labels.getContext().stream().anyMatch(p-> Long.valueOf(p.getId().longValue()).equals(goodsSync.getCategory()))){
+                request.setTags(labels.getContext().stream().filter(p->Long.valueOf(p.getId().longValue()).equals(goodsSync.getCategory())).findFirst().get().getLabelIds());
             }
             request.setUpdatePerson("goodsSpuSyncJob");
             //默认模版

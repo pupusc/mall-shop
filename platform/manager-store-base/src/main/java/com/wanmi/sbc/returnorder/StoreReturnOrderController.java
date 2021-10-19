@@ -331,7 +331,7 @@ public class StoreReturnOrderController {
 
 
         //通知erp系统停止发货,走系统退款逻辑,只退此审核单的
-        if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)){
+        if (tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) || tradeVO.getTradeState().getDeliverStatus().equals(DeliverStatus.PART_SHIPPED)){
             tradeResponse.getContext().getTradeVO().getTradeVOList().stream().filter(p->p.getId().equals(returnOrder.getPtid())).forEach(providerTradeVO -> {
                 if(!Objects.equals(providerTradeVO.getTradeItems().get(0).getProviderId(),defaultProviderId)){
                     BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeVO.getDeliveryOrderId()).pid(providerTradeVO.getId()).build());
