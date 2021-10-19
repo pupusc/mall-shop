@@ -26,4 +26,15 @@ public class IndexConfigChild3Response implements Serializable {
      * 樊登周六解读好书
      */
     private List<IndexConfigChild2Response> fdzljdhsConfig;
+
+    /**
+     * 樊登解读相关书单
+     */
+    private List<IndexConfigChild1Response> fdjdxgsdConfig;
+
+    /**
+     * 樊登解读相关书单URL
+     */
+    private IndexConfigChild1Response fdjdxgsdUrl;
+
 }

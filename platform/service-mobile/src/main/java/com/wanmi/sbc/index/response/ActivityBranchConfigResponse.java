@@ -33,6 +33,11 @@ public class ActivityBranchConfigResponse implements Serializable {
     private String branchVenueName;
 
     /**
+     * 分会场热榜名称
+     */
+    private String hotTitle;
+
+    /**
      * 活动会场内容
      */
     private List<ActivityBranchContentResponse> branchVenueContents;

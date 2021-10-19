@@ -172,6 +172,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             activityBranchResponse.setThemeColor(activityBranchConfigResponse.getThemeColor());
             activityBranchResponse.setBuriedPoint(activityBranchConfigResponse.getBuriedPoint());
             activityBranchResponse.setBranchVenueName(activityBranchConfigResponse.getBranchVenueName());
+            activityBranchResponse.setHotTitle(activityBranchConfigResponse.getHotTitle());
             List<ActivityBranchContentDetailResponse> branchVenueContentList = new ArrayList<>();
             activityBranchConfigResponse.getBranchVenueContents().forEach(content -> {
                         ActivityBranchContentDetailResponse detailResponse = new ActivityBranchContentDetailResponse();

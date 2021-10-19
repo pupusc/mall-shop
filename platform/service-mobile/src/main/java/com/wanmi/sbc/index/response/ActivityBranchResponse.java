@@ -25,7 +25,10 @@ public class ActivityBranchResponse implements Serializable {
      * 分会场名称
      */
     private String branchVenueName;
-
+    /**
+     * 分会场热榜名称
+     */
+    private String hotTitle;
 
     /**
      * 分会场配置内容

@@ -23,6 +23,11 @@ public class IndexConfigResponse implements Serializable {
      * 好物提前购
      */
     private List<IndexConfigChild1Response> hwtqgConfig;
+
+    /**
+     * 好物提前购下方
+     */
+    private IndexConfigChild1Response hwtqgxfConfig;
     /**
      * 樊登推荐
      */
@@ -59,6 +64,11 @@ public class IndexConfigResponse implements Serializable {
      * 更多地址
      */
     private IndexConfigChild4Response moreJumpUrl;
+
+    /**
+     * 新品推荐
+     */
+    private List<IndexConfigChild1Response> xptjConfig;
 
     /**
      * 搜索文案
