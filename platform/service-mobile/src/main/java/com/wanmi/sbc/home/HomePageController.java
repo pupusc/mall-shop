@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,11 +58,18 @@ public class HomePageController {
      */
     private final static String KEY_HOME_NEW_BOOK_LIST = "KEY_HOME_NEW_BOOK_LIST";
 
+
+    public BaseResponse banner() {
+
+    }
+
+
     /**
      * 获取新上书籍
      * @param homeNewBookRequest
      * @return
      */
+    @PostMapping("/newBookList")
     public BaseResponse<List<GoodsCustomResponse>> newBookList(@RequestBody HomeNewBookRequest homeNewBookRequest){
         List<GoodsCustomResponse> result = new ArrayList<>();
         if (homeNewBookRequest.getPageSize() <= 0) {
@@ -114,4 +122,7 @@ public class HomePageController {
         //书籍存入到redis中
         return BaseResponse.success(result);
     }
+
+
+
 }
