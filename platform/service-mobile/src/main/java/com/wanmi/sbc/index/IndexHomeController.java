@@ -174,7 +174,7 @@ public class IndexHomeController {
     @PostMapping(value = "/shopActivityBranchConfig")
     public BaseResponse<ActivityBranchResponse> shopActivityBranchConfig(@RequestBody BranchVenueIdRequest branchVenueIdRequest) {
         ActivityBranchResponse activityBranchResponse = redis.getObj("activityBranch:" + branchVenueIdRequest.getBranchVenueId(), ActivityBranchResponse.class);
-        List<IndexConfigChild1Response> branchVenueConfigs = JSONArray.parseArray(refreshConfig.getShopActivityBranchTopConfig(), IndexConfigChild1Response.class);
+        List<IndexConfigChild2Response> branchVenueConfigs = JSONArray.parseArray(refreshConfig.getShopActivityBranchTopConfig(), IndexConfigChild1Response.class);
         activityBranchResponse.setBranchVenueConfigs(branchVenueConfigs.stream().filter(
                 config -> config.getBranchVenueId().equals(branchVenueIdRequest.getBranchVenueId())
         ).collect(Collectors.toList()));
