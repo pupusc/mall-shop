@@ -16,6 +16,7 @@ import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRe
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.home.request.HomeBookListModelRecommendRequest;
 import com.wanmi.sbc.home.request.HomeNewBookRequest;
 import com.wanmi.sbc.util.RandomUtil;
 import org.elasticsearch.search.sort.SortOrder;
@@ -69,18 +70,25 @@ public class HomePageController {
      */
     private final static String KEY_HOME_NEW_BOOK_LIST = "KEY_HOME_NEW_BOOK_LIST";
 
+    private final static String KEY_HOME_SELL_WELL_LIST = "KEY_HOME_SELL_WELL_LIST";
+
 
     public BaseResponse banner() {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @GetMapping("/book-list-model-recommend")
-    public BaseResponse<List<BookListModelProviderResponse>> bookListModelRecommend() {
+    /**
+     * 编辑推荐和名家推荐
+     * @param homeBookListModelRecommendRequest
+     * @return
+     */
+    @PostMapping("/book-list-model-recommend")
+    public BaseResponse<List<BookListModelProviderResponse>> bookListModelRecommend(@RequestBody HomeBookListModelRecommendRequest homeBookListModelRecommendRequest) {
         BookListModelPageProviderRequest bookListModelPageProviderRequest = new BookListModelPageProviderRequest();
         bookListModelPageProviderRequest.setPageNum(0);
         bookListModelPageProviderRequest.setPageSize(15);
         bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
-        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(homeBookListModelRecommendRequest.getBusinessType()));
         BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServicePageBaseResponse = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
         return BaseResponse.success(microServicePageBaseResponse.getContext().getContent());
     }
@@ -106,42 +114,56 @@ public class HomePageController {
         esGoodsCustomRequest.setPageNum(0);
         esGoodsCustomRequest.setPageSize(200);
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-        //按照销售数量排序
+        //按照更新时间排序
         sortBuilderList.add(new SortCustomBuilder("updateTime", SortOrder.DESC));
         esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
-        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
-        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
-        if (CollectionUtils.isEmpty(content)) {
-            return BaseResponse.success(result);
-        }
-
-        //获取随机书籍
-        Collection<Integer> randomIndex = RandomUtil.getRandom(content.size(), homeNewBookRequest.getPageSize());
-        List<EsGoodsVO> resultEsGoodsList = new ArrayList<>();
-        for (Integer index : randomIndex) {
-            resultEsGoodsList.add(content.get(index));
-        }
-
-        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(resultEsGoodsList);
-        if (CollectionUtils.isEmpty(goodsVOList)) {
-            return BaseResponse.success(result);
-        }
-        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(content, bookListModelAndGoodsService.getCustomerVo());
-        if (CollectionUtils.isEmpty(goodsInfoVOList)) {
-            return BaseResponse.success(result);
-        }
-        Map<String, GoodsVO> supId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        for (EsGoodsVO esGoodsVO : resultEsGoodsList) {
-            result.add(bookListModelAndGoodsService.packageGoodsCustomResponse(supId2GoodsVoMap.get(esGoodsVO.getId()), esGoodsVO, goodsInfoVOList));
-        }
-
+        result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, homeNewBookRequest.getPageSize()));
         if (!CollectionUtils.isEmpty(result)) {
             //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-            redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(result), 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(result), 30L, TimeUnit.MINUTES);
         }
         //书籍存入到redis中
         return BaseResponse.success(result);
+    }
+
+
+    /**
+     * 获取畅销榜
+     * @param homeNewBookRequest
+     * @return
+     */
+    @PostMapping("/sell-well-list")
+    public BaseResponse<List<GoodsCustomResponse>> sellWellList(@RequestBody HomeNewBookRequest homeNewBookRequest){
+        List<GoodsCustomResponse> result = new ArrayList<>();
+        if (homeNewBookRequest.getPageSize() <= 0) {
+            return BaseResponse.success(result);
+        }
+
+        String sellWellListStr = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_LIST) + "";
+        if (!StringUtils.isEmpty(sellWellListStr)) {
+            return BaseResponse.success(JSON.parseArray(sellWellListStr, GoodsCustomResponse.class));
+        }
+        //根据书单模版获取商品列表
+        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+        esGoodsCustomRequest.setPageNum(0);
+        esGoodsCustomRequest.setPageSize(200);
+        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+        //按照销售数量排序 7 天 TODO
+        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, homeNewBookRequest.getPageSize()));
+        if (!CollectionUtils.isEmpty(result)) {
+            //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
+            redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_LIST, JSON.toJSONString(result), 30L, TimeUnit.MINUTES);
+        }
+        //书籍存入到redis中
+        return BaseResponse.success(result);
+    }
+
+    /**
+     * 不畅销书籍专区 不做，前端根据 下发的书单id 获取对应的商品列表
+     */
+    public void unSellWellList() {
     }
 
 

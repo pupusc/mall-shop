@@ -14,6 +14,6 @@ public class HomeNewBookRequest {
 
 //    private int pageNum = 0;
 
-    private int pageSize = 15;
+    private int pageSize = 20;
 
 }

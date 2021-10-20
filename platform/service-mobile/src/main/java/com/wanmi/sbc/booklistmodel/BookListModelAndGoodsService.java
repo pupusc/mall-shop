@@ -40,6 +40,7 @@ import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -452,5 +453,38 @@ public class BookListModelAndGoodsService {
         return esGoodsCustomResponse;
     }
 
+
+
+    public List<GoodsCustomResponse> listRandomGoodsCustomer(EsGoodsCustomQueryProviderRequest esGoodsCustomRequest, int pageSize) {
+        List<GoodsCustomResponse> result = new ArrayList<>();
+
+        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
+        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
+        if (CollectionUtils.isEmpty(content)) {
+            return result;
+        }
+
+        //获取随机书籍
+        Collection<Integer> randomIndex = RandomUtil.getRandom(content.size(), pageSize);
+        List<EsGoodsVO> resultEsGoodsList = new ArrayList<>();
+        for (Integer index : randomIndex) {
+            resultEsGoodsList.add(content.get(index));
+        }
+
+        List<GoodsVO> goodsVOList = this.changeEsGoods2GoodsVo(resultEsGoodsList);
+        if (CollectionUtils.isEmpty(goodsVOList)) {
+            return result;
+        }
+        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(content, null);
+        if (CollectionUtils.isEmpty(goodsInfoVOList)) {
+            return result;
+        }
+        Map<String, GoodsVO> supId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        for (EsGoodsVO esGoodsVO : resultEsGoodsList) {
+            result.add(this.packageGoodsCustomResponse(supId2GoodsVoMap.get(esGoodsVO.getId()), esGoodsVO, goodsInfoVOList));
+        }
+        return result;
+    }
 
 }

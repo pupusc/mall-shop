@@ -1,9 +1,14 @@
 package com.wanmi.sbc.elastic.api.request.goods;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,5 +50,19 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      * 字段排序
      */
     private List<SortCustomBuilder> sortBuilderList;
+
+    /**
+     * 开始时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime createTimeBegin;
+
+    /**
+     * 结束时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime createTimeEnd;
 
 }

@@ -2,6 +2,8 @@ package com.wanmi.sbc.home.request;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -15,5 +17,6 @@ public class HomeBookListModelRecommendRequest {
     /**
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题 5 名家推荐
      */
+    @NotNull
     private Integer businessType;
 }
