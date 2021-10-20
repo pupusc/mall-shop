@@ -9,6 +9,11 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.home.request.HomeNewBookRequest;
@@ -18,13 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +59,9 @@ public class HomePageController {
 
 
     @Autowired
+    private BookListModelProvider bookListModelProvider;
+
+    @Autowired
     private RedisTemplate redisTemplate;
 
     /**
@@ -60,9 +71,19 @@ public class HomePageController {
 
 
     public BaseResponse banner() {
-
+        return BaseResponse.SUCCESSFUL();
     }
 
+    @GetMapping("/book-list-model-recommend")
+    public BaseResponse<List<BookListModelProviderResponse>> bookListModelRecommend() {
+        BookListModelPageProviderRequest bookListModelPageProviderRequest = new BookListModelPageProviderRequest();
+        bookListModelPageProviderRequest.setPageNum(0);
+        bookListModelPageProviderRequest.setPageSize(15);
+        bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
+        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+        BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServicePageBaseResponse = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+        return BaseResponse.success(microServicePageBaseResponse.getContext().getContent());
+    }
 
     /**
      * 获取新上书籍
@@ -122,6 +143,8 @@ public class HomePageController {
         //书籍存入到redis中
         return BaseResponse.success(result);
     }
+
+
 
 
 
