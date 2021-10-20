@@ -2347,36 +2347,26 @@ public class TradeService {
                 templateList = tradeCacheService.queryFreightTemplateGoodsListByIds(tempIdList);
                 // 2.2.剔除满足指定条件包邮的运费模板(即剔除运费为0的)
                 templateList = templateList.stream().filter(temp ->
-                        getFreeFreightFlag(temp, templateGoodsMap, deliverWay, consignee.getProvinceId(), consignee
-                                .getCityId()))
+                        getFreeFreightFlag(temp, templateGoodsMap, deliverWay, consignee.getProvinceId(), consignee.getCityId()))
                         .collect(Collectors.toList());
-                // 2.3.遍历单品运费模板List,设置匹配上收货地的配送地信息,同时计算出最大首运费的模板
-                FreightTemplateGoodsExpressVO maxTemplate = new FreightTemplateGoodsExpressVO();
+
+                /*2.3.逻辑已修改，原先的逻辑是取出首运费最大的运费模板来计算所有商品
+                现逻辑变成：按运费模板对商品进行分组，不同组各自计算运费*/
                 for (int i = 0; i < templateList.size(); i++) {
                     FreightTemplateGoodsVO temp = templateList.get(i);
-                    FreightTemplateGoodsExpressVO freExp =
-                            getMatchFreightTemplate(temp.getFreightTemplateGoodsExpresses(),
-                                    consignee.getProvinceId(), consignee.getCityId());
+                    FreightTemplateGoodsExpressVO freExp = getMatchFreightTemplate(temp.getFreightTemplateGoodsExpresses(),
+                            consignee.getProvinceId(), consignee.getCityId());
                     temp.setExpTemplate(freExp);
-                    if (i == 0) {
-                        maxTemplate = freExp;
+                }
+                for (FreightTemplateGoodsVO freightTemplateGoodsVO : templateList) {
+                    TradeItem tradeItem = templateGoodsMap.get(freightTemplateGoodsVO.getFreightTempId());
+                    if(cycleBuyFlag) {
+                        freight = freight.add(getCycleBuySingleTemplateFreight(freightTemplateGoodsVO, tradeItem, goodsList.get(NumberUtils.INTEGER_ZERO)));
                     } else {
-                        maxTemplate = maxTemplate.getFreightStartPrice().compareTo(freExp.getFreightStartPrice()) < 0 ?
-                                freExp : maxTemplate;
+                        freight = freight.add(getSingleTemplateFreight(freightTemplateGoodsVO, tradeItem));
                     }
                 }
-                // 2.4.计算剩余的每个模板的运费
-                final Long tempId = maxTemplate.getFreightTempId();
-                if(cycleBuyFlag) {
-                    freight = templateList.stream().map(temp -> getCycleBuySingleTemplateFreight(temp, tempId, templateGoodsMap, goodsList.get(NumberUtils.INTEGER_ZERO)))
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-                } else {
-                    freight = templateList.stream().map(temp -> getSingleTemplateFreight(temp, tempId, templateGoodsMap))
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-                }
             }
-
-
         }
         return freight;
     }
@@ -2494,28 +2484,18 @@ public class TradeService {
 
     /**
      * 计算某个单品模板的运费
-     *
      * @param temp             单品运费模板
-     * @param freightTempId    需要计算首件运费的配送地模板id
-     * @param templateGoodsMap 按模板id分组的商品汇总信息
+     * @param traItem 按模板id分组的商品汇总信息
      * @return 模板的总运费
      */
-    private BigDecimal getSingleTemplateFreight(FreightTemplateGoodsVO temp, Long freightTempId, Map<Long, TradeItem>
-            templateGoodsMap) {
-        //是否需要计算首件运费标识
-        boolean startFlag = temp.getFreightTempId().equals(freightTempId);
-        TradeItem traItem = templateGoodsMap.get(temp.getFreightTempId());
-
+    private BigDecimal getSingleTemplateFreight(FreightTemplateGoodsVO temp, TradeItem traItem) {
         switch (temp.getValuationType()) {
             case NUMBER: //按件数
-                return startFlag ? getStartAndPlusFreight(BigDecimal.valueOf(traItem.getNum()), temp.getExpTemplate())
-                        : getPlusFreight(BigDecimal.valueOf(traItem.getNum()), temp.getExpTemplate());
+                return getStartAndPlusFreight(BigDecimal.valueOf(traItem.getNum()), temp.getExpTemplate());
             case WEIGHT: //按重量
-                return startFlag ? getStartAndPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate())
-                        : getPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate());
+                return getStartAndPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate());
             case VOLUME: //按体积
-                return startFlag ? getStartAndPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate())
-                        : getPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate());
+                return getStartAndPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate());
             default:
                 return BigDecimal.ZERO;
         }
@@ -2525,16 +2505,14 @@ public class TradeService {
      * 计算周期购单品模板的运费
      *
      * @param temp             单品运费模板
-     * @param freightTempId    需要计算首件运费的配送地模板id
-     * @param templateGoodsMap 按模板id分组的商品汇总信息
+     * @param traItem          按模板id分组的商品汇总信息
      * @param goods            周期购商品
      * @return 模板的总运费
      */
-    private BigDecimal getCycleBuySingleTemplateFreight(FreightTemplateGoodsVO temp, Long freightTempId, Map<Long, TradeItem>
-            templateGoodsMap, TradeItem goods) {
+    private BigDecimal getCycleBuySingleTemplateFreight(FreightTemplateGoodsVO temp, TradeItem traItem, TradeItem goods) {
         //是否需要计算首件运费标识
-        boolean startFlag = temp.getFreightTempId().equals(freightTempId);
-        TradeItem traItem = templateGoodsMap.get(temp.getFreightTempId());
+//        boolean startFlag = temp.getFreightTempId().equals(freightTempId);
+//        TradeItem traItem = templateGoodsMap.get(temp.getFreightTempId());
         BigDecimal freight = BigDecimal.ZERO;
         BigDecimal giftFreight = BigDecimal.ZERO;
 
@@ -2553,31 +2531,27 @@ public class TradeService {
 
         switch (temp.getValuationType()) {
             case NUMBER: //按件数
-                freight =  startFlag ? getStartAndPlusFreight(BigDecimal.valueOf(goodsCount), temp.getExpTemplate())
-                        : getPlusFreight(BigDecimal.valueOf(goodsCount), temp.getExpTemplate());
+                freight = getStartAndPlusFreight(BigDecimal.valueOf(goodsCount), temp.getExpTemplate());
                 if(!goodsCount.equals(traItem.getNum())) {
                     Long giftCount = traItem.getNum() - goodsCount;
                     giftFreight = getPlusFreight(BigDecimal.valueOf(giftCount), temp.getExpTemplate());
                 }
                 break;
             case WEIGHT: //按重量
-                freight =  startFlag ? getStartAndPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate())
-                        : getPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate());
+                freight = getStartAndPlusFreight(traItem.getGoodsWeight(), temp.getExpTemplate());
                 if(!goodsWeight.equals(traItem.getGoodsWeight())) {
                     BigDecimal giftWeight = traItem.getGoodsWeight().subtract(goodsWeight);
                     giftFreight = getPlusFreight(giftWeight, temp.getExpTemplate());
                 }
                 break;
             case VOLUME: //按体积
-                freight =  startFlag ? getStartAndPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate())
-                        : getPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate());
+                freight = getStartAndPlusFreight(traItem.getGoodsCubage(), temp.getExpTemplate());
                 if(!goodsCubage.equals(traItem.getGoodsCubage())) {
                     BigDecimal giftCubage = traItem.getGoodsCubage().subtract(goodsCubage);
                     giftFreight = getPlusFreight(giftCubage, temp.getExpTemplate());
                 }
                 break;
         }
-
         if(goodsFreightTempId.equals(temp.getFreightTempId())) {
             freight = dealCycleBuyDeliverPrice(goods.getSpuId(), goods.getCycleNum(), freight, giftFreight);
         }
