@@ -13,7 +13,6 @@ import com.wanmi.sbc.index.requst.KeyRequest;
 import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.ActivityBranchResponse;
-import com.wanmi.sbc.index.response.IndexConfigChild1Response;
 import com.wanmi.sbc.index.response.IndexConfigChild2Response;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
