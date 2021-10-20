@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.hotgoods.service;
 
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.goods.api.request.goods.HotGoodsTypeRequest;
 import com.wanmi.sbc.goods.bean.dto.HotGoodsDto;
 import com.wanmi.sbc.goods.hotgoods.model.root.HotGoods;
 import com.wanmi.sbc.goods.hotgoods.repository.HotGoodsRepository;
@@ -34,6 +35,15 @@ public class HotGoodsService {
      */
     public List<HotGoodsDto> selectAllBySort() {
         List<HotGoods> hotGoods = hotGoodsRepository.selectAllBySort();
+        List<HotGoodsDto> hotGoodsDtos = KsBeanUtil.convertList(hotGoods, HotGoodsDto.class);
+        return hotGoodsDtos;
+    }
+
+    /**
+     * 刷新排序
+     */
+    public List<HotGoodsDto> selectAllByTypes(HotGoodsTypeRequest hotGoodsTypeRequest) {
+        List<HotGoods> hotGoods = hotGoodsRepository.selectAllByTypes(hotGoodsTypeRequest.getTypes());
         List<HotGoodsDto> hotGoodsDtos = KsBeanUtil.convertList(hotGoods, HotGoodsDto.class);
         return hotGoodsDtos;
     }

@@ -31,4 +31,10 @@ public class IndexConfigChild1Response implements Serializable {
      * 书单价格
      */
     private String price = "0";
+
+    /**
+     * branchVenueId
+     */
+    private Integer branchVenueId;
+
 }

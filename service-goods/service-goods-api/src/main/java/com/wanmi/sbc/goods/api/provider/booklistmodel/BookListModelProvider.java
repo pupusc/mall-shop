@@ -119,4 +119,11 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/listBookListModelNoPageBySpuIdColl")
     BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(
             @Validated @RequestBody BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest);
+
+    /**
+     * 获取已发布的乱序书单Id简单信息
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/findPublishBook")
+    BaseResponse<List<Integer>> findPublishBook();
 }
