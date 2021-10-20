@@ -160,7 +160,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>RELEASE</version>
+            <version>23.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
