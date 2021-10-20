@@ -1,6 +1,7 @@
 package com.fangdeng.server.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.fangdeng.server.dto.*;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
@@ -38,20 +39,14 @@ public class TestController {
 
     @Autowired
     private GoodsCateSyncMapper goodsCateSyncMapper;
+
     
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
-        BigDecimal a = new BigDecimal(6);
-        BigDecimal b = new BigDecimal(6.6);
-        BigDecimal c = a.multiply(new BigDecimal(1.1));
-        BigDecimal d = a.multiply(new BigDecimal(1.2));
-        BigDecimal dd = new BigDecimal("6.6");
-        BigDecimal math1 = new BigDecimal(String.valueOf("6")).multiply(new BigDecimal("1.1"));
-        BigDecimal math2 = new BigDecimal(String.valueOf("6")).multiply(new BigDecimal("1.2"));
         try {
-            //providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
-            providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");
+            providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
+            //providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");
         }catch (Exception e){
 
         }

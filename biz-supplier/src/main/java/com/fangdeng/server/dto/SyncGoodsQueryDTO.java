@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SyncGoodsQueryDTO {
-
     @ApiModelProperty("用上架日期时，此参数为必填，默认为1")
     private Integer page;
 
