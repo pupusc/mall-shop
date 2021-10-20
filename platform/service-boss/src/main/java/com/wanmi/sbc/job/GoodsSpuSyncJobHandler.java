@@ -206,6 +206,9 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
                 goodsDTO.setAddedFlag(0);
             }
         }
+        goodsDTO.setMarketPrice(goodsInfoDTO.getMarketPrice());
+        goodsDTO.setCostPrice(goodsInfoDTO.getCostPrice());
+        goodsDTO.setRecommendedRetailPrice(goodsInfoDTO.getRetailPrice());
         //所有商品都下架处理
         goodsDTO.setAddedFlag(0);
         List<GoodsInfoDTO> infos = new ArrayList<>(1);
