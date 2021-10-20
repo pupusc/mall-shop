@@ -14,6 +14,7 @@ import com.wanmi.sbc.index.requst.SkuIdsRequest;
 import com.wanmi.sbc.index.requst.VersionRequest;
 import com.wanmi.sbc.index.response.ActivityBranchResponse;
 import com.wanmi.sbc.index.response.IndexConfigChild1Response;
+import com.wanmi.sbc.index.response.IndexConfigChild2Response;
 import com.wanmi.sbc.index.response.IndexConfigResponse;
 import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.redis.RedisListService;
@@ -174,7 +175,7 @@ public class IndexHomeController {
     @PostMapping(value = "/shopActivityBranchConfig")
     public BaseResponse<ActivityBranchResponse> shopActivityBranchConfig(@RequestBody BranchVenueIdRequest branchVenueIdRequest) {
         ActivityBranchResponse activityBranchResponse = redis.getObj("activityBranch:" + branchVenueIdRequest.getBranchVenueId(), ActivityBranchResponse.class);
-        List<IndexConfigChild2Response> branchVenueConfigs = JSONArray.parseArray(refreshConfig.getShopActivityBranchTopConfig(), IndexConfigChild1Response.class);
+        List<IndexConfigChild2Response> branchVenueConfigs = JSONArray.parseArray(refreshConfig.getShopActivityBranchTopConfig(), IndexConfigChild2Response.class);
         activityBranchResponse.setBranchVenueConfigs(branchVenueConfigs.stream().filter(
                 config -> config.getBranchVenueId().equals(branchVenueIdRequest.getBranchVenueId())
         ).collect(Collectors.toList()));
@@ -221,7 +222,8 @@ public class IndexHomeController {
         Long refreshHotCount = getRefreshHotCount(branchVenueIdRequest.getPageNum());
 
         List<JSONObject> objectList = redisService
-                .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(), (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
+                .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(),
+                        (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
                 .findByRange("hotBooks" + refreshHotCount, (branchVenueIdRequest.getPageNum() - 1) * BOOKS_SIZE, branchVenueIdRequest.getPageNum() * BOOKS_SIZE - 1));
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
