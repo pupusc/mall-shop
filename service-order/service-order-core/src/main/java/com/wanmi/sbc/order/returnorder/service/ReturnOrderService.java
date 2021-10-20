@@ -2183,15 +2183,9 @@ public class ReturnOrderService {
                 trade.getTradeState().setEndTime(LocalDateTime.now());
             }else if(providerTradeAllEnd(returnOrder)){
                 //zi订单或作废或已经全部发货，修改主订单为待收货
-                StateRequest stateRequest = StateRequest
-                        .builder()
-                        .tid(returnOrder.getTid())
-                        .operator(operator)
-                        .event(TradeEvent.DELIVER)
-                        .data("子单作废和发货")
-                        .build();
-                tradeFSMService.changeState(stateRequest);
-
+                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                trade.getTradeState().setFlowState(FlowState.DELIVERED);
+                tradeService.updateTrade(trade);
             }
         }
         if (returnOrder.getPayType() == PayType.OFFLINE) {

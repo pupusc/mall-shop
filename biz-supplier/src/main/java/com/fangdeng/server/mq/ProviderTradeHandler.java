@@ -20,13 +20,18 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 发货单消费
@@ -40,13 +45,20 @@ public class ProviderTradeHandler {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
+    private static String ORDER_PUSH_CONSUME = "supplier.order.push";
 
     @RabbitListener(queues = ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_QUEUE)
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body) {
         OrderTradeDTO orderTradeDTO = JSONObject.parseObject(body,OrderTradeDTO.class);
         log.info("order push consumer,message:{},payload:{}",message,orderTradeDTO);
+        if(!checkOrderPush(orderTradeDTO.getPlatformCode())){
+            log.info("there is order push,request:{}",orderTradeDTO);
+            return;
+        }
         BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
         BookuuOrderAddResponse response = bookuuClient.addOrder(request);
         if(response.getStatus() == 1 && response.getStatusDesc().contains("已被导入")){
@@ -58,6 +70,23 @@ public class ProviderTradeHandler {
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
         //手动确认
 
+    }
+
+    private Boolean checkOrderPush(String orderId){
+        try {
+            Map map =  (HashMap) redisTemplate.opsForValue().get(ORDER_PUSH_CONSUME);
+            if (map == null || map.isEmpty() || !map.containsKey(orderId) || map.get(orderId) == null) {
+                if(map == null){
+                    map = new HashMap();
+                }
+                map.put(orderId,true);
+                redisTemplate.opsForValue().set(ORDER_PUSH_CONSUME, map, 30, TimeUnit.MINUTES);
+                return true;
+            }
+        } catch (Exception e) {
+            log.error("get redis error,orderId:{}",orderId,e);
+        }
+        return false;
     }
 
     /**

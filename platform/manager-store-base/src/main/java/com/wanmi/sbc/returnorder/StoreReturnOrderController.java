@@ -314,7 +314,7 @@ public class StoreReturnOrderController {
                     }
                 });
             }
-        }else if(Objects.equals(returnOrder.getProviderId(),defaultProviderId)){
+        }else if(Objects.equals(returnOrder.getProviderId(),String.valueOf(defaultProviderId))){
             //已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = DeliveryQueryRequest.builder().tid(returnOrder.getPtid()).build();
             BaseResponse<DeliveryStatusResponse> response = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
