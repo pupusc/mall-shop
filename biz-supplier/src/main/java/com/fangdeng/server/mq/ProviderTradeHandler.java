@@ -80,7 +80,7 @@ public class ProviderTradeHandler {
                     map = new HashMap();
                 }
                 map.put(orderId,true);
-                redisTemplate.opsForValue().set(ORDER_PUSH_CONSUME, map, 30, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(ORDER_PUSH_CONSUME, map, 5, TimeUnit.MINUTES);
                 return true;
             }
         } catch (Exception e) {

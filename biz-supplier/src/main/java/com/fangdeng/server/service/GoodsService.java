@@ -51,7 +51,6 @@ public class GoodsService {
     @Value("${bookuu.providerId}")
     private  Long providerId;
 
-    private static final int pageSize = 3;
 
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
@@ -59,14 +58,9 @@ public class GoodsService {
         if(StringUtils.isNotEmpty(queryDTO.getBookId())){
             //循环
             List<String> goodsIds = Arrays.asList(queryDTO.getBookId().split(","));
-            int count = goodsIds.size() /pageSize ;
-            int lastSize = goodsIds.size() % pageSize ;
-            if(lastSize != 0){
-                ++ count;
-            }
-            for(int i=0;i< count;i++){
-                List<String> ids = goodsIds.subList(pageSize * i, i== count -1 ? (goodsIds.size()):(pageSize *(i+1)));
-                request.setId(String.join(",",ids));
+            List<String> goodsNo = goodsIds.stream().distinct().collect(Collectors.toList());
+            for(int i=0;i< goodsNo.size();i++){
+                request.setId(goodsNo.get(i));
                 syncGoods(request);
             }
             return;
