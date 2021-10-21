@@ -1952,22 +1952,20 @@ public class TradeService {
         BigDecimal deliveryPrice = tradePrice.getDeliveryPrice();
         Map<Long, BigDecimal> splitDeliveryPrice = new HashMap<>();
         if (tradePrice.getDeliveryPrice() == null) {
+            deliveryPrice = BigDecimal.ZERO;
             // 只看主商品是否全是虚拟
             boolean virtualCouponGoods = Objects.isNull(trade.getIsVirtualCouponGoods()) || Boolean.FALSE.equals(trade.getIsVirtualCouponGoods());
-            //boolean virtualCouponGiveawayGoods = CollectionUtils.isEmpty(trade.getGifts()) || Boolean.FALSE.equals(trade.getIsVirtualCouponGiveawayGoods());
-            if (virtualCouponGoods ) {
+            if (virtualCouponGoods) {
                 List<TradeItem> tradeItems = trade.getTradeItems();
                 Map<Long, List<TradeItem>> splitTradeItems = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getProviderId));
                 Set<Long> providerIds = splitTradeItems.keySet();
                 for (Long providerId : providerIds) {
-                    deliveryPrice = deliveryPrice.add(calcTradeFreight(trade.getConsignee(), trade.getSupplier()
-                            , trade.getDeliverWay(), tradePrice.getTotalPrice(), trade.getTradeItems(), trade.getGifts()));
-                    splitDeliveryPrice.put(providerId, deliveryPrice);
+                    BigDecimal deliveryFee = calcTradeFreight(trade.getConsignee(), trade.getSupplier()
+                            , trade.getDeliverWay(), tradePrice.getTotalPrice(), splitTradeItems.get(providerId), trade.getGifts());
+                    splitDeliveryPrice.put(providerId, deliveryFee);
+                    deliveryPrice = deliveryPrice.add(deliveryFee);
                 }
-            } else {
-                deliveryPrice = BigDecimal.ZERO;
             }
-
         }
         //判断是否为秒杀抢购订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
