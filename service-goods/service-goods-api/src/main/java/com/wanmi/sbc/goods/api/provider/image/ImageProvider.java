@@ -47,6 +47,7 @@ public interface ImageProvider {
      * @param imagePageProviderRequest
      * @return
      */
+    @PostMapping("/goods/${application.goods.version}/image/listNoPage")
     BaseResponse<List<ImageProviderResponse>> listNoPage(ImagePageProviderRequest imagePageProviderRequest);
 
 }
