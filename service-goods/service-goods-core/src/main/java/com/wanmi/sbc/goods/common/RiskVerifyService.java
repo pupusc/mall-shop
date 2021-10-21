@@ -64,6 +64,7 @@ public class RiskVerifyService {
         riskVerify.setStatus(imageVerifyRequest.getSuggestion().equals("PASS")?2:imageVerifyRequest.getSuggestion().equals("BLOCK")?3:1);
         if(imageVerifyRequest.getSuggestion().equals("BLOCK")){
             riskVerify.setErrorMsg(imageVerifyRequest.getHitReason());
+            goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),3);
         }
         riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
         if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo(),imageVerifyRequest.getRequestId()) == 0){

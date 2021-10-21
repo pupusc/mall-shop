@@ -237,8 +237,9 @@ public class BookuuClient {
         BookuuOrderCancelResponse response = null;
         try {
             response = XmlUtil.convertToJavaBean(result, BookuuOrderCancelResponse.class);
+            log.info("bookuu cancel order  request:{}, response: {}",request,response);
         } catch (Exception e) {
-
+            log.warn("bookuu order status convert error,request:{},error",request,e);
         }
         return response;
     }
