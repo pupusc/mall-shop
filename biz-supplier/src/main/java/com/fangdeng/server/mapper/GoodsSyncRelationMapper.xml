@@ -148,6 +148,6 @@
     from goods_sync_relation
     where deleted = 0
     and id > #{id}
-    limit 200
+    limit 50
   </select>
 </mapper>

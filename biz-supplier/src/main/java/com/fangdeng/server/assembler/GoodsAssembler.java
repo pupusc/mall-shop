@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,8 +69,12 @@ public class GoodsAssembler {
 
     public static List<GoodsStockSyncDTO> convertStockList(List<BookuuStockQueryResponse.BookuuStock> stockList) {
         List<GoodsStockSyncDTO> list = new ArrayList<>(stockList.size());
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now().minusMinutes(5);
         stockList.forEach(p -> {
-            list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(p.getZjtbkcsj()).build());
+            if(LocalDateTime.parse(p.getZjtbkcsj(),df).compareTo(now) >0) {
+                list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(LocalDateTime.parse(p.getZjtbkcsj(),df)).build());
+            }
         });
         return list;
     }

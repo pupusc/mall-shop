@@ -255,8 +255,12 @@ public class GoodsService {
                 log.info("there is no stock change,queryDTO:{}", request);
                 return;
             }
-            //落表
-            goodsStockSyncMapper.batchInsert(GoodsAssembler.convertStockList(response.getBookList()));
+            //落表，根据最后更新时间过滤
+            List<GoodsStockSyncDTO> list = GoodsAssembler.convertStockList(response.getBookList());
+            if(CollectionUtils.isNotEmpty(list)){
+                goodsStockSyncMapper.batchInsert(list);
+            }
+
         }
     }
 

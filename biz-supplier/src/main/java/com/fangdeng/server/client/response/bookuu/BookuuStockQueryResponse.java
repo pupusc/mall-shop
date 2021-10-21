@@ -36,12 +36,12 @@ public class BookuuStockQueryResponse implements Serializable {
     @Data
     @XmlRootElement(name = "BookList")
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class BookuuStock {
+    public static class BookuuStock implements Serializable{
         @XmlElement(name = "bookid")
         private String bookId;
         @XmlElement(name = "zjtbkcsj")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-        private Date zjtbkcsj;
+        private String zjtbkcsj;
         @XmlElement(name = "Stock")
         private Integer stock;
     }
