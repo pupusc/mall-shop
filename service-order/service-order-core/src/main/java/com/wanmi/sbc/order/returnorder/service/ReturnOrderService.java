@@ -424,10 +424,10 @@ public class ReturnOrderService {
                 if (storeVO != null && CompanySourceType.LINKED_MALL.equals(storeVO.getCompanySourceType())) {
                     returnOrders.addAll(linkedMallReturnOrderService.splitReturnOrder(providerReturnOrder));
                     returnOrders.forEach(o -> {
-                        calcReturnPrice(o,
-                                trade.getTradeItems().stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList()));
+                        calcReturnPrice(o, trade.getTradeItems().stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList()));
                     });
                 } else {
+
                     returnOrders.add(providerReturnOrder);
                 }
             }
@@ -528,8 +528,7 @@ public class ReturnOrderService {
                     for (ReturnItem returnItemDTO : returnOrder.getReturnItems()) {
                         if (tradeItemVO.getSkuId().equals(returnItemDTO.getSkuId())) {
                             returnItemDTO.setSupplyPrice(tradeItemVO.getSupplyPrice());
-                            BigDecimal supplyPrice = Objects.nonNull(tradeItemVO.getSupplyPrice()) ?
-                                    tradeItemVO.getSupplyPrice() : BigDecimal.ZERO;
+                            BigDecimal supplyPrice = Objects.nonNull(tradeItemVO.getSupplyPrice()) ? tradeItemVO.getSupplyPrice() : BigDecimal.ZERO;
                             returnItemDTO.setProviderPrice(supplyPrice.multiply(new BigDecimal(returnItemDTO.getNum())));
                             providerTotalPrice = providerTotalPrice.add(returnItemDTO.getProviderPrice());
                             price = price.add(returnItemDTO.getSplitPrice());
@@ -563,8 +562,7 @@ public class ReturnOrderService {
                 }
 
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
-                    price = price.add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice()) ?
-                            trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+                    price = price.add(Objects.nonNull(trade.getTradePrice().getSplitDeliveryPrice().get(providerId)) ? trade.getTradePrice().getSplitDeliveryPrice().get(providerId) : BigDecimal.ZERO);
                 }
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);

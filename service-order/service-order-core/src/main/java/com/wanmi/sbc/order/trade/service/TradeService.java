@@ -382,17 +382,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1960,20 +1950,25 @@ public class TradeService {
         // 2.10.计算运费
         TradePrice tradePrice = trade.getTradePrice();
         BigDecimal deliveryPrice = tradePrice.getDeliveryPrice();
+        Map<Long, BigDecimal> splitDeliveryPrice = new HashMap<>();
         if (tradePrice.getDeliveryPrice() == null) {
             // 只看主商品是否全是虚拟
-            boolean virtualCouponGoods = Objects.isNull(trade.getIsVirtualCouponGoods())
-                    || Boolean.FALSE.equals(trade.getIsVirtualCouponGoods());
+            boolean virtualCouponGoods = Objects.isNull(trade.getIsVirtualCouponGoods()) || Boolean.FALSE.equals(trade.getIsVirtualCouponGoods());
             //boolean virtualCouponGiveawayGoods = CollectionUtils.isEmpty(trade.getGifts()) || Boolean.FALSE.equals(trade.getIsVirtualCouponGiveawayGoods());
             if (virtualCouponGoods ) {
-                deliveryPrice = this.calcTradeFreight(trade.getConsignee(), trade.getSupplier(), trade.getDeliverWay(),
-                        tradePrice.getTotalPrice(), trade.getTradeItems(), trade.getGifts());
+                List<TradeItem> tradeItems = trade.getTradeItems();
+                Map<Long, List<TradeItem>> splitTradeItems = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getProviderId));
+                Set<Long> providerIds = splitTradeItems.keySet();
+                for (Long providerId : providerIds) {
+                    deliveryPrice = deliveryPrice.add(calcTradeFreight(trade.getConsignee(), trade.getSupplier()
+                            , trade.getDeliverWay(), tradePrice.getTotalPrice(), trade.getTradeItems(), trade.getGifts()));
+                    splitDeliveryPrice.put(providerId, deliveryPrice);
+                }
             } else {
                 deliveryPrice = BigDecimal.ZERO;
             }
 
         }
-
         //判断是否为秒杀抢购订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             //秒杀商品是否包邮
@@ -1986,7 +1981,7 @@ public class TradeService {
                 deliveryPrice = BigDecimal.ZERO;
             }
         }
-
+        tradePrice.setSplitDeliveryPrice(splitDeliveryPrice);
         tradePrice.setDeliveryPrice(deliveryPrice);
         // 2.11.计算订单总价(追加运费)
         tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(deliveryPrice));
@@ -1998,7 +1993,6 @@ public class TradeService {
             tradePrice.setSwellPrice(trade.getTradeItems().get(0).getSwellPrice());
             tradePrice.setTailPrice(trade.getTradeItems().get(0).getTailPrice());
         }
-
 
         if (tradePrice.isSpecial()) {
             // 2.12.【商品价格计算第③步】: 商品的 特价订单 均摊价 -> splitPrice
