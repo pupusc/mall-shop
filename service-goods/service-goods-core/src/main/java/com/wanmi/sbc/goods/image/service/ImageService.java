@@ -42,11 +42,17 @@ public class ImageService {
     private ImageRepository imageRepository;
 
     /**
-     * 新增
+     * 新增图片
      * @param imageProviderRequest
      */
     public void add(ImageProviderRequest imageProviderRequest) {
-
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setImageType(imagePageProviderRequest.getImageType());
+        List<ImageDTO> listImageDTO = this.listNoPage(imagePageProviderRequest);
+        int orderNum = 0;
+        if (!CollectionUtils.isEmpty(listImageDTO)) {
+            orderNum = listImageDTO.get(listImageDTO.size() -1).getOrderNum();
+        }
         ImageDTO imageDTO = new ImageDTO();
         imageDTO.setId(null);
         imageDTO.setName(imageProviderRequest.getName());
@@ -54,7 +60,8 @@ public class ImageService {
         imageDTO.setImgHref(imageProviderRequest.getImgHref());
         imageDTO.setBeginTime(imageProviderRequest.getBeginTime());
         imageDTO.setEndTime(imageProviderRequest.getEndTime());
-        imageDTO.setOrderNum(imageProviderRequest.getOrderNum());
+        imageDTO.setPublishState(0); //未启用
+        imageDTO.setOrderNum(orderNum);
         imageDTO.setImageType(imageProviderRequest.getImageType());
         imageDTO.setCreateTime(LocalDateTime.now());
         imageDTO.setUpdateTime(LocalDateTime.now());
@@ -62,7 +69,10 @@ public class ImageService {
         imageRepository.save(imageDTO);
     }
 
-
+    /**
+     * 修改图片
+     * @param imageProviderRequest
+     */
     public void update(ImageProviderRequest imageProviderRequest) {
         if (imageProviderRequest.getId() == null) {
             throw new SbcRuntimeException("K-000009");
@@ -93,25 +103,29 @@ public class ImageService {
         if (!StringUtils.isEmpty(imageProviderRequest.getImgHref())) {
             imageDTO.setImgHref(imageProviderRequest.getImgHref());
         }
+
+        if (imageProviderRequest.getPublishState() != null) {
+            imageDTO.setPublishState(imageProviderRequest.getPublishState());
+        }
         imageRepository.save(imageDTO);
     }
 
-    public void delete(ImageProviderRequest imageProviderRequest) {
-        if (imageProviderRequest.getId() == null) {
-            throw new SbcRuntimeException("K-000009");
-        }
-
-        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
-        imagePageProviderRequest.setId(imageProviderRequest.getId());
-        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
-        if (CollectionUtils.isEmpty(imageDTOList)) {
-            throw new SbcRuntimeException("K-000009");
-        }
-        ImageDTO imageDTO = imageDTOList.get(0);
-        imageDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
-        imageDTO.setUpdateTime(LocalDateTime.now());
-        imageRepository.save(imageDTO);
-    }
+//    public void delete(ImageProviderRequest imageProviderRequest) {
+//        if (imageProviderRequest.getId() == null) {
+//            throw new SbcRuntimeException("K-000009");
+//        }
+//
+//        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+//        imagePageProviderRequest.setId(imageProviderRequest.getId());
+//        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
+//        if (CollectionUtils.isEmpty(imageDTOList)) {
+//            throw new SbcRuntimeException("K-000009");
+//        }
+//        ImageDTO imageDTO = imageDTOList.get(0);
+//        imageDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
+//        imageDTO.setUpdateTime(LocalDateTime.now());
+//        imageRepository.save(imageDTO);
+//    }
 
 
     private Sort packageSort() {

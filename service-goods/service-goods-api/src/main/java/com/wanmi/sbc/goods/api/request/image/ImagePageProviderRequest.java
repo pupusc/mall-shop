@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.api.request.image;
 import lombok.Data;
 
 import javax.persistence.Column;
+import java.io.Serializable;
 
 
 /**
@@ -13,7 +14,7 @@ import javax.persistence.Column;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class ImagePageProviderRequest {
+public class ImagePageProviderRequest implements Serializable {
 
     private int pageNum = 0;
 
