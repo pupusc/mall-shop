@@ -1,46 +1,49 @@
 package com.wanmi.sbc.goods.api.request.index;
 
-import io.swagger.annotations.ApiModel;
 import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 public class CmsSpecialTopicAddRequest {
 
+    public Long id;
     /**
      * 名称
      */
-    private String name;
+    public String name;
 
     /**
      * 栏目名称
      */
-    private String title;
+    public String title;
 
     /**
      * 副标题
      */
-    private String subTitle;
+    public String subTitle;
 
     /**
      * 图片地址
      */
-    private String imgUrl;
+    public String imgUrl;
 
     /**
      * 图片链接
      */
-    private String imgHref;
+    public String imgHref;
 
     /**
      * 开始时间
      */
-    private String beginTime;
+    public String beginTime;
 
     /**
      * 结束时间
      */
-    private String endTime;
+    public String endTime;
+
+    /**
+     * 顺序
+     */
+    public Integer orderNum;
 
 }

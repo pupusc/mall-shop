@@ -1,9 +1,12 @@
 package com.wanmi.sbc.index;
 
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
+import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,5 +28,21 @@ public class IndexCmsController {
     @PostMapping("/special-topic/add")
     public void addSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
         indexCmsProvider.addSpecialTopic(cmsSpecialTopicAddRequest);
+    }
+
+    /**
+     * 修改特色栏目
+     */
+    @PostMapping("/special-topic/update")
+    public void updateSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
+        indexCmsProvider.updateSpecialTopic(cmsSpecialTopicAddRequest);
+    }
+
+    /**
+     * 查询特色栏目
+     */
+    @PostMapping("/special-topic/search")
+    public BaseResponse<MicroServicePage<IndexFeatureDto>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+        return indexCmsProvider.searchSpecialTopic(cmsSpecialTopicSearchRequest);
     }
 }
