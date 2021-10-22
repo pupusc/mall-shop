@@ -122,6 +122,7 @@ public class TradePushERPService {
     @Value("${default.providerId}")
     private Long defaultProviderId;
 
+
     @Autowired
     private ProviderTradeOrderService providerTradeOrderService;
     /**
@@ -1252,8 +1253,8 @@ public class TradePushERPService {
             List<DeliverStatus> itemDeliverStatusList = providerTrade.getTradeItems().stream().map(item -> item.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> giftDeliverStatusList = providerTrade.getGifts().stream().map(gift -> gift.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> totalDeliverStatusList = Stream.of(itemDeliverStatusList, giftDeliverStatusList).flatMap(Collection::stream).distinct().collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1) {
-                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED) {
+            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || !providerTrade.getSupplier().getStoreId().equals(defaultProviderId)) {
+                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || !providerTrade.getSupplier().getStoreId().equals(defaultProviderId)) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                     tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
@@ -1269,6 +1270,10 @@ public class TradePushERPService {
                         tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                         tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                         tradeVO.getTradeState().setDeliverTime(null);
+                    }
+                    if(!providerTrade.getSupplier().getStoreId().equals(defaultProviderId) && providerTrade.getTradeItems().stream().anyMatch(p->p.getDeliverStatus() != DeliverStatus.SHIPPED)){
+                        providerTrade.getTradeState().setVirtualAllDelivery(1);
+                        tradeVO.getTradeState().setVirtualAllDelivery(1);
                     }
 
 
@@ -1440,7 +1445,7 @@ public class TradePushERPService {
                     }
                 }
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
-                request.getGoodsList().stream().filter(p -> p.getStatus().equals(9)).forEach(g -> {
+                request.getGoodsList().forEach(g -> {
                     if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();
                         deliveryItemVO.setQty(g.getBookSendNum().longValue());
@@ -1449,18 +1454,12 @@ public class TradePushERPService {
                     }
                 });
                 deliveryInfoVO.setItemVOList(deliveryItemVOS);
-                if(request.getGoodsList().stream().anyMatch(g->!g.getBookNum().equals(g.getBookSendNum()))){
-                    deliveryInfoVO.setDeliveryStatus(DeliveryStatus.PART_DELIVERY);
-                }
                 deliveryInfoVOListVo.add(deliveryInfoVO);
             }
-            //周期购订单和普通订单分开处理
-            if (providerTrade.getCycleBuyFlag()) {
-                this.updateCycleBuyDeliveryStatus(providerTrade, deliveryInfoVOListVo);
-            } else {
-                if (CollectionUtils.isNotEmpty(deliveryInfoVOListVo)) {
+
+            if (CollectionUtils.isNotEmpty(deliveryInfoVOListVo)) {
                     this.fillERPTradeDelivers(providerTrade, deliveryInfoVOListVo);
-                } else {
+            } else {
                     // 扫描次数小于3的加1
                     if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
                         TradeState tradeState = providerTrade.getTradeState();
@@ -1471,7 +1470,6 @@ public class TradePushERPService {
                     providerTradeService.updateProviderTrade(providerTrade);
 
                 }
-            }
         } catch (Exception e) {
             log.error("#同步发货状态异常:{}", e);
         }
