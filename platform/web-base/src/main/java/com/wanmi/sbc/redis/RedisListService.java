@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +54,7 @@ public class RedisListService {
         ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         if (end > size) {
             end = size.intValue();
