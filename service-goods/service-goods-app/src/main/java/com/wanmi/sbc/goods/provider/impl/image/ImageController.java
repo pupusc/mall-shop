@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.image.model.root.ImageDTO;
 import com.wanmi.sbc.goods.image.service.ImageService;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -65,6 +65,12 @@ public class ImageController implements ImageProvider {
         List<ImageDTO> listImageDTO = imageService.listNoPage(imagePageProviderRequest);
         List<ImageProviderResponse> result = this.packageImageProviderResponse(listImageDTO);
         return BaseResponse.success(result);
+    }
+
+    @Override
+    public BaseResponse sort(List<ImageSortProviderRequest> imageSortProviderRequestList) {
+        imageService.sort(imageSortProviderRequestList);
+        return BaseResponse.SUCCESSFUL();
     }
 
 

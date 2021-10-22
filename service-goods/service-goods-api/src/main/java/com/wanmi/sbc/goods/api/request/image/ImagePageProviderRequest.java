@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import java.io.Serializable;
+import java.util.Collection;
 
 
 /**
@@ -21,6 +22,8 @@ public class ImagePageProviderRequest implements Serializable {
     private int pageSize = 10;
 
     private Integer id;
+
+    private Collection<Integer> idColl;
 
     private String name;
 

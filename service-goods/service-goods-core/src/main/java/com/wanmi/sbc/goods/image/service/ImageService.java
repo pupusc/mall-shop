@@ -5,6 +5,7 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.image.model.root.ImageDTO;
 import com.wanmi.sbc.goods.image.repository.ImageRepository;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -26,7 +28,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -110,6 +116,22 @@ public class ImageService {
         imageRepository.save(imageDTO);
     }
 
+    @Transactional
+    public void sort(List<ImageSortProviderRequest> imageSortProviderRequestList) {
+        //获取商品
+        Set<Integer> imageIdSet = imageSortProviderRequestList.stream().map(ImageSortProviderRequest::getId).collect(Collectors.toSet());
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setIdColl(imageIdSet);
+        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
+        if (imageDTOList.size() != imageIdSet.size()) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        Map<Integer, ImageSortProviderRequest> collect = imageSortProviderRequestList.stream().collect(Collectors.toMap(ImageSortProviderRequest::getId, Function.identity(), (k1, k2) -> k1));
+        for (ImageSortProviderRequest imageSortProviderParam : imageSortProviderRequestList) {
+
+        }
+    }
+
 //    public void delete(ImageProviderRequest imageProviderRequest) {
 //        if (imageProviderRequest.getId() == null) {
 //            throw new SbcRuntimeException("K-000009");
@@ -163,6 +185,9 @@ public class ImageService {
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (imagePageProviderRequest.getId() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("id"), imagePageProviderRequest.getId()));
+                }
+                if (!CollectionUtils.isEmpty(imagePageProviderRequest.getIdColl())) {
+                    conditionList.add(root.get("id").in(imagePageProviderRequest.getIdColl()));
                 }
                 if (!StringUtils.isEmpty(imagePageProviderRequest.getName())) {
                     conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName()));

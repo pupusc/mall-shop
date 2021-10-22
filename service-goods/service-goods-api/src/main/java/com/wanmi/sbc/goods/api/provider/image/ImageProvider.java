@@ -4,6 +4,7 @@ package com.wanmi.sbc.goods.api.provider.image;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
@@ -48,6 +49,14 @@ public interface ImageProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/image/listNoPage")
-    BaseResponse<List<ImageProviderResponse>> listNoPage(ImagePageProviderRequest imagePageProviderRequest);
+    BaseResponse<List<ImageProviderResponse>> listNoPage(@RequestBody ImagePageProviderRequest imagePageProviderRequest);
+
+    /**
+     * 排序图片
+     * @param imageSortProviderRequestList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/image/sort")
+    BaseResponse sort(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList);
 
 }
