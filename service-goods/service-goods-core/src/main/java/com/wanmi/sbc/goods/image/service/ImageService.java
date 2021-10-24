@@ -126,9 +126,14 @@ public class ImageService {
         if (imageDTOList.size() != imageIdSet.size()) {
             throw new SbcRuntimeException("K-000009");
         }
-        Map<Integer, ImageSortProviderRequest> collect = imageSortProviderRequestList.stream().collect(Collectors.toMap(ImageSortProviderRequest::getId, Function.identity(), (k1, k2) -> k1));
+        Map<Integer, ImageDTO> collect = imageDTOList.stream().collect(Collectors.toMap(ImageDTO::getId, Function.identity(), (k1, k2) -> k1));
         for (ImageSortProviderRequest imageSortProviderParam : imageSortProviderRequestList) {
-
+            ImageDTO imageDTO = collect.get(imageSortProviderParam.getId());
+            if (imageDTO == null) {
+                throw new SbcRuntimeException("K-000009");
+            }
+            imageDTO.setOrderNum(imageSortProviderParam.getOrderNum());
+            imageRepository.save(imageDTO);
         }
     }
 
