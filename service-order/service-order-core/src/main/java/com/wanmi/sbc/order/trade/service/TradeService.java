@@ -7151,6 +7151,7 @@ public class TradeService {
                 storeTrade.setThirdPlatformType(null);
                 //赠品
                 storeTrade.setGifts(storeGifts);
+                //平摊金额
                 providerTradeService.addProviderTrade(storeTrade);
             }
 
@@ -7311,6 +7312,20 @@ public class TradeService {
                 //积分价
                 tradePrice.setBuyPoints(buyPoints);
                 tradePrice.setDeliveryPrice(BigDecimal.ZERO);
+                //实际金额
+                if(providerTradeItems.stream().anyMatch(p->p.getSplitPrice()!=null)){
+                    tradePrice.setActualPrice(providerTradeItems.stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+                }
+                if(providerTradeItems.stream().anyMatch(p->p.getPoints()!=null)){
+                    tradePrice.setActualPoints(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getPoints()) ? 0L : p.getPoints()).sum());
+                }
+                if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
+                    tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
+                }
+                //运费
+                if(tradePrice.getSplitDeliveryPrice()!=null && !tradePrice.getSplitDeliveryPrice().isEmpty() && tradePrice.getSplitDeliveryPrice().containsKey(providerId)){
+                    tradePrice.setDeliveryPrice(tradePrice.getSplitDeliveryPrice().get(providerId));
+                }
 
                 providerTrade.setTradePrice(tradePrice);
                 //赠品

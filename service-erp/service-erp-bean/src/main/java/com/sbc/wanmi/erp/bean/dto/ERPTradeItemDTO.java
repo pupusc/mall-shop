@@ -1,6 +1,5 @@
 package com.sbc.wanmi.erp.bean.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -9,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @program: sbc-background
@@ -84,4 +84,9 @@ public class ERPTradeItemDTO implements Serializable {
      */
     @ApiModelProperty(value = "presale")
     private boolean presale;
+
+    /**
+    成本价
+     */
+    private BigDecimal costPrice;
 }
