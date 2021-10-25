@@ -1,6 +1,6 @@
 package com.wanmi.sbc.home.response;
 
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import lombok.Data;
 
 import java.util.List;
@@ -9,18 +9,25 @@ import java.util.List;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/10/25 2:15 上午
+ * Date       : 2021/10/26 1:54 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class HomeRecommend {
-    /**
-     * 书单推荐
-     */
-    private List<BookListModelProviderResponse> bookListModelRecommend;
+public class HomeGoodsListResponse {
 
     /**
-     * 名人推荐
+     * 新上
      */
-    private List<BookListModelProviderResponse> famousRecommend;
+    private List<GoodsCustomResponse> newBookGoodsList;
+
+    /**
+     * 畅销
+     */
+    private List<GoodsCustomResponse>  sellWellGoodsList;
+
+
+    /**
+     * 特价书
+     */
+    private List<GoodsCustomResponse>  specialOfferBookList;
 }

@@ -39,7 +39,7 @@ public class ImagePageProviderRequest implements Serializable {
     private Integer publishState;
 
     /**
-     * 图片类型 1首页轮播 2 广告图
+     * 图片类型 1首页轮播 2 广告图  3卖点图
      */
     private List<Integer> imageTypeList;
 }
