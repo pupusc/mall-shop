@@ -53,7 +53,7 @@ public class ImageService {
      */
     public void add(ImageProviderRequest imageProviderRequest) {
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
-        imagePageProviderRequest.setImageType(imagePageProviderRequest.getImageType());
+        imagePageProviderRequest.setImageTypeList(imagePageProviderRequest.getImageTypeList());
         List<ImageDTO> listImageDTO = this.listNoPage(imagePageProviderRequest);
         int orderNum = 0;
         if (!CollectionUtils.isEmpty(listImageDTO)) {
@@ -200,8 +200,8 @@ public class ImageService {
                 if (imagePageProviderRequest.getPublishState() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("publishState"), imagePageProviderRequest.getPublishState()));
                 }
-                if (imagePageProviderRequest.getImageType() != null) {
-                    conditionList.add(criteriaBuilder.equal(root.get("imageType"), imagePageProviderRequest.getImageType()));
+                if (!CollectionUtils.isEmpty(imagePageProviderRequest.getImageTypeList())) {
+                    conditionList.add(root.get("imageType").in(imagePageProviderRequest.getImageTypeList()));
                 }
                 if (imagePageProviderRequest.getStatus() != null) {
                     if (Objects.equals(imagePageProviderRequest.getStatus(), 0)) {

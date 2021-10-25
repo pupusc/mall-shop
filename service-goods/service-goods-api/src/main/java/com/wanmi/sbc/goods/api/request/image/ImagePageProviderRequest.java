@@ -5,6 +5,7 @@ import lombok.Data;
 import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -38,7 +39,7 @@ public class ImagePageProviderRequest implements Serializable {
     private Integer publishState;
 
     /**
-     * 图片类型 1首页轮播
+     * 图片类型 1首页轮播 2 广告图
      */
-    private Integer imageType;
+    private List<Integer> imageTypeList;
 }

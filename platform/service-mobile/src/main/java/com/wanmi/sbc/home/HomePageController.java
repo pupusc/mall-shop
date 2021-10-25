@@ -10,14 +10,21 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.home.request.HomeBookListModelRecommendRequest;
 import com.wanmi.sbc.home.request.HomeNewBookRequest;
+import com.wanmi.sbc.home.response.HomeImageResponse;
+import com.wanmi.sbc.home.response.HomeRecommend;
 import com.wanmi.sbc.util.RandomUtil;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,6 +71,9 @@ public class HomePageController {
     private BookListModelProvider bookListModelProvider;
 
     @Autowired
+    private ImageProvider imageProvider;
+
+    @Autowired
     private RedisTemplate redisTemplate;
 
     /**
@@ -73,8 +84,34 @@ public class HomePageController {
     private final static String KEY_HOME_SELL_WELL_LIST = "KEY_HOME_SELL_WELL_LIST";
 
 
-    public BaseResponse banner() {
-        return BaseResponse.SUCCESSFUL();
+    @GetMapping("/homeBanner")
+    public BaseResponse homeBanner() {
+        HomeImageResponse homeImageResponse = new HomeImageResponse();
+        List<ImageProviderResponse> rotationChartImgList = new ArrayList<>();
+        List<ImageProviderResponse> advertImgList = new ArrayList<>();
+        homeImageResponse.setRotationChartImageList(rotationChartImgList);
+        homeImageResponse.setAdvertImageList(advertImgList);
+
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
+        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ROTATION_CHART_IMG.getCode(), ImageTypeEnum.ADVERT_IMG.getCode()));
+        BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
+        List<ImageProviderResponse> context = listBaseResponse.getContext();
+        if (CollectionUtils.isEmpty(context)) {
+            return BaseResponse.success(homeImageResponse);
+        }
+
+        for (ImageProviderResponse imageProviderParam : context) {
+            if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
+                rotationChartImgList.add(imageProviderParam);
+                continue;
+            }
+
+            if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ADVERT_IMG.getCode())) {
+                rotationChartImgList.add(imageProviderParam);
+            }
+        }
+        return BaseResponse.success(homeImageResponse);
     }
 
     /**
@@ -82,15 +119,25 @@ public class HomePageController {
      * @param homeBookListModelRecommendRequest
      * @return
      */
-    @PostMapping("/book-list-model-recommend")
-    public BaseResponse<List<BookListModelProviderResponse>> bookListModelRecommend(@RequestBody HomeBookListModelRecommendRequest homeBookListModelRecommendRequest) {
+    @PostMapping("/home-recommend")
+    public BaseResponse<HomeRecommend> homeRecommend(@RequestBody HomeBookListModelRecommendRequest homeBookListModelRecommendRequest) {
+
+        HomeRecommend homeRecommend = new HomeRecommend();
+        //编辑推荐
         BookListModelPageProviderRequest bookListModelPageProviderRequest = new BookListModelPageProviderRequest();
         bookListModelPageProviderRequest.setPageNum(0);
         bookListModelPageProviderRequest.setPageSize(15);
         bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
-        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(homeBookListModelRecommendRequest.getBusinessType()));
-        BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServicePageBaseResponse = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
-        return BaseResponse.success(microServicePageBaseResponse.getContext().getContent());
+        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+        BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceBookRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+        homeRecommend.setBookListModelRecommend(microServiceBookRecommend.getContext().getContent());
+
+        //名人推荐
+        bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
+        bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
+        BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceFamousRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+        homeRecommend.setFamousRecommend(microServiceFamousRecommend.getContext().getContent());
+        return BaseResponse.success(homeRecommend);
     }
 
     /**
@@ -159,12 +206,7 @@ public class HomePageController {
         //书籍存入到redis中
         return BaseResponse.success(result);
     }
-
-    /**
-     * 不畅销书籍专区 不做，前端根据 下发的书单id 获取对应的商品列表
-     */
-    public void unSellWellList() {
-    }
+    
 
 
 

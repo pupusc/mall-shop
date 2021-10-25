@@ -58,7 +58,7 @@ public class ImageProviderResponse implements Serializable {
     private Integer status;
 
     /**
-     * 图片类型 1首页轮播
+     * 图片类型 1首页轮播 2 广告图片
      */
     private Integer imageType;
 }
