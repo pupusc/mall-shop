@@ -26,16 +26,18 @@ public class IndexCmsController {
      * 添加特色栏目
      */
     @PostMapping("/special-topic/add")
-    public void addSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
+    public BaseResponse addSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
         indexCmsProvider.addSpecialTopic(cmsSpecialTopicAddRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
      * 修改特色栏目
      */
     @PostMapping("/special-topic/update")
-    public void updateSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
+    public BaseResponse updateSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
         indexCmsProvider.updateSpecialTopic(cmsSpecialTopicAddRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
