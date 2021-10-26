@@ -1,6 +1,5 @@
 package com.wanmi.sbc.home;
 
-import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.home.request.HomeBookListModelRecommendRequest;
 import com.wanmi.sbc.home.request.HomeNewBookRequest;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Description:
@@ -58,8 +55,8 @@ public class HomePageController {
      * @param homeNewBookRequest
      * @return
      */
-    @PostMapping("/home-book-list")
-    public BaseResponse<> homeBookList(@RequestBody HomeNewBookRequest homeNewBookRequest){
+    @PostMapping("/homeGoodsList")
+    public BaseResponse<HomeGoodsListResponse> homeGoodsList(@RequestBody HomeNewBookRequest homeNewBookRequest){
         int pageSize = 15;
         HomeGoodsListResponse homeGoodsListResponse = new HomeGoodsListResponse();
         homeGoodsListResponse.setNewBookGoodsList(homePageService.newBookList(pageSize));

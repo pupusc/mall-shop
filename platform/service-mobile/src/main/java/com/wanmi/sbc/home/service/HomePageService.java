@@ -217,4 +217,9 @@ public class HomePageService {
     }
 
 
+    public void notice() {
+
+    }
+
+
 }
