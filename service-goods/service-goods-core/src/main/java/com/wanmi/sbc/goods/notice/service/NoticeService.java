@@ -72,20 +72,15 @@ public class NoticeService {
         noticeRepository.save(noticeDTO);
     }
 
-    private Sort packageSort() {
-        return Sort.by(Sort.Direction.DESC, "updateTime");
+
+    public List<NoticeDTO> listNoPage(NoticePageProviderRequest request) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
+        return noticeRepository.findAll(this.packageWhere(request), sort);
     }
 
-    /**
-     * 获取列表
-     * @return
-     */
-    public List<NoticeDTO> listNoPage(NoticePageProviderRequest request) {
-        return noticeRepository.findAll(this.packageWhere(request), this.packageSort());
-    }
 
     public Page<NoticeDTO> list(NoticePageProviderRequest request) {
-        Sort sort = this.packageSort();
+        Sort sort = Sort.by(Sort.Direction.DESC, "updateTime");
         Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
         return noticeRepository.findAll(this.packageWhere(request), pageable);
     }
@@ -100,6 +95,9 @@ public class NoticeService {
                 conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 if (!CollectionUtils.isEmpty(request.getNoticeIdColl())) {
                     conditionList.add(root.get("id").in(request.getNoticeIdColl()));
+                }
+                if (request.getNow() != null) {
+//                    conditionList.add(criteriaBuilder.gt(root.get("beginTime"), request.getNow());
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }

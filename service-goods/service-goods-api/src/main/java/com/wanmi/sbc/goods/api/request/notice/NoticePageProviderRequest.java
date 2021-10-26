@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.api.request.notice;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 /**
@@ -19,5 +20,23 @@ public class NoticePageProviderRequest implements Serializable {
 
     private Integer pageSize = 10;
 
+    /**
+     * 公告id列表
+     */
     private Collection<Integer> noticeIdColl;
+
+    /**
+     * 有效开始时间
+     */
+    private LocalDateTime beginTime;
+
+    /**
+     * 有效结束时间
+     */
+    private LocalDateTime endTime;
+
+    /**
+     * 当前时间  根据当前时间获取 有效的公告
+     */
+    private LocalDateTime now;
 }
