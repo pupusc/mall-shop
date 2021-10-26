@@ -17,13 +17,16 @@ import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
+import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
+import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
+import com.wanmi.sbc.goods.api.response.notice.NoticeProviderResponse;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.home.response.HomeBookListRecommendSubResponse;
 import com.wanmi.sbc.home.response.HomeGoodsListResponse;
@@ -33,6 +36,7 @@ import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
 import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.home.response.ImageResponse;
+import com.wanmi.sbc.home.response.NoticeResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,6 +84,9 @@ public class HomePageService {
     @Autowired
     private IndexCmsProvider indexCmsProvider;
 
+    @Autowired
+    private NoticeProvider noticeProvider;
+
     /**
      * 新上书籍
      */
@@ -107,7 +115,8 @@ public class HomePageService {
 
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
-        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ROTATION_CHART_IMG.getCode(), ImageTypeEnum.ADVERT_IMG.getCode()));
+        imagePageProviderRequest.setStatus(StateEnum.RUNNING.getCode());
+        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ROTATION_CHART_IMG.getCode(), ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode()));
         BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
         List<ImageProviderResponse> context = listBaseResponse.getContext();
         if (CollectionUtils.isEmpty(context)) {
@@ -127,6 +136,10 @@ public class HomePageService {
     }
 
 
+    /**
+     * 获取特色栏目
+     * @return
+     */
     public List<HomeSpecialTopicResponse> homeSpecialTopic() {
         List<HomeSpecialTopicResponse> result = new ArrayList<>();
         CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest = new CmsSpecialTopicSearchRequest();
@@ -365,9 +378,22 @@ public class HomePageService {
     }
 
 
-
-    public void notice() {
-
+    /**
+     * 获取公告
+     * @return
+     */
+    public NoticeResponse notice() {
+        NoticePageProviderRequest request = new NoticePageProviderRequest();
+        request.setNow(LocalDateTime.now());
+        BaseResponse<List<NoticeProviderResponse>> listBaseResponse = noticeProvider.listNoPage(request);
+        List<NoticeProviderResponse> context = listBaseResponse.getContext();
+        if (!CollectionUtils.isEmpty(context)) {
+            NoticeProviderResponse noticeProviderResponse = context.get(0);
+            NoticeResponse noticeResponse = new NoticeResponse();
+            BeanUtils.copyProperties(noticeProviderResponse, noticeResponse);
+            return noticeResponse;
+        }
+        return null;
     }
 
 

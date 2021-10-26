@@ -17,7 +17,8 @@ import java.util.Objects;
 public enum ImageTypeEnum {
 
     ROTATION_CHART_IMG(1, "轮播图"),
-    ADVERT_IMG(2, "首页广告图");
+    ADVERT_IMG(2, "首页广告图"),
+    SELL_IMG(3, "首页卖点图");
 
     private final Integer code;
     private final String message;

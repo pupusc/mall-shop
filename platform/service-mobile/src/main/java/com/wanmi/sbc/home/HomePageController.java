@@ -7,6 +7,7 @@ import com.wanmi.sbc.home.response.HomeGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeImageResponse;
 import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
 import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
+import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.home.service.HomePageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +34,20 @@ public class HomePageController {
     private HomePageService homePageService;
 
     /**
+     * 首页 - 公告
      *
-     * 首页banner 广告图和 卖点图
+     * @menu 新版首页
+     *
+     * @return
+     */
+    @GetMapping("/homeNotice")
+    public BaseResponse<NoticeResponse> homeNotice(){
+        return BaseResponse.success(homePageService.notice());
+    }
+
+    /**
+     *
+     * 首页 - banner 广告图和 卖点图
      *
      * @menu 新版首页
      * 首页图片
@@ -47,7 +60,7 @@ public class HomePageController {
     }
 
     /**
-     * 首页 栏目列表
+     * 首页 - 栏目列表
      *
      * @menu 新版首页
      *
@@ -60,22 +73,20 @@ public class HomePageController {
 
     /**
      *
-     * 编辑推荐和名家推荐
+     * 首页 - 编辑推荐和名家推荐
      *
      * @menu 新版首页
      *
-     * @param homeBookListModelRecommendRequest
      * @return
      */
-    @PostMapping("/home-recommend")
-    public BaseResponse<HomeBookListRecommendResponse> homeRecommend(@RequestBody HomeBookListModelRecommendRequest homeBookListModelRecommendRequest) {
-
+    @GetMapping("/homeRecommend")
+    public BaseResponse<HomeBookListRecommendResponse> homeRecommend() {
         return BaseResponse.success(homePageService.homeRecommend());
     }
 
     /**
      *
-     * 获取首页新书榜 畅销榜 不畅销书籍 特价书
+     * 首页 - 获取首页新书榜 畅销榜 不畅销书籍 特价书
      *
      * @menu 新版首页
      *
