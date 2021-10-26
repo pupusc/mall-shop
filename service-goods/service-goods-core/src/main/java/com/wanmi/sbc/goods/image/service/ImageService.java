@@ -195,7 +195,7 @@ public class ImageService {
                     conditionList.add(root.get("id").in(imagePageProviderRequest.getIdColl()));
                 }
                 if (!StringUtils.isEmpty(imagePageProviderRequest.getName())) {
-                    conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName()));
+                    conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName() + "%"));
                 }
                 if (imagePageProviderRequest.getPublishState() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("publishState"), imagePageProviderRequest.getPublishState()));
