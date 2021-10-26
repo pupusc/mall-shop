@@ -4,8 +4,9 @@ import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
 
 @Data
-public class CmsSpecialTopicAddRequest {
+public class CmsSpecialTopicUpdateRequest {
 
+    public Integer id;
     /**
      * 名称
      */

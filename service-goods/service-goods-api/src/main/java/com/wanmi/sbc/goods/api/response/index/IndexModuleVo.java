@@ -1,10 +1,16 @@
-package com.wanmi.sbc.goods.api.request.index;
+package com.wanmi.sbc.goods.api.response.index;
 
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
 
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
 @Data
-public class CmsTitleAddRequest {
+public class IndexModuleVo {
+
+    private Integer id;
 
     /**
      * CODE
@@ -30,10 +36,5 @@ public class CmsTitleAddRequest {
      * 启用状态
      */
     private PublishState publishState;
-
-    /**
-     * 排序
-     */
-    private Integer orderNum;
 
 }

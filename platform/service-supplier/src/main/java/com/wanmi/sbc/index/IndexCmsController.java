@@ -3,11 +3,9 @@ package com.wanmi.sbc.index;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsTitleAddRequest;
-import com.wanmi.sbc.goods.api.response.index.IndexFeatureDto;
-import com.wanmi.sbc.goods.api.response.index.IndexModuleDto;
+import com.wanmi.sbc.goods.api.request.index.*;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
+import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,8 +37,8 @@ public class IndexCmsController {
      * 修改特色栏目
      */
     @PostMapping("/special-topic/update")
-    public BaseResponse updateSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
-        indexCmsProvider.updateSpecialTopic(cmsSpecialTopicAddRequest);
+    public BaseResponse updateSpecialTopic(@RequestBody CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest){
+        indexCmsProvider.updateSpecialTopic(cmsSpecialTopicUpdateRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -48,7 +46,7 @@ public class IndexCmsController {
      * 查询特色栏目
      */
     @PostMapping("/special-topic/search")
-    public BaseResponse<MicroServicePage<IndexFeatureDto>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+    public BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
         return indexCmsProvider.searchSpecialTopic(cmsSpecialTopicSearchRequest);
     }
 
@@ -74,8 +72,8 @@ public class IndexCmsController {
      * 更新主副标题
      */
     @PostMapping("/title/update")
-    public BaseResponse updateTitle(CmsTitleAddRequest cmsTitleAddRequest){
-        indexCmsProvider.updateTitle(cmsTitleAddRequest);
+    public BaseResponse updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest){
+        indexCmsProvider.updateTitle(cmsTitleUpdateRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -83,7 +81,7 @@ public class IndexCmsController {
      * 查询主副标题
      */
     @PostMapping("/title/search")
-    public BaseResponse<List<IndexModuleDto>> searchTitle(){
+    public BaseResponse<List<IndexModuleVo>> searchTitle(){
         return indexCmsProvider.searchTitle();
     }
 

@@ -2,13 +2,13 @@ package com.wanmi.sbc.goods.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsTitleAddRequest;
-import com.wanmi.sbc.goods.api.response.index.IndexFeatureDto;
+import com.wanmi.sbc.goods.api.request.index.*;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -22,41 +22,41 @@ public interface IndexCmsProvider {
      * 添加特色栏目
      */
     @PostMapping("/goods/${application.goods.version}/special-topic/add")
-    BaseResponse addSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest);
+    BaseResponse addSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest);
 
     /**
      * 修改特色栏目
      */
     @PostMapping("/goods/${application.goods.version}/special-topic/update")
-    BaseResponse updateSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest);
+    BaseResponse updateSpecialTopic(@RequestBody CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest);
 
     /**
      * 修改特色栏目
      */
     @PostMapping("/goods/${application.goods.version}/special-topic/search")
-    BaseResponse<MicroServicePage<IndexFeatureDto>> searchSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
+    BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
 
 
     @PostMapping("/goods/${application.goods.version}/special-topic/list-no-page")
-    BaseResponse<List<IndexFeature>> listNoPageSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
+    BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
 
     /**
      * 添加主副标题
      */
     @PostMapping("/goods/${application.goods.version}/title/add")
-    BaseResponse addTitle(CmsTitleAddRequest cmsTitleAddRequest);
+    BaseResponse addTitle(@RequestBody CmsTitleAddRequest cmsTitleAddRequest);
 
     /**
      * 删除主副标题
      */
     @PostMapping("/goods/${application.goods.version}/title/delete")
-    BaseResponse deleteTitle(Integer id);
+    BaseResponse deleteTitle(@RequestParam Integer id);
 
     /**
      * 添加主副标题
      */
     @PostMapping("/goods/${application.goods.version}/title/update")
-    BaseResponse updateTitle(CmsTitleAddRequest cmsTitleAddRequest);
+    BaseResponse updateTitle(@RequestBody CmsTitleUpdateRequest cmsTitleUpdateRequest);
 
     /**
      * 查询主副标题
