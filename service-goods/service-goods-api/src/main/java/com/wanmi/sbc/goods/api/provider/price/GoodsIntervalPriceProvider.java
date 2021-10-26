@@ -28,7 +28,7 @@ public interface GoodsIntervalPriceProvider {
      * @param request {@link GoodsIntervalPriceRequest}
      * @return 区间价结果 {@link GoodsIntervalPriceResponse}
      */
-    @PostMapping("/goods/${application.goods.version}/price/interval/put")
+    @PostMapping("/goods/${public}/price/interval/put")
     BaseResponse<GoodsIntervalPriceResponse> put(@RequestBody @Valid GoodsIntervalPriceRequest request);
 
     /**
