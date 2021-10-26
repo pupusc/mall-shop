@@ -62,6 +62,7 @@ public class IndexFeature {
     /**
      * 启用状态
      */
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "publish_state")
     private PublishState publishState;
 

@@ -1,6 +1,5 @@
 package com.wanmi.sbc.goods.api.request.index;
 
-import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
 
 @Data
@@ -25,11 +24,6 @@ public class CmsTitleAddRequest {
      * 书单id
      */
     private Integer bookListModelId;
-
-    /**
-     * 启用状态
-     */
-    private PublishState publishState;
 
     /**
      * 排序

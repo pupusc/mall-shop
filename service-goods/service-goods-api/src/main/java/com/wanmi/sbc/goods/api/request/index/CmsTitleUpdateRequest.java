@@ -31,7 +31,7 @@ public class CmsTitleUpdateRequest {
     /**
      * 启用状态
      */
-    private PublishState publishState;
+    private Integer publishState;
 
     /**
      * 排序

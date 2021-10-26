@@ -54,7 +54,7 @@ public class IndexCmsController {
      * 添加主副标题
      */
     @PostMapping("/title/add")
-    public BaseResponse addTitle(CmsTitleAddRequest cmsTitleAddRequest){
+    public BaseResponse addTitle(@RequestBody CmsTitleAddRequest cmsTitleAddRequest){
         indexCmsProvider.addTitle(cmsTitleAddRequest);
         return BaseResponse.SUCCESSFUL();
     }
@@ -72,7 +72,7 @@ public class IndexCmsController {
      * 更新主副标题
      */
     @PostMapping("/title/update")
-    public BaseResponse updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest){
+    public BaseResponse updateTitle(@RequestBody CmsTitleUpdateRequest cmsTitleUpdateRequest){
         indexCmsProvider.updateTitle(cmsTitleUpdateRequest);
         return BaseResponse.SUCCESSFUL();
     }
@@ -81,8 +81,8 @@ public class IndexCmsController {
      * 查询主副标题
      */
     @PostMapping("/title/search")
-    public BaseResponse<List<IndexModuleVo>> searchTitle(){
-        return indexCmsProvider.searchTitle();
+    public BaseResponse<List<IndexModuleVo>> searchTitle(@RequestBody CmsTitleSearchRequest cmsTitleSearchRequest){
+        return indexCmsProvider.searchTitle(cmsTitleSearchRequest);
     }
 
 }

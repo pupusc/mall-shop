@@ -1,7 +1,9 @@
 package com.wanmi.sbc.goods.index.repository;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -28,7 +30,7 @@ public interface IndexFeatureRepository extends JpaRepository<IndexFeature, Inte
                 conditionList.add(criteriaBuilder.like(root.get("name"), cmsSpecialTopicSearchRequest.name + "%"));
             }
             if (cmsSpecialTopicSearchRequest.publishState != null) {
-                conditionList.add(criteriaBuilder.equal(root.get("publishState"), cmsSpecialTopicSearchRequest.publishState));
+                conditionList.add(criteriaBuilder.equal(root.get("publishState"), PublishState.fromValue(cmsSpecialTopicSearchRequest.publishState)));
             }
             if(cmsSpecialTopicSearchRequest.state != null){
                 LocalDateTime now = LocalDateTime.now();
