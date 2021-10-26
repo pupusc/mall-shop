@@ -19,7 +19,9 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.home.response.HomeImageResponse;
 import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
+import com.wanmi.sbc.home.response.ImageResponse;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -76,8 +78,8 @@ public class HomePageService {
      */
     public HomeImageResponse banner() {
         HomeImageResponse homeImageResponse = new HomeImageResponse();
-        List<ImageProviderResponse> rotationChartImgList = new ArrayList<>();
-        List<ImageProviderResponse> advertImgList = new ArrayList<>();
+        List<ImageResponse> rotationChartImgList = new ArrayList<>();
+        List<ImageResponse> advertImgList = new ArrayList<>();
         homeImageResponse.setRotationChartImageList(rotationChartImgList);
         homeImageResponse.setAdvertImageList(advertImgList);
 
@@ -91,18 +93,21 @@ public class HomePageService {
         }
 
         for (ImageProviderResponse imageProviderParam : context) {
-            if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
-                rotationChartImgList.add(imageProviderParam);
-                continue;
-            }
-
-            if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ADVERT_IMG.getCode())) {
-                rotationChartImgList.add(imageProviderParam);
+            ImageResponse imageResponse = new ImageResponse();
+            BeanUtils.copyProperties(imageProviderParam, imageResponse);
+            if (Objects.equals(imageResponse.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
+                rotationChartImgList.add(imageResponse);
+            } else {
+                rotationChartImgList.add(imageResponse);
             }
         }
         return homeImageResponse;
     }
 
+
+    public void test() {
+
+    }
 
     /**
      * 获取编辑推荐和名人推荐

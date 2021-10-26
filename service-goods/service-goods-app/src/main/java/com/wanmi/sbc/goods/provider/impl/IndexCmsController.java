@@ -82,6 +82,17 @@ public class IndexCmsController implements IndexCmsProvider {
         return BaseResponse.success(microServicePage);
     }
 
+
+//    /**
+//     * 查询特色列表
+//     * @param cmsSpecialTopicSearchRequest
+//     * @return
+//     */
+//    public BaseResponse<List<IndexFeatureDto>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+//        return BaseResponse.success(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest));
+//    }
+
+
     /**
      * 添加主副标题
      * @param cmsTitleAddRequest

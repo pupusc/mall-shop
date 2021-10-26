@@ -30,6 +30,10 @@ public class HomePageController {
     private HomePageService homePageService;
 
     /**
+     *
+     * 首页banner 广告图和 卖点图
+     *
+     * @menu 新版首页
      * 首页图片
      * @return
      */
@@ -40,7 +44,11 @@ public class HomePageController {
     }
 
     /**
+     *
      * 编辑推荐和名家推荐
+     *
+     * @menu 新版首页
+     *
      * @param homeBookListModelRecommendRequest
      * @return
      */
@@ -51,7 +59,11 @@ public class HomePageController {
     }
 
     /**
-     * 获取首页图书专区
+     *
+     * 获取首页新书榜 畅销榜 不畅销书籍 特价书
+     *
+     * @menu 新版首页
+     *
      * @param homeNewBookRequest
      * @return
      */

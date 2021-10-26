@@ -25,6 +25,11 @@ public class HomeGoodsListResponse {
      */
     private List<GoodsCustomResponse>  sellWellGoodsList;
 
+    /**
+     * 不畅销
+     */
+    private List<GoodsCustomResponse>  unSellWellGoodsList;
+
 
     /**
      * 特价书

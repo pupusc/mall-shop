@@ -18,10 +18,10 @@ public class HomeImageResponse {
     /**
      * 轮播图
      */
-    private List<ImageProviderResponse> rotationChartImageList;
+    private List<ImageResponse> rotationChartImageList;
 
     /**
      * 广告图
      */
-    private List<ImageProviderResponse> advertImageList;
+    private List<ImageResponse> advertImageList;
 }
