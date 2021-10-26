@@ -25,7 +25,10 @@ public class IndexCmsController {
     private IndexCmsProvider indexCmsProvider;
 
     /**
-     * 添加特色栏目
+     * @description 添加特色栏目
+     * @param cmsSpecialTopicAddRequest
+     * @menu 后台CMS2.0
+     * @status done
      */
     @PostMapping("/special-topic/add")
     public BaseResponse addSpecialTopic(@RequestBody CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
@@ -34,7 +37,10 @@ public class IndexCmsController {
     }
 
     /**
-     * 修改特色栏目
+     * @description 修改特色栏目
+     * @param cmsSpecialTopicUpdateRequest
+     * @menu 后台CMS2.0
+     * @status done
      */
     @PostMapping("/special-topic/update")
     public BaseResponse updateSpecialTopic(@RequestBody CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest){
@@ -43,7 +49,10 @@ public class IndexCmsController {
     }
 
     /**
-     * 查询特色栏目
+     * @description 查询特色栏目
+     * @param cmsSpecialTopicSearchRequest
+     * @menu 后台CMS2.0
+     * @status done
      */
     @PostMapping("/special-topic/search")
     public BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
@@ -69,7 +78,10 @@ public class IndexCmsController {
     }
 
     /**
-     * 更新主副标题
+     * @description 更新主副标题
+     * @param cmsTitleUpdateRequest
+     * @menu 后台CMS2.0
+     * @status done
      */
     @PostMapping("/title/update")
     public BaseResponse updateTitle(@RequestBody CmsTitleUpdateRequest cmsTitleUpdateRequest){
@@ -78,7 +90,10 @@ public class IndexCmsController {
     }
 
     /**
-     * 查询主副标题
+     * @description 查询主副标题
+     * @param cmsTitleSearchRequest
+     * @menu 后台CMS2.0
+     * @status done
      */
     @PostMapping("/title/search")
     public BaseResponse<List<IndexModuleVo>> searchTitle(@RequestBody CmsTitleSearchRequest cmsTitleSearchRequest){
