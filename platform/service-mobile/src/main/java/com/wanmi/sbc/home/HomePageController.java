@@ -6,6 +6,7 @@ import com.wanmi.sbc.home.request.HomeNewBookRequest;
 import com.wanmi.sbc.home.response.HomeGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeImageResponse;
 import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
+import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.service.HomePageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 
 /**
@@ -44,6 +47,18 @@ public class HomePageController {
     }
 
     /**
+     * 首页 栏目列表
+     *
+     * @menu 新版首页
+     *
+     * @return
+     */
+    @GetMapping("/homeSpecialTopic")
+    public BaseResponse<List<HomeSpecialTopicResponse>> homeSpecialTopic() {
+        return BaseResponse.success(homePageService.homeSpecialTopic());
+    }
+
+    /**
      *
      * 编辑推荐和名家推荐
      *
@@ -64,17 +79,12 @@ public class HomePageController {
      *
      * @menu 新版首页
      *
-     * @param homeNewBookRequest
      * @return
      */
-    @PostMapping("/homeGoodsList")
-    public BaseResponse<HomeGoodsListResponse> homeGoodsList(@RequestBody HomeNewBookRequest homeNewBookRequest){
-        int pageSize = 15;
-        HomeGoodsListResponse homeGoodsListResponse = new HomeGoodsListResponse();
-        homeGoodsListResponse.setNewBookGoodsList(homePageService.newBookList(pageSize));
-        homeGoodsListResponse.setSellWellGoodsList(homePageService.sellWellBookList(pageSize));
-        homeGoodsListResponse.setSpecialOfferBookList(homePageService.specialOfferBookList(pageSize));
-        return BaseResponse.success(homeGoodsListResponse);
+    @GetMapping("/homeGoodsList")
+    public BaseResponse<HomeGoodsListResponse> homeGoodsList(){
+
+        return BaseResponse.success(homePageService.homeGoodsList());
     }
 
 

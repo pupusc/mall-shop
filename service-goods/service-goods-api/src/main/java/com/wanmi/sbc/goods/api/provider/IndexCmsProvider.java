@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
+import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,5 +63,5 @@ public interface IndexCmsProvider {
      * 查询主副标题
      */
     @PostMapping("/goods/${application.goods.version}/title/search")
-    BaseResponse searchTitle();
+    BaseResponse<List<IndexModuleVo>> searchTitle();
 }
