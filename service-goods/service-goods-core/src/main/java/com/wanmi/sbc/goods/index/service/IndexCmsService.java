@@ -83,7 +83,7 @@ public class IndexCmsService {
 
     /**
      * 修改特色栏目
-     * @param cmsSpecialTopicAddRequest
+     * @param cmsSpecialTopicUpdateRequest
      */
     public void updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest){
         Optional<IndexFeature> opt = indexFeatureRepository.findById(cmsSpecialTopicUpdateRequest.id);
@@ -133,7 +133,7 @@ public class IndexCmsService {
      * @return
      */
     public Page<IndexFeature> searchSpecialTopicPage(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
-        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum,
+        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum - 1,
                 cmsSpecialTopicSearchRequest.pageSize, Sort.by(Sort.Direction.ASC, "orderNum")));
     }
 

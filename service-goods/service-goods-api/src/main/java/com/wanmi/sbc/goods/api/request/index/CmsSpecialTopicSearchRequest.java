@@ -19,5 +19,8 @@ public class CmsSpecialTopicSearchRequest {
      */
     public Integer state;
 
-    public PublishState publishState;
+    /**
+     * 0-未启用 1-启用
+     */
+    public Integer publishState;
 }

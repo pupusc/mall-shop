@@ -72,6 +72,7 @@ public class IndexCmsController implements IndexCmsProvider {
                 //进行中
                 indexFeatureVo.setState(1);
             }
+            indexFeatureVo.setPublishState(indexFeature.getPublishState().toValue());
             return indexFeatureVo;
         }).collect(Collectors.toList());
         MicroServicePage<IndexFeatureVo> microServicePage = new MicroServicePage<>();
