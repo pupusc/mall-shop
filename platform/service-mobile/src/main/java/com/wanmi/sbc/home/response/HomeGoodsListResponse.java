@@ -18,21 +18,21 @@ public class HomeGoodsListResponse {
     /**
      * 新上
      */
-    private List<GoodsCustomResponse> newBookGoodsList;
+    private HomeGoodsListSubResponse newBookGoods;
 
     /**
      * 畅销
      */
-    private List<GoodsCustomResponse>  sellWellGoodsList;
+    private HomeGoodsListSubResponse  sellWellGoods;
 
     /**
      * 不畅销
      */
-    private List<GoodsCustomResponse>  unSellWellGoodsList;
+    private HomeGoodsListSubResponse  unSellWellGoods;
 
 
     /**
      * 特价书
      */
-    private List<GoodsCustomResponse>  specialOfferBookList;
+    private HomeGoodsListSubResponse  specialOfferBook;
 }

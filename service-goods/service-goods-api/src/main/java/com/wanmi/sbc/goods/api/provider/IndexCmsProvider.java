@@ -61,6 +61,14 @@ public interface IndexCmsProvider {
 
     /**
      * 查询主副标题，前端请求
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/title/search")
+    BaseResponse<List<IndexModuleVo>> searchTitle();
+
+
+    /**
+     * 查询主副标题，前端请求
      * @param publishState 0-未启用 1-启用
      * @return
      */
