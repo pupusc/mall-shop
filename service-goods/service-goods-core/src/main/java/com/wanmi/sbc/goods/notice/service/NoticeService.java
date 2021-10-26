@@ -97,7 +97,18 @@ public class NoticeService {
                     conditionList.add(root.get("id").in(request.getNoticeIdColl()));
                 }
                 if (request.getNow() != null) {
-//                    conditionList.add(criteriaBuilder.gt(root.get("beginTime"), request.getNow());
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), request.getNow()));
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), request.getNow()));
+                }
+
+                if (request.getBeginTime() != null) {
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), request.getBeginTime()));
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), request.getBeginTime()));
+                }
+
+                if (request.getEndTime() != null) {
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), request.getEndTime()));
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), request.getEndTime()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }

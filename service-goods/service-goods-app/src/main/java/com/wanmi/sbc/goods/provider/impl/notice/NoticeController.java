@@ -2,11 +2,13 @@ package com.wanmi.sbc.goods.provider.impl.notice;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.api.response.notice.NoticeProviderResponse;
 import com.wanmi.sbc.goods.notice.model.root.NoticeDTO;
 import com.wanmi.sbc.goods.notice.service.NoticeService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +24,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @RestController
-public class NoticeController {
+public class NoticeController implements NoticeProvider {
 
     @Autowired
     private NoticeService noticeService;
@@ -54,6 +56,7 @@ public class NoticeController {
      * @param request
      * @return
      */
+    @Override
     public BaseResponse<MicroServicePage<NoticeProviderResponse>> list(NoticePageProviderRequest request) {
         List<NoticeProviderResponse> result = new ArrayList<>();
         Page<NoticeDTO> noticeDTOPage = noticeService.list(request);
@@ -71,5 +74,23 @@ public class NoticeController {
         resultMicroService.setTotal(noticeDTOPage.getTotalElements());
         resultMicroService.setContent(result);
         return BaseResponse.success(resultMicroService);
+    }
+
+
+    /**
+     * 获取无分页公告列表
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<List<NoticeProviderResponse>> listNoPage(NoticePageProviderRequest request) {
+        List<NoticeProviderResponse> result = new ArrayList<>();
+        List<NoticeDTO> noticeDTOList = noticeService.listNoPage(request);
+        for (NoticeDTO noticeParam : noticeDTOList) {
+            NoticeProviderResponse noticeProviderResponse = new NoticeProviderResponse();
+            BeanUtils.copyProperties(noticeParam, noticeProviderResponse);
+            result.add(noticeProviderResponse);
+        }
+        return BaseResponse.success(result);
     }
 }
