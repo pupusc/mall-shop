@@ -90,6 +90,7 @@ public class IndexImageController {
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         BeanUtils.copyProperties(imagePageRequest, imagePageProviderRequest);
         return imageProvider.list(imagePageProviderRequest);
-
     }
+
+
 }

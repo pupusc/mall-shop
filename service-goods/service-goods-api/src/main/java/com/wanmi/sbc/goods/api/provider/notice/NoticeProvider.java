@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.api.response.notice.NoticeProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -28,7 +29,7 @@ public interface NoticeProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/notice/add")
-    BaseResponse add(@RequestBody NoticeProviderRequest request);
+    BaseResponse add(@Validated(NoticeProviderRequest.Add.class) @RequestBody NoticeProviderRequest request);
 
 
     /**
@@ -37,7 +38,7 @@ public interface NoticeProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/notice/update")
-    BaseResponse update(@RequestBody NoticeProviderRequest request);
+    BaseResponse update(@Validated(NoticeProviderRequest.Add.class) @RequestBody NoticeProviderRequest request);
 
 
     /**
