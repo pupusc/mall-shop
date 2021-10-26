@@ -3,11 +3,9 @@ package com.wanmi.sbc.goods.provider.impl;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsTitleAddRequest;
-import com.wanmi.sbc.goods.api.response.index.IndexFeatureDto;
-import com.wanmi.sbc.goods.api.response.index.IndexModuleDto;
+import com.wanmi.sbc.goods.api.request.index.*;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
+import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.service.IndexCmsService;
@@ -42,12 +40,12 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 更新特色栏目
-     * @param cmsSpecialTopicAddRequest
+     * @param cmsSpecialTopicUpdateRequest
      * @return
      */
     @Override
-    public BaseResponse updateSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest) {
-        indexCmsService.updateSpecialTopic(cmsSpecialTopicAddRequest);
+    public BaseResponse updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest) {
+        indexCmsService.updateSpecialTopic(cmsSpecialTopicUpdateRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -57,26 +55,26 @@ public class IndexCmsController implements IndexCmsProvider {
      * @return
      */
     @Override
-    public BaseResponse<MicroServicePage<IndexFeatureDto>> searchSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
+    public BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
         Page<IndexFeature> page = indexCmsService.searchSpecialTopicPage(cmsSpecialTopicSearchRequest);
         List<IndexFeature> content = page.getContent();
         LocalDateTime now = LocalDateTime.now();
-        List<IndexFeatureDto> dtos = content.stream().map(indexFeature -> {
-            IndexFeatureDto indexFeatureDto = new IndexFeatureDto();
-            BeanUtils.copyProperties(indexFeature, indexFeatureDto);
+        List<IndexFeatureVo> dtos = content.stream().map(indexFeature -> {
+            IndexFeatureVo indexFeatureVo = new IndexFeatureVo();
+            BeanUtils.copyProperties(indexFeature, indexFeatureVo);
             if(now.isBefore(indexFeature.getBeginTime())){
                 //未开始
-                indexFeatureDto.setState(0);
+                indexFeatureVo.setState(0);
             }else if(now.isAfter(indexFeature.getEndTime())){
                 //已结束
-                indexFeatureDto.setState(2);
+                indexFeatureVo.setState(2);
             }else{
                 //进行中
-                indexFeatureDto.setState(1);
+                indexFeatureVo.setState(1);
             }
-            return indexFeatureDto;
+            return indexFeatureVo;
         }).collect(Collectors.toList());
-        MicroServicePage<IndexFeatureDto> microServicePage = new MicroServicePage<>();
+        MicroServicePage<IndexFeatureVo> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(page.getTotalElements());
         microServicePage.setContent(dtos);
         return BaseResponse.success(microServicePage);
@@ -110,8 +108,8 @@ public class IndexCmsController implements IndexCmsProvider {
      * @return
      */
     @Override
-    public BaseResponse updateTitle(CmsTitleAddRequest cmsTitleAddRequest) {
-        indexCmsService.updateTitle(cmsTitleAddRequest);
+    public BaseResponse updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest) {
+        indexCmsService.updateTitle(cmsTitleUpdateRequest);
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -120,12 +118,12 @@ public class IndexCmsController implements IndexCmsProvider {
      * @return
      */
     @Override
-    public BaseResponse<List<IndexModuleDto>> searchTitle() {
+    public BaseResponse<List<IndexModuleVo>> searchTitle() {
         List<IndexModule> indexModules = indexCmsService.searchTitle();
-        List<IndexModuleDto> dtos = indexModules.stream().map(indexModule -> {
-            IndexModuleDto indexModuleDto = new IndexModuleDto();
-            BeanUtils.copyProperties(indexModule, indexModuleDto);
-            return indexModuleDto;
+        List<IndexModuleVo> dtos = indexModules.stream().map(indexModule -> {
+            IndexModuleVo indexModuleVo = new IndexModuleVo();
+            BeanUtils.copyProperties(indexModule, indexModuleVo);
+            return indexModuleVo;
         }).collect(Collectors.toList());
         return BaseResponse.success(dtos);
     }

@@ -3,9 +3,7 @@ package com.wanmi.sbc.goods.index.service;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
-import com.wanmi.sbc.goods.api.request.index.CmsTitleAddRequest;
+import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
@@ -87,38 +85,38 @@ public class IndexCmsService {
      * 修改特色栏目
      * @param cmsSpecialTopicAddRequest
      */
-    public void updateSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
-        Optional<IndexFeature> opt = indexFeatureRepository.findById(cmsSpecialTopicAddRequest.id);
+    public void updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest){
+        Optional<IndexFeature> opt = indexFeatureRepository.findById(cmsSpecialTopicUpdateRequest.id);
         if(!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsSpecialTopicAddRequest.id + "不存在");
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsSpecialTopicUpdateRequest.id + "不存在");
         }
         IndexFeature indexFeature = opt.get();
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.name)){
-            indexFeature.setName(cmsSpecialTopicAddRequest.name);
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.name)){
+            indexFeature.setName(cmsSpecialTopicUpdateRequest.name);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.title)){
-            indexFeature.setTitle(cmsSpecialTopicAddRequest.title);
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.title)){
+            indexFeature.setTitle(cmsSpecialTopicUpdateRequest.title);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.subTitle)){
-            indexFeature.setSubTitle(cmsSpecialTopicAddRequest.subTitle);
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.subTitle)){
+            indexFeature.setSubTitle(cmsSpecialTopicUpdateRequest.subTitle);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.beginTime)){
-            indexFeature.setBeginTime(LocalDateTime.parse(cmsSpecialTopicAddRequest.beginTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.beginTime)){
+            indexFeature.setBeginTime(LocalDateTime.parse(cmsSpecialTopicUpdateRequest.beginTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.endTime)){
-            indexFeature.setEndTime(LocalDateTime.parse(cmsSpecialTopicAddRequest.endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.endTime)){
+            indexFeature.setEndTime(LocalDateTime.parse(cmsSpecialTopicUpdateRequest.endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.imgUrl)){
-            indexFeature.setImgUrl(cmsSpecialTopicAddRequest.imgUrl);
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgUrl)){
+            indexFeature.setImgUrl(cmsSpecialTopicUpdateRequest.imgUrl);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicAddRequest.imgHref)){
-            indexFeature.setImgHref(cmsSpecialTopicAddRequest.imgHref);
+        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgHref)){
+            indexFeature.setImgHref(cmsSpecialTopicUpdateRequest.imgHref);
         }
-        if(cmsSpecialTopicAddRequest.orderNum != null){
-            indexFeature.setOrderNum(cmsSpecialTopicAddRequest.orderNum);
+        if(cmsSpecialTopicUpdateRequest.orderNum != null){
+            indexFeature.setOrderNum(cmsSpecialTopicUpdateRequest.orderNum);
         }
-        if(cmsSpecialTopicAddRequest.publishState != null){
-            indexFeature.setPublishState(cmsSpecialTopicAddRequest.publishState);
+        if(cmsSpecialTopicUpdateRequest.publishState != null){
+            indexFeature.setPublishState(cmsSpecialTopicUpdateRequest.publishState);
 //            if(cmsSpecialTopicAddRequest.publishState == 0){
 //                indexFeature.setPublishState(PublishState.NOT_ENABLE);
 //            }else {
@@ -156,26 +154,26 @@ public class IndexCmsService {
      * 修改主副标题
      * @param cmsTitleAddRequest
      */
-    public void updateTitle(CmsTitleAddRequest cmsTitleAddRequest){
-        Optional<IndexModule> opt = indexModuleRepository.findById(cmsTitleAddRequest.getId());
+    public void updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest){
+        Optional<IndexModule> opt = indexModuleRepository.findById(cmsTitleUpdateRequest.getId());
         if(!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsTitleAddRequest.getId() + "不存在");
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsTitleUpdateRequest.getId() + "不存在");
         }
         IndexModule indexModule = opt.get();
-        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getCode())){
-            indexModule.setCode(cmsTitleAddRequest.getCode());
+        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getCode())){
+            indexModule.setCode(cmsTitleUpdateRequest.getCode());
         }
-        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getTitle())){
-            indexModule.setTitle(cmsTitleAddRequest.getTitle());
+        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getTitle())){
+            indexModule.setTitle(cmsTitleUpdateRequest.getTitle());
         }
-        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getSubTitle())){
-            indexModule.setSubTitle(cmsTitleAddRequest.getSubTitle());
+        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getSubTitle())){
+            indexModule.setSubTitle(cmsTitleUpdateRequest.getSubTitle());
         }
-        if(cmsTitleAddRequest.getBookListModelId() != null){
-            indexModule.setBookListModelId(cmsTitleAddRequest.getBookListModelId());
+        if(cmsTitleUpdateRequest.getBookListModelId() != null){
+            indexModule.setBookListModelId(cmsTitleUpdateRequest.getBookListModelId());
         }
-        if(cmsTitleAddRequest.getPublishState() != null){
-            indexModule.setPublishState(cmsTitleAddRequest.getPublishState());
+        if(cmsTitleUpdateRequest.getPublishState() != null){
+            indexModule.setPublishState(cmsTitleUpdateRequest.getPublishState());
         }
         indexModule.setUpdateTime(LocalDateTime.now());
         indexModuleRepository.save(indexModule);

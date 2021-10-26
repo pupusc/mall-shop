@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.request.index;
 
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
 
 @Data
@@ -18,5 +19,5 @@ public class CmsSpecialTopicSearchRequest {
      */
     public Integer state;
 
-    public Integer publishState;
+    public PublishState publishState;
 }
