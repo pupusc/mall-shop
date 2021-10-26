@@ -5,9 +5,12 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicAddRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
+import com.wanmi.sbc.goods.api.request.index.CmsTitleAddRequest;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
+import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.repository.IndexFeatureRepository;
+import com.wanmi.sbc.goods.index.repository.IndexModuleRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,13 +26,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 特色栏目
+ * CMS首页改版2.0
  */
 @Service
-public class IndexFeatureService {
+public class IndexCmsService {
 
     @Autowired
     private IndexFeatureRepository indexFeatureRepository;
+    @Autowired
+    private IndexModuleRepository indexModuleRepository;
 
     /**
      * 添加特色栏目
@@ -56,6 +61,26 @@ public class IndexFeatureService {
         indexFeature.setPublishState(PublishState.ENABLE);
         indexFeature.setOrderNum(cmsSpecialTopicAddRequest.getOrderNum());
         indexFeatureRepository.save(indexFeature);
+    }
+
+    /**
+     * 添加主副标题
+     * @param cmsTitleAddRequest
+     */
+    public void addTitle(CmsTitleAddRequest cmsTitleAddRequest){
+        IndexModule indexModule = new IndexModule();
+        LocalDateTime now = LocalDateTime.now();
+        indexModule.setCode(cmsTitleAddRequest.getCode());
+        indexModule.setBookListModelId(cmsTitleAddRequest.getBookListModelId());
+        indexModule.setOrderNum(cmsTitleAddRequest.getOrderNum());
+        indexModule.setTitle(cmsTitleAddRequest.getTitle());
+        indexModule.setSubTitle(cmsTitleAddRequest.getSubTitle());
+        indexModule.setCreateTime(now);
+        indexModule.setUpdateTime(now);
+        indexModule.setVersion(1);
+        indexModule.setPublishState(PublishState.ENABLE);
+        indexModule.setDelFlag(DeleteFlag.NO);
+        indexModuleRepository.save(indexModule);
     }
 
     /**
@@ -92,44 +117,76 @@ public class IndexFeatureService {
         if(cmsSpecialTopicAddRequest.orderNum != null){
             indexFeature.setOrderNum(cmsSpecialTopicAddRequest.orderNum);
         }
+        if(cmsSpecialTopicAddRequest.publishState != null){
+            indexFeature.setPublishState(cmsSpecialTopicAddRequest.publishState);
+//            if(cmsSpecialTopicAddRequest.publishState == 0){
+//                indexFeature.setPublishState(PublishState.NOT_ENABLE);
+//            }else {
+//                indexFeature.setPublishState(PublishState.ENABLE);
+//            }
+        }
         indexFeature.setUpdateTime(LocalDateTime.now());
         indexFeatureRepository.save(indexFeature);
     }
 
+    /**
+     * 查询特色栏目
+     * @param cmsSpecialTopicSearchRequest
+     * @return
+     */
     public Page<IndexFeature> searchSpecialTopicPage(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
-        return indexFeatureRepository.findAll(buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum,
+        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum,
                 cmsSpecialTopicSearchRequest.pageSize, Sort.by(Sort.Direction.ASC, "orderNum")));
     }
 
-    private Specification<IndexFeature> buildSearchCondition(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
-        return (Specification<IndexFeature>) (root, criteriaQuery, criteriaBuilder) -> {
-            final List<Predicate> conditionList = new ArrayList<>();
-            conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
-            if (cmsSpecialTopicSearchRequest.id != null) {
-                conditionList.add(criteriaBuilder.equal(root.get("id"), cmsSpecialTopicSearchRequest.id));
-            }
-            if (StringUtils.isNotEmpty(cmsSpecialTopicSearchRequest.name)) {
-                conditionList.add(criteriaBuilder.like(root.get("name"), cmsSpecialTopicSearchRequest.name + "%"));
-            }
-            if (cmsSpecialTopicSearchRequest.publishState != null) {
-                conditionList.add(criteriaBuilder.equal(root.get("publishState"), cmsSpecialTopicSearchRequest.publishState));
-            }
-            if(cmsSpecialTopicSearchRequest.state != null){
-                LocalDateTime now = LocalDateTime.now();
-                if(cmsSpecialTopicSearchRequest.state == 0){
-                    //未开始
-                    conditionList.add(criteriaBuilder.greaterThan(root.get("beginTime"), now));
-                }else if(cmsSpecialTopicSearchRequest.state == 1){
-                    //进行中
-                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
-                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("beginTime"), now));
-                }else if(cmsSpecialTopicSearchRequest.state == 2){
-                    //已结束
-                    conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
-                }
-            }
-            return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
-        };
+    /**
+     * 删除主副标题
+     * @param id
+     */
+    public void deleteTitle(Integer id){
+        Optional<IndexModule> opt = indexModuleRepository.findById(id);
+        if(opt.isPresent()){
+            IndexModule indexModule = opt.get();
+            indexModule.setDelFlag(DeleteFlag.YES);
+            indexModuleRepository.save(indexModule);
+        }
+    }
+
+    /**
+     * 修改主副标题
+     * @param cmsTitleAddRequest
+     */
+    public void updateTitle(CmsTitleAddRequest cmsTitleAddRequest){
+        Optional<IndexModule> opt = indexModuleRepository.findById(cmsTitleAddRequest.getId());
+        if(!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsTitleAddRequest.getId() + "不存在");
+        }
+        IndexModule indexModule = opt.get();
+        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getCode())){
+            indexModule.setCode(cmsTitleAddRequest.getCode());
+        }
+        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getTitle())){
+            indexModule.setTitle(cmsTitleAddRequest.getTitle());
+        }
+        if(StringUtils.isNotEmpty(cmsTitleAddRequest.getSubTitle())){
+            indexModule.setSubTitle(cmsTitleAddRequest.getSubTitle());
+        }
+        if(cmsTitleAddRequest.getBookListModelId() != null){
+            indexModule.setBookListModelId(cmsTitleAddRequest.getBookListModelId());
+        }
+        if(cmsTitleAddRequest.getPublishState() != null){
+            indexModule.setPublishState(cmsTitleAddRequest.getPublishState());
+        }
+        indexModule.setUpdateTime(LocalDateTime.now());
+        indexModuleRepository.save(indexModule);
+    }
+
+    /**
+     * 查询主副标题
+     * @return
+     */
+    public List<IndexModule> searchTitle(){
+        return indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition());
     }
 
 }

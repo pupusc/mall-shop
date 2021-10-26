@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "t_index_feature")
-public class IndexFeature {
+@Table(name = "t_index_module")
+public class IndexModule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,10 +18,10 @@ public class IndexFeature {
     private Integer id;
 
     /**
-     * 名称
+     * CODE
      */
-    @Column(name = "name")
-    private String name;
+    @Column(name = "code")
+    private String code;
 
     /**
      * 主标题
@@ -36,28 +36,10 @@ public class IndexFeature {
     private String subTitle;
 
     /**
-     * 图片地址
+     * 书单id
      */
-    @Column(name = "img_url")
-    private String imgUrl;
-
-    /**
-     * 图片链接
-     */
-    @Column(name = "img_href")
-    private String imgHref;
-
-    /**
-     * 开始时间
-     */
-    @Column(name = "begin_time")
-    private LocalDateTime beginTime;
-
-    /**
-     * 结束时间
-     */
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
+    @Column(name = "book_list_model_id")
+    private Integer bookListModelId;
 
     /**
      * 启用状态
@@ -95,5 +77,4 @@ public class IndexFeature {
     @Column(name = "del_flag")
     @Enumerated
     private DeleteFlag delFlag;
-
 }

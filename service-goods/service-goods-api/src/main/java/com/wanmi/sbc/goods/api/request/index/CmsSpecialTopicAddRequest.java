@@ -1,11 +1,12 @@
 package com.wanmi.sbc.goods.api.request.index;
 
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
 
 @Data
 public class CmsSpecialTopicAddRequest {
 
-    public Long id;
+    public Integer id;
     /**
      * 名称
      */
@@ -45,5 +46,10 @@ public class CmsSpecialTopicAddRequest {
      * 顺序
      */
     public Integer orderNum;
+
+    /**
+     * 发布状态 0-未启用 1-启用
+     */
+    public PublishState publishState;
 
 }

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class IndexFeatureDto {
 
-    private Long id;
+    private Integer id;
 
     /**
      * 名称
