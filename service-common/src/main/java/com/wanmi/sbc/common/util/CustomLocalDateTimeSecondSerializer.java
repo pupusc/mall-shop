@@ -15,8 +15,7 @@ import java.time.format.DateTimeFormatter;
 public class CustomLocalDateTimeSecondSerializer extends JsonSerializer<LocalDateTime> {
     private static final String DATE_TIME_FORMATTER_MILLI_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
-    private static DateTimeFormatter DATE_TIME_FORMATTER_MILLI = DateTimeFormatter.ofPattern
-            (DATE_TIME_FORMATTER_MILLI_PATTERN);
+    private static DateTimeFormatter DATE_TIME_FORMATTER_MILLI = DateTimeFormatter.ofPattern(DATE_TIME_FORMATTER_MILLI_PATTERN);
 
     @Override
     public void serialize(LocalDateTime value, JsonGenerator jgen, SerializerProvider provider) throws IOException {

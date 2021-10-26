@@ -1,11 +1,6 @@
 package com.wanmi.sbc.goods.api.response.index;
 
-import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.goods.bean.enums.PublishState;
 import lombok.Data;
-
-import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Data
 public class IndexModuleVo {
@@ -35,6 +30,6 @@ public class IndexModuleVo {
     /**
      * 启用状态
      */
-    private PublishState publishState;
+    private Integer publishState;
 
 }

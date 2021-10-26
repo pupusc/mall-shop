@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.index.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -9,19 +10,20 @@ import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.repository.IndexFeatureRepository;
 import com.wanmi.sbc.goods.index.repository.IndexModuleRepository;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * CMS首页改版2.0
@@ -29,18 +31,23 @@ import java.util.Optional;
 @Service
 public class IndexCmsService {
 
+    private static final String CMS_TITLE_CACHE = "cms_title";
+
     @Autowired
     private IndexFeatureRepository indexFeatureRepository;
     @Autowired
     private IndexModuleRepository indexModuleRepository;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 添加特色栏目
+     *
      * @param cmsSpecialTopicAddRequest
      */
-    public void addSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest){
-        if(cmsSpecialTopicAddRequest.getBeginTime() == null || cmsSpecialTopicAddRequest.getEndTime() == null || cmsSpecialTopicAddRequest.getName() == null
-            || cmsSpecialTopicAddRequest.getImgUrl() == null || cmsSpecialTopicAddRequest.getImgHref() == null){
+    public void addSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest) {
+        if (cmsSpecialTopicAddRequest.getBeginTime() == null || cmsSpecialTopicAddRequest.getEndTime() == null || cmsSpecialTopicAddRequest.getName() == null
+                || cmsSpecialTopicAddRequest.getImgUrl() == null || cmsSpecialTopicAddRequest.getImgHref() == null) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "缺少参数");
         }
         IndexFeature indexFeature = new IndexFeature();
@@ -63,9 +70,10 @@ public class IndexCmsService {
 
     /**
      * 添加主副标题
+     *
      * @param cmsTitleAddRequest
      */
-    public void addTitle(CmsTitleAddRequest cmsTitleAddRequest){
+    public void addTitle(CmsTitleAddRequest cmsTitleAddRequest) {
         IndexModule indexModule = new IndexModule();
         LocalDateTime now = LocalDateTime.now();
         indexModule.setCode(cmsTitleAddRequest.getCode());
@@ -79,49 +87,46 @@ public class IndexCmsService {
         indexModule.setPublishState(PublishState.ENABLE);
         indexModule.setDelFlag(DeleteFlag.NO);
         indexModuleRepository.save(indexModule);
+        stringRedisTemplate.delete(CMS_TITLE_CACHE);
     }
 
     /**
      * 修改特色栏目
+     *
      * @param cmsSpecialTopicUpdateRequest
      */
-    public void updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest){
+    public void updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest) {
         Optional<IndexFeature> opt = indexFeatureRepository.findById(cmsSpecialTopicUpdateRequest.id);
-        if(!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())){
+        if (!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsSpecialTopicUpdateRequest.id + "不存在");
         }
         IndexFeature indexFeature = opt.get();
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.name)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.name)) {
             indexFeature.setName(cmsSpecialTopicUpdateRequest.name);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.title)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.title)) {
             indexFeature.setTitle(cmsSpecialTopicUpdateRequest.title);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.subTitle)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.subTitle)) {
             indexFeature.setSubTitle(cmsSpecialTopicUpdateRequest.subTitle);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.beginTime)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.beginTime)) {
             indexFeature.setBeginTime(LocalDateTime.parse(cmsSpecialTopicUpdateRequest.beginTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.endTime)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.endTime)) {
             indexFeature.setEndTime(LocalDateTime.parse(cmsSpecialTopicUpdateRequest.endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgUrl)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgUrl)) {
             indexFeature.setImgUrl(cmsSpecialTopicUpdateRequest.imgUrl);
         }
-        if(StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgHref)){
+        if (StringUtils.isNotEmpty(cmsSpecialTopicUpdateRequest.imgHref)) {
             indexFeature.setImgHref(cmsSpecialTopicUpdateRequest.imgHref);
         }
-        if(cmsSpecialTopicUpdateRequest.orderNum != null){
+        if (cmsSpecialTopicUpdateRequest.orderNum != null) {
             indexFeature.setOrderNum(cmsSpecialTopicUpdateRequest.orderNum);
         }
-        if(cmsSpecialTopicUpdateRequest.publishState != null){
-            indexFeature.setPublishState(cmsSpecialTopicUpdateRequest.publishState);
-//            if(cmsSpecialTopicAddRequest.publishState == 0){
-//                indexFeature.setPublishState(PublishState.NOT_ENABLE);
-//            }else {
-//                indexFeature.setPublishState(PublishState.ENABLE);
-//            }
+        if (cmsSpecialTopicUpdateRequest.publishState != null) {
+            indexFeature.setPublishState(PublishState.fromValue(cmsSpecialTopicUpdateRequest.publishState));
         }
         indexFeature.setUpdateTime(LocalDateTime.now());
         indexFeatureRepository.save(indexFeature);
@@ -129,21 +134,23 @@ public class IndexCmsService {
 
     /**
      * 查询特色栏目
+     *
      * @param cmsSpecialTopicSearchRequest
      * @return
      */
-    public Page<IndexFeature> searchSpecialTopicPage(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+    public Page<IndexFeature> searchSpecialTopicPage(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
         return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum - 1,
                 cmsSpecialTopicSearchRequest.pageSize, Sort.by(Sort.Direction.ASC, "orderNum")));
     }
 
     /**
      * 删除主副标题
+     *
      * @param id
      */
-    public void deleteTitle(Integer id){
+    public void deleteTitle(Integer id) {
         Optional<IndexModule> opt = indexModuleRepository.findById(id);
-        if(opt.isPresent()){
+        if (opt.isPresent()) {
             IndexModule indexModule = opt.get();
             indexModule.setDelFlag(DeleteFlag.YES);
             indexModuleRepository.save(indexModule);
@@ -152,28 +159,29 @@ public class IndexCmsService {
 
     /**
      * 修改主副标题
-     * @param cmsTitleAddRequest
+     *
+     * @param cmsTitleUpdateRequest
      */
-    public void updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest){
+    public void updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest) {
         Optional<IndexModule> opt = indexModuleRepository.findById(cmsTitleUpdateRequest.getId());
-        if(!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())){
+        if (!opt.isPresent() || DeleteFlag.YES.equals(opt.get().getDelFlag())) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, cmsTitleUpdateRequest.getId() + "不存在");
         }
         IndexModule indexModule = opt.get();
-        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getCode())){
+        if (StringUtils.isNotEmpty(cmsTitleUpdateRequest.getCode())) {
             indexModule.setCode(cmsTitleUpdateRequest.getCode());
         }
-        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getTitle())){
+        if (StringUtils.isNotEmpty(cmsTitleUpdateRequest.getTitle())) {
             indexModule.setTitle(cmsTitleUpdateRequest.getTitle());
         }
-        if(StringUtils.isNotEmpty(cmsTitleUpdateRequest.getSubTitle())){
+        if (StringUtils.isNotEmpty(cmsTitleUpdateRequest.getSubTitle())) {
             indexModule.setSubTitle(cmsTitleUpdateRequest.getSubTitle());
         }
-        if(cmsTitleUpdateRequest.getBookListModelId() != null){
+        if (cmsTitleUpdateRequest.getBookListModelId() != null) {
             indexModule.setBookListModelId(cmsTitleUpdateRequest.getBookListModelId());
         }
-        if(cmsTitleUpdateRequest.getPublishState() != null){
-            indexModule.setPublishState(cmsTitleUpdateRequest.getPublishState());
+        if (cmsTitleUpdateRequest.getPublishState() != null) {
+            indexModule.setPublishState(PublishState.fromValue(cmsTitleUpdateRequest.getPublishState()));
         }
         indexModule.setUpdateTime(LocalDateTime.now());
         indexModuleRepository.save(indexModule);
@@ -181,10 +189,20 @@ public class IndexCmsService {
 
     /**
      * 查询主副标题
-     * @return
      */
-    public List<IndexModule> searchTitle(){
-        return indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition());
+    public List<IndexModule> searchTitle(CmsTitleSearchRequest cmsTitleSearchRequest, Boolean useCache) {
+        if(BooleanUtils.isTrue(useCache) && cmsTitleSearchRequest.publishState == 1){
+            String s = stringRedisTemplate.opsForValue().get(CMS_TITLE_CACHE);
+            if(StringUtils.isNotEmpty(s)){
+                return JSONArray.parseArray(s, IndexModule.class);
+            }else {
+                List<IndexModule> list = indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest));
+                if(CollectionUtils.isNotEmpty(list)){
+                    String s1 = JSONArray.toJSONString(list);
+                    stringRedisTemplate.opsForValue().set(CMS_TITLE_CACHE, s1, 30, TimeUnit.MINUTES);
+                }
+            }
+        }
+        return indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest));
     }
-
 }

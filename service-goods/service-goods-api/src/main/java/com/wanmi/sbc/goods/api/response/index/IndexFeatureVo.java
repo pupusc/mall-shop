@@ -1,6 +1,10 @@
 package com.wanmi.sbc.goods.api.response.index;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSecondSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -38,13 +42,15 @@ public class IndexFeatureVo {
     /**
      * 开始时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonSerialize(using = CustomLocalDateTimeSecondSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime beginTime;
 
     /**
      * 结束时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonSerialize(using = CustomLocalDateTimeSecondSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
     /**

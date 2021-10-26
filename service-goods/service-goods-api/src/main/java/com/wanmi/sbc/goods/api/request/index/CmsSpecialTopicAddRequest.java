@@ -46,9 +46,4 @@ public class CmsSpecialTopicAddRequest {
      */
     public Integer orderNum;
 
-    /**
-     * 发布状态 0-未启用 1-启用
-     */
-    public PublishState publishState;
-
 }
