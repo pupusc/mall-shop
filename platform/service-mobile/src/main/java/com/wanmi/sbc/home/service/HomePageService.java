@@ -130,7 +130,7 @@ public class HomePageService {
     public List<HomeSpecialTopicResponse> homeSpecialTopic() {
         List<HomeSpecialTopicResponse> result = new ArrayList<>();
         CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest = new CmsSpecialTopicSearchRequest();
-        cmsSpecialTopicSearchRequest.setPublishState(PublishState.ENABLE);
+        cmsSpecialTopicSearchRequest.setPublishState(PublishState.ENABLE.toValue());
         cmsSpecialTopicSearchRequest.setState(StateEnum.RUNNING.getCode());
         BaseResponse<List<IndexFeatureVo>> listBaseResponse = indexCmsProvider.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest);
         List<IndexFeatureVo> context = listBaseResponse.getContext();

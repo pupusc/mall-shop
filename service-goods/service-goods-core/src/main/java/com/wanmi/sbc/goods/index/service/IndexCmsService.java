@@ -201,7 +201,7 @@ public class IndexCmsService {
      * 查询主副标题
      */
     public List<IndexModule> searchTitle(CmsTitleSearchRequest cmsTitleSearchRequest, Boolean useCache) {
-        if(BooleanUtils.isTrue(useCache) && cmsTitleSearchRequest.publishState == 1){
+        if(BooleanUtils.isTrue(useCache)){
             String s = stringRedisTemplate.opsForValue().get(CMS_TITLE_CACHE);
             if(StringUtils.isNotEmpty(s)){
                 return JSONArray.parseArray(s, IndexModule.class);

@@ -59,14 +59,12 @@ public interface IndexCmsProvider {
     @PostMapping("/goods/${application.goods.version}/title/update")
     BaseResponse updateTitle(@RequestBody CmsTitleUpdateRequest cmsTitleUpdateRequest);
 
-    
     /**
      * 查询主副标题，前端请求
-     * @param publishState 0-未启用 1-启用
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/title/front/search")
-    BaseResponse<List<IndexModuleVo>> searchTitle(@RequestParam Integer publishState);
+    BaseResponse<List<IndexModuleVo>> searchTitle();
 
     /**
      * 查询主副标题，后台请求
