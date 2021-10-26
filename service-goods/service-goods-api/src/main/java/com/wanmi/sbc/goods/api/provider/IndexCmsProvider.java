@@ -65,7 +65,7 @@ public interface IndexCmsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/title/front/search")
-    BaseResponse<List<IndexModuleVo>> searchTitle(@RequestParam Integer publishState);
+    BaseResponse<List<IndexModuleVo>> searchTitle();
 
     /**
      * 查询主副标题，后台请求

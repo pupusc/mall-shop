@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
+import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.service.IndexCmsService;
@@ -151,9 +152,9 @@ public class IndexCmsController implements IndexCmsProvider {
      * @return
      */
     @Override
-    public BaseResponse<List<IndexModuleVo>> searchTitle(@RequestParam Integer publishState) {
+    public BaseResponse<List<IndexModuleVo>> searchTitle() {
         CmsTitleSearchRequest cmsTitleSearchRequest = new CmsTitleSearchRequest();
-        cmsTitleSearchRequest.setPublishState(publishState);
+        cmsTitleSearchRequest.setPublishState(PublishState.ENABLE.toValue());
         List<IndexModule> indexModules = indexCmsService.searchTitle(cmsTitleSearchRequest, true);
         List<IndexModuleVo> dtos = indexModules.stream().map(indexModule -> {
             IndexModuleVo indexModuleVo = new IndexModuleVo();
