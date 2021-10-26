@@ -29,6 +29,25 @@ public class IndexCmsController implements IndexCmsProvider {
     @Autowired
     private IndexCmsService indexCmsService;
 
+    private List<IndexFeatureVo> changeIndexFeature2Vo(List<IndexFeature> content) {
+        LocalDateTime now = LocalDateTime.now();
+         return content.stream().map(indexFeature -> {
+            IndexFeatureVo indexFeatureVo = new IndexFeatureVo();
+            BeanUtils.copyProperties(indexFeature, indexFeatureVo);
+            if(now.isBefore(indexFeature.getBeginTime())){
+                //未开始
+                indexFeatureVo.setState(0);
+            }else if(now.isAfter(indexFeature.getEndTime())){
+                //已结束
+                indexFeatureVo.setState(2);
+            }else{
+                //进行中
+                indexFeatureVo.setState(1);
+            }
+            return indexFeatureVo;
+        }).collect(Collectors.toList());
+    }
+
     /**
      * 添加特色栏目
      * @param cmsSpecialTopicAddRequest
@@ -79,9 +98,20 @@ public class IndexCmsController implements IndexCmsProvider {
         }).collect(Collectors.toList());
         MicroServicePage<IndexFeatureVo> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(page.getTotalElements());
-        microServicePage.setContent(dtos);
+        microServicePage.setContent(this.changeIndexFeature2Vo(content));
         return BaseResponse.success(microServicePage);
     }
+
+
+    /**
+     * 查询特色列表
+     * @param cmsSpecialTopicSearchRequest
+     * @return
+     */
+    public BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+        return BaseResponse.success(this.changeIndexFeature2Vo(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest)));
+    }
+
 
     /**
      * 添加主副标题

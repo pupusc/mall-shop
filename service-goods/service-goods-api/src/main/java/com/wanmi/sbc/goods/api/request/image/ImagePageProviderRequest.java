@@ -3,6 +3,9 @@ package com.wanmi.sbc.goods.api.request.image;
 import lombok.Data;
 
 import javax.persistence.Column;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -13,13 +16,15 @@ import javax.persistence.Column;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class ImagePageProviderRequest {
+public class ImagePageProviderRequest implements Serializable {
 
     private int pageNum = 0;
 
     private int pageSize = 10;
 
     private Integer id;
+
+    private Collection<Integer> idColl;
 
     private String name;
 
@@ -34,7 +39,7 @@ public class ImagePageProviderRequest {
     private Integer publishState;
 
     /**
-     * 图片类型 1首页轮播
+     * 图片类型 1首页轮播 2 广告图  3卖点图
      */
-    private Integer imageType;
+    private List<Integer> imageTypeList;
 }

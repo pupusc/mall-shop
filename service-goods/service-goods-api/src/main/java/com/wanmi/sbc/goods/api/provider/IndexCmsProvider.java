@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -35,6 +36,10 @@ public interface IndexCmsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/special-topic/search")
     BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
+
+
+    @PostMapping("/goods/${application.goods.version}/special-topic/list-no-page")
+    BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
 
     /**
      * 添加主副标题

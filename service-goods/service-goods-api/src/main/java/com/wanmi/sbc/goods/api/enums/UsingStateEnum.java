@@ -9,21 +9,21 @@ import java.util.Objects;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/10/20 1:41 上午
+ * Date       : 2021/9/1 7:22 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Getter
 @AllArgsConstructor
-public enum ImageTypeEnum {
+@Getter
+public enum UsingStateEnum {
 
-    ROTATION_CHART_IMG(1, "轮播图"),
-    ADVERT_IMG(2, "首页广告图");
+    UN_USING(0, "未启用"),
+    USING(1, "启用");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 
-    public static ImageTypeEnum getByCode(int code) {
-        for (ImageTypeEnum p : values()) {
+    public static UsingStateEnum getByCode(int code) {
+        for (UsingStateEnum p : values()) {
             if (Objects.equals(p.getCode(), code)) {
                 return p;
             }

@@ -3,6 +3,7 @@ package com.wanmi.sbc.elastic.goods.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
@@ -13,6 +14,7 @@ import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -148,6 +150,16 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(rangeQuery("stock").gt(0));
             boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
+
+        // 大于或等于 搜索条件:创建时间开始
+        if (request.getCreateTimeBegin() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").gte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));
+        }
+        // 小于或等于 搜索条件:创建时间截止
+        if (request.getCreateTimeEnd() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").lte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));
+        }
+
         return boolQueryBuilder;
     }
 

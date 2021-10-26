@@ -144,6 +144,16 @@ public class IndexCmsService {
     }
 
     /**
+     * 查询所有特色栏目
+     * @param cmsSpecialTopicSearchRequest
+     * @return
+     */
+    public List<IndexFeature> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
+        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), sort);
+    }
+
+    /**
      * 删除主副标题
      *
      * @param id
