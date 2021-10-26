@@ -253,9 +253,20 @@ public class HomePageService {
         //非畅销
         HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
         if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
-//            HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize);
-//            specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
-//            homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
+            BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
+                    bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, 20);
+            List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
+            List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
+            for (GoodsCustomResponse goodsCustomParam : content) {
+                BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
+                param.setGoodsCustomVo(goodsCustomParam);
+                bookListModelAndGoodsCustomResponseList.add(param);
+            }
+
+            HomeGoodsListSubResponse unSellWellBooksResponse = new HomeGoodsListSubResponse();
+            unSellWellBooksResponse.setHomeTopicResponse(unSellWellBooks);
+            unSellWellBooksResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomResponseList);
+            homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
         }
 
         return homeGoodsListResponse;
@@ -376,6 +387,7 @@ public class HomePageService {
         homeGoodsListSubResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomList);
         return homeGoodsListSubResponse;
     }
+
 
 
     /**
