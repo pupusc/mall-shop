@@ -1,29 +1,22 @@
 package com.wanmi.sbc.classify;
 
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
-import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
-import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.classify.request.ClassifyGoodsAndBookListModelRequest;
 import com.wanmi.sbc.classify.response.ClassifyGoodsAndBookListModelResponse;
 import com.wanmi.sbc.classify.response.ClassifyNoChildResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
-import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
-import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.util.RandomUtil;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,16 +77,7 @@ public class ClassifyController {
     @PostMapping("/listClassifyGoodsAndBookListModel")
     public BaseResponse<ClassifyGoodsAndBookListModelResponse> listClassifyGoodsAndBookListModel(@RequestBody @Validated ClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest){
         //根据销量获取商品列表
-
         ClassifyGoodsAndBookListModelResponse resultClassifyGoodsAndBookListModel = new ClassifyGoodsAndBookListModelResponse();
-        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-        esGoodsCustomRequest.setPageNum(0);
-        esGoodsCustomRequest.setPageSize(300);
-        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        List<GoodsCustomResponse> result = new ArrayList<>(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, classifyGoodsAndBookListModelRequest.getPageSize()));
-        resultClassifyGoodsAndBookListModel.setGoodsCustomResponseList(result);
 
         //获取当前分类
         ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
@@ -102,8 +86,20 @@ public class ClassifyController {
         if (CollectionUtils.isEmpty(listBaseResponse.getContext())) {
             return BaseResponse.success(resultClassifyGoodsAndBookListModel);
         }
-
         Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
+
+        //根据分类id 获取销量前300的商品列表
+
+
+//
+//        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+//        esGoodsCustomRequest.setPageNum(0);
+//        esGoodsCustomRequest.setPageSize(300);
+//        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+//        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+//        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+//        List<GoodsCustomResponse> result = new ArrayList<>(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, classifyGoodsAndBookListModelRequest.getPageSize()));
+
         //获取书单列表
         BookListModelClassifyLinkPageProviderRequest bookListModelClassifyLinkPageProviderRequest = new BookListModelClassifyLinkPageProviderRequest();
         bookListModelClassifyLinkPageProviderRequest.setClassifyIdColl(childClassifySet);
@@ -118,20 +114,18 @@ public class ClassifyController {
 
         for (Integer index : randomIndexColl) {
             BookListModelClassifyLinkProviderResponse bookListModelClassifyLinkProviderResponse = context.get(index);
-            BookListModelMobileResponse bookListModelMobileResponse = new BookListModelMobileResponse();
-            bookListModelMobileResponse.setId(bookListModelClassifyLinkProviderResponse.getBookListModelId());
-            bookListModelMobileResponse.setName(bookListModelClassifyLinkProviderResponse.getName());
-            bookListModelMobileResponse.setFamousName(bookListModelClassifyLinkProviderResponse.getFamousName());
-            bookListModelMobileResponse.setDesc(bookListModelClassifyLinkProviderResponse.getDesc());
-            bookListModelMobileResponse.setBusinessType(bookListModelClassifyLinkProviderResponse.getBusinessType());
-            bookListModelMobileResponse.setHeadImgUrl(bookListModelClassifyLinkProviderResponse.getHeadImgUrl());
-            bookListModelMobileResponse.setHeadSquareImgUrl(bookListModelClassifyLinkProviderResponse.getHeadSquareImgUrl());
-            bookListModelMobileResponse.setHeadImgHref(bookListModelClassifyLinkProviderResponse.getHeadImgHref());
-            bookListModelMobileResponse.setPageHref(bookListModelClassifyLinkProviderResponse.getPageHref());
-            bookListModelMobileResponse.setPublishState(bookListModelClassifyLinkProviderResponse.getPublishState());
-            bookListModelMobileResponse.setCreateTime(bookListModelClassifyLinkProviderResponse.getCreateTime());
-            bookListModelMobileResponse.setUpdateTime(bookListModelClassifyLinkProviderResponse.getUpdateTime());
-            resultClassifyGoodsAndBookListModel.setBookListModelMobile(bookListModelMobileResponse);
+            BookListModelSimpleResponse bookListModelSimpleResponse = new BookListModelSimpleResponse();
+            bookListModelSimpleResponse.setId(bookListModelClassifyLinkProviderResponse.getBookListModelId());
+            bookListModelSimpleResponse.setName(bookListModelClassifyLinkProviderResponse.getName());
+//            bookListModelSimpleResponse.setFamousName(bookListModelClassifyLinkProviderResponse.getFamousName());
+            bookListModelSimpleResponse.setDesc(bookListModelClassifyLinkProviderResponse.getDesc());
+            bookListModelSimpleResponse.setBusinessType(bookListModelClassifyLinkProviderResponse.getBusinessType());
+//            bookListModelSimpleResponse.setHeadImgHref(bookListModelClassifyLinkProviderResponse.getHeadImgHref());
+//            bookListModelSimpleResponse.setPageHref(bookListModelClassifyLinkProviderResponse.getPageHref());
+//            bookListModelSimpleResponse.setPublishState(bookListModelClassifyLinkProviderResponse.getPublishState());
+//            bookListModelSimpleResponse.setCreateTime(bookListModelClassifyLinkProviderResponse.getCreateTime());
+//            bookListModelSimpleResponse.setUpdateTime(bookListModelClassifyLinkProviderResponse.getUpdateTime());
+//            resultClassifyGoodsAndBookListModel.setBookListModelMobile(bookListModelMobileResponse);
         }
         return BaseResponse.success(resultClassifyGoodsAndBookListModel);
     }

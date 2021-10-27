@@ -6,6 +6,7 @@ import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -50,8 +51,8 @@ public interface IndexCmsProvider {
     /**
      * 删除主副标题
      */
-    @PostMapping("/goods/${application.goods.version}/title/delete")
-    BaseResponse deleteTitle(@RequestParam Integer id);
+    @PostMapping("/goods/${application.goods.version}/title/delete/{id}")
+    BaseResponse deleteTitle(@PathVariable("id") Integer id);
 
     /**
      * 添加主副标题
