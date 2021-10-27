@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -74,10 +75,30 @@ public class BookListModelRequest {
      */
     private String pageHref;
 
-//    /**
-//     * 是否置顶 0否 1是 ✅Add feature_d_v0.02
-//     */
-//    private Integer hasTop;
+    /**
+     * 是否置顶 0否 1 是 ✅Add feature_d_v0.02
+     */
+    private Integer hasTop;
+
+    /**
+     * 标签类型 标签类型 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagType;
+
+    /**
+     * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagName;
+
+    /**
+     * 标签有效开始时间 ✅Add feature_d_v0.02
+     */
+    private LocalDateTime tagValidBeginTime;
+
+    /**
+     * 标签有效结束时间 ✅Add feature_d_v0.02
+     */
+    private LocalDateTime tagValidEndTime;
 
 
     public interface Add{}

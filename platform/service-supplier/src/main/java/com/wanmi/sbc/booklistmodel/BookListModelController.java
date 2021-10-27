@@ -266,7 +266,7 @@ public class BookListModelController {
 
     /**
      * 置顶 0取消 1置顶 feature_d_v0.02
-     * @menu 商城书单和类目
+     * @menu 后台CMS2.0
      * @status undone
      * @return
      */

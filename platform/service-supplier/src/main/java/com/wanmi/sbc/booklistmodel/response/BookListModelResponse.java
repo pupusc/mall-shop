@@ -2,6 +2,7 @@ package com.wanmi.sbc.booklistmodel.response;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -63,6 +64,26 @@ public class BookListModelResponse {
      * 是否置顶 0否 1 是 feature_d_v0.02
      */
     private Integer hasTop;
+
+    /**
+     * 标签类型 标签类型 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagType;
+
+    /**
+     * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagName;
+
+    /**
+     * 标签有效开始时间 ✅Add feature_d_v0.02
+     */
+    private LocalDateTime tagValidBeginTime;
+
+    /**
+     * 标签有效结束时间 ✅Add feature_d_v0.02
+     */
+    private LocalDateTime tagValidEndTime;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布

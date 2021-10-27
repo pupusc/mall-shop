@@ -178,7 +178,7 @@ public class BookListModelService {
             existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadImgUrl());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadSquareImgUrl())) {
-            existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadSquareImgUrl());
+            existBookListModelDtoUpdate.setHeadSquareImgUrl(bookListModelRequest.getHeadSquareImgUrl());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgHref())) {
             existBookListModelDtoUpdate.setHeadImgHref(bookListModelRequest.getHeadImgHref());
@@ -186,9 +186,22 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getPageHref())) {
             existBookListModelDtoUpdate.setPageHref(bookListModelRequest.getPageHref());
         }
-//        if (bookListModelRequest.getHasTop() != null) {
-//            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
-//        }
+        if (bookListModelRequest.getHasTop() != null) {
+            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
+        }
+        if (bookListModelRequest.getTagType() != null) {
+            existBookListModelDtoUpdate.setTagType(bookListModelRequest.getTagType());
+        }
+        if (!StringUtils.isEmpty(bookListModelRequest.getTagName())) {
+            existBookListModelDtoUpdate.setTagName(bookListModelRequest.getTagName());
+        }
+        if (bookListModelRequest.getTagValidBeginTime() != null) {
+            existBookListModelDtoUpdate.setTagValidBeginTime(bookListModelRequest.getTagValidBeginTime());
+        }
+        if (bookListModelRequest.getTagValidEndTime() != null) {
+            existBookListModelDtoUpdate.setTagValidEndTime(bookListModelRequest.getTagValidEndTime());
+        }
+
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));

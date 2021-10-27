@@ -34,7 +34,7 @@ public interface ClassifyProvider {
      * 获取店铺下的所有分类列表
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/listClassifyNoChildByParentId")
+    @PostMapping("/goods/${application.goods.version}/classify/listClassifyNoChildByParentId")
     BaseResponse<List<ClassifyProviderResponse>> listClassifyNoChildByParentId(@RequestBody ClassifyCollectionProviderRequest classifyCollectionProviderRequest);
 
     /**
