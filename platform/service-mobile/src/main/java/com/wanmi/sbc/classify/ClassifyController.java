@@ -55,15 +55,16 @@ public class ClassifyController {
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
     /**
-     * 获取分类信息
-     * @param parentId
+     * 分类  获取分类信息
+     * @menu 新版首页
+     *
      * @return
      */
-    @GetMapping("/listClassify/{parentClassifyId}")
-    public BaseResponse<List<ClassifyNoChildResponse>> listClassify(@PathVariable("parentId") Integer parentClassifyId) {
+    @GetMapping("/listClassify/root")
+    public BaseResponse<List<ClassifyNoChildResponse>> listClassify() {
         List<ClassifyNoChildResponse> result = new ArrayList<>();
         ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
-        classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(parentClassifyId));
+        classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(0));
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
         for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
             ClassifyNoChildResponse classifyNoChildResponse = new ClassifyNoChildResponse();
@@ -75,7 +76,8 @@ public class ClassifyController {
     }
 
     /**
-     * 获取分类下的 商品列表和 书单
+     * 分类 获取分类下的 商品列表和 书单
+     * @menu 新版首页
      * @param classifyGoodsAndBookListModelRequest
      * @return
      */
