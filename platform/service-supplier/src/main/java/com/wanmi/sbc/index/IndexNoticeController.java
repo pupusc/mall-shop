@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  ********************************************************************/
 @RequestMapping("/notice")
 @RestController
-public class NoticeController {
+public class IndexNoticeController {
 
     @Autowired
     private NoticeProvider noticeProvider;
