@@ -126,7 +126,7 @@ public class HomePageService {
         for (ImageProviderResponse imageProviderParam : context) {
             ImageResponse imageResponse = new ImageResponse();
             BeanUtils.copyProperties(imageProviderParam, imageResponse);
-            if (Objects.equals(imageResponse.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
+            if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
                 rotationChartImgList.add(imageResponse);
             } else {
                 rotationChartImgList.add(imageResponse);

@@ -80,7 +80,7 @@ public class ClassifyController implements ClassifyProvider {
     }
 
     /**
-     * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品列表
+     * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品id列表
      * @param goodsId
      * @return
      */
@@ -151,6 +151,17 @@ public class ClassifyController implements ClassifyProvider {
         return BaseResponse.success(result);
     }
 
+
+    public void test(ClassifyCollectionProviderRequest request) {
+        List<ClassifyDTO> classifyAllChildOfParentList = classifyService.listChildClassifyNoPageByParentId(request.getParentIdColl());
+        //根据子分类id 获取商品列表
+        if (CollectionUtils.isEmpty(classifyAllChildOfParentList)) {
+//            return BaseResponse.SUCCESSFUL();
+        }
+
+        //根据子分类 获取分类下的所有商品信息
+
+    }
 
 //    @Override
 //    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){

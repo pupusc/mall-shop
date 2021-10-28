@@ -1,6 +1,5 @@
 package com.wanmi.sbc.home.response;
 
-import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import lombok.Data;
 
 import java.util.List;

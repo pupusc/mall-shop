@@ -56,8 +56,8 @@ public class ImageResponse {
      */
     private Integer status;
 
-    /**
-     * 图片类型 1首页轮播 2 广告图片 3 卖点图
-     */
-    private Integer imageType;
+//    /**
+//     * 图片类型 1首页轮播 2 广告图片 3 卖点图
+//     */
+//    private Integer imageType;
 }
