@@ -61,6 +61,11 @@ public class IndexConfigResponse implements Serializable {
     private IndexConfigChild4Response moreJumpUrl;
 
     /**
+     * 新品推荐
+     */
+    private List<IndexConfigChild1Response> xptjConfig;
+
+    /**
      * 搜索文案
      */
     private String searchText;

@@ -360,6 +360,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -403,6 +405,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RefreshScope
 public class TradeService {
 
     /**
@@ -614,6 +617,9 @@ public class TradeService {
     private CustomerProvider customerProvider;
     @Autowired
     private SensorsDataService sensorsDataService;
+
+    @Value("${whiteOrder}")
+    private String whiteOrder;
 
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
@@ -6930,13 +6936,20 @@ public class TradeService {
         boolean signVerified = false;
         Map<String, String> params =
                 JSONObject.parseObject(tradePayOnlineCallBackRequest.getAliPayCallBackResultStr(), Map.class);
+        //商户订单号
+        String out_trade_no = params.get("out_trade_no");
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            if (Objects.equals(whiteOrder, out_trade_no)) {
+                log.info("订单：{} 不走签名验证", out_trade_no);
+                signVerified = true;
+            } else {
+                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            }
+            log.info("验证签名返回的结果为：{}" , signVerified);
         } catch (AlipayApiException e) {
             log.error("支付宝回调签名校验异常：", e);
         }
-        //商户订单号
-        String out_trade_no = params.get("out_trade_no");
+
         if (signVerified) {
             try {
                 //支付宝交易号

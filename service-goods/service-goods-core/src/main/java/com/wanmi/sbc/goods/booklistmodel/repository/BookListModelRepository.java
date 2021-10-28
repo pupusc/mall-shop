@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -23,4 +25,6 @@ public interface BookListModelRepository extends JpaRepository<BookListModelDTO,
     Integer deleteBookListModelByCustomer(Integer id, Integer version);
 
 
+    @Query("from BookListModelDTO blm where blm.businessType = 2 and blm.publishState = 2 and blm.delFlag = 0  order by RAND()")
+    List<BookListModelDTO> findPublishBook();
 }

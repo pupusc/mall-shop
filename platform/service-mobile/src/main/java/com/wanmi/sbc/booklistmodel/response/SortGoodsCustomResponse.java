@@ -26,6 +26,11 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse implements Seri
     private Integer type;
 
     /**
+     * 热榜类型
+     */
+    private Integer hotType;
+
+    /**
      * 丝带第一行文字
      */
     private String atmosphereFirstTitle;
@@ -37,5 +42,10 @@ public class SortGoodsCustomResponse extends GoodsCustomResponse implements Seri
      * 价格
      */
     private String atmospherePrice;
+
+    /**
+     * 显示在书单中
+     */
+    private String bookModelName;
 
 }
