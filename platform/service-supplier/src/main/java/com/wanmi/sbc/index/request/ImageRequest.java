@@ -58,11 +58,6 @@ public class ImageRequest {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
-    /**
-     * 启用状态 0 未启用 1启用
-     */
-    @NotNull(groups = ImageRequest.Add.class, message = "启用状态不能为空")
-    public Integer publishState;
 
     public interface Add{}
     public interface Update{}

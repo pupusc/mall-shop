@@ -67,7 +67,7 @@ public class ImageService {
         imageDTO.setBeginTime(imageProviderRequest.getBeginTime());
         imageDTO.setEndTime(imageProviderRequest.getEndTime());
         imageDTO.setPublishState(0); //未启用
-        imageDTO.setOrderNum(orderNum);
+        imageDTO.setOrderNum(orderNum + 1);
         imageDTO.setImageType(imageProviderRequest.getImageType());
         imageDTO.setCreateTime(LocalDateTime.now());
         imageDTO.setUpdateTime(LocalDateTime.now());

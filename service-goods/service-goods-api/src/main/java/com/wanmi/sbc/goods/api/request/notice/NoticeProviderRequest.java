@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Data
 public class NoticeProviderRequest implements Serializable {
 
-    @NotBlank(groups = {Update.class}, message = "内容不能为空")
+    @NotNull(groups = {Update.class}, message = "内容不能为空")
     private Integer id;
 
     /**
