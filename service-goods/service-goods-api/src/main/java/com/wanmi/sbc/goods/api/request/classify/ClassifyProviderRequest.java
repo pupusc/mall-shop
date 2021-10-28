@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.api.request.classify;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -14,11 +16,23 @@ import java.io.Serializable;
 @Data
 public class ClassifyProviderRequest implements Serializable {
 
+    @NotNull(groups = {Update.class, Delete.class}, message = "id不能为空")
     private Integer id;
 
+    /**
+     * 父亲节点
+     */
+    @NotNull(groups = {Add.class}, message = "父节点不能为空")
     private Integer parentId;
 
+    /**
+     * 分类名称
+     */
+    @NotBlank(groups = {Add.class, Update.class}, message = "父节点不能为空")
     private String classifyName;
 
-    private Integer orderNum;
+
+    public interface Add{}
+    public interface Update{}
+    public interface Delete{}
 }

@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
+import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
@@ -49,6 +50,39 @@ public class ClassifyController implements ClassifyProvider {
 
     @Autowired
     private BookListModelClassifyRelService bookListModelClassifyRelService;
+
+    /**
+     * 新增店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse add(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.add(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 修改店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse update(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.update(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 删除店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse delete(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.delete(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
 
     /**
      * 获取类目列表

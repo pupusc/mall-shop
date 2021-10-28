@@ -7,7 +7,6 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
-import com.wanmi.sbc.goods.info.service.GoodsService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +43,6 @@ public class ClassifyService {
 
     @Resource
     private ClassifyGoodsRelService classifyGoodsRelService;
-
     /**
      * 获取类目列表
      * @param classifyIdList
@@ -127,7 +126,8 @@ public class ClassifyService {
             classifyDTO.setLevel(2);
         }
         classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
-        classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
+//        classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
+        classifyDTO.setOrderNum(0);
         classifyDTO.setCreateTime(new Date());
         classifyDTO.setUpdateTime(new Date());
         classifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
@@ -147,9 +147,9 @@ public class ClassifyService {
         if (!StringUtils.isEmpty(classifyProviderRequest.getClassifyName())) {
             classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
         }
-        if (classifyProviderRequest.getOrderNum() != null) {
-            classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
-        }
+//        if (classifyProviderRequest.getOrderNum() != null) {
+//            classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
+//        }
         if (classifyProviderRequest.getParentId() != null) {
             classifyDTO.setParentId(classifyProviderRequest.getParentId());
         }
@@ -161,20 +161,23 @@ public class ClassifyService {
      * @param classifyProviderRequest
      */
     public void delete(ClassifyProviderRequest classifyProviderRequest) {
-        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Arrays.asList(classifyProviderRequest.getId()), null));
+        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Collections.singletonList(classifyProviderRequest.getId()), null));
         if (CollectionUtils.isEmpty(classifyDTOList)) {
             throw new SbcRuntimeException("K-000009");
         }
         ClassifyDTO classifyDTO = classifyDTOList.get(0);
         if (Objects.equals(classifyDTO.getParentId(), 0)) {
             //查看店铺分类下是否存在子分类
-            List<ClassifyDTO> classifyDTOChildList = classifyRepository.findAll(this.packageWhere(null, Arrays.asList(classifyDTO.getId())));
+            List<ClassifyDTO> classifyDTOChildList = classifyRepository.findAll(this.packageWhere(null, Collections.singletonList(classifyDTO.getId())));
             if (!CollectionUtils.isEmpty(classifyDTOChildList)) {
                 throw new SbcRuntimeException("K-000009");
             }
         } else {
             //查看店铺分类下的商品列表
-            List<ClassifyGoodsRelDTO> classifyGoodsRelDTOList = null;//classifyGoodsRelService.listClassifyRelByClassifyId(Arrays.asList(classifyDTO.getId()));
+            List<ClassifyGoodsRelDTO> classifyGoodsRelDTOList = classifyGoodsRelService.listClassifyRelByClassifyId(Collections.singletonList(classifyDTO.getId()));
+            if (!CollectionUtils.isEmpty(classifyGoodsRelDTOList)) {
+                throw new SbcRuntimeException("K-000009");
+            }
         }
 
         //删除分类
