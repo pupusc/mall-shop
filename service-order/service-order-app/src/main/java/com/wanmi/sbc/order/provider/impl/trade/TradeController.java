@@ -142,9 +142,12 @@ public class TradeController implements TradeProvider {
         List<TradeCommitResult> results = tradeOptimizeService.commit(tradeCommitRequest);
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
-    @GetMapping("/test")
-    public BaseResponse<String> test() {
+
+
+
+    public BaseResponse<String> addProviderTrade(String oid, String userId) {
         // tradeService.virtualCouponHandle();
+        tradeService.addProviderTrade(oid, userId);
         return BaseResponse.success("s");
     }
 

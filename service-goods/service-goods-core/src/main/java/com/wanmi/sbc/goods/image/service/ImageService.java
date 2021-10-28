@@ -156,7 +156,7 @@ public class ImageService {
 
 
     private Sort packageSort() {
-        return Sort.by(Sort.Direction.ASC, "sortNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
+        return Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
     }
 
     /**
