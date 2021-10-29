@@ -134,7 +134,7 @@ public class ClassifyController {
         bookListModelClassifyLinkPageProviderRequest.setClassifyIdColl(childClassifySet);
         bookListModelClassifyLinkPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
         bookListModelClassifyLinkPageProviderRequest.setPageNum(0);
-        bookListModelClassifyLinkPageProviderRequest.setPageSize(60);  //当前是一共300个商品，5个商品随机一个 书单，则300 / 5 为60个书单随机
+        bookListModelClassifyLinkPageProviderRequest.setPageSize(60);  //当前是一共300个商品，5个商品随机一个 书单，则300 / 5 为最大60个书单随机
         BaseResponse<List<BookListModelClassifyLinkProviderResponse>> bookListModelClassifyLinkProviderResponses = classifyProvider.listBookListModelByClassifyIdColl(bookListModelClassifyLinkPageProviderRequest);
         List<BookListModelClassifyLinkProviderResponse> context = bookListModelClassifyLinkProviderResponses.getContext();
 
@@ -160,10 +160,11 @@ public class ClassifyController {
                 Integer bookListModelRandomIndex = RandomUtil.getRandom(context.size());
                 if (bookListModelRandomIndex != null) {
                     ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
+
+                    BookListModelClassifyLinkProviderResponse bookListModelGoodsIdParam = context.get(bookListModelRandomIndex);
                     BookListModelSimpleResponse bookListModelSimpleResponse = new BookListModelSimpleResponse();
-                    BookListModelGoodsIdProviderResponse bookListModelGoodsIdParam = context.get(bookListModelRandomIndex)
                     BeanUtils.copyProperties(bookListModelGoodsIdParam, bookListModelSimpleResponse);
-                    classifyBookListModel.setBookListModel(bookListModelGoodsIdParam);
+                    classifyBookListModel.setBookListModel(bookListModelSimpleResponse);
                     classifyBookListModel.setType(2); //书单
                     result.add(classifyBookListModel);
                 }
