@@ -20,6 +20,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
 import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.util.OperateLogMQUtil;
 import com.xxl.job.core.biz.model.ReturnT;
@@ -93,19 +94,23 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         log.info("=====发布商品start======");
         //查询审核通过待发布的商品信息
         BaseResponse<List<GoodsSyncVO>> response = goodsQueryProvider.listGoodsSync();
-        if(response == null || CollectionUtils.isEmpty(response.getContext())){
+        if (response == null || CollectionUtils.isEmpty(response.getContext())) {
             log.info("没有审核通过待发布的商品");
             return SUCCESS;
         }
-        response.getContext().forEach(g->{
-            addGoods(g);
+        BaseResponse<List<GoodsCateSyncVO>> labels = goodsQueryProvider.listGoodsCateSync();
+        response.getContext().forEach(g -> {
+            addGoods(g,labels);
         });
         return SUCCESS;
     }
 
-    private void addGoods(GoodsSyncVO goodsSync){
+    private void addGoods(GoodsSyncVO goodsSync,BaseResponse<List<GoodsCateSyncVO>> labels) {
         try {
             GoodsAddRequest request = convertBean(goodsSync);
+            if(labels != null && CollectionUtils.isNotEmpty(labels.getContext()) && goodsSync.getCategory() != null && labels.getContext().stream().anyMatch(p-> Long.valueOf(p.getId().longValue()).equals(goodsSync.getCategory()))){
+                request.setTags(labels.getContext().stream().filter(p->Long.valueOf(p.getId().longValue()).equals(goodsSync.getCategory())).findFirst().get().getLabelIds());
+            }
             request.setUpdatePerson("goodsSpuSyncJob");
             //默认模版
             Long fId = request.getGoods().getFreightTempId();
@@ -146,8 +151,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             operateLogMQUtil.convertAndSend("商品", "直接发布",
                     "直接发布：SPU编码" + request.getGoods().getGoodsNo());
             return;
-        }catch (Exception e){
-            log.warn("同步商品失败",e);
+        } catch (Exception e) {
+            log.warn("同步商品失败", e);
         }
     }
 
@@ -173,7 +178,7 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setFreightTempId(defaultFreightTempId);
         goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
         goodsDTO.setGoodsSource(0);
-        request.setGoods(goodsDTO);
+
 
         GoodsInfoDTO goodsInfoDTO = new GoodsInfoDTO();
         goodsInfoDTO.setErpGoodsInfoNo(goods.getGoodsNo());
@@ -185,20 +190,27 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsInfoDTO.setIsbnNo(goods.getIsbn());
         goodsInfoDTO.setRetailPrice(goods.getSalePrice());
         goodsInfoDTO.setCostPrice(goods.getBasePrice());
-        //1. 定价规则：市场价=合作伙伴成本价 * 10% > 建议销售价【数字不填写，人工处理】
-        //合作伙伴成本价 * 10% <= 建议销售价 <= 合作伙伴成本价 * 20%【使用，建议销售价】
-        //合作伙伴成本价 * 20% <= 建议销售价【使用，合作伙伴成本价 * 20%】
+        //1. 定价规则：市场价=合作伙伴成本价/0.9 > 建议销售价【数字不填写，人工处理】
+        //合作伙伴成本价/0.9<= 建议销售价 <= 合作伙伴成本价/0.8【使用，建议销售价】
+        //合作伙伴成本价/0.8<= 建议销售价【使用，合作伙伴成本价/0.8】
         goodsInfoDTO.setMarketPrice(goods.getSalePrice());
-        if(goods.getBasePrice() != null && goods.getSalePrice() !=null){
-            if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.1))) >=0 && goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) < 0){
+        if (goods.getBasePrice() != null && goods.getSalePrice() != null) {
+            BigDecimal math1 = new BigDecimal(String.valueOf(goods.getBasePrice())).divide(new BigDecimal("0.9"),2,BigDecimal.ROUND_UP);
+            BigDecimal math2 = new BigDecimal(String.valueOf(goods.getBasePrice())).divide(new BigDecimal("0.8"),2,BigDecimal.ROUND_UP);
+            if (goods.getSalePrice().compareTo(math1) >= 0 && goods.getSalePrice().compareTo(math2) <= 0) {
                 goodsInfoDTO.setMarketPrice(goods.getSalePrice());
-            }else if(goods.getSalePrice().compareTo(goods.getBasePrice().multiply(new BigDecimal(1.2))) >=0){
-                goodsInfoDTO.setMarketPrice(goods.getBasePrice().multiply(new BigDecimal(1.2)));
-            }else{
+            } else if (goods.getSalePrice().compareTo(math2) > 0) {
+                goodsInfoDTO.setMarketPrice(math2);
+            } else {
                 goodsInfoDTO.setMarketPrice(null);
                 goodsDTO.setAddedFlag(0);
             }
         }
+        goodsDTO.setMarketPrice(goodsInfoDTO.getMarketPrice());
+        goodsDTO.setCostPrice(goodsInfoDTO.getCostPrice());
+        goodsDTO.setRecommendedRetailPrice(goodsInfoDTO.getRetailPrice());
+        //所有商品都下架处理
+        goodsDTO.setAddedFlag(0);
         List<GoodsInfoDTO> infos = new ArrayList<>(1);
         infos.add(goodsInfoDTO);
         request.setGoodsInfos(infos);
@@ -213,24 +225,43 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
 
         List<GoodsImageDTO> images = new ArrayList<>();
         //图片
-        if(StringUtils.isNotEmpty(goods.getLargeImageUrl())){
+        if (StringUtils.isNotEmpty(goods.getLargeImageUrl())) {
             String[] imgs = goods.getLargeImageUrl().split("\\|");
-            if(imgs!=null && imgs.length >0){
-                for(int i=0;i<imgs.length;i++){
+            if (imgs != null && imgs.length > 0) {
+                for (int i = 0; i < imgs.length; i++) {
                     GoodsImageDTO image = new GoodsImageDTO();
                     image.setSort(i);
-                    image.setArtworkUrl(i== 0? imgs[i] :("http://images.bookuu.com"+imgs[i]));
+                    image.setArtworkUrl(i == 0 ? imgs[i] : ("http://images.bookuu.com" + imgs[i]));
                     images.add(image);
                 }
             }
         }
+        //详情图
+        if(StringUtils.isNotEmpty(goods.getDetailImageUrl())){
+            StringBuilder sb = new StringBuilder();
+            String[] imgs = goods.getDetailImageUrl().split("\\|");
+            if(imgs!=null && imgs.length >0){
+                for(int i=0;i<imgs.length;i++){
+                    sb.append("<p><img src=\"")
+                            .append("http://images.bookuu.com"+imgs[i])
+                            .append("\" title=\"\" alt=\"undefined/\"/></p><br/>");
+                }
+            }
+            goodsDTO.setGoodsDetail(sb.toString());
+        }
+        if(CollectionUtils.isNotEmpty(images)){
+           goodsDTO.setGoodsUnBackImg(images.get(0).getArtworkUrl());
+        }
+
+
+        request.setGoods(goodsDTO);
         request.setImages(images);
         //属性
         List<GoodsPropDetailRelDTO> propDetails = new ArrayList<>();
         JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(goods));
-        List<GoodsPropDetailRelDTO> propDetail = JSONObject.parseArray(propDetailStr,GoodsPropDetailRelDTO.class);
-        propDetail.forEach(p->{
-            if(jsonObject.get(p.getPropValue()) != null){
+        List<GoodsPropDetailRelDTO> propDetail = JSONObject.parseArray(propDetailStr, GoodsPropDetailRelDTO.class);
+        propDetail.forEach(p -> {
+            if (jsonObject.get(p.getPropValue()) != null) {
                 GoodsPropDetailRelDTO prop = new GoodsPropDetailRelDTO();
                 prop.setDetailId(0L);
                 prop.setPropId(p.getPropId());
@@ -248,4 +279,5 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         return sb.toString();
 
     }
+
 }

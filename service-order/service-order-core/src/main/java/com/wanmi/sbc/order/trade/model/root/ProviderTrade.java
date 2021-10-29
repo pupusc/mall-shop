@@ -13,10 +13,8 @@ import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.order.bean.enums.EvaluateStatus;
 import com.wanmi.sbc.order.bean.enums.OrderSource;
 import com.wanmi.sbc.order.bean.enums.PaymentOrder;
-import com.wanmi.sbc.order.bean.vo.TradeCycleBuyInfoVO;
 import com.wanmi.sbc.order.trade.model.entity.*;
 import com.wanmi.sbc.order.trade.model.entity.value.*;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -398,6 +396,10 @@ public class ProviderTrade implements Serializable {
      */
     private TradeCycleBuyInfo tradeCycleBuyInfo;
 
+    /**
+      推送第三方的订单号
+     */
+    private String deliveryOrderId;
 
     /**
      * 增加

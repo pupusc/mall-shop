@@ -728,7 +728,13 @@ public class OrderConsumerService {
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body){
         log.info("order push confirm message:{}",body);
-        ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+        ProviderTradeStatusSyncRequest request = null;
+        try{
+            request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+        }catch (Exception e){
+            log.error("order push confirm message to bean error,body:{}",body,e);
+            return;
+        }
         tradeProvider.syncProviderTradeStatus(request);
     }
 
@@ -740,8 +746,14 @@ public class OrderConsumerService {
     @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
     @RabbitHandler
     public void deliveryStatusSyncConsumer(Message message, @Payload String body){
-        log.info("order delivery status sync confirm message:{}",body);
-        ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+        ProviderTradeStatusSyncRequest request =null;
+        try {
+            log.info("order delivery status sync confirm message:{}", body);
+            request = JSONObject.parseObject(body, ProviderTradeStatusSyncRequest.class);
+        }catch (Exception e){
+            log.error("order delivery status sync confirm message to bean error,body:{}",body,e);
+            return;
+        }
         tradeProvider.syncProviderTradeDeliveryStatus(request);
     }
 

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单金额归总
@@ -181,4 +182,24 @@ public class TradePrice implements Serializable {
      * 活动优惠总额
      */
     private BigDecimal marketingDiscountPrice;
+
+    /**
+     * 根据供应商拆分后的运费
+     */
+    private Map<Long, BigDecimal> splitDeliveryPrice;
+
+    /**
+     * 实际支付金额
+     */
+    private BigDecimal actualPrice;
+
+    /**
+     * 实际积分
+     */
+    private Long actualPoints;
+    /**
+     * 实际知豆
+     */
+    private Long actualKnowledge;
+
 }

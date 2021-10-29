@@ -1,7 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.goods;
 
 import com.alibaba.fastjson.JSONObject;
-import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -13,7 +12,6 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
-import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluateQueryRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
@@ -21,8 +19,6 @@ import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.appointmentsale.model.root.AppointmentSaleDO;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.enums.GoodsSource;
-import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.bookingsale.model.root.BookingSale;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
@@ -30,6 +26,7 @@ import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.request.GoodsBrandQueryRequest;
 import com.wanmi.sbc.goods.brand.service.GoodsBrandService;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
+import com.wanmi.sbc.goods.cate.model.root.GoodsCateSync;
 import com.wanmi.sbc.goods.cate.request.GoodsCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
@@ -44,12 +41,7 @@ import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
 import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
 import com.wanmi.sbc.goods.info.service.*;
-import com.wanmi.sbc.goods.info.service.GoodsInfoService;
-import com.wanmi.sbc.goods.info.service.GoodsService;
-import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
-import com.wanmi.sbc.goods.info.service.S2bGoodsService;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
-import com.wanmi.sbc.goods.info.service.*;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
@@ -594,5 +586,14 @@ public class GoodsQueryController implements GoodsQueryProvider {
     @Override
     public BaseResponse<Integer> countGoodsPriceSync() {
         return BaseResponse.success((int)goodsInfoService.countGoodPriceSync());
+    }
+
+    @Override
+    public BaseResponse<List<GoodsCateSyncVO>> listGoodsCateSync() {
+        List<GoodsCateSync> list= goodsService.listGoodsCateSync();
+        if(CollectionUtils.isEmpty(list)){
+            return BaseResponse.success(Collections.emptyList());
+        }
+        return BaseResponse.success(KsBeanUtil.convert(list, GoodsCateSyncVO.class));
     }
 }

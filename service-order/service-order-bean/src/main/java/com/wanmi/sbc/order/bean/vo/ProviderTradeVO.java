@@ -391,6 +391,8 @@ public class ProviderTradeVO implements Serializable {
      */
     private Boolean yzOrderFlag = Boolean.FALSE;
 
+    private String deliveryOrderId;
+
     /**
      * @return
      */

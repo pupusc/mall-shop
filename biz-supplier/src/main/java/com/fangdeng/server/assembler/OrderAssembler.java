@@ -31,7 +31,7 @@ public class OrderAssembler {
             BookuuOrderAddRequest.Product product = new BookuuOrderAddRequest.Product();
             product.setBookID(d.getItemCode());
             product.setBookNum(d.getQty());
-            product.setUnitPrice(new BigDecimal(d.getPrice()));
+            product.setUnitPrice(new BigDecimal(d.getCostPrice()));
             list.add(product);
         });
         request.setProductList(list);

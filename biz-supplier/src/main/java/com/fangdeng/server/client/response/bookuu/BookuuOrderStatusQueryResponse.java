@@ -20,7 +20,7 @@ public class BookuuOrderStatusQueryResponse implements Serializable {
     @Data
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlRootElement(name="StatusList")
-    public static  class  OrderStatusDTO{
+    public static  class  OrderStatusDTO implements Serializable{
         @XmlElement(name = "OrderID")
         private String orderId;
         @XmlElement(name = "OrderStatus")
@@ -31,7 +31,7 @@ public class BookuuOrderStatusQueryResponse implements Serializable {
         private String postNumber;
         @XmlElement(name = "PostDate")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-        private Date postDate;
+        private String postDate;
 
         @XmlElement(name = "BookRec")
         private List<GoodsItemDTO> bookRecs;

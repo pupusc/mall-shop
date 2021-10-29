@@ -12,7 +12,7 @@ import java.util.List;
 
 
 @Repository
-public interface GoodsSyncRepository extends JpaRepository<GoodsSync, String>, JpaSpecificationExecutor<GoodsSync> {
+public interface GoodsSyncRepository extends JpaRepository<GoodsSync, Long>, JpaSpecificationExecutor<GoodsSync> {
 
 //    @Query
     List<GoodsSync> findByStatus(Integer status);

@@ -213,4 +213,7 @@ public class GoodsSync {
 
     @Column(name = "provider_id")
     private Long providerId;
+
+    @Column(name = "detail_image_url")
+    private String detailImageUrl;
 }

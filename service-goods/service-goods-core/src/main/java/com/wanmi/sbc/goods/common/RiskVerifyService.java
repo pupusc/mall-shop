@@ -1,5 +1,8 @@
 package com.wanmi.sbc.goods.common;
 
+import com.aliyuncs.utils.StringUtils;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.request.common.ImageAuditRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.common.model.root.RiskVerify;
@@ -9,6 +12,7 @@ import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.model.root.GoodsSync;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
 import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsImageAuditResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +45,10 @@ public class RiskVerifyService {
         }
         pageList.getContent().stream().forEach(p->{
             try {
-                externalService.aduitImage(ImageAuditRequest.builder().verifyTool("GreenVerifyTongdun").content(p.getImageUrl()).imgType("ADS").customerId(p.getId().toString()).build());
-                riskVerifyRepository.updateStatusById(1,p.getId());
+                BaseResponse<GoodsImageAuditResponse> response =  externalService.aduitImage(ImageAuditRequest.builder().verifyTool("GreenVerifyTongdun").content(p.getImageUrl()).imgType("ADS").customerId(p.getId().toString()).build());
+                if(response != null && response.getContext() != null &&  !StringUtils.isEmpty(response.getContext().getRequestId())) {
+                    riskVerifyRepository.updateStatusById(1,p.getId(),response.getContext().getRequestId());
+                }
             }catch (Exception e){
                 log.warn("");
             }
@@ -53,17 +59,15 @@ public class RiskVerifyService {
 
     @Transactional
     public void verifyImageCallBack(ImageVerifyRequest imageVerifyRequest){
-        RiskVerify riskVerify = riskVerifyRepository.getOne(Long.valueOf(imageVerifyRequest.getCustomerId()));
-        if(riskVerify==null){
-            return;
-        }
+        RiskVerify riskVerify = riskVerifyRepository.getByRequestId(imageVerifyRequest.getRequestId());
         riskVerify.setRequestId(imageVerifyRequest.getRequestId());
         riskVerify.setStatus(imageVerifyRequest.getSuggestion().equals("PASS")?2:imageVerifyRequest.getSuggestion().equals("BLOCK")?3:1);
         if(imageVerifyRequest.getSuggestion().equals("BLOCK")){
             riskVerify.setErrorMsg(imageVerifyRequest.getHitReason());
+            goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),3);
         }
-        riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),riskVerify.getRequestId(),imageVerifyRequest.getOcrStr(),riskVerify.getId());
-        if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo()) == 0){
+        riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
+        if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo(),imageVerifyRequest.getRequestId()) == 0){
             //全部审核通过
             goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),2);
         }

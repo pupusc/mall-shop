@@ -13,6 +13,7 @@ import com.fangdeng.server.vo.CancelOrderVO;
 import com.fangdeng.server.vo.DeliveryStatusVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,8 @@ public class OrderService {
         deliveryInfoVO.setPlatformCode(pid);
         deliveryInfoVO.setExpressName(response.getStatusDTOS().get(0).getPost());
         deliveryInfoVO.setExpressNo(response.getStatusDTOS().get(0).getPostNumber());
+        
+        //deliveryInfoVO.setDeliverTime(response.getStatusDTOS().get(0).getPostDate());
         deliveryInfoVO.setDeliveryStatus(DeliveryStatus.getDeliveryStatus(BookuuDeliveryStatus.getDeliveryStatusByKey(response.getStatusDTOS().get(0).getOrderStatus())));
         deliveryStatusVO.setDeliveryInfoVOList(Arrays.asList(deliveryInfoVO));
         return BaseResponse.success(deliveryStatusVO);

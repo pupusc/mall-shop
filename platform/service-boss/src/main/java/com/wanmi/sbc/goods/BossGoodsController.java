@@ -17,11 +17,13 @@ import com.wanmi.sbc.elastic.api.request.standard.EsStandardDeleteByIdsRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.elastic.api.response.spu.EsSpuPageResponse;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
+import com.wanmi.sbc.goods.api.provider.common.RiskVerifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.standard.StandardGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.standard.StandardImportProvider;
 import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
+import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsCheckRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsPageRequest;
@@ -99,6 +101,9 @@ public class BossGoodsController {
     private RedisService redisService;
 
     public static int GOODS_SOURCE_PROVIDER = 0 ;
+
+    @Autowired
+    private RiskVerifyProvider riskVerifyProvider;
 
 
     /**
@@ -279,6 +284,12 @@ public class BossGoodsController {
                 "加入商品库：SPU编码" + response.getGoodsNo());
 
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @ApiOperation(value = "同盾审核")
+    @RequestMapping(value = "/image/verify/callback", method = RequestMethod.POST)
+    public BaseResponse verifyCallBack(@RequestBody  ImageVerifyRequest imageVerifyRequest){
+        return  riskVerifyProvider.verifyImageCallBack(imageVerifyRequest);
     }
 
 }

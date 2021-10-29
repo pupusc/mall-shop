@@ -41,4 +41,6 @@ public class RefundTradeRequest implements Serializable {
     private int refundState;
 
     private Long providerId;
+
+    private String deliveryOrderId;
 }

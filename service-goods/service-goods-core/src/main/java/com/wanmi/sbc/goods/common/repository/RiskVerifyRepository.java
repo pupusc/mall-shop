@@ -17,17 +17,20 @@ public interface RiskVerifyRepository extends JpaRepository<RiskVerify, Long>, J
 
    @Transactional
    @Modifying
-   @Query("update RiskVerify set status = ?1,updateTime =now() where id = ?2")
-   void updateStatusById(Integer status,Long id);
+   @Query("update RiskVerify set status = ?1,updateTime =now(),requestId = ?3 where id = ?2")
+   void updateStatusById(Integer status,Long id,String requestId);
 
 
 
    @Modifying
-   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , requestId = ?3 , content = ?4,updateTime =now() where id = ?5")
-   void updateStatus(Integer status,String errorMsg,String requestId,String content,Long id);
+   @Query("update RiskVerify set status = ?1, errorMsg = ?2 , content = ?3,updateTime =now() where requestId = ?4")
+   void updateStatus(Integer status,String errorMsg,String content,String requestId);
 
 
 
-   @Query(value = "SELECT COUNT(id) FROM RiskVerify where deleted = 0 and status in(0,1,3) and goodsNo = :goodsNo")
-   Integer queryCount(@Param("goodsNo") String goodsNo);
+   @Query(value = "SELECT COUNT(id) FROM RiskVerify where deleted = 0 and status in(0,1,3) and goodsNo = :goodsNo and requestId != :requestId")
+   Integer queryCount(@Param("goodsNo") String goodsNo,@Param("requestId")String requestId);
+
+   @Query("from RiskVerify w where w.requestId = ?1")
+   RiskVerify getByRequestId(@Param("requestId") String requestId);
 }

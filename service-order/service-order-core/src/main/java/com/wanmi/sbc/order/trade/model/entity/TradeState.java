@@ -45,6 +45,8 @@ public class TradeState implements Serializable {
      */
     private DeliverStatus deliverStatus;
 
+
+
     /**
      * 订单来源
      */
@@ -156,4 +158,8 @@ public class TradeState implements Serializable {
      */
     private String pushResponse;
 
+    /**
+     * 是否实际全部发货，博库订单部分发货，显示全部发货，其他未发货的线下沟通 1,表示此情况
+     */
+    private Integer virtualAllDelivery;
 }
