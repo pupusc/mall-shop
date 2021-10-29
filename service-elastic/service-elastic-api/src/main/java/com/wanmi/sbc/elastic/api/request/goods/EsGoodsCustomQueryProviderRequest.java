@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
-import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -64,5 +63,10 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTimeEnd;
+
+    /**
+     * 特价书 市场价/定价 小于 0.5
+     */
+    private String scriptSpecialOffer;
 
 }

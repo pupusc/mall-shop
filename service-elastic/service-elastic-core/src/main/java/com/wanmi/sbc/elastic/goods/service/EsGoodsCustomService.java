@@ -15,9 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -27,6 +26,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -158,6 +158,10 @@ public class EsGoodsCustomService {
         // 小于或等于 搜索条件:创建时间截止
         if (request.getCreateTimeEnd() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").lte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));
+        }
+
+        if (!StringUtils.isEmpty(request.getScriptSpecialOffer())) {
+            boolQueryBuilder.filter(QueryBuilders.scriptQuery(new Script("(doc['goodsInfos.marketPrice'].value / doc['goodsExtProps.price'].value) < " + request.getScriptSpecialOffer())));
         }
 
         return boolQueryBuilder;
