@@ -64,7 +64,7 @@ public class ImageProviderRequest implements Serializable {
     public Integer publishState;
 
     /**
-     * 图片类型 1首页轮播
+     * 图片类型 1首页轮播 2-广告图 3-卖点图
      */
     @NotNull(groups = Add.class, message = "图片类型不能为空")
     private Integer imageType;

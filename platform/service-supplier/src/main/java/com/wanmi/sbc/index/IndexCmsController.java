@@ -2,7 +2,11 @@ package com.wanmi.sbc.index;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
+import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
+import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,6 +28,8 @@ public class IndexCmsController {
 
     @Autowired
     private IndexCmsProvider indexCmsProvider;
+    @Autowired
+    private ImageProvider imageProvider;
 
     /**
      * @description 添加特色栏目
@@ -100,4 +107,38 @@ public class IndexCmsController {
         return indexCmsProvider.searchTitle(cmsTitleSearchRequest);
     }
 
+    /**
+     * @description 添加图片
+     * @param imageProviderRequest
+     * @menu 后台CMS2.0
+     * @status done
+     */
+    @PostMapping("/image/add")
+    public BaseResponse addAdvert(@RequestBody ImageProviderRequest imageProviderRequest){
+        imageProviderRequest.setImageType(ImageTypeEnum.ADVERT_IMG.getCode());
+        return imageProvider.add(imageProviderRequest);
+    }
+
+    /**
+     * @description 修改图片
+     * @param imageProviderRequest
+     * @menu 后台CMS2.0
+     * @status done
+     */
+    @PostMapping("/image/update")
+    public BaseResponse updateAdvert(@RequestBody ImageProviderRequest imageProviderRequest){
+        return imageProvider.update(imageProviderRequest);
+    }
+
+    /**
+     * @description 查询图片
+     * @param imagePageProviderRequest
+     * @menu 后台CMS2.0
+     * @status done
+     */
+    @PostMapping("/image/search")
+    public BaseResponse searchAdvert(@RequestBody ImagePageProviderRequest imagePageProviderRequest){
+        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode()));
+        return imageProvider.listNoPage(imagePageProviderRequest);
+    }
 }
