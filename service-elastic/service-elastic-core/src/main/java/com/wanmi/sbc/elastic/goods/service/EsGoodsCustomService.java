@@ -15,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-<<<<<<< Updated upstream
-=======
 import org.elasticsearch.script.Script;
->>>>>>> Stashed changes
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
