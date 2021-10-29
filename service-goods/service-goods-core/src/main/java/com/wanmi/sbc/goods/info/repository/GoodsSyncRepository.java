@@ -23,8 +23,8 @@ public interface GoodsSyncRepository extends JpaRepository<GoodsSync, Long>, Jpa
 
     @Modifying
     @Transactional
-    @Query("update GoodsSync w set w.adAuditStatus = ?2, w.updateTime = now() where w.id in ?1 and adAuditStatus = 0")
-    int batchUpdateAdStatus(List<Long> idList,Integer status);
+    @Query("update GoodsSync w set w.adAuditStatus = ?2, w.updateTime = now() where w.id in ?1 and adAuditStatus = ?3")
+    int batchUpdateAdStatus(List<Long> idList,Integer status,Integer originStatus);
 
     @Modifying
     @Transactional
