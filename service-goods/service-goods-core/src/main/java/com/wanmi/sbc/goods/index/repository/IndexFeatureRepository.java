@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -28,6 +29,9 @@ public interface IndexFeatureRepository extends JpaRepository<IndexFeature, Inte
             }
             if (StringUtils.isNotEmpty(cmsSpecialTopicSearchRequest.name)) {
                 conditionList.add(criteriaBuilder.like(root.get("name"), cmsSpecialTopicSearchRequest.name + "%"));
+            }
+            if (!CollectionUtils.isEmpty(cmsSpecialTopicSearchRequest.idColl)) {
+                conditionList.add(root.get("id").in(cmsSpecialTopicSearchRequest.idColl));
             }
             if (cmsSpecialTopicSearchRequest.publishState != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("publishState"), PublishState.fromValue(cmsSpecialTopicSearchRequest.publishState)));

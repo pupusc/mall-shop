@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
@@ -38,10 +39,21 @@ public interface IndexCmsProvider {
     @PostMapping("/goods/${application.goods.version}/special-topic/search")
     BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
 
-
+    /**
+     * 不分页查询特色栏目
+     * @param cmsSpecialTopicSearchRequest
+     * @return
+     */
     @PostMapping("/goods/${application.goods.version}/special-topic/list-no-page")
     BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest);
 
+    /**
+     * 排序特色栏目
+     * @param imageSortProviderRequestList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/special-topic/sort")
+    BaseResponse sortSpecialTopic(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList);
     /**
      * 添加主副标题
      */
