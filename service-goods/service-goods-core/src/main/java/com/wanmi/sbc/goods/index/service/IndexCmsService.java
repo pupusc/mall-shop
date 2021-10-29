@@ -206,13 +206,13 @@ public class IndexCmsService {
             if(StringUtils.isNotEmpty(s)){
                 return JSONArray.parseArray(s, IndexModule.class);
             }else {
-                List<IndexModule> list = indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest));
+                List<IndexModule> list = indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest), Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime")));
                 if(CollectionUtils.isNotEmpty(list)){
                     String s1 = JSONArray.toJSONString(list);
                     stringRedisTemplate.opsForValue().set(CMS_TITLE_CACHE, s1, 30, TimeUnit.MINUTES);
                 }
             }
         }
-        return indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest));
+        return indexModuleRepository.findAll(indexModuleRepository.buildSearchCondition(cmsTitleSearchRequest), Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime")));
     }
 }
