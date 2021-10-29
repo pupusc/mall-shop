@@ -35,4 +35,8 @@ public class ImageResponse {
      */
     private String imgHref;
 
+    /**
+     * 图片类型 1首页轮播 2 广告图片 3 卖点图
+     */
+    private Integer imageType;
 }

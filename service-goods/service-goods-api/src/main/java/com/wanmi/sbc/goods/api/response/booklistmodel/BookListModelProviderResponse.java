@@ -75,16 +75,6 @@ public class BookListModelProviderResponse implements Serializable {
      */
     private Integer tagName;
 
-    /**
-     * 标签有效开始时间 ✅Add feature_d_v0.02
-     */
-    private LocalDateTime tagValidBeginTime;
-
-    /**
-     * 标签有效结束时间 ✅Add feature_d_v0.02
-     */
-    private LocalDateTime tagValidEndTime;
-
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布

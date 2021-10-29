@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -141,9 +143,17 @@ public class BookListModelController implements BookListModelProvider {
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
                 bookListModelPageProviderRequest.getPageNum(), bookListModelPageProviderRequest.getPageSize());
 
+        LocalDateTime now = LocalDateTime.now();
         List<BookListModelProviderResponse> bookListModelResponseList = pageBookListModel.getContent().stream().map(ex -> {
                                                         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
                                                         BeanUtils.copyProperties(ex, bookListModelProviderResponse);
+                                                        if (ex.getTagValidBeginTime().isBefore(now) && ex.getTagValidEndTime().isAfter(now)) {
+                                                            bookListModelProviderResponse.setTagType(ex.getTagType());
+                                                            bookListModelProviderResponse.setTagName(ex.getTagName());
+                                                        } else {
+                                                            bookListModelProviderResponse.setTagType(null);
+                                                            bookListModelProviderResponse.setTagName(null);
+                                                        }
                                                         return bookListModelProviderResponse;
                                                     }).collect(Collectors.toList());
 
