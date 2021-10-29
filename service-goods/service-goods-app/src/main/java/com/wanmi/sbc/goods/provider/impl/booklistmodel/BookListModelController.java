@@ -147,12 +147,12 @@ public class BookListModelController implements BookListModelProvider {
         List<BookListModelProviderResponse> bookListModelResponseList = pageBookListModel.getContent().stream().map(ex -> {
                                                         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
                                                         BeanUtils.copyProperties(ex, bookListModelProviderResponse);
-                                                        if (ex.getTagValidBeginTime().isBefore(now) && ex.getTagValidEndTime().isAfter(now)) {
+                                                        bookListModelProviderResponse.setTagType(null);
+                                                        bookListModelProviderResponse.setTagName(null);
+                                                        if (ex.getTagValidBeginTime() != null && ex.getTagValidEndTime() != null &&
+                                                                ex.getTagValidBeginTime().isBefore(now) && ex.getTagValidEndTime().isAfter(now)) {
                                                             bookListModelProviderResponse.setTagType(ex.getTagType());
                                                             bookListModelProviderResponse.setTagName(ex.getTagName());
-                                                        } else {
-                                                            bookListModelProviderResponse.setTagType(null);
-                                                            bookListModelProviderResponse.setTagName(null);
                                                         }
                                                         return bookListModelProviderResponse;
                                                     }).collect(Collectors.toList());
