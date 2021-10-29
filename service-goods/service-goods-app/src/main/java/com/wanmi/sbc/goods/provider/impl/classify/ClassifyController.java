@@ -176,6 +176,8 @@ public class ClassifyController implements ClassifyProvider {
         BookListModelClassifyLinkPageRequest request = new BookListModelClassifyLinkPageRequest();
         request.setClassifyIdColl(bookListModelClassifyLinkPageProviderRequest.getClassifyIdColl());
         request.setBusinessTypeList(bookListModelClassifyLinkPageProviderRequest.getBusinessTypeList());
+        request.setPageNum(bookListModelClassifyLinkPageProviderRequest.getPageNum());
+        request.setPageSize(bookListModelClassifyLinkPageProviderRequest.getPageSize());
         List<BookListModelClassifyLinkResponse> listBookListModelClassifyLink = bookListModelClassifyRelService.listBookListModelClassifyLink(request);
         for (BookListModelClassifyLinkResponse bookListModelClassifyLinkParam : listBookListModelClassifyLink) {
             BookListModelClassifyLinkProviderResponse bookListModelClassifyLinkProviderResponse = new BookListModelClassifyLinkProviderResponse();

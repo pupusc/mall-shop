@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public class ClassifyGoodsAndBookListModelRequest {
 
-    private int pageSize = 5;
+    private int pageSize = 10;
 
     /**
      * 分类信息

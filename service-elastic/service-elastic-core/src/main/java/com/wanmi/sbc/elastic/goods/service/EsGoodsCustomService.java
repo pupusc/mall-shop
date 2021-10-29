@@ -164,6 +164,10 @@ public class EsGoodsCustomService {
             boolQueryBuilder.filter(QueryBuilders.scriptQuery(new Script("(doc['goodsInfos.marketPrice'].value / doc['goodsExtProps.price'].value) < " + request.getScriptSpecialOffer())));
         }
 
+        if (!StringUtils.isEmpty(request.getClassifyIdList())) {
+            boolQueryBuilder.must(termsQuery("storeCateIds", request.getClassifyIdList()));
+        }
+
         return boolQueryBuilder;
     }
 
