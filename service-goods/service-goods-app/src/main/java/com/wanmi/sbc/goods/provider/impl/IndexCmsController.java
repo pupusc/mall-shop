@@ -81,25 +81,9 @@ public class IndexCmsController implements IndexCmsProvider {
         Page<IndexFeature> page = indexCmsService.searchSpecialTopicPage(cmsSpecialTopicSearchRequest);
         List<IndexFeature> content = page.getContent();
         LocalDateTime now = LocalDateTime.now();
-        List<IndexFeatureVo> dtos = content.stream().map(indexFeature -> {
-            IndexFeatureVo indexFeatureVo = new IndexFeatureVo();
-            BeanUtils.copyProperties(indexFeature, indexFeatureVo);
-            if(now.isBefore(indexFeature.getBeginTime())){
-                //未开始
-                indexFeatureVo.setState(0);
-            }else if(now.isAfter(indexFeature.getEndTime())){
-                //已结束
-                indexFeatureVo.setState(2);
-            }else{
-                //进行中
-                indexFeatureVo.setState(1);
-            }
-            indexFeatureVo.setPublishState(indexFeature.getPublishState().toValue());
-            return indexFeatureVo;
-        }).collect(Collectors.toList());
         MicroServicePage<IndexFeatureVo> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(page.getTotalElements());
-        microServicePage.setContent(this.changeIndexFeature2Vo(content));
+        microServicePage.setContent(changeIndexFeature2Vo(content));
         return BaseResponse.success(microServicePage);
     }
 
@@ -110,7 +94,7 @@ public class IndexCmsController implements IndexCmsProvider {
      * @return
      */
     public BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
-        return BaseResponse.success(this.changeIndexFeature2Vo(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest)));
+        return BaseResponse.success(changeIndexFeature2Vo(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest)));
     }
 
     @Override

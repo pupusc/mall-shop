@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSecondSerializer;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 
 @Data
@@ -63,6 +64,9 @@ public class IndexFeatureVo {
      */
     private Integer state;
 
-
+    /**
+     * 排序
+     */
+    private Integer orderNum;
 
 }

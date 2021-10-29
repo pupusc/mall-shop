@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.api.response.index;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+
 @Data
 public class IndexModuleVo {
 
@@ -31,5 +33,10 @@ public class IndexModuleVo {
      * 启用状态
      */
     private Integer publishState;
+
+    /**
+     * 排序
+     */
+    private Integer orderNum;
 
 }
