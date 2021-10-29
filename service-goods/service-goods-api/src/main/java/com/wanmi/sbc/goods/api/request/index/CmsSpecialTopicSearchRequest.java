@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class CmsSpecialTopicSearchRequest {
 
-    public int pageNum = 1;
+    public int pageNum = 0;
 
     public int pageSize = 10;
 
