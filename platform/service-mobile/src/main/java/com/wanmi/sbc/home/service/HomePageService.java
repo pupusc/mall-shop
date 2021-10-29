@@ -371,7 +371,7 @@ public class HomePageService {
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(0);
         esGoodsCustomRequest.setPageSize(200);
-        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+//        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
         //按照销售数量排序 7 天 TODO
 //        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
 //        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
