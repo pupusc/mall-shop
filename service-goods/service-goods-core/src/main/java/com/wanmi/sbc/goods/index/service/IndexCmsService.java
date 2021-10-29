@@ -4,8 +4,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
+import com.wanmi.sbc.goods.image.model.root.ImageDTO;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.repository.IndexFeatureRepository;
@@ -22,8 +25,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * CMS首页改版2.0
@@ -42,7 +49,6 @@ public class IndexCmsService {
 
     /**
      * 添加特色栏目
-     *
      * @param cmsSpecialTopicAddRequest
      */
     public void addSpecialTopic(CmsSpecialTopicAddRequest cmsSpecialTopicAddRequest) {
@@ -64,35 +70,13 @@ public class IndexCmsService {
         indexFeature.setUpdateTime(now);
         indexFeature.setVersion(1);
         indexFeature.setPublishState(PublishState.ENABLE);
-        indexFeature.setOrderNum(cmsSpecialTopicAddRequest.getOrderNum());
+        long count = indexFeatureRepository.count(indexFeatureRepository.buildSearchCondition(new CmsSpecialTopicSearchRequest()));
+        indexFeature.setOrderNum((int)count + 1);
         indexFeatureRepository.save(indexFeature);
     }
 
     /**
-     * 添加主副标题
-     *
-     * @param cmsTitleAddRequest
-     */
-    public void addTitle(CmsTitleAddRequest cmsTitleAddRequest) {
-        IndexModule indexModule = new IndexModule();
-        LocalDateTime now = LocalDateTime.now();
-        indexModule.setCode(cmsTitleAddRequest.getCode());
-        indexModule.setBookListModelId(cmsTitleAddRequest.getBookListModelId());
-        indexModule.setOrderNum(cmsTitleAddRequest.getOrderNum());
-        indexModule.setTitle(cmsTitleAddRequest.getTitle());
-        indexModule.setSubTitle(cmsTitleAddRequest.getSubTitle());
-        indexModule.setCreateTime(now);
-        indexModule.setUpdateTime(now);
-        indexModule.setVersion(1);
-        indexModule.setPublishState(PublishState.ENABLE);
-        indexModule.setDelFlag(DeleteFlag.NO);
-        indexModuleRepository.save(indexModule);
-        stringRedisTemplate.delete(CMS_TITLE_CACHE);
-    }
-
-    /**
      * 修改特色栏目
-     *
      * @param cmsSpecialTopicUpdateRequest
      */
     public void updateSpecialTopic(CmsSpecialTopicUpdateRequest cmsSpecialTopicUpdateRequest) {
@@ -134,12 +118,11 @@ public class IndexCmsService {
 
     /**
      * 查询特色栏目
-     *
      * @param cmsSpecialTopicSearchRequest
      * @return
      */
     public Page<IndexFeature> searchSpecialTopicPage(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
-        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum - 1,
+        return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), PageRequest.of(cmsSpecialTopicSearchRequest.pageNum,
                 cmsSpecialTopicSearchRequest.pageSize, Sort.by(Sort.Direction.ASC, "orderNum")));
     }
 
@@ -149,13 +132,57 @@ public class IndexCmsService {
      * @return
      */
     public List<IndexFeature> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
+        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum");
         return indexFeatureRepository.findAll(indexFeatureRepository.buildSearchCondition(cmsSpecialTopicSearchRequest), sort);
     }
 
     /**
+     * 查询特色栏目
+     * @param imageSortProviderRequestList
+     * @return
+     */
+    public void sortSpecialTopic(List<ImageSortProviderRequest> imageSortProviderRequestList) {
+        List<Integer> imageIdSet = imageSortProviderRequestList.stream().map(ImageSortProviderRequest::getId).collect(Collectors.toList());
+        CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest = new CmsSpecialTopicSearchRequest();
+        cmsSpecialTopicSearchRequest.setIdColl(imageIdSet);
+        List<IndexFeature> indexFeatures = listNoPageSpecialTopic(cmsSpecialTopicSearchRequest);
+        if (indexFeatures.size() != imageIdSet.size()) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        Map<Integer, IndexFeature> collect = indexFeatures.stream().collect(Collectors.toMap(IndexFeature::getId, Function.identity(), (k1, k2) -> k1));
+        for (ImageSortProviderRequest imageSortProviderParam : imageSortProviderRequestList) {
+            IndexFeature indexFeature = collect.get(imageSortProviderParam.getId());
+            if (indexFeature == null) {
+                throw new SbcRuntimeException("K-000009");
+            }
+            indexFeature.setOrderNum(imageSortProviderParam.getOrderNum());
+            indexFeatureRepository.save(indexFeature);
+        }
+    }
+
+    /**
+     * 添加主副标题
+     * @param cmsTitleAddRequest
+     */
+    public void addTitle(CmsTitleAddRequest cmsTitleAddRequest) {
+        IndexModule indexModule = new IndexModule();
+        LocalDateTime now = LocalDateTime.now();
+        indexModule.setCode(cmsTitleAddRequest.getCode());
+        indexModule.setBookListModelId(cmsTitleAddRequest.getBookListModelId());
+        indexModule.setOrderNum(cmsTitleAddRequest.getOrderNum());
+        indexModule.setTitle(cmsTitleAddRequest.getTitle());
+        indexModule.setSubTitle(cmsTitleAddRequest.getSubTitle());
+        indexModule.setCreateTime(now);
+        indexModule.setUpdateTime(now);
+        indexModule.setVersion(1);
+        indexModule.setPublishState(PublishState.ENABLE);
+        indexModule.setDelFlag(DeleteFlag.NO);
+        indexModuleRepository.save(indexModule);
+        stringRedisTemplate.delete(CMS_TITLE_CACHE);
+    }
+
+    /**
      * 删除主副标题
-     *
      * @param id
      */
     public void deleteTitle(Integer id) {
@@ -169,7 +196,6 @@ public class IndexCmsService {
 
     /**
      * 修改主副标题
-     *
      * @param cmsTitleUpdateRequest
      */
     public void updateTitle(CmsTitleUpdateRequest cmsTitleUpdateRequest) {

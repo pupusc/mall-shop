@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class CmsTitleSearchRequest {
 
-    public int pageNum = 1;
+    public int pageNum = 0;
 
     public int pageSize = 10;
 

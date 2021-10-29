@@ -7,14 +7,12 @@ import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +62,17 @@ public class IndexCmsController {
     @PostMapping("/special-topic/search")
     public BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(@RequestBody CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
         return indexCmsProvider.searchSpecialTopic(cmsSpecialTopicSearchRequest);
+    }
+
+    /**
+     * @description 排序特色栏目
+     * @param imageSortProviderRequestList
+     * @menu 后台CMS2.0
+     * @status done
+     */
+    @PostMapping("/special-topic/sort")
+    public BaseResponse sortSpecialTopic(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList){
+        return indexCmsProvider.sortSpecialTopic(imageSortProviderRequestList);
     }
 
     /**
