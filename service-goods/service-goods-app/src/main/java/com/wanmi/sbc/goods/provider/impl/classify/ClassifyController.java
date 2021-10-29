@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
+import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
@@ -51,6 +52,39 @@ public class ClassifyController implements ClassifyProvider {
     private BookListModelClassifyRelService bookListModelClassifyRelService;
 
     /**
+     * 新增店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse add(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.add(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 修改店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse update(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.update(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 删除店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse delete(ClassifyProviderRequest classifyProviderRequest) {
+        classifyService.delete(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * 获取类目列表
      * @return
      */
@@ -80,7 +114,7 @@ public class ClassifyController implements ClassifyProvider {
     }
 
     /**
-     * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品列表
+     * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品id列表
      * @param goodsId
      * @return
      */
@@ -151,6 +185,17 @@ public class ClassifyController implements ClassifyProvider {
         return BaseResponse.success(result);
     }
 
+
+    public void test(ClassifyCollectionProviderRequest request) {
+        List<ClassifyDTO> classifyAllChildOfParentList = classifyService.listChildClassifyNoPageByParentId(request.getParentIdColl());
+        //根据子分类id 获取商品列表
+        if (CollectionUtils.isEmpty(classifyAllChildOfParentList)) {
+//            return BaseResponse.SUCCESSFUL();
+        }
+
+        //根据子分类 获取分类下的所有商品信息
+
+    }
 
 //    @Override
 //    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){

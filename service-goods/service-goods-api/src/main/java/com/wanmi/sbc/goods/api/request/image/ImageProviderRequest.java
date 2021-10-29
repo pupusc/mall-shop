@@ -1,5 +1,9 @@
 package com.wanmi.sbc.goods.api.request.image;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -42,12 +46,16 @@ public class ImageProviderRequest implements Serializable {
      * 开始时间
      */
     @NotNull(groups = Add.class, message = "开始时间不能为空")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime beginTime;
 
     /**
      * 结束时间
      */
     @NotNull(groups = Add.class, message = "结束时间不能为空")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
     /**

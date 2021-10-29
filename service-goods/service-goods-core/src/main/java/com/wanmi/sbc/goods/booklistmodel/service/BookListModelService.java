@@ -50,7 +50,6 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -178,7 +177,7 @@ public class BookListModelService {
             existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadImgUrl());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadSquareImgUrl())) {
-            existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadSquareImgUrl());
+            existBookListModelDtoUpdate.setHeadSquareImgUrl(bookListModelRequest.getHeadSquareImgUrl());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgHref())) {
             existBookListModelDtoUpdate.setHeadImgHref(bookListModelRequest.getHeadImgHref());
@@ -186,9 +185,22 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getPageHref())) {
             existBookListModelDtoUpdate.setPageHref(bookListModelRequest.getPageHref());
         }
-//        if (bookListModelRequest.getHasTop() != null) {
-//            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
-//        }
+        if (bookListModelRequest.getHasTop() != null) {
+            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
+        }
+        if (bookListModelRequest.getTagType() != null) {
+            existBookListModelDtoUpdate.setTagType(bookListModelRequest.getTagType());
+        }
+        if (!StringUtils.isEmpty(bookListModelRequest.getTagName())) {
+            existBookListModelDtoUpdate.setTagName(bookListModelRequest.getTagName());
+        }
+        if (bookListModelRequest.getTagValidBeginTime() != null) {
+            existBookListModelDtoUpdate.setTagValidBeginTime(bookListModelRequest.getTagValidBeginTime());
+        }
+        if (bookListModelRequest.getTagValidEndTime() != null) {
+            existBookListModelDtoUpdate.setTagValidEndTime(bookListModelRequest.getTagValidEndTime());
+        }
+
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));
@@ -505,7 +517,6 @@ public class BookListModelService {
     }
 
 
-
     /**
      * 置顶或取消 feature_d_v0.02
      * @param bookListModelId
@@ -522,5 +533,14 @@ public class BookListModelService {
         BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelObj);
         log.info("----->>>bookListModel.top bookListModelId:{} hasTop:{} complete", bookListModelId, hasTop);
         return bookListModelDTO;
+    }
+
+    /**
+     * 获取已发布的书单简单信息
+     * @return
+     */
+    public List<BookListModelDTO> findPublishBook(){
+        List<BookListModelDTO> bookListModelDTOS = bookListModelRepository.findPublishBook();
+        return bookListModelDTOS;
     }
 }

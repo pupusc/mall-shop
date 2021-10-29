@@ -1,11 +1,9 @@
 package com.wanmi.sbc.classify.response;
 
-import com.wanmi.sbc.booklistmodel.response.BookListModelMobileResponse;
-import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
-import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import lombok.Data;
 
-import java.util.List;
 
 /**
  * Description:
@@ -18,12 +16,17 @@ import java.util.List;
 public class ClassifyGoodsAndBookListModelResponse {
 
     /**
+     * 1表示 商品 2表示 书单
+     */
+    private Integer type;
+
+    /**
      * 商品列表信息
      */
-    private List<GoodsCustomResponse> goodsCustomResponseList;
+    private BookListModelAndGoodsListResponse bookListModelAndGoodsModel;
 
     /**
      * 书单信息
      */
-    private BookListModelMobileResponse bookListModelMobile;
+    private BookListModelProviderResponse bookListModel;
 }

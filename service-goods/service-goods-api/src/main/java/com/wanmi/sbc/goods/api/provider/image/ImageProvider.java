@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.api.provider.image;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
@@ -40,7 +41,7 @@ public interface ImageProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/image/list")
-    BaseResponse list(@RequestBody ImagePageProviderRequest imagePageProviderRequest);
+    BaseResponse<MicroServicePage<ImageProviderResponse>> list(@RequestBody ImagePageProviderRequest imagePageProviderRequest);
 
 
     /**

@@ -67,7 +67,7 @@ public class ImageService {
         imageDTO.setBeginTime(imageProviderRequest.getBeginTime());
         imageDTO.setEndTime(imageProviderRequest.getEndTime());
         imageDTO.setPublishState(0); //未启用
-        imageDTO.setOrderNum(orderNum);
+        imageDTO.setOrderNum(orderNum + 1);
         imageDTO.setImageType(imageProviderRequest.getImageType());
         imageDTO.setCreateTime(LocalDateTime.now());
         imageDTO.setUpdateTime(LocalDateTime.now());
@@ -156,7 +156,7 @@ public class ImageService {
 
 
     private Sort packageSort() {
-        return Sort.by(Sort.Direction.ASC, "sortNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
+        return Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.DESC, "updateTime"));
     }
 
     /**
@@ -195,7 +195,7 @@ public class ImageService {
                     conditionList.add(root.get("id").in(imagePageProviderRequest.getIdColl()));
                 }
                 if (!StringUtils.isEmpty(imagePageProviderRequest.getName())) {
-                    conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName()));
+                    conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName() + "%"));
                 }
                 if (imagePageProviderRequest.getPublishState() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("publishState"), imagePageProviderRequest.getPublishState()));

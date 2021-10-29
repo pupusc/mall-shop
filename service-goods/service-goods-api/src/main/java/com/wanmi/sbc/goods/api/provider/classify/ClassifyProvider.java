@@ -4,11 +4,13 @@ package com.wanmi.sbc.goods.api.provider.classify;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
+import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,30 @@ import java.util.List;
 @FeignClient(value = "${application.goods.name}", contextId = "ClassifyProvider")
 public interface ClassifyProvider {
 
+    /**
+     * 新增店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/classify/add")
+    BaseResponse add(@Validated(ClassifyProviderRequest.Add.class) @RequestBody ClassifyProviderRequest classifyProviderRequest);
+
+    /**
+     * 修改店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/classify/update")
+    BaseResponse update(@Validated(ClassifyProviderRequest.Update.class) @RequestBody ClassifyProviderRequest classifyProviderRequest);
+
+
+    /**
+     * 删除店铺分类
+     * @param classifyProviderRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/classify/delete")
+    BaseResponse delete(@Validated(ClassifyProviderRequest.Delete.class) @RequestBody ClassifyProviderRequest classifyProviderRequest);
 
     /**
      * 获取店铺下的所有分类列表
@@ -34,7 +60,7 @@ public interface ClassifyProvider {
      * 获取店铺下的所有分类列表
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/listClassifyNoChildByParentId")
+    @PostMapping("/goods/${application.goods.version}/classify/listClassifyNoChildByParentId")
     BaseResponse<List<ClassifyProviderResponse>> listClassifyNoChildByParentId(@RequestBody ClassifyCollectionProviderRequest classifyCollectionProviderRequest);
 
     /**

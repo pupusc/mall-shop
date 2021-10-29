@@ -1,7 +1,13 @@
 package com.wanmi.sbc.goods.api.request.notice;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -15,20 +21,31 @@ import java.time.LocalDateTime;
 @Data
 public class NoticeProviderRequest implements Serializable {
 
+    @NotNull(groups = {Update.class}, message = "内容不能为空")
     private Integer id;
 
     /**
      * 内容
      */
+    @NotBlank(groups = {Add.class}, message = "内容不能为空")
     private String content;
 
     /**
      * 开始时间
      */
+    @NotNull(groups = {Add.class}, message = "开始时间不能为空")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime beginTime;
 
     /**
      * 结束时间
      */
+    @NotNull(groups = {Add.class}, message = "结束时间不能为空")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
+
+    public interface Add{}
+    public interface Update{}
 }

@@ -27,7 +27,15 @@ public class RefreshConfig {
 
     @Value("${activity.start.time}")
     private volatile String activityStartTime;
+    @Value("${activity.end.time}")
+    private volatile String activityEndTime;
 
     @Value("${allow.keys}")
     private volatile String allowKeys;
+
+    @Value("${shop.activity.branch.config}")
+    private volatile String shopActivityBranchConfig;
+
+    @Value("${shop.activity.branch.top.config}")
+    private volatile String shopActivityBranchTopConfig;
 }

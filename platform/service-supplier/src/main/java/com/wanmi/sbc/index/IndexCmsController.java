@@ -138,7 +138,7 @@ public class IndexCmsController {
      */
     @PostMapping("/image/search")
     public BaseResponse searchAdvert(@RequestBody ImagePageProviderRequest imagePageProviderRequest){
-        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELLING_POINT_IMG.getCode()));
+        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode()));
         return imageProvider.listNoPage(imagePageProviderRequest);
     }
 }

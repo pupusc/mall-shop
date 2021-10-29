@@ -128,4 +128,11 @@ public interface BookListModelProvider {
      */
     @GetMapping("/goods/${application.goods.version}/booklistmodel/top/{bookListModelId}/{hasTop}")
     BaseResponse top(@PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("hasTop") Integer hasTop);
+
+    /**
+     * 获取已发布的乱序书单Id简单信息
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/findPublishBook")
+    BaseResponse<List<Integer>> findPublishBook();
 }

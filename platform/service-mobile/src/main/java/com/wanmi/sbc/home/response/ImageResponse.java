@@ -1,5 +1,9 @@
 package com.wanmi.sbc.home.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -31,33 +35,4 @@ public class ImageResponse {
      */
     private String imgHref;
 
-    /**
-     * 开始时间
-     */
-    private LocalDateTime beginTime;
-
-    /**
-     * 结束时间
-     */
-    private LocalDateTime endTime;
-
-    /**
-     * 启用状态 0未启用 1启用
-     */
-    private Integer publishState;
-
-    /**
-     * 排序
-     */
-    private Integer orderNum;
-
-    /**
-     *  0未开始 1进行中 2 已结束
-     */
-    private Integer status;
-
-    /**
-     * 图片类型 1首页轮播 2 广告图片 3 卖点图
-     */
-    private Integer imageType;
 }

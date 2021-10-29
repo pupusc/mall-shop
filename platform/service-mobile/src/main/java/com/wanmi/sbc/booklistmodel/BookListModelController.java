@@ -17,23 +17,16 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
-import com.wanmi.sbc.goods.api.enums.CategoryEnum;
-import com.wanmi.sbc.goods.api.enums.FilterRuleEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
-import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
-import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
-import com.wanmi.sbc.goods.api.request.chooserule.ChooseRuleProviderRequest;
-import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
-import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
@@ -58,7 +51,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -87,9 +79,6 @@ public class BookListModelController {
 
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
-
-    @Autowired
-    private ChooseRuleProvider chooseRuleProvider;
 
 
 
@@ -279,117 +268,7 @@ public class BookListModelController {
      */
     @PostMapping("/list-goods-by-book-list-model-id")
     public BaseResponse<MicroServicePage<GoodsCustomResponse>> listGoodsByBookListModelId(@Validated @RequestBody BookListModelGoodsPageRequest bookListModelGoodsRequest){
-
-//        List<GoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
-
-        MicroServicePage<GoodsCustomResponse> result = new MicroServicePage<>();
-        result.setTotal(0L);
-        result.setContent(new ArrayList<>());
-
-        //获取书单信息
-        BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
-        bookListModelProviderRequest.setId(bookListModelGoodsRequest.getBookListModelId());
-        BaseResponse<BookListModelProviderResponse> bookListModelProviderResponseBaseResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
-        if (bookListModelProviderResponseBaseResponse.getContext() == null) {
-            throw new IllegalArgumentException("书单id不存在");
-        }
-        //获取控件信息
-        ChooseRuleProviderRequest chooseRuleProviderRequest = new ChooseRuleProviderRequest();
-        chooseRuleProviderRequest.setBookListModelId(bookListModelGoodsRequest.getBookListModelId());
-        chooseRuleProviderRequest.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
-        BaseResponse<ChooseRuleProviderResponse> chooseRuleNoGoodsByConditionResponse = chooseRuleProvider.findChooseRuleNoGoodsByCondition(chooseRuleProviderRequest);
-        ChooseRuleProviderResponse chooseRuleProviderResponse = chooseRuleNoGoodsByConditionResponse.getContext();
-        if (chooseRuleProviderResponse == null) {
-            throw new IllegalArgumentException("书单控件不存在");
-        }
-        BookListGoodsPublishProviderRequest request = new BookListGoodsPublishProviderRequest();
-        request.setBookListIdColl(Collections.singletonList(bookListModelGoodsRequest.getBookListModelId()));
-        request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
-        request.setOperator("duan");
-        BaseResponse<List<BookListGoodsPublishProviderResponse>> bookListGoodsPublishProviderResponses = bookListModelProvider.listBookListGoodsPublish(request);
-        List<BookListGoodsPublishProviderResponse> goodsContext = bookListGoodsPublishProviderResponses.getContext();
-        if (!CollectionUtils.isEmpty(goodsContext)) {
-
-            //根据书单模版获取商品列表
-            Set<String> spuIdSet = goodsContext.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
-            EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-            esGoodsCustomRequest.setPageNum(0);
-            esGoodsCustomRequest.setPageSize(spuIdSet.size()); //TODO 一次性全部查询出来
-            esGoodsCustomRequest.setGoodIdList(spuIdSet);
-            if (!bookListModelAndGoodsService.getIsCounselor()) {
-                esGoodsCustomRequest.setCpsSpecial(0); //设置cps
-            }
-            BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
-            MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
-            List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
-            if (CollectionUtils.isEmpty(content)) {
-               return BaseResponse.success(result);
-            }
-
-            //esGoodsVo to map
-            Map<String, EsGoodsVO> esGoodsId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
-
-            List<EsGoodsVO> resultEsGoodsVoList = new ArrayList<>();
-            List<EsGoodsVO> resultEsGoodsVoUnStockList = new ArrayList<>();
-
-            int unShowSum = 0;
-
-            for (BookListGoodsPublishProviderResponse bookListGoodsPublishParam : goodsContext) {
-                EsGoodsVO esGoodsVOLocal = esGoodsId2EsGoodsVoMap.get(bookListGoodsPublishParam.getSpuId());
-                //无效的对象信息
-                if (esGoodsVOLocal == null) {
-                    unShowSum++;
-                    continue;
-                }
-                //无库存不展示
-                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_UN_SHOW && esGoodsVOLocal.getStock() <= 0) {
-                    unShowSum++;
-                    continue;
-                }
-                //无库存沉底
-                if (FilterRuleEnum.getByCode(chooseRuleProviderResponse.getFilterRule()) == FilterRuleEnum.OUT_OF_STOCK_BOTTOM && esGoodsVOLocal.getStock() <= 0) {
-                    resultEsGoodsVoUnStockList.add(esGoodsVOLocal);
-                    continue;
-                }
-                resultEsGoodsVoList.add(esGoodsVOLocal);
-            }
-
-            resultEsGoodsVoList.addAll(resultEsGoodsVoUnStockList);
-
-
-            long total = goodsContext.size() - unShowSum;
-            total = total <= 0 ? 0 : total;
-
-            int from = bookListModelGoodsRequest.getPageNum() * bookListModelGoodsRequest.getPageSize();
-            int to = (bookListModelGoodsRequest.getPageNum() + 1) * bookListModelGoodsRequest.getPageSize();
-
-            result.setTotal(total);
-            if (from > total) {
-                return BaseResponse.success(result);
-            } else if (to > total) {
-                to = Integer.parseInt(total+"");
-            }
-
-            List<EsGoodsVO> esGoodsVOList = resultEsGoodsVoList.subList(from, to);
-
-            List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOList);
-            if (CollectionUtils.isEmpty(goodsVOList)) {
-                return BaseResponse.success(result);
-            }
-            Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-
-            List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOList, bookListModelAndGoodsService.getCustomerVo());
-            if (CollectionUtils.isEmpty(goodsInfoVOList)) {
-                return BaseResponse.success(result);
-            }
-
-            result.setContent(esGoodsVOList.stream()
-                    .map(ex ->
-                        bookListModelAndGoodsService.packageGoodsCustomResponse(spuId2GoodsVoMap.get(ex.getId()), ex, goodsInfoVOList)).collect(Collectors.toList()));
-            return BaseResponse.success(result);
-
-        }
-        return BaseResponse.success(result);
+        return bookListModelAndGoodsService.listGoodsByBookListModelId(bookListModelGoodsRequest.getBookListModelId(), bookListModelGoodsRequest.getPageNum(), bookListModelGoodsRequest.getPageSize(), null);
     }
 
 

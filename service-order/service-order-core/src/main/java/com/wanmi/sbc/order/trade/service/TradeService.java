@@ -360,6 +360,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -403,6 +405,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RefreshScope
 public class TradeService {
 
     /**
@@ -614,6 +617,9 @@ public class TradeService {
     private CustomerProvider customerProvider;
     @Autowired
     private SensorsDataService sensorsDataService;
+
+    @Value("${whiteOrder}")
+    private String whiteOrder;
 
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
@@ -3335,6 +3341,106 @@ public class TradeService {
 
         return resultList;
     }
+
+    /**
+     * 补充子单
+     * @param oid
+     * @param userId
+     */
+    public void addProviderTrade(String oid, String userId) {
+        // 根据供货商拆单并入库
+
+        List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
+        List<TradeCommitResult> resultList = new ArrayList<>();
+        for (Trade trade : trades) {
+            try{
+                this.splitProvideTrade(trade);
+                if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods()
+                        && Objects.nonNull(trade.getBookingType()) && trade.getBookingType() == BookingType.EARNEST_MONEY) {
+                    resultList.add(new TradeCommitResult(trade.getId(),
+                            trade.getParentId(), trade.getTradeState(),
+                            trade.getPaymentOrder(), trade.getTradePrice().getEarnestPrice(),
+                            trade.getOrderTimeOut(), trade.getSupplier().getStoreName(),
+                            trade.getSupplier().getIsSelf()));
+                } else {
+                    resultList.add(new TradeCommitResult(trade.getId(),
+                            trade.getParentId(), trade.getTradeState(),
+                            trade.getPaymentOrder(), trade.getTradePrice().getTotalPrice(),
+                            trade.getOrderTimeOut(), trade.getSupplier().getStoreName(),
+                            trade.getSupplier().getIsSelf()));
+                }
+            } catch (Exception e) {
+                log.error("myself commit trade error,trade={}，错误信息：{}", trade, e);
+                if (e instanceof SbcRuntimeException) {
+                    throw e;
+                } else {
+                    throw new SbcRuntimeException("K-020010");
+                }
+            }
+        }
+
+
+        // 平台优惠券
+        List<CouponCodeBatchModifyDTO> dtoList = new ArrayList<>();
+//        if (tradeGroup != null) {
+//            // 2.修改优惠券状态
+//            TradeCouponVO tradeCoupon = tradeGroup.getCommonCoupon();
+//            dtoList.add(CouponCodeBatchModifyDTO.builder()
+//                    .couponCodeId(tradeCoupon.getCouponCodeId())
+//                    .orderCode(null)
+//                    .customerId(userId)
+//                    .useStatus(DefaultFlag.YES).build());
+//        }
+        // 店铺优惠券
+        // 批量修改优惠券状态
+        trades.forEach(trade -> {
+            if (trade.getTradeCoupon() != null) {
+                TradeCouponVO tradeCoupon = trade.getTradeCoupon();
+                dtoList.add(CouponCodeBatchModifyDTO.builder()
+                        .couponCodeId(tradeCoupon.getCouponCodeId())
+                        .orderCode(trade.getId())
+                        .customerId(trade.getBuyer().getId())
+                        .useStatus(DefaultFlag.YES).build());
+            }
+        });
+        if (dtoList.size() > 0) {
+            couponCodeProvider.batchModify(CouponCodeBatchModifyRequest.builder().modifyDTOList(dtoList).build());
+        }
+
+        trades.stream().filter(trade -> Objects.nonNull(trade.getTradePrice()) &&
+                Objects.nonNull(trade.getTradePrice().getPoints()) && trade.getTradePrice().getPoints() > 0).forEach(trade -> {
+            // 增加客户积分明细 扣除积分
+            customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
+                    .customerId(trade.getBuyer().getId())
+                    .type(OperateType.DEDUCT)
+                    .serviceType(PointsServiceType.ORDER_DEDUCTION)
+                    .points(trade.getTradePrice().getPoints())
+                    .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
+                    .build());
+        });
+
+        trades.stream().filter(trade -> !AuditState.REJECTED.equals(trade.getTradeState().getAuditState())).forEach(trade -> {
+            MessageMQRequest messageMQRequest = new MessageMQRequest();
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", NodeType.ORDER_PROGRESS_RATE.toValue());
+            map.put("id", trade.getId());
+            if (AuditState.CHECKED.equals(trade.getTradeState().getAuditState())) {
+                messageMQRequest.setNodeCode(OrderProcessType.ORDER_COMMIT_SUCCESS.getType());
+                map.put("node", OrderProcessType.ORDER_COMMIT_SUCCESS.toValue());
+            } else {
+                messageMQRequest.setNodeCode(OrderProcessType.ORDER_COMMIT_SUCCESS_CHECK.getType());
+                map.put("node", OrderProcessType.ORDER_COMMIT_SUCCESS_CHECK.toValue());
+            }
+            messageMQRequest.setNodeType(NodeType.ORDER_PROGRESS_RATE.toValue());
+            messageMQRequest.setParams(Lists.newArrayList(trade.getTradeItems().get(0).getSkuName()));
+            messageMQRequest.setPic(trade.getTradeItems().get(0).getPic());
+            messageMQRequest.setRouteParam(map);
+            messageMQRequest.setCustomerId(trade.getBuyer().getId());
+            messageMQRequest.setMobile(trade.getBuyer().getAccount());
+            orderProducerService.sendMessage(messageMQRequest);
+        });
+    }
+
 
     /**
      * 提交积分订单
@@ -6830,13 +6936,20 @@ public class TradeService {
         boolean signVerified = false;
         Map<String, String> params =
                 JSONObject.parseObject(tradePayOnlineCallBackRequest.getAliPayCallBackResultStr(), Map.class);
+        //商户订单号
+        String out_trade_no = params.get("out_trade_no");
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            if (Objects.equals(whiteOrder, out_trade_no)) {
+                log.info("订单：{} 不走签名验证", out_trade_no);
+                signVerified = true;
+            } else {
+                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            }
+            log.info("验证签名返回的结果为：{}" , signVerified);
         } catch (AlipayApiException e) {
             log.error("支付宝回调签名校验异常：", e);
         }
-        //商户订单号
-        String out_trade_no = params.get("out_trade_no");
+
         if (signVerified) {
             try {
                 //支付宝交易号
