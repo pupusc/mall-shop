@@ -79,7 +79,7 @@ public class ClassifyController {
         //根据销量获取商品列表
         ClassifyGoodsAndBookListModelResponse resultClassifyGoodsAndBookListModel = new ClassifyGoodsAndBookListModelResponse();
 
-        //获取当前分类
+        //获取当前分类下的所有子分类
         ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
         classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(classifyGoodsAndBookListModelRequest.getClassifyId()));
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);

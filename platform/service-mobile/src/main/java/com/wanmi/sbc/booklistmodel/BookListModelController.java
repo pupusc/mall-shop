@@ -407,19 +407,8 @@ public class BookListModelController {
 
         //获取商品id信息
         Collection<String> spuIdCollection = content.stream().map(EsGoodsVO::getId).collect(Collectors.toSet());
-        //根据商品id 获取书单信息
-        BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest = new BookListModelBySpuIdCollQueryRequest();
-        bookListModelBySpuIdCollQueryRequest.setSpuIdCollection(spuIdCollection);
-        bookListModelBySpuIdCollQueryRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
-        BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdCollResponse =
-                bookListModelProvider.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest);
-        List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
-//        if (CollectionUtils.isEmpty(listBookListModelNoPageBySpuIdColl)) {
-//            return BaseResponse.success(result);
-//        }
-        //list转化成map
-        Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdMap =
-                listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
+        //商品id 对应的书单映射 信息
+        Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdMap = bookListModelAndGoodsService.mapBookLitModelByGoodsIdColl(spuIdCollection);
         //书单和商品的映射
         List<BookListModelAndGoodsCustomResponse> resultTmp = new ArrayList<>();
 
