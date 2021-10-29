@@ -41,7 +41,6 @@ public class GoodsAuditJobHandler extends IJobHandler {
     @Override
     public ReturnT<String> execute(String params) throws Exception {
         log.info("goods risk verify start......");
-        int pageSize = 20;
         try {
             riskVerifyProvider.verifyImage();
             return SUCCESS;
