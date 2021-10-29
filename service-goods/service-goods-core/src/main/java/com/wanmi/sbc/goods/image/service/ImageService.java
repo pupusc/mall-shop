@@ -208,8 +208,8 @@ public class ImageService {
                         conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), LocalDateTime.now()));
                     } else if (Objects.equals(imagePageProviderRequest.getStatus(), 1)) {
                         LocalDateTime now = LocalDateTime.now();
-                        conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), now));
-                        conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), now));
+                        conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), now));
+                        conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
                     } else {
                         conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), LocalDateTime.now()));
                     }

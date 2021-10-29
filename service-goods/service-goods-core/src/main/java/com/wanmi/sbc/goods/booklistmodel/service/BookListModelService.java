@@ -106,6 +106,11 @@ public class BookListModelService {
         BeanUtils.copyProperties(bookListModelRequest, bookListModelParam);
         bookListModelParam.setId(null);
         bookListModelParam.setHasTop(HasTopEnum.NO.getCode());
+        if (bookListModelRequest.getTagType() != null) {
+            bookListModelParam.setTagType(bookListModelRequest.getTagType());
+        } else {
+            bookListModelParam.setTagType(0); //默认为0
+        }
         bookListModelParam.setPublishState(PublishStateEnum.UN_PUBLISH.getCode());
         bookListModelParam.setCreateTime(new Date());
         bookListModelParam.setUpdateTime(new Date());

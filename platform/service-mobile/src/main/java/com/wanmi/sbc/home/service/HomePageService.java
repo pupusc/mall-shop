@@ -129,7 +129,7 @@ public class HomePageService {
             if (Objects.equals(imageProviderParam.getImageType(), ImageTypeEnum.ROTATION_CHART_IMG.getCode())) {
                 rotationChartImgList.add(imageResponse);
             } else {
-                rotationChartImgList.add(imageResponse);
+                advertImgList.add(imageResponse);
             }
         }
         return homeImageResponse;
@@ -166,7 +166,7 @@ public class HomePageService {
             return new HashMap<>();
         }
         Map<String, HomeTopicResponse> code2IndexModuleMap =
-                context.stream().filter(ex -> Objects.equals(ex.getPublishState(), PublishState.ENABLE))
+                context.stream().filter(ex -> Objects.equals(ex.getPublishState(), PublishState.ENABLE.toValue()))
                         .map(ex -> {
                             HomeTopicResponse homeTopicResponse = new HomeTopicResponse();
                             BeanUtils.copyProperties(ex, homeTopicResponse);
