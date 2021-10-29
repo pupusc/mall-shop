@@ -32,7 +32,7 @@ public class GoodsSyncService {
         if(request == null || CollectionUtils.isEmpty(request.getIds())){
             throw new SbcRuntimeException("");
         }
-        goodsSyncRepository.batchUpdateAdStatus(request.getIds(), GoodsAdAuditStatus.WAITTOAUDIT.toValue());
+        goodsSyncRepository.batchUpdateAdStatus(request.getIds(), GoodsAdAuditStatus.WAITTOAUDIT.toValue(),GoodsAdAuditStatus.WAIT.toValue());
     }
 
     /**
