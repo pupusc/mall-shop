@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.provider.impl;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
+import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
@@ -110,6 +111,12 @@ public class IndexCmsController implements IndexCmsProvider {
      */
     public BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
         return BaseResponse.success(this.changeIndexFeature2Vo(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest)));
+    }
+
+    @Override
+    public BaseResponse sortSpecialTopic(List<ImageSortProviderRequest> imageSortProviderRequestList) {
+        indexCmsService.sortSpecialTopic(imageSortProviderRequestList);
+        return BaseResponse.SUCCESSFUL();
     }
 
 
