@@ -25,7 +25,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -68,6 +71,7 @@ public class RiskVerifyService {
                 log.warn("push to tongdun error,request:{}", JSON.toJSONString(p),e);
             }
         });
+        goodsSyncRepository.batchUpdateAdStatus(goodsList.getContent().stream().map(GoodsSync::getId).collect(Collectors.toList()), GoodsAdAuditStatus.AUDITING.toValue(),GoodsAdAuditStatus.WAITTOAUDIT.toValue());
     }
 
 
