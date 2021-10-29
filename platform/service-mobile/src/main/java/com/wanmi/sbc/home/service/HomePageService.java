@@ -282,7 +282,8 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<GoodsCustomResponse> result = new ArrayList<>();
-        String newBookListStr = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST) + "";
+        Object homeNewBookListObj = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST);
+        String newBookListStr = homeNewBookListObj == null ? "" : homeNewBookListObj.toString();
         if (!StringUtils.isEmpty(newBookListStr)) {
             result.addAll(JSON.parseArray(newBookListStr, GoodsCustomResponse.class));
         } else {
@@ -292,7 +293,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             //按照更新时间排序
-            sortBuilderList.add(new SortCustomBuilder("updateTime", SortOrder.DESC));
+            sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
             result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(result)) {
@@ -321,7 +322,8 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<GoodsCustomResponse> result = new ArrayList<>();
-        String sellWellListStr = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_BOOK_LIST) + "";
+        Object homeSellWellBookList = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_BOOK_LIST);
+        String sellWellListStr = homeSellWellBookList == null ? "" : homeSellWellBookList.toString();
         if (!StringUtils.isEmpty(sellWellListStr)) {
             result.addAll(JSON.parseArray(sellWellListStr, GoodsCustomResponse.class));
         } else {
@@ -331,8 +333,8 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             //按照销售数量排序 7 天 TODO
-            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+//            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+//            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
             result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(result)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
@@ -360,7 +362,8 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<GoodsCustomResponse> result = new ArrayList<>();
-        String sellWellListStr = redisTemplate.opsForValue().get(KEY_HOME_SPECIAL_OFFER_BOOK_LIST) + "";
+        Object homeSpecialOfferBookList = redisTemplate.opsForValue().get(KEY_HOME_SPECIAL_OFFER_BOOK_LIST);
+        String sellWellListStr =  homeSpecialOfferBookList == null ? "" : homeSpecialOfferBookList.toString();
         if (!StringUtils.isEmpty(sellWellListStr)) {
             result.addAll(JSON.parseArray(sellWellListStr, GoodsCustomResponse.class));
         }
@@ -370,8 +373,8 @@ public class HomePageService {
         esGoodsCustomRequest.setPageSize(200);
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
         //按照销售数量排序 7 天 TODO
-        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+//        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+//        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
         result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
         if (!CollectionUtils.isEmpty(result)) {
             //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
