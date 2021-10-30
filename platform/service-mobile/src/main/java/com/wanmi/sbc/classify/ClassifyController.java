@@ -2,13 +2,14 @@ package com.wanmi.sbc.classify;
 
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
-import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.classify.request.ClassifyGoodsAndBookListModelRequest;
+import com.wanmi.sbc.classify.request.ClassifyGoodsAndBookListModelPageRequest;
+import com.wanmi.sbc.classify.request.HomeClassifyGoodsAndBookListModelRequest;
 import com.wanmi.sbc.classify.response.ClassifyGoodsAndBookListModelResponse;
 import com.wanmi.sbc.classify.response.ClassifyNoChildResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -33,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +84,8 @@ public class ClassifyController {
      * @param classifyGoodsAndBookListModelRequest
      * @return
      */
-    @PostMapping("/listClassifyGoodsAndBookListModel")
-    public BaseResponse<List<ClassifyGoodsAndBookListModelResponse>> listClassifyGoodsAndBookListModel(@RequestBody @Validated ClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest){
+    @PostMapping("/index/listClassifyGoodsAndBookListModel")
+    public BaseResponse<List<ClassifyGoodsAndBookListModelResponse>> listClassifyGoodsAndBookListModel(@RequestBody @Validated HomeClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest){
         List<ClassifyGoodsAndBookListModelResponse> result = new ArrayList<>();
         int pageSize = classifyGoodsAndBookListModelRequest.getPageSize(); //每次加载为 5的倍数
         int radix = 5; //基数
@@ -170,6 +170,82 @@ public class ClassifyController {
                 }
             }
         }
+        return BaseResponse.success(result);
+    }
+
+    /**
+     * 获取分类页的商品列表
+     * @param classifyGoodsAndBookListModelPageRequest
+     * @return
+     */
+    @PostMapping("/list-by-classify-id")
+    public BaseResponse<MicroServicePage<BookListModelAndGoodsCustomResponse> > listByClassifyId(@Validated @RequestBody ClassifyGoodsAndBookListModelPageRequest classifyGoodsAndBookListModelPageRequest) {
+        MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
+        result.setContent(new ArrayList<>());
+        result.setTotal(0);
+
+        //获取当前一级分类下的所有子分类
+        ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
+        classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(classifyGoodsAndBookListModelPageRequest.getClassifyId()));
+        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
+        if (CollectionUtils.isEmpty(listBaseResponse.getContext())) {
+            return BaseResponse.success(result);
+        }
+        //获取二级分类列表
+        Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
+
+        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+        esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
+        esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
+        esGoodsCustomRequest.setClassifyIdList(childClassifySet);
+        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+        //拼装条件 0 表示推荐
+        if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {
+            //TODO
+        } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 1) {
+            //按照评分排序
+            sortBuilderList.add(new SortCustomBuilder("goodsExtProps.score", SortOrder.DESC));
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 2) {
+            //按照时间排序
+            sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 3) {
+            //按照销售数量排序
+            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        } else {
+            return BaseResponse.success(result);
+        }
+
+        MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
+        List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
+        if (CollectionUtils.isEmpty(esGoodsVOList)) {
+            return BaseResponse.success(result);
+        }
+        //获取商品书单信息
+        Set<String> goodsIdSet = esGoodsVOList.stream().map(EsGoodsVO::getId).collect(Collectors.toSet());
+        Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdProviderResponseMap =
+                bookListModelAndGoodsService.mapBookLitModelByGoodsIdColl(goodsIdSet);
+
+        result.setTotal(esGoodsVOMicroServiceResponse.getTotal());
+        result.setNumber(esGoodsVOMicroServiceResponse.getNumber());
+        result.setSize(esGoodsVOMicroServiceResponse.getSize());
+        result.setPageable(esGoodsVOMicroServiceResponse.getPageable());
+        List<GoodsCustomResponse> goodsCustomResponsesList = bookListModelAndGoodsService.listGoodsCustom(esGoodsVOList);
+        List<BookListModelAndGoodsCustomResponse> resultTmp = new ArrayList<>();
+        for (GoodsCustomResponse goodsCustomParam : goodsCustomResponsesList) {
+            BookListModelAndGoodsCustomResponse bookListModelAndGoodsCustomModel = new BookListModelAndGoodsCustomResponse();
+            bookListModelAndGoodsCustomModel.setGoodsCustomVo(goodsCustomParam);
+            BookListModelGoodsIdProviderResponse bookListModelGoodsIdModel = bookListModelGoodsIdProviderResponseMap.get(goodsCustomParam.getGoodsId());
+            if (bookListModelGoodsIdModel != null) {
+                BookListModelSimpleResponse bookListModelSimpleModel = new BookListModelSimpleResponse();
+                BeanUtils.copyProperties(bookListModelGoodsIdModel, bookListModelSimpleModel);
+                bookListModelAndGoodsCustomModel.setBookListModel(bookListModelSimpleModel);
+            }
+            resultTmp.add(bookListModelAndGoodsCustomModel);
+        }
+        result.setContent(resultTmp);
         return BaseResponse.success(result);
     }
 }

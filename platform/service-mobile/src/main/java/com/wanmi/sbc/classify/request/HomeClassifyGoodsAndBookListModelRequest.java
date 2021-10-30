@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class ClassifyGoodsAndBookListModelRequest {
+public class HomeClassifyGoodsAndBookListModelRequest {
 
     private int pageSize = 10;
 

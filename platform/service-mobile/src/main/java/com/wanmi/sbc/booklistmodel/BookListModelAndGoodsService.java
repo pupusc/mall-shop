@@ -475,7 +475,7 @@ public class BookListModelAndGoodsService {
      * @param esGoodsCustomRequest
      * @return
      */
-    public List<EsGoodsVO> listRandomEsGoodsVo(EsGoodsCustomQueryProviderRequest esGoodsCustomRequest, int pageSize) {
+    public List<EsGoodsVO> listRandomEsGoodsVo(EsGoodsCustomQueryProviderRequest esGoodsCustomRequest, int randomPageSize) {
         List<EsGoodsVO> resultEsGoodsList = new ArrayList<>();
         BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
@@ -484,12 +484,23 @@ public class BookListModelAndGoodsService {
             return resultEsGoodsList;
         }
         //获取随机书籍
-        Collection<Integer> randomIndex = RandomUtil.getRandom(content.size(), pageSize);
+        Collection<Integer> randomIndex = RandomUtil.getRandom(content.size(), randomPageSize);
 
         for (Integer index : randomIndex) {
             resultEsGoodsList.add(content.get(index));
         }
         return resultEsGoodsList;
+    }
+
+
+    /**
+     * 获取 esGoodsVo
+     * @param esGoodsCustomRequest
+     * @return
+     */
+    public MicroServicePage<EsGoodsVO> listEsGoodsVo(EsGoodsCustomQueryProviderRequest esGoodsCustomRequest) {
+        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+        return esGoodsVOMicroServiceResponse.getContext();
     }
 
 
