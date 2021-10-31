@@ -140,6 +140,8 @@ public class ClassifyController {
 
         //开始封装数据
         for (int i = 0; i < goodsCustomResponsesList.size(); i++) {
+
+
             //根据销量获取商品列表
             ClassifyGoodsAndBookListModelResponse resultClassifyGoods = new ClassifyGoodsAndBookListModelResponse();
 
@@ -155,8 +157,9 @@ public class ClassifyController {
             resultClassifyGoods.setBookListModelAndGoodsCustomModel(bookListModelAndGoodsCustomParam);
             resultClassifyGoods.setType(1); //商品
             result.add(resultClassifyGoods);
+
             //表示书单
-            if ((i + 1) % radix == 0) {
+            if ((i + 2) % radix == 0) {
                 Integer bookListModelRandomIndex = RandomUtil.getRandom(context.size());
                 if (bookListModelRandomIndex != null) {
                     ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
