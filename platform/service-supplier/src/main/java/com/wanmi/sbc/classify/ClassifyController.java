@@ -11,6 +11,7 @@ import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import com.wanmi.sbc.order.api.request.trade.TradePushRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +43,11 @@ public class ClassifyController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    @PostMapping("/pushOrderToERP")
+    public BaseResponse pushOrderToERP(@RequestBody TradePushRequest request) {
+        tradeProvider.pushOrderToERP(request);
+        return BaseResponse.SUCCESSFUL();
+    }
     /**
      * 新增分类
      * @menu 后台CMS2.0

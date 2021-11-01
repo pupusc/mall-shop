@@ -86,7 +86,7 @@ public class BookListModelController {
             throw new IllegalArgumentException("商品最大为100");
         }
         List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
-                .filter(ex -> StringUtils.isEmpty(ex.getSkuId())).collect(Collectors.toList());
+                .filter(ex -> StringUtils.isEmpty(ex.getSpuId())).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(checkParam)) {
             throw new IllegalArgumentException("请求参数错误");
         }
