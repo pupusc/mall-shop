@@ -73,10 +73,10 @@ public class FreightTemplateGoodsService {
     public void renewalFreightTemplateGoods(FreightTemplateGoodsSaveRequest request) {
         FreightTemplateGoods freightTemplateGoods = null;
         if (request.getFreightTempId() == null) {
-            int count = freightTemplateGoodsRepository.countByStoreIdAndDelFlag(request.getStoreId(), DeleteFlag.NO);
-            if (count >= Constants.FREIGHT_GOODS_MAX_SIZE) {
-                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-            }
+//            int count = freightTemplateGoodsRepository.countByStoreIdAndDelFlag(request.getStoreId(), DeleteFlag.NO);
+//            if (count >= Constants.FREIGHT_GOODS_MAX_SIZE) {
+//                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//            }
             //校验模板名称是否重复
             this.freightTemplateNameIsRepetition(request.getStoreId(), request.getFreightTempName(),false);
             freightTemplateGoods = new FreightTemplateGoods();
