@@ -221,6 +221,7 @@ public class IndexCmsService {
         }
         indexModule.setUpdateTime(LocalDateTime.now());
         indexModuleRepository.save(indexModule);
+        stringRedisTemplate.delete(CMS_TITLE_CACHE);
     }
 
     /**

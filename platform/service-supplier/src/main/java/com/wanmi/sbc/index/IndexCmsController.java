@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
+import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,8 +152,11 @@ public class IndexCmsController {
      * @status done
      */
     @PostMapping("/image/search")
-    public BaseResponse searchAdvert(@RequestBody ImagePageProviderRequest imagePageProviderRequest){
+    public BaseResponse<Map<String, List<ImageProviderResponse>>> searchAdvert(@RequestBody ImagePageProviderRequest imagePageProviderRequest){
         imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode()));
-        return imageProvider.listNoPage(imagePageProviderRequest);
+        BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
+        Map<String, List<ImageProviderResponse>> content = new HashMap<>();
+        content.put("content", listBaseResponse.getContext());
+        return BaseResponse.success(content);
     }
 }

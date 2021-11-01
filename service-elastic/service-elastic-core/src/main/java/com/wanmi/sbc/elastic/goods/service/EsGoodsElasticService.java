@@ -14,6 +14,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
 import com.wanmi.sbc.elastic.goods.model.root.*;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -118,6 +119,9 @@ public class EsGoodsElasticService {
 
     @Autowired
     private EnterpriseGoodsInfoProvider enterpriseGoodsInfoProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     /**
      * 初始化SPU持化于ES
@@ -312,6 +316,8 @@ public class EsGoodsElasticService {
                     //商品店铺分类Map
                     storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
                             .collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId, Collectors.mapping(StoreCateGoodsRelaVO::getStoreCateId, Collectors.toList()))));
+
+//                    classifyProvider.listGoodsIdOfChildOfParentByGoodsId(Arrays.toString(goodsIds.toArray()));
 
                     List<Long> storeIds = goodsList.stream().map(GoodsVO::getStoreId).filter(Objects::nonNull)
                             .filter(v -> !storeMap.containsKey(v)) //仅提取不存在map的store
