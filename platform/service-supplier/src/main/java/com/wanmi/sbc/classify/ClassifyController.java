@@ -5,8 +5,12 @@ import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
+import com.wanmi.sbc.order.api.request.trade.TradeProviderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +29,16 @@ public class ClassifyController {
 
     @Autowired
     private ClassifyProvider classifyProvider;
+
+    @Autowired
+    private TradeProvider tradeProvider;
+
+
+    @PostMapping("/addProviderTrade")
+    public BaseResponse addProviderTrade(@RequestBody TradeProviderRequest request) {
+        tradeProvider.addProviderTrade(request.getOid(), request.getUserId());
+        return BaseResponse.SUCCESSFUL();
+    }
 
     /**
      *
