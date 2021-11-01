@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * CMS首页
@@ -112,8 +114,11 @@ public class IndexCmsController {
      * @status done
      */
     @PostMapping("/title/search")
-    public BaseResponse<List<IndexModuleVo>> searchTitle(@RequestBody CmsTitleSearchRequest cmsTitleSearchRequest){
-        return indexCmsProvider.searchTitle(cmsTitleSearchRequest);
+    public BaseResponse<Map<String, List<IndexModuleVo>>> searchTitle(@RequestBody CmsTitleSearchRequest cmsTitleSearchRequest){
+        BaseResponse<List<IndexModuleVo>> listBaseResponse = indexCmsProvider.searchTitle(cmsTitleSearchRequest);
+        Map<String, List<IndexModuleVo>> content = new HashMap<>();
+        content.put("content", listBaseResponse.getContext());
+        return BaseResponse.success(content);
     }
 
     /**
