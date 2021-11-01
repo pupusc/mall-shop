@@ -64,6 +64,12 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTimeEnd;
 
+
+    /**
+     * 店铺分类id
+     */
+    public Collection<Integer> classifyIdList;
+
     /**
      * 特价书 市场价/定价 小于 0.5
      */

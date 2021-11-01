@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.IndexModuleEnum;
@@ -190,29 +191,36 @@ public class HomePageService {
         bookListModelPageProviderRequest.setPageNum(0);
         bookListModelPageProviderRequest.setPageSize(15);
         if (editRecommend != null) {
+            try {
+                //编辑推荐
+                bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
+                bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+                BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceBookRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
 
-            //编辑推荐
-            bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
-            bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
-            BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceBookRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
-
-            HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
-            homeBookListRecommendSubResponse.setHomeTopicResponse(editRecommend);
-            homeBookListRecommendSubResponse.setRecommendList(microServiceBookRecommend.getContext().getContent());
-            homeRecommend.setBookListModelRecommend(homeBookListRecommendSubResponse);
+                HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
+                homeBookListRecommendSubResponse.setHomeTopicResponse(editRecommend);
+                homeBookListRecommendSubResponse.setRecommendList(microServiceBookRecommend.getContext().getContent());
+                homeRecommend.setBookListModelRecommend(homeBookListRecommendSubResponse);
+            } catch (Exception ex) {
+                log.info("HomePageService homeRecommend editRecommend error", ex);
+            }
         }
 
         HomeTopicResponse famousRecommend = homeTopicMap.get(IndexModuleEnum.FAMOUS_RECOMMEND.getCode());
         if (famousRecommend != null) {
-            //名人推荐
-            bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
-            bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
-            BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceFamousRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+            try {
+                //名人推荐
+                bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
+                bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
+                BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceFamousRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
 
-            HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
-            homeBookListRecommendSubResponse.setHomeTopicResponse(famousRecommend);
-            homeBookListRecommendSubResponse.setRecommendList(microServiceFamousRecommend.getContext().getContent());
-            homeRecommend.setFamousRecommend(homeBookListRecommendSubResponse);
+                HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
+                homeBookListRecommendSubResponse.setHomeTopicResponse(famousRecommend);
+                homeBookListRecommendSubResponse.setRecommendList(microServiceFamousRecommend.getContext().getContent());
+                homeRecommend.setFamousRecommend(homeBookListRecommendSubResponse);
+            } catch (Exception ex) {
+                log.info("HomePageService homeRecommend famousRecommend error", ex);
+            }
         }
         return homeRecommend;
     }
@@ -228,46 +236,64 @@ public class HomePageService {
         //新上
         Map<String, HomeTopicResponse> homeTopicMap = this.getHomeTopic();
         HomeTopicResponse newBooks = homeTopicMap.get(IndexModuleEnum.NEW_BOOKS.getCode());
-        if (newBooks != null) {
-            HomeGoodsListSubResponse newBookList = this.newBookList(pageSize);
-            newBookList.setHomeTopicResponse(newBooks);
-            homeGoodsListResponse.setNewBookGoods(newBookList);
+        try {
+            if (newBooks != null) {
+                HomeGoodsListSubResponse newBookList = this.newBookList(pageSize);
+                newBookList.setHomeTopicResponse(newBooks);
+                homeGoodsListResponse.setNewBookGoods(newBookList);
+            }
+        } catch (Exception ex) {
+            log.info("homeGoodsList newBooks exception", ex);
         }
 
         //畅销
         HomeTopicResponse sellWellBooks = homeTopicMap.get(IndexModuleEnum.SELL_WELL_BOOKS.getCode());
-        if (sellWellBooks != null) {
-            HomeGoodsListSubResponse sellWellBookResponse = this.sellWellBookList(pageSize);
-            sellWellBookResponse.setHomeTopicResponse(sellWellBooks);
-            homeGoodsListResponse.setSellWellGoods(sellWellBookResponse);
-        }
-
-        //特价
-        HomeTopicResponse specialOfferBooks = homeTopicMap.get(IndexModuleEnum.SPECIAL_OFFER_BOOKS.getCode());
-        if (specialOfferBooks != null) {
-            HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize);
-            specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
-            homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
-        }
-
-        //非畅销
-        HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
-        if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
-            BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
-                    bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, 20);
-            List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
-            List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
-            for (GoodsCustomResponse goodsCustomParam : content) {
-                BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
-                param.setGoodsCustomVo(goodsCustomParam);
-                bookListModelAndGoodsCustomResponseList.add(param);
+        try {
+            if (sellWellBooks != null) {
+                HomeGoodsListSubResponse sellWellBookResponse = this.sellWellBookList(pageSize);
+                sellWellBookResponse.setHomeTopicResponse(sellWellBooks);
+                homeGoodsListResponse.setSellWellGoods(sellWellBookResponse);
             }
-
-            HomeGoodsListSubResponse unSellWellBooksResponse = new HomeGoodsListSubResponse();
-            unSellWellBooksResponse.setHomeTopicResponse(unSellWellBooks);
-            unSellWellBooksResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomResponseList);
-            homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
+        } catch (Exception ex) {
+            log.info("homeGoodsList sellWellBooks exception", ex);
         }
+
+       try {
+           //特价
+           HomeTopicResponse specialOfferBooks = homeTopicMap.get(IndexModuleEnum.SPECIAL_OFFER_BOOKS.getCode());
+           if (specialOfferBooks != null) {
+               HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize);
+               specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
+               homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
+           }
+       } catch (Exception ex) {
+           log.info("homeGoodsList specialOfferBooks exception", ex);
+       }
+
+
+       try {
+           //非畅销
+           HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
+           if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
+               BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
+                       bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, 20);
+               List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
+               List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
+               for (GoodsCustomResponse goodsCustomParam : content) {
+                   BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
+                   param.setGoodsCustomVo(goodsCustomParam);
+                   bookListModelAndGoodsCustomResponseList.add(param);
+               }
+
+               HomeGoodsListSubResponse unSellWellBooksResponse = new HomeGoodsListSubResponse();
+               unSellWellBooksResponse.setHomeTopicResponse(unSellWellBooks);
+               unSellWellBooksResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomResponseList);
+               homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
+           }
+       } catch (Exception ex) {
+           log.info("homeGoodsList unSellWellBooks exception", ex);
+       }
+
 
         return homeGoodsListResponse;
     }
@@ -281,10 +307,11 @@ public class HomePageService {
     private HomeGoodsListSubResponse newBookList(int pageSize) {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
-        List<GoodsCustomResponse> result = new ArrayList<>();
-        String newBookListStr = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST) + "";
+        List<EsGoodsVO> resultTmp = new ArrayList<>();
+        Object homeNewBookListObj = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST);
+        String newBookListStr = homeNewBookListObj == null ? "" : homeNewBookListObj.toString();
         if (!StringUtils.isEmpty(newBookListStr)) {
-            result.addAll(JSON.parseArray(newBookListStr, GoodsCustomResponse.class));
+            resultTmp.addAll(JSON.parseArray(newBookListStr, EsGoodsVO.class));
         } else {
             //根据书单模版获取商品列表
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
@@ -292,15 +319,16 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             //按照更新时间排序
-            sortBuilderList.add(new SortCustomBuilder("updateTime", SortOrder.DESC));
+            sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-            result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
-            if (!CollectionUtils.isEmpty(result)) {
+            resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
+            if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-                redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(result), 30L, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
             }
         }
 
+        List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
         List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomList = new ArrayList<>();
         for (GoodsCustomResponse goodsCustomParam : result) {
             BookListModelAndGoodsCustomResponse bookListModelAndGoodsCustomResponse = new BookListModelAndGoodsCustomResponse();
@@ -320,26 +348,26 @@ public class HomePageService {
     private HomeGoodsListSubResponse sellWellBookList(int pageSize){
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
-        List<GoodsCustomResponse> result = new ArrayList<>();
-        String sellWellListStr = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_BOOK_LIST) + "";
+        List<EsGoodsVO> resultTmp = new ArrayList<>();
+        Object homeSellWellBookList = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_BOOK_LIST);
+        String sellWellListStr = homeSellWellBookList == null ? "" : homeSellWellBookList.toString();
         if (!StringUtils.isEmpty(sellWellListStr)) {
-            result.addAll(JSON.parseArray(sellWellListStr, GoodsCustomResponse.class));
+            resultTmp.addAll(JSON.parseArray(sellWellListStr, EsGoodsVO.class));
         } else {
             //根据书单模版获取商品列表
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-            //按照销售数量排序 7 天 TODO
-            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-            result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
-            if (!CollectionUtils.isEmpty(result)) {
+            resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
+            if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-                redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_BOOK_LIST, JSON.toJSONString(result), 30L, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
             }
         }
-
+        List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
         List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomList = new ArrayList<>();
         for (GoodsCustomResponse goodsCustomParam : result) {
             BookListModelAndGoodsCustomResponse bookListModelAndGoodsCustomResponse = new BookListModelAndGoodsCustomResponse();
@@ -359,25 +387,23 @@ public class HomePageService {
     private HomeGoodsListSubResponse specialOfferBookList(int pageSize){
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
-        List<GoodsCustomResponse> result = new ArrayList<>();
-        String sellWellListStr = redisTemplate.opsForValue().get(KEY_HOME_SPECIAL_OFFER_BOOK_LIST) + "";
+        List<EsGoodsVO> resultTmp = new ArrayList<>();
+        Object homeSpecialOfferBookList = redisTemplate.opsForValue().get(KEY_HOME_SPECIAL_OFFER_BOOK_LIST);
+        String sellWellListStr =  homeSpecialOfferBookList == null ? "" : homeSpecialOfferBookList.toString();
         if (!StringUtils.isEmpty(sellWellListStr)) {
-            result.addAll(JSON.parseArray(sellWellListStr, GoodsCustomResponse.class));
+            resultTmp.addAll(JSON.parseArray(sellWellListStr, EsGoodsVO.class));
         }
         //根据书单模版获取商品列表
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(0);
         esGoodsCustomRequest.setPageSize(200);
-        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-        //按照销售数量排序 7 天 TODO
-        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        result.addAll(bookListModelAndGoodsService.listRandomGoodsCustomer(esGoodsCustomRequest, pageSize));
-        if (!CollectionUtils.isEmpty(result)) {
+        esGoodsCustomRequest.setScriptSpecialOffer("0.5");
+        resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
+        if (!CollectionUtils.isEmpty(resultTmp)) {
             //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-            redisTemplate.opsForValue().set(KEY_HOME_SPECIAL_OFFER_BOOK_LIST, JSON.toJSONString(result), 30L, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(KEY_HOME_SPECIAL_OFFER_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
         }
-
+        List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
         List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomList = new ArrayList<>();
         for (GoodsCustomResponse goodsCustomParam : result) {
             BookListModelAndGoodsCustomResponse bookListModelAndGoodsCustomResponse = new BookListModelAndGoodsCustomResponse();

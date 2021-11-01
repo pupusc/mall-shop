@@ -1,6 +1,8 @@
 package com.wanmi.sbc.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -25,15 +27,28 @@ public class RandomUtil {
         if (backCount > rawCount) {
             backCount = rawCount;
         }
-        Set<Integer> randomSet = new TreeSet<>();
-        while (randomSet.size() < backCount) {
+        List<Integer> randomList = new ArrayList<>();
+        while (randomList.size() < backCount) {
             int i = (int)(Math.random() * rawCount);       //  生成0-100的随机数
-            randomSet.add(i);
+            randomList.add(i);
         }
-        return randomSet;
+        return randomList;
+    }
+
+
+    /**
+     * 获取随机数量
+     * @param rawCount
+     * @return
+     */
+    public static Integer getRandom(int rawCount) {
+        if (rawCount <= 0) {
+            return null;
+        }
+        return (int)(Math.random() * rawCount);
     }
 
     public static void main(String[] args) {
-        System.out.println(getRandom(20, 10));
+        System.out.println(getRandom(10));
     }
 }

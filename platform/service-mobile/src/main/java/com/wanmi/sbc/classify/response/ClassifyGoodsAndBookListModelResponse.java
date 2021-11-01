@@ -1,7 +1,7 @@
 package com.wanmi.sbc.classify.response;
 
-import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsListResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
+import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
 import lombok.Data;
 
 
@@ -23,10 +23,10 @@ public class ClassifyGoodsAndBookListModelResponse {
     /**
      * 商品列表信息
      */
-    private BookListModelAndGoodsListResponse bookListModelAndGoodsModel;
+    private BookListModelAndGoodsCustomResponse bookListModelAndGoodsCustomModel;
 
     /**
      * 书单信息
      */
-    private BookListModelProviderResponse bookListModel;
+    private BookListModelSimpleResponse bookListModel;
 }
