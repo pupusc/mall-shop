@@ -85,15 +85,17 @@ public class ImageController implements ImageProvider {
         for (ImageDTO imageDTOParam : imageDTOList) {
             ImageProviderResponse imageProviderResponse = new ImageProviderResponse();
             BeanUtils.copyProperties(imageDTOParam, imageProviderResponse);
-            //未开始
-            if (imageProviderResponse.getBeginTime().isBefore(now)) {
-                imageProviderResponse.setStatus(0);
-            } else if (imageProviderResponse.getBeginTime().isAfter(now) && imageProviderResponse.getEndTime().isBefore(now)) {
-                //进行中
-                imageProviderResponse.setStatus(1);
-            } else {
-                //已结束
-                imageProviderResponse.setStatus(1);
+            if (imageProviderResponse.getBeginTime() != null && imageProviderResponse.getEndTime() != null) {
+                //未开始
+                if (imageProviderResponse.getBeginTime().isBefore(now)) {
+                    imageProviderResponse.setStatus(0);
+                } else if (imageProviderResponse.getBeginTime().isAfter(now) && imageProviderResponse.getEndTime().isBefore(now)) {
+                    //进行中
+                    imageProviderResponse.setStatus(1);
+                } else {
+                    //已结束
+                    imageProviderResponse.setStatus(1);
+                }
             }
             result.add(imageProviderResponse);
         }
