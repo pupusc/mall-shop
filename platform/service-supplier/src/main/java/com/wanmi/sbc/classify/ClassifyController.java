@@ -1,7 +1,10 @@
 package com.wanmi.sbc.classify;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.classify.request.TradeProviderRequest;
+<<<<<<< HEAD
+=======
+>>>>>>> feature_d_1111_index2.0
+import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -10,7 +13,10 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+<<<<<<< HEAD
 import org.springframework.web.bind.annotation.PathVariable;
+=======
+>>>>>>> feature_d_1111_index2.0
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +43,7 @@ public class ClassifyController {
 
 
     @PostMapping("/addProviderTrade")
-    public BaseResponse addProviderTrade(@RequestBody TradeProviderRequest request) {
+    public BaseResponse addProviderTrade(@RequestBody TradeRequest request) {
         tradeProvider.addProviderTrade(request.getOid(), request.getUserId());
         return BaseResponse.SUCCESSFUL();
     }
@@ -81,6 +87,8 @@ public class ClassifyController {
         return BaseResponse.SUCCESSFUL();
     }
 
+=======
+>>>>>>> feature_d_1111_index2.0
     /**
      *
      * 类目列表
