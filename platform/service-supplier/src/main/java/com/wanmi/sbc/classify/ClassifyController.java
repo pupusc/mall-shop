@@ -1,12 +1,12 @@
 package com.wanmi.sbc.classify;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
-import com.wanmi.sbc.order.api.request.trade.TradeProviderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +35,7 @@ public class ClassifyController {
 
 
     @PostMapping("/addProviderTrade")
-    public BaseResponse addProviderTrade(@RequestBody TradeProviderRequest request) {
+    public BaseResponse addProviderTrade(@RequestBody TradeRequest request) {
         tradeProvider.addProviderTrade(request.getOid(), request.getUserId());
         return BaseResponse.SUCCESSFUL();
     }
