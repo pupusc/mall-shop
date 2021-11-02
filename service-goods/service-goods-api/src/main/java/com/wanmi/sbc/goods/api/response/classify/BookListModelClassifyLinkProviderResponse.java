@@ -1,5 +1,9 @@
 package com.wanmi.sbc.goods.api.response.classify;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -79,11 +83,15 @@ public class BookListModelClassifyLinkProviderResponse implements Serializable {
     /**
      * 标签有效开始时间 ✅Add feature_d_v0.02
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime tagValidBeginTime;
 
     /**
      * 标签有效结束时间 ✅Add feature_d_v0.02
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime tagValidEndTime;
 
     /**
