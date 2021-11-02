@@ -38,6 +38,7 @@ import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.home.response.ImageResponse;
 import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
@@ -102,6 +103,15 @@ public class HomePageService {
      * 特价书
      */
     private final static String KEY_HOME_SPECIAL_OFFER_BOOK_LIST = "KEY_HOME_SPECIAL_OFFER_BOOK_LIST";
+
+    /**
+     * 基础失效时间
+     */
+    private final static int EXPIRE_BASE_TIME = 30;
+
+    private final static int EXPIRE_BASE_TIME_RANGE_MIN = -5;
+
+    private final static int EXPIRE_BASE_TIME_RANGE_MAX = 5;
 
     /**
      * banner
@@ -324,7 +334,8 @@ public class HomePageService {
             resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-                redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
+                int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
+                redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
             }
         }
 
@@ -364,7 +375,8 @@ public class HomePageService {
             resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-                redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
+                int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
+                redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
             }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
@@ -392,16 +404,18 @@ public class HomePageService {
         String sellWellListStr =  homeSpecialOfferBookList == null ? "" : homeSpecialOfferBookList.toString();
         if (!StringUtils.isEmpty(sellWellListStr)) {
             resultTmp.addAll(JSON.parseArray(sellWellListStr, EsGoodsVO.class));
-        }
-        //根据书单模版获取商品列表
-        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-        esGoodsCustomRequest.setPageNum(0);
-        esGoodsCustomRequest.setPageSize(200);
-        esGoodsCustomRequest.setScriptSpecialOffer("0.5");
-        resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
-        if (!CollectionUtils.isEmpty(resultTmp)) {
-            //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
-            redisTemplate.opsForValue().set(KEY_HOME_SPECIAL_OFFER_BOOK_LIST, JSON.toJSONString(resultTmp), 30L, TimeUnit.MINUTES);
+        } else {
+            //根据书单模版获取商品列表
+            EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+            esGoodsCustomRequest.setPageNum(0);
+            esGoodsCustomRequest.setPageSize(200);
+            esGoodsCustomRequest.setScriptSpecialOffer("0.5");
+            resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
+            if (!CollectionUtils.isEmpty(resultTmp)) {
+                //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
+                int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
+                redisTemplate.opsForValue().set(KEY_HOME_SPECIAL_OFFER_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
+            }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
         List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomList = new ArrayList<>();
