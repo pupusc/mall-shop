@@ -74,8 +74,8 @@ public class IndexCmsController {
      * @status done
      */
     @PostMapping("/special-topic/sort")
-    public BaseResponse sortSpecialTopic(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList){
-        return indexCmsProvider.sortSpecialTopic(imageSortProviderRequestList);
+    public BaseResponse sortSpecialTopic(@RequestBody Map<String, List<ImageSortProviderRequest>> imageSortProviderRequestList){
+        return indexCmsProvider.sortSpecialTopic(imageSortProviderRequestList.get("sortList"));
     }
 
     /**

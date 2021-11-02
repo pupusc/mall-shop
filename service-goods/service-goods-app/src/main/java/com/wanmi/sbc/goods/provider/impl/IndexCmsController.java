@@ -32,25 +32,27 @@ public class IndexCmsController implements IndexCmsProvider {
 
     private List<IndexFeatureVo> changeIndexFeature2Vo(List<IndexFeature> content) {
         LocalDateTime now = LocalDateTime.now();
-         return content.stream().map(indexFeature -> {
+        return content.stream().map(indexFeature -> {
             IndexFeatureVo indexFeatureVo = new IndexFeatureVo();
             BeanUtils.copyProperties(indexFeature, indexFeatureVo);
-            if(now.isBefore(indexFeature.getBeginTime())){
+            if (now.isBefore(indexFeature.getBeginTime())) {
                 //未开始
                 indexFeatureVo.setState(0);
-            }else if(now.isAfter(indexFeature.getEndTime())){
+            } else if (now.isAfter(indexFeature.getEndTime())) {
                 //已结束
                 indexFeatureVo.setState(2);
-            }else{
+            } else {
                 //进行中
                 indexFeatureVo.setState(1);
             }
+            indexFeatureVo.setPublishState(indexFeature.getPublishState().toValue());
             return indexFeatureVo;
         }).collect(Collectors.toList());
     }
 
     /**
      * 添加特色栏目
+     *
      * @param cmsSpecialTopicAddRequest
      * @return
      */
@@ -62,6 +64,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 更新特色栏目
+     *
      * @param cmsSpecialTopicUpdateRequest
      * @return
      */
@@ -73,6 +76,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 查询特色栏目
+     *
      * @param cmsSpecialTopicSearchRequest
      * @return
      */
@@ -84,13 +88,13 @@ public class IndexCmsController implements IndexCmsProvider {
         List<IndexFeatureVo> dtos = content.stream().map(indexFeature -> {
             IndexFeatureVo indexFeatureVo = new IndexFeatureVo();
             BeanUtils.copyProperties(indexFeature, indexFeatureVo);
-            if(now.isBefore(indexFeature.getBeginTime())){
+            if (now.isBefore(indexFeature.getBeginTime())) {
                 //未开始
                 indexFeatureVo.setState(0);
-            }else if(now.isAfter(indexFeature.getEndTime())){
+            } else if (now.isAfter(indexFeature.getEndTime())) {
                 //已结束
                 indexFeatureVo.setState(2);
-            }else{
+            } else {
                 //进行中
                 indexFeatureVo.setState(1);
             }
@@ -106,10 +110,11 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 查询特色列表
+     *
      * @param cmsSpecialTopicSearchRequest
      * @return
      */
-    public BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest){
+    public BaseResponse<List<IndexFeatureVo>> listNoPageSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
         return BaseResponse.success(this.changeIndexFeature2Vo(indexCmsService.listNoPageSpecialTopic(cmsSpecialTopicSearchRequest)));
     }
 
@@ -122,6 +127,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 添加主副标题
+     *
      * @param cmsTitleAddRequest
      * @return
      */
@@ -133,6 +139,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 删除主副标题
+     *
      * @param id
      * @return
      */
@@ -144,6 +151,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 更新主副标题
+     *
      * @param cmsTitleUpdateRequest
      * @return
      */
@@ -155,6 +163,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 查询主副标题,前端请求 0-未启用 1-启用
+     *
      * @return
      */
     @Override
@@ -173,6 +182,7 @@ public class IndexCmsController implements IndexCmsProvider {
 
     /**
      * 查询主副标题，后台请求
+     *
      * @return
      */
     @Override

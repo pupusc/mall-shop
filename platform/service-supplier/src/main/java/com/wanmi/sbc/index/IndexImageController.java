@@ -2,6 +2,7 @@ package com.wanmi.sbc.index;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
@@ -11,7 +12,9 @@ import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.index.request.ImagePageRequest;
 import com.wanmi.sbc.index.request.ImageRequest;
+import com.wanmi.sbc.index.request.SortRequest;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,12 +74,15 @@ public class IndexImageController {
     /**
      * 轮播图 排序
      * @menu 后台CMS2.0
-     * @param imageSortProviderRequestList
+     *
      * @return
      */
     @PostMapping("/sort")
-    public BaseResponse sort(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList) {
-        imageProvider.sort(imageSortProviderRequestList);
+    public BaseResponse sort(@Validated @RequestBody SortRequest sortRequest) {
+        if (CollectionUtils.isEmpty(sortRequest.getImageSortProviderRequestList())) {
+            throw new IllegalStateException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        imageProvider.sort(sortRequest.getImageSortProviderRequestList());
         return BaseResponse.SUCCESSFUL();
     }
 

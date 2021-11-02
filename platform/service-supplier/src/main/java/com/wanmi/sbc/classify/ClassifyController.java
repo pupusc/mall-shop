@@ -1,7 +1,7 @@
 package com.wanmi.sbc.classify;
 
 import com.alibaba.fastjson.JSON;
-import com.wanmi.sbc.classify.request.TradeProviderRequest;
+import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -11,6 +11,7 @@ import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import com.wanmi.sbc.order.api.request.trade.TradePushRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,10 +38,18 @@ public class ClassifyController {
 
 
     @PostMapping("/addProviderTrade")
-    public BaseResponse addProviderTrade(@RequestBody TradeProviderRequest request) {
+    public BaseResponse addProviderTrade(@RequestBody TradeRequest request) {
         tradeProvider.addProviderTrade(request.getOid(), request.getUserId());
         return BaseResponse.SUCCESSFUL();
     }
+
+
+    @PostMapping("/pushOrderToERP")
+    public BaseResponse pushOrderToERP(@RequestBody TradePushRequest request) {
+        tradeProvider.pushOrderToERP(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
 
     /**
      * 新增分类

@@ -1,5 +1,9 @@
 package com.wanmi.sbc.booklistmodel.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -73,16 +77,20 @@ public class BookListModelResponse {
     /**
      * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
      */
-    private Integer tagName;
+    private String tagName;
 
     /**
      * 标签有效开始时间 ✅Add feature_d_v0.02
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime tagValidBeginTime;
 
     /**
      * 标签有效结束时间 ✅Add feature_d_v0.02
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime tagValidEndTime;
 
     /**
