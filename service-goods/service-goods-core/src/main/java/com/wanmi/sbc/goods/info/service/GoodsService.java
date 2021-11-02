@@ -3365,7 +3365,14 @@ public class GoodsService {
     }
 
     public List<GoodsSync> listGoodsSync(){
-        return goodsSyncRepository.findByStatus(2);
+        GoodsSyncQueryRequest request = new GoodsSyncQueryRequest();
+        request.setStatus(2);
+        request.setPageSize(100);
+        Page<GoodsSync> list = goodsSyncRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
+        if(list!=null && CollectionUtils.isNotEmpty(list.getContent())){
+            return list.getContent();
+        }
+        return new ArrayList<>();
     }
 
     public List<GoodsCateSync> listGoodsCateSync(){
