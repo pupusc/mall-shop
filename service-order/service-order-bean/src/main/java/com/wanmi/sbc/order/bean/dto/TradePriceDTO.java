@@ -188,4 +188,13 @@ public class TradePriceDTO implements Serializable {
      */
     @ApiModelProperty(value = "活动优惠总额")
     private BigDecimal marketingDiscountPrice;
+
+    @ApiModelProperty("实际支付金额")
+    private BigDecimal actualPrice;
+
+    @ApiModelProperty("实际支付积分金额")
+    private BigDecimal actualPoints;
+
+    @ApiModelProperty("实际支付知豆")
+    private Long actualKnowledge;
 }

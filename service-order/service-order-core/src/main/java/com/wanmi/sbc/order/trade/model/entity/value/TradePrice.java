@@ -196,7 +196,7 @@ public class TradePrice implements Serializable {
     /**
      * 实际积分
      */
-    private Long actualPoints;
+    private BigDecimal actualPoints;
     /**
      * 实际知豆
      */

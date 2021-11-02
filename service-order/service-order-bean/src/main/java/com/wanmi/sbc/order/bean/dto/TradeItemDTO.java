@@ -578,4 +578,7 @@ public class TradeItemDTO implements Serializable, Cloneable {
     @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
     private Boolean combinedCommodity;
 
+    @ApiModelProperty("成本价")
+    private BigDecimal costPrice;
+
 }
