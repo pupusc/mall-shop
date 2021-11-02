@@ -7059,7 +7059,6 @@ public class TradeService {
                 tradeItem.setTotalSupplyPrice(supplyPrice.multiply(new BigDecimal(tradeItem.getNum())));
 
                 tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
-                tradeItem.setCostPrice(goodsInfoVO.getCostPrice());
             }
         }));
 
@@ -7076,7 +7075,6 @@ public class TradeService {
                     tradeItem.setTotalSupplyPrice(supplyPrice.multiply(new BigDecimal(tradeItem.getNum())));
 
                     tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
-                    tradeItem.setCostPrice(goodsInfoVO.getCostPrice());
                 }
             }));
         }
