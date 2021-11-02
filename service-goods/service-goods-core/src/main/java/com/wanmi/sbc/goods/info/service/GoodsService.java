@@ -1791,7 +1791,7 @@ public class GoodsService {
         }
         //更新sync状态
         if(!Objects.equals(goods.getProviderId(),defaultProvider)) {
-            goodsSyncRepository.updateStatus(goods.getErpGoodsNo(), 3);
+            goodsSyncRepository.updateStatus(goods.getErpGoodsNo(), 4);
             GoodsSyncRelation goodsSyncRelation = new GoodsSyncRelation();
             goodsSyncRelation.setGoodsNo(goods.getErpGoodsNo());
             goodsSyncRelation.setGoodsId(goodsId);

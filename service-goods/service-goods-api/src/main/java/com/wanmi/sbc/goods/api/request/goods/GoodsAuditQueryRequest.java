@@ -53,6 +53,9 @@ public class GoodsAuditQueryRequest extends BaseQueryRequest implements Serializ
 
     @ApiModelProperty("spu")
     private List<String> spuList;
+
+    @ApiModelProperty("商品编码，重新审核传此参数")
+    private List<String> goodsNo;
     
     
 }
