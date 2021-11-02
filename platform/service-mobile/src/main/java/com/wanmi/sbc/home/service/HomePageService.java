@@ -209,7 +209,7 @@ public class HomePageService {
 
                 HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
                 homeBookListRecommendSubResponse.setHomeTopicResponse(editRecommend);
-                homeBookListRecommendSubResponse.setRecommendList(microServiceBookRecommend.getContext().getContent());
+                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceBookRecommend.getContext().getContent()));
                 homeRecommend.setBookListModelRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
                 log.info("HomePageService homeRecommend editRecommend error", ex);
@@ -226,13 +226,31 @@ public class HomePageService {
 
                 HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
                 homeBookListRecommendSubResponse.setHomeTopicResponse(famousRecommend);
-                homeBookListRecommendSubResponse.setRecommendList(microServiceFamousRecommend.getContext().getContent());
+                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceFamousRecommend.getContext().getContent()));
                 homeRecommend.setFamousRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
                 log.info("HomePageService homeRecommend famousRecommend error", ex);
             }
         }
         return homeRecommend;
+    }
+
+    /**
+     * 删除无效的标签
+     * @param bookListModelList
+     */
+    private List<BookListModelProviderResponse> removeInvalidTag(List<BookListModelProviderResponse> bookListModelList) {
+        LocalDateTime now = LocalDateTime.now();
+        for (BookListModelProviderResponse bookListModelParam : bookListModelList) {
+            if (bookListModelParam.getTagValidBeginTime().isAfter(now)
+                    || bookListModelParam.getTagValidEndTime().isBefore(now)) {
+                bookListModelParam.setTagType(null);
+                bookListModelParam.setTagName("");
+                bookListModelParam.setTagValidBeginTime(null);
+                bookListModelParam.setTagValidEndTime(null);
+            }
+        }
+        return bookListModelList;
     }
 
     /**
