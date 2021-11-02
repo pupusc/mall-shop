@@ -87,9 +87,9 @@ public class ImageController implements ImageProvider {
             BeanUtils.copyProperties(imageDTOParam, imageProviderResponse);
             if (imageProviderResponse.getBeginTime() != null && imageProviderResponse.getEndTime() != null) {
                 //未开始
-                if (imageProviderResponse.getBeginTime().isBefore(now)) {
+                if (imageProviderResponse.getBeginTime().isAfter(now)) {
                     imageProviderResponse.setStatus(0);
-                } else if (imageProviderResponse.getBeginTime().isAfter(now) && imageProviderResponse.getEndTime().isBefore(now)) {
+                } else if (imageProviderResponse.getBeginTime().isBefore(now) && imageProviderResponse.getEndTime().isAfter(now)) {
                     //进行中
                     imageProviderResponse.setStatus(1);
                 } else {
