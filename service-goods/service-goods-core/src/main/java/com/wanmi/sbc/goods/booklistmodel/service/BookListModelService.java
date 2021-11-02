@@ -193,9 +193,6 @@ public class BookListModelService {
         if (bookListModelRequest.getHasTop() != null) {
             existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
         }
-        if (bookListModelRequest.getTagType() != null) {
-            existBookListModelDtoUpdate.setTagType(bookListModelRequest.getTagType());
-        }
         if (!StringUtils.isEmpty(bookListModelRequest.getTagName())) {
             existBookListModelDtoUpdate.setTagName(bookListModelRequest.getTagName());
         }
@@ -205,6 +202,17 @@ public class BookListModelService {
         if (bookListModelRequest.getTagValidEndTime() != null) {
             existBookListModelDtoUpdate.setTagValidEndTime(bookListModelRequest.getTagValidEndTime());
         }
+        if (bookListModelRequest.getTagType() != null) {
+            existBookListModelDtoUpdate.setTagType(bookListModelRequest.getTagType());
+
+            if (Objects.equals(bookListModelRequest.getTagType(), 0)) {
+                //表示的是当前都不选择,清空 标签名称和有效时间
+                existBookListModelDtoUpdate.setTagName("");
+                existBookListModelDtoUpdate.setTagValidBeginTime(null);
+                existBookListModelDtoUpdate.setTagValidEndTime(null);
+            }
+        }
+
 
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",

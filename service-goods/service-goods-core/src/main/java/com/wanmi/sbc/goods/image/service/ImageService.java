@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.image.service;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
+import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
@@ -66,7 +67,7 @@ public class ImageService {
         imageDTO.setImgHref(imageProviderRequest.getImgHref());
         imageDTO.setBeginTime(imageProviderRequest.getBeginTime());
         imageDTO.setEndTime(imageProviderRequest.getEndTime());
-        imageDTO.setPublishState(0); //未启用
+        imageDTO.setPublishState(UsingStateEnum.USING.getCode()); //未启用
         imageDTO.setOrderNum(orderNum + 1);
         imageDTO.setImageType(imageProviderRequest.getImageType());
         imageDTO.setCreateTime(LocalDateTime.now());
