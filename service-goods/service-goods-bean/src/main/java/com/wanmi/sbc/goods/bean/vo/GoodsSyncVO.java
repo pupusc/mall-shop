@@ -9,11 +9,16 @@ import javax.persistence.Id;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @ApiModel
 @Data
 public class GoodsSyncVO implements Serializable {
+
+    private static final long serialVersionUID = -914598443177926235L;
     /**
      * 主键
      */
@@ -156,7 +161,7 @@ public class GoodsSyncVO implements Serializable {
      * 类目
      */
     @ApiModelProperty("类目")
-    private Long category;
+    private Integer category;
 
     /**
      * 标题
@@ -202,4 +207,28 @@ public class GoodsSyncVO implements Serializable {
 
     @ApiModelProperty("详情图")
     private String detailImageUrl;
+
+    @ApiModelProperty("毛利率")
+    private BigDecimal rate;
+
+    @ApiModelProperty("父类目")
+    private List<String> parentCategory=new ArrayList<>(5);
+
+    @ApiModelProperty("广告法审核状态0：待审核，1和2：审核中， 3：同盾审核成功，4：同盾审核失败")
+    private Integer adAuditStatus;
+
+    @ApiModelProperty("广告法人工审核状态0待审核 1 审核通过2审核拒绝")
+    private Integer adManualAuditStatus;
+
+    @ApiModelProperty("广告法人工审核驳回原因")
+    private String adManualRejectReason;
+
+    @ApiModelProperty("上架状态0待审核1审核通过2审核拒绝")
+    private Integer launchStatus;
+
+    @ApiModelProperty("上架驳回原因")
+    private String launchRejectReason;
+
+    @ApiModelProperty("同盾审核拒绝列表")
+    private List<GoodsAdAuditVO> rejectList;
 }

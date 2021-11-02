@@ -54,7 +54,7 @@ public class GoodsService {
 
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
-        Integer page = 1;
+        //将父类目落标
         if(StringUtils.isNotEmpty(queryDTO.getBookId())){
             //循环
             List<String> goodsIds = Arrays.asList(queryDTO.getBookId().split(","));

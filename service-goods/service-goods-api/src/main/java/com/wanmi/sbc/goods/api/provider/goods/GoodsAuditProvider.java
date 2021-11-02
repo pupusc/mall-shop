@@ -6,10 +6,10 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsAuditQueryRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 
 
 @FeignClient(value = "${application.goods.name}", contextId = "GoodsAuditProvider")
@@ -37,4 +37,7 @@ public interface GoodsAuditProvider {
 
     @PostMapping("/goods/${application.goods.version}/audit/publish")
     BaseResponse publish(@RequestBody GoodsAuditQueryRequest request);
+
+    @GetMapping("/goods/${application.goods.version}/audit/detail/{goodsNo}")
+    BaseResponse<GoodsViewByIdResponse> detail(@PathVariable("goodsNo") String goodsNo);
 }

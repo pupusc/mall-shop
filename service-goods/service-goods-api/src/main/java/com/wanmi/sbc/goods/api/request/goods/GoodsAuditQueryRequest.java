@@ -28,7 +28,7 @@ public class GoodsAuditQueryRequest extends BaseQueryRequest implements Serializ
     private String author;
 
     @ApiModelProperty("分类")
-    private Integer category;
+    private List<Integer> category;
 
     @ApiModelProperty("出版社")
     private String publishName;
@@ -50,6 +50,9 @@ public class GoodsAuditQueryRequest extends BaseQueryRequest implements Serializ
 
     @ApiModelProperty("拒绝原因")
     private String rejectReason;
+
+    @ApiModelProperty("spu")
+    private List<String> spuList;
     
     
 }

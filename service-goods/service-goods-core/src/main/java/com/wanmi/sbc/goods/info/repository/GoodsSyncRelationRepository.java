@@ -14,7 +14,8 @@ import java.util.List;
 @Repository
 public interface GoodsSyncRelationRepository extends JpaRepository<GoodsSyncRelation, Long>, JpaSpecificationExecutor<GoodsSyncRelation> {
 
-
+    @Query("select distinct w.goodsNo from GoodsSyncRelation w where w.deleted = 0 and w.goodsId in ?1")
+    List<String> findByGoodsNo(List<String> goodsIds);
 
 
 }

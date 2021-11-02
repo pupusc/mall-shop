@@ -41,7 +41,7 @@ public class GoodsSyncQueryRequest extends BaseQueryRequest {
     private String author;
 
     @ApiModelProperty("分类")
-    private Integer category;
+    private List<Integer> category;
 
     @ApiModelProperty("出版社")
     private String publishName;
@@ -67,6 +67,14 @@ public class GoodsSyncQueryRequest extends BaseQueryRequest {
     @ApiModelProperty("出版时间-结束")
     private LocalDateTime publishTimeEnd;
 
+    @ApiModelProperty("类目列表")
+    private List<Integer> subCategoryList;
+
+    @ApiModelProperty("商品编码")
+    private List<String> goodsNo;
+
+    @ApiModelProperty("spu")
+    private List<String> spuList;
 
 
     public Specification<GoodsSync> getWhereCriteria() {
@@ -74,6 +82,12 @@ public class GoodsSyncQueryRequest extends BaseQueryRequest {
             List<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(isbn)) {
                 predicates.add(root.get("isbn").in(isbn));
+            }
+            if (CollectionUtils.isNotEmpty(subCategoryList)) {
+                predicates.add(root.get("category").in(subCategoryList));
+            }
+            if (CollectionUtils.isNotEmpty(goodsNo)) {
+                predicates.add(root.get("goodsNo").in(goodsNo));
             }
 
             //模糊查询
