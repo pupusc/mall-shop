@@ -72,12 +72,12 @@ public class BookListModelResponse {
     /**
      * 标签类型 标签类型 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
      */
-    private String tagType;
+    private Integer tagType;
 
     /**
      * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
      */
-    private Integer tagName;
+    private String tagName;
 
     /**
      * 标签有效开始时间 ✅Add feature_d_v0.02
