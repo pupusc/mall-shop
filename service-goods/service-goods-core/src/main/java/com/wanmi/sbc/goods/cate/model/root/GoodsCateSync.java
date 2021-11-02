@@ -6,16 +6,17 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
 @Data
 @Entity
 @Table(name = "goods_cate_sync")
-public class GoodsCateSync {
+public class GoodsCateSync implements Serializable {
     @Id
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "cate_type")
     private String cateType;

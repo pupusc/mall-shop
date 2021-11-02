@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsAuditProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.bean.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -81,8 +82,8 @@ public class GoodsAuditController {
 
     @ApiOperation(value = "详情")
     @GetMapping(value = "/detail")
-    public BaseResponse<GoodsSyncVO> detail(@RequestParam("id")Long id){
-        return BaseResponse.success(new GoodsSyncVO());
+    public BaseResponse<GoodsViewByIdResponse> detail(@RequestParam("goodsNo")String goodsNo){
+        return goodsAuditProvider.detail(goodsNo);
     }
 
 

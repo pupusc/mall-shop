@@ -17,6 +17,7 @@ public interface GoodsSyncRepository extends JpaRepository<GoodsSync, Long>, Jpa
 
 //    @Query
     List<GoodsSync> findByStatus(Integer status);
+    
     @Modifying
     @Query("update GoodsSync w set w.status = ?2, w.updateTime = now() where w.goodsNo = ?1")
     int updateStatus(String goodsNo,Integer status);
@@ -38,7 +39,7 @@ public interface GoodsSyncRepository extends JpaRepository<GoodsSync, Long>, Jpa
 
     @Modifying
     @Transactional
-    @Query("update GoodsSync w set w.launchStatus = 1,w.status = 1, w.updateTime = now() where w.id in ?1 and launchStatus = 0")
+    @Query("update GoodsSync w set w.launchStatus = 1,w.status = 2, w.updateTime = now() where w.id in ?1 and launchStatus = 0")
     int batchApproveLaunch(List<Long> idList);
 
     @Modifying
@@ -48,8 +49,16 @@ public interface GoodsSyncRepository extends JpaRepository<GoodsSync, Long>, Jpa
 
     @Modifying
     @Transactional
-    @Query("update GoodsSync w set w.status = 2, w.updateTime = now() where w.id in ?1 and w.status = 1")
+    @Query("update GoodsSync w set w.status = 3, w.updateTime = now() where w.id in ?1 and w.status = 2")
     int batchPublish(List<Long> idList);
+
+    @Modifying
+    @Transactional
+    @Query("update GoodsSync w set w.adAuditStatus = ?2, w.updateTime = now() where w.goodsNo = ?1 and adAuditStatus = ?3")
+    int updateAdStatus(String goodsNo,Integer status,Integer originStatus);
+
+
+    GoodsSync findByGoodsNo(String goodsNo);
 }
 
 

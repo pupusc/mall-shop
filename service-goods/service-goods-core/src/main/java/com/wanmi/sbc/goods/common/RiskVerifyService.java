@@ -84,12 +84,14 @@ public class RiskVerifyService {
         riskVerify.setStatus(imageVerifyRequest.getSuggestion().equals("PASS")?2:imageVerifyRequest.getSuggestion().equals("BLOCK")?3:1);
         if(imageVerifyRequest.getSuggestion().equals("BLOCK")){
             riskVerify.setErrorMsg(imageVerifyRequest.getHitReason());
-            goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),3);
+            goodsSyncRepository.updateAdStatus(riskVerify.getGoodsNo(),GoodsAdAuditStatus.FAIL.toValue(),GoodsAdAuditStatus.AUDITING.toValue());
+            riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
+            return;
         }
         riskVerifyRepository.updateStatus(riskVerify.getStatus(),riskVerify.getErrorMsg(),imageVerifyRequest.getOcrStr(),riskVerify.getRequestId());
         if(riskVerifyRepository.queryCount(riskVerify.getGoodsNo(),imageVerifyRequest.getRequestId()) == 0){
             //全部审核通过
-            goodsSyncRepository.updateStatus(riskVerify.getGoodsNo(),2);
+            goodsSyncRepository.updateAdStatus(riskVerify.getGoodsNo(),GoodsAdAuditStatus.SUCCESS.toValue(),GoodsAdAuditStatus.AUDITING.toValue());
         }
     }
 

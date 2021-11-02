@@ -176,7 +176,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setStoreCateIds(Arrays.asList(defaultStoreCateId));
         goodsDTO.setCateId(defaultCateId);
         goodsDTO.setFreightTempId(defaultFreightTempId);
-        goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
+        //goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
+        goodsDTO.setGoodsNo("DFBK"+goods.getIsbn());
         goodsDTO.setGoodsSource(0);
 
 
@@ -185,7 +186,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsInfoDTO.setGoodsType(0);
         goodsInfoDTO.setErpGoodsNo(goods.getGoodsNo());
         goodsInfoDTO.setCombinedCommodity(false);
-        goodsInfoDTO.setGoodsInfoNo(getRandomGoodsNo("8"));
+        //goodsInfoDTO.setGoodsInfoNo(getRandomGoodsNo("8"));
+        goodsInfoDTO.setGoodsInfoNo(goodsDTO.getGoodsNo());
         goodsInfoDTO.setStock(goods.getQty().longValue());
         goodsInfoDTO.setIsbnNo(goods.getIsbn());
         goodsInfoDTO.setRetailPrice(goods.getSalePrice());
