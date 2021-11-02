@@ -38,6 +38,7 @@ import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateGoodsRelaListByGoodsIdsRequest;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
@@ -218,7 +219,7 @@ public class EsGoodsElasticService {
         Map<String, List<GoodsIntervalPriceVO>> intervalPriceMap = new HashMap<>();
         Map<String, String> goodsInfoSpecDetailMap = new HashMap<>();
         Map<String, List<GoodsPropDetailRelVO>> goodsPropDetailMap = new HashMap<>();
-        Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
+//        Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
 
         Map<Long, GoodsCateVO> goodsCateMap = goodsCateQueryProvider.listByCondition(new GoodsCateListByConditionRequest())
                 .getContext().getGoodsCateVOList().stream().collect(Collectors.toMap(GoodsCateVO::getCateId, goodsCate -> goodsCate));
@@ -315,10 +316,10 @@ public class EsGoodsElasticService {
                     goodsPropDetailMap.putAll(getPropDetailRelList(goodsIds));
 
                     //商品店铺分类Map
-                    storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
-                            .collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId, Collectors.mapping(StoreCateGoodsRelaVO::getStoreCateId, Collectors.toList()))));
+//                    storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
+//                            .collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId, Collectors.mapping(StoreCateGoodsRelaVO::getStoreCateId, Collectors.toList()))));
 
-//                    BaseResponse<List<ClassifyGoodsProviderResponse>> listBaseResponse = classifyProvider.listGoodsIdOfChildOfParentByGoodsId(Arrays.toString(goodsIds.toArray()));
+                    Map<String, List<ClassifySimpleProviderResponse>> groupedClassify = classifyProvider.searchGroupedClassifyByGoodsId(goodsIds).getContext();
 
                     List<Long> storeIds = goodsList.stream().map(GoodsVO::getStoreId).filter(Objects::nonNull)
                             .filter(v -> !storeMap.containsKey(v)) //仅提取不存在map的store
@@ -455,8 +456,11 @@ public class EsGoodsElasticService {
                         }
 
                         //获取店铺等级
-                        if (storeCateGoodsMap.containsKey(goods.getGoodsId())) {
-                            esGoods.setStoreCateIds(storeCateGoodsMap.get(goods.getGoodsId()));
+//                        if (storeCateGoodsMap.containsKey(goods.getGoodsId())) {
+//                            esGoods.setStoreCateIds(storeCateGoodsMap.get(goods.getGoodsId()));
+//                        }
+                        if(groupedClassify != null && groupedClassify.containsKey(goods.getGoodsId())){
+                            esGoods.setClassify(groupedClassify.get(goods.getGoodsId()));
                         }
 
                         if (MapUtils.isNotEmpty(distributionStoreSettingMap) && distributionStoreSettingMap.containsKey(goods.getStoreId().toString())) {
@@ -604,7 +608,7 @@ public class EsGoodsElasticService {
 //                specMap.clear();
                     levelPriceMap.clear();
                     customerPriceMap.clear();
-                    storeCateGoodsMap.clear();
+//                    storeCateGoodsMap.clear();
                 }
             } catch (Exception e) {
                 logger.error("初始化ES商品页码位置".concat(String.valueOf(i)).concat("，异常："), e);
@@ -731,7 +735,7 @@ public class EsGoodsElasticService {
         Map<String, List<GoodsIntervalPriceVO>> intervalPriceMap = new HashMap<>();
         Map<String, String> goodsInfoSpecDetailMap = new HashMap<>();
 //        Map<String, List<Long>> goodsPropDetailMap = new HashMap<>();
-        Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
+//        Map<String, List<Long>> storeCateGoodsMap = new HashMap<>();
 
         Map<Long, GoodsCateVO> goodsCateMap = goodsCateQueryProvider.listByCondition(new GoodsCateListByConditionRequest())
                 .getContext().getGoodsCateVOList().stream().collect(Collectors.toMap(GoodsCateVO::getCateId, goodsCate -> goodsCate));
@@ -833,8 +837,9 @@ public class EsGoodsElasticService {
 //                    goodsPropDetailMap.putAll(getPropDetailRelList(goodsIds));
 
                     //商品店铺分类Map
-                    storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
-                            .collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId, Collectors.mapping(StoreCateGoodsRelaVO::getStoreCateId, Collectors.toList()))));
+//                    storeCateGoodsMap.putAll(storeCateGoodsRelaQueryProvider.listByGoodsIds(new StoreCateGoodsRelaListByGoodsIdsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream()
+//                            .collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId, Collectors.mapping(StoreCateGoodsRelaVO::getStoreCateId, Collectors.toList()))));
+                    Map<String, List<ClassifySimpleProviderResponse>> groupedClassify = classifyProvider.searchGroupedClassifyByGoodsId(goodsIds).getContext();
 
                     List<Long> storeIds = goodsList.stream().map(GoodsVO::getStoreId).filter(Objects::nonNull)
                             .filter(v -> !storeMap.containsKey(v)) //仅提取不存在map的store
@@ -943,8 +948,11 @@ public class EsGoodsElasticService {
                         }
 
                         //获取店铺等级
-                        if (storeCateGoodsMap.containsKey(goods.getGoodsId())) {
-                            esGoods.setStoreCateIds(storeCateGoodsMap.get(goods.getGoodsId()));
+//                        if (storeCateGoodsMap.containsKey(goods.getGoodsId())) {
+//                            esGoods.setStoreCateIds(storeCateGoodsMap.get(goods.getGoodsId()));
+//                        }
+                        if(groupedClassify != null && groupedClassify.containsKey(goods.getGoodsId())){
+                            esGoods.setClassify(groupedClassify.get(goods.getGoodsId()));
                         }
 
                         if (MapUtils.isNotEmpty(distributionStoreSettingMap) && distributionStoreSettingMap.containsKey(goods.getStoreId().toString())) {
@@ -1092,7 +1100,7 @@ public class EsGoodsElasticService {
 //                specMap.clear();
                     levelPriceMap.clear();
                     customerPriceMap.clear();
-                    storeCateGoodsMap.clear();
+//                    storeCateGoodsMap.clear();
                 }
             } catch (Exception e) {
                 logger.error("初始化ES商品页码位置".concat(String.valueOf(i)).concat("，异常："), e);

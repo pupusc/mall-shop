@@ -45,7 +45,7 @@ public class IndexCmsController {
     }
 
     /**
-     * @description 修改特色栏目
+     * @description 修改特色栏目2
      * @param cmsSpecialTopicUpdateRequest
      * @menu 后台CMS2.0
      * @status done

@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
@@ -23,11 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -152,6 +149,28 @@ public class ClassifyController implements ClassifyProvider {
         return BaseResponse.success(result);
     }
 
+    /**
+     * 根据商品id列表，查询对应的店铺分类
+     * @param goodsId
+     */
+    @Override
+    public BaseResponse<Map<String, List<ClassifySimpleProviderResponse>>> searchGroupedClassifyByGoodsId(List<String> goodsId) {
+        List<ClassifyGoodsRelDTO> classifyGoodsRelDTOS = classifyGoodsRelService.listClassifyIdByGoodsId(goodsId);
+        List<Integer> classifyIds = classifyGoodsRelDTOS.stream().map(ClassifyGoodsRelDTO::getClassifyId).distinct().collect(Collectors.toList());
+        List<ClassifyDTO> classifyDTOS = classifyService.listNoPage(classifyIds);
+        Map<Integer, ClassifyDTO> classifyMap = new HashMap<>();
+        for (ClassifyDTO classifyDTO : classifyDTOS) {
+            classifyMap.put(classifyDTO.getId(), classifyDTO);
+        }
+        Map<String, List<ClassifySimpleProviderResponse>> result = new HashMap<>();
+        for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
+            List<ClassifySimpleProviderResponse> list = result.computeIfAbsent(classifyGoodsRelDTO.getGoodsId(), k -> new ArrayList<>());
+            ClassifySimpleProviderResponse classifySimpleProviderResponse = new ClassifySimpleProviderResponse();
+            BeanUtils.copyProperties(classifyMap.get(classifyGoodsRelDTO.getId()), classifySimpleProviderResponse);
+            list.add(classifySimpleProviderResponse);
+        }
+        return BaseResponse.success(result);
+    }
 
     @Override
     public BaseResponse<List<ClassifyGoodsProviderResponse>> listGoodsIdByClassifyIdColl(Collection<Integer> classifyIdCollection){

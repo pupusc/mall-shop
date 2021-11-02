@@ -1122,17 +1122,43 @@ public class EsGoodsInfoElasticService {
      * @param storeCateIds
      * @param storeId
      */
-    public void delStoreCateIds(List<Long> storeCateIds, Long storeId) {
+    public void delStoreCateIds(List<Integer> storeCateIds, Long storeId) {
+//        EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+//        queryRequest.setStoreCateIds(storeCateIds);
+//        queryRequest.setStoreId(storeId);
+//        SearchQuery searchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).build();
+//        Iterable<EsGoodsInfo> esGoodsInfoList = elasticsearchTemplate.queryForList(searchQuery, EsGoodsInfo.class);
+//        if (!esGoodsInfoList.iterator().hasNext()) {
+//            return;
+//        }
+//        List<IndexQuery> esGoodsInfos = new ArrayList<>();
+//        esGoodsInfoList.forEach(item -> {
+//                    item.setStoreCateIds(null);
+//                    IndexQuery iq = new IndexQuery();
+//                    iq.setObject(item);
+//                    iq.setIndexName(EsConstants.DOC_GOODS_INFO_TYPE);
+////                    iq.setIndexName(EsConstants.INDEX_NAME);
+//                    iq.setType(EsConstants.DOC_GOODS_INFO_TYPE);
+////                    iq.setParentId(item.getCateBrandId());
+//                    esGoodsInfos.add(iq);
+//                }
+//        );
+
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
-        queryRequest.setStoreCateIds(storeCateIds);
+        List<EsClassifyRequest> classifyRequests = storeCateIds.stream().map(id -> {
+            EsClassifyRequest esClassifyRequest = new EsClassifyRequest();
+            esClassifyRequest.setId(id);
+            return esClassifyRequest;
+        }).collect(Collectors.toList());
+        queryRequest.setClassifyRequests(classifyRequests);
         queryRequest.setStoreId(storeId);
         SearchQuery searchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).build();
-        Iterable<EsGoodsInfo> esGoodsInfoList = elasticsearchTemplate.queryForList(searchQuery, EsGoodsInfo.class);
-        if (!esGoodsInfoList.iterator().hasNext()) {
+        Iterable<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(searchQuery, EsGoods.class);
+        if (!esGoodsList.iterator().hasNext()) {
             return;
         }
         List<IndexQuery> esGoodsInfos = new ArrayList<>();
-        esGoodsInfoList.forEach(item -> {
+        esGoodsList.forEach(item -> {
                     item.setStoreCateIds(null);
                     IndexQuery iq = new IndexQuery();
                     iq.setObject(item);
@@ -1143,7 +1169,6 @@ public class EsGoodsInfoElasticService {
                     esGoodsInfos.add(iq);
                 }
         );
-
         //生成新数据
         elasticsearchTemplate.bulkIndex(esGoodsInfos);
     }

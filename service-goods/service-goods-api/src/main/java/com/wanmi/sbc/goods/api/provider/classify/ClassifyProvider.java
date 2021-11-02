@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderRespons
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @FeignClient(value = "${application.goods.name}", contextId = "ClassifyProvider")
 public interface ClassifyProvider {
@@ -70,6 +72,13 @@ public interface ClassifyProvider {
      */
     @GetMapping("/goods/${application.goods.version}/classify/listGoodsIdOfChildOfParentByGoodsId/{goodsId}")
     BaseResponse<List<ClassifyGoodsProviderResponse>> listGoodsIdOfChildOfParentByGoodsId(@PathVariable("goodsId") String goodsId);
+
+    /**
+     * 根据商品id列表，查询对应的店铺分类
+     * @param goodsId
+     */
+    @GetMapping("/goods/${application.goods.version}/classify/searchGroupedClassifyByGoodsId")
+    BaseResponse<Map<String, List<ClassifySimpleProviderResponse>>> searchGroupedClassifyByGoodsId(List<String> goodsId);
 
     /**
      * 根据分类id 获取商品列表

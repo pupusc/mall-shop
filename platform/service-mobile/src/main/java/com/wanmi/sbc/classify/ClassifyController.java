@@ -179,6 +179,7 @@ public class ClassifyController {
     /**
      * 获取分类页的商品列表
      * @param classifyGoodsAndBookListModelPageRequest
+     * @menu 新版首页
      * @return
      */
     @PostMapping("/list-by-classify-id")
