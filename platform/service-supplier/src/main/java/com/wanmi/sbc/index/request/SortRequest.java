@@ -17,5 +17,5 @@ import java.util.List;
 public class SortRequest {
 
     @NotNull
-    List<ImageSortProviderRequest> imageSortProviderRequestList;
+    List<ImageSortProviderRequest> sortList;
 }
