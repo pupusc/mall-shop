@@ -3,7 +3,9 @@ package com.wanmi.sbc.goods.provider.impl.goods;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsAuditProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAuditModifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAuditQueryRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSyncQueryRequest;
 import com.wanmi.sbc.goods.info.service.GoodsSyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,5 +73,17 @@ public class GoodsAuditController implements GoodsAuditProvider {
     @Override
     public BaseResponse<GoodsViewByIdResponse> detail(String goodsNo) {
         return BaseResponse.success(goodsSyncService.detail(goodsNo));
+    }
+
+    @Override
+    public BaseResponse reAudit(GoodsAuditQueryRequest request) {
+        goodsSyncService.reAudit(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse modify(GoodsAuditModifyRequest request) {
+        goodsSyncService.modify(request);
+        return BaseResponse.SUCCESSFUL();
     }
 }

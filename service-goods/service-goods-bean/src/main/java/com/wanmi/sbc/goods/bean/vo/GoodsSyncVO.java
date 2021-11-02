@@ -35,7 +35,7 @@ public class GoodsSyncVO implements Serializable {
      * 供应商类型1博库
      */
     @ApiModelProperty("供应商类型1博库")
-    private Byte goodsSupplierType;
+    private Integer goodsSupplierType;
 
     /**
      * isbn

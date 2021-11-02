@@ -2,7 +2,9 @@ package com.wanmi.sbc.goods.api.provider.goods;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAuditModifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAuditQueryRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -40,4 +42,10 @@ public interface GoodsAuditProvider {
 
     @GetMapping("/goods/${application.goods.version}/audit/detail/{goodsNo}")
     BaseResponse<GoodsViewByIdResponse> detail(@PathVariable("goodsNo") String goodsNo);
+
+    @PostMapping("/goods/${application.goods.version}/reaudit")
+    BaseResponse reAudit(@RequestBody GoodsAuditQueryRequest request);
+
+    @PostMapping("/goods/${application.goods.version}/audit/edit")
+    BaseResponse modify(@RequestBody GoodsAuditModifyRequest request);
 }

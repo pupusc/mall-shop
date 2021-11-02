@@ -5,9 +5,12 @@ import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.StringUtil;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAuditModifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsAuditQueryRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
 import com.wanmi.sbc.goods.bean.enums.GoodsAdAuditStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsAdAuditVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
@@ -29,10 +32,7 @@ import com.wanmi.sbc.goods.tag.repository.TagRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.wanmi.sbc.goods.redis.RedisService;
@@ -41,6 +41,8 @@ import org.springframework.util.CollectionUtils;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.bean.vo.*;
 import javax.swing.text.html.HTML;
+import javax.transaction.Transactional;
+
 import com.wanmi.sbc.goods.tag.model.Tag;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRelationRepository;
 
@@ -159,7 +161,7 @@ public class GoodsSyncService {
      */
     public void auditGoods(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchUpdateAdStatus(request.getIds(), GoodsAdAuditStatus.WAITTOAUDIT.toValue(), GoodsAdAuditStatus.WAIT.toValue());
     }
@@ -171,7 +173,7 @@ public class GoodsSyncService {
      */
     public void approveAdManual(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchApprove(request.getIds());
     }
@@ -183,7 +185,7 @@ public class GoodsSyncService {
      */
     public void rejectAdManual(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchReject(request.getIds(), request.getRejectReason());
     }
@@ -195,7 +197,7 @@ public class GoodsSyncService {
      */
     public void approveLaunch(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchApproveLaunch(request.getIds());
     }
@@ -207,7 +209,7 @@ public class GoodsSyncService {
      */
     public void rejectLaunch(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchRejectLaunch(request.getIds(), request.getRejectReason());
     }
@@ -217,7 +219,7 @@ public class GoodsSyncService {
      */
     public void publish(GoodsAuditQueryRequest request) {
         if (request == null || CollectionUtils.isEmpty(request.getIds())) {
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         goodsSyncRepository.batchPublish(request.getIds());
     }
@@ -348,5 +350,28 @@ public class GoodsSyncService {
             }
         }
         return response;
+    }
+
+    @Transactional
+    public void reAudit(GoodsAuditQueryRequest request) {
+        if (request == null || CollectionUtils.isEmpty(request.getGoodsNo())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        //重新审核，1
+        //riskVerifyRepository.updateStatusByGoodsNos(request.getGoodsNo());
+    }
+
+    @Transactional
+    public void modify(GoodsAuditModifyRequest request){
+        if(request ==null || request.getGoods() ==null){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        Optional<GoodsSync> goodsSync = goodsSyncRepository.findById(request.getId());
+        if(!goodsSync.isPresent()){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        GoodsSync goods = goodsSync.get();
+        goods.setTitle(request.getGoods().getGoodsName());
+        goodsSyncRepository.save(goods);
     }
 }
