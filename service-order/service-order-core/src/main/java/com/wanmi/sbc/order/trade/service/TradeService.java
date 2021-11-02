@@ -7330,13 +7330,17 @@ public class TradeService {
                 tradePrice.setBuyPoints(buyPoints);
                 tradePrice.setDeliveryPrice(BigDecimal.ZERO);
                 //实际金额
+                log.info("set actualPrice");
                 if(providerTradeItems.stream().anyMatch(p->p.getSplitPrice()!=null)){
+                    log.info("set actualPrice1");
                     tradePrice.setActualPrice(providerTradeItems.stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
                 }
                 if(providerTradeItems.stream().anyMatch(p->p.getPoints()!=null)){
+                    log.info("set actualPrice2");
                     tradePrice.setActualPoints(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getPoints()) ? 0L : p.getPoints()).sum());
                 }
                 if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
+                    log.info("set actualPrice3");
                     tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
                 }
                 //运费
