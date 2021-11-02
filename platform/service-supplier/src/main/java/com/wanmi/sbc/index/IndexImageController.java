@@ -79,10 +79,10 @@ public class IndexImageController {
      */
     @PostMapping("/sort")
     public BaseResponse sort(@Validated @RequestBody SortRequest sortRequest) {
-        if (CollectionUtils.isEmpty(sortRequest.getImageSortProviderRequestList())) {
+        if (CollectionUtils.isEmpty(sortRequest.getSortList())) {
             throw new IllegalStateException(CommonErrorCode.PARAMETER_ERROR);
         }
-        imageProvider.sort(sortRequest.getImageSortProviderRequestList());
+        imageProvider.sort(sortRequest.getSortList());
         return BaseResponse.SUCCESSFUL();
     }
 
