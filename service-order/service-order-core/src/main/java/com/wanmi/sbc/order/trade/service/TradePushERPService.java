@@ -62,6 +62,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -329,8 +330,14 @@ public class TradePushERPService {
 
         //积分价格
         BigDecimal pointsPrice=tradePrice.getPointsPrice();
+        if(tradePrice.getActualPoints() != null ){
+            pointsPrice = new BigDecimal(String.valueOf(tradePrice.getActualPoints())).divide(new BigDecimal("100"),2, RoundingMode.UP);
+        }
         //现金价格
         BigDecimal totalPrice=tradePrice.getTotalPrice();
+        if(tradePrice.getActualPrice() != null ){
+            totalPrice = tradePrice.getActualPrice();
+        }
 
         log.info("========周期购平摊计算======pointsPrice:{},totalPrice:{},cycleNum:{}",pointsPrice,totalPrice,cycleNum);
 
