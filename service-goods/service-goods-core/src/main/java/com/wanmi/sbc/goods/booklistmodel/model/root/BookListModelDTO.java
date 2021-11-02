@@ -93,7 +93,7 @@ public class BookListModelDTO {
      * 标签名称
      */
     @Column(name = "tag_name")
-    private Integer tagName;
+    private String tagName;
 
     /**
      * 标签有效结束时间
