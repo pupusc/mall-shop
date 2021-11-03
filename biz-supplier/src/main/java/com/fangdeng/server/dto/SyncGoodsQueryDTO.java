@@ -24,4 +24,6 @@ public class SyncGoodsQueryDTO {
 
     private Boolean isAllSync = false;
 
+    private String isbn;
+
 }

@@ -65,6 +65,16 @@ public class GoodsService {
             }
             return;
         }
+        if(StringUtils.isNotEmpty(queryDTO.getIsbn())){
+            //循环
+            List<String> isbn = Arrays.asList(queryDTO.getIsbn().split(","));
+            List<String> goodsNo = isbn.stream().distinct().collect(Collectors.toList());
+            for(int i=0;i< goodsNo.size();i++){
+                request.setIsbn(goodsNo.get(i));
+                syncGoods(request);
+            }
+            return;
+        }
 
 
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
