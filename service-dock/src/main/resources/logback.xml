@@ -8,7 +8,7 @@
 <!-- http://www.qos.ch/shop/products/professionalSupport -->
 <!-- -->
 <configuration>
-    <property name="appName" value="service-dock-platform"/>
+    <property name="appName" value="service-dock"/>
 
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 </configuration>
