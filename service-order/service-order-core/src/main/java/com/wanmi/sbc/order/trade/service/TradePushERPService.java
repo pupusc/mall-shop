@@ -1413,6 +1413,10 @@ public class TradePushERPService {
         if(providerTrade == null){
             throw new SbcRuntimeException(CommonErrorCode.FAILED,new Object[]{"未找到对应订单号"});
         }
+        if(Objects.equals(providerTrade.getTradeState().getErpTradeState(),ERPTradePushStatus.PUSHED_SUCCESS.toValue())){
+            log.info("erp状态是已推送，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
         try {
             if (request.getStatus().equals(1)) {
                 //推送订单失败,更新订单推送状态
