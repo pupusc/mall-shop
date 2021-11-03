@@ -28,4 +28,6 @@ public class IndexConfigChild4Response implements Serializable {
      * 大牌6折封顶
      */
     private IndexConfigChild1Response dp6zfdUrl;
+
+
 }

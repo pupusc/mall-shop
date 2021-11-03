@@ -616,7 +616,7 @@ public class TradeController implements TradeProvider {
                 tradeService.aliPayOnlineCallBack(tradePayOnlineCallBackRequest);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("TradeController.payOnlineCallBack exception" , e);
         }
         return BaseResponse.SUCCESSFUL();
     }

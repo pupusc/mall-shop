@@ -49,7 +49,6 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -491,5 +490,14 @@ public class BookListModelService {
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };
+    }
+
+    /**
+     * 获取已发布的书单简单信息
+     * @return
+     */
+    public List<BookListModelDTO> findPublishBook(){
+        List<BookListModelDTO> bookListModelDTOS = bookListModelRepository.findPublishBook();
+        return bookListModelDTOS;
     }
 }

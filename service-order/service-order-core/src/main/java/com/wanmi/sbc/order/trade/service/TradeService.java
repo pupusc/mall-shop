@@ -360,6 +360,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -393,6 +395,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RefreshScope
 public class TradeService {
 
     /**
@@ -605,6 +608,9 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
+    @Value("${whiteOrder}")
+    private String whiteOrder;
+
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -615,7 +621,10 @@ public class TradeService {
      * @param trade
      */
     public void addTrade(Trade trade) {
-        tradeRepository.save(trade);
+        Trade tradeNew = trade;
+//        tradeNew.setUpdateTime(LocalDateTime.now());
+        logger.info("TradeService addTrade param:{}", JSONObject.toJSONString(tradeNew));
+        tradeRepository.save(tradeNew);
     }
 
     /**
@@ -6593,13 +6602,13 @@ public class TradeService {
                             } else {
                                 trade = tradeService.detail(businessId);
                             }
+                            trades.add(trade);
                             if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
                                     .getPayState() == PayState.PAID
                                     && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
                                 //同一批订单重复支付或过期作废，直接退款
                                 wxRefundHandle(wxPayResultResponse, businessId, -1L);
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
-                                trades.add(trade);
                                 wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
                             }
                             //单笔支付
@@ -6657,7 +6666,7 @@ public class TradeService {
                 }
                 log.info("微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("微信支付异步通知回调end2---------", e);
                 //支付处理结果回写回执支付结果表
                 payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
@@ -6793,13 +6802,20 @@ public class TradeService {
         boolean signVerified = false;
         Map<String, String> params =
                 JSONObject.parseObject(tradePayOnlineCallBackRequest.getAliPayCallBackResultStr(), Map.class);
+        //商户订单号
+        String out_trade_no = params.get("out_trade_no");
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            if (Objects.equals(whiteOrder, out_trade_no)) {
+                log.info("订单：{} 不走签名验证", out_trade_no);
+                signVerified = true;
+            } else {
+                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            }
+            log.info("验证签名返回的结果为：{}" , signVerified);
         } catch (AlipayApiException e) {
             log.error("支付宝回调签名校验异常：", e);
         }
-        //商户订单号
-        String out_trade_no = params.get("out_trade_no");
+
         if (signVerified) {
             try {
                 //支付宝交易号

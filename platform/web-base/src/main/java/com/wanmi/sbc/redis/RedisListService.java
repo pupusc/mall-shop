@@ -1,12 +1,15 @@
 package com.wanmi.sbc.redis;
 
 
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +25,7 @@ public class RedisListService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisListService.class);
 
+
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -29,20 +33,25 @@ public class RedisListService {
     /**
      * 从redis 中查询数据
      */
-    public boolean putAll(final String key, List<String> list, long seconds) {
-        ListOperations<String, String> operations = redisTemplate.opsForList();
-        for (String t:list) {
-            operations.rightPush(key, t);
+    public boolean putAll(final String key, List list, long minutes) {
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
         }
-        redisTemplate.expire(key, seconds, TimeUnit.MINUTES);
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        redisTemplate.expire(key, minutes, TimeUnit.MINUTES);
         return true;
     }
 
     /**
      * 从redis 中查询数据
      */
-    public List<String> findByRange(final String key, Integer start, Integer end) {
-        ListOperations<String, String> operations = redisTemplate.opsForList();
+    public List<JSONObject> findByRange(final String key, Integer start, Integer end) {
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
+        ListOperations<String, JSONObject> operations = redisTemplate.opsForList();
         Long size = operations.size(key);
         if (start > size) {
             return Collections.emptyList();
@@ -50,15 +59,7 @@ public class RedisListService {
         if (end > size) {
             end = size.intValue();
         }
-        List<String> lists = operations.range(key, start, end);
+        List<JSONObject> lists = operations.range(key, start, end);
         return lists;
     }
-
-    /**
-     * 从redis 中查询数据
-     */
-    public boolean delKey(final String key) {
-        return redisTemplate.delete(key);
-    }
-
 }
