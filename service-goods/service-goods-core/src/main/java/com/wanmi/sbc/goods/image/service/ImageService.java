@@ -206,7 +206,7 @@ public class ImageService {
                 }
                 if (imagePageProviderRequest.getStatus() != null) {
                     if (Objects.equals(imagePageProviderRequest.getStatus(), 0)) {
-                        conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), LocalDateTime.now()));
+                        conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), LocalDateTime.now()));
                     } else if (Objects.equals(imagePageProviderRequest.getStatus(), 1)) {
                         LocalDateTime now = LocalDateTime.now();
                         conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), now));

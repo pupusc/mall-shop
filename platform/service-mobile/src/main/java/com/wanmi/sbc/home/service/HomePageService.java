@@ -242,6 +242,9 @@ public class HomePageService {
     private List<BookListModelProviderResponse> removeInvalidTag(List<BookListModelProviderResponse> bookListModelList) {
         LocalDateTime now = LocalDateTime.now();
         for (BookListModelProviderResponse bookListModelParam : bookListModelList) {
+            if (bookListModelParam.getTagValidBeginTime() == null || bookListModelParam.getTagValidEndTime() == null) {
+                continue;
+            }
             if (bookListModelParam.getTagValidBeginTime().isAfter(now)
                     || bookListModelParam.getTagValidEndTime().isBefore(now)) {
                 bookListModelParam.setTagType(null);
