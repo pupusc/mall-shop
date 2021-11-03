@@ -94,7 +94,7 @@ public class ImageController implements ImageProvider {
                     imageProviderResponse.setStatus(1);
                 } else {
                     //已结束
-                    imageProviderResponse.setStatus(1);
+                    imageProviderResponse.setStatus(2);
                 }
             }
             result.add(imageProviderResponse);
