@@ -41,6 +41,8 @@ import com.wanmi.sbc.goods.cate.repository.ContractCateRepository;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
 import com.wanmi.sbc.goods.cate.request.ContractCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
+import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
@@ -279,6 +281,8 @@ public class GoodsService {
 
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
+    @Autowired
+    private ClassifyGoodsRelRepository classifyGoodsRelRepository;
 
 
     /**
@@ -1613,13 +1617,20 @@ public class GoodsService {
         //标签
         tagService.saveAndUpdateTagForGoods(goodsId, saveRequest.getTags());
 
+        //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(goods.getStoreCateIds())) {
+            List<ClassifyGoodsRelDTO> rels = new ArrayList<>();
             goods.getStoreCateIds().forEach(cateId -> {
-                StoreCateGoodsRela rela = new StoreCateGoodsRela();
-                rela.setGoodsId(goodsId);
-                rela.setStoreCateId(cateId);
-                storeCateGoodsRelaRepository.save(rela);
+                Date now = new Date();
+                ClassifyGoodsRelDTO classifyGoodsRelDTO = new ClassifyGoodsRelDTO();
+                classifyGoodsRelDTO.setClassifyId(cateId.intValue());
+                classifyGoodsRelDTO.setDelFlag(0);
+                classifyGoodsRelDTO.setGoodsId(goodsId);
+                classifyGoodsRelDTO.setCreateTime(now);
+                classifyGoodsRelDTO.setUpdateTime(now);
+                rels.add(classifyGoodsRelDTO);
             });
+            classifyGoodsRelRepository.saveAll(rels);
         }
 
         //保存商品属性
@@ -2005,35 +2016,22 @@ public class GoodsService {
                     goodsPropDetailRel.setUpdateTime(LocalDateTime.now());
                 }
             });
-
-            //  先获取商品下所有的属性id，与前端传来的对比，id存在的做更新操作反之做保存操作
-            List<GoodsPropDetailRel> oldPropList = goodsPropDetailRelRepository.queryByGoodsId(newGoods.getGoodsId());
-            List<GoodsPropDetailRel> insertList = new ArrayList<>();
-            if (oldPropList.isEmpty()) {
-                goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
-            } else {
-                oldPropList.forEach(value -> {
-                    goodsPropDetailRels.forEach(goodsProp -> {
-                        if (value.getPropId().equals(goodsProp.getPropId())) {
-                            goodsPropDetailRelRepository.updateByGoodsIdAndPropId(goodsProp.getDetailId(), goodsProp.getGoodsId(), goodsProp.getPropId());
-                        } else {
-                            goodsProp.setCreateTime(LocalDateTime.now());
-                            insertList.add(goodsProp);
-                        }
-                    });
-                });
-                goodsPropDetailRelRepository.saveAll(insertList);
-            }
         }*/
         //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(newGoods.getStoreCateIds())) {
-            storeCateGoodsRelaRepository.deleteByGoodsId(newGoods.getGoodsId());
+            classifyGoodsRelRepository.deleteByGoodsId(newGoods.getGoodsId());
+            List<ClassifyGoodsRelDTO> rels = new ArrayList<>();
             newGoods.getStoreCateIds().forEach(cateId -> {
-                StoreCateGoodsRela rela = new StoreCateGoodsRela();
-                rela.setGoodsId(newGoods.getGoodsId());
-                rela.setStoreCateId(cateId);
-                storeCateGoodsRelaRepository.save(rela);
+                Date now = new Date();
+                ClassifyGoodsRelDTO classifyGoodsRelDTO = new ClassifyGoodsRelDTO();
+                classifyGoodsRelDTO.setClassifyId(cateId.intValue());
+                classifyGoodsRelDTO.setDelFlag(0);
+                classifyGoodsRelDTO.setGoodsId(newGoods.getGoodsId());
+                classifyGoodsRelDTO.setCreateTime(now);
+                classifyGoodsRelDTO.setUpdateTime(now);
+                rels.add(classifyGoodsRelDTO);
             });
+            classifyGoodsRelRepository.saveAll(rels);
         }
 
         List<GoodsSpec> specs = saveRequest.getGoodsSpecs();

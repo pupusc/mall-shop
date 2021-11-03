@@ -4,10 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteStoreCateRequest;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
+import com.wanmi.sbc.util.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,6 +39,12 @@ public class ClassifyController {
 
     @Autowired
     private TradeProvider tradeProvider;
+
+    @Autowired
+    private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
+
+    @Autowired
+    private CommonUtil commonUtil;
 
 
     @PostMapping("/addProviderTrade")
@@ -73,6 +83,9 @@ public class ClassifyController {
     @PostMapping("/update")
     public BaseResponse update(@RequestBody ClassifyProviderRequest classifyProviderRequest) {
         classifyProvider.update(classifyProviderRequest);
+        if(classifyProviderRequest.getClassifyName() != null){
+            esGoodsInfoElasticProvider.updateClassify(classifyProviderRequest.getId(), classifyProviderRequest.getClassifyName());
+        }
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -87,6 +100,7 @@ public class ClassifyController {
         ClassifyProviderRequest classifyProviderRequest = new ClassifyProviderRequest();
         classifyProviderRequest.setId(classifyId);
         classifyProvider.delete(classifyProviderRequest);
+        esGoodsInfoElasticProvider.delClassify(classifyId);
         return BaseResponse.SUCCESSFUL();
     }
 

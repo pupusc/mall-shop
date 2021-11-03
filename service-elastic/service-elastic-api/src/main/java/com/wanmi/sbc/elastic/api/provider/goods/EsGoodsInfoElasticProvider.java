@@ -5,6 +5,7 @@ import com.wanmi.sbc.elastic.api.request.goods.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -64,6 +65,12 @@ public interface EsGoodsInfoElasticProvider {
 
     @PostMapping("/elastic/${application.elastic.version}/goods/delete/store/cate")
     BaseResponse delStoreCateIds(@RequestBody @Valid EsGoodsDeleteStoreCateRequest request);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/update/classify")
+    BaseResponse updateClassify(@RequestParam Integer id, @RequestParam String name);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/delete/classify")
+    BaseResponse delClassify(@RequestParam Integer id);
 
     @PostMapping("/elastic/${application.elastic.version}/goods/adjust/price")
     BaseResponse adjustPrice(@RequestBody @Valid EsGoodsInfoAdjustPriceRequest request);

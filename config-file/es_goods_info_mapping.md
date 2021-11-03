@@ -435,6 +435,16 @@ curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods_i
           "storeCateIds" : {
             "type" : "long"
           },
+          "classify": {
+            "properties": {
+              "id":{
+                "type": "integer"
+              },
+              "name":{
+                "type":"keyword"
+              }
+            }
+          },
           "storeState" : {
             "type" : "integer"
           },

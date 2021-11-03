@@ -173,6 +173,17 @@ public class ClassifyController implements ClassifyProvider {
     }
 
     @Override
+    public BaseResponse<Map<String, List<Integer>>> searchGroupedClassifyIdByGoodsId(List<String> goodsId) {
+        List<ClassifyGoodsRelDTO> classifyGoodsRelDTOS = classifyGoodsRelService.listClassifyIdByGoodsId(goodsId);
+        Map<String, List<Integer>> result = new HashMap<>();
+        for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
+            List<Integer> list = result.computeIfAbsent(classifyGoodsRelDTO.getGoodsId(), k -> new ArrayList<>());
+            list.add(classifyGoodsRelDTO.getClassifyId());
+        }
+        return BaseResponse.success(result);
+    }
+
+    @Override
     public BaseResponse<List<ClassifyGoodsProviderResponse>> listGoodsIdByClassifyIdColl(Collection<Integer> classifyIdCollection){
         List<ClassifyGoodsProviderResponse> result = new ArrayList<>();
         List<ClassifyGoodsRelDTO> classifyGoodsRelResultList = classifyGoodsRelService.listClassifyRelByClassifyId(classifyIdCollection);

@@ -705,8 +705,7 @@ curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods/e
                   "type": "integer"
                 },
                 "name":{
-                  "type":"keyword",
-                  "index":false
+                  "type":"keyword"
                 }
               }
             },

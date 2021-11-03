@@ -7,12 +7,9 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteStoreCateRequest;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
-import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
-import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.request.storecate.*;
-import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateAddResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByStoreIdResponse;
@@ -33,10 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 店铺分类管理Controller
@@ -71,61 +65,57 @@ public class StoreCateController {
     @Autowired
     private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
-    @Autowired
-    private ClassifyProvider classifyProvider;
-
     /**
      * 查询店铺商品分类List
      */
     @ApiOperation(value = "查询店铺商品分类List")
     @RequestMapping(method = RequestMethod.GET)
-    public BaseResponse<List<ClassifyProviderResponse>> list() {
-//        Long storeId = commonUtil.getStoreId();
-//        BaseResponse<StoreCateListByStoreIdResponse> baseResponse =
-//                storeCateQueryProvider.listByStoreId(new StoreCateListByStoreIdRequest(storeId));
-//        StoreCateListByStoreIdResponse response = baseResponse.getContext();
-//        if (Objects.isNull(response)) {
-//            return BaseResponse.success(Collections.emptyList());
-//        }
-        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
-        return BaseResponse.success(listBaseResponse.getContext());
+    public BaseResponse<List<StoreCateResponseVO>> list() {
+        Long storeId = commonUtil.getStoreId();
+        BaseResponse<StoreCateListByStoreIdResponse> baseResponse =
+                storeCateQueryProvider.listByStoreId(new StoreCateListByStoreIdRequest(storeId));
+        StoreCateListByStoreIdResponse response = baseResponse.getContext();
+        if (Objects.isNull(response)) {
+            return BaseResponse.success(Collections.emptyList());
+        }
+        return BaseResponse.success(response.getStoreCateResponseVOList());
     }
 
     /**
      * 新增店铺商品分类
-     * @param classifyProviderRequest 新增的分类信息
+     *
+     * @param saveRequest 新增的分类信息
      */
     @ApiOperation(value = "新增店铺商品分类")
     @RequestMapping(method = RequestMethod.POST)
     @MultiSubmit
-    public BaseResponse<StoreCateResponseVO> add(@RequestBody ClassifyProviderRequest classifyProviderRequest) {
-//        Long storeId = commonUtil.getStoreId();
-//        saveRequest.setStoreId(storeId);
-//        StoreCateAddResponse cateResponse = storeCateProvider.add(saveRequest).getContext();
-//        //查询父分类是否关联优惠券
-//        List<CouponMarketingScopeVO> couponMarketingScopes = couponMarketingScopeQueryProvider.listByScopeId(
-//                CouponMarketingScopeByScopeIdRequest.builder().scopeId(String.valueOf(cateResponse.getStoreCateResponseVO()
-//                        .getCateParentId())).build()).getContext().getScopeVOList();
-//        if (CollectionUtils.isNotEmpty(couponMarketingScopes)) {
-//            couponMarketingScopes.stream().map(couponScope -> {
-//                couponScope.setMarketingScopeId(null);
-//                couponScope.setCateGrade(couponScope.getCateGrade() + 1);
-//                couponScope.setScopeId(String.valueOf(cateResponse.getStoreCateResponseVO().getStoreCateId()));
-//                return couponScope;
-//            });
-//            couponMarketingScopeProvider.batchAdd(
-//                    CouponMarketingScopeBatchAddRequest.builder()
-//                            .scopeDTOList(KsBeanUtil.convert(couponMarketingScopes, CouponMarketingScopeDTO.class))
-//                            .build());
-//        }
-//        if (saveRequest.getCateParentId() == null || saveRequest.getCateParentId().equals(0L)) {
-//            operateLogMQUtil.convertAndSend("商品", "新增一级分类", "新增一级分类：" + saveRequest.getCateName());
-//        } else {
-//            operateLogMQUtil.convertAndSend("商品", "添加子分类", "添加子分类：" + saveRequest.getCateName());
-//        }
-        classifyProvider.add(classifyProviderRequest);
-        return BaseResponse.SUCCESSFUL();
-//        return BaseResponse.success(cateResponse.getStoreCateResponseVO());
+    public BaseResponse<StoreCateResponseVO> add(@RequestBody StoreCateAddRequest saveRequest) {
+        Long storeId = commonUtil.getStoreId();
+        saveRequest.setStoreId(storeId);
+        StoreCateAddResponse cateResponse = storeCateProvider.add(saveRequest).getContext();
+        //查询父分类是否关联优惠券
+        List<CouponMarketingScopeVO> couponMarketingScopes = couponMarketingScopeQueryProvider.listByScopeId(
+                CouponMarketingScopeByScopeIdRequest.builder().scopeId(String.valueOf(cateResponse.getStoreCateResponseVO()
+                        .getCateParentId())).build()).getContext().getScopeVOList();
+        if (CollectionUtils.isNotEmpty(couponMarketingScopes)) {
+            couponMarketingScopes.stream().map(couponScope -> {
+                couponScope.setMarketingScopeId(null);
+                couponScope.setCateGrade(couponScope.getCateGrade() + 1);
+                couponScope.setScopeId(String.valueOf(cateResponse.getStoreCateResponseVO().getStoreCateId()));
+                return couponScope;
+            });
+            couponMarketingScopeProvider.batchAdd(
+                    CouponMarketingScopeBatchAddRequest.builder()
+                            .scopeDTOList(KsBeanUtil.convert(couponMarketingScopes, CouponMarketingScopeDTO.class))
+                            .build());
+        }
+        if (saveRequest.getCateParentId() == null || saveRequest.getCateParentId().equals(0L)) {
+            operateLogMQUtil.convertAndSend("商品", "新增一级分类", "新增一级分类：" + saveRequest.getCateName());
+        } else {
+            operateLogMQUtil.convertAndSend("商品", "添加子分类", "添加子分类：" + saveRequest.getCateName());
+        }
+
+        return BaseResponse.success(cateResponse.getStoreCateResponseVO());
     }
 
     /**
@@ -161,18 +151,18 @@ public class StoreCateController {
 
     /**
      * 编辑店铺商品分类
-     * @param classifyProviderRequest 编辑的分类信息
+     *
+     * @param saveRequest 编辑的分类信息
      */
     @ApiOperation(value = "编辑店铺商品分类")
     @RequestMapping(method = RequestMethod.PUT)
-    public BaseResponse edit(@RequestBody ClassifyProviderRequest classifyProviderRequest) {
-//        Long storeId = commonUtil.getStoreId();
-//        saveRequest.setStoreId(storeId);
-//        storeCateProvider.modify(saveRequest);
-//
-//        //ares埋点-商品-新增店铺分类
-//        operateLogMQUtil.convertAndSend("商品", "编辑分类", "编辑分类：" + saveRequest.getCateName());
-        classifyProvider.update(classifyProviderRequest);
+    public BaseResponse edit(@RequestBody StoreCateModifyRequest saveRequest) {
+        Long storeId = commonUtil.getStoreId();
+        saveRequest.setStoreId(storeId);
+        storeCateProvider.modify(saveRequest);
+
+        //ares埋点-商品-新增店铺分类
+        operateLogMQUtil.convertAndSend("商品", "编辑分类", "编辑分类：" + saveRequest.getCateName());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -224,7 +214,6 @@ public class StoreCateController {
             operateLogMQUtil.convertAndSend("商品", "删除分类",
                     "删除分类：" + (Objects.nonNull(storeCateResponseVO) ? storeCateResponseVO.getCateName() : ""));
         }
-
         return BaseResponse.SUCCESSFUL();
     }
 
