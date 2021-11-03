@@ -1,5 +1,7 @@
 package com.wanmi.sbc.goods.notice.service;
 
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
@@ -39,6 +41,20 @@ public class NoticeService {
     private NoticeRepository noticeRepository;
 
     public void add(NoticeProviderRequest noticeProviderRequest) {
+        //查看时间内是否有数据
+        NoticePageProviderRequest request = new NoticePageProviderRequest();
+        request.setBeginTime(noticeProviderRequest.getBeginTime());
+        List<NoticeDTO> noticeDTOList = this.listNoPage(request);
+        if (!CollectionUtils.isEmpty(noticeDTOList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "时间范围内已经有公告");
+        }
+        request = new NoticePageProviderRequest();
+        request.setBeginTime(noticeProviderRequest.getBeginTime());
+        noticeDTOList = this.listNoPage(request);
+        if (!CollectionUtils.isEmpty(noticeDTOList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "时间范围内已经有公告");
+        }
+
         NoticeDTO noticeDTO = new NoticeDTO();
         noticeDTO.setContent(noticeProviderRequest.getContent());
         noticeDTO.setBeginTime(noticeProviderRequest.getBeginTime());
