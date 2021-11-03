@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
  * Date       : 2021/9/10 1:40 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Api(tags = "BookListModelController", description = "mobile 查询书单信息")
+@Api(tags = "troller", description = "mobile 查询书单信息")
 @RestController
 @RequestMapping("/mobile/booklistmodel")
 @Slf4j

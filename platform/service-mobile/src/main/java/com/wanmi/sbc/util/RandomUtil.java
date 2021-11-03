@@ -48,7 +48,20 @@ public class RandomUtil {
         return (int)(Math.random() * rawCount);
     }
 
+    /**
+     * 获取范围内的随机数
+     * @param min
+     * @param max
+     * @return
+     */
+    public static Integer getRandomRange(int min, int max) {
+        if (min > max) {
+            return 0;
+        }
+        return (int) (Math.floor(Math.random() * (max - min)) + min);
+    }
+
     public static void main(String[] args) {
-        System.out.println(getRandom(10));
+        System.out.println(getRandomRange(-10,10));
     }
 }
