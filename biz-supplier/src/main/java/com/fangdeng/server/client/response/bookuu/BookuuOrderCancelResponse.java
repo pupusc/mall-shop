@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Data
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "RefundRsp")
+@XmlRootElement(name = "OrderCancelRsp")
 public class BookuuOrderCancelResponse implements Serializable {
     @XmlElement(name = "Msg")
     private String msg;

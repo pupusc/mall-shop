@@ -61,5 +61,7 @@ public class RiskVerify {
     @Column(name = "error_msg")
     private String errorMsg;
 
+    @Column(name = "audit_time")
+    private Date auditTime;
 
 }

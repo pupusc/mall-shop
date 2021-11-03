@@ -339,6 +339,8 @@ public class TradeQueryDTO extends BaseQueryRequest {
         return this.isBoss;
     }
 
+    @ApiModelProperty("虚拟全部发货，0否1是")
+    private Integer virtualAllDelivery;
     /**
      * 封装公共条件
      *
@@ -560,6 +562,11 @@ public class TradeQueryDTO extends BaseQueryRequest {
             }
         } else {
             criterias.add(Criteria.where("id").exists(true).orOperator(Criteria.where("orderType").exists(false), Criteria.where("orderType").is(OrderType.NORMAL_ORDER)));
+        }
+        if(Objects.nonNull(virtualAllDelivery) && virtualAllDelivery == 1){
+            criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(virtualAllDelivery));
+        }else if(Objects.nonNull(virtualAllDelivery)){
+            criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(null));
         }
 
         return criterias;

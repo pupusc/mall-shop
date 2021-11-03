@@ -136,6 +136,9 @@ import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderTransferRepository;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
+import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
+import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
+import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
@@ -183,6 +186,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -349,6 +353,8 @@ public class ReturnOrderService {
     @Autowired
     private PlatformAddressQueryProvider platformAddressQueryProvider;
 
+    @Autowired
+    private TradeFSMService tradeFSMService;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -444,8 +450,7 @@ public class ReturnOrderService {
                 if (Objects.nonNull(providerTrade)) {
                     providerReturnOrder.setPtid(providerTrade.getId());
                 }
-                List<TradeItem> providerGiftItems =
-                        trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
+                List<TradeItem> providerGiftItems = trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
                 //退款时赠品拆分
                 this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
                 buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade);
@@ -454,8 +459,7 @@ public class ReturnOrderService {
                 if (storeVO != null && CompanySourceType.LINKED_MALL.equals(storeVO.getCompanySourceType())) {
                     returnOrders.addAll(linkedMallReturnOrderService.splitReturnOrder(providerReturnOrder));
                     returnOrders.forEach(o -> {
-                        calcReturnPrice(o,
-                                trade.getTradeItems().stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList()));
+                        calcReturnPrice(o, trade.getTradeItems().stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList()));
                     });
                 } else {
                     returnOrders.add(providerReturnOrder);
@@ -485,9 +489,7 @@ public class ReturnOrderService {
                     returnOrders.add(returnOrder);
                 }
             }
-
         }
-
     }
 
     /**
@@ -558,8 +560,7 @@ public class ReturnOrderService {
                     for (ReturnItem returnItemDTO : returnOrder.getReturnItems()) {
                         if (tradeItemVO.getSkuId().equals(returnItemDTO.getSkuId())) {
                             returnItemDTO.setSupplyPrice(tradeItemVO.getSupplyPrice());
-                            BigDecimal supplyPrice = Objects.nonNull(tradeItemVO.getSupplyPrice()) ?
-                                    tradeItemVO.getSupplyPrice() : BigDecimal.ZERO;
+                            BigDecimal supplyPrice = Objects.nonNull(tradeItemVO.getSupplyPrice()) ? tradeItemVO.getSupplyPrice() : BigDecimal.ZERO;
                             returnItemDTO.setProviderPrice(supplyPrice.multiply(new BigDecimal(returnItemDTO.getNum())));
                             providerTotalPrice = providerTotalPrice.add(returnItemDTO.getProviderPrice());
                             price = price.add(returnItemDTO.getSplitPrice());
@@ -593,8 +594,7 @@ public class ReturnOrderService {
                 }
 
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
-                    price = price.add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice()) ?
-                            trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+                    price = price.add(Objects.nonNull(trade.getTradePrice().getSplitDeliveryPrice().get(providerId)) ? trade.getTradePrice().getSplitDeliveryPrice().get(providerId) : BigDecimal.ZERO);
                 }
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);
@@ -911,7 +911,6 @@ public class ReturnOrderService {
             throw new SbcRuntimeException("K-050126");
         }
 
-
         if (isRefund) {
             //创建退款单，会过滤已完成部分退款的的商品
             createRefund(returnOrder, operator, trade);
@@ -944,7 +943,6 @@ public class ReturnOrderService {
             newReturnOrder.appendReturnEventLog(
                     new ReturnEventLog(operator, "创建退单", "创建退单", "", LocalDateTime.now())
             );
-
 
             count = newReturnOrder.getReturnItems().stream()
                     .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
@@ -1443,7 +1441,7 @@ public class ReturnOrderService {
 
         //本次的退或商品去除已完成的退单商品，赠品同理
         List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
-        this.filterCompletedReturnItem(returnOrders, trade);
+        this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         //填充退货商品信息
         Map<String, Integer> map = findLeftItems(trade);
         returnOrder.getReturnItems().forEach(item ->
@@ -1487,7 +1485,7 @@ public class ReturnOrderService {
             }
         }
         //本次的退单商品去除已完成的退单商品，赠品同理
-        this.filterCompletedReturnItem(returnOrders, trade);
+        this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         // 新增订单日志
         tradeService.returnOrder(returnOrder.getTid(), operator);
         returnOrder.setReturnType(ReturnType.REFUND);
@@ -1517,13 +1515,11 @@ public class ReturnOrderService {
 
     /**
      * 去除已经完成退单的商品
-     *
      * @param returnOrders
      * @param trade
      */
-    public void filterCompletedReturnItem(List<ReturnOrder> returnOrders, Trade trade) {
-        List<ReturnOrder> completedReturnOrderList
-                = returnOrders.stream().filter(o -> o.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
+    public void filterCompletedReturnItem(List<ReturnOrder> returnOrders, ReturnOrder returnOrder, Trade trade) {
+        List<ReturnOrder> completedReturnOrderList = returnOrders.stream().filter(o -> o.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(completedReturnOrderList)) {
             List<String> completedGoodsInfoIds = new ArrayList<>();
             List<String> completedGiftIds = new ArrayList<>();
@@ -1531,8 +1527,10 @@ public class ReturnOrderService {
                 completedGoodsInfoIds.addAll(o.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
                 completedGiftIds.addAll(o.getReturnGifts().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
             });
-            trade.setTradeItems(trade.getTradeItems().stream().filter(item -> !(item.getCanReturnNum() == 0 && completedGoodsInfoIds.contains(item.getSkuId()))).collect(Collectors.toList()));
+            trade.setTradeItems(trade.getTradeItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
             trade.setGifts(trade.getGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
+            returnOrder.setReturnItems(returnOrder.getReturnItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
+            returnOrder.setReturnGifts(returnOrder.getReturnGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
         }
     }
 
@@ -1677,9 +1675,8 @@ public class ReturnOrderService {
         // 查询订单相关的所有退单
         List<ReturnOrder> returnAllOrders = returnOrderRepository.findByTid(returnOrder.getTid());
         // 筛选出已完成的退单
-        List<ReturnOrder> returnOrders = returnAllOrders.stream().filter(allOrder -> allOrder.getReturnFlowState() ==
-                ReturnFlowState.COMPLETED)
-                .collect(Collectors.toList());
+        List<ReturnOrder> returnOrders = returnAllOrders.stream().filter(allOrder ->
+                allOrder.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
         //计算所有已完成的退单总价格
         BigDecimal allOldPrice = new BigDecimal(0);
         for (ReturnOrder order : returnOrders) {
@@ -1700,8 +1697,7 @@ public class ReturnOrderService {
                 payOrderPrice = payOrderPrice.add(payOrderService.findPayOrderByOrderCode(trade.getTailOrderNo()).get().getPayOrderPrice());
             }
             // 退单金额校验 退款金额不可大于可退金额
-            if (payOrder.getPayType() == PayType.ONLINE && payOrderPrice.compareTo(price.add(allOldPrice))
-                    == -1) {
+            if (payOrder.getPayType() == PayType.ONLINE && payOrderPrice.compareTo(price.add(allOldPrice)) == -1) {
                 throw new SbcRuntimeException("K-050126");
             }
             if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY) {
@@ -2211,6 +2207,11 @@ public class ReturnOrderService {
                 //作废主订单
                 tradeService.voidTrade(returnOrder.getTid(), operator);
                 trade.getTradeState().setEndTime(LocalDateTime.now());
+            }else if(providerTradeAllEnd(returnOrder)){
+                //zi订单或作废或已经全部发货，修改主订单为待收货
+                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                trade.getTradeState().setFlowState(FlowState.DELIVERED);
+                tradeService.updateTrade(trade);
             }
         }
         if (returnOrder.getPayType() == PayType.OFFLINE) {
@@ -2234,6 +2235,22 @@ public class ReturnOrderService {
                 .collect(Collectors.toList());
         return CollectionUtils.isEmpty(noVoidProviderTrades);
     }
+
+    /**
+     * 判断子单是否全部终态，
+     *
+     * @param returnOrder
+     * @return
+     */
+    public boolean providerTradeAllEnd(ReturnOrder returnOrder) {
+        //子订单
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(returnOrder.getTid());
+        List<ProviderTrade> noVoidProviderTrades = providerTrades.stream()
+                .filter(trade -> trade.getTradeState().getFlowState() != FlowState.VOID && trade.getTradeState().getFlowState() != FlowState.DELIVERED)
+                .collect(Collectors.toList());
+        return CollectionUtils.isEmpty(noVoidProviderTrades);
+    }
+
 
     /**
      * 保存退款对账明细
@@ -3857,9 +3874,11 @@ public class ReturnOrderService {
         }
         // 查询退款单
         RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(returnOrderCode);
+
         Trade trade = tradeService.detail(returnOrder.getTid());
 
-
+       //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
         //判断周期购订单赠品是否是虚拟或者电子卡券
         if (trade.getCycleBuyFlag()) {
             List<TradeItem> gifts = trade.getGifts().stream().filter(tradeItem -> tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS || tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON).collect(Collectors.toList());
@@ -3874,7 +3893,7 @@ public class ReturnOrderService {
 
         } else {
             //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
-            if (returnOrder.getReturnType().equals(ReturnType.REFUND) && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
+           if (returnOrder.getReturnType().equals(ReturnType.REFUND) && providerTrades.stream().anyMatch(p->Objects.equals(p.getId(),returnOrder.getPtid()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.SHIPPED).contains(p.getTradeState().getDeliverStatus()))) {
                 //退款单更新，已拒绝
                 this.refundReject(returnOrder, refundOrder);
                 return null;

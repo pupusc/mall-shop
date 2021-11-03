@@ -5,18 +5,17 @@ import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class GoodsAssembler {
 
-    @Value("${bookuu.providerId}")
-    private static Long providerId;
+
 
     public static GoodsSyncDTO convertGoodsDTO(BookuuGoodsDTO goodsDTO,BookuuPriceQueryResponse priceResponse) {
         GoodsSyncDTO goodsSyncDTO =  GoodsSyncDTO.builder().goodsNo(goodsDTO.getBookId())
@@ -47,15 +46,15 @@ public class GoodsAssembler {
                 .largeImageUrl(goodsDTO.getPicurllarge())
                 .copyrightUrl(goodsDTO.getBcy())
                 .status(1)
-                .providerId(providerId)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
+                .detailImageUrl(goodsDTO.getXqt())
                 .build();
         //设置成本价
         if(priceResponse ==null || CollectionUtils.isEmpty(priceResponse.getPriceList()) || !priceResponse.getPriceList().stream().anyMatch(p->p.getBookID().equals(goodsDTO.getBookId()))){
             return goodsSyncDTO;
         }
-        goodsSyncDTO.setBasePrice(priceResponse.getPriceList().stream().filter(p->p.getBookID().equals(goodsDTO.getBookId())).findFirst().get().getSellPrice());
+        goodsSyncDTO.setBasePrice(priceResponse.getPriceList().stream().filter(p->p.getBookID().equals(goodsDTO.getBookId())).findFirst().get().getPrice());
 
         return goodsSyncDTO;
     }
@@ -70,8 +69,12 @@ public class GoodsAssembler {
 
     public static List<GoodsStockSyncDTO> convertStockList(List<BookuuStockQueryResponse.BookuuStock> stockList) {
         List<GoodsStockSyncDTO> list = new ArrayList<>(stockList.size());
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now().minusMinutes(5);
         stockList.forEach(p -> {
-            list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(p.getZjtbkcsj()).build());
+            if(LocalDateTime.parse(p.getZjtbkcsj(),df).compareTo(now) >0) {
+                list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(LocalDateTime.parse(p.getZjtbkcsj(),df)).build());
+            }
         });
         return list;
     }

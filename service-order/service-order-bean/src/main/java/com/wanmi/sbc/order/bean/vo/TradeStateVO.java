@@ -173,5 +173,8 @@ public class TradeStateVO implements Serializable {
     @ApiModelProperty(value = "erp返回结果")
     private String pushResponse;
 
-
+    /**
+     * 是否实际全部发货，博库订单部分发货，显示全部发货，其他未发货的线下沟通 1,表示此情况
+     */
+    private Integer virtualAllDelivery;
 }

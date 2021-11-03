@@ -1,6 +1,7 @@
 package com.fangdeng.server.client.response.bookuu;
 
 import com.fangdeng.server.dto.BookuuGoodsDTO;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,5 +29,8 @@ public class BookuuGoodsQueryResponse implements Serializable {
         private Integer count;
         @XmlElement(name = "BookList")
         private List<BookuuGoodsDTO> bookList;
+
+        @Ignore
+        private Integer flag = 0;
 
 }

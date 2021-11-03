@@ -278,5 +278,5 @@ public class GoodsSyncDTO {
      */
     private Long providerId;
 
-
+    private String detailImageUrl;
 }

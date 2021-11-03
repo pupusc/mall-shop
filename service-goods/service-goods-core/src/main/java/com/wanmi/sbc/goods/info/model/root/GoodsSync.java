@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
+import org.checkerframework.checker.units.qual.C;
 import org.hibernate.annotations.Proxy;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
@@ -213,4 +214,22 @@ public class GoodsSync {
 
     @Column(name = "provider_id")
     private Long providerId;
+
+    @Column(name = "detail_image_url")
+    private String detailImageUrl;
+
+    @Column(name = "ad_audit_status")
+    private Integer adAuditStatus;
+
+    @Column(name = "ad_manual_audit_status")
+    private Integer adManualAuditStatus;
+
+    @Column(name="ad_manual_reject_reason")
+    private String adManualRejectReason;
+
+    @Column(name = "launch_status")
+    private Integer launchStatus;
+
+    @Column(name="launch_reject_reason")
+    private String launchRejectReason;
 }

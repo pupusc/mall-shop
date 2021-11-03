@@ -33,8 +33,8 @@ public class SyncGoodsStockJobHandler extends IJobHandler {
     public ReturnT<String> execute(String params) throws Exception {
         log.info("全量同步博库商品库存任务执行开始");
         try {
-            SyncGoodsQueryDTO queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
-            goodsService.syncGoodsStock(queryDTO);
+            //SyncGoodsQueryDTO queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
+            goodsService.syncGoodsStock();
             return SUCCESS;
         } catch (RuntimeException e) {
             log.error("同步ERP库存定时任务,参数错误", e);

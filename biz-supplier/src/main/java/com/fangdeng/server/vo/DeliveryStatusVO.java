@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -38,7 +39,7 @@ public class DeliveryStatusVO implements Serializable {
          * 发货时间
          */
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-        private LocalDateTime deliverTime;
+        private Date deliverTime;
 
 
         /**

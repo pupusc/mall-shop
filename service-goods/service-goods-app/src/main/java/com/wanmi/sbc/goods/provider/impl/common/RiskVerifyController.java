@@ -19,7 +19,7 @@ public class RiskVerifyController implements RiskVerifyProvider {
 
     @Override
     public BaseResponse verifyImageCallBack(ImageVerifyRequest imageVerifyRequest) {
-        if (imageVerifyRequest == null || StringUtils.isEmpty(imageVerifyRequest.getCustomerId())) {
+        if (imageVerifyRequest == null || StringUtils.isEmpty(imageVerifyRequest.getRequestId())) {
             throw new SbcRuntimeException("K-000001");
         }
         riskVerifyService.verifyImageCallBack(imageVerifyRequest);

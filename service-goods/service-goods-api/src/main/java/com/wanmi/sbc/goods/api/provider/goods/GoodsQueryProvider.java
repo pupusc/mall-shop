@@ -4,11 +4,11 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
-import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -211,4 +211,7 @@ public interface GoodsQueryProvider {
 
     @GetMapping("/goods/${application.goods.version}/count-goods-price-sync")
     BaseResponse<Integer> countGoodsPriceSync();
+
+    @GetMapping("/goods/${application.goods.version}/list-goods-cate-sync")
+    BaseResponse<List<GoodsCateSyncVO>> listGoodsCateSync();
 }

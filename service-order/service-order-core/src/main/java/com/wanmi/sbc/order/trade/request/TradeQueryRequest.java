@@ -329,6 +329,8 @@ public class TradeQueryRequest extends BaseQueryRequest {
      */
     private List<String> yzTids;
 
+    @ApiModelProperty("虚拟全部发货，0否1是")
+    private Integer virtualAllDelivery;
     /**
      * @return
      */
@@ -774,6 +776,11 @@ public class TradeQueryRequest extends BaseQueryRequest {
 
         if(CollectionUtils.isNotEmpty(yzTids)) {
             criterias.add(Criteria.where("yzTid").in(yzTids));
+        }
+        if(Objects.nonNull(virtualAllDelivery) && virtualAllDelivery == 1){
+            criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(virtualAllDelivery));
+        }else if(Objects.nonNull(virtualAllDelivery)){
+            criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(null));
         }
         return criterias;
     }
