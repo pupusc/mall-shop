@@ -55,6 +55,6 @@ public interface NoticeProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/notice/listNoPage")
-    BaseResponse<List<NoticeProviderResponse>> listNoPage(NoticePageProviderRequest request);
+    BaseResponse<List<NoticeProviderResponse>> listNoPage(@RequestBody NoticePageProviderRequest request);
 
 }
