@@ -9,6 +9,7 @@ import com.fangdeng.server.job.SyncGoodsStockJobHandler;
 import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/test")
+@Slf4j
 public class TestController {
 
     @Autowired
@@ -94,9 +96,8 @@ public class TestController {
         try {
             List<String> tags = labels.stream().filter(p-> !(p.contains("其他") || p.contains("其它"))).distinct().collect(Collectors.toList());
             tagMapper.batchInsert(tags);
-            
         }catch (Exception e){
-            String a="";
+            log.warn("init label error",e);
         }
     }
 
@@ -113,7 +114,7 @@ public class TestController {
             goodsCateSyncMapper.batchInsert(cates);
 
         }catch (Exception e){
-            String a="";
+            log.warn("init cate error",e);
         }
     }
 
