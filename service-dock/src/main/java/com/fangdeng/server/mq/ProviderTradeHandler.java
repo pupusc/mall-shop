@@ -48,39 +48,43 @@ public class ProviderTradeHandler {
     @Resource
     private RedisTemplate<String,Object> redisTemplate;
 
-    private static String ORDER_PUSH_CONSUME = "supplier.order.push";
+    private static String ORDER_PUSH_CONSUME = "supplier:order:push:";
+
+    private static String ORDER_PUSH_CANCEL ="supplier:order:cancel:";
 
     @RabbitListener(queues = ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_QUEUE)
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body) {
         OrderTradeDTO orderTradeDTO = JSONObject.parseObject(body,OrderTradeDTO.class);
         log.info("order push consumer,message:{},payload:{}",message,orderTradeDTO);
-        if(!checkOrderPush(orderTradeDTO.getPlatformCode())){
+        if(!checkOrderPush(orderTradeDTO.getPlatformCode()) || !checkCancel(orderTradeDTO.getPlatformCode())){
             log.info("there is order push,request:{}",orderTradeDTO);
             return;
         }
         BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
         BookuuOrderAddResponse response = bookuuClient.addOrder(request);
-        if(response.getStatus() == 1 && response.getStatusDesc().contains("已被导入")){
-            return;
+        if(response.getStatus() == 1){
+            //查询一次
+            BookuuOrderStatusQueryRequest orderStatusQueryRequest = new BookuuOrderStatusQueryRequest();
+            orderStatusQueryRequest.setOutID(Arrays.asList(request.getSequence()));
+            BookuuOrderStatusQueryResponse orderStatusQueryResponse = bookuuClient.queryOrderStatus(orderStatusQueryRequest);
+            if(orderStatusQueryResponse != null && CollectionUtils.isNotEmpty(orderStatusQueryResponse.getStatusDTOS())){
+                //为了防止消息漏掉，认为成功，在消费端处理
+                response.setStatus(0);
+                response.setOrderID(orderStatusQueryResponse.getStatusDTOS().get(0).getOrderId());
+            }
         }
         ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().status(response.getStatus()).statusDesc(response.getStatusDesc()).orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
         log.info("order push consumer confirm,request:{}",confirmDTO);
         //回传消息
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
-        //手动确认
-
     }
 
     private Boolean checkOrderPush(String orderId){
         try {
-            Map map =  (HashMap) redisTemplate.opsForValue().get(ORDER_PUSH_CONSUME);
-            if (map == null || map.isEmpty() || !map.containsKey(orderId) || map.get(orderId) == null) {
-                if(map == null){
-                    map = new HashMap();
-                }
-                map.put(orderId,true);
-                redisTemplate.opsForValue().set(ORDER_PUSH_CONSUME, map, 5, TimeUnit.MINUTES);
+            String flag =  (String) redisTemplate.opsForValue().get(ORDER_PUSH_CONSUME+orderId);
+            if (StringUtils.isEmpty(flag)) {
+                redisTemplate.opsForValue().set(ORDER_PUSH_CONSUME+orderId, "true", 5, TimeUnit.MINUTES);
                 return true;
             }
         } catch (Exception e) {
@@ -131,6 +135,18 @@ public class ProviderTradeHandler {
         rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
         //手动确认
 
+    }
+
+    private Boolean checkCancel(String orderId){
+        try {
+            String flag =  (String) redisTemplate.opsForValue().get(ORDER_PUSH_CANCEL+orderId);
+            if (StringUtils.isNotEmpty(flag)) {
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("cancel order get redis error,orderId:{}",orderId,e);
+        }
+        return true;
     }
 
 
