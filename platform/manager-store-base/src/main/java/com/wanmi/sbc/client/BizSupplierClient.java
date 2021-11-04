@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
-@FeignClient(value = "biz-supplier")
+@FeignClient(value = "sbc-service-dock")
 public interface BizSupplierClient {
 
     @RequestMapping(value = "/order/cancel",method = RequestMethod.POST)
