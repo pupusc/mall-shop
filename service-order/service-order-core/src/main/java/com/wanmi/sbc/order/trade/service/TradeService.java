@@ -7383,7 +7383,13 @@ public class TradeService {
      * @param userId
      */
     public void addProviderTrade(String oid, String userId) {
+        logger.info("TradeService addProviderTrade 补充子单，开始 oid:{} userId:{}", oid, userId);
         // 根据供货商拆单并入库
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(oid);
+        if (!CollectionUtils.isEmpty(providerTradeList)) {
+            logger.info("订单：{} 存在 providerTrade数据", oid);
+            return;
+        }
 
         List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
         List<TradeCommitResult> resultList = new ArrayList<>();
@@ -7439,6 +7445,7 @@ public class TradeService {
             }
         });
         if (dtoList.size() > 0) {
+            logger.info("TradeService addProviderTrade dtoList: {}", JSON.toJSONString(dtoList));
             couponCodeProvider.batchModify(CouponCodeBatchModifyRequest.builder().modifyDTOList(dtoList).build());
         }
 
@@ -7474,6 +7481,8 @@ public class TradeService {
             messageMQRequest.setMobile(trade.getBuyer().getAccount());
             orderProducerService.sendMessage(messageMQRequest);
         });
+
+        logger.info("TradeService addProviderTrade 补充子单，结束 oid:{} userId:{}", oid, userId);
     }
 
     /**
