@@ -728,14 +728,13 @@ public class OrderConsumerService {
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body){
         log.info("order push confirm message:{}",body);
-        ProviderTradeStatusSyncRequest request = null;
         try{
-            request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+            ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body,ProviderTradeStatusSyncRequest.class);
+            tradeProvider.syncProviderTradeStatus(request);
+            log.info("=============== 订单推送完成 ===============");
         }catch (Exception e){
-            log.error("order push confirm message to bean error,body:{}",body,e);
-            return;
+            log.error("provider order push confirm error,body:{}",body,e);
         }
-        tradeProvider.syncProviderTradeStatus(request);
     }
 
     /**
@@ -746,15 +745,14 @@ public class OrderConsumerService {
     @RabbitListener(queues = JmsDestinationConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM_QUEUE)
     @RabbitHandler
     public void deliveryStatusSyncConsumer(Message message, @Payload String body){
-        ProviderTradeStatusSyncRequest request =null;
+        log.info("order delivery status sync confirm message:{}", body);
         try {
-            log.info("order delivery status sync confirm message:{}", body);
-            request = JSONObject.parseObject(body, ProviderTradeStatusSyncRequest.class);
+            ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body, ProviderTradeStatusSyncRequest.class);
+            tradeProvider.syncProviderTradeDeliveryStatus(request);
+            log.info("=============== 订单状态变更完成 ===============");
         }catch (Exception e){
-            log.error("order delivery status sync confirm message to bean error,body:{}",body,e);
-            return;
+            log.error("provider order delivery status sync confirm error,body:{}",body,e);
         }
-        tradeProvider.syncProviderTradeDeliveryStatus(request);
     }
 
 }

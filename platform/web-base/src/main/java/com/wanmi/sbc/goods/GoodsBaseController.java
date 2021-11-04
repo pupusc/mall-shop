@@ -435,6 +435,9 @@ public class GoodsBaseController {
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }
+        if (queryRequest.getCpsSpecial() != null) {
+            queryRequest.setSortFlag(10); //添加排序
+        }
         if (Objects.nonNull(queryRequest.getMarketingId())) {
             MarketingGetByIdRequest marketingGetByIdRequest = new MarketingGetByIdRequest();
             marketingGetByIdRequest.setMarketingId(queryRequest.getMarketingId());
