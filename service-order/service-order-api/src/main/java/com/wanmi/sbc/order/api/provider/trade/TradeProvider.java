@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -434,4 +435,11 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
     BaseResponse syncProviderTradeDeliveryStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
 
+
+    /**
+     * 新增子单
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/add-provider-trade/{oid}/{userId}")
+    BaseResponse<String> addProviderTrade(@PathVariable("oid") String oid, @PathVariable("userId") String userId);
 }
