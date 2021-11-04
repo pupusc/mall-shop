@@ -10,13 +10,12 @@ import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -95,8 +94,12 @@ public class TestController {
     public void initLabel(@RequestBody List<String> labels){
         log.info("init label start");
         try {
+            List<String> oldTags = tagMapper.listTagName();
             List<String> tags = labels.stream().filter(p-> !(p.contains("其他") || p.contains("其它"))).distinct().collect(Collectors.toList());
-            tagMapper.batchInsert(tags);
+            List<String> tagList = tags.stream().filter(p->!oldTags.contains(p)).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(tagList)){
+              tagMapper.batchInsert(tagList);
+            }
         }catch (Exception e){
             log.warn("init label error",e);
         }
@@ -109,7 +112,8 @@ public class TestController {
             List<TagDTO> tagDTOS = tagMapper.list();
             cates.forEach(c->{
                 List<String> names = getName(c,cates);
-                List<String> labelIds = tagDTOS.stream().filter(p->names.contains(p.getTagName())).map(p->p.getId().toString()).collect(Collectors.toList());
+                List<TagDTO> tags = tagDTOS.stream().filter(p->names.contains(p.getTagName())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(TagDTO :: getTagName))), ArrayList::new));
+                List<String> labelIds = tags.stream().map(p->p.getId().toString()).collect(Collectors.toList());
                 c.setLabelIds(String.join(",",labelIds));
             });
             goodsCateSyncMapper.batchInsert(cates);
