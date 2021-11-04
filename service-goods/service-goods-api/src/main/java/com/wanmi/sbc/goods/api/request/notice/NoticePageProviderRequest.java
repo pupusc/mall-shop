@@ -46,5 +46,7 @@ public class NoticePageProviderRequest implements Serializable {
     /**
      * 当前时间  根据当前时间获取 有效的公告
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime now;
 }

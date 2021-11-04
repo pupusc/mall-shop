@@ -196,7 +196,7 @@ public class ImageService {
                     conditionList.add(root.get("id").in(imagePageProviderRequest.getIdColl()));
                 }
                 if (!StringUtils.isEmpty(imagePageProviderRequest.getName())) {
-                    conditionList.add(criteriaBuilder.equal(root.get("name"), imagePageProviderRequest.getName() + "%"));
+                    conditionList.add(criteriaBuilder.like(root.get("name"), imagePageProviderRequest.getName() + "%"));
                 }
                 if (imagePageProviderRequest.getPublishState() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("publishState"), imagePageProviderRequest.getPublishState()));
@@ -206,13 +206,13 @@ public class ImageService {
                 }
                 if (imagePageProviderRequest.getStatus() != null) {
                     if (Objects.equals(imagePageProviderRequest.getStatus(), 0)) {
-                        conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), LocalDateTime.now()));
+                        conditionList.add(criteriaBuilder.greaterThan(root.get("beginTime"), LocalDateTime.now()));
                     } else if (Objects.equals(imagePageProviderRequest.getStatus(), 1)) {
                         LocalDateTime now = LocalDateTime.now();
                         conditionList.add(criteriaBuilder.lessThan(root.get("beginTime"), now));
                         conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), now));
                     } else {
-                        conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), LocalDateTime.now()));
+                        conditionList.add(criteriaBuilder.lessThan(root.get("endTime"), LocalDateTime.now()));
                     }
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
