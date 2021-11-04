@@ -144,4 +144,9 @@
     from t_tag
     where del_flag =0
   </select>
+  <select id="listTagName" resultType="java.lang.String">
+    select distinct tag_name
+    from t_tag
+    where del_flag =0
+  </select>
 </mapper>
