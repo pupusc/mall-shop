@@ -240,6 +240,11 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     private List<EsSpecQueryRequest> specs = new ArrayList<>();
 
     /**
+     * 店铺分类
+     */
+    private List<EsClassifyRequest> classifyRequests;
+
+    /**
      * 营销Id
      */
     @ApiModelProperty(value = "营销Id")
