@@ -93,6 +93,7 @@ public class TestController {
 
     @PostMapping("/goods/label/init")
     public void initLabel(@RequestBody List<String> labels){
+        log.info("init label start");
         try {
             List<String> tags = labels.stream().filter(p-> !(p.contains("其他") || p.contains("其它"))).distinct().collect(Collectors.toList());
             tagMapper.batchInsert(tags);
