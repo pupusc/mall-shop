@@ -166,7 +166,7 @@ public class ClassifyController implements ClassifyProvider {
         for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
             List<ClassifySimpleProviderResponse> list = result.computeIfAbsent(classifyGoodsRelDTO.getGoodsId(), k -> new ArrayList<>());
             ClassifySimpleProviderResponse classifySimpleProviderResponse = new ClassifySimpleProviderResponse();
-            BeanUtils.copyProperties(classifyMap.get(classifyGoodsRelDTO.getId()), classifySimpleProviderResponse);
+            BeanUtils.copyProperties(classifyMap.get(classifyGoodsRelDTO.getClassifyId()), classifySimpleProviderResponse);
             list.add(classifySimpleProviderResponse);
         }
         return BaseResponse.success(result);

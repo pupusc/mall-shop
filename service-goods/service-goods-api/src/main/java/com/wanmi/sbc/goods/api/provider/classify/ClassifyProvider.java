@@ -77,15 +77,15 @@ public interface ClassifyProvider {
      * 根据商品id列表，查询对应的店铺分类
      * @param goodsId
      */
-    @GetMapping("/goods/${application.goods.version}/classify/searchGroupedClassifyByGoodsId")
-    BaseResponse<Map<String, List<ClassifySimpleProviderResponse>>> searchGroupedClassifyByGoodsId(List<String> goodsId);
+    @PostMapping("/goods/${application.goods.version}/classify/searchGroupedClassifyByGoodsId")
+    BaseResponse<Map<String, List<ClassifySimpleProviderResponse>>> searchGroupedClassifyByGoodsId(@RequestBody List<String> goodsId);
 
     /**
      * 根据商品id列表，查询对应的店铺分类id
      * @param goodsId
      */
-    @GetMapping("/goods/${application.goods.version}/classify/searchGroupedClassifyIdByGoodsId")
-    BaseResponse<Map<String, List<Integer>>> searchGroupedClassifyIdByGoodsId(List<String> goodsId);
+    @PostMapping("/goods/${application.goods.version}/classify/searchGroupedClassifyIdByGoodsId")
+    BaseResponse<Map<String, List<Integer>>> searchGroupedClassifyIdByGoodsId(@RequestBody List<String> goodsId);
 
     /**
      * 根据分类id 获取商品列表

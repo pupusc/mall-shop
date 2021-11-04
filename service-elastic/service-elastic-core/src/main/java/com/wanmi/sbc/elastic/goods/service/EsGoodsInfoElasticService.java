@@ -1166,7 +1166,7 @@ public class EsGoodsInfoElasticService {
                 if(classifySimpleProviderResponse.getId().equals(id)){
                     classifySimpleProviderResponse.setClassifyName(name);
                     IndexQuery iq = new IndexQuery();
-                    iq.setObject(classifySimpleProviderResponse);
+                    iq.setObject(esGoods);
                     iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
                     iq.setType(EsConstants.DOC_GOODS_TYPE);
                     esGood.add(iq);
@@ -1194,7 +1194,7 @@ public class EsGoodsInfoElasticService {
                 ClassifySimpleProviderResponse classifySimpleProviderResponse = iterator.next();
                 if(classifySimpleProviderResponse.getId().equals(id)) iterator.remove();
                 IndexQuery iq = new IndexQuery();
-                iq.setObject(classifySimpleProviderResponse);
+                iq.setObject(esGoods);
                 iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
                 iq.setType(EsConstants.DOC_GOODS_TYPE);
                 esGood.add(iq);
