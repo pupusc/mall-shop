@@ -65,7 +65,7 @@ public class ClassifyController {
      * 新增分类
      * @menu 后台CMS2.0
      * @param classifyProviderRequest
-     * @return
+     * @return>
      */
     @PostMapping("/add")
     public BaseResponse add(@RequestBody ClassifyProviderRequest classifyProviderRequest) {

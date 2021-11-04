@@ -67,10 +67,10 @@ public interface EsGoodsInfoElasticProvider {
     BaseResponse delStoreCateIds(@RequestBody @Valid EsGoodsDeleteStoreCateRequest request);
 
     @PostMapping("/elastic/${application.elastic.version}/goods/update/classify")
-    BaseResponse updateClassify(@RequestParam Integer id, @RequestParam String name);
+    BaseResponse updateClassify(@RequestParam("id") Integer id, @RequestParam("name") String name);
 
     @PostMapping("/elastic/${application.elastic.version}/goods/delete/classify")
-    BaseResponse delClassify(@RequestParam Integer id);
+    BaseResponse delClassify(@RequestParam("id") Integer id);
 
     @PostMapping("/elastic/${application.elastic.version}/goods/adjust/price")
     BaseResponse adjustPrice(@RequestBody @Valid EsGoodsInfoAdjustPriceRequest request);
