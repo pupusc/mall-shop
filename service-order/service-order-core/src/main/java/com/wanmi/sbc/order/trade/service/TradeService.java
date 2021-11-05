@@ -7506,6 +7506,8 @@ public class TradeService {
             PayOrder payOrder = new PayOrder();
             BaseResponse<CustomerDetailGetCustomerIdResponse> response = tradeCacheService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
             CustomerDetailVO customerDetail = response.getContext();
+            payOrder.setPayOrderId(trade.getPayOrderId());
+
             payOrder.setCustomerDetailId(customerDetail.getCustomerDetailId());
             payOrder.setOrderCode(trade.getId());
             payOrder.setUpdateTime(LocalDateTime.now());
@@ -7513,38 +7515,35 @@ public class TradeService {
             payOrder.setDelFlag(DeleteFlag.NO);
             payOrder.setCompanyInfoId(trade.getSupplier().getSupplierId());
             payOrder.setPayOrderNo(generatorService.generateOid());
-
             BigDecimal payPrice = Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
                     && StringUtils.isEmpty(trade.getTailOrderNo()) ?
                     trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice();
-
             if (payPrice == null) {
                 payOrder.setPayOrderStatus(PayOrderStatus.PAYED);
             } else {
                 payOrder.setPayOrderStatus(PayOrderStatus.NOTPAY);
             }
-            payOrder.setPayOrderPrice(Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
-                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
-                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice());
+            payOrder.setPayOrderPrice(payPrice);
             payOrder.setPayOrderPoints(trade.getTradePrice().getPoints());
             payOrder.setPayOrderKnowledge(trade.getTradePrice().getKnowledge());
-
             payOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
-            if (OrderType.POINTS_ORDER.equals(payOrder.getPayType())) {
-                payOrderRepository.saveAndFlush(payOrder);
-                // 积分订单生成收款单
-                Receivable receivable = new Receivable();
-                receivable.setPayOrderId(payOrder.getPayOrderId());
-                receivable.setReceivableNo(generatorService.generateSid());
-                receivable.setPayChannel("积分支付");
-                receivable.setPayChannelId((Constants.DEFAULT_RECEIVABLE_ACCOUNT));
-                receivable.setCreateTime(trade.getTradeState().getCreateTime());
-                receivable.setDelFlag(DeleteFlag.NO);
-                receivableRepository.save(receivable);
-            }
-
-            payOrderRepository.saveAndFlush(payOrder);
-
+//            if (OrderType.POINTS_ORDER.equals(trade.getOrderType())) {
+//                payOrderRepository.saveAndFlush(payOrder);
+//                // 积分订单生成收款单
+//                Receivable receivable = new Receivable();
+//                receivable.setPayOrderId(payOrder.getPayOrderId());
+//                receivable.setReceivableNo(generatorService.generateSid());
+//                receivable.setPayChannel("积分支付");
+//                receivable.setPayChannelId(Constants.DEFAULT_RECEIVABLE_ACCOUNT);
+//                receivable.setCreateTime(trade.getTradeState().getCreateTime());
+//                receivable.setDelFlag(DeleteFlag.NO);
+//                receivableRepository.save(receivable);
+//            }
+//            payOrderRepository.save()
+//            payOrderRepository.saveAndFlush(payOrder);
+            payOrderRepository.insertPayOrderCustomer(payOrder.getPayOrderId(), payOrder.getPayOrderNo(), payOrder.getOrderCode(), payOrder.getPayOrderStatus().toValue()+"",
+                    payOrder.getPayType().toValue(), payOrder.getCustomerDetailId(), payOrder.getCreateTime(), payOrder.getUpdateTime(), payOrder.getDelFlag().toValue(),
+                    payOrder.getPayOrderPrice(), payOrder.getCompanyInfoId(), payOrder.getPayOrderPoints(), payOrder.getPayOrderKnowledge());
             log.info("addPayOrder generatePayOrderByOrderCode optional ");
         }
         log.info("addPayOrder generatePayOrderByOrderCode oid: {} end running", oid);
