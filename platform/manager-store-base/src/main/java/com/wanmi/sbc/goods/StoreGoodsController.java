@@ -26,6 +26,7 @@ import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
 import com.wanmi.sbc.elastic.api.response.spu.EsSpuPageResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.excel.GoodsSupplierExcelProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -147,6 +148,9 @@ public class StoreGoodsController {
     @Autowired
     private EnterpriseGoodsInfoQueryProvider enterpriseGoodsInfoQueryProvider;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
     /**
      * 查询商品
      *
@@ -195,25 +199,16 @@ public class StoreGoodsController {
         List<GoodsPageSimpleVO> goodses = response.getGoodsPage().getContent();
         if(CollectionUtils.isNotEmpty(goodses)) {
             List<String> goodsIds = goodses.stream().map(GoodsPageSimpleVO::getGoodsId).collect(Collectors.toList());
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse = storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(goodsIds));
-            StoreCateListByGoodsResponse cateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.isNull(cateListByGoodsResponse)){
-                return BaseResponse.success(response);
-            }
-            Map<String, List<StoreCateGoodsRelaVO>> storeCateMap = cateListByGoodsResponse.getStoreCateGoodsRelaVOList()
-                    .stream().collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId));
-            //为每个spu填充店铺分类编号
-            if(MapUtils.isNotEmpty(storeCateMap)){
-                goodses.stream()
-                        .filter(goods -> storeCateMap.containsKey(goods.getGoodsId()))
-                        .forEach(goods -> {
-                            goods.setStoreCateIds(storeCateMap.get(goods.getGoodsId()).stream().map(StoreCateGoodsRelaVO::getStoreCateId).filter(id -> id != null).collect(Collectors.toList()));
-                        });
+            BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds);
+            if(mapBaseResponse.getContext() != null){
+                Map<String, List<Integer>> storeCateMap = mapBaseResponse.getContext();
+                for (GoodsPageSimpleVO goods : goodses) {
+                    goods.setStoreCateIds(storeCateMap.get(goods.getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+                }
             }
         }
         return BaseResponse.success(response);
     }
-
 
     /**
      * 查询商品列表(供添加拼团活动中选择商品用)

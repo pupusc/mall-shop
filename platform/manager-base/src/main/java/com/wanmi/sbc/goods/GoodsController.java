@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -176,6 +177,9 @@ public class GoodsController {
 
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
@@ -980,18 +984,10 @@ public class GoodsController {
         }
         //获取商品店铺分类
         if (osUtil.isS2b()) {
-            StoreCateListByGoodsRequest storeCateListByGoodsRequest =
-                    new StoreCateListByGoodsRequest(Collections.singletonList(goodsId));
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse =
-                    storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest);
-            StoreCateListByGoodsResponse storeCateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.nonNull(storeCateListByGoodsResponse)) {
-                List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                        storeCateListByGoodsResponse.getStoreCateGoodsRelaVOList();
-                response.getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream()
-                        .filter(rela -> rela.getStoreCateId() != null)
-                        .map(StoreCateGoodsRelaVO::getStoreCateId)
-                        .collect(Collectors.toList()));
+            BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId));
+            if(mapBaseResponse.getContext() != null){
+                List<Long> collect = mapBaseResponse.getContext().get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList());
+                response.getGoods().setStoreCateIds(collect);
             }
         }
         OperateDataLogListResponse operateDataLogListResponse =
