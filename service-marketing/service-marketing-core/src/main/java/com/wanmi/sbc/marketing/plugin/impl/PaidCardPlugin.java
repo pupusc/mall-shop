@@ -17,6 +17,7 @@ import com.wanmi.sbc.marketing.plugin.IGoodsListPlugin;
 import com.wanmi.sbc.marketing.request.MarketingPluginRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -40,6 +41,9 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     @Autowired
     private GoodsIntervalPriceQueryProvider goodsIntervalPriceQueryProvider;
 
+    @Value("${exclude-product:000}")
+    private String excludeProduct;
+
     /**
      * 商品列表处理
      *
@@ -48,6 +52,13 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      */
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
+        for (GoodsInfoVO goodsInfo : goodsInfos) {
+            if(excludeIds.contains(goodsInfo.getGoodsId())){
+                return;
+            }
+        }
 
         if (Objects.isNull(request.getCustomer())) {
             return;
@@ -148,6 +159,11 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     public void goodsDetailFilter(GoodsInfoDetailByGoodsInfoResponse detailResponse, MarketingPluginRequest request) {
         if (Objects.isNull(request.getCustomer())
                 || (!Integer.valueOf(GoodsPriceType.MARKET.toValue()).equals(detailResponse.getGoodsInfo().getPriceType()))) {
+            return;
+        }
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
+        if(excludeIds.contains(detailResponse.getGoods().getGoodsId())){
             return;
         }
         List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>(Arrays.asList(detailResponse.getGoodsInfo()));
