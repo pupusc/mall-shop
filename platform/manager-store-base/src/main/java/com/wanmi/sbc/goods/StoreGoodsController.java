@@ -203,7 +203,12 @@ public class StoreGoodsController {
             if(mapBaseResponse.getContext() != null){
                 Map<String, List<Integer>> storeCateMap = mapBaseResponse.getContext();
                 for (GoodsPageSimpleVO goods : goodses) {
-                    goods.setStoreCateIds(storeCateMap.get(goods.getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+                    List<Integer> classifies = storeCateMap.get(goods.getGoodsId());
+                    if(classifies == null){
+                        goods.setStoreCateIds(new ArrayList<>());
+                    }else{
+                        goods.setStoreCateIds(classifies.stream().map(Integer::longValue).collect(Collectors.toList()));
+                    }
                 }
             }
         }
