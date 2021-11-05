@@ -7485,6 +7485,39 @@ public class TradeService {
         logger.info("TradeService addProviderTrade 补充子单，结束 oid:{} userId:{}", oid, userId);
     }
 
+
+    /**
+     * 补单 根据trade 生成 payOrder
+     * @param oid
+     */
+    public void addFixPayOrder(String oid) {
+        log.info("addPayOrder generatePayOrderByOrderCode oid:{} begin running", oid);
+        List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
+        Optional<PayOrder> payOrderByOrderCode = payOrderService.findPayOrderByOrderCode(oid);
+        if (!payOrderByOrderCode.isPresent()) {
+            log.info("addPayOrder generatePayOrderByOrderCode oid:{} 存在不进行创建操作", oid);
+            log.info("addPayOrder generatePayOrderByOrderCode oid: {} 提前结束 end running", oid);
+            return;
+        }
+        for (Trade trade : trades) {
+            //创建支付单
+            Optional<PayOrder> optional = payOrderService.generatePayOrderByOrderCode(
+                    new PayOrderGenerateRequest(trade.getId(),
+                            trade.getBuyer().getId(),
+                            Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice(),
+                            trade.getTradePrice().getPoints(),
+                            trade.getTradePrice().getKnowledge(),
+                            PayType.valueOf(trade.getPayInfo().getPayTypeName()),
+                            trade.getSupplier().getSupplierId(),
+                            trade.getTradeState().getCreateTime(),
+                            trade.getOrderType()));
+            log.info("addPayOrder generatePayOrderByOrderCode optional {}", optional.orElse(null));
+        }
+        log.info("addPayOrder generatePayOrderByOrderCode oid: {} end running", oid);
+    }
+
     /**
      * 线上订单支付回调
      * 订单 支付单 操作信息
