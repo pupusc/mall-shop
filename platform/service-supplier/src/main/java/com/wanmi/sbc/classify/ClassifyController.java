@@ -104,8 +104,8 @@ public class ClassifyController {
     /**
      *
      * 类目列表
-     * @menu 商城书单和类目
-     * @status undone
+     * @menu 后台CMS2.0
+     * @status done
      * @return
      */
     @GetMapping("/listClassify")
