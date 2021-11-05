@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.hotgoods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.hotgoods.HotGoodsProvider;
+import com.wanmi.sbc.goods.api.request.goods.HotGoodsTypeRequest;
 import com.wanmi.sbc.goods.bean.dto.HotGoodsDto;
 import com.wanmi.sbc.goods.hotgoods.service.HotGoodsService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,5 +37,11 @@ public class HotGoodsController implements HotGoodsProvider {
         List<HotGoodsDto> hotGoodsDtos =  hotGoodsService.selectAllBySort();
         return BaseResponse.success(hotGoodsDtos);
 
+    }
+
+    @Override
+    public BaseResponse<List<HotGoodsDto>> selectAllByTypes(HotGoodsTypeRequest hotGoodsTypeRequest) {
+        List<HotGoodsDto> hotGoodsDtos =  hotGoodsService.selectAllByTypes(hotGoodsTypeRequest);
+        return BaseResponse.success(hotGoodsDtos);
     }
 }

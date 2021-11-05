@@ -187,4 +187,19 @@ public class TradePrice implements Serializable {
      * 根据供应商拆分后的运费
      */
     private Map<Long, BigDecimal> splitDeliveryPrice;
+
+    /**
+     * 实际支付金额
+     */
+    private BigDecimal actualPrice;
+
+    /**
+     * 实际积分
+     */
+    private BigDecimal actualPoints;
+    /**
+     * 实际知豆
+     */
+    private Long actualKnowledge;
+
 }

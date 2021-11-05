@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.sensorsdata;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
@@ -36,7 +37,7 @@ public class SensorsDataService {
      */
     public void sendPaySuccessEvent(List<Trade> trades) {
         List<SensorsMessageDto> sensorsMessageDtos = new ArrayList<>();
-        log.info("支付成功埋点数据:{}", trades.get(0).getId());
+        log.info("支付成功埋点数据:{}", JSON.toJSONString(trades));
         for (Trade trade : trades) {
             NoDeleteCustomerGetByAccountRequest request = new NoDeleteCustomerGetByAccountRequest();
             request.setCustomerAccount(trade.getBuyer().getAccount());
@@ -58,7 +59,6 @@ public class SensorsDataService {
                 }
             }
             orderProducerService.sendSensorsMessage(sensorsMessageDtos);
-            log.info("支付成功埋点数据2:{},{}", trades.get(0).getId(), sensorsMessageDtos.size());
         }
     }
 

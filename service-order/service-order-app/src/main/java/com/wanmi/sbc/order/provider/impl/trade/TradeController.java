@@ -142,10 +142,24 @@ public class TradeController implements TradeProvider {
         List<TradeCommitResult> results = tradeOptimizeService.commit(tradeCommitRequest);
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
-    @GetMapping("/test")
-    public BaseResponse<String> test() {
+
+
+    @Override
+    public BaseResponse<String> addProviderTrade(String oid, String userId) {
         // tradeService.virtualCouponHandle();
+        tradeService.addProviderTrade(oid, userId);
         return BaseResponse.success("s");
+    }
+
+
+    /**
+     * 补单 根据trade 生成 payOrder
+     * @param oid
+     */
+    @Override
+    public BaseResponse<String> addFixPayOrder(String oid){
+        tradeService.addFixPayOrder(oid);
+        return BaseResponse.success("success");
     }
 
 
@@ -616,7 +630,7 @@ public class TradeController implements TradeProvider {
                 tradeService.aliPayOnlineCallBack(tradePayOnlineCallBackRequest);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("TradeController.payOnlineCallBack exception" , e);
         }
         return BaseResponse.SUCCESSFUL();
     }

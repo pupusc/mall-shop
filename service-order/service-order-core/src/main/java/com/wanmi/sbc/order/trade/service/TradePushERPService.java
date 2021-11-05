@@ -62,6 +62,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -329,8 +330,14 @@ public class TradePushERPService {
 
         //积分价格
         BigDecimal pointsPrice=tradePrice.getPointsPrice();
+        if(tradePrice.getActualPoints() != null ){
+            pointsPrice = tradePrice.getActualPoints();
+        }
         //现金价格
         BigDecimal totalPrice=tradePrice.getTotalPrice();
+        if(tradePrice.getActualPrice() != null ){
+            totalPrice = tradePrice.getActualPrice();
+        }
 
         log.info("========周期购平摊计算======pointsPrice:{},totalPrice:{},cycleNum:{}",pointsPrice,totalPrice,cycleNum);
 
@@ -444,6 +451,7 @@ public class TradePushERPService {
                                     .itemCode(goodsInfoVO.getErpGoodsNo())
                                     .skuCode(Objects.nonNull(goodsInfoVO.getErpGoodsInfoNo()) ? goodsInfoVO.getErpGoodsInfoNo() : null)
                                     .price((CollectionUtils.isNotEmpty(skuIds) && skuIds.contains(tradeItem.getSkuId())) ? "0": singlePrice.toString())
+                                    .costPrice(tradeItem.getCostPrice())
                                     .qty(tradeItem.getNum().intValue())
                                     .refund(0)
                                     .oid(tradeItem.getOid())
@@ -458,6 +466,7 @@ public class TradePushERPService {
                             .itemCode(tradeItem.getErpSpuNo())
                             .skuCode(Objects.nonNull(tradeItem.getErpSkuNo()) ? tradeItem.getErpSkuNo() : null)
                             .price(skuIds.contains(tradeItem.getSkuId()) ? "0": singlePrice.toString())
+                            .costPrice(tradeItem.getCostPrice())
                             .qty(tradeItem.getNum().intValue())
                             .refund(0)
                             .oid(tradeItem.getOid())
@@ -1403,6 +1412,10 @@ public class TradePushERPService {
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
         if(providerTrade == null){
             throw new SbcRuntimeException(CommonErrorCode.FAILED,new Object[]{"未找到对应订单号"});
+        }
+        if(Objects.equals(providerTrade.getTradeState().getErpTradeState(),ERPTradePushStatus.PUSHED_SUCCESS.toValue())){
+            log.info("erp状态是已推送，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
         }
         try {
             if (request.getStatus().equals(1)) {

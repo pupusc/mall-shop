@@ -76,6 +76,7 @@ import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
+import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
 import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlagResponse;
 import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
@@ -360,6 +361,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -382,7 +385,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -393,6 +408,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RefreshScope
 public class TradeService {
 
     /**
@@ -605,6 +621,9 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
+    @Value("${whiteOrder}")
+    private String whiteOrder;
+
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -615,7 +634,10 @@ public class TradeService {
      * @param trade
      */
     public void addTrade(Trade trade) {
-        tradeRepository.save(trade);
+        Trade tradeNew = trade;
+//        tradeNew.setUpdateTime(LocalDateTime.now());
+        logger.info("TradeService addTrade param:{}", JSONObject.toJSONString(tradeNew));
+        tradeRepository.save(tradeNew);
     }
 
     /**
@@ -6593,13 +6615,13 @@ public class TradeService {
                             } else {
                                 trade = tradeService.detail(businessId);
                             }
+                            trades.add(trade);
                             if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
                                     .getPayState() == PayState.PAID
                                     && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
                                 //同一批订单重复支付或过期作废，直接退款
                                 wxRefundHandle(wxPayResultResponse, businessId, -1L);
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
-                                trades.add(trade);
                                 wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
                             }
                             //单笔支付
@@ -6657,7 +6679,7 @@ public class TradeService {
                 }
                 log.info("微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("微信支付异步通知回调end2---------", e);
                 //支付处理结果回写回执支付结果表
                 payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
@@ -6793,13 +6815,20 @@ public class TradeService {
         boolean signVerified = false;
         Map<String, String> params =
                 JSONObject.parseObject(tradePayOnlineCallBackRequest.getAliPayCallBackResultStr(), Map.class);
+        //商户订单号
+        String out_trade_no = params.get("out_trade_no");
         try {
-            signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            if (Objects.equals(whiteOrder, out_trade_no)) {
+                log.info("订单：{} 不走签名验证", out_trade_no);
+                signVerified = true;
+            } else {
+                signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
+            }
+            log.info("验证签名返回的结果为：{}" , signVerified);
         } catch (AlipayApiException e) {
             log.error("支付宝回调签名校验异常：", e);
         }
-        //商户订单号
-        String out_trade_no = params.get("out_trade_no");
+
         if (signVerified) {
             try {
                 //支付宝交易号
@@ -7042,6 +7071,7 @@ public class TradeService {
                 tradeItem.setTotalSupplyPrice(supplyPrice.multiply(new BigDecimal(tradeItem.getNum())));
 
                 tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
+
             }
         }));
 
@@ -7151,6 +7181,7 @@ public class TradeService {
                 storeTrade.setThirdPlatformType(null);
                 //赠品
                 storeTrade.setGifts(storeGifts);
+                //平摊金额
                 providerTradeService.addProviderTrade(storeTrade);
             }
 
@@ -7311,6 +7342,20 @@ public class TradeService {
                 //积分价
                 tradePrice.setBuyPoints(buyPoints);
                 tradePrice.setDeliveryPrice(BigDecimal.ZERO);
+                //实际金额
+                if(providerTradeItems.stream().anyMatch(p->p.getSplitPrice()!=null)){
+                    tradePrice.setActualPrice(providerTradeItems.stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+                }
+                if(providerTradeItems.stream().anyMatch(p->p.getPointsPrice()!=null)){
+                    tradePrice.setActualPoints(providerTradeItems.stream().map(p->Objects.isNull(p.getPointsPrice()) ? new BigDecimal("0") : p.getPointsPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+                }
+                if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
+                    tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
+                }
+                //运费
+                if(tradePrice.getSplitDeliveryPrice()!=null && !tradePrice.getSplitDeliveryPrice().isEmpty() && tradePrice.getSplitDeliveryPrice().containsKey(providerId)){
+                    tradePrice.setDeliveryPrice(tradePrice.getSplitDeliveryPrice().get(providerId));
+                }
 
                 providerTrade.setTradePrice(tradePrice);
                 //赠品
@@ -7332,6 +7377,178 @@ public class TradeService {
         }
     }
 
+
+    /**
+     * 补充子单
+     * @param oid
+     * @param userId
+     */
+    public void addProviderTrade(String oid, String userId) {
+        logger.info("TradeService addProviderTrade 补充子单，开始 oid:{} userId:{}", oid, userId);
+        // 根据供货商拆单并入库
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(oid);
+        if (!CollectionUtils.isEmpty(providerTradeList)) {
+            logger.info("订单：{} 存在 providerTrade数据", oid);
+            return;
+        }
+
+        List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
+        List<TradeCommitResult> resultList = new ArrayList<>();
+        for (Trade trade : trades) {
+            try{
+                this.splitProvideTrade(trade);
+                if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods()
+                        && Objects.nonNull(trade.getBookingType()) && trade.getBookingType() == BookingType.EARNEST_MONEY) {
+                    resultList.add(new TradeCommitResult(trade.getId(),
+                            trade.getParentId(), trade.getTradeState(),
+                            trade.getPaymentOrder(), trade.getTradePrice().getEarnestPrice(),
+                            trade.getOrderTimeOut(), trade.getSupplier().getStoreName(),
+                            trade.getSupplier().getIsSelf()));
+                } else {
+                    resultList.add(new TradeCommitResult(trade.getId(),
+                            trade.getParentId(), trade.getTradeState(),
+                            trade.getPaymentOrder(), trade.getTradePrice().getTotalPrice(),
+                            trade.getOrderTimeOut(), trade.getSupplier().getStoreName(),
+                            trade.getSupplier().getIsSelf()));
+                }
+            } catch (Exception e) {
+                log.error("myself commit trade error,trade={}，错误信息：{}", trade, e);
+                if (e instanceof SbcRuntimeException) {
+                    throw e;
+                } else {
+                    throw new SbcRuntimeException("K-020010");
+                }
+            }
+        }
+
+
+        // 平台优惠券
+        List<CouponCodeBatchModifyDTO> dtoList = new ArrayList<>();
+//        if (tradeGroup != null) {
+//            // 2.修改优惠券状态
+//            TradeCouponVO tradeCoupon = tradeGroup.getCommonCoupon();
+//            dtoList.add(CouponCodeBatchModifyDTO.builder()
+//                    .couponCodeId(tradeCoupon.getCouponCodeId())
+//                    .orderCode(null)
+//                    .customerId(userId)
+//                    .useStatus(DefaultFlag.YES).build());
+//        }
+        // 店铺优惠券
+        // 批量修改优惠券状态
+        trades.forEach(trade -> {
+            if (trade.getTradeCoupon() != null) {
+                TradeCouponVO tradeCoupon = trade.getTradeCoupon();
+                dtoList.add(CouponCodeBatchModifyDTO.builder()
+                        .couponCodeId(tradeCoupon.getCouponCodeId())
+                        .orderCode(trade.getId())
+                        .customerId(trade.getBuyer().getId())
+                        .useStatus(DefaultFlag.YES).build());
+            }
+        });
+        if (dtoList.size() > 0) {
+            logger.info("TradeService addProviderTrade dtoList: {}", JSON.toJSONString(dtoList));
+            couponCodeProvider.batchModify(CouponCodeBatchModifyRequest.builder().modifyDTOList(dtoList).build());
+        }
+
+        trades.stream().filter(trade -> Objects.nonNull(trade.getTradePrice()) &&
+                Objects.nonNull(trade.getTradePrice().getPoints()) && trade.getTradePrice().getPoints() > 0).forEach(trade -> {
+            // 增加客户积分明细 扣除积分
+            customerPointsDetailSaveProvider.add(CustomerPointsDetailAddRequest.builder()
+                    .customerId(trade.getBuyer().getId())
+                    .type(OperateType.DEDUCT)
+                    .serviceType(PointsServiceType.ORDER_DEDUCTION)
+                    .points(trade.getTradePrice().getPoints())
+                    .content(JSONObject.toJSONString(Collections.singletonMap("orderNo", trade.getId())))
+                    .build());
+        });
+
+        trades.stream().filter(trade -> !AuditState.REJECTED.equals(trade.getTradeState().getAuditState())).forEach(trade -> {
+            MessageMQRequest messageMQRequest = new MessageMQRequest();
+            Map<String, Object> map = new HashMap<>();
+            map.put("type", NodeType.ORDER_PROGRESS_RATE.toValue());
+            map.put("id", trade.getId());
+            if (AuditState.CHECKED.equals(trade.getTradeState().getAuditState())) {
+                messageMQRequest.setNodeCode(OrderProcessType.ORDER_COMMIT_SUCCESS.getType());
+                map.put("node", OrderProcessType.ORDER_COMMIT_SUCCESS.toValue());
+            } else {
+                messageMQRequest.setNodeCode(OrderProcessType.ORDER_COMMIT_SUCCESS_CHECK.getType());
+                map.put("node", OrderProcessType.ORDER_COMMIT_SUCCESS_CHECK.toValue());
+            }
+            messageMQRequest.setNodeType(NodeType.ORDER_PROGRESS_RATE.toValue());
+            messageMQRequest.setParams(Lists.newArrayList(trade.getTradeItems().get(0).getSkuName()));
+            messageMQRequest.setPic(trade.getTradeItems().get(0).getPic());
+            messageMQRequest.setRouteParam(map);
+            messageMQRequest.setCustomerId(trade.getBuyer().getId());
+            messageMQRequest.setMobile(trade.getBuyer().getAccount());
+            orderProducerService.sendMessage(messageMQRequest);
+        });
+
+        logger.info("TradeService addProviderTrade 补充子单，结束 oid:{} userId:{}", oid, userId);
+    }
+
+
+    /**
+     * 补单 根据trade 生成 payOrder
+     * @param oid
+     */
+    public void addFixPayOrder(String oid) {
+        log.info("addPayOrder generatePayOrderByOrderCode oid:{} begin running", oid);
+        List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
+        Optional<PayOrder> payOrderByOrderCode = payOrderService.findPayOrderByOrderCode(oid);
+        if (payOrderByOrderCode.isPresent()) {
+            log.info("addPayOrder generatePayOrderByOrderCode oid:{} 存在不进行创建操作", oid);
+            log.info("addPayOrder generatePayOrderByOrderCode oid: {} 提前结束 end running", oid);
+            return;
+        }
+        for (Trade trade : trades) {
+            //创建支付单
+
+            PayOrder payOrder = new PayOrder();
+            BaseResponse<CustomerDetailGetCustomerIdResponse> response = tradeCacheService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
+            CustomerDetailVO customerDetail = response.getContext();
+            payOrder.setCustomerDetailId(customerDetail.getCustomerDetailId());
+            payOrder.setOrderCode(trade.getId());
+            payOrder.setUpdateTime(LocalDateTime.now());
+            payOrder.setCreateTime(trade.getTradeState().getCreateTime());
+            payOrder.setDelFlag(DeleteFlag.NO);
+            payOrder.setCompanyInfoId(trade.getSupplier().getSupplierId());
+            payOrder.setPayOrderNo(generatorService.generateOid());
+
+            BigDecimal payPrice = Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice();
+
+            if (payPrice == null) {
+                payOrder.setPayOrderStatus(PayOrderStatus.PAYED);
+            } else {
+                payOrder.setPayOrderStatus(PayOrderStatus.NOTPAY);
+            }
+            payOrder.setPayOrderPrice(Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice());
+            payOrder.setPayOrderPoints(trade.getTradePrice().getPoints());
+            payOrder.setPayOrderKnowledge(trade.getTradePrice().getKnowledge());
+
+            payOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
+            if (OrderType.POINTS_ORDER.equals(payOrder.getPayType())) {
+                payOrderRepository.saveAndFlush(payOrder);
+                // 积分订单生成收款单
+                Receivable receivable = new Receivable();
+                receivable.setPayOrderId(payOrder.getPayOrderId());
+                receivable.setReceivableNo(generatorService.generateSid());
+                receivable.setPayChannel("积分支付");
+                receivable.setPayChannelId((Constants.DEFAULT_RECEIVABLE_ACCOUNT));
+                receivable.setCreateTime(trade.getTradeState().getCreateTime());
+                receivable.setDelFlag(DeleteFlag.NO);
+                receivableRepository.save(receivable);
+            }
+
+            payOrderRepository.saveAndFlush(payOrder);
+
+            log.info("addPayOrder generatePayOrderByOrderCode optional ");
+        }
+        log.info("addPayOrder generatePayOrderByOrderCode oid: {} end running", oid);
+    }
 
     /**
      * 线上订单支付回调

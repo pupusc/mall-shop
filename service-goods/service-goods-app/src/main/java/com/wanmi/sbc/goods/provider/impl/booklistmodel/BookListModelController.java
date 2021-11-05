@@ -202,7 +202,18 @@ public class BookListModelController implements BookListModelProvider {
      * 根据商品id列表，获取商品列表对应的书单
      */
     @Override
-    public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest){
+    public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest) {
         return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest));
+    }
+
+    /**
+     * 获取已发布的书单乱序简单信息
+     * @return
+     */
+    @Override
+    public BaseResponse<List<Integer>> findPublishBook() {
+        List<BookListModelDTO> list = bookListModelService.findPublishBook();
+        List<Integer> collect = list.stream().map(ex -> ex.getId()).collect(Collectors.toList());
+        return BaseResponse.success(collect);
     }
 }

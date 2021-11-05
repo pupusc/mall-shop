@@ -21,4 +21,7 @@ public interface TagRepository extends JpaRepository<Tag, Long>, JpaSpecificatio
     void deleteTagsForGoods(String goodsId);
 
     List<Tag> findAllByTagName(String tagName);
+
+    @Query("from Tag w where  w.id in ?1")
+    List<Tag> findByIds(List<Long> ids);
 }

@@ -3,8 +3,10 @@ package com.wanmi.sbc.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ResourceType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.ImageUtils;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
 import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
@@ -22,6 +24,10 @@ import com.wanmi.sbc.goods.bean.dto.*;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
+import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
+import com.wanmi.sbc.setting.api.request.yunservice.YunUploadResourceRequest;
+import com.wanmi.sbc.setting.api.response.yunservice.YunUploadResourceResponse;
+import com.wanmi.sbc.setting.bean.enums.AuditStatus;
 import com.wanmi.sbc.util.OperateLogMQUtil;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -31,9 +37,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.*;
 
 
@@ -87,6 +100,9 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
 
     @Value("${bookuu.default.freight.tempId}")
     private Long defaultFreightTempId;
+
+    @Autowired
+    private YunServiceProvider yunServiceProvider;
 
 
     @Override
@@ -176,7 +192,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsDTO.setStoreCateIds(Arrays.asList(defaultStoreCateId));
         goodsDTO.setCateId(defaultCateId);
         goodsDTO.setFreightTempId(defaultFreightTempId);
-        goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
+        //goodsDTO.setGoodsNo(getRandomGoodsNo("P"));
+        goodsDTO.setGoodsNo("DFBK"+goods.getIsbn());
         goodsDTO.setGoodsSource(0);
 
 
@@ -185,7 +202,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsInfoDTO.setGoodsType(0);
         goodsInfoDTO.setErpGoodsNo(goods.getGoodsNo());
         goodsInfoDTO.setCombinedCommodity(false);
-        goodsInfoDTO.setGoodsInfoNo(getRandomGoodsNo("8"));
+        //goodsInfoDTO.setGoodsInfoNo(getRandomGoodsNo("8"));
+        goodsInfoDTO.setGoodsInfoNo(goodsDTO.getGoodsNo());
         goodsInfoDTO.setStock(goods.getQty().longValue());
         goodsInfoDTO.setIsbnNo(goods.getIsbn());
         goodsInfoDTO.setRetailPrice(goods.getSalePrice());
@@ -231,7 +249,9 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
                 for (int i = 0; i < imgs.length; i++) {
                     GoodsImageDTO image = new GoodsImageDTO();
                     image.setSort(i);
-                    image.setArtworkUrl(i == 0 ? imgs[i] : ("http://images.bookuu.com" + imgs[i]));
+                    String originUrl = i == 0 ? imgs[i] : ("http://images.bookuu.com" + imgs[i]);
+                    String url = uploadImage(originUrl);
+                    image.setArtworkUrl(StringUtils.isNotBlank(url)?url:originUrl);
                     images.add(image);
                 }
             }
@@ -242,8 +262,10 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             String[] imgs = goods.getDetailImageUrl().split("\\|");
             if(imgs!=null && imgs.length >0){
                 for(int i=0;i<imgs.length;i++){
+                    String originUrl = "http://images.bookuu.com"+imgs[i];
+                    String url = uploadImage(originUrl);
                     sb.append("<p><img src=\"")
-                            .append("http://images.bookuu.com"+imgs[i])
+                            .append(StringUtils.isNotBlank(url)?url:originUrl)
                             .append("\" title=\"\" alt=\"undefined/\"/></p><br/>");
                 }
             }
@@ -277,6 +299,36 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         StringBuilder sb = new StringBuilder();
         sb.append(prix).append(String.valueOf(new Date().getTime()).substring(4, 10)).append(String.valueOf(Math.random()).substring(2, 5));
         return sb.toString();
+
+    }
+
+
+
+    private String uploadImage(String url) {
+        try{
+            URL httpUrl = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) httpUrl.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setUseCaches(false);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            InputStream inStream = conn.getInputStream();
+            String[] fileName = url.split("/");
+            String name = "bk" + fileName[fileName.length-1];
+            MultipartFile multipartFile = new MockMultipartFile(name, name, null,inStream);
+            YunUploadResourceResponse response = yunServiceProvider.uploadFile(YunUploadResourceRequest.builder()
+                    .resourceType(ResourceType.IMAGE)
+                    .content(multipartFile.getBytes())
+                    .resourceName(name)
+                    .auditStatus(AuditStatus.CHECKED)
+                    .build()).getContext();
+            if(response!=null && StringUtils.isNotEmpty(response.getResourceUrl())){
+                return  response.getResourceUrl();
+            }
+        }catch (Exception e){
+            log.warn("goods sync upload image error,url:{}",url);
+        }
+        return "";
 
     }
 

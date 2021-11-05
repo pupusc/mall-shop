@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.common.repository;
 
 
 import com.wanmi.sbc.goods.common.model.root.RiskVerify;
+import org.omg.CORBA.INTERNAL;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Repository
@@ -33,4 +36,8 @@ public interface RiskVerifyRepository extends JpaRepository<RiskVerify, Long>, J
 
    @Query("from RiskVerify w where w.requestId = ?1")
    RiskVerify getByRequestId(@Param("requestId") String requestId);
+
+   @Modifying
+   @Query("update RiskVerify set status = ?1,updateTime =now() where goodsNo in ?2")
+   int updateStatusByGoodsNos(Integer status, List<String> goodsNo);
 }

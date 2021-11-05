@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.request.goods;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
@@ -12,8 +13,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GoodsAuditQueryRequest implements Serializable {
+public class GoodsAuditQueryRequest extends BaseQueryRequest implements Serializable {
 
+
+    private static final long serialVersionUID = 4238477383852859642L;
+    @ApiModelProperty("操作ID列表")
+    private List<Long> ids;
     @ApiModelProperty("isbn")
     private List<String> isbn;
     @ApiModelProperty("商品名称")
@@ -23,7 +28,7 @@ public class GoodsAuditQueryRequest implements Serializable {
     private String author;
 
     @ApiModelProperty("分类")
-    private Integer category;
+    private List<Integer> category;
 
     @ApiModelProperty("出版社")
     private String publishName;
@@ -42,4 +47,15 @@ public class GoodsAuditQueryRequest implements Serializable {
 
     @ApiModelProperty("上架状态")
     private Integer status;
+
+    @ApiModelProperty("拒绝原因")
+    private String rejectReason;
+
+    @ApiModelProperty("spu")
+    private List<String> spuList;
+
+    @ApiModelProperty("商品编码，重新审核传此参数")
+    private List<String> goodsNo;
+    
+    
 }
