@@ -76,6 +76,7 @@ import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
+import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
 import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlagResponse;
 import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
@@ -7494,26 +7495,57 @@ public class TradeService {
         log.info("addPayOrder generatePayOrderByOrderCode oid:{} begin running", oid);
         List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
         Optional<PayOrder> payOrderByOrderCode = payOrderService.findPayOrderByOrderCode(oid);
-        if (!payOrderByOrderCode.isPresent()) {
+        if (payOrderByOrderCode.isPresent()) {
             log.info("addPayOrder generatePayOrderByOrderCode oid:{} 存在不进行创建操作", oid);
             log.info("addPayOrder generatePayOrderByOrderCode oid: {} 提前结束 end running", oid);
             return;
         }
         for (Trade trade : trades) {
             //创建支付单
-            Optional<PayOrder> optional = payOrderService.generatePayOrderByOrderCode(
-                    new PayOrderGenerateRequest(trade.getId(),
-                            trade.getBuyer().getId(),
-                            Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
-                                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
-                                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice(),
-                            trade.getTradePrice().getPoints(),
-                            trade.getTradePrice().getKnowledge(),
-                            PayType.valueOf(trade.getPayInfo().getPayTypeName()),
-                            trade.getSupplier().getSupplierId(),
-                            trade.getTradeState().getCreateTime(),
-                            trade.getOrderType()));
-            log.info("addPayOrder generatePayOrderByOrderCode optional {}", optional.orElse(null));
+
+            PayOrder payOrder = new PayOrder();
+            BaseResponse<CustomerDetailGetCustomerIdResponse> response = tradeCacheService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
+            CustomerDetailVO customerDetail = response.getContext();
+            payOrder.setCustomerDetailId(customerDetail.getCustomerDetailId());
+            payOrder.setOrderCode(trade.getId());
+            payOrder.setUpdateTime(LocalDateTime.now());
+            payOrder.setCreateTime(trade.getTradeState().getCreateTime());
+            payOrder.setDelFlag(DeleteFlag.NO);
+            payOrder.setCompanyInfoId(trade.getSupplier().getSupplierId());
+            payOrder.setPayOrderNo(generatorService.generateOid());
+
+            BigDecimal payPrice = Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice();
+
+            if (payPrice == null) {
+                payOrder.setPayOrderStatus(PayOrderStatus.PAYED);
+            } else {
+                payOrder.setPayOrderStatus(PayOrderStatus.NOTPAY);
+            }
+            payOrder.setPayOrderPrice(Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice());
+            payOrder.setPayOrderPoints(trade.getTradePrice().getPoints());
+            payOrder.setPayOrderKnowledge(trade.getTradePrice().getKnowledge());
+
+            payOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
+            if (OrderType.POINTS_ORDER.equals(payOrder.getPayType())) {
+                payOrderRepository.saveAndFlush(payOrder);
+                // 积分订单生成收款单
+                Receivable receivable = new Receivable();
+                receivable.setPayOrderId(payOrder.getPayOrderId());
+                receivable.setReceivableNo(generatorService.generateSid());
+                receivable.setPayChannel("积分支付");
+                receivable.setPayChannelId((Constants.DEFAULT_RECEIVABLE_ACCOUNT));
+                receivable.setCreateTime(trade.getTradeState().getCreateTime());
+                receivable.setDelFlag(DeleteFlag.NO);
+                receivableRepository.save(receivable);
+            }
+
+            payOrderRepository.saveAndFlush(payOrder);
+
+            log.info("addPayOrder generatePayOrderByOrderCode optional ");
         }
         log.info("addPayOrder generatePayOrderByOrderCode oid: {} end running", oid);
     }

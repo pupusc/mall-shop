@@ -450,5 +450,5 @@ public interface TradeProvider {
      * @return
      */
     @GetMapping("/order/${application.order.version}/trade/add-fix-pay-order/{oid}")
-    BaseResponse<String> addFixPayOrder(String oid);
+    BaseResponse<String> addFixPayOrder(@PathVariable("oid") String oid);
 }
