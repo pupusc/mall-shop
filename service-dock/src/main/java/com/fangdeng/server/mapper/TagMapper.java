@@ -61,4 +61,6 @@ public interface TagMapper {
     int batchInsert(@Param("list") List<String> list);
 
     List<TagDTO> list();
+
+    List<String> listTagName();
 }

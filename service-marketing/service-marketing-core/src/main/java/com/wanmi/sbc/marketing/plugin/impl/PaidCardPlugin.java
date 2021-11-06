@@ -1,5 +1,7 @@
 package com.wanmi.sbc.marketing.plugin.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreCustomerQueryProvider;
@@ -15,8 +17,11 @@ import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.marketing.plugin.IGoodsDetailPlugin;
 import com.wanmi.sbc.marketing.plugin.IGoodsListPlugin;
 import com.wanmi.sbc.marketing.request.MarketingPluginRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -27,7 +32,9 @@ import java.util.stream.Collectors;
  * 付费会员插件
  * Created by dyt on 2016/12/8.
  */
+@Slf4j
 @Repository("paidCardPlugin")
+@RefreshScope
 public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
 
     @Autowired
@@ -40,6 +47,9 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     @Autowired
     private GoodsIntervalPriceQueryProvider goodsIntervalPriceQueryProvider;
 
+    @Value("${exclude-product:000}")
+    private String excludeProduct;
+
     /**
      * 商品列表处理
      *
@@ -48,6 +58,15 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      */
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
+        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONArray.toJSONString(goodsInfos), excludeProduct);
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
+        for (GoodsInfoVO goodsInfo : goodsInfos) {
+            if(excludeIds.contains(goodsInfo.getGoodsId())){
+                log.info("PaidCardPlugin  goodsListFilter，{}", excludeProduct);
+                return;
+            }
+        }
 
         if (Objects.isNull(request.getCustomer())) {
             return;
@@ -146,8 +165,15 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      */
     @Override
     public void goodsDetailFilter(GoodsInfoDetailByGoodsInfoResponse detailResponse, MarketingPluginRequest request) {
+        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONObject.toJSONString(detailResponse), excludeProduct);
         if (Objects.isNull(request.getCustomer())
                 || (!Integer.valueOf(GoodsPriceType.MARKET.toValue()).equals(detailResponse.getGoodsInfo().getPriceType()))) {
+            return;
+        }
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
+        if(excludeIds.contains(detailResponse.getGoods().getGoodsId())){
+            log.info("PaidCardPlugin  goodsListFilter，{}", excludeProduct);
             return;
         }
         List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>(Arrays.asList(detailResponse.getGoodsInfo()));

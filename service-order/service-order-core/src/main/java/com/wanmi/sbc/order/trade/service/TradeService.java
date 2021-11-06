@@ -76,6 +76,7 @@ import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
+import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
 import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlagResponse;
 import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
@@ -7383,7 +7384,13 @@ public class TradeService {
      * @param userId
      */
     public void addProviderTrade(String oid, String userId) {
+        logger.info("TradeService addProviderTrade 补充子单，开始 oid:{} userId:{}", oid, userId);
         // 根据供货商拆单并入库
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(oid);
+        if (!CollectionUtils.isEmpty(providerTradeList)) {
+            logger.info("订单：{} 存在 providerTrade数据", oid);
+            return;
+        }
 
         List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
         List<TradeCommitResult> resultList = new ArrayList<>();
@@ -7439,6 +7446,7 @@ public class TradeService {
             }
         });
         if (dtoList.size() > 0) {
+            logger.info("TradeService addProviderTrade dtoList: {}", JSON.toJSONString(dtoList));
             couponCodeProvider.batchModify(CouponCodeBatchModifyRequest.builder().modifyDTOList(dtoList).build());
         }
 
@@ -7474,6 +7482,71 @@ public class TradeService {
             messageMQRequest.setMobile(trade.getBuyer().getAccount());
             orderProducerService.sendMessage(messageMQRequest);
         });
+
+        logger.info("TradeService addProviderTrade 补充子单，结束 oid:{} userId:{}", oid, userId);
+    }
+
+
+    /**
+     * 补单 根据trade 生成 payOrder
+     * @param oid
+     */
+    public void addFixPayOrder(String oid) {
+        log.info("addPayOrder generatePayOrderByOrderCode oid:{} begin running", oid);
+        List<Trade> trades = tradeService.getTradeList(TradeQueryRequest.builder().id(oid).build().getWhereCriteria());
+        Optional<PayOrder> payOrderByOrderCode = payOrderService.findPayOrderByOrderCode(oid);
+        if (payOrderByOrderCode.isPresent()) {
+            log.info("addPayOrder generatePayOrderByOrderCode oid:{} 存在不进行创建操作", oid);
+            log.info("addPayOrder generatePayOrderByOrderCode oid: {} 提前结束 end running", oid);
+            return;
+        }
+        for (Trade trade : trades) {
+            //创建支付单
+
+            PayOrder payOrder = new PayOrder();
+            BaseResponse<CustomerDetailGetCustomerIdResponse> response = tradeCacheService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
+            CustomerDetailVO customerDetail = response.getContext();
+            payOrder.setPayOrderId(trade.getPayOrderId());
+
+            payOrder.setCustomerDetailId(customerDetail.getCustomerDetailId());
+            payOrder.setOrderCode(trade.getId());
+            payOrder.setUpdateTime(LocalDateTime.now());
+            payOrder.setCreateTime(trade.getTradeState().getCreateTime());
+            payOrder.setDelFlag(DeleteFlag.NO);
+            payOrder.setCompanyInfoId(trade.getSupplier().getSupplierId());
+            payOrder.setPayOrderNo(generatorService.generateOid());
+            BigDecimal payPrice = Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY
+                    && StringUtils.isEmpty(trade.getTailOrderNo()) ?
+                    trade.getTradePrice().getEarnestPrice() : trade.getTradePrice().getTotalPrice();
+            if (payPrice == null) {
+                payOrder.setPayOrderStatus(PayOrderStatus.PAYED);
+            } else {
+                payOrder.setPayOrderStatus(PayOrderStatus.NOTPAY);
+            }
+            payOrder.setPayOrderPrice(payPrice);
+            payOrder.setPayOrderPoints(trade.getTradePrice().getPoints());
+            payOrder.setPayOrderKnowledge(trade.getTradePrice().getKnowledge());
+            payOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
+//            if (OrderType.POINTS_ORDER.equals(trade.getOrderType())) {
+//                payOrderRepository.saveAndFlush(payOrder);
+//                // 积分订单生成收款单
+//                Receivable receivable = new Receivable();
+//                receivable.setPayOrderId(payOrder.getPayOrderId());
+//                receivable.setReceivableNo(generatorService.generateSid());
+//                receivable.setPayChannel("积分支付");
+//                receivable.setPayChannelId(Constants.DEFAULT_RECEIVABLE_ACCOUNT);
+//                receivable.setCreateTime(trade.getTradeState().getCreateTime());
+//                receivable.setDelFlag(DeleteFlag.NO);
+//                receivableRepository.save(receivable);
+//            }
+//            payOrderRepository.save()
+//            payOrderRepository.saveAndFlush(payOrder);
+            payOrderRepository.insertPayOrderCustomer(payOrder.getPayOrderId(), payOrder.getPayOrderNo(), payOrder.getOrderCode(), payOrder.getPayOrderStatus().toValue()+"",
+                    payOrder.getPayType().toValue(), payOrder.getCustomerDetailId(), payOrder.getCreateTime(), payOrder.getUpdateTime(), payOrder.getDelFlag().toValue(),
+                    payOrder.getPayOrderPrice(), payOrder.getCompanyInfoId(), payOrder.getPayOrderPoints(), payOrder.getPayOrderKnowledge());
+            log.info("addPayOrder generatePayOrderByOrderCode optional ");
+        }
+        log.info("addPayOrder generatePayOrderByOrderCode oid: {} end running", oid);
     }
 
     /**

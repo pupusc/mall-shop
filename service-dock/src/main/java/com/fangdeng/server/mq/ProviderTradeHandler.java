@@ -55,29 +55,33 @@ public class ProviderTradeHandler {
     @RabbitListener(queues = ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_QUEUE)
     @RabbitHandler
     public void orderPushConsumer(Message message, @Payload String body) {
-        OrderTradeDTO orderTradeDTO = JSONObject.parseObject(body,OrderTradeDTO.class);
-        log.info("order push consumer,message:{},payload:{}",message,orderTradeDTO);
-        if(!checkOrderPush(orderTradeDTO.getPlatformCode()) || !checkCancel(orderTradeDTO.getPlatformCode())){
-            log.info("there is order push,request:{}",orderTradeDTO);
-            return;
-        }
-        BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
-        BookuuOrderAddResponse response = bookuuClient.addOrder(request);
-        if(response.getStatus() == 1){
-            //查询一次
-            BookuuOrderStatusQueryRequest orderStatusQueryRequest = new BookuuOrderStatusQueryRequest();
-            orderStatusQueryRequest.setOutID(Arrays.asList(request.getSequence()));
-            BookuuOrderStatusQueryResponse orderStatusQueryResponse = bookuuClient.queryOrderStatus(orderStatusQueryRequest);
-            if(orderStatusQueryResponse != null && CollectionUtils.isNotEmpty(orderStatusQueryResponse.getStatusDTOS())){
-                //为了防止消息漏掉，认为成功，在消费端处理
-                response.setStatus(0);
-                response.setOrderID(orderStatusQueryResponse.getStatusDTOS().get(0).getOrderId());
+        try {
+            OrderTradeDTO orderTradeDTO = JSONObject.parseObject(body, OrderTradeDTO.class);
+            log.info("order push consumer,message:{},payload:{}", message, orderTradeDTO);
+            if (!checkOrderPush(orderTradeDTO.getPlatformCode()) || !checkCancel(orderTradeDTO.getPlatformCode())) {
+                log.info("there is order push,request:{}", orderTradeDTO);
+                return;
             }
+            BookuuOrderAddRequest request = OrderAssembler.convert(orderTradeDTO);
+            BookuuOrderAddResponse response = bookuuClient.addOrder(request);
+            if (response.getStatus() == 1) {
+                //查询一次
+                BookuuOrderStatusQueryRequest orderStatusQueryRequest = new BookuuOrderStatusQueryRequest();
+                orderStatusQueryRequest.setOutID(Arrays.asList(request.getSequence()));
+                BookuuOrderStatusQueryResponse orderStatusQueryResponse = bookuuClient.queryOrderStatus(orderStatusQueryRequest);
+                if (orderStatusQueryResponse != null && CollectionUtils.isNotEmpty(orderStatusQueryResponse.getStatusDTOS())) {
+                    //为了防止消息漏掉，认为成功，在消费端处理
+                    response.setStatus(0);
+                    response.setOrderID(orderStatusQueryResponse.getStatusDTOS().get(0).getOrderId());
+                }
+            }
+            ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().status(response.getStatus()).statusDesc(response.getStatusDesc()).orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
+            log.info("order push consumer confirm,request:{}", confirmDTO);
+            //回传消息
+            rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM, ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
+        }catch (Exception e){
+            log.error("provider order push error,request:{}",body,e);
         }
-        ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder().status(response.getStatus()).statusDesc(response.getStatusDesc()).orderId(response.getOrderID()).platformCode(orderTradeDTO.getPlatformCode()).build();
-        log.info("order push consumer confirm,request:{}",confirmDTO);
-        //回传消息
-        rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_ORDER_PUSH_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
     }
 
     private Boolean checkOrderPush(String orderId){
@@ -101,39 +105,42 @@ public class ProviderTradeHandler {
     @RabbitListener(queues = ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_QUEUE)
     @RabbitHandler
     public void deliveryStatusSyncConsumer(Message message, @Payload String body) {
-        ProviderTradeDeliveryStatusSyncDTO syncDTO = JSONObject.parseObject(body,ProviderTradeDeliveryStatusSyncDTO.class);
-        log.info("delivery status sync consumer,message:{},payload:{}",message,syncDTO);
-        BookuuOrderStatusQueryRequest request = new BookuuOrderStatusQueryRequest();
-        request.setOutID(Arrays.asList(syncDTO.getTid()));
-         BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
-        if(response ==null || CollectionUtils.isEmpty(response.getStatusDTOS())){
-           log.warn("query order delivery status error,body:{}",body);
-           ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
-                    .platformCode(syncDTO.getTid())
-                    .orderStatus(-1)
-                    .build();
-            rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
-            return;
-        }
-        ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
-                .orderId(response.getStatusDTOS().get(0).getOrderId())
-                .platformCode(syncDTO.getTid())
-                .post(response.getStatusDTOS().get(0).getPost())
-                .postNumber(response.getStatusDTOS().get(0).getPostNumber())
-                .orderStatus(response.getStatusDTOS().get(0).getOrderStatus())
-                .goodsList(response.getStatusDTOS().get(0).getBookRecs())
-                .build();
-        if(StringUtils.isNotEmpty(response.getStatusDTOS().get(0).getPostDate())) {
-            try {
-                confirmDTO.setPostDate(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(response.getStatusDTOS().get(0).getPostDate()));
-            }catch (Exception e){
-                confirmDTO.setPostDate(new Date());
+        try {
+            ProviderTradeDeliveryStatusSyncDTO syncDTO = JSONObject.parseObject(body, ProviderTradeDeliveryStatusSyncDTO.class);
+            log.info("delivery status sync consumer,message:{},payload:{}", message, syncDTO);
+            BookuuOrderStatusQueryRequest request = new BookuuOrderStatusQueryRequest();
+            request.setOutID(Arrays.asList(syncDTO.getTid()));
+            BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
+            if (response == null || CollectionUtils.isEmpty(response.getStatusDTOS())) {
+                log.warn("query order delivery status error,body:{}", body);
+                ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
+                        .platformCode(syncDTO.getTid())
+                        .orderStatus(-1)
+                        .build();
+                rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM, ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
+                return;
             }
+            ProviderTradeOrderConfirmDTO confirmDTO = ProviderTradeOrderConfirmDTO.builder()
+                    .orderId(response.getStatusDTOS().get(0).getOrderId())
+                    .platformCode(syncDTO.getTid())
+                    .post(response.getStatusDTOS().get(0).getPost())
+                    .postNumber(response.getStatusDTOS().get(0).getPostNumber())
+                    .orderStatus(response.getStatusDTOS().get(0).getOrderStatus())
+                    .goodsList(response.getStatusDTOS().get(0).getBookRecs())
+                    .build();
+            if (StringUtils.isNotEmpty(response.getStatusDTOS().get(0).getPostDate())) {
+                try {
+                    confirmDTO.setPostDate(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(response.getStatusDTOS().get(0).getPostDate()));
+                } catch (Exception e) {
+                    confirmDTO.setPostDate(new Date());
+                }
+            }
+            //成功之后再回传消息
+            log.info("order delivery status confirm,request:{}", JSONObject.toJSONString(confirmDTO));
+            rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM, ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
+        }catch (Exception e){
+            log.error("provider trade delivery status error,request:{}",body,e);
         }
-        //成功之后再回传消息
-        log.info("order delivery status confirm,request:{}",JSONObject.toJSONString(confirmDTO));
-        rabbitTemplate.convertAndSend(ConsumerConstants.PROVIDER_TRADE_DELIVERY_STATUS_SYNC_CONFIRM,ConsumerConstants.ROUTING_KEY, JSON.toJSONString(confirmDTO));
-        //手动确认
 
     }
 
