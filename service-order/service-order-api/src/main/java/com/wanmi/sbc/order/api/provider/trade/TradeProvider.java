@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -442,4 +443,12 @@ public interface TradeProvider {
      */
     @PostMapping("/order/${application.order.version}/trade/add-provider-trade/{oid}/{userId}")
     BaseResponse<String> addProviderTrade(@PathVariable("oid") String oid, @PathVariable("userId") String userId);
+
+    /**
+     * 修复 新增订单
+     * @param oid
+     * @return
+     */
+    @GetMapping("/order/${application.order.version}/trade/add-fix-pay-order/{oid}")
+    BaseResponse<String> addFixPayOrder(@PathVariable("oid") String oid);
 }

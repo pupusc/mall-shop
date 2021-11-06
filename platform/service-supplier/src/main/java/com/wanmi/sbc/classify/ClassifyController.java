@@ -48,6 +48,12 @@ public class ClassifyController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    @PostMapping("/addFixPayOrder")
+    public BaseResponse addFixPayOrder(@RequestBody TradePushRequest request) {
+        tradeProvider.addFixPayOrder(request.getTid());
+        return BaseResponse.SUCCESSFUL();
+    }
+
     /**
      *
      * 类目列表

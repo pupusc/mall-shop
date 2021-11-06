@@ -701,6 +701,10 @@ public class EsGoodsInfoElasticService {
                 queryRequest.putSort("sortNo", SortOrder.DESC);
                 queryRequest.putSort("addedTime", SortOrder.DESC);
                 break;
+            case 11:
+                // 按照创建时间排序
+                queryRequest.putSort("addedTime", SortOrder.DESC);
+                break;
             default:
                 break;
         }

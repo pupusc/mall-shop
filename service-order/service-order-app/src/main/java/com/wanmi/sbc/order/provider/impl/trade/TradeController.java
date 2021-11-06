@@ -144,11 +144,22 @@ public class TradeController implements TradeProvider {
     }
 
 
-
+    @Override
     public BaseResponse<String> addProviderTrade(String oid, String userId) {
         // tradeService.virtualCouponHandle();
         tradeService.addProviderTrade(oid, userId);
         return BaseResponse.success("s");
+    }
+
+
+    /**
+     * 补单 根据trade 生成 payOrder
+     * @param oid
+     */
+    @Override
+    public BaseResponse<String> addFixPayOrder(String oid){
+        tradeService.addFixPayOrder(oid);
+        return BaseResponse.success("success");
     }
 
 
