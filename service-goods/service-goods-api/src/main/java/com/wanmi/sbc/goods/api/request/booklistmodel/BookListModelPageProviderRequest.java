@@ -50,4 +50,10 @@ public class BookListModelPageProviderRequest implements Serializable {
      * 获取多个
      */
     private List<Integer> businessTypeList;
+
+
+    /**
+     * 是否置顶 0 否 1 是
+     */
+    private Integer hasTop;
 }
