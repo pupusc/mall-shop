@@ -524,6 +524,10 @@ public class BookListModelService {
                 if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdCollection())) {
                     conditionList.add(root.get("id").in(bookListModelPageRequest.getIdCollection()));
                 }
+
+                if (bookListModelPageRequest.getHasTop() != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("hasTop"), bookListModelPageRequest.getHasTop()));
+                }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };

@@ -31,4 +31,9 @@ public class BookListModelPageRequest {
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题
      */
     private Integer businessType;
+
+    /**
+     * 是否置顶 0 否 1 是
+     */
+    private Integer hasTop;
 }
