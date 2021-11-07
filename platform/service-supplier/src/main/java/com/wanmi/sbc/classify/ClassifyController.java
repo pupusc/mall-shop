@@ -58,6 +58,13 @@ public class ClassifyController {
         tradeProvider.pushOrderToERP(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    @PostMapping("/addFixPayOrder")
+    public BaseResponse addFixPayOrder(@RequestBody TradePushRequest request) {
+        tradeProvider.addFixPayOrder(request.getTid());
+        return BaseResponse.SUCCESSFUL();
+    }
+
     /**
      * 新增分类
      * @menu 后台CMS2.0
@@ -101,11 +108,7 @@ public class ClassifyController {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @PostMapping("/addFixPayOrder")
-    public BaseResponse addFixPayOrder(@RequestBody TradePushRequest request) {
-        tradeProvider.addFixPayOrder(request.getTid());
-        return BaseResponse.SUCCESSFUL();
-    }
+
 
     /**
      *
