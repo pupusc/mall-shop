@@ -113,8 +113,8 @@ public class NoticeService {
                     conditionList.add(root.get("id").in(request.getNoticeIdColl()));
                 }
                 if (request.getNow() != null) {
-                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), request.getNow()));
-                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), request.getNow()));
+                    conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("endTime"), request.getNow()));
+                    conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("beginTime"), request.getNow()));
                 }
 
                 if (request.getBeginTime() != null) {

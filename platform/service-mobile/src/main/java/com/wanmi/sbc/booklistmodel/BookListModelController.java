@@ -226,12 +226,12 @@ public class BookListModelController {
         requestProvider.setPageSize(bookListModelPageRequest.getPageSize());
         requestProvider.setPublishStateList(Arrays.asList(PublishStateEnum.PUBLISH.getCode()));
         if (bookListModelPageRequest.getBusinessType() != null) {
-            BusinessTypeEnum byCode = BusinessTypeEnum.getByCode(bookListModelPageRequest.getBusinessType());
-            if (byCode == BusinessTypeEnum.BOOK_RECOMMEND || byCode == BusinessTypeEnum.BOOK_LIST) {
-                requestProvider.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.BOOK_LIST.getCode()));
-            } else {
+//            BusinessTypeEnum byCode = BusinessTypeEnum.getByCode(bookListModelPageRequest.getBusinessType());
+//            if (byCode == BusinessTypeEnum.BOOK_RECOMMEND || byCode == BusinessTypeEnum.BOOK_LIST) {
+//                requestProvider.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.BOOK_LIST.getCode()));
+//            } else {
                 requestProvider.setBusinessTypeList(Collections.singletonList(bookListModelPageRequest.getBusinessType()));
-            }
+//            }
 
         }
         return bookListModelProvider.listByPage(requestProvider);
