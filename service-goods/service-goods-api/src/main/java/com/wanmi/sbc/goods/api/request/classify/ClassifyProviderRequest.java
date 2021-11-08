@@ -22,13 +22,12 @@ public class ClassifyProviderRequest implements Serializable {
     /**
      * 父亲节点
      */
-    @NotNull(groups = {Add.class}, message = "父节点不能为空")
     private Integer parentId;
 
     /**
      * 分类名称
      */
-    @NotBlank(groups = {Add.class, Update.class}, message = "父节点不能为空")
+    @NotBlank(groups = {Add.class, Update.class}, message = "名称不能为空")
     private String classifyName;
 
 
