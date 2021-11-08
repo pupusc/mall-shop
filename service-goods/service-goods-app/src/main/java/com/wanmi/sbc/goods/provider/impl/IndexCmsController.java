@@ -2,15 +2,19 @@ package com.wanmi.sbc.goods.provider.impl;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.*;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
+import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.index.model.IndexModule;
 import com.wanmi.sbc.goods.index.service.IndexCmsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,11 +28,14 @@ import java.util.stream.Collectors;
 /**
  * CMS首页
  */
+@Slf4j
 @RestController
 public class IndexCmsController implements IndexCmsProvider {
 
     @Autowired
     private IndexCmsService indexCmsService;
+    @Autowired
+    private BookListModelService bookListModelService;
 
     private List<IndexFeatureVo> changeIndexFeature2Vo(List<IndexFeature> content) {
         LocalDateTime now = LocalDateTime.now();
@@ -84,7 +91,6 @@ public class IndexCmsController implements IndexCmsProvider {
     public BaseResponse<MicroServicePage<IndexFeatureVo>> searchSpecialTopic(CmsSpecialTopicSearchRequest cmsSpecialTopicSearchRequest) {
         Page<IndexFeature> page = indexCmsService.searchSpecialTopicPage(cmsSpecialTopicSearchRequest);
         List<IndexFeature> content = page.getContent();
-        LocalDateTime now = LocalDateTime.now();
         MicroServicePage<IndexFeatureVo> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(page.getTotalElements());
         microServicePage.setContent(changeIndexFeature2Vo(content));
@@ -176,6 +182,15 @@ public class IndexCmsController implements IndexCmsProvider {
             IndexModuleVo indexModuleVo = new IndexModuleVo();
             BeanUtils.copyProperties(indexModule, indexModuleVo);
             indexModuleVo.setPublishState(indexModule.getPublishState().toValue());
+            if(indexModule.getBookListModelId() != null){
+                try {
+                    BookListModelDTO bookListModel = bookListModelService.findSimpleById(indexModule.getBookListModelId());
+                    indexModuleVo.setTitle(bookListModel.getName());
+                    indexModuleVo.setSubTitle(bookListModel.getDesc());
+                }catch (SbcRuntimeException e) {
+                    log.error("书单" + indexModule.getBookListModelId() + "已被删除，主副标题赋默认值", e);
+                }
+            }
             return indexModuleVo;
         }).collect(Collectors.toList());
         return BaseResponse.success(dtos);
