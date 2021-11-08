@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.util.RandomUtil;
@@ -165,9 +166,9 @@ public class ClassifyController {
                     ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
 
                     BookListModelClassifyLinkProviderResponse bookListModelGoodsIdParam = context.get(bookListModelRandomIndex);
-                    BookListModelSimpleResponse bookListModelSimpleResponse = new BookListModelSimpleResponse();
-                    BeanUtils.copyProperties(bookListModelGoodsIdParam, bookListModelSimpleResponse);
-                    classifyBookListModel.setBookListModel(bookListModelSimpleResponse);
+                    BookListModelProviderResponse bookListModelResponse = new BookListModelProviderResponse();
+                    BeanUtils.copyProperties(bookListModelGoodsIdParam, bookListModelResponse);
+                    classifyBookListModel.setBookListModel(bookListModelResponse);
                     classifyBookListModel.setType(2); //书单
                     result.add(classifyBookListModel);
                 }

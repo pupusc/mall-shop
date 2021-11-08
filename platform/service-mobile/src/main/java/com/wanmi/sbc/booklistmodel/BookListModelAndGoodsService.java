@@ -523,6 +523,10 @@ public class BookListModelAndGoodsService {
         }
         Map<String, GoodsVO> supId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         for (EsGoodsVO esGoodsVO : resultEsGoodsList) {
+            GoodsVO goodsVO = supId2GoodsVoMap.get(esGoodsVO.getId());
+            if (goodsVO == null){
+                continue;
+            }
             result.add(this.packageGoodsCustomResponse(supId2GoodsVoMap.get(esGoodsVO.getId()), esGoodsVO, goodsInfoVOList));
         }
         return result;
