@@ -986,7 +986,6 @@ public class GoodsService {
             });
         }
 
-
         goodsInfos.forEach(goodsInfo -> {
             goodsInfo.setSalePrice(Objects.isNull(goodsInfo.getMarketPrice()) ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
             goodsInfo.setPriceType(goods.getPriceType());

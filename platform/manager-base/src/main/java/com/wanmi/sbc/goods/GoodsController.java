@@ -403,7 +403,6 @@ public class GoodsController {
             });
         }
 
-
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
