@@ -206,13 +206,12 @@ public class HomePageService {
                 bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
                 bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
                 BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceBookRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
-
                 HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
                 homeBookListRecommendSubResponse.setHomeTopicResponse(editRecommend);
                 homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceBookRecommend.getContext().getContent()));
                 homeRecommend.setBookListModelRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
-                log.info("HomePageService homeRecommend editRecommend error", ex);
+                log.error("HomePageService homeRecommend editRecommend error", ex);
             }
         }
 
@@ -229,7 +228,7 @@ public class HomePageService {
                 homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceFamousRecommend.getContext().getContent()));
                 homeRecommend.setFamousRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
-                log.info("HomePageService homeRecommend famousRecommend error", ex);
+                log.error("HomePageService homeRecommend famousRecommend error", ex);
             }
         }
         return homeRecommend;
@@ -274,7 +273,7 @@ public class HomePageService {
                 homeGoodsListResponse.setNewBookGoods(newBookList);
             }
         } catch (Exception ex) {
-            log.info("homeGoodsList newBooks exception", ex);
+            log.error("homeGoodsList newBooks exception", ex);
         }
 
         //畅销
@@ -286,7 +285,7 @@ public class HomePageService {
                 homeGoodsListResponse.setSellWellGoods(sellWellBookResponse);
             }
         } catch (Exception ex) {
-            log.info("homeGoodsList sellWellBooks exception", ex);
+            log.error("homeGoodsList sellWellBooks exception", ex);
         }
 
        try {
@@ -298,7 +297,7 @@ public class HomePageService {
                homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
            }
        } catch (Exception ex) {
-           log.info("homeGoodsList specialOfferBooks exception", ex);
+           log.error("homeGoodsList specialOfferBooks exception", ex);
        }
 
 
@@ -322,7 +321,7 @@ public class HomePageService {
                homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
            }
        } catch (Exception ex) {
-           log.info("homeGoodsList unSellWellBooks exception", ex);
+           log.error("homeGoodsList unSellWellBooks exception", ex);
        }
 
 
