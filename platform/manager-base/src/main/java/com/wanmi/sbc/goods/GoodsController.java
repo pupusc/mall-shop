@@ -437,21 +437,11 @@ public class GoodsController {
         }
         //获取商品店铺分类
         if (osUtil.isS2b()) {
-            StoreCateListByGoodsRequest storeCateListByGoodsRequest =
-                    new StoreCateListByGoodsRequest(Collections.singletonList(request.getGoods().getGoodsId()));
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse =
-                    storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest);
-            StoreCateListByGoodsResponse storeCateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.nonNull(storeCateListByGoodsResponse)) {
-                List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                        storeCateListByGoodsResponse.getStoreCateGoodsRelaVOList();
-                oldData.getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream()
-                        .filter(rela -> rela.getStoreCateId() != null)
-                        .map(StoreCateGoodsRelaVO::getStoreCateId)
-                        .collect(Collectors.toList()));
+            Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(request.getGoods().getGoodsId())).getContext();
+            if(storeCateIdMap != null){
+                oldData.getGoods().setStoreCateIds(storeCateIdMap.get(request.getGoods().getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
             }
         }
-
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {

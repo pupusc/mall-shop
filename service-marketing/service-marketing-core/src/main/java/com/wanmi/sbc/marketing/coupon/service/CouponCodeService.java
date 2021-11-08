@@ -19,11 +19,13 @@ import com.wanmi.sbc.customer.api.response.store.ListStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByIdsRequest;
+import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
 import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
@@ -153,6 +155,9 @@ public class CouponCodeService {
     @Autowired
     private DistributionCacheService distributionCacheService;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
 
     /**
      * 根据条件查询优惠券码列表
@@ -248,17 +253,12 @@ public class CouponCodeService {
 
         // 1.设置tradeItem的storeCateIds
         List<TradeItemInfo> tradeItemInfos = request.getTradeItems();
-        List<String> goodsIds = tradeItemInfos.stream()
-                .map(TradeItemInfo::getSpuId).distinct().collect(Collectors.toList());
-        List<StoreCateGoodsRelaVO> relas =
-                storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
-        Map<String, List<StoreCateGoodsRelaVO>> relasMap = relas.stream()
-                .collect(Collectors.groupingBy(rela -> rela.getGoodsId()));
+        List<String> goodsIds = tradeItemInfos.stream().map(TradeItemInfo::getSpuId).distinct().collect(Collectors.toList());
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
         tradeItemInfos.forEach(item -> {
-            item.setStoreCateIds(relasMap.get(item.getSpuId()).stream()
-                    .map(rela -> rela.getStoreCateId()).collect(Collectors.toList()));
+            List<Long> classifies = storeCateIdMap.get(item.getSpuId()).stream().map(Integer::longValue).collect(Collectors.toList());
+            item.setStoreCateIds(classifies);
         });
-
         // 2.查询我的未使用的优惠券，并关联优惠券信息
         Query query = entityManager.createNativeQuery(request.getQuerySql());
         query.setParameter("customerId", request.getCustomerId());
@@ -267,13 +267,14 @@ public class CouponCodeService {
         // 3.循环处理每个优惠券
         TradeCouponSnapshot checkInfo = new TradeCouponSnapshot();
         if(CollectionUtils.isNotEmpty(couponCodeVos)) {
-            BaseResponse<ListStoreByIdsResponse> baseResponse =
-                    storeQueryProvider.listByIds(new ListStoreByIdsRequest(couponCodeVos.stream().map(CouponCodeVO::getStoreId).collect(Collectors.toList())));
-            List<StoreVO> storeVOList = baseResponse.getContext().getStoreVOList();
-            for (CouponCodeVO couponCodeVO : couponCodeVos) {
-                for (StoreVO storeVO : storeVOList) {
-                    if (couponCodeVO.getStoreId().equals(storeVO.getStoreId())) {
-                        couponCodeVO.setStoreName(storeVO.getStoreName());
+            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
+            if(listBaseResponse.getContext() != null){
+                List<ClassifyProviderResponse> classifies = listBaseResponse.getContext();
+                for (CouponCodeVO couponCodeVO : couponCodeVos) {
+                    for (ClassifyProviderResponse classify : classifies) {
+                        if (couponCodeVO.getStoreId().equals(classify.getId().longValue())) {
+                            couponCodeVO.setStoreName(classify.getClassifyName());
+                        }
                     }
                 }
             }

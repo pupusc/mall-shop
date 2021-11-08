@@ -40,8 +40,10 @@ import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateSyncRepository;
 import com.wanmi.sbc.goods.cate.request.ContractCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
+import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
@@ -130,6 +132,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 商品服务
@@ -186,6 +189,9 @@ public class GoodsService {
 
     @Autowired
     private StoreCateRepository storeCateRepository;
+
+    @Autowired
+    private ClassifyRepository classifyRepository;
 
     @Autowired
     private StoreGoodsTabRepository storeGoodsTabRepository;
@@ -2780,12 +2786,12 @@ public class GoodsService {
             }
 
             //验证店铺分类存在性
-            StoreCateQueryRequest request = new StoreCateQueryRequest();
-            request.setStoreId(goods.getStoreId());
-            request.setStoreCateIds(goods.getStoreCateIds());
-            request.setDelFlag(DeleteFlag.NO);
-            if (goods.getStoreCateIds().size() != storeCateRepository.count(request.getWhereCriteria())) {
-                throw new SbcRuntimeException(StoreCateErrorCode.NOT_EXIST);
+            if(CollectionUtils.isNotEmpty(goods.getStoreCateIds())){
+                List<Integer> ids = goods.getStoreCateIds().stream().map(Long::intValue).collect(Collectors.toList());
+                List<ClassifyDTO> classifies = classifyRepository.findAllById(ids);
+                if(classifies.size() != goods.getStoreCateIds().size()){
+                    throw new SbcRuntimeException(StoreCateErrorCode.NOT_EXIST);
+                }
             }
         }
     }

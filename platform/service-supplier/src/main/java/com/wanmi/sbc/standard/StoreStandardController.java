@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
 import com.wanmi.sbc.goods.api.provider.brand.ContractBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.ContractCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.standard.StandardGoodsQueryProvider;
@@ -120,6 +121,9 @@ public class StoreStandardController {
 
     @Autowired
     private EsStandardProvider esStandardProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     /**
      * 获取商品库详情信息
@@ -348,18 +352,9 @@ public class StoreStandardController {
         if (osUtil.isS2b()) {
             goodsId = response.getContext().getGoods().getProviderGoodsId();
             if (goodsId != null) {
-                StoreCateListByGoodsRequest storeCateListByGoodsRequest =
-                        new StoreCateListByGoodsRequest(Collections.singletonList(goodsId));
-                BaseResponse<StoreCateListByGoodsResponse> baseResponse =
-                        storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest);
-                StoreCateListByGoodsResponse storeCateListByGoodsResponse = baseResponse.getContext();
-                if (Objects.nonNull(storeCateListByGoodsResponse)) {
-                    List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                            storeCateListByGoodsResponse.getStoreCateGoodsRelaVOList();
-                    response.getContext().getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream()
-                            .filter(rela -> rela.getStoreCateId() != null)
-                            .map(StoreCateGoodsRelaVO::getStoreCateId)
-                            .collect(Collectors.toList()));
+                Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId)).getContext();
+                if(storeCateIdMap != null){
+                    response.getContext().getGoods().setStoreCateIds(storeCateIdMap.get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList()));
                 }
             }
         }

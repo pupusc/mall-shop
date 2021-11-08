@@ -43,6 +43,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfRequest;
+import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByGoodsResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse;
@@ -177,17 +178,11 @@ public class StoreGoodsController {
 
         //补充店铺分类
         if(queryRequest.getStoreCateId() != null) {
-            BaseResponse<StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse>  baseResponse = storeCateQueryProvider.listGoodsRelByStoreCateIdAndIsHaveSelf(new StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfRequest(queryRequest.getStoreCateId(), true));
-            StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse cateIdAndIsHaveSelfResponse = baseResponse.getContext();
-            if (Objects.nonNull(cateIdAndIsHaveSelfResponse)) {
-                List<StoreCateGoodsRelaVO> relas = cateIdAndIsHaveSelfResponse.getStoreCateGoodsRelaVOList();
-                if (CollectionUtils.isEmpty(relas)) {
-                    EsSpuPageResponse response = new EsSpuPageResponse();
-                    response.setGoodsPage(new MicroServicePage<>(Collections.emptyList(), queryRequest.getPageable(), 0));
-                    return BaseResponse.success(response);
-                }
-                queryRequest.setStoreCateGoodsIds(relas.stream().map(StoreCateGoodsRelaVO::getGoodsId).collect(Collectors.toList()));
-            }else{
+            BaseResponse<List<ClassifyGoodsProviderResponse>> goodsIdsContext = classifyProvider.listGoodsIdByClassifyIdColl(Collections.singletonList(queryRequest.getStoreCateId().intValue()));
+            if(CollectionUtils.isNotEmpty(goodsIdsContext.getContext())){
+                List<ClassifyGoodsProviderResponse> goodsIds = goodsIdsContext.getContext();
+                queryRequest.setStoreCateGoodsIds(goodsIds.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toList()));
+            }else {
                 EsSpuPageResponse response = new EsSpuPageResponse();
                 response.setGoodsPage(new MicroServicePage<>(Collections.emptyList(), queryRequest.getPageable(), 0));
                 return BaseResponse.success(response);
