@@ -320,7 +320,7 @@ public class HomePageService {
                    throw new SbcRuntimeException("HomePageController 书单id：" + unSellWellBooks.getBookListModelId() + "不存在");
                }
                BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
-                       bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, 20);
+                       bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, null);
                List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
                List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
                for (GoodsCustomResponse goodsCustomParam : content) {
