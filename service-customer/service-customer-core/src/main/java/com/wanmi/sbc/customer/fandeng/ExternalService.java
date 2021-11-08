@@ -730,7 +730,7 @@ public class ExternalService {
                 log.info("ExternalService getAccessToken appId: {} url:{}", appid, url);
                 HttpResponse httpResponse = HttpUtils.doPost(host,
                         url, getMap(), null, null);
-                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, JSON.toJSONString(httpResponse));
+                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, httpResponse.getStatusLine().getStatusCode());
                 if (200 == httpResponse.getStatusLine().getStatusCode()) {
                     String entity = EntityUtils.toString(httpResponse.getEntity());
                     JSONObject object = JSONObject.parseObject(entity);
