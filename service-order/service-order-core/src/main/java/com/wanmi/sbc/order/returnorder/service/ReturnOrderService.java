@@ -596,6 +596,10 @@ public class ReturnOrderService {
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
+                    }else {
+                        if(trade.getTradePrice() != null && trade.getTradePrice().getDeliveryPrice() != null){
+                            price = price.add(trade.getTradePrice().getDeliveryPrice());
+                        }
                     }
                 }
                 returnOrder.setReturnItems(returnItemDTOList);
