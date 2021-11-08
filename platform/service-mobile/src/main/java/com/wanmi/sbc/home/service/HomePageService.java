@@ -6,6 +6,7 @@ import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -20,9 +21,11 @@ import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
@@ -305,6 +308,17 @@ public class HomePageService {
            //非畅销
            HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
            if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
+               //获取书单信息
+               BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
+               bookListModelProviderRequest.setId(unSellWellBooks.getBookListModelId());
+               BaseResponse<BookListModelProviderResponse> bookListModelProviderSimpleByIdResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
+               BookListModelProviderResponse context = bookListModelProviderSimpleByIdResponse.getContext();
+               if (context != null) {
+                   unSellWellBooks.setTitle(context.getName());
+                   unSellWellBooks.setSubTitle(context.getDesc());
+               } else {
+                   throw new SbcRuntimeException("HomePageController 书单id：" + unSellWellBooks.getBookListModelId() + "不存在");
+               }
                BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
                        bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, 20);
                List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
