@@ -89,7 +89,8 @@ public class ClassifyService {
      * @return
      */
     public List<ClassifyDTO> listChildClassifyNoPageByParentId(Collection<Integer> parentClassifyIdList) {
-        return classifyRepository.findAll(this.packageWhere(null, parentClassifyIdList));
+        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
+        return classifyRepository.findAll(this.packageWhere(null, parentClassifyIdList), sort);
     }
 
 

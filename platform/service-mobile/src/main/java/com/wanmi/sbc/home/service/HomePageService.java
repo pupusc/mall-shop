@@ -290,7 +290,7 @@ public class HomePageService {
      * @return
      */
     public HomeGoodsListResponse homeGoodsList() {
-        int pageSize = 15;
+        int pageSize = 20;
         HomeGoodsListResponse homeGoodsListResponse = new HomeGoodsListResponse();
 
         //新上

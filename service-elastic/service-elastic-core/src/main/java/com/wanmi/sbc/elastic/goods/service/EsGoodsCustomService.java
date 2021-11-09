@@ -164,9 +164,12 @@ public class EsGoodsCustomService {
             boolQueryBuilder.filter(QueryBuilders.scriptQuery(new Script("(doc['goodsInfos.marketPrice'].value / doc['goodsExtProps.price'].value) < " + request.getScriptSpecialOffer())));
         }
 
+        //这个必须的放到最后，因为是或者操作
         if (!StringUtils.isEmpty(request.getClassifyIdList())) {
-            boolQueryBuilder.should(QueryBuilders.boolQuery().filter(QueryBuilders.termsQuery("storeCateIds", request.getClassifyIdList()))
-                    .filter(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList())));
+            BoolQueryBuilder shouldBuilder = new BoolQueryBuilder();
+            shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("storeCateIds", request.getClassifyIdList())));
+            shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList())));
+            return shouldBuilder;
         }
 
         return boolQueryBuilder;
