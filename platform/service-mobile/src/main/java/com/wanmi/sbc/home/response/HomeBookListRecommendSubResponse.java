@@ -1,5 +1,6 @@
 package com.wanmi.sbc.home.response;
 
+import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCountResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import lombok.Data;
 
@@ -23,5 +24,5 @@ public class HomeBookListRecommendSubResponse {
     /**
      * 推荐
      */
-    private List<BookListModelProviderResponse> recommendList;
+    private List<BookListModelAndGoodsCountResponse> recommendList;
 }

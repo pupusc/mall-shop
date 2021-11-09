@@ -1,7 +1,9 @@
 package com.wanmi.sbc.home.service;
+import java.util.Collection;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
+import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCountResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -62,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -208,20 +211,13 @@ public class HomePageService {
         bookListModelPageProviderRequest.setPageSize(15);
         if (editRecommend != null) {
             try {
-                CountBookListModelGroupProviderRequest request = new CountBookListModelGroupProviderRequest();
-                request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
-                request.setBusinessTypeColl(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
-                request.setBookListIdCollection(Arrays.asList(573, 608));
-                BaseResponse<List<CountBookListModelGroupProviderResponse>> listBaseResponse = bookListModelProvider.countGroupByBookListModelIdList(request);
-                System.out.println(listBaseResponse);
-
                 //编辑推荐
                 bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
                 bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
                 BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServiceBookRecommend = bookListModelProvider.listByPage(bookListModelPageProviderRequest);
                 HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
                 homeBookListRecommendSubResponse.setHomeTopicResponse(editRecommend);
-                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceBookRecommend.getContext().getContent()));
+                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceBookRecommend.getContext().getContent(), BusinessTypeEnum.BOOK_RECOMMEND));
                 homeRecommend.setBookListModelRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
                 log.error("HomePageService homeRecommend editRecommend error", ex);
@@ -238,7 +234,7 @@ public class HomePageService {
 
                 HomeBookListRecommendSubResponse homeBookListRecommendSubResponse = new HomeBookListRecommendSubResponse();
                 homeBookListRecommendSubResponse.setHomeTopicResponse(famousRecommend);
-                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceFamousRecommend.getContext().getContent()));
+                homeBookListRecommendSubResponse.setRecommendList(this.removeInvalidTag(microServiceFamousRecommend.getContext().getContent(), BusinessTypeEnum.FAMOUS_RECOMMEND));
                 homeRecommend.setFamousRecommend(homeBookListRecommendSubResponse);
             } catch (Exception ex) {
                 log.error("HomePageService homeRecommend famousRecommend error", ex);
@@ -251,21 +247,42 @@ public class HomePageService {
      * 删除无效的标签
      * @param bookListModelList
      */
-    private List<BookListModelProviderResponse> removeInvalidTag(List<BookListModelProviderResponse> bookListModelList) {
+    private List<BookListModelAndGoodsCountResponse> removeInvalidTag(List<BookListModelProviderResponse> bookListModelList, BusinessTypeEnum businessTypeEnum) {
+        //获取书单id列表
+        Set<Integer> bookListModelIdSet = bookListModelList.stream().map(BookListModelProviderResponse::getId).collect(Collectors.toSet());
+        Map<Integer, Integer> bookListModelIdAndCountMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(bookListModelIdSet)) {
+            CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest = new CountBookListModelGroupProviderRequest();
+            countBookListModelGroupProviderRequest.setBookListIdCollection(bookListModelIdSet);
+            countBookListModelGroupProviderRequest.setBusinessTypeColl(Collections.singletonList(businessTypeEnum.getCode()));
+            countBookListModelGroupProviderRequest.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
+            BaseResponse<List<CountBookListModelGroupProviderResponse>> listBaseResponse =
+                    bookListModelProvider.countGroupByBookListModelIdList(countBookListModelGroupProviderRequest);
+            bookListModelIdAndCountMap = listBaseResponse.getContext().stream().collect(Collectors.toMap(CountBookListModelGroupProviderResponse::getBookListModelId,
+                    CountBookListModelGroupProviderResponse::getGoodsCount, (k1, k2) -> k1));
+        }
+
+        List<BookListModelAndGoodsCountResponse> result = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         for (BookListModelProviderResponse bookListModelParam : bookListModelList) {
-            if (bookListModelParam.getTagValidBeginTime() == null || bookListModelParam.getTagValidEndTime() == null) {
+            BookListModelAndGoodsCountResponse bookListModelAndGoodsCountResponse = new BookListModelAndGoodsCountResponse();
+            BeanUtils.copyProperties(bookListModelParam, bookListModelAndGoodsCountResponse);
+            result.add(bookListModelAndGoodsCountResponse);
+            //设置数量
+            bookListModelAndGoodsCountResponse.setGoodsCount(bookListModelIdAndCountMap.get(bookListModelParam.getId()) == null ? 0 : bookListModelIdAndCountMap.get(bookListModelParam.getId()));
+            if (bookListModelAndGoodsCountResponse.getTagValidBeginTime() == null || bookListModelAndGoodsCountResponse.getTagValidEndTime() == null) {
                 continue;
             }
-            if (bookListModelParam.getTagValidBeginTime().isAfter(now)
-                    || bookListModelParam.getTagValidEndTime().isBefore(now)) {
-                bookListModelParam.setTagType(null);
-                bookListModelParam.setTagName("");
-                bookListModelParam.setTagValidBeginTime(null);
-                bookListModelParam.setTagValidEndTime(null);
+            if (bookListModelAndGoodsCountResponse.getTagValidBeginTime().isAfter(now)
+                    || bookListModelAndGoodsCountResponse.getTagValidEndTime().isBefore(now)) {
+                bookListModelAndGoodsCountResponse.setTagType(null);
+                bookListModelAndGoodsCountResponse.setTagName("");
+                bookListModelAndGoodsCountResponse.setTagValidBeginTime(null);
+                bookListModelAndGoodsCountResponse.setTagValidEndTime(null);
             }
+
         }
-        return bookListModelList;
+        return result;
     }
 
     /**

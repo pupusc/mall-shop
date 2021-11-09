@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishR
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SQLQuery;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:
@@ -109,7 +111,7 @@ public class BookListGoodsPublishService {
                 businessTypeSql += "," + businessTypeId;
             }
         }
-        sql += "m.business_type in (" + businessTypeSql + ") and publish.category = " + countBookListModelGroupProviderRequest.getCategoryId();
+        sql += " and m.business_type in (" + businessTypeSql + ") and publish.category = " + countBookListModelGroupProviderRequest.getCategoryId();
         String bookListModelIdSql = "";
         for (Integer bookListModelId : countBookListModelGroupProviderRequest.getBookListIdCollection()) {
             if (StringUtils.isEmpty(bookListModelIdSql)) {
@@ -118,11 +120,22 @@ public class BookListGoodsPublishService {
                 bookListModelIdSql += "," + bookListModelId.toString();
             }
         }
-        sql += " and m.id in (" + bookListModelIdSql + ")";
+        sql += " and m.id in (" + bookListModelIdSql + ") group by m.id ";
 
         Query nativeQuery = entityManager.createNativeQuery(sql);
-        nativeQuery.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.aliasToBean(CountBookListModelGroupResponse.class));
-        return nativeQuery.getResultList();
+        nativeQuery.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        List<Map<String, Object>> sqlResult = nativeQuery.getResultList();
+        List<CountBookListModelGroupResponse>  result = new ArrayList<>();
+        for (Map<String, Object> stringObjectMap : sqlResult) {
+            if (stringObjectMap.get("bookListModelId") == null) {
+                continue;
+            }
+            CountBookListModelGroupResponse param = new CountBookListModelGroupResponse();
+            param.setGoodsCount(stringObjectMap.get("goodsCount") == null ? 0 : Integer.parseInt(stringObjectMap.get("goodsCount").toString()));
+            param.setBookListModelId(Integer.parseInt(stringObjectMap.get("bookListModelId").toString()));
+            result.add(param);
+        }
+        return result;
     }
 
     /**

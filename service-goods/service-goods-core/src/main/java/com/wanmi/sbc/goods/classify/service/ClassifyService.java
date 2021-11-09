@@ -57,7 +57,7 @@ public class ClassifyService {
      * @return
      */
     public List<ClassifyProviderResponse> listClassify(){
-        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum");
+        Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
         List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null, null), sort);
         List<ClassifyProviderResponse>  result = new ArrayList<>();
         Map<Integer, ClassifyProviderResponse> resultMap = new HashMap<>();

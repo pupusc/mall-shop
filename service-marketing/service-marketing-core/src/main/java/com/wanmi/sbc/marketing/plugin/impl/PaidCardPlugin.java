@@ -113,10 +113,10 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
                 .CUSTOMER.toValue()).equals(goodsInfo.getPriceType())
                 && (goodsInfo.getCompanyType().equals(BoolFlag.NO))).collect(Collectors.toList());
         goodsInfoList.forEach(goodsInfo -> {
-//            if(excludeIds.contains(goodsInfo.getGoodsId())){
-//                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
-//                return;
-//            }
+            if(excludeIds.contains(goodsInfo.getGoodsId())){
+                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+                return;
+            }
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
             //是否设置单独价格
             if(isIndependent) {
@@ -143,10 +143,10 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
             return;
         }
         goodsInfoList.forEach(goodsInfo -> {
-//            if(excludeIds.contains(goodsInfo.getGoodsId())){
-//                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
-//                return;
-//            }
+            if(excludeIds.contains(goodsInfo.getGoodsId())){
+                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+                return;
+            }
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
             if(isIndependent) {
                 goodsInfo.setPaidCardPrice(discountPrice);

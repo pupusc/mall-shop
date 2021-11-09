@@ -165,7 +165,8 @@ public class EsGoodsCustomService {
         }
 
         if (!StringUtils.isEmpty(request.getClassifyIdList())) {
-            boolQueryBuilder.should(termsQuery("storeCateIds", request.getClassifyIdList())).should(termsQuery("classify.id", request.getClassifyIdList()));
+            boolQueryBuilder.should(QueryBuilders.boolQuery().filter(QueryBuilders.termsQuery("storeCateIds", request.getClassifyIdList()))
+                    .filter(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList())));
         }
 
         return boolQueryBuilder;
