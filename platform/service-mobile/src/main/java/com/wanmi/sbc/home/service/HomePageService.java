@@ -11,6 +11,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.IndexModuleEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
@@ -20,11 +21,13 @@ import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
@@ -205,6 +208,13 @@ public class HomePageService {
         bookListModelPageProviderRequest.setPageSize(15);
         if (editRecommend != null) {
             try {
+                CountBookListModelGroupProviderRequest request = new CountBookListModelGroupProviderRequest();
+                request.setCategoryId(CategoryEnum.BOOK_LIST_MODEL.getCode());
+                request.setBusinessTypeColl(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+                request.setBookListIdCollection(Arrays.asList(573, 608));
+                BaseResponse<List<CountBookListModelGroupProviderResponse>> listBaseResponse = bookListModelProvider.countGroupByBookListModelIdList(request);
+                System.out.println(listBaseResponse);
+
                 //编辑推荐
                 bookListModelPageProviderRequest.setPublishStateList(Collections.singletonList(PublishStateEnum.PUBLISH.getCode()));
                 bookListModelPageProviderRequest.setBusinessTypeList(Collections.singletonList(BusinessTypeEnum.BOOK_RECOMMEND.getCode()));

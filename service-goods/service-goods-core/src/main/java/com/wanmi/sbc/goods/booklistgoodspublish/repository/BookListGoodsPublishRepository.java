@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.booklistgoodspublish.repository;
 
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -47,4 +48,5 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
             " and publish.delFlag = 0 and classify.delFlag = 0 and clasifyRel.delFlag = 0 and bookList.delFlag = 0" +
             " and bookList.businessType in ?1 and bookList.id not in ?2 and publish.category = ?3 and classify.id in ?4 order by bookList.hasTop desc, bookList.updateTime desc")
     List<BookListGoodsPublishLinkModelResponse> listGoodsPublishLinkClassify(List<Integer> businessTypeList, List<Integer> notInBookListIdList, Integer category,Collection<Integer> classifyIdColl);
+
 }

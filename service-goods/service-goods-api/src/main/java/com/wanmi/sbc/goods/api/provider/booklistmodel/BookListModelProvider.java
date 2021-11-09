@@ -4,11 +4,13 @@ package com.wanmi.sbc.goods.api.provider.booklistmodel;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
@@ -135,4 +137,12 @@ public interface BookListModelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/findPublishBook")
     BaseResponse<List<Integer>> findPublishBook();
+
+    /**
+     * 分组获取各个分类下的商品数量
+     * @param countBookListModelGroupProviderRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
+    BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
 }
