@@ -182,15 +182,6 @@ public class IndexCmsController implements IndexCmsProvider {
             IndexModuleVo indexModuleVo = new IndexModuleVo();
             BeanUtils.copyProperties(indexModule, indexModuleVo);
             indexModuleVo.setPublishState(indexModule.getPublishState().toValue());
-            if(indexModule.getBookListModelId() != null){
-                try {
-                    BookListModelDTO bookListModel = bookListModelService.findSimpleById(indexModule.getBookListModelId());
-                    indexModuleVo.setTitle(bookListModel.getName());
-                    indexModuleVo.setSubTitle(bookListModel.getDesc());
-                }catch (SbcRuntimeException e) {
-                    log.error("书单" + indexModule.getBookListModelId() + "已被删除，主副标题赋默认值", e);
-                }
-            }
             return indexModuleVo;
         }).collect(Collectors.toList());
         return BaseResponse.success(dtos);
