@@ -59,14 +59,6 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
         log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONArray.toJSONString(goodsInfos), excludeProduct);
-        String[] split = excludeProduct.split(",");
-        List<String> excludeIds = Arrays.asList(split);
-        for (GoodsInfoVO goodsInfo : goodsInfos) {
-            if(excludeIds.contains(goodsInfo.getGoodsId())){
-                log.info("PaidCardPlugin  goodsListFilter，{}", excludeProduct);
-                return;
-            }
-        }
 
         if (Objects.isNull(request.getCustomer())) {
             return;
@@ -79,10 +71,12 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         //是否设置独立字段
         Boolean isIndependent = request.getIsIndependent();
 
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
         //按市场设价处理逻辑
-        dealMarketType(goodsInfos, paidCardVO, isIndependent);
+        dealMarketType(goodsInfos, paidCardVO, isIndependent, excludeIds);
         //按客户等级设价
-        dealCustomerType(goodsInfos, paidCardVO, isIndependent);
+        dealCustomerType(goodsInfos, paidCardVO, isIndependent, excludeIds);
         //按订货量设价
         //  dealBuyNumType(goodsInfos, request, paidCardDiscount,storeId);
         System.out.println("end");
@@ -113,22 +107,25 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
                 });
     }
 
-    private void dealCustomerType(List<GoodsInfoVO> goodsInfos, PaidCardVO paidCardVO, Boolean isIndependent) {
+    private void dealCustomerType(List<GoodsInfoVO> goodsInfos, PaidCardVO paidCardVO, Boolean isIndependent, List<String> excludeIds) {
         //设价方式为客户等级、自营商品、非企业购商品
         List<GoodsInfoVO> goodsInfoList = goodsInfos.stream().filter(goodsInfo -> Integer.valueOf(GoodsPriceType
                 .CUSTOMER.toValue()).equals(goodsInfo.getPriceType())
                 && (goodsInfo.getCompanyType().equals(BoolFlag.NO))).collect(Collectors.toList());
         goodsInfoList.forEach(goodsInfo -> {
-                    BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    //是否设置单独价格
-                    if(isIndependent) {
-                        goodsInfo.setPaidCardPrice(discountPrice);
-                    } else {
-                        goodsInfo.setSalePrice(discountPrice);
-                    }
-                    goodsInfo.setPaidCardIcon(paidCardVO.getIcon());
-
-                });
+//            if(excludeIds.contains(goodsInfo.getGoodsId())){
+//                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+//                return;
+//            }
+            BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
+            //是否设置单独价格
+            if(isIndependent) {
+                goodsInfo.setPaidCardPrice(discountPrice);
+            } else {
+                goodsInfo.setSalePrice(discountPrice);
+            }
+            goodsInfo.setPaidCardIcon(paidCardVO.getIcon());
+        });
     }
 
     /**
@@ -137,7 +134,7 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      * @param goodsInfos
      * @param paidCardVO
      */
-    private void dealMarketType(List<GoodsInfoVO> goodsInfos, PaidCardVO paidCardVO, Boolean isIndependent) {
+    private void dealMarketType(List<GoodsInfoVO> goodsInfos, PaidCardVO paidCardVO, Boolean isIndependent, List<String> excludeIds) {
         //设价方式为市场价、自营商品、非企业购商品
         List<GoodsInfoVO> goodsInfoList = goodsInfos.stream().filter(goodsInfo -> Integer.valueOf(GoodsPriceType
                 .MARKET.toValue()).equals(goodsInfo.getPriceType())
@@ -146,15 +143,18 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
             return;
         }
         goodsInfoList.forEach(goodsInfo -> {
-                    BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    if(isIndependent) {
-                        goodsInfo.setPaidCardPrice(discountPrice);
-                    } else {
-                        goodsInfo.setSalePrice(discountPrice);
-                    }
-                    goodsInfo.setPaidCardIcon(paidCardVO.getIcon());
-                });
-
+//            if(excludeIds.contains(goodsInfo.getGoodsId())){
+//                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+//                return;
+//            }
+            BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
+            if(isIndependent) {
+                goodsInfo.setPaidCardPrice(discountPrice);
+            } else {
+                goodsInfo.setSalePrice(discountPrice);
+            }
+            goodsInfo.setPaidCardIcon(paidCardVO.getIcon());
+        });
     }
 
     /**
@@ -170,22 +170,18 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
                 || (!Integer.valueOf(GoodsPriceType.MARKET.toValue()).equals(detailResponse.getGoodsInfo().getPriceType()))) {
             return;
         }
-        String[] split = excludeProduct.split(",");
-        List<String> excludeIds = Arrays.asList(split);
-        if(excludeIds.contains(detailResponse.getGoods().getGoodsId())){
-            log.info("PaidCardPlugin  goodsListFilter，{}", excludeProduct);
-            return;
-        }
         List<GoodsInfoVO> goodsInfoVOList = new ArrayList<>(Arrays.asList(detailResponse.getGoodsInfo()));
         PaidCardVO paidCardVO = this.obtainPaidCard(request);
         if (Objects.isNull(paidCardVO)) {
             return;
         }
 
+        String[] split = excludeProduct.split(",");
+        List<String> excludeIds = Arrays.asList(split);
         //按市场设价处理逻辑
-        dealMarketType(goodsInfoVOList, paidCardVO, Boolean.TRUE);
+        dealMarketType(goodsInfoVOList, paidCardVO, Boolean.TRUE, excludeIds);
         //按客户等级设价
-        dealCustomerType(goodsInfoVOList, paidCardVO, Boolean.TRUE);
+        dealCustomerType(goodsInfoVOList, paidCardVO, Boolean.TRUE, excludeIds);
         //按订货量设价
        // dealBuyNumType(goodsInfoVOList, request, paidCardDiscount, storeId);
     }

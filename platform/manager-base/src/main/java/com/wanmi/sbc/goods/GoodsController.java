@@ -972,12 +972,10 @@ public class GoodsController {
             }
         }
         //获取商品店铺分类
-        if (osUtil.isS2b()) {
-            BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId));
-            if(mapBaseResponse.getContext() != null){
-                List<Long> collect = mapBaseResponse.getContext().get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList());
-                response.getGoods().setStoreCateIds(collect);
-            }
+        BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId));
+        if(mapBaseResponse.getContext() != null){
+            List<Long> collect = mapBaseResponse.getContext().get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList());
+            response.getGoods().setStoreCateIds(collect);
         }
         OperateDataLogListResponse operateDataLogListResponse =
                 operateDataLogQueryProvider.list(OperateDataLogListRequest.builder().operateId(goodsId).delFlag(DeleteFlag.NO).build()).getContext();
