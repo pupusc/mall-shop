@@ -14,6 +14,8 @@ import javax.validation.constraints.NotNull;
 @Data
 public class HomeClassifyGoodsAndBookListModelRequest {
 
+    private int pageNum = 0;
+
     private int pageSize = 10;
 
     /**

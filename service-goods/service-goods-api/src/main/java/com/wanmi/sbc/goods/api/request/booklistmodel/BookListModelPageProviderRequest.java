@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -51,6 +52,10 @@ public class BookListModelPageProviderRequest implements Serializable {
      */
     private List<Integer> businessTypeList;
 
+    /**
+     * 书单列表
+     */
+    private Collection<Integer> idCollection;
 
     /**
      * 是否置顶 0 否 1 是

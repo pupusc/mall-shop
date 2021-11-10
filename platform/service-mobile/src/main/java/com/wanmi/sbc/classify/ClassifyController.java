@@ -1,9 +1,11 @@
 package com.wanmi.sbc.classify;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.classify.request.ClassifyGoodsAndBookListModelPageRequest;
 import com.wanmi.sbc.classify.request.HomeClassifyGoodsAndBookListModelRequest;
 import com.wanmi.sbc.classify.response.ClassifyGoodsAndBookListModelResponse;
@@ -14,14 +16,18 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.util.RandomUtil;
+import com.wanmi.sbc.util.RedisKeyUtil;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +64,12 @@ public class ClassifyController {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
+    @Autowired
+    private RedisListService redisService;
+
+    @Autowired
+    private BookListModelProvider bookListModelProvider;
+
     /**
      * 分类  获取分类信息
      * @menu 新版首页
@@ -88,61 +100,73 @@ public class ClassifyController {
     @PostMapping("/index/listClassifyGoodsAndBookListModel")
     public BaseResponse<List<ClassifyGoodsAndBookListModelResponse>> listClassifyGoodsAndBookListModel(@RequestBody @Validated HomeClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest){
         List<ClassifyGoodsAndBookListModelResponse> result = new ArrayList<>();
+        int pageNum = classifyGoodsAndBookListModelRequest.getPageNum();
         int pageSize = classifyGoodsAndBookListModelRequest.getPageSize(); //每次加载为 5的倍数
         int radix = 5; //基数
+
         if (pageSize % radix > 0) {
             throw new IllegalStateException("K-010109");
         }
-
         int quotient = pageSize / radix; //商
         pageSize = pageSize - quotient; //获取的数量
 
-        //获取当前分类下的所有子分类
-        ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
-        classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(classifyGoodsAndBookListModelRequest.getClassifyId()));
-        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
-        if (CollectionUtils.isEmpty(listBaseResponse.getContext())) {
+        //获取商品列表
+        String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
+        int goodsStart = pageNum * pageSize;
+        int goodsEnd = (pageNum + 1) * pageSize;
+        List<String>  goodsIdList = redisService.findByRangeString(goodsIdKey, goodsStart, goodsEnd -1);
+
+        if (CollectionUtils.isEmpty(goodsIdList)) {
             return BaseResponse.success(result);
         }
-        Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
-        //根据分类id 获取销量前300的商品列表
+
+        //es获取商品信息，
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         esGoodsCustomRequest.setPageNum(0);
-        esGoodsCustomRequest.setPageSize(300);
-        esGoodsCustomRequest.setClassifyIdList(childClassifySet);
+        esGoodsCustomRequest.setPageSize(goodsIdList.size());
+        esGoodsCustomRequest.setGoodIdList(goodsIdList);
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
         //按照销售数量排序
         sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
         esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        //获取随机的商品数量
-        List<EsGoodsVO> esGoodsRandomList = bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize);
-        if (CollectionUtils.isEmpty(esGoodsRandomList)) {
+        MicroServicePage<EsGoodsVO> esGoodsRandomList = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
+        List<EsGoodsVO> content = esGoodsRandomList.getContent();
+        if (CollectionUtils.isEmpty(content)) {
             return BaseResponse.success(result);
         }
 
-        //获取封装好的商品信息
-        List<GoodsCustomResponse> goodsCustomResponsesList = bookListModelAndGoodsService.listGoodsCustom(esGoodsRandomList);
+        List<GoodsCustomResponse> goodsCustomResponsesList = bookListModelAndGoodsService.listGoodsCustom(content);
         if (CollectionUtils.isEmpty(goodsCustomResponsesList)) {
             return BaseResponse.success(result);
         }
+
         Set<String> goodsIdSet = esGoodsRandomList.stream().map(EsGoodsVO::getId).collect(Collectors.toSet());
         //获取商品所对应的书单
         Map<String, BookListModelGoodsIdProviderResponse> bookListModelGoodsIdProviderResponseMap =
                 bookListModelAndGoodsService.mapBookLitModelByGoodsIdColl(goodsIdSet);
 
+        List<BookListModelProviderResponse> resultBookListModelList = new ArrayList<>();
         //获取书单列表
-        BookListModelClassifyLinkPageProviderRequest bookListModelClassifyLinkPageProviderRequest = new BookListModelClassifyLinkPageProviderRequest();
-        bookListModelClassifyLinkPageProviderRequest.setClassifyIdColl(childClassifySet);
-        bookListModelClassifyLinkPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
-        bookListModelClassifyLinkPageProviderRequest.setPageNum(0);
-        bookListModelClassifyLinkPageProviderRequest.setPageSize(60);  //当前是一共300个商品，5个商品随机一个 书单，则300 / 5 为最大60个书单随机
-        BaseResponse<List<BookListModelClassifyLinkProviderResponse>> bookListModelClassifyLinkProviderResponses = classifyProvider.listBookListModelByClassifyIdColl(bookListModelClassifyLinkPageProviderRequest);
-        List<BookListModelClassifyLinkProviderResponse> context = bookListModelClassifyLinkProviderResponses.getContext();
+        int bookListModelStart = pageNum * quotient;
+        int bookListModelEnd = (pageNum + 1) * quotient;
+        String bookListModelKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
+        List<String> bookListModelIdStrList = redisService.findByRangeString(bookListModelKey, bookListModelStart, bookListModelEnd -1);
+        if (!CollectionUtils.isEmpty(bookListModelIdStrList)) {
+            List<Integer> bookListModelIdList = bookListModelIdStrList.stream().map(Integer::parseInt).collect(Collectors.toList());
+            //获取书单列表
+            BookListModelPageProviderRequest bookListModelPageProviderRequest = new BookListModelPageProviderRequest();
+            bookListModelPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+            bookListModelPageProviderRequest.setIdCollection(bookListModelIdList);
+            bookListModelPageProviderRequest.setPageNum(0);
+            bookListModelPageProviderRequest.setPageSize(bookListModelIdList.size());
+            BaseResponse<MicroServicePage<BookListModelProviderResponse>> microServicePageBaseResponse =
+                    bookListModelProvider.listByPage(bookListModelPageProviderRequest);
+            resultBookListModelList = microServicePageBaseResponse.getContext().getContent();
+        }
 
         //开始封装数据
+        int bookListModelIndex = 0;
         for (int i = 0; i < goodsCustomResponsesList.size(); i++) {
-
-
             //根据销量获取商品列表
             ClassifyGoodsAndBookListModelResponse resultClassifyGoods = new ClassifyGoodsAndBookListModelResponse();
 
@@ -160,18 +184,13 @@ public class ClassifyController {
             result.add(resultClassifyGoods);
 
             //表示书单
-            if ((i + 2) % radix == 0) {
-                Integer bookListModelRandomIndex = RandomUtil.getRandom(context.size());
-                if (bookListModelRandomIndex != null) {
-                    ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
-
-                    BookListModelClassifyLinkProviderResponse bookListModelGoodsIdParam = context.get(bookListModelRandomIndex);
-                    BookListModelProviderResponse bookListModelResponse = new BookListModelProviderResponse();
-                    BeanUtils.copyProperties(bookListModelGoodsIdParam, bookListModelResponse);
-                    classifyBookListModel.setBookListModel(bookListModelResponse);
-                    classifyBookListModel.setType(2); //书单
-                    result.add(classifyBookListModel);
-                }
+            if ((i + 2) % radix == 0 && bookListModelIndex < resultBookListModelList.size()) {
+                ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
+                BookListModelProviderResponse bookListModelProviderResponse = resultBookListModelList.get(bookListModelIndex);
+                classifyBookListModel.setBookListModel(bookListModelProviderResponse);
+                classifyBookListModel.setType(2); //书单
+                result.add(classifyBookListModel);
+                bookListModelIndex++;
             }
         }
         return BaseResponse.success(result);

@@ -517,7 +517,7 @@ public class BookListModelAndGoodsService {
         if (CollectionUtils.isEmpty(goodsVOList)) {
             return result;
         }
-        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(resultEsGoodsList, null);
+        List<GoodsInfoVO> goodsInfoVOList = this.packageGoodsInfoList(resultEsGoodsList, this.getCustomerVo()); //添加客户信息
         if (CollectionUtils.isEmpty(goodsInfoVOList)) {
             return result;
         }

@@ -431,7 +431,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-            sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
+            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
             resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(resultTmp)) {
