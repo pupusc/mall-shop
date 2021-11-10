@@ -56,9 +56,13 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
     @Autowired
     private RedisListService redisService;
 
+    @Autowired
+    private RedisService redis;
+
     @Override
     public ReturnT<String> execute(String param) throws Exception {
 //        List<ClassifyNoChildResponse> classifyNoChildResult = new ArrayList<>();
+        Long refreshCount = redis.incrKey(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_COUNT);
         ClassifyCollectionProviderRequest classifyCollectionParent = new ClassifyCollectionProviderRequest();
         classifyCollectionParent.setParentIdColl(Collections.singleton(0));
         BaseResponse<List<ClassifyProviderResponse>> listParentBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionParent);
@@ -72,8 +76,8 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
                 continue;
             }
             Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
-            classifyGoods(childClassifySet, classifyProviderResponseParam.getId()); //默认300
-            classifyBookListModel(childClassifySet, classifyProviderResponseParam.getId()); //默认60
+            classifyGoods(childClassifySet, classifyProviderResponseParam.getId(), refreshCount); //默认300
+            classifyBookListModel(childClassifySet, classifyProviderResponseParam.getId(), refreshCount); //默认60
         }
         return SUCCESS;
     }
@@ -83,7 +87,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
      * @param childClassifySet
      * @param classifyId
      */
-    private void classifyGoods(Set<Integer> childClassifySet, Integer classifyId) {
+    private void classifyGoods(Set<Integer> childClassifySet, Integer classifyId, Long refreshCount) {
 
         //根据分类id 获取销量前300的商品列表
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
@@ -105,7 +109,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
         //简化goodsVo
         List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
         Collections.shuffle(goodsIdList);
-        String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + classifyId;
+        String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + refreshCount + ":" + classifyId;
         redisService.putAllStr(key, goodsIdList, 40);
 
     }
@@ -115,7 +119,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
      * @param childClassifySet
      * @param classifyId
      */
-    private void classifyBookListModel(Set<Integer> childClassifySet, Integer classifyId) {
+    private void classifyBookListModel(Set<Integer> childClassifySet, Integer classifyId, Long refreshCount) {
         //获取书单列表
         BookListModelClassifyLinkPageProviderRequest bookListModelClassifyLinkPageProviderRequest = new BookListModelClassifyLinkPageProviderRequest();
         bookListModelClassifyLinkPageProviderRequest.setClassifyIdColl(childClassifySet);
@@ -130,7 +134,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
         List<Integer> goodsIdList = context.stream().map(BookListModelClassifyLinkProviderResponse::getBookListModelId).collect(Collectors.toList());
         Collections.shuffle(goodsIdList);
         //context 已经乱序
-        String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + classifyId;
+        String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + refreshCount + ":" + classifyId;
 
         redisService.putAll(key, goodsIdList, 40);
     }

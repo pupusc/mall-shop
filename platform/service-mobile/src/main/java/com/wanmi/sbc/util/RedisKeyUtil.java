@@ -9,6 +9,10 @@ package com.wanmi.sbc.util;
  ********************************************************************/
 public class RedisKeyUtil {
 
+    /**
+     * 首页刷新次数
+     */
+    public static String KEY_LIST_PREFIX_INDEX_REFRESH_COUNT = "KEY_LIST_PREFIX_INDEX_REFRESH_COUNT";
 
     /**
      * 分类下的商品

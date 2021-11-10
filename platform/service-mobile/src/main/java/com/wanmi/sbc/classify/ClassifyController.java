@@ -26,12 +26,14 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.RandomUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,6 +68,9 @@ public class ClassifyController {
 
     @Autowired
     private RedisListService redisService;
+
+    @Autowired
+    private RedisService redis;
 
     @Autowired
     private BookListModelProvider bookListModelProvider;
@@ -109,9 +114,10 @@ public class ClassifyController {
         }
         int quotient = pageSize / radix; //商
         pageSize = pageSize - quotient; //获取的数量
-
+        String refreshCountStr = redis.getString(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT);
+        long refreshCount = Long.parseLong(StringUtils.isEmpty(refreshCountStr) ? "0" : refreshCountStr);
         //获取商品列表
-        String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
+        String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
         int goodsStart = pageNum * pageSize;
         int goodsEnd = (pageNum + 1) * pageSize;
         List<String>  goodsIdList = redisService.findByRangeString(goodsIdKey, goodsStart, goodsEnd -1);
@@ -149,7 +155,7 @@ public class ClassifyController {
         //获取书单列表
         int bookListModelStart = pageNum * quotient;
         int bookListModelEnd = (pageNum + 1) * quotient;
-        String bookListModelKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
+        String bookListModelKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
         List<String> bookListModelIdStrList = redisService.findByRangeString(bookListModelKey, bookListModelStart, bookListModelEnd -1);
         if (!CollectionUtils.isEmpty(bookListModelIdStrList)) {
             List<Integer> bookListModelIdList = bookListModelIdStrList.stream().map(Integer::parseInt).collect(Collectors.toList());
