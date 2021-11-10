@@ -22,6 +22,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
+import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.FilterRuleEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.chooserule.ChooseRuleProvider;
@@ -41,6 +42,7 @@ import com.wanmi.sbc.goods.api.response.chooserulegoodslist.BookListGoodsProvide
 import com.wanmi.sbc.goods.api.response.chooserulegoodslist.ChooseRuleProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -341,6 +343,8 @@ public class BookListModelAndGoodsService {
         List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
         GoodsByConditionRequest goodsByConditionRequest = new GoodsByConditionRequest();
         goodsByConditionRequest.setGoodsIds(goodsIdList);
+        goodsByConditionRequest.setAddedFlag(AddedFlag.YES.toValue());
+        goodsByConditionRequest.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         GoodsByConditionResponse goodsByConditionResponseBaseResponse = goodsQueryProvider.listByCondition(goodsByConditionRequest).getContext();
         List<GoodsVO> goodsVOList = goodsByConditionResponseBaseResponse.getGoodsVOList();
         if (CollectionUtils.isEmpty(goodsVOList)) {
