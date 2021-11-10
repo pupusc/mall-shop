@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 @Api(tags = "PointsController", description = "积分兑换服务API")
 @RestController
 @RequestMapping("/point/exchange")
+
 public class PointsExchangeController {
 
     @Autowired
@@ -35,18 +35,37 @@ public class PointsExchangeController {
     @Autowired
     private EsSkuQueryProvider esSkuQueryProvider;
 
+    /**
+     * @description 新增积分兑换活动
+     * @menu 积分兑换
+     * @param request
+     * @status undone
+     */
+
     @ApiOperation(value = "新增积分兑换活动")
     @PostMapping(value = "/add")
     public  BaseResponse add(@RequestBody @Valid PointsExchangeAcitvityAddRequest request){
         return pointsExchangeProvider.add(request);
     }
 
+    /**
+     * @description 积分兑换活动列表
+     * @menu 积分兑换
+     * @param request
+     * @status undone
+     */
     @ApiOperation(value = "积分兑换活动列表")
     @PostMapping(value = "/list")
     public BaseResponse<MicroServicePage<PointsExchangeActivityVO>> page(@RequestBody PointsExchangePageRequest request){
         return pointsExchangeProvider.page(request);
     }
 
+    /**
+     * @description 积分兑换活动详情
+     * @menu 积分兑换
+     * @param id
+     * @status undone
+     */
     @ApiOperation(value = "详情")
     @GetMapping(value = "/detail")
     public BaseResponse<PointsExchangeActivityVO> detail(@RequestParam("id")Integer id){
@@ -70,12 +89,26 @@ public class PointsExchangeController {
         return  activityVO;
     }
 
+
+    /**
+     * @description 积分兑换活动修改
+     * @menu 积分兑换
+     * @param request
+     * @status undone
+     */
     @ApiOperation(value = "修改")
     @PostMapping(value = "/modify")
     BaseResponse modify(@RequestBody @Valid PointsExchangeAcitvityAddRequest request){
         return pointsExchangeProvider.modify(request);
     }
 
+
+    /**
+     * @description 积分兑换活动暂停
+     * @menu 积分兑换
+     * @param id
+     * @status undone
+     */
     @ApiOperation(value = "暂停活动")
     @PostMapping(value = "/pause")
     BaseResponse pause(@RequestParam("id")Integer id){
