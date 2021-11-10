@@ -1,23 +1,34 @@
 package com.wanmi.sbc.setting.topicconfig.service;
 
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.common.util.XssUtils;
 import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyAddRequest;
+import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyGoodsDTO;
+import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
-import com.wanmi.sbc.setting.topicconfig.model.root.HeadImageSetting;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicSetting;
-import com.wanmi.sbc.setting.topicconfig.repository.HeadImageSettingRepository;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicSettingRepository;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicHeadImage;
+import com.wanmi.sbc.setting.topicconfig.model.root.Topic;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyGoods;
+import com.wanmi.sbc.setting.topicconfig.repository.TopicHeadImageRepository;
+import com.wanmi.sbc.setting.topicconfig.repository.TopicRepository;
+import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyGoodsRepository;
+import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyRepository;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.description.annotation.AnnotationList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,18 +38,25 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class TopicConfigService {
     @Autowired
-    private TopicSettingRepository topicSettingRepository;
+    private TopicRepository topicSettingRepository;
 
     @Autowired
-    private HeadImageSettingRepository headImageSettingRepository;
+    private TopicHeadImageRepository topicHeadImageRepository;
+
+    @Autowired
+    private TopicStoreyRepository storeyRepository;
+
+    @Autowired
+    private TopicStoreyGoodsRepository goodsRepository;
 
     public void addTopic(TopicConfigAddRequest request) {
-        TopicSetting topic = KsBeanUtil.convert(request, TopicSetting.class);
+        Topic topic = KsBeanUtil.convert(request, Topic.class);
         topic.setCreateTime(LocalDateTime.now());
         topic.setUpdateTime(LocalDateTime.now());
         topic.setDeleted(DeleteFlag.NO.toValue());
@@ -46,25 +64,64 @@ public class TopicConfigService {
         topicSettingRepository.save(topic);
     }
 
-    public List<TopicConfigVO> listTopic(TopicQueryRequest request) {
-        List<TopicSetting> list = topicSettingRepository.findAll(getTopicWhereCriteria(request));
-        if(CollectionUtils.isEmpty(list)){
-            return Collections.EMPTY_LIST;
+    public MicroServicePage<TopicConfigVO> listTopic(TopicQueryRequest request) {
+        Page<Topic> page = topicSettingRepository.findAll(getTopicWhereCriteria(request),request.getPageRequest());
+        if(page == null){
+            return new MicroServicePage<>();
         }
-        return KsBeanUtil.convert(list,TopicConfigVO.class);
+        return KsBeanUtil.convertPage(page,TopicConfigVO.class);
     }
 
+
+    @Transactional
     public void addHeadImage(HeadImageConfigAddRequest request){
-        List<HeadImageSetting> list = KsBeanUtil.convertList(request.getHeadImage(),HeadImageSetting.class);
-        headImageSettingRepository.saveAll(list);
+        //删除原头图
+        topicHeadImageRepository.deleteByTopicId(request.getTopicId());
+        List<TopicHeadImage> list = KsBeanUtil.convertList(request.getHeadImage(), TopicHeadImage.class);
+        topicHeadImageRepository.saveAll(list);
+    }
+
+    @Transactional
+    public void addStorey(TopicStoreyAddRequest request){
+        //删除原楼层
+        storeyRepository.deleteByTopicId(request.getTopicId());
+       List<TopicStorey> list= KsBeanUtil.convertList(request.getStoreyList(),TopicStorey.class);
+        storeyRepository.saveAll(list);
+    }
+    
+    public TopicActivityVO detail(Integer id){
+        Topic topic = topicSettingRepository.getOne(id);
+        if(topic == null){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        TopicActivityVO topicVO = new TopicActivityVO();
+        List<TopicHeadImage> images = topicHeadImageRepository.getByTopicId(id);
+        topicVO.setHeadImageList(KsBeanUtil.convertList(images, TopicHeadImageDTO.class));
+        List<TopicStorey> storeys = storeyRepository.getByTopicId(id);
+        if(CollectionUtils.isEmpty(storeys)){
+            return topicVO;
+        }
+        topicVO.setStoreyList(KsBeanUtil.convertList(storeys, TopicStoreyDTO.class));
+        List<TopicStoreyGoods> goods = goodsRepository.getByTopicId(id);
+        if(CollectionUtils.isEmpty(goods)){
+            return topicVO;
+        }
+        topicVO.getStoreyList().forEach(p->{
+            List<TopicStoreyGoods> items = goods.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
+            if(CollectionUtils.isNotEmpty(items)){
+                p.setGoods(KsBeanUtil.convertList(items, TopicStoreyGoodsDTO.class));
+            }
+        });
+        return topicVO;
     }
 
 
-    public
 
 
 
-    public Specification<TopicSetting> getTopicWhereCriteria(TopicQueryRequest request) {
+
+
+    public Specification<Topic> getTopicWhereCriteria(TopicQueryRequest request) {
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (request.getId() != null) {

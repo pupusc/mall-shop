@@ -2,11 +2,17 @@ package com.wanmi.sbc.setting.api.provider.topic;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyAddRequest;
+import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
+import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 @FeignClient(value = "${application.setting.name}", contextId = "TopicConfigProvider")
@@ -17,6 +23,19 @@ public interface TopicConfigProvider {
      * @param request
      * @return
      */
-    @PostMapping("/setting/${application.setting.version}/topicconfig/add")
+    @PostMapping("/setting/${application.setting.version}/topic/add")
     BaseResponse add(@RequestBody TopicConfigAddRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/page")
+    BaseResponse<MicroServicePage<TopicConfigVO>> page(TopicQueryRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/add/headimage")
+    BaseResponse addHeadImage(@RequestParam HeadImageConfigAddRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/add/storey")
+    BaseResponse addStorey(@RequestParam TopicStoreyAddRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/detail")
+    BaseResponse<TopicActivityVO> detail(TopicQueryRequest request);
+
 }

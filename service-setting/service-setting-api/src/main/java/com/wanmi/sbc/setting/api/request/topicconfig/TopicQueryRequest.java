@@ -1,5 +1,6 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.common.util.XssUtils;
 import io.swagger.annotations.ApiModelProperty;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class TopicQueryRequest implements Serializable {
+public class TopicQueryRequest extends BaseQueryRequest {
     private static final long serialVersionUID = -3552656379536632706L;
 
     @ApiModelProperty("页面id")

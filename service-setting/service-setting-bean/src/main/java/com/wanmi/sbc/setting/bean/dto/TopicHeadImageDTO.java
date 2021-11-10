@@ -4,15 +4,17 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.checkerframework.checker.units.qual.A;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
-public class HeadImageConfigDTO implements Serializable {
+public class TopicHeadImageDTO implements Serializable {
     private static final long serialVersionUID = 5582485587109992496L;
 
     @ApiModelProperty("主题id")
     private Integer topicId;
 
+    @NotBlank
     @ApiModelProperty("头图图片地址")
     private String imageUrl;
 

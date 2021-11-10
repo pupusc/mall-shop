@@ -1,6 +1,6 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
-import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -10,13 +10,14 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class HeadImageConfigAddRequest implements Serializable {
-    private static final long serialVersionUID = -797995665161219409L;
+public class TopicStoreyAddRequest implements Serializable {
+    private static final long serialVersionUID = -3354087848195632606L;
 
-    @ApiModelProperty("专题Id")
     @NotNull
+    @ApiModelProperty("主题Id")
     private Integer topicId;
-    
+
     @NotEmpty
-    List<TopicHeadImageDTO> headImage;
+    @ApiModelProperty("楼层导航")
+    private List<TopicStoreyDTO> storeyList;
 }

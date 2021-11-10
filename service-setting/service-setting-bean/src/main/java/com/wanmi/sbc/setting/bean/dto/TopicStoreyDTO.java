@@ -2,12 +2,12 @@ package com.wanmi.sbc.setting.bean.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
-public class StoreySettingDTO  implements Serializable {
+public class TopicStoreyDTO implements Serializable {
     private static final long serialVersionUID = 4625188265391998076L;
 
     @ApiModelProperty("id")
@@ -27,4 +27,7 @@ public class StoreySettingDTO  implements Serializable {
 
     @ApiModelProperty("排序")
     private Integer sorting;
+
+    @ApiModelProperty("商品信息")
+    private List<TopicStoreyGoodsDTO> goods;
 }
