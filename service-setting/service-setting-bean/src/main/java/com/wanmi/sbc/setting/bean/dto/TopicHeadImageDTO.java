@@ -22,5 +22,8 @@ public class TopicHeadImageDTO implements Serializable {
 
     @ApiModelProperty("头图链接地址")
     private String linkUrl;
+
+    @ApiModelProperty("排序序号")
+    private Integer sorting;
     
 }

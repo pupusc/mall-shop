@@ -3,15 +3,16 @@ package com.wanmi.sbc.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
-import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -75,4 +76,55 @@ public class TopicConfigController {
     public BaseResponse addStorey(@RequestParam TopicStoreyAddRequest request){
         return  topicConfigProvider.addStorey(request);
     }
+
+
+    /**
+     * @description 头图列表
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("头图列表")
+    @PostMapping("/headimage/list")
+    public  BaseResponse<List<TopicHeadImageDTO>> listHeadImage(@RequestBody TopicHeadImageQueryRequest request){
+        return  topicConfigProvider.listHeadImage(request);
+    }
+
+
+    /**
+     * @description 删除头图
+     * @menu 专题
+     * @param id
+     * @status undone
+     */
+    @ApiOperation("删除头图")
+    @PostMapping("/delete/headimage")
+    public BaseResponse deleteHeadImage(@RequestParam("id") Integer id){
+        return  topicConfigProvider.deleteHeadImage(id);
+    }
+
+    /**
+     * @description 楼层列表
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层列表")
+    @PostMapping("/storey/list")
+    public BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request) {
+        return topicConfigProvider.listStorey(request);
+    }
+
+    /**
+     * @description 启用或禁用楼层
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("启用或禁用楼层")
+    @PostMapping("/enable/storey")
+    public BaseResponse enableStorey(@RequestBody EnableTopicStoreyRequest request){
+        return topicConfigProvider.enableStorey(request);
+    }
+
 }

@@ -5,10 +5,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
-import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyGoodsDTO;
@@ -85,6 +82,14 @@ public class TopicConfigService {
         topicHeadImageRepository.save(headImage);
     }
 
+    public List<TopicHeadImageDTO> listHeadImage(TopicHeadImageQueryRequest request){
+        List<TopicHeadImage> list = topicHeadImageRepository.getByTopicId(request.getTopicId());
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.EMPTY_LIST;
+        }
+        return KsBeanUtil.convertList(list,TopicHeadImageDTO.class);
+    }
+
     public void deleteHeadImage(Integer id){
         topicHeadImageRepository.delById(id);
     }
@@ -96,6 +101,14 @@ public class TopicConfigService {
         storey.setDeleted(DeleteFlag.NO.toValue());
         storey.setStatus(1);
         storeyRepository.save(storey);
+    }
+
+    public List<TopicStoreyDTO> listStorey(TopicHeadImageQueryRequest request){
+        List<TopicStorey> list = storeyRepository.getByTopicId(request.getTopicId());
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.EMPTY_LIST;
+        }
+        return KsBeanUtil.convertList(list, TopicStoreyDTO.class);
     }
     
     public TopicActivityVO detail(String id){
@@ -127,6 +140,9 @@ public class TopicConfigService {
 
 
 
+    public void enableStorey(EnableTopicStoreyRequest request){
+        storeyRepository.enable(request.getStoreyId(),request.getOptType());
+    }
 
 
 
