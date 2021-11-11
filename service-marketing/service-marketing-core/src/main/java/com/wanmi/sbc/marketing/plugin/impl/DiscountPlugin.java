@@ -58,10 +58,8 @@ public class DiscountPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
         if (request.getCommitFlag()){
             return;
         }
-        List<MarketingResponse> marketingList = request.getMarketingMap().values().stream()
-                .flatMap(Collection::stream)
-                .filter(marketing -> MarketingType.DISCOUNT.equals(marketing.getMarketingType()))
-                .collect(Collectors.toList());
+        List<MarketingResponse> marketingList = request.getMarketingMap().values().stream().flatMap(Collection::stream)
+                .filter(marketing -> MarketingType.DISCOUNT.equals(marketing.getMarketingType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(marketingList)) {
             return;
         }
