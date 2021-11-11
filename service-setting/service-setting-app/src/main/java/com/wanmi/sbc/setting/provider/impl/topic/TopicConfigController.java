@@ -39,6 +39,12 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public BaseResponse deleteHeadImage(Integer id) {
+        topicConfigService.deleteHeadImage(id);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse addStorey(TopicStoreyAddRequest request) {
         topicConfigService.addStorey(request);
         return BaseResponse.SUCCESSFUL();
@@ -47,6 +53,6 @@ public class TopicConfigController implements TopicConfigProvider {
 
     @Override
     public BaseResponse<TopicActivityVO> detail(TopicQueryRequest request) {
-        return BaseResponse.success(topicConfigService.detail(request.getId()));
+        return BaseResponse.success(topicConfigService.detail(request.getTopicKey()));
     }
 }

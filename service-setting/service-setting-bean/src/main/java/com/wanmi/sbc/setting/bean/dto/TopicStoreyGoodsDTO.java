@@ -1,11 +1,13 @@
 package com.wanmi.sbc.setting.bean.dto;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@ApiModel
 public class TopicStoreyGoodsDTO implements Serializable {
     private static final long serialVersionUID = 6469272901302359606L;
 

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Table(name = "topic_head_image")
+@Entity
 public class TopicHeadImage {
     @Id
     @Column(name = "id")

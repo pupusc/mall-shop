@@ -15,6 +15,6 @@ import java.util.List;
 public interface TopicStoreyGoodsRepository extends JpaRepository<TopicStoreyGoods, Integer>,
         JpaSpecificationExecutor<TopicStoreyGoods> {
 
-    @Query("from TopicStoreyGoods w where w.topicId = ?1 and w.deleted = 0 and w.status =1 order by w.sorting")
+    @Query("from TopicStoreyGoods w where w.topicId = ?1 and w.deleted = 0 and w.status =1")
     List<TopicStoreyGoods> getByTopicId(Integer topicId);
 }
