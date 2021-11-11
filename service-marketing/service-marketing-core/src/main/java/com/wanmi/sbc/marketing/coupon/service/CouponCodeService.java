@@ -256,8 +256,10 @@ public class CouponCodeService {
         List<String> goodsIds = tradeItemInfos.stream().map(TradeItemInfo::getSpuId).distinct().collect(Collectors.toList());
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
         tradeItemInfos.forEach(item -> {
-            List<Long> classifies = storeCateIdMap.get(item.getSpuId()).stream().map(Integer::longValue).collect(Collectors.toList());
-            item.setStoreCateIds(classifies);
+            List<Integer> cateIds = storeCateIdMap.get(item.getSpuId());
+            if(cateIds != null){
+                item.setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+            }
         });
         // 2.查询我的未使用的优惠券，并关联优惠券信息
         Query query = entityManager.createNativeQuery(request.getQuerySql());

@@ -303,7 +303,10 @@ public class CycleBuyController {
         //查询店铺分类ID
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Arrays.asList(cycleBuyVO.getGoodsId())).getContext();
         if(storeCateIdMap != null){
-            oldData.getGoods().setStoreCateIds(storeCateIdMap.get(cycleBuyVO.getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+            List<Integer> cateIds = storeCateIdMap.get(cycleBuyVO.getGoodsId());
+            if(cateIds != null){
+                oldData.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+            }
         }
         if (!Objects.isNull(fId)){
             //判断运费模板是否存在

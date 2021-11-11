@@ -382,7 +382,10 @@ public class CouponCacheService {
         List<Long> storeCateIds = new ArrayList<>();
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsInfo.getGoodsId())).getContext();
         if(storeCateIdMap != null){
-            storeCateIds = storeCateIdMap.get(goodsInfo.getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList());
+            List<Integer> cateIds = storeCateIdMap.get(goodsInfo.getGoodsId());
+            if(cateIds != null){
+                storeCateIds = cateIds.stream().map(Integer::longValue).collect(Collectors.toList());
+            }
         }
         this.refreshCache();
         CouponCacheQueryRequest request = CouponCacheQueryRequest.builder()
