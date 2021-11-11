@@ -128,7 +128,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
         //获取书单列表
         BookListModelClassifyLinkPageProviderRequest bookListModelClassifyLinkPageProviderRequest = new BookListModelClassifyLinkPageProviderRequest();
         bookListModelClassifyLinkPageProviderRequest.setClassifyIdColl(childClassifySet);
-        bookListModelClassifyLinkPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+        bookListModelClassifyLinkPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
         bookListModelClassifyLinkPageProviderRequest.setPageNum(0);
         bookListModelClassifyLinkPageProviderRequest.setPageSize(60);  //当前是一共300个商品，5个商品随机一个 书单，则300 / 5 为最大60个书单随机
         BaseResponse<List<BookListModelClassifyLinkProviderResponse>> bookListModelClassifyLinkProviderResponses = classifyProvider.listBookListModelByClassifyIdColl(bookListModelClassifyLinkPageProviderRequest);
