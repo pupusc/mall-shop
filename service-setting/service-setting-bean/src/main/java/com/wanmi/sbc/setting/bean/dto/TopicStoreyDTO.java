@@ -34,5 +34,5 @@ public class TopicStoreyDTO implements Serializable {
     private String background;
 
     @ApiModelProperty("商品信息")
-    private List<TopicStoreyGoodsDTO> goods;
+    private List<TopicStoreyContentDTO> goods;
 }

@@ -29,5 +29,7 @@ public class Topic {
     private String topicKey;
     @Column(name = "track_key")
     private  String trackKey;
+    @Column(name = "background")
+    private String background;
 
 }

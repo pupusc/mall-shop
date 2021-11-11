@@ -72,4 +72,9 @@ public class TopicConfigController implements TopicConfigProvider {
         topicConfigService.enableStorey(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse addStoryContent(TopicStoreyContentAddRequest request) {
+        return null;
+    }
 }

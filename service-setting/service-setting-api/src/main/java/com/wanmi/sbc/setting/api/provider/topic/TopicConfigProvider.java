@@ -53,5 +53,6 @@ public interface TopicConfigProvider {
     BaseResponse<List<TopicStoreyDTO>> listStorey(@RequestBody TopicHeadImageQueryRequest request);
 
 
-
+    @PostMapping("/setting/${application.setting.version}/topic/add/storey/content")
+    BaseResponse addStoryContent(@RequestBody TopicStoreyContentAddRequest request);
 }

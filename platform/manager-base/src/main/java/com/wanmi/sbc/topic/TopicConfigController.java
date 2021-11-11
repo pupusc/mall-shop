@@ -127,4 +127,16 @@ public class TopicConfigController {
         return topicConfigProvider.enableStorey(request);
     }
 
+    /**
+     * @description 新增楼层内容
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("新增楼层内容")
+    @PostMapping("/add/storey/content")
+    public  BaseResponse addStoryContent(@RequestBody TopicStoreyContentAddRequest request){
+        return topicConfigProvider.addStoryContent(request);
+    }
+
 }
