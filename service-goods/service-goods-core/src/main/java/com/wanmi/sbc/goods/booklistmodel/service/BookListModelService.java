@@ -166,11 +166,9 @@ public class BookListModelService {
         existBookListModelDtoUpdate.setUpdateTime(new Date());
         existBookListModelDtoUpdate.setId(bookListModelRequest.getId());
         existBookListModelDtoUpdate.setPublishState(PublishStateEnum.EDIT_UN_PUBLISH.getCode());
+        existBookListModelDtoUpdate.setFamousName(bookListModelRequest.getFamousName()); //该值由 前端提供
         if (!StringUtils.isEmpty(bookListModelRequest.getName())) {
             existBookListModelDtoUpdate.setName(bookListModelRequest.getName());
-        }
-        if (!StringUtils.isEmpty(bookListModelRequest.getFamousName())) {
-            existBookListModelDtoUpdate.setFamousName(bookListModelRequest.getFamousName());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getDesc())) {
             existBookListModelDtoUpdate.setDesc(bookListModelRequest.getDesc());
