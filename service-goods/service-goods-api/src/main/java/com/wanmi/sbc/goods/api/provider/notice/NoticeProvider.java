@@ -38,7 +38,7 @@ public interface NoticeProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/notice/update")
-    BaseResponse update(@Validated(NoticeProviderRequest.Add.class) @RequestBody NoticeProviderRequest request);
+    BaseResponse update(@Validated(NoticeProviderRequest.Update.class) @RequestBody NoticeProviderRequest request);
 
 
     /**
