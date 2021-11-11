@@ -322,17 +322,19 @@ public class HomePageService {
            //非畅销
            HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
            if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
-               //获取书单信息
-               BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
-               bookListModelProviderRequest.setId(unSellWellBooks.getBookListModelId());
-               BaseResponse<BookListModelProviderResponse> bookListModelProviderSimpleByIdResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
-               BookListModelProviderResponse context = bookListModelProviderSimpleByIdResponse.getContext();
-               if (context != null) {
-                   unSellWellBooks.setTitle(context.getName());
-                   unSellWellBooks.setSubTitle(context.getDesc());
-               } else {
-                   throw new SbcRuntimeException("HomePageController 书单id：" + unSellWellBooks.getBookListModelId() + "不存在");
-               }
+               unSellWellBooks.setTitle(unSellWellBooks.getTitle());
+               unSellWellBooks.setSubTitle(unSellWellBooks.getSubTitle());
+//               //获取书单信息
+//               BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
+//               bookListModelProviderRequest.setId(unSellWellBooks.getBookListModelId());
+//               BaseResponse<BookListModelProviderResponse> bookListModelProviderSimpleByIdResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
+//               BookListModelProviderResponse context = bookListModelProviderSimpleByIdResponse.getContext();
+//               if (context != null) {
+//                   unSellWellBooks.setTitle(context.getName());
+//                   unSellWellBooks.setSubTitle(context.getDesc());
+//               } else {
+//                   throw new SbcRuntimeException("HomePageController 书单id：" + unSellWellBooks.getBookListModelId() + "不存在");
+//               }
                BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
                        bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, null);
                List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
