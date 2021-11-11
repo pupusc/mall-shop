@@ -1,7 +1,6 @@
 package com.wanmi.sbc.home.service;
-import java.util.Collection;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCountResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
@@ -46,15 +45,15 @@ import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.home.response.ImageResponse;
 import com.wanmi.sbc.home.response.NoticeResponse;
+import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.util.RandomUtil;
+import com.wanmi.sbc.util.RedisKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,8 +81,8 @@ public class HomePageService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+//    @Autowired
+//    private RedisTemplate redisTemplate;
 
     @Autowired
     private ImageProvider imageProvider;
@@ -98,20 +96,8 @@ public class HomePageService {
     @Autowired
     private NoticeProvider noticeProvider;
 
-    /**
-     * 新上书籍
-     */
-    private final static String KEY_HOME_NEW_BOOK_LIST = "KEY_HOME_NEW_BOOK_LIST";
-
-    /**
-     * 畅销书
-     */
-    private final static String KEY_HOME_SELL_WELL_BOOK_LIST = "KEY_HOME_SELL_WELL_BOOK_LIST";
-
-    /**
-     * 特价书
-     */
-    private final static String KEY_HOME_SPECIAL_OFFER_BOOK_LIST = "KEY_HOME_SPECIAL_OFFER_BOOK_LIST";
+    @Autowired
+    private RedisListService redisService;
 
     /**
      * 基础失效时间
@@ -121,6 +107,7 @@ public class HomePageService {
     private final static int EXPIRE_BASE_TIME_RANGE_MIN = -5;
 
     private final static int EXPIRE_BASE_TIME_RANGE_MAX = 5;
+
 
     /**
      * banner
@@ -379,10 +366,12 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
-        Object homeNewBookListObj = redisTemplate.opsForValue().get(KEY_HOME_NEW_BOOK_LIST);
-        String newBookListStr = homeNewBookListObj == null ? "" : homeNewBookListObj.toString();
-        if (!StringUtils.isEmpty(newBookListStr)) {
-            resultTmp.addAll(JSON.parseArray(newBookListStr, EsGoodsVO.class));
+
+        List<JSONObject> newBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST, 0, pageSize);
+        if (!CollectionUtils.isEmpty(newBookList)) {
+            for (JSONObject goodStr : newBookList) {
+                resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
+            }
         } else {
             //根据书单模版获取商品列表
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
@@ -396,7 +385,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisTemplate.opsForValue().set(KEY_HOME_NEW_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST, resultTmp, expire);
             }
         }
 
@@ -421,10 +410,12 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
-        Object homeSellWellBookList = redisTemplate.opsForValue().get(KEY_HOME_SELL_WELL_BOOK_LIST);
-        String sellWellListStr = homeSellWellBookList == null ? "" : homeSellWellBookList.toString();
-        if (!StringUtils.isEmpty(sellWellListStr)) {
-            resultTmp.addAll(JSON.parseArray(sellWellListStr, EsGoodsVO.class));
+
+        List<JSONObject> sellWellBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST, 0, pageSize);
+        if (!CollectionUtils.isEmpty(sellWellBookList)) {
+            for (JSONObject goodStr : sellWellBookList) {
+                resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
+            }
         } else {
             //根据书单模版获取商品列表
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
@@ -437,7 +428,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisTemplate.opsForValue().set(KEY_HOME_SELL_WELL_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST, resultTmp, expire);
             }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
@@ -461,10 +452,11 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
-        Object homeSpecialOfferBookList = redisTemplate.opsForValue().get(KEY_HOME_SPECIAL_OFFER_BOOK_LIST);
-        String sellWellListStr =  homeSpecialOfferBookList == null ? "" : homeSpecialOfferBookList.toString();
-        if (!StringUtils.isEmpty(sellWellListStr)) {
-            resultTmp.addAll(JSON.parseArray(sellWellListStr, EsGoodsVO.class));
+        List<JSONObject> specialOfferBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST, 0, pageSize);
+        if (!CollectionUtils.isEmpty(specialOfferBookList)) {
+            for (JSONObject goodStr : specialOfferBookList) {
+                resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
+            }
         } else {
             //根据书单模版获取商品列表
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
@@ -475,7 +467,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisTemplate.opsForValue().set(KEY_HOME_SPECIAL_OFFER_BOOK_LIST, JSON.toJSONString(resultTmp), expire, TimeUnit.MINUTES);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST, resultTmp, expire);
             }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);

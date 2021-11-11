@@ -23,4 +23,20 @@ public class RedisKeyUtil {
      * 分类下的书单key
      */
     public static String KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL = "KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL";
+
+
+    /**
+     * 新上书籍
+     */
+    public final static String KEY_HOME_NEW_BOOK_LIST = "KEY_HOME_NEW_BOOK_LIST";
+
+    /**
+     * 畅销书
+     */
+    public final static String KEY_HOME_SELL_WELL_BOOK_LIST = "KEY_HOME_SELL_WELL_BOOK_LIST";
+
+    /**
+     * 特价书
+     */
+    public final static String KEY_HOME_SPECIAL_OFFER_BOOK_LIST = "KEY_HOME_SPECIAL_OFFER_BOOK_LIST";
 }
