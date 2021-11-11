@@ -5,22 +5,19 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
-import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicStoreyAddRequest;
+import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyGoodsDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicHeadImage;
 import com.wanmi.sbc.setting.topicconfig.model.root.Topic;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStorey;
-import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyGoods;
+import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicHeadImageRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicRepository;
-import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyGoodsRepository;
+import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyContentRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -29,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -51,7 +47,7 @@ public class TopicConfigService {
     private TopicStoreyRepository storeyRepository;
 
     @Autowired
-    private TopicStoreyGoodsRepository goodsRepository;
+    private TopicStoreyContentRepository goodsRepository;
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
@@ -85,6 +81,14 @@ public class TopicConfigService {
         topicHeadImageRepository.save(headImage);
     }
 
+    public List<TopicHeadImageDTO> listHeadImage(TopicHeadImageQueryRequest request){
+        List<TopicHeadImage> list = topicHeadImageRepository.getByTopicId(request.getTopicId());
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.EMPTY_LIST;
+        }
+        return KsBeanUtil.convertList(list,TopicHeadImageDTO.class);
+    }
+
     public void deleteHeadImage(Integer id){
         topicHeadImageRepository.delById(id);
     }
@@ -96,6 +100,14 @@ public class TopicConfigService {
         storey.setDeleted(DeleteFlag.NO.toValue());
         storey.setStatus(1);
         storeyRepository.save(storey);
+    }
+
+    public List<TopicStoreyDTO> listStorey(TopicHeadImageQueryRequest request){
+        List<TopicStorey> list = storeyRepository.getByTopicId(request.getTopicId());
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.EMPTY_LIST;
+        }
+        return KsBeanUtil.convertList(list, TopicStoreyDTO.class);
     }
     
     public TopicActivityVO detail(String id){
@@ -112,14 +124,14 @@ public class TopicConfigService {
             return topicVO;
         }
         topicVO.setStoreyList(KsBeanUtil.convertList(storeys, TopicStoreyDTO.class));
-        List<TopicStoreyGoods> goods = goodsRepository.getByTopicId(topic.getId());
+        List<TopicStoreyContent> goods = goodsRepository.getByTopicId(topic.getId());
         if(CollectionUtils.isEmpty(goods)){
             return topicVO;
         }
         topicVO.getStoreyList().forEach(p->{
-            List<TopicStoreyGoods> items = goods.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
+            List<TopicStoreyContent> items = goods.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
-                p.setGoods(KsBeanUtil.convertList(items, TopicStoreyGoodsDTO.class));
+                p.setGoods(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
             }
         });
         return topicVO;
@@ -127,6 +139,9 @@ public class TopicConfigService {
 
 
 
+    public void enableStorey(EnableTopicStoreyRequest request){
+        storeyRepository.enable(request.getStoreyId(),request.getOptType());
+    }
 
 
 

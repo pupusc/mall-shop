@@ -43,4 +43,7 @@ public class TopicStorey {
 
     @Column(name = "deleted")
     private Integer deleted;
+
+    @Column(name = "background")
+    private String background;
 }

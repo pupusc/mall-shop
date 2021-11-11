@@ -13,4 +13,7 @@ public class TopicConfigAddRequest implements Serializable {
 
     @ApiModelProperty("页面名称")
     private String topicName;
+
+    @ApiModelProperty("背景色【")
+    private String background;
 }

@@ -30,6 +30,9 @@ public class TopicStoreyDTO implements Serializable {
     @ApiModelProperty("排序")
     private Integer sorting;
 
+    @ApiModelProperty("背景色")
+    private String background;
+
     @ApiModelProperty("商品信息")
-    private List<TopicStoreyGoodsDTO> goods;
+    private List<TopicStoreyContentDTO> goods;
 }

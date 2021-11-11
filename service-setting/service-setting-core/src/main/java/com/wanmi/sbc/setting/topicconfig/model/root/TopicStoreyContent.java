@@ -6,9 +6,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "topic_storey_goods")
+@Table(name = "topic_storey_content")
 @Entity
-public class TopicStoreyGoods {
+public class TopicStoreyContent {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

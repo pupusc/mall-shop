@@ -31,4 +31,7 @@ public class TopicStoreyAddRequest implements Serializable {
 
     @ApiModelProperty("排序")
     private Integer sorting;
+
+    @ApiModelProperty("背景色")
+    private String background;
 }
