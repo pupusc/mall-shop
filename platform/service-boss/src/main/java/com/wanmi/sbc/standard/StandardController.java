@@ -201,7 +201,10 @@ public class StandardController {
             if(goodsId !=null){
                 Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId)).getContext();
                 if(storeCateIdMap != null){
-                    response.getContext().getGoods().setStoreCateIds(storeCateIdMap.get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList()));
+                    List<Integer> cateIds = storeCateIdMap.get(goodsId);
+                    if(cateIds != null){
+                        response.getContext().getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+                    }
                 }
             }
         }

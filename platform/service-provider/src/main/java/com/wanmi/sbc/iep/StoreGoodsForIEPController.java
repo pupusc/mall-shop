@@ -251,7 +251,10 @@ public class StoreGoodsForIEPController {
         if (osUtil.isS2b()) {
             Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(request.getGoods().getGoodsId())).getContext();
             if(storeCateIdMap != null){
-                oldData.getGoods().setStoreCateIds(storeCateIdMap.get(request.getGoods().getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+                List<Integer> cateIds = storeCateIdMap.get(request.getGoods().getGoodsId());
+                if(cateIds != null){
+                    oldData.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+                }
             }
         }
 

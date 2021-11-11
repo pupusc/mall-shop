@@ -439,7 +439,10 @@ public class GoodsController {
         if (osUtil.isS2b()) {
             Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(request.getGoods().getGoodsId())).getContext();
             if(storeCateIdMap != null){
-                oldData.getGoods().setStoreCateIds(storeCateIdMap.get(request.getGoods().getGoodsId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+                List<Integer> cateIds = storeCateIdMap.get(request.getGoods().getGoodsId());
+                if(cateIds != null){
+                    oldData.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+                }
             }
         }
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
@@ -974,8 +977,10 @@ public class GoodsController {
         //获取商品店铺分类
         BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId));
         if(mapBaseResponse.getContext() != null){
-            List<Long> collect = mapBaseResponse.getContext().get(goodsId).stream().map(Integer::longValue).collect(Collectors.toList());
-            response.getGoods().setStoreCateIds(collect);
+            List<Integer> cateIds = mapBaseResponse.getContext().get(goodsId);
+            if(cateIds != null){
+                response.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+            }
         }
         OperateDataLogListResponse operateDataLogListResponse =
                 operateDataLogQueryProvider.list(OperateDataLogListRequest.builder().operateId(goodsId).delFlag(DeleteFlag.NO).build()).getContext();
