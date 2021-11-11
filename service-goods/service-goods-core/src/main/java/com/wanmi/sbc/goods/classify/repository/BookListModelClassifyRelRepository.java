@@ -35,7 +35,7 @@ public interface BookListModelClassifyRelRepository extends JpaRepository<BookLi
 //            "classify.id as classifyId, classify.parentId as classifyParentId, classify.classifyName, classify.adImgUrl, classify.adImgHref) " +
             " from BookListModelClassifyRelDTO classifyRel, BookListModelDTO bookList, ClassifyDTO  classify , BookListGoodsPublishDTO publish" +
             " where classifyRel.bookListModelId = bookList.id and classifyRel.classifyId = classify.id and bookList.id = publish.bookListId" +
-            " and classifyRel.delFlag = 0 and bookList.delFlag = 0 and classify.delFlag = 0 and publish.delFlag = 0 and publish.publishState = 2 " +
+            " and classifyRel.delFlag = 0 and bookList.delFlag = 0 and classify.delFlag = 0 and publish.delFlag = 0 and classify.publishState = 2 " +
             "and bookList.businessType in ?1 and classifyRel.classifyId in ?2 and publish.category in ?3 and bookList.id not in ?4 order by bookList.updateTime desc")
     Page<BookListModelClassifyLinkResponse> listBookListModelClassifyLink
             (Collection<Integer> businessTypeList, Collection<Integer> classifyIdColl, Collection<Integer> categoryIdColl, Collection<Integer> unShowBookListModelIdColl, Pageable pageable);
