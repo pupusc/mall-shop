@@ -4,10 +4,7 @@ import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.StringUtil;
-import com.wanmi.sbc.common.util.XssUtils;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.HeadImageConfigAddRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicConfigAddRequest;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
@@ -58,6 +55,8 @@ public class TopicConfigService {
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
+        topic.setTopicKey(UUIDUtil.getUUID());
+        topic.setTrackKey(topic.getTopicKey());
         topic.setCreateTime(LocalDateTime.now());
         topic.setUpdateTime(LocalDateTime.now());
         topic.setDeleted(DeleteFlag.NO.toValue());
@@ -91,7 +90,12 @@ public class TopicConfigService {
     }
 
     public void addStorey(TopicStoreyAddRequest request){
-        storeyRepository.save(KsBeanUtil.convert(request, TopicStorey.class));
+        TopicStorey storey = KsBeanUtil.convert(request, TopicStorey.class);
+        storey.setCreateTime(LocalDateTime.now());
+        storey.setUpdateTime(LocalDateTime.now());
+        storey.setDeleted(DeleteFlag.NO.toValue());
+        storey.setStatus(1);
+        storeyRepository.save(storey);
     }
     
     public TopicActivityVO detail(String id){

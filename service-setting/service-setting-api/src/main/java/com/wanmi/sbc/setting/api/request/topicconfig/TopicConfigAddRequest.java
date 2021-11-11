@@ -11,10 +11,6 @@ import java.io.Serializable;
 public class TopicConfigAddRequest implements Serializable {
     private static final long serialVersionUID = 5544669442425790415L;
 
-    @ApiModelProperty("专题key")
-    private String topicKey;
     @ApiModelProperty("页面名称")
     private String topicName;
-    @ApiModelProperty("埋点key")
-    private String trackKey;
 }
