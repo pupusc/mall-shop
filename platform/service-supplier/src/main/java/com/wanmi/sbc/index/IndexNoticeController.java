@@ -2,7 +2,9 @@ package com.wanmi.sbc.index;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
+import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.api.response.notice.NoticeProviderResponse;
@@ -10,6 +12,8 @@ import com.wanmi.sbc.index.request.NoticePageRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +54,23 @@ public class IndexNoticeController {
     @PostMapping("/update")
     public BaseResponse update(@Validated(NoticeProviderRequest.Update.class) @RequestBody NoticeProviderRequest request) {
         return noticeProvider.update(request);
+    }
+
+
+    /**
+     * 公告 启用 停用
+     * @menu 后台CMS2.0
+     * @param id false 关闭
+     * @param isOpen true 开启
+     * @return
+     */
+    @GetMapping("/publish/{noticeId}/{isOpen}")
+    public BaseResponse publish(@PathVariable("noticeId") Integer id, @PathVariable("isOpen") Boolean isOpen) {
+        NoticeProviderRequest noticeProviderRequest = new NoticeProviderRequest();
+        noticeProviderRequest.setId(id);
+        noticeProviderRequest.setPublishState(isOpen ? UsingStateEnum.USING.getCode() : UsingStateEnum.UN_USING.getCode());
+        noticeProvider.update(noticeProviderRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
 

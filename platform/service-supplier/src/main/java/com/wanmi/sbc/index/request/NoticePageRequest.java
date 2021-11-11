@@ -16,4 +16,10 @@ public class NoticePageRequest {
     private Integer pageNum = 0;
 
     private Integer pageSize = 10;
+
+    /**
+     * 发布状态 0未启用 1启用
+     */
+    private Integer publishState;
+
 }

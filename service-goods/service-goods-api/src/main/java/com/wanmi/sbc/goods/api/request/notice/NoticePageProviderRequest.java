@@ -49,4 +49,9 @@ public class NoticePageProviderRequest implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime now;
+
+    /**
+     * 发布状态 0未启用 1启用
+     */
+    private Integer publishState;
 }

@@ -38,14 +38,20 @@ public class NoticeDTO {
     /**
      * 有效开始时间
      */
-    @Column(name = "beginTime")
+    @Column(name = "begin_time")
     private LocalDateTime beginTime;
 
     /**
      * 结束时间
      */
-    @Column(name = "endTime")
+    @Column(name = "end_time")
     private LocalDateTime endTime;
+
+    /**
+     * 发布状态 0未启用 1启用
+     */
+    @Column(name = "publish_state")
+    public Integer publishState;
 
     @Version
     private Integer version;

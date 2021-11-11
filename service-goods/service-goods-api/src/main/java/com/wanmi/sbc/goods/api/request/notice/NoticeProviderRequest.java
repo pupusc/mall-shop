@@ -46,6 +46,11 @@ public class NoticeProviderRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    /**
+     * 发布状态 0未启用 1启用
+     */
+    public Integer publishState;
+
     public interface Add{}
     public interface Update{}
 }

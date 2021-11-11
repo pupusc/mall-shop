@@ -85,6 +85,7 @@ public class ImageController implements ImageProvider {
         for (ImageDTO imageDTOParam : imageDTOList) {
             ImageProviderResponse imageProviderResponse = new ImageProviderResponse();
             BeanUtils.copyProperties(imageDTOParam, imageProviderResponse);
+            imageProviderResponse.setPublishState(imageDTOParam.getPublishState());
             if (imageProviderResponse.getBeginTime() != null && imageProviderResponse.getEndTime() != null) {
                 //未开始
                 if (imageProviderResponse.getBeginTime().isAfter(now)) {

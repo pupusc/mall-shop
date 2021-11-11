@@ -3,6 +3,8 @@ package com.wanmi.sbc.goods.notice.service;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
+import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.notice.model.root.NoticeDTO;
@@ -59,6 +61,7 @@ public class NoticeService {
         noticeDTO.setContent(noticeProviderRequest.getContent());
         noticeDTO.setBeginTime(noticeProviderRequest.getBeginTime());
         noticeDTO.setEndTime(noticeProviderRequest.getEndTime());
+        noticeDTO.setPublishState(UsingStateEnum.UN_USING.getCode());
         noticeDTO.setCreateTime(LocalDateTime.now());
         noticeDTO.setUpdateTime(LocalDateTime.now());
         noticeDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
@@ -83,6 +86,9 @@ public class NoticeService {
         }
         if (noticeProviderRequest.getEndTime() != null) {
             noticeDTO.setEndTime(noticeProviderRequest.getEndTime());
+        }
+        if (noticeProviderRequest.getPublishState() != null) {
+            noticeDTO.setPublishState(noticeProviderRequest.getPublishState());
         }
         noticeDTO.setUpdateTime(LocalDateTime.now());
         noticeRepository.save(noticeDTO);
@@ -120,6 +126,10 @@ public class NoticeService {
                 if (request.getBeginTime() != null) {
                     conditionList.add(criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), request.getBeginTime()));
                     conditionList.add(criteriaBuilder.greaterThanOrEqualTo(root.get("beginTime"), request.getBeginTime()));
+                }
+
+                if (request.getPublishState() != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("publishState"), request.getPublishState()));
                 }
 
                 if (request.getEndTime() != null) {

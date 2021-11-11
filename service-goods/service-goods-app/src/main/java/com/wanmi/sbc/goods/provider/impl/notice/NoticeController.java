@@ -66,6 +66,7 @@ public class NoticeController implements NoticeProvider {
             noticeProviderResponse.setContent(noticeParam.getContent());
             noticeProviderResponse.setBeginTime(noticeParam.getBeginTime());
             noticeProviderResponse.setEndTime(noticeParam.getEndTime());
+            noticeProviderResponse.setPublishState(noticeParam.getPublishState());
             result.add(noticeProviderResponse);
         }
 

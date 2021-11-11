@@ -492,6 +492,7 @@ public class HomePageService {
     public NoticeResponse notice() {
         NoticePageProviderRequest request = new NoticePageProviderRequest();
         request.setNow(LocalDateTime.now());
+        request.setPublishState(UsingStateEnum.USING.getCode());
         BaseResponse<List<NoticeProviderResponse>> listBaseResponse = noticeProvider.listNoPage(request);
         List<NoticeProviderResponse> context = listBaseResponse.getContext();
         if (!CollectionUtils.isEmpty(context)) {
