@@ -62,19 +62,12 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
     @Override
     public ReturnT<String> execute(String param) throws Exception {
         //校验参数
-        String[] split = param.split(",");
-        List<String> classifyIdList = Arrays.asList(split);
 //        List<ClassifyNoChildResponse> classifyNoChildResult = new ArrayList<>();
         Long refreshCount = redis.incrKey(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT);
         ClassifyCollectionProviderRequest classifyCollectionParent = new ClassifyCollectionProviderRequest();
         classifyCollectionParent.setParentIdColl(Collections.singleton(0));
         BaseResponse<List<ClassifyProviderResponse>> listParentBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionParent);
         for (ClassifyProviderResponse classifyProviderResponseParam : listParentBaseResponse.getContext()) {
-            if (!CollectionUtils.isEmpty(classifyIdList)) {
-                if (!classifyIdList.contains(classifyProviderResponseParam.getId()+"")) {
-                    continue;
-                }
-            }
             log.info("HomeIndexGoodsClassifyNewJobHandler execute classifyId: {} classifyName: {} begin",
                     classifyProviderResponseParam.getId(), classifyProviderResponseParam.getClassifyName());
             //获取当前分类下的所有子分类
