@@ -40,6 +40,9 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
             List<MarketingResponse> marketings = goodsMarketing.getValue();
             for (MarketingResponse marketing : marketings) {
                 if(MarketingType.POINT_BUY.equals(marketing.getMarketingType())){
+                    if(levelsMap == null){
+                        levelsMap = marketingPointBuyLevelRepository.findAll();
+                    }
 
                 }
             }
