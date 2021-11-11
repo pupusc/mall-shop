@@ -77,6 +77,7 @@ public class ClassifyController implements ClassifyProvider {
      */
     @Override
     public BaseResponse delete(ClassifyProviderRequest classifyProviderRequest) {
+        //查看是否有
         classifyService.delete(classifyProviderRequest);
         return BaseResponse.SUCCESSFUL();
     }

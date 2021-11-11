@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -113,6 +115,7 @@ public class IndexImageController {
 
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         BeanUtils.copyProperties(imagePageRequest, imagePageProviderRequest);
+        imagePageProviderRequest.setImageTypeList(Collections.singletonList(ImageTypeEnum.ROTATION_CHART_IMG.getCode()));
         return imageProvider.list(imagePageProviderRequest);
     }
 
