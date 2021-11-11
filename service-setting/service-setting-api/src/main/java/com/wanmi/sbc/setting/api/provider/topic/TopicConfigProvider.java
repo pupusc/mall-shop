@@ -27,15 +27,18 @@ public interface TopicConfigProvider {
     BaseResponse add(@RequestBody TopicConfigAddRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/page")
-    BaseResponse<MicroServicePage<TopicConfigVO>> page(TopicQueryRequest request);
+    BaseResponse<MicroServicePage<TopicConfigVO>> page(@RequestBody TopicQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/add/headimage")
-    BaseResponse addHeadImage(@RequestParam HeadImageConfigAddRequest request);
+    BaseResponse addHeadImage(@RequestBody HeadImageConfigAddRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/delete/headimage")
+    BaseResponse deleteHeadImage(@RequestParam("id") Integer id);
 
     @PostMapping("/setting/${application.setting.version}/topic/add/storey")
-    BaseResponse addStorey(@RequestParam TopicStoreyAddRequest request);
+    BaseResponse addStorey(@RequestBody TopicStoreyAddRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/detail")
-    BaseResponse<TopicActivityVO> detail(TopicQueryRequest request);
+    BaseResponse<TopicActivityVO> detail(@RequestBody TopicQueryRequest request);
 
 }

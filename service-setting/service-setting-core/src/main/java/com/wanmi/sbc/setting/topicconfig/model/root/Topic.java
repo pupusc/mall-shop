@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Table(name = "topic")
+@Entity
 public class Topic {
     @Id
     @Column(name = "id")
@@ -14,8 +15,6 @@ public class Topic {
     private Integer id;
     @Column(name = "topic_name")
     private String topicName;
-    @Column(name = "topic_type")
-    private Integer topicType;
     @Column(name = "link_url")
     private String linkUrl;
     @Column(name = "status")
@@ -26,5 +25,9 @@ public class Topic {
     private LocalDateTime updateTime;
     @Column(name = "deleted")
     private Integer deleted;
+    @Column(name = "topic_key")
+    private String topicKey;
+    @Column(name = "track_key")
+    private  String trackKey;
 
 }

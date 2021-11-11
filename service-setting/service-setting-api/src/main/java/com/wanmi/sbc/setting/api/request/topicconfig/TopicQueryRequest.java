@@ -1,25 +1,30 @@
 package com.wanmi.sbc.setting.api.request.topicconfig;
 
-import com.wanmi.sbc.common.base.BaseQueryRequest;
-import com.wanmi.sbc.common.util.StringUtil;
-import com.wanmi.sbc.common.util.XssUtils;
+
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Data
-public class TopicQueryRequest extends BaseQueryRequest {
+@ApiModel
+public class TopicQueryRequest implements Serializable {
     private static final long serialVersionUID = -3552656379536632706L;
 
     @ApiModelProperty("页面id")
-    private Integer id;
+    private String topicKey;
 
     @ApiModelProperty("页面名称")
     private String name;
 
-   
+    @ApiModelProperty(value = "第几页")
+    private Integer pageNum = 0;
+
+    /**
+     * 每页显示多少条
+     */
+    @ApiModelProperty(value = "每页显示多少条")
+    private Integer pageSize = 10;
 }

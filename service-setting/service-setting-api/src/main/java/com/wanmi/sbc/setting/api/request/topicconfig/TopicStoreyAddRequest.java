@@ -14,10 +14,21 @@ public class TopicStoreyAddRequest implements Serializable {
     private static final long serialVersionUID = -3354087848195632606L;
 
     @NotNull
-    @ApiModelProperty("主题Id")
+    @ApiModelProperty("专题Id")
     private Integer topicId;
 
-    @NotEmpty
-    @ApiModelProperty("楼层导航")
-    private List<TopicStoreyDTO> storeyList;
+    @ApiModelProperty("楼层名称")
+    private String name;
+
+    @ApiModelProperty("导航名称")
+    private String navigationName;
+
+    @ApiModelProperty("楼层类型1：一层一个2：一层两个，3：一层3个")
+    private String storeyType;
+
+    @ApiModelProperty("图片地址")
+    private String imageUrl;
+
+    @ApiModelProperty("排序")
+    private Integer sorting;
 }

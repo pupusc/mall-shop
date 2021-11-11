@@ -6,7 +6,8 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "topic_storey")
+@Table(name = "topic_storey_goods")
+@Entity
 public class TopicStoreyGoods {
     @Id
     @Column(name = "id")

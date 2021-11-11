@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,11 +16,13 @@ import java.util.List;
 public interface TopicHeadImageRepository extends JpaRepository<TopicHeadImage, Integer>,
         JpaSpecificationExecutor<TopicHeadImage> {
 
-    @Modifying
-    @Query("update TopicHeadImage w set w.deleted = 1, w.updateTime = now() where w.topicId = ?1")
-    int deleteByTopicId(Integer topicId);
 
-   
+
     @Query(value = "from TopicHeadImage w  where w.topicId = ?1 and w.deleted = 0")
     List<TopicHeadImage> getByTopicId(Integer topicId);
+
+    @Modifying
+    @Transactional
+    @Query( "update  TopicHeadImage w set w.deleted =1 , w.updateTime = now() where w.id = ?1 and w.deleted = 0")
+    int delById(Integer id);
 }
