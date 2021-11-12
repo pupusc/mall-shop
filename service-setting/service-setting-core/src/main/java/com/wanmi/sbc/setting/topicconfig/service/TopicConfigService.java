@@ -82,6 +82,13 @@ public class TopicConfigService {
         topicHeadImageRepository.save(headImage);
     }
 
+    public void modifyHeadImage(TopicHeadImageModifyRequest request){
+        TopicHeadImage headImage = KsBeanUtil.convert(request, TopicHeadImage.class);
+        headImage.setCreateTime(LocalDateTime.now());
+        headImage.setUpdateTime(LocalDateTime.now());
+        headImage.setDeleted(DeleteFlag.NO.toValue());
+        topicHeadImageRepository.save(headImage);
+    }
 
     public List<TopicHeadImageDTO> listHeadImage(TopicHeadImageQueryRequest request){
         List<TopicHeadImage> list = topicHeadImageRepository.getByTopicId(request.getTopicId());

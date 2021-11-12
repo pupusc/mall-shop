@@ -84,4 +84,10 @@ public class TopicConfigController implements TopicConfigProvider {
     public BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(TopicStoreyContentQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopicStoreyContent(request));
     }
+
+    @Override
+    public BaseResponse modifyHeadImage(TopicHeadImageModifyRequest request) {
+        topicConfigService.modifyHeadImage(request);
+        return BaseResponse.SUCCESSFUL();
+    }
 }
