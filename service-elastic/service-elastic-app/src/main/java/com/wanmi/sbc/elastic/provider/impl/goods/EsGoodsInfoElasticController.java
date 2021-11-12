@@ -117,6 +117,18 @@ public class EsGoodsInfoElasticController implements EsGoodsInfoElasticProvider 
     }
 
     @Override
+    public BaseResponse updateClassify(Integer id, String name) {
+        esGoodsInfoElasticService.updateClassify(id, name);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse delClassify(Integer id) {
+        esGoodsInfoElasticService.deleteClassify(id);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse adjustPrice(@RequestBody @Valid EsGoodsInfoAdjustPriceRequest request) {
         esGoodsInfoElasticService.adjustPrice(request);
         return BaseResponse.SUCCESSFUL();

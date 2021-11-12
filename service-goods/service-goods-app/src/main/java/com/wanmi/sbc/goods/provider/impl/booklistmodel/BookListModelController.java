@@ -2,20 +2,24 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.BookListGoodsPublishProviderResponse;
+import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelAndOrderNumProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelIdAndClassifyIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
@@ -26,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -141,9 +147,17 @@ public class BookListModelController implements BookListModelProvider {
         Page<BookListModelDTO> pageBookListModel = bookListModelService.list(bookListModelPageRequest,
                 bookListModelPageProviderRequest.getPageNum(), bookListModelPageProviderRequest.getPageSize());
 
+        LocalDateTime now = LocalDateTime.now();
         List<BookListModelProviderResponse> bookListModelResponseList = pageBookListModel.getContent().stream().map(ex -> {
                                                         BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();
                                                         BeanUtils.copyProperties(ex, bookListModelProviderResponse);
+                                                        bookListModelProviderResponse.setTagType(null);
+                                                        bookListModelProviderResponse.setTagName(null);
+                                                        if (ex.getTagValidBeginTime() != null && ex.getTagValidEndTime() != null &&
+                                                                ex.getTagValidBeginTime().isBefore(now) && ex.getTagValidEndTime().isAfter(now)) {
+                                                            bookListModelProviderResponse.setTagType(ex.getTagType());
+                                                            bookListModelProviderResponse.setTagName(ex.getTagName());
+                                                        }
                                                         return bookListModelProviderResponse;
                                                     }).collect(Collectors.toList());
 
@@ -152,6 +166,23 @@ public class BookListModelController implements BookListModelProvider {
         microServicePage.setTotal(pageBookListModel.getTotalElements());
         microServicePage.setContent(bookListModelResponseList);
         return BaseResponse.success(microServicePage);
+    }
+
+    /**
+     * 根据书单id分类获取商品数量
+     * @param countBookListModelGroupProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest) {
+        List<CountBookListModelGroupResponse> countBookListModelGroupResponses = bookListGoodsPublishService.countByBookListModelList(countBookListModelGroupProviderRequest);
+        List<CountBookListModelGroupProviderResponse> result = new ArrayList<>();
+        for (CountBookListModelGroupResponse countBookListModelGroupParam : countBookListModelGroupResponses) {
+            CountBookListModelGroupProviderResponse param = new CountBookListModelGroupProviderResponse();
+            BeanUtils.copyProperties(countBookListModelGroupParam, param);
+            result.add(param);
+        }
+        return BaseResponse.success(result);
     }
 
 
@@ -204,6 +235,18 @@ public class BookListModelController implements BookListModelProvider {
     @Override
     public BaseResponse<List<BookListModelGoodsIdProviderResponse>> listBookListModelNoPageBySpuIdColl(BookListModelBySpuIdCollQueryRequest bookListModelBySpuIdCollQueryRequest) {
         return BaseResponse.success(bookListModelService.listBookListModelNoPageBySpuIdColl(bookListModelBySpuIdCollQueryRequest));
+    }
+
+
+    /**
+     * 根据书单id 进行置顶或者取消置顶 0取消 1置顶操作 feature_d_v0.02
+     * @param bookListModelId
+     * @param hasTop
+     * @return
+     */
+    @Override
+    public BaseResponse top(Integer bookListModelId, Integer hasTop) {
+        return BaseResponse.success(bookListModelService.top(bookListModelId, hasTop));
     }
 
     /**

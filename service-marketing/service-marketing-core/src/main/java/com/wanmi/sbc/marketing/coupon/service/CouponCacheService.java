@@ -15,6 +15,7 @@ import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.brand.ContractBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
@@ -122,6 +123,9 @@ public class CouponCacheService {
 
     @Autowired
     private ContractBrandQueryProvider contractBrandQueryProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     /**
      * 领券中心 - 查询正在进行的优惠券活动，暂时全部查询，不带任何条件，领券的时候做判断
@@ -256,10 +260,15 @@ public class CouponCacheService {
                 .map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
 
         //组装商品分类 -- 店铺类目
-        List<Long> storeCateIds =
-                storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList().stream().filter(item -> item.getStoreCateId() != null)
-                        .map(StoreCateGoodsRelaVO::getStoreCateId).collect(Collectors.toList());
-
+        List<Long> storeCateIds = new ArrayList<>();
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
+        if(storeCateIdMap != null){
+            for (List<Integer> value : storeCateIdMap.values()) {
+                for (Integer integer : value) {
+                    storeCateIds.add(integer.longValue());
+                }
+            }
+        }
         List<GoodsVO> goodsList =
                 goodsQueryProvider.listByIds(new GoodsListByIdsRequest(goodsIds)).getContext().getGoodsVOList();
         //组装商品分类 -- 平台类目
@@ -370,10 +379,14 @@ public class CouponCacheService {
      */
     public List<CouponCache> listCouponForGoodsInfo(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap) {
         //组装店铺分类
-        List<Long> storeCateIds =
-                storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(Collections.singletonList(goodsInfo.getGoodsId())))
-                        .getContext().getStoreCateGoodsRelaVOList().stream().map(StoreCateGoodsRelaVO::getStoreCateId).collect(Collectors.toList());
-
+        List<Long> storeCateIds = new ArrayList<>();
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsInfo.getGoodsId())).getContext();
+        if(storeCateIdMap != null){
+            List<Integer> cateIds = storeCateIdMap.get(goodsInfo.getGoodsId());
+            if(cateIds != null){
+                storeCateIds = cateIds.stream().map(Integer::longValue).collect(Collectors.toList());
+            }
+        }
         this.refreshCache();
         CouponCacheQueryRequest request = CouponCacheQueryRequest.builder()
                 .brandIds(goodsInfo.getBrandId() != null ? Collections.singletonList(goodsInfo.getBrandId()) : null)

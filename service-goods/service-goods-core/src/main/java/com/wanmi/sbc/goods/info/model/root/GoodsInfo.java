@@ -574,6 +574,12 @@ public class GoodsInfo implements Serializable {
     private Boolean combinedCommodity;
 
     /**
+     * 组合商品类型 0-组合商品 1-跨分类组合商品
+     */
+    @Column(name = "combined_type")
+    private Integer combinedType;
+
+    /**
      * 企业购 设价类型,0:按市场价 1:按会员等级设价 2:按购买数量设价
      */
     @Column(name = "enterprise_price_type")

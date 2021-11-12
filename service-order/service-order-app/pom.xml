@@ -17,6 +17,12 @@
     <dependencies>
         <dependency>
             <artifactId>service-order-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+            </exclusions>
             <groupId>com.wanmi.sbc</groupId>
             <version>${project.version}</version>
         </dependency>

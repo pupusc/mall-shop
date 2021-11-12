@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.common.util.EsConstants;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -148,6 +149,11 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Long)
     private List<Long> storeCateIds;
+
+    /**
+     * 店铺分类
+     */
+    private List<ClassifySimpleProviderResponse> classify;
 
     /**
      * 营销信息
