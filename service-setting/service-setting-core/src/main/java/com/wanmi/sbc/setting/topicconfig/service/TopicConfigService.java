@@ -143,8 +143,7 @@ public class TopicConfigService {
             if(CollectionUtils.isNotEmpty(items)){
                 //排序
                 List<TopicStoreyContent> sortContents = items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting)).collect(Collectors.toList());
-                items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting));
-                p.setContents(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
+                p.setContents(KsBeanUtil.convertList(sortContents, TopicStoreyContentDTO.class));
             }
         });
         return topicVO;
