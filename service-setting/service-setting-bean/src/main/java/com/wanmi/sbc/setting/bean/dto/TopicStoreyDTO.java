@@ -22,7 +22,7 @@ public class TopicStoreyDTO implements Serializable {
     private String navigationName;
 
     @ApiModelProperty("楼层类型1：一层一个2：一层两个，3：一层3个")
-    private String storeyType;
+    private Integer storeyType;
 
     @ApiModelProperty("图片地址")
     private String imageUrl;

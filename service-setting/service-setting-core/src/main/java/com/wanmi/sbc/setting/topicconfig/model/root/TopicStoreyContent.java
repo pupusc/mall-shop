@@ -39,10 +39,6 @@ public class TopicStoreyContent {
     @Column(name = "link_url")
     private String linkUrl;
 
-
-    @Column(name = "status")
-    private Integer status;
-
     @Column(name = "sorting")
     private Integer sorting;
 
