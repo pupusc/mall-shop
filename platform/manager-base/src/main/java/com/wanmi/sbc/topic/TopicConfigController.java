@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import io.swagger.annotations.Api;
@@ -53,29 +54,6 @@ public class TopicConfigController {
         return topicConfigProvider.page(request);
     }
 
-    /**
-     * @description 新增头图
-     * @menu 专题
-     * @param request
-     * @status undone
-     */
-    @ApiOperation("新增头图")
-    @PostMapping("/add/headimage")
-    public BaseResponse addHeadImage(@RequestBody HeadImageConfigAddRequest request){
-        return topicConfigProvider.addHeadImage(request);
-    }
-
-    /**
-     * @description 新增楼层
-     * @menu 专题
-     * @param request
-     * @status undone
-     */
-    @ApiOperation("新增楼层")
-    @PostMapping("/add/storey")
-    public BaseResponse addStorey(@RequestBody TopicStoreyAddRequest request){
-        return  topicConfigProvider.addStorey(request);
-    }
 
 
     /**
@@ -92,6 +70,30 @@ public class TopicConfigController {
 
 
     /**
+     * @description 新增头图
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("新增头图")
+    @PostMapping("/add/headimage")
+    public BaseResponse addHeadImage(@RequestBody HeadImageConfigAddRequest request){
+        return topicConfigProvider.addHeadImage(request);
+    }
+
+    /**
+     * @description 编辑头图
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("编辑头图")
+    @PostMapping("/modify/headimage")
+    public BaseResponse modifyHeadImage(@RequestBody TopicHeadImageModifyRequest request){
+        return  topicConfigProvider.modifyHeadImage(request);
+    }
+
+    /**
      * @description 删除头图
      * @menu 专题
      * @param id
@@ -101,6 +103,18 @@ public class TopicConfigController {
     @PostMapping("/delete/headimage")
     public BaseResponse deleteHeadImage(@RequestParam("id") Integer id){
         return  topicConfigProvider.deleteHeadImage(id);
+    }
+
+    /**
+     * @description 新增楼层
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("新增楼层")
+    @PostMapping("/add/storey")
+    public BaseResponse addStorey(@RequestBody TopicStoreyAddRequest request){
+        return  topicConfigProvider.addStorey(request);
     }
 
     /**
@@ -139,4 +153,15 @@ public class TopicConfigController {
         return topicConfigProvider.addStoryContent(request);
     }
 
+    /**
+     * @description 楼层内容列表
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("楼层内容列表")
+    @PostMapping("/storey/content/list")
+    public  BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request){
+        return topicConfigProvider.listStoryContent(request);
+    }
 }
