@@ -132,7 +132,8 @@ public class TopicConfigService {
         if(CollectionUtils.isEmpty(storeys)){
             return topicVO;
         }
-        topicVO.setStoreyList(KsBeanUtil.convertList(storeys, TopicStoreyDTO.class));
+        List<TopicStorey> sortStoreys = storeys.stream().sorted(Comparator.comparing(TopicStorey::getSorting)).collect(Collectors.toList());
+        topicVO.setStoreyList(KsBeanUtil.convertList(sortStoreys, TopicStoreyDTO.class));
         List<TopicStoreyContent> contents = contentRepository.getByTopicId(topic.getId());
         if(CollectionUtils.isEmpty(contents)){
             return topicVO;
@@ -141,6 +142,7 @@ public class TopicConfigService {
             List<TopicStoreyContent> items = contents.stream().filter(g->g.getStoreyId().equals(p.getId())).sorted().collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
                 //排序
+                List<TopicStoreyContent> sortContents = items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting)).collect(Collectors.toList());
                 items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting));
                 p.setContents(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
             }
