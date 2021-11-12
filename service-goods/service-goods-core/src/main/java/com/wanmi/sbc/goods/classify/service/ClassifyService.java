@@ -69,17 +69,20 @@ public class ClassifyService {
                 parent.setChildrenList(new ArrayList<>());
                 resultMap.put(classifyParam.getId(), parent);
                 result.add(parent);
-            } else {
-                ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
-                if (parent == null) {
-                    continue;
-                }
-                ClassifyProviderResponse children = new ClassifyProviderResponse();
-                children.setId(classifyParam.getId());
-                children.setClassifyName(classifyParam.getClassifyName());
-                parent.getChildrenList().add(children);
             }
-        };
+        }
+
+        for (ClassifyDTO classifyParam : classifyDTOList) {
+            if (classifyParam.getParentId() == null || classifyParam.getParentId() == 0) {
+                continue;
+            }
+            ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
+            ClassifyProviderResponse children = new ClassifyProviderResponse();
+            children.setId(classifyParam.getId());
+            children.setClassifyName(classifyParam.getClassifyName());
+            parent.getChildrenList().add(children);
+        }
+
         return result;
     }
 
