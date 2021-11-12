@@ -32,11 +32,34 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
         if (request.getCommitFlag()) return;
 
+        List<MarketingResponse> marketingList = request.getMarketingMap().values().stream().flatMap(Collection::stream)
+                .filter(marketing -> MarketingType.DISCOUNT.equals(marketing.getMarketingType())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(marketingList)) {
+            return;
+        }
+        List<Long> marketingIds = marketingList.stream().map(MarketingResponse::getMarketingId).collect(Collectors.toList());
+
         Map<String, List<MarketingResponse>> marketingMap = request.getMarketingMap();
         Set<Map.Entry<String, List<MarketingResponse>>> goodsMarketings = marketingMap.entrySet();
 
         List<MarketingPointBuyLevel> levelsMap = null;
+        for (GoodsInfoVO goodsInfo : goodsInfos) {
+            List<MarketingResponse> marketingResponses = marketingMap.get(goodsInfo.getGoodsId());
+            if(marketingResponses != null){
+                for (MarketingResponse marketingRespons : marketingResponses) {
+                    if(MarketingType.POINT_BUY.equals(marketingRespons.getMarketingType())){
+                        if(levelsMap == null){
+                            levelsMap = marketingPointBuyLevelRepository.findAllById(marketingIds);
+                        }
+
+                    }
+                }
+            }
+        }
+
         for (Map.Entry<String, List<MarketingResponse>> goodsMarketing : goodsMarketings) {
+
+
             List<MarketingResponse> marketings = goodsMarketing.getValue();
             for (MarketingResponse marketing : marketings) {
                 if(MarketingType.POINT_BUY.equals(marketing.getMarketingType())){
@@ -48,18 +71,18 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
             }
 
         }
-
-        List<MarketingResponse> marketingList = request.getMarketingMap().values().stream()
-                .flatMap(Collection::stream)
-                .filter(marketing -> MarketingType.POINT_BUY.equals(marketing.getMarketingType()))
-                .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(marketingList)) {
-            return;
-        }
-        Map<Long, String> labelMap = new HashMap<>();
-        for (MarketingResponse marketingResponse : marketingList) {
-
-        }
+//
+//        List<MarketingResponse> marketingList = request.getMarketingMap().values().stream()
+//                .flatMap(Collection::stream)
+//                .filter(marketing -> MarketingType.POINT_BUY.equals(marketing.getMarketingType()))
+//                .collect(Collectors.toList());
+//        if (CollectionUtils.isEmpty(marketingList)) {
+//            return;
+//        }
+//        Map<Long, String> labelMap = new HashMap<>();
+//        for (MarketingResponse marketingResponse : marketingList) {
+//
+//        }
     }
 
     @Override
