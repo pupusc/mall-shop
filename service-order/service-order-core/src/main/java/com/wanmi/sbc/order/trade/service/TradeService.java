@@ -7873,6 +7873,7 @@ public class TradeService {
                 providerTrade.setPayWay(trade.getPayWay());
                 if (!providerTrade.getGrouponFlag()
                         ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
                     providerTradeService.singlePushOrder(providerTrade);
                 }
             });
