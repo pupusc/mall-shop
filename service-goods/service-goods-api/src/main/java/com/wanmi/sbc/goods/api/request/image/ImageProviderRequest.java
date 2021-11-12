@@ -39,7 +39,7 @@ public class ImageProviderRequest implements Serializable {
     /**
      * 图片跳转链接
      */
-    @NotBlank(groups = Add.class, message = "图片跳转地址不能为空")
+//    @NotBlank(groups = Add.class, message = "图片跳转地址不能为空")
     private String imgHref;
 
     /**
