@@ -131,26 +131,26 @@ public class EsGoodsElasticService {
     public void initEsGoods(EsGoodsInfoRequest request) {
         boolean isClear = request.isClearEsIndex();
         boolean isMapping = false;
-        if (elasticsearchTemplate.indexExists(EsConstants.DOC_GOODS_TYPE)
-                || elasticsearchTemplate.indexExists(EsConstants.DOC_GOODS_INFO_TYPE)) {
-            if (isClear) {
-                logger.info("商品spu->删除索引");
-                elasticsearchTemplate.deleteIndex(EsConstants.DOC_GOODS_TYPE);
-                elasticsearchTemplate.deleteIndex(EsConstants.DOC_GOODS_INFO_TYPE);
-                isMapping = true;
-            }
-        } else { //主要考虑第一次新增商品，此时还没有索引的时候
-            isMapping = true;
-        }
-        if (isMapping) {
-            //重建商品索引
-            elasticsearchTemplate.getClient().admin().indices()
-                    .prepareCreate(EsConstants.DOC_GOODS_TYPE).execute().actionGet();
-            elasticsearchTemplate.putMapping(EsGoods.class);
-            elasticsearchTemplate.getClient().admin().indices()
-                    .prepareCreate(EsConstants.DOC_GOODS_INFO_TYPE).execute().actionGet();
-            elasticsearchTemplate.putMapping(EsGoodsInfo.class);
-        }
+//        if (elasticsearchTemplate.indexExists(EsConstants.DOC_GOODS_TYPE)
+//                || elasticsearchTemplate.indexExists(EsConstants.DOC_GOODS_INFO_TYPE)) {
+//            if (isClear) {
+//                logger.info("商品spu->删除索引");
+//                elasticsearchTemplate.deleteIndex(EsConstants.DOC_GOODS_TYPE);
+//                elasticsearchTemplate.deleteIndex(EsConstants.DOC_GOODS_INFO_TYPE);
+//                isMapping = true;
+//            }
+//        } else { //主要考虑第一次新增商品，此时还没有索引的时候
+//            isMapping = true;
+//        }
+//        if (isMapping) {
+//            //重建商品索引
+//            elasticsearchTemplate.getClient().admin().indices()
+//                    .prepareCreate(EsConstants.DOC_GOODS_TYPE).execute().actionGet();
+//            elasticsearchTemplate.putMapping(EsGoods.class);
+//            elasticsearchTemplate.getClient().admin().indices()
+//                    .prepareCreate(EsConstants.DOC_GOODS_INFO_TYPE).execute().actionGet();
+//            elasticsearchTemplate.putMapping(EsGoodsInfo.class);
+//        }
         if (request.getGoodsIds() == null) {
             request.setGoodsIds(new ArrayList<>());
         }
