@@ -26,7 +26,7 @@ public class TopicStoreyContent {
     @Column(name = "spu_no")
     private String spuNo;
 
-    @Column(name = "sku_d")
+    @Column(name = "sku_id")
     private String skuId;
 
     @Column(name = "type")

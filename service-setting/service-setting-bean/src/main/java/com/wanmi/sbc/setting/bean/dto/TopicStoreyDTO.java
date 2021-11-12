@@ -33,6 +33,7 @@ public class TopicStoreyDTO implements Serializable {
     @ApiModelProperty("背景色")
     private String background;
 
-    @ApiModelProperty("商品信息")
-    private List<TopicStoreyContentDTO> goods;
+    @ApiModelProperty("楼层内容")
+    private List<TopicStoreyContentDTO> contents;
+
 }

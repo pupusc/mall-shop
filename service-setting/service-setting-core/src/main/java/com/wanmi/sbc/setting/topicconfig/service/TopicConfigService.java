@@ -131,7 +131,7 @@ public class TopicConfigService {
         topicVO.getStoreyList().forEach(p->{
             List<TopicStoreyContent> items = goods.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
-                p.setGoods(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
+                p.setContents(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
             }
         });
         return topicVO;
