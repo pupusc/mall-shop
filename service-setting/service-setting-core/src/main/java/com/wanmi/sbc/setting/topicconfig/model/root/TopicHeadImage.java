@@ -16,7 +16,7 @@ public class TopicHeadImage {
     private Integer id;
 
     @Column(name = "topic_id")
-    private String topicId;
+    private Integer topicId;
 
     @Column(name = "image_url")
     private String imageUrl;

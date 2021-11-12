@@ -61,7 +61,7 @@ public class TopicConfigController {
      */
     @ApiOperation("新增头图")
     @PostMapping("/add/headimage")
-    public BaseResponse addHeadImage(@RequestParam HeadImageConfigAddRequest request){
+    public BaseResponse addHeadImage(@RequestBody HeadImageConfigAddRequest request){
         return topicConfigProvider.addHeadImage(request);
     }
 
@@ -73,7 +73,7 @@ public class TopicConfigController {
      */
     @ApiOperation("新增楼层")
     @PostMapping("/add/storey")
-    public BaseResponse addStorey(@RequestParam TopicStoreyAddRequest request){
+    public BaseResponse addStorey(@RequestBody TopicStoreyAddRequest request){
         return  topicConfigProvider.addStorey(request);
     }
 

@@ -26,7 +26,7 @@ public class TopicStoreyContent {
     @Column(name = "spu_no")
     private String spuNo;
 
-    @Column(name = "sku_d")
+    @Column(name = "sku_id")
     private String skuId;
 
     @Column(name = "type")
@@ -38,10 +38,6 @@ public class TopicStoreyContent {
 
     @Column(name = "link_url")
     private String linkUrl;
-
-
-    @Column(name = "status")
-    private Integer status;
 
     @Column(name = "sorting")
     private Integer sorting;

@@ -6,6 +6,7 @@ import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
@@ -75,6 +76,12 @@ public class TopicConfigController implements TopicConfigProvider {
 
     @Override
     public BaseResponse addStoryContent(TopicStoreyContentAddRequest request) {
-        return null;
+        topicConfigService.addStoreyContents(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(TopicStoreyContentQueryRequest request) {
+        return BaseResponse.success(topicConfigService.listTopicStoreyContent(request));
     }
 }

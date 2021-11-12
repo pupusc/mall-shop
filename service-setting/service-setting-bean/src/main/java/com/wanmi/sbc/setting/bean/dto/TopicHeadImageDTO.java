@@ -13,6 +13,9 @@ import java.io.Serializable;
 public class TopicHeadImageDTO implements Serializable {
     private static final long serialVersionUID = 5582485587109992496L;
 
+    @ApiModelProperty("主键id")
+    private Integer id;
+
     @ApiModelProperty("主题id")
     private Integer topicId;
 

@@ -1,8 +1,10 @@
 package com.wanmi.sbc.setting.topicconfig.service;
 
 import com.wanmi.sbc.common.base.BaseQueryRequest;
+import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
@@ -24,14 +26,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +49,7 @@ public class TopicConfigService {
     private TopicStoreyRepository storeyRepository;
 
     @Autowired
-    private TopicStoreyContentRepository goodsRepository;
+    private TopicStoreyContentRepository contentRepository;
 
     public void addTopic(TopicConfigAddRequest request) {
         Topic topic = KsBeanUtil.convert(request, Topic.class);
@@ -72,7 +74,6 @@ public class TopicConfigService {
     }
 
 
-
     public void addHeadImage(HeadImageConfigAddRequest request){
         TopicHeadImage headImage = KsBeanUtil.convert(request, TopicHeadImage.class);
         headImage.setCreateTime(LocalDateTime.now());
@@ -80,6 +81,7 @@ public class TopicConfigService {
         headImage.setDeleted(DeleteFlag.NO.toValue());
         topicHeadImageRepository.save(headImage);
     }
+
 
     public List<TopicHeadImageDTO> listHeadImage(TopicHeadImageQueryRequest request){
         List<TopicHeadImage> list = topicHeadImageRepository.getByTopicId(request.getTopicId());
@@ -124,14 +126,16 @@ public class TopicConfigService {
             return topicVO;
         }
         topicVO.setStoreyList(KsBeanUtil.convertList(storeys, TopicStoreyDTO.class));
-        List<TopicStoreyContent> goods = goodsRepository.getByTopicId(topic.getId());
-        if(CollectionUtils.isEmpty(goods)){
+        List<TopicStoreyContent> contents = contentRepository.getByTopicId(topic.getId());
+        if(CollectionUtils.isEmpty(contents)){
             return topicVO;
         }
         topicVO.getStoreyList().forEach(p->{
-            List<TopicStoreyContent> items = goods.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
+            List<TopicStoreyContent> items = contents.stream().filter(g->g.getStoreyId().equals(p.getId())).sorted().collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
-                p.setGoods(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
+                //排序
+                items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting));
+                p.setContents(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
             }
         });
         return topicVO;
@@ -139,11 +143,37 @@ public class TopicConfigService {
 
 
 
+    @Transactional
     public void enableStorey(EnableTopicStoreyRequest request){
         storeyRepository.enable(request.getStoreyId(),request.getOptType());
     }
 
+    @Transactional
+    public void addStoreyContents(TopicStoreyContentAddRequest request){
+        if(request == null || CollectionUtils.isEmpty(request.getContents())){
+            throw  new  SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        //删除原数据
+        contentRepository.deleteBySid(request.getContents().get(0).getStoreyId());
+        List<TopicStoreyContent> contents = KsBeanUtil.convertList(request.getContents(),TopicStoreyContent.class);
+        contents.forEach(c->{
+            c.setCreateTime(LocalDateTime.now());
+            c.setUpdateTime(LocalDateTime.now());
+            c.setDeleted(DeleteFlag.NO.toValue());
+        });
+        contentRepository.saveAll(contents);
+    }
 
+    public List<TopicStoreyContentDTO> listTopicStoreyContent(TopicStoreyContentQueryRequest request){
+        List<Sort.Order> orders = new ArrayList<>();
+        orders.add(new Sort.Order(Sort.Direction.ASC,"type"));
+        orders.add(new Sort.Order(Sort.Direction.ASC,"sorting"));
+         List<TopicStoreyContent> list = contentRepository.findAll(getTopicStoreyContentWhereCriteria(request),Sort.by(orders));
+         if(CollectionUtils.isEmpty(list)){
+             return Collections.EMPTY_LIST;
+         }
+         return KsBeanUtil.convertList(list,TopicStoreyContentDTO.class);
+    }
 
 
     public Specification<Topic> getTopicWhereCriteria(TopicQueryRequest request) {
@@ -159,4 +189,21 @@ public class TopicConfigService {
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
         };
     }
+
+    public Specification<TopicStoreyContent> getTopicStoreyContentWhereCriteria(TopicStoreyContentQueryRequest request) {
+        return (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (request.getStoreyId() != null) {
+                predicates.add(cbuild.equal(root.get("storeyId"), request.getStoreyId()));
+            }
+            if (request.getTopicId() != null) {
+                predicates.add(cbuild.equal(root.get("topicId"), request.getTopicId()));
+            }
+            predicates.add(cbuild.equal(root.get("deleted"), 0));
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+    }
+
+
 }
