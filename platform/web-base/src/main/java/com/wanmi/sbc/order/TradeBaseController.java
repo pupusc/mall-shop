@@ -1150,8 +1150,7 @@ public class TradeBaseController {
                             if (isIepCustomerFlag && isEnjoyIepGoodsInfo(sku.getEnterPriseAuditState())) {
                                 buyCountMap.put(i.getSkuId(), i.getNum());
                             }
-                            TradeMarketingDTO tradeMarketing = chooseDefaultMarketing(i,
-                                    marketingResponse.get(i.getSkuId()));
+                            TradeMarketingDTO tradeMarketing = chooseDefaultMarketing(i, marketingResponse.get(i.getSkuId()));
                             if (tradeMarketing != null) {
                                 tradeMarketingList.add(tradeMarketing);
                                 i.setMarketingIds(Collections.singletonList(tradeMarketing.getMarketingId()));
@@ -1206,6 +1205,10 @@ public class TradeBaseController {
         tradeMarketing.setGiftSkuIds(new ArrayList<>());
 
         if (CollectionUtils.isNotEmpty(marketings)) {
+            for (MarketingViewVO marketing : marketings) {
+
+            }
+
             for (MarketingViewVO marketing : marketings) {
                 // 满金额减
                 if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT) {

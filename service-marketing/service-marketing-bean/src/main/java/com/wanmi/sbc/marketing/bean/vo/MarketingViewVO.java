@@ -161,6 +161,12 @@ public class MarketingViewVO implements Serializable {
     private List<MarketingFullDiscountLevelVO> fullDiscountLevelList;
 
     /**
+     * 积分换购
+     */
+    @ApiModelProperty(value = "积分换购")
+    private List<MarketingPointBuyLevelVO> pointBuyLevelList;
+
+    /**
      * 满赠等级
      */
     @ApiModelProperty(value = "营销满赠多级优惠列表")

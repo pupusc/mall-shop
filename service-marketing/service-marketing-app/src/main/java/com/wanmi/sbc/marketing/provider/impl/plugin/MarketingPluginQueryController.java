@@ -55,9 +55,7 @@ public class MarketingPluginQueryController implements MarketingPluginQueryProvi
      * @return
      */
     @Override
-    public BaseResponse<MarketingPluginByGoodsInfoListAndCustomerLevelResponse>
-    getByGoodsInfoListAndCustomer(@RequestBody @Valid MarketingPluginByGoodsInfoListAndCustomerRequest request) {
-
+    public BaseResponse<MarketingPluginByGoodsInfoListAndCustomerLevelResponse> getByGoodsInfoListAndCustomer(@RequestBody @Valid MarketingPluginByGoodsInfoListAndCustomerRequest request) {
         List<GoodsInfoVO> voList =goodsInfoMapper.goodsInfoDTOsToGoodsInfoVOs(request.getGoodsInfoList());
         Map<String, List<MarketingResponse>> marketing = marketingPluginService.getMarketing(voList,
                 marketingPluginService.getCustomerLevels(voList, customerMapper.customerDTOToCustomerVO(request.getCustomerDTO())),
