@@ -161,7 +161,7 @@ public class ClassifyController {
             List<Integer> bookListModelIdList = bookListModelIdStrList.stream().map(Integer::parseInt).collect(Collectors.toList());
             //获取书单列表
             BookListModelPageProviderRequest bookListModelPageProviderRequest = new BookListModelPageProviderRequest();
-            bookListModelPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode()));
+            bookListModelPageProviderRequest.setBusinessTypeList(Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
             bookListModelPageProviderRequest.setIdCollection(bookListModelIdList);
             bookListModelPageProviderRequest.setPageNum(0);
             bookListModelPageProviderRequest.setPageSize(bookListModelIdList.size());
