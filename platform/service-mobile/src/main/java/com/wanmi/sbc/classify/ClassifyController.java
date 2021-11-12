@@ -190,7 +190,7 @@ public class ClassifyController {
             result.add(resultClassifyGoods);
 
             //表示书单
-            if ((i + 2) % radix == 0 && bookListModelIndex < resultBookListModelList.size()) {
+            if (result.size() % radix == 4 && bookListModelIndex < resultBookListModelList.size()) {
                 ClassifyGoodsAndBookListModelResponse classifyBookListModel = new ClassifyGoodsAndBookListModelResponse();
                 BookListModelProviderResponse bookListModelProviderResponse = resultBookListModelList.get(bookListModelIndex);
                 classifyBookListModel.setBookListModel(bookListModelProviderResponse);
