@@ -301,6 +301,13 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Integer)
     private Integer cpsSpecial;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔")
+    @Field(type = FieldType.Keyword)
+    private List<String> anchorPushs = new ArrayList<>();
     /**
      * 商品库存
      */

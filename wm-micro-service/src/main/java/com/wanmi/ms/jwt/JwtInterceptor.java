@@ -99,7 +99,11 @@ public class JwtInterceptor implements WebRequestInterceptor {
             }
 
             //如果是书单信息，则访问的时候，如果有token则添加，没有token则不添加
-            if (requestURI.startsWith("/mobile/booklistmodel")) {
+            if (requestURI.startsWith("/mobile/booklistmodel")
+                    || requestURI.startsWith("/index/hot")
+                    || requestURI.startsWith("/index/shopActivityBranchHot")
+                    || requestURI.startsWith("/index/shopActivityBranchConfig")
+            ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);
                     return;

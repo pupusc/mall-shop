@@ -11,7 +11,14 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
-import com.wanmi.sbc.elastic.goods.model.root.*;
+import com.wanmi.sbc.elastic.goods.model.root.EsCateBrand;
+import com.wanmi.sbc.elastic.goods.model.root.EsGoods;
+import com.wanmi.sbc.elastic.goods.model.root.EsGoodsInfo;
+import com.wanmi.sbc.elastic.goods.model.root.GoodsCustomerPriceNest;
+import com.wanmi.sbc.elastic.goods.model.root.GoodsExtProps;
+import com.wanmi.sbc.elastic.goods.model.root.GoodsInfoNest;
+import com.wanmi.sbc.elastic.goods.model.root.GoodsLabelNest;
+import com.wanmi.sbc.elastic.goods.model.root.GoodsLevelPriceNest;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoProvider;
@@ -41,7 +48,15 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import com.wanmi.sbc.marketing.api.provider.distribution.DistributionSettingQueryProvider;
 import com.wanmi.sbc.marketing.api.request.distribution.DistributionStoreSettingListByStoreIdsRequest;
 import com.wanmi.sbc.marketing.bean.vo.DistributionStoreSettingVO;
@@ -52,7 +67,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -62,7 +76,14 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -342,6 +363,7 @@ public class EsGoodsElasticService {
                         EsGoods esGoods = new EsGoods();
                         esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
+                        esGoods.setAnchorPushs(Arrays.asList(goods.getAnchorPushs().split(",")));
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
                         esGoods.setAddedTime(goods.getAddedTime());
@@ -498,6 +520,7 @@ public class EsGoodsElasticService {
                                     goodsInfoNest.setStoreName(esGoods.getStoreName());
                                     goodsInfoNest.setGoodsType(esGoods.getGoodsType());
                                     goodsInfoNest.setCpsSpecial(esGoods.getCpsSpecial());
+                                    goodsInfoNest.setAnchorPushs(Arrays.asList(goods.getAnchorPushs().split(",")));
                                     if (StringUtils.isNotBlank(goodsInfoVO.getProviderGoodsInfoId())) {
                                         GoodsInfoVO providerGoodsInfoVO = providerGoodsInfoVOMap.get(goodsInfoVO.getProviderGoodsInfoId());
                                         if (providerGoodsInfoVO != null) {
