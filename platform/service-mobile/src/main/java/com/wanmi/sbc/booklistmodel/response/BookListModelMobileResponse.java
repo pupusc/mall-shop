@@ -1,7 +1,12 @@
 package com.wanmi.sbc.booklistmodel.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -25,6 +30,11 @@ public class BookListModelMobileResponse {
     private String name;
 
     /**
+     * 名家名人 feature_d_v0.02
+     */
+    private String famousName;
+
+    /**
      * 描述
      */
     private String desc;
@@ -40,6 +50,11 @@ public class BookListModelMobileResponse {
     private String headImgUrl;
 
     /**
+     * 头图方图 feature_d_v0.02
+     */
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     private String headImgHref;
@@ -48,6 +63,35 @@ public class BookListModelMobileResponse {
      *  书单链接地址
      */
     private String pageHref;
+
+    /**
+     * 是否置顶 0否 1 是 feature_d_v0.02
+     */
+    private Integer hasTop;
+
+    /**
+     * 标签类型 标签类型 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagType;
+
+    /**
+     * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private String tagName;
+
+    /**
+     * 标签有效开始时间 ✅Add feature_d_v0.02
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime tagValidBeginTime;
+
+    /**
+     * 标签有效结束时间 ✅Add feature_d_v0.02
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime tagValidEndTime;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布

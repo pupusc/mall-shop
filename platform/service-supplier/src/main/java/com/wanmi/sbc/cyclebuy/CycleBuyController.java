@@ -31,6 +31,7 @@ import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuySaveProvider;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsQueryProvider;
@@ -171,6 +172,9 @@ public class CycleBuyController {
     @Autowired
     private EsStandardProvider esStandardProvider;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
 
     /**
      * 新增周期购活动信息
@@ -297,21 +301,18 @@ public class CycleBuyController {
         }
 
         //查询店铺分类ID
-        StoreCateListByGoodsRequest storeCateListByGoodsRequest=new StoreCateListByGoodsRequest();
-        storeCateListByGoodsRequest.setGoodsIds(Arrays.asList(cycleBuyVO.getGoodsId()));
-        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest).getContext().getStoreCateGoodsRelaVOList();
-        if(CollectionUtils.isNotEmpty(storeCateGoodsRelaVOList)) {
-            oldData.getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream().map(StoreCateGoodsRelaVO::getStoreCateId).collect(Collectors.toList()));
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Arrays.asList(cycleBuyVO.getGoodsId())).getContext();
+        if(storeCateIdMap != null){
+            List<Integer> cateIds = storeCateIdMap.get(cycleBuyVO.getGoodsId());
+            if(cateIds != null){
+                oldData.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+            }
         }
-
-
         if (!Objects.isNull(fId)){
             //判断运费模板是否存在
             freightTemplateGoodsQueryProvider.existsById(
                     FreightTemplateGoodsExistsByIdRequest.builder().freightTempId(fId).build());
         }
-
         GoodsModifyResponse response = goodsProvider.modify(goodsModifyRequest).getContext();
         Map<String, Object> returnMap = response.getReturnMap();
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {

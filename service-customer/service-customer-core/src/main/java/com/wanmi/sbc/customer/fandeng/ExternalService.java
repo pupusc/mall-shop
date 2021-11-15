@@ -690,7 +690,8 @@ public class ExternalService {
      */
     private String getUrl(String url, String body) {
         try {
-            log.info("樊登请求接口：{},请求参数{}", url, body);
+            log.info("ExternalService getUrl appId: {} url:{}", appid, url);
+            log.info("ExternalService getUrl：{}, param{}", url, body);
             HttpResponse httpResponse = HttpUtils.doPost(host,
                     url, getMap(), null, body);
             if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
@@ -698,7 +699,7 @@ public class ExternalService {
                 httpResponse = HttpUtils.doPost(host,
                         url, getMap(), null, body);
             }
-            log.info("樊登请求接口直接返回：{}", httpResponse);
+            log.info("ExternalService getUrl 返回结果：{}", httpResponse);
 
 
             if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
@@ -719,13 +720,17 @@ public class ExternalService {
      * @return
      */
     private String getAccessToken() {
+        log.info("ExternalService getAccessToken appId: {} begining", appid);
         String accessToken = redisService.getString(appid);
+        log.info("ExternalService getAccessToken appId: {} accessToken:{}", appid, accessToken);
 //        String accessToken = "";
         if (StringUtils.isBlank(accessToken)) {
             String url = String.format(OAUTH_TOKEN_URL, appid, appsecret);
             try {
+                log.info("ExternalService getAccessToken appId: {} url:{}", appid, url);
                 HttpResponse httpResponse = HttpUtils.doPost(host,
                         url, getMap(), null, null);
+                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, httpResponse.getStatusLine().getStatusCode());
                 if (200 == httpResponse.getStatusLine().getStatusCode()) {
                     String entity = EntityUtils.toString(httpResponse.getEntity());
                     JSONObject object = JSONObject.parseObject(entity);
@@ -756,6 +761,7 @@ public class ExternalService {
         try {
             String encryptSHA1 = SHAUtils.encryptSHA1(body + appid, appsecret);
             String realUrl = String.format(url, appid, encryptSHA1, getAccessToken());
+            log.info("ExternalService jointUrl appId: {} url:{}, realUrl: {}", appid, url, realUrl);
             return realUrl;
         } catch (Exception e) {
             log.error("拼接加密参数:{}", e);

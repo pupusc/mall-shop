@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.enums.HasTopEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
@@ -104,6 +105,12 @@ public class BookListModelService {
         BookListModelDTO bookListModelParam = new BookListModelDTO();
         BeanUtils.copyProperties(bookListModelRequest, bookListModelParam);
         bookListModelParam.setId(null);
+        bookListModelParam.setHasTop(HasTopEnum.NO.getCode());
+        if (bookListModelRequest.getTagType() != null) {
+            bookListModelParam.setTagType(bookListModelRequest.getTagType());
+        } else {
+            bookListModelParam.setTagType(0); //默认为0
+        }
         bookListModelParam.setPublishState(PublishStateEnum.UN_PUBLISH.getCode());
         bookListModelParam.setCreateTime(new Date());
         bookListModelParam.setUpdateTime(new Date());
@@ -159,6 +166,7 @@ public class BookListModelService {
         existBookListModelDtoUpdate.setUpdateTime(new Date());
         existBookListModelDtoUpdate.setId(bookListModelRequest.getId());
         existBookListModelDtoUpdate.setPublishState(PublishStateEnum.EDIT_UN_PUBLISH.getCode());
+        existBookListModelDtoUpdate.setFamousName(bookListModelRequest.getFamousName()); //该值由 前端提供
         if (!StringUtils.isEmpty(bookListModelRequest.getName())) {
             existBookListModelDtoUpdate.setName(bookListModelRequest.getName());
         }
@@ -171,12 +179,39 @@ public class BookListModelService {
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgUrl())) {
             existBookListModelDtoUpdate.setHeadImgUrl(bookListModelRequest.getHeadImgUrl());
         }
+        if (!StringUtils.isEmpty(bookListModelRequest.getHeadSquareImgUrl())) {
+            existBookListModelDtoUpdate.setHeadSquareImgUrl(bookListModelRequest.getHeadSquareImgUrl());
+        }
         if (!StringUtils.isEmpty(bookListModelRequest.getHeadImgHref())) {
             existBookListModelDtoUpdate.setHeadImgHref(bookListModelRequest.getHeadImgHref());
         }
         if (!StringUtils.isEmpty(bookListModelRequest.getPageHref())) {
             existBookListModelDtoUpdate.setPageHref(bookListModelRequest.getPageHref());
         }
+        if (bookListModelRequest.getHasTop() != null) {
+            existBookListModelDtoUpdate.setHasTop(bookListModelRequest.getHasTop());
+        }
+        if (!StringUtils.isEmpty(bookListModelRequest.getTagName())) {
+            existBookListModelDtoUpdate.setTagName(bookListModelRequest.getTagName());
+        }
+        if (bookListModelRequest.getTagValidBeginTime() != null) {
+            existBookListModelDtoUpdate.setTagValidBeginTime(bookListModelRequest.getTagValidBeginTime());
+        }
+        if (bookListModelRequest.getTagValidEndTime() != null) {
+            existBookListModelDtoUpdate.setTagValidEndTime(bookListModelRequest.getTagValidEndTime());
+        }
+        if (bookListModelRequest.getTagType() != null) {
+            existBookListModelDtoUpdate.setTagType(bookListModelRequest.getTagType());
+
+            if (Objects.equals(bookListModelRequest.getTagType(), 0)) {
+                //表示的是当前都不选择,清空 标签名称和有效时间
+                existBookListModelDtoUpdate.setTagName("");
+                existBookListModelDtoUpdate.setTagValidBeginTime(null);
+                existBookListModelDtoUpdate.setTagValidEndTime(null);
+            }
+        }
+
+
         BookListModelDTO bookListModel = bookListModelRepository.save(existBookListModelDtoUpdate);
         log.info("operator：{} BookListModelService.update BookListModel complete result: {}",
                 bookListMixProviderRequest.getOperator(), JSON.toJSONString(bookListModel));
@@ -372,8 +407,8 @@ public class BookListModelService {
     public Page<BookListModelDTO> list(BookListModelPageRequest bookListModelPageRequest, int pageNum, int pageSize) {
         //查询数量
         Specification<BookListModelDTO> requestCondition = this.packageWhere(bookListModelPageRequest);
-        Pageable pageable = PageRequest.of(pageNum, pageSize,
-                Sort.Direction.DESC, "updateTime");
+        Sort sort = Sort.by(Sort.Direction.DESC, "hasTop").and(Sort.by(Sort.Direction.DESC, "updateTime"));
+        Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
         return bookListModelRepository.findAll(requestCondition, pageable);
     }
 
@@ -487,9 +522,32 @@ public class BookListModelService {
                 if (!CollectionUtils.isEmpty(bookListModelPageRequest.getIdCollection())) {
                     conditionList.add(root.get("id").in(bookListModelPageRequest.getIdCollection()));
                 }
+
+                if (bookListModelPageRequest.getHasTop() != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("hasTop"), bookListModelPageRequest.getHasTop()));
+                }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };
+    }
+
+
+    /**
+     * 置顶或取消 feature_d_v0.02
+     * @param bookListModelId
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public BookListModelDTO top(Integer bookListModelId, Integer hasTop) {
+
+        BookListModelDTO bookListModelObj = this.findSimpleById(bookListModelId);
+        if (Objects.equals(bookListModelObj.getHasTop(), hasTop)) {
+            return bookListModelObj;
+        }
+        bookListModelObj.setHasTop(hasTop);
+        bookListModelObj.setUpdateTime(new Date());
+        BookListModelDTO bookListModelDTO = bookListModelRepository.save(bookListModelObj);
+        log.info("----->>>bookListModel.top bookListModelId:{} hasTop:{} complete", bookListModelId, hasTop);
+        return bookListModelDTO;
     }
 
     /**

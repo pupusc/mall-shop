@@ -31,7 +31,6 @@ public interface StoreCateRepository extends JpaRepository<StoreCate, Long>, Jpa
      * @return
      */
     StoreCate findTop1ByCateParentIdOrderBySortDesc(Long cateParentId);
-
     /**
      * 店铺分类排序
      *

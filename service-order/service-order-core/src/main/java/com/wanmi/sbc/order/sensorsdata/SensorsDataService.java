@@ -53,8 +53,8 @@ public class SensorsDataService {
                     sensorsMessageDto.addProperty("var_id", tradeItem.getSkuId());
                     sensorsMessageDto.addProperty("goods_name", tradeItem.getSkuName());
                     sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().toString());
-                    sensorsMessageDto.addProperty("s_str", trade.getSource());
-                    sensorsMessageDto.addProperty("r_str", trade.getPromoteUserId());
+                    if(trade.getSource() != null) sensorsMessageDto.addProperty("s_str", trade.getSource());
+                    if(trade.getPromoteUserId() != null) sensorsMessageDto.addProperty("r_str", trade.getPromoteUserId());
                     sensorsMessageDtos.add(sensorsMessageDto);
                 }
             }

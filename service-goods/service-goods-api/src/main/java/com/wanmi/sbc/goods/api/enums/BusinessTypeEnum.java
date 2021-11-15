@@ -19,7 +19,8 @@ public enum BusinessTypeEnum {
     RANKING_LIST(1, "排行榜"),
     BOOK_LIST(2, "书单"),
     BOOK_RECOMMEND(3, "编辑推荐"),
-    SPECIAL_SUBJECT(4, "专题");
+    SPECIAL_SUBJECT(4, "专题"),
+    FAMOUS_RECOMMEND(5, "名家推荐");
 
 
     private final Integer code;

@@ -44,4 +44,9 @@ public class BookListModelPageRequest {
      */
     private List<Integer> businessTypeList;
 
+    /**
+     * 是否置顶 0 否 1 是
+     */
+    private Integer hasTop;
+
 }

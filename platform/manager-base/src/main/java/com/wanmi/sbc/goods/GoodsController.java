@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -176,6 +177,9 @@ public class GoodsController {
 
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
@@ -399,7 +403,6 @@ public class GoodsController {
             });
         }
 
-
         // 添加默认值, 适应云掌柜编辑商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
@@ -434,21 +437,14 @@ public class GoodsController {
         }
         //获取商品店铺分类
         if (osUtil.isS2b()) {
-            StoreCateListByGoodsRequest storeCateListByGoodsRequest =
-                    new StoreCateListByGoodsRequest(Collections.singletonList(request.getGoods().getGoodsId()));
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse =
-                    storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest);
-            StoreCateListByGoodsResponse storeCateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.nonNull(storeCateListByGoodsResponse)) {
-                List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                        storeCateListByGoodsResponse.getStoreCateGoodsRelaVOList();
-                oldData.getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream()
-                        .filter(rela -> rela.getStoreCateId() != null)
-                        .map(StoreCateGoodsRelaVO::getStoreCateId)
-                        .collect(Collectors.toList()));
+            Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(request.getGoods().getGoodsId())).getContext();
+            if(storeCateIdMap != null){
+                List<Integer> cateIds = storeCateIdMap.get(request.getGoods().getGoodsId());
+                if(cateIds != null){
+                    oldData.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
+                }
             }
         }
-
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {
@@ -979,19 +975,11 @@ public class GoodsController {
             }
         }
         //获取商品店铺分类
-        if (osUtil.isS2b()) {
-            StoreCateListByGoodsRequest storeCateListByGoodsRequest =
-                    new StoreCateListByGoodsRequest(Collections.singletonList(goodsId));
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse =
-                    storeCateQueryProvider.listByGoods(storeCateListByGoodsRequest);
-            StoreCateListByGoodsResponse storeCateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.nonNull(storeCateListByGoodsResponse)) {
-                List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOList =
-                        storeCateListByGoodsResponse.getStoreCateGoodsRelaVOList();
-                response.getGoods().setStoreCateIds(storeCateGoodsRelaVOList.stream()
-                        .filter(rela -> rela.getStoreCateId() != null)
-                        .map(StoreCateGoodsRelaVO::getStoreCateId)
-                        .collect(Collectors.toList()));
+        BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsId));
+        if(mapBaseResponse.getContext() != null){
+            List<Integer> cateIds = mapBaseResponse.getContext().get(goodsId);
+            if(cateIds != null){
+                response.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
             }
         }
         OperateDataLogListResponse operateDataLogListResponse =
