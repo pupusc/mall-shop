@@ -130,8 +130,7 @@ public class ClassifyService {
             classifyDTO.setLevel(2);
         }
         classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
-//        classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
-        classifyDTO.setOrderNum(0);
+        classifyDTO.setOrderNum(9999); //后续更改
         classifyDTO.setCreateTime(new Date());
         classifyDTO.setUpdateTime(new Date());
         classifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
