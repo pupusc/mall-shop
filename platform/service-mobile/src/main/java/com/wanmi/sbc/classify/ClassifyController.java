@@ -238,7 +238,8 @@ public class ClassifyController {
             esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
         } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
-
+            //按照销售数量排序
+            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
                 return BaseResponse.success(null);
             }
