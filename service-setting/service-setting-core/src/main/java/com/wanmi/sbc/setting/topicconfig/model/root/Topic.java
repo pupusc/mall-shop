@@ -31,5 +31,6 @@ public class Topic {
     private  String trackKey;
     @Column(name = "background")
     private String background;
-
+    @Column(name = "navigation_color")
+    private String navigationColor;
 }

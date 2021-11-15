@@ -46,4 +46,7 @@ public class TopicStorey {
 
     @Column(name = "background")
     private String background;
+
+    @Column(name = "has_padding")
+    private Integer hasPadding;
 }

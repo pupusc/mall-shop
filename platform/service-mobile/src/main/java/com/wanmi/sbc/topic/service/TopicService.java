@@ -65,14 +65,14 @@ public class TopicService {
         TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
         //如果配置有一行两个商品的配置信息，查询商品
         List<String> skuIds = new ArrayList<>();
-        activityVO.getContext().getStoreyList().forEach(p->{
-            skuIds.addAll(p.getContents().stream().filter(c->c.getType().equals(3)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
+        activityVO.getContext().getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
+            skuIds.addAll(p.getContents().stream().filter(c->c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
         });
         if(CollectionUtils.isNotEmpty(skuIds)){
             List<GoodsCustomResponse> list = initGoods(skuIds);
             if(CollectionUtils.isNotEmpty(list)){
-                response.getStoreyList().forEach(p->{
-                    p.getContents().stream().filter(g->g.getType().equals(3)).forEach(g->{
+                response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
+                    p.getContents().stream().filter(g->g.getType().equals(1)).forEach(g->{
                         if(list.stream().anyMatch(l->l.getGoodsInfoId().equals(g.getSkuId()))){
                             g.setGoods(list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get());
                         }

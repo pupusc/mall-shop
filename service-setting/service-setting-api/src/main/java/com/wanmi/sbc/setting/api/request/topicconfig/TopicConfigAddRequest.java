@@ -14,6 +14,9 @@ public class TopicConfigAddRequest implements Serializable {
     @ApiModelProperty("页面名称")
     private String topicName;
 
-    @ApiModelProperty("背景色【")
+    @ApiModelProperty("背景色")
     private String background;
+
+    @ApiModelProperty("导航色")
+    private String navigationColor;
 }
