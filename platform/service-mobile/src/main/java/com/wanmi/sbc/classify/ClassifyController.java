@@ -1,11 +1,9 @@
 package com.wanmi.sbc.classify;
 
-import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.BookListModelSimpleResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
-import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.classify.request.ClassifyGoodsAndBookListModelPageRequest;
 import com.wanmi.sbc.classify.request.HomeClassifyGoodsAndBookListModelRequest;
 import com.wanmi.sbc.classify.response.ClassifyGoodsAndBookListModelResponse;
@@ -19,15 +17,12 @@ import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
-import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
-import com.wanmi.sbc.util.RandomUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
@@ -228,6 +223,13 @@ public class ClassifyController {
         esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
         esGoodsCustomRequest.setClassifyIdList(childClassifySet);
+        if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+            esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
+        } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+
+        } else if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+
+        }
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
         //拼装条件 0 表示推荐
         if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {

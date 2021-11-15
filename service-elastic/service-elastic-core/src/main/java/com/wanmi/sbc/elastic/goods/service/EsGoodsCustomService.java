@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.EsConstants;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
@@ -142,7 +143,12 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(termQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
             boolQueryBuilder.must(termQuery("cpsSpecial", request.getCpsSpecial()));
         }
-
+        /**
+         * 主播推荐
+         */
+        if (!StringUtils.isEmpty(request.getAnchorPushs())) {
+            boolQueryBuilder.must(termsQuery("anchorPushs", request.getAnchorPushs()));
+        }
         /**
          * 不展示无库存 库存大于0
          */

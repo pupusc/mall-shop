@@ -41,6 +41,10 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     private Integer cpsSpecial;
 
     /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
+     */
+    private String anchorPushs = org.apache.commons.lang3.StringUtils.EMPTY;
+    /**
      * 是否展示无库存
      */
     private Boolean hasShowUnStock;
