@@ -359,7 +359,7 @@ public class GoodsDTO implements Serializable {
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔")
-    private String anchorPushs = StringUtils.EMPTY;
+    private String anchorPushs;
 
     /**
      * 商品来源，0供应商，1商家,2 linkedmall

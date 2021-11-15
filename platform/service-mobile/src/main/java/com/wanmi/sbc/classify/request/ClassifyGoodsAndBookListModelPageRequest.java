@@ -1,7 +1,6 @@
 package com.wanmi.sbc.classify.request;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 
@@ -30,5 +29,5 @@ public class ClassifyGoodsAndBookListModelPageRequest {
     /**
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
      */
-    private String anchorPushs = StringUtils.EMPTY;
+    private String anchorPushs;
 }

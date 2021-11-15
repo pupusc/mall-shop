@@ -13,7 +13,6 @@ import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Enumerated;
@@ -130,7 +129,7 @@ public class GoodsVO  implements Serializable {
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔")
-    private String anchorPushs = StringUtils.EMPTY;
+    private String anchorPushs;
 
     /**
      * 成本价
