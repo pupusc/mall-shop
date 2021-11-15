@@ -2,8 +2,6 @@ package com.wanmi.sbc.classify.request;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * Description: 获取店铺分类列表中的商品信息
  * Company    : 上海黄豆网络科技有限公司
@@ -18,7 +16,7 @@ public class ClassifyGoodsAndBookListModelPageRequest {
 
     private int pageSize = 10;
 
-    @NotNull
+    //@NotNull
     private Integer classifyId;
 
     /**

@@ -208,21 +208,26 @@ public class ClassifyController {
         MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
         result.setContent(new ArrayList<>());
         result.setTotal(0);
-
+        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
         //获取当前一级分类下的所有子分类
-        ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
-        classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(classifyGoodsAndBookListModelPageRequest.getClassifyId()));
-        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
-        if (CollectionUtils.isEmpty(listBaseResponse.getContext())) {
-            return BaseResponse.success(result);
+        if (classifyGoodsAndBookListModelPageRequest.getClassifyId() != null) {
+            ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
+            classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(classifyGoodsAndBookListModelPageRequest.getClassifyId()));
+            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
+            if (CollectionUtils.isEmpty(listBaseResponse.getContext())) {
+                return BaseResponse.success(result);
+            }
+            Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
+            esGoodsCustomRequest.setClassifyIdList(childClassifySet);
         }
         //获取二级分类列表
-        Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
 
-        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+
         esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
-        esGoodsCustomRequest.setClassifyIdList(childClassifySet);
+
+        esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
+
         if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
         } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {

@@ -5,7 +5,6 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.EsConstants;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
@@ -31,7 +30,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:
@@ -147,7 +148,7 @@ public class EsGoodsCustomService {
          * 主播推荐
          */
         if (!StringUtils.isEmpty(request.getAnchorPushs())) {
-            boolQueryBuilder.must(termsQuery("anchorPushs", request.getAnchorPushs()));
+            boolQueryBuilder.must(termQuery("anchorPushs", request.getAnchorPushs()));
         }
         /**
          * 不展示无库存 库存大于0
