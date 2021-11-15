@@ -37,7 +37,7 @@ public class GoodsSalesNumMqConsumerService {
     public void goodsSalesNumMqConsumer(String msg){
         GoodsModifySalesNumRequest request = JSONObject.parseObject(msg,GoodsModifySalesNumRequest.class);
         goodsProvider.updateGoodsSalesNum(request);
-        esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(request.getGoodsId()).build());
+        esGoodsInfoElasticProvider.GoodsInfo(EsGoodsInfoRequest.builder().goodsId(request.getGoodsId()).build());
         //更新redis商品基本数据
         String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + request.getGoodsId());
         if (StringUtils.isNotBlank(goodsDetailInfo)) {

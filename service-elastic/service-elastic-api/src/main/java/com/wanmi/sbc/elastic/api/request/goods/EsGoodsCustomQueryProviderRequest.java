@@ -70,9 +70,20 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      */
     public Collection<Integer> classifyIdList;
 
+
+    /**
+     * 店铺分类id列表
+     */
+    public Collection<Integer> unClassifyIdList;
+
     /**
      * 特价书 市场价/定价 小于 0.5
      */
     private String scriptSpecialOffer;
+
+    /**
+     * 是否是图书，1 是 其他否
+     */
+    private Integer bookFlag;
 
 }

@@ -45,6 +45,11 @@ public class GoodsCateNest implements Serializable {
     private String sPinYin;
 
     /**
+     * 是否图书 1-是 其他否
+     */
+    private Integer bookFlag;
+
+    /**
      * 一二级分类信息
      */
     @ApiModelProperty(value = "一二级分类信息")

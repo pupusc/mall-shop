@@ -11,6 +11,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.api.enums.BookFlagEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
@@ -379,6 +380,7 @@ public class HomePageService {
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
+            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             //按照更新时间排序
             sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
@@ -423,6 +425,7 @@ public class HomePageService {
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
+            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
@@ -465,6 +468,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setScriptSpecialOffer("0.5");
+            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式

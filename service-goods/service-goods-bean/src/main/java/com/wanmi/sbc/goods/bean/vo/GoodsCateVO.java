@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -144,6 +145,12 @@ public class GoodsCateVO implements Serializable {
      */
     @ApiModelProperty(value = "排序")
     private Integer sort;
+
+
+    /**
+     * 是否图书 0-否 1-是
+     */
+    private Integer bookFlag;
 
     /**
      * 一对多关系，子分类
