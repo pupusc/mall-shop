@@ -225,13 +225,8 @@ public class ClassifyController {
             esGoodsCustomRequest.setClassifyIdList(childClassifySet);
         }
         //获取二级分类列表
-
-
         esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
-
-        esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
-
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
 
         if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
