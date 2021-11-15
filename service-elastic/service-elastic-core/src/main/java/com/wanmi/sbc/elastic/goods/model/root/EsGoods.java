@@ -312,7 +312,7 @@ public class EsGoods implements Serializable {
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔")
-    @Field(type = FieldType.Keyword)
+    @Field(searchAnalyzer = EsConstants.DEF_ANALYZER, analyzer = EsConstants.DEF_ANALYZER, type = FieldType.Text)
     private String anchorPushs;
     /**
      * 商品库存
