@@ -139,7 +139,7 @@ public class TopicConfigService {
             return topicVO;
         }
         topicVO.getStoreyList().forEach(p->{
-            List<TopicStoreyContent> items = contents.stream().filter(g->g.getStoreyId().equals(p.getId())).sorted().collect(Collectors.toList());;
+            List<TopicStoreyContent> items = contents.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
                 //排序
                 List<TopicStoreyContent> sortContents = items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting)).collect(Collectors.toList());

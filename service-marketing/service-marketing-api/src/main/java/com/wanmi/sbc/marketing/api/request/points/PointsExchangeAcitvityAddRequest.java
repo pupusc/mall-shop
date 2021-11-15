@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
-import com.wanmi.sbc.marketing.bean.dto.PointsExchangeSkuDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -12,7 +11,6 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @ApiModel
@@ -43,6 +41,5 @@ public class PointsExchangeAcitvityAddRequest implements Serializable {
     @ApiModelProperty("客户登记0全部登记1银杏级，用，分割")
     private String customerLevel;
 
-    @ApiModelProperty("商品信息")
-    List<PointsExchangeSkuDTO> skus;
+
 }
