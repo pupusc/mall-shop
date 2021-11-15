@@ -371,7 +371,7 @@ public class EsGoodsElasticService {
                         EsGoods esGoods = new EsGoods();
                         esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
-                        esGoods.setAnchorPushs(Arrays.asList(goods.getAnchorPushs().split(",")));
+                        esGoods.setAnchorPushs(goods.getAnchorPushs());
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
                         esGoods.setAddedTime(goods.getAddedTime());
@@ -531,7 +531,7 @@ public class EsGoodsElasticService {
                                     goodsInfoNest.setStoreName(esGoods.getStoreName());
                                     goodsInfoNest.setGoodsType(esGoods.getGoodsType());
                                     goodsInfoNest.setCpsSpecial(esGoods.getCpsSpecial());
-                                    goodsInfoNest.setAnchorPushs(Arrays.asList(goods.getAnchorPushs().split(",")));
+                                    goodsInfoNest.setAnchorPushs(goods.getAnchorPushs());
                                     if (StringUtils.isNotBlank(goodsInfoVO.getProviderGoodsInfoId())) {
                                         GoodsInfoVO providerGoodsInfoVO = providerGoodsInfoVOMap.get(goodsInfoVO.getProviderGoodsInfoId());
                                         if (providerGoodsInfoVO != null) {
