@@ -3321,6 +3321,7 @@ public class TradeService {
         return resultList;
     }
 
+
     /**
      * 提交积分订单
      *
@@ -7071,7 +7072,6 @@ public class TradeService {
                 tradeItem.setTotalSupplyPrice(supplyPrice.multiply(new BigDecimal(tradeItem.getNum())));
 
                 tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
-
             }
         }));
 
@@ -7873,6 +7873,7 @@ public class TradeService {
                 providerTrade.setPayWay(trade.getPayWay());
                 if (!providerTrade.getGrouponFlag()
                         ||  GrouponOrderStatus.COMPLETE.equals(trade.getTradeGroupon().getGrouponOrderStatus())) {
+                    log.info(" TradeService.pushTradeToErp push order: {}", tradeNo);
                     providerTradeService.singlePushOrder(providerTrade);
                 }
             });

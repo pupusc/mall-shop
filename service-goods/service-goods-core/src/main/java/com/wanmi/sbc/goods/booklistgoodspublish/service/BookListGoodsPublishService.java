@@ -3,12 +3,17 @@ package com.wanmi.sbc.goods.booklistgoodspublish.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.booklistgoods.model.root.BookListGoodsDTO;
 import com.wanmi.sbc.goods.booklistgoods.service.BookListGoodsService;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
 import com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse;
+import com.wanmi.sbc.goods.booklistgoodspublish.response.CountBookListModelGroupResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SQLQuery;
+import org.hibernate.query.internal.NativeQueryImpl;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,6 +23,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -26,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:
@@ -43,6 +51,9 @@ public class BookListGoodsPublishService {
 
     @Resource
     private BookListGoodsService bookListGoodsService;
+
+    @Autowired
+    private EntityManager entityManager;
 
 
     @Transactional
@@ -82,6 +93,49 @@ public class BookListGoodsPublishService {
         log.info("---->> BookListGoodsPublishService.list operator:{} bookListId:{} categoryId: {}",
                 operator, bookListId, categoryId);
         return bookListGoodsPublishRepository.findAll(this.packageWhere(bookListIdCollection, bookListId, categoryId, spuId));
+    }
+
+
+    /**
+     * 获取书单 商品数量
+     * @return
+     */
+    public List<CountBookListModelGroupResponse> countByBookListModelList(CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest) {
+        String sql = "select count(1) goodsCount, m.id bookListModelId from t_book_list_goods_publish publish left join t_book_list_model m on publish.book_list_id = m.id " +
+                "where publish.del_flag = 0 and m.del_flag = 0 ";
+        String businessTypeSql = "";
+        for (Integer businessTypeId : countBookListModelGroupProviderRequest.getBusinessTypeColl()) {
+            if (StringUtils.isEmpty(businessTypeSql)) {
+                businessTypeSql += businessTypeId.toString();
+            } else {
+                businessTypeSql += "," + businessTypeId;
+            }
+        }
+        sql += " and m.business_type in (" + businessTypeSql + ") and publish.category = " + countBookListModelGroupProviderRequest.getCategoryId();
+        String bookListModelIdSql = "";
+        for (Integer bookListModelId : countBookListModelGroupProviderRequest.getBookListIdCollection()) {
+            if (StringUtils.isEmpty(bookListModelIdSql)) {
+                bookListModelIdSql += bookListModelId.toString();
+            } else {
+                bookListModelIdSql += "," + bookListModelId.toString();
+            }
+        }
+        sql += " and m.id in (" + bookListModelIdSql + ") group by m.id ";
+
+        Query nativeQuery = entityManager.createNativeQuery(sql);
+        nativeQuery.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        List<Map<String, Object>> sqlResult = nativeQuery.getResultList();
+        List<CountBookListModelGroupResponse>  result = new ArrayList<>();
+        for (Map<String, Object> stringObjectMap : sqlResult) {
+            if (stringObjectMap.get("bookListModelId") == null) {
+                continue;
+            }
+            CountBookListModelGroupResponse param = new CountBookListModelGroupResponse();
+            param.setGoodsCount(stringObjectMap.get("goodsCount") == null ? 0 : Integer.parseInt(stringObjectMap.get("goodsCount").toString()));
+            param.setBookListModelId(Integer.parseInt(stringObjectMap.get("bookListModelId").toString()));
+            result.add(param);
+        }
+        return result;
     }
 
     /**

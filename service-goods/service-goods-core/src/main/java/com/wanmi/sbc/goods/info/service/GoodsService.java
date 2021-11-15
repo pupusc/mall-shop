@@ -56,6 +56,10 @@ import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateSyncRepository;
 import com.wanmi.sbc.goods.cate.request.ContractCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
+import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
+import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
@@ -163,6 +167,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 商品服务
@@ -219,6 +224,9 @@ public class GoodsService {
 
     @Autowired
     private StoreCateRepository storeCateRepository;
+
+    @Autowired
+    private ClassifyRepository classifyRepository;
 
     @Autowired
     private StoreGoodsTabRepository storeGoodsTabRepository;
@@ -304,6 +312,8 @@ public class GoodsService {
 
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
+    @Autowired
+    private ClassifyGoodsRelRepository classifyGoodsRelRepository;
 
     @Autowired
     private GoodsSyncRelationRepository goodsSyncRelationRepository;
@@ -1017,7 +1027,6 @@ public class GoodsService {
             });
         }
 
-
         goodsInfos.forEach(goodsInfo -> {
             goodsInfo.setSalePrice(Objects.isNull(goodsInfo.getMarketPrice()) ? BigDecimal.ZERO : goodsInfo.getMarketPrice());
             goodsInfo.setPriceType(goods.getPriceType());
@@ -1646,13 +1655,20 @@ public class GoodsService {
         //标签
         tagService.saveAndUpdateTagForGoods(goodsId, saveRequest.getTags());
 
+        //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(goods.getStoreCateIds())) {
+            List<ClassifyGoodsRelDTO> rels = new ArrayList<>();
             goods.getStoreCateIds().forEach(cateId -> {
-                StoreCateGoodsRela rela = new StoreCateGoodsRela();
-                rela.setGoodsId(goodsId);
-                rela.setStoreCateId(cateId);
-                storeCateGoodsRelaRepository.save(rela);
+                Date now = new Date();
+                ClassifyGoodsRelDTO classifyGoodsRelDTO = new ClassifyGoodsRelDTO();
+                classifyGoodsRelDTO.setClassifyId(cateId.intValue());
+                classifyGoodsRelDTO.setDelFlag(0);
+                classifyGoodsRelDTO.setGoodsId(goodsId);
+                classifyGoodsRelDTO.setCreateTime(now);
+                classifyGoodsRelDTO.setUpdateTime(now);
+                rels.add(classifyGoodsRelDTO);
             });
+            classifyGoodsRelRepository.saveAll(rels);
         }
 
         //保存商品属性
@@ -2048,35 +2064,22 @@ public class GoodsService {
                     goodsPropDetailRel.setUpdateTime(LocalDateTime.now());
                 }
             });
-
-            //  先获取商品下所有的属性id，与前端传来的对比，id存在的做更新操作反之做保存操作
-            List<GoodsPropDetailRel> oldPropList = goodsPropDetailRelRepository.queryByGoodsId(newGoods.getGoodsId());
-            List<GoodsPropDetailRel> insertList = new ArrayList<>();
-            if (oldPropList.isEmpty()) {
-                goodsPropDetailRelRepository.saveAll(goodsPropDetailRels);
-            } else {
-                oldPropList.forEach(value -> {
-                    goodsPropDetailRels.forEach(goodsProp -> {
-                        if (value.getPropId().equals(goodsProp.getPropId())) {
-                            goodsPropDetailRelRepository.updateByGoodsIdAndPropId(goodsProp.getDetailId(), goodsProp.getGoodsId(), goodsProp.getPropId());
-                        } else {
-                            goodsProp.setCreateTime(LocalDateTime.now());
-                            insertList.add(goodsProp);
-                        }
-                    });
-                });
-                goodsPropDetailRelRepository.saveAll(insertList);
-            }
         }*/
         //店铺分类
         if (osUtil.isS2b() && CollectionUtils.isNotEmpty(newGoods.getStoreCateIds())) {
-            storeCateGoodsRelaRepository.deleteByGoodsId(newGoods.getGoodsId());
+            classifyGoodsRelRepository.deleteByGoodsId(newGoods.getGoodsId());
+            List<ClassifyGoodsRelDTO> rels = new ArrayList<>();
             newGoods.getStoreCateIds().forEach(cateId -> {
-                StoreCateGoodsRela rela = new StoreCateGoodsRela();
-                rela.setGoodsId(newGoods.getGoodsId());
-                rela.setStoreCateId(cateId);
-                storeCateGoodsRelaRepository.save(rela);
+                Date now = new Date();
+                ClassifyGoodsRelDTO classifyGoodsRelDTO = new ClassifyGoodsRelDTO();
+                classifyGoodsRelDTO.setClassifyId(cateId.intValue());
+                classifyGoodsRelDTO.setDelFlag(0);
+                classifyGoodsRelDTO.setGoodsId(newGoods.getGoodsId());
+                classifyGoodsRelDTO.setCreateTime(now);
+                classifyGoodsRelDTO.setUpdateTime(now);
+                rels.add(classifyGoodsRelDTO);
             });
+            classifyGoodsRelRepository.saveAll(rels);
         }
 
         List<GoodsSpec> specs = saveRequest.getGoodsSpecs();
@@ -2818,12 +2821,12 @@ public class GoodsService {
             }
 
             //验证店铺分类存在性
-            StoreCateQueryRequest request = new StoreCateQueryRequest();
-            request.setStoreId(goods.getStoreId());
-            request.setStoreCateIds(goods.getStoreCateIds());
-            request.setDelFlag(DeleteFlag.NO);
-            if (goods.getStoreCateIds().size() != storeCateRepository.count(request.getWhereCriteria())) {
-                throw new SbcRuntimeException(StoreCateErrorCode.NOT_EXIST);
+            if(CollectionUtils.isNotEmpty(goods.getStoreCateIds())){
+                List<Integer> ids = goods.getStoreCateIds().stream().map(Long::intValue).collect(Collectors.toList());
+                List<ClassifyDTO> classifies = classifyRepository.findAllById(ids);
+                if(classifies.size() != goods.getStoreCateIds().size()){
+                    throw new SbcRuntimeException(StoreCateErrorCode.NOT_EXIST);
+                }
             }
         }
     }

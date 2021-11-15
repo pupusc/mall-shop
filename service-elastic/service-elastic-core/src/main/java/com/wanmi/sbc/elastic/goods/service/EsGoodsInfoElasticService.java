@@ -28,6 +28,7 @@ import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsPropDetailRelByIdsRequest;
@@ -40,6 +41,7 @@ import com.wanmi.sbc.goods.api.request.spec.GoodsSpecListByGoodsIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByStoreCateIdAndIsHaveSelfRequest;
 import com.wanmi.sbc.goods.api.response.cate.GoodsCateByIdResponse;
 import com.wanmi.sbc.goods.api.response.cate.GoodsCateListByConditionResponse;
+import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
@@ -60,9 +62,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeRequestBuilder;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.UpdateByQueryAction;
 import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
@@ -73,9 +78,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.ResultsMapper;
-import org.springframework.data.elasticsearch.core.query.IndexQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.SearchQuery;
+import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -1147,9 +1150,62 @@ public class EsGoodsInfoElasticService {
                     esGoodsInfos.add(iq);
                 }
         );
-
         //生成新数据
         elasticsearchTemplate.bulkIndex(esGoodsInfos);
+    }
+
+    /**
+     * 更新classify
+     */
+    public void updateClassify(Integer id, String name) {
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(new TermQueryBuilder("classify.id", id)).build();
+        List<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(searchQuery, EsGoods.class);
+        if(CollectionUtils.isEmpty(esGoodsList)){
+            return;
+        }
+        List<IndexQuery> esGood = new ArrayList<>();
+        for (EsGoods esGoods : esGoodsList) {
+            List<ClassifySimpleProviderResponse> classify = esGoods.getClassify();
+            for (ClassifySimpleProviderResponse classifySimpleProviderResponse : classify) {
+                if(classifySimpleProviderResponse.getId().equals(id)){
+                    classifySimpleProviderResponse.setClassifyName(name);
+                    IndexQuery iq = new IndexQuery();
+                    iq.setObject(esGoods);
+                    iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
+                    iq.setType(EsConstants.DOC_GOODS_TYPE);
+                    esGood.add(iq);
+                    break;
+                }
+            }
+        }
+        elasticsearchTemplate.bulkIndex(esGood);
+    }
+
+    /**
+     * 删除classify
+     */
+    public void deleteClassify(Integer id) {
+        SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(new TermQueryBuilder("classify.id", id)).build();
+        List<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(searchQuery, EsGoods.class);
+        if(CollectionUtils.isEmpty(esGoodsList)){
+            return;
+        }
+        List<IndexQuery> esGood = new ArrayList<>();
+        for (EsGoods esGoods : esGoodsList) {
+            List<ClassifySimpleProviderResponse> classify = esGoods.getClassify();
+            Iterator<ClassifySimpleProviderResponse> iterator = classify.iterator();
+            while (iterator.hasNext()) {
+                ClassifySimpleProviderResponse classifySimpleProviderResponse = iterator.next();
+                if(classifySimpleProviderResponse.getId().equals(id)) iterator.remove();
+                IndexQuery iq = new IndexQuery();
+                iq.setObject(esGoods);
+                iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_TYPE);
+                esGood.add(iq);
+                break;
+            }
+        }
+        elasticsearchTemplate.bulkIndex(esGood);
     }
 
     /**

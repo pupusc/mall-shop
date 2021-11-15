@@ -100,6 +100,8 @@ public class JwtInterceptor implements WebRequestInterceptor {
 
             //如果是书单信息，则访问的时候，如果有token则添加，没有token则不添加
             if (requestURI.startsWith("/mobile/booklistmodel")
+                    || requestURI.startsWith("/mobile/home")
+                    || requestURI.startsWith("/classify")
                     || requestURI.startsWith("/index/hot")
                     || requestURI.startsWith("/index/shopActivityBranchHot")
                     || requestURI.startsWith("/index/shopActivityBranchConfig")

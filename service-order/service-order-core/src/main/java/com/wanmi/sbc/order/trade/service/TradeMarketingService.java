@@ -1,9 +1,11 @@
 package com.wanmi.sbc.order.trade.service;
 
 
+import com.sun.xml.bind.v2.util.CollisionCheckStack;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
@@ -25,6 +27,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,6 +48,9 @@ public class TradeMarketingService {
     @Autowired
     private GrouponOrderService grouponOrderService;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
     /**
      * 调用营销插件，构造订单优惠券对象
      * @return
@@ -55,24 +61,25 @@ public class TradeMarketingService {
         // 1.查询tradeItems的storeCateIds
         List<String> goodsIds = tradeItems.stream()
                 .map(TradeItem::getSpuId).distinct().collect(Collectors.toList());
-        List<StoreCateGoodsRelaVO> relas =
-                storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(goodsIds)).getContext().getStoreCateGoodsRelaVOList();
-        Map<String, List<StoreCateGoodsRelaVO>> relasMap = relas.stream()
-                .collect(Collectors.groupingBy(rela -> rela.getGoodsId()));
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
 
         // 2.构建营销插件请求对象
-        List<TradeItemInfoDTO> tradeItemInfos = tradeItems.stream()
-                .map(t -> TradeItemInfoDTO.builder()
-                        .num(t.getNum())
-                        .price(t.getPrice())
-                        .skuId(t.getSkuId())
-                        .cateId(t.getCateId())
-                        .storeId(t.getStoreId())
-                        .brandId(t.getBrand())
-                        .storeCateIds(relasMap.get(t.getSpuId()).stream()
-                                .map(rela -> rela.getStoreCateId()).collect(Collectors.toList()))
-                        .distributionGoodsAudit(t.getDistributionGoodsAudit())
-                        .build())
+        List<TradeItemInfoDTO> tradeItemInfos = tradeItems.stream().map(t -> {
+            TradeItemInfoDTO.TradeItemInfoDTOBuilder tradeItemInfoDTOBuilder = TradeItemInfoDTO.builder()
+                    .num(t.getNum())
+                    .price(t.getPrice())
+                    .skuId(t.getSkuId())
+                    .cateId(t.getCateId())
+                    .storeId(t.getStoreId())
+                    .brandId(t.getBrand())
+                    .distributionGoodsAudit(t.getDistributionGoodsAudit());
+            if(storeCateIdMap.get(t.getSpuId()) != null){
+                tradeItemInfoDTOBuilder.storeCateIds(storeCateIdMap.get(t.getSpuId()).stream().map(Integer::longValue).collect(Collectors.toList()));
+            }else{
+                tradeItemInfoDTOBuilder.storeCateIds(new ArrayList<>());
+            }
+            return tradeItemInfoDTOBuilder.build();
+        })
                 .collect(Collectors.toList());
         MarketingCouponWrapperRequest request = new MarketingCouponWrapperRequest();
         request.setCustomerId(customerId);

@@ -35,7 +35,7 @@ public class GoodsLabelAddRequest extends GoodsBaseRequest {
 	 */
 	@ApiModelProperty(value = "标签名称")
 	@NotBlank
-	@Length(max=4)
+	@Length(max=10)
 	private String labelName;
 
 	/**
