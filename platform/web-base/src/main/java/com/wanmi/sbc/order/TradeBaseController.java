@@ -139,18 +139,7 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingJoinLevel;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.enums.RecruitApplyType;
-import com.wanmi.sbc.marketing.bean.vo.DistributionRecordVO;
-import com.wanmi.sbc.marketing.bean.vo.DistributionSettingVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingBuyoutPriceLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingHalfPriceSecondPieceLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingSuitsSkuVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelDetailVO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.*;
 import com.wanmi.sbc.order.api.provider.appointmentrecord.AppointmentRecordQueryProvider;
 import com.wanmi.sbc.order.api.provider.groupon.GrouponProvider;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
@@ -1206,10 +1195,17 @@ public class TradeBaseController {
 
         if (CollectionUtils.isNotEmpty(marketings)) {
             for (MarketingViewVO marketing : marketings) {
+                // 积分换购
+                if(marketing.getSubType() == MarketingSubType.POINT_BUY){
+                    List<MarketingPointBuyLevelVO> pointBuyLevelList = marketing.getPointBuyLevelList();
+                    if(CollectionUtils.isNotEmpty(pointBuyLevelList)){
+                        pointBuyLevelList.sort(Comparator.comparing(MarketingPointBuyLevelVO::getAmount));
+                        tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getMarketingId());
+                        tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
+                        return tradeMarketing;
+                    }
+                }
 
-            }
-
-            for (MarketingViewVO marketing : marketings) {
                 // 满金额减
                 if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT) {
                     List<MarketingFullReductionLevelVO> levels = marketing.getFullReductionLevelList();
