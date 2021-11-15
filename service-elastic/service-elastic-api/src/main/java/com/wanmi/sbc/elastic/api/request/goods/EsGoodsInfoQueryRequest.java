@@ -330,9 +330,9 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     private Integer cpsSpecial;
 
     /**
-     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
      */
-    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以,相隔")
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     private String anchorPushs;
     /**
      * 封装公共条件
