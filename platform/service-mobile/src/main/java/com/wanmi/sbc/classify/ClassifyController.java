@@ -24,6 +24,7 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.RedisKeyUtil;
+import org.apache.commons.lang3.time.DateUtils;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,9 +74,9 @@ public class ClassifyController {
 
     /**
      * 分类  获取分类信息
-     * @menu 新版首页
      *
      * @return
+     * @menu 新版首页
      */
     @GetMapping("/listClassify/root")
     public BaseResponse<List<ClassifyNoChildResponse>> listClassify() {
@@ -93,12 +95,13 @@ public class ClassifyController {
 
     /**
      * 分类 获取分类下的 商品列表和 书单
-     * @menu 新版首页
+     *
      * @param classifyGoodsAndBookListModelRequest
      * @return
+     * @menu 新版首页
      */
     @PostMapping("/index/listClassifyGoodsAndBookListModel")
-    public BaseResponse<List<ClassifyGoodsAndBookListModelResponse>> listClassifyGoodsAndBookListModel(@RequestBody @Validated HomeClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest){
+    public BaseResponse<List<ClassifyGoodsAndBookListModelResponse>> listClassifyGoodsAndBookListModel(@RequestBody @Validated HomeClassifyGoodsAndBookListModelRequest classifyGoodsAndBookListModelRequest) {
         List<ClassifyGoodsAndBookListModelResponse> result = new ArrayList<>();
         int pageNum = classifyGoodsAndBookListModelRequest.getPageNum();
         int pageSize = classifyGoodsAndBookListModelRequest.getPageSize(); //每次加载为 5的倍数
@@ -115,7 +118,7 @@ public class ClassifyController {
         String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
         int goodsStart = pageNum * pageSize;
         int goodsEnd = (pageNum + 1) * pageSize;
-        List<String>  goodsIdList = redisService.findByRangeString(goodsIdKey, goodsStart, goodsEnd -1);
+        List<String> goodsIdList = redisService.findByRangeString(goodsIdKey, goodsStart, goodsEnd - 1);
 
         if (CollectionUtils.isEmpty(goodsIdList)) {
             return BaseResponse.success(result);
@@ -151,7 +154,7 @@ public class ClassifyController {
         int bookListModelStart = pageNum * quotient;
         int bookListModelEnd = (pageNum + 1) * quotient;
         String bookListModelKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_BOOK_LIST_MODEL + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
-        List<String> bookListModelIdStrList = redisService.findByRangeString(bookListModelKey, bookListModelStart, bookListModelEnd -1);
+        List<String> bookListModelIdStrList = redisService.findByRangeString(bookListModelKey, bookListModelStart, bookListModelEnd - 1);
         if (!CollectionUtils.isEmpty(bookListModelIdStrList)) {
             List<Integer> bookListModelIdList = bookListModelIdStrList.stream().map(Integer::parseInt).collect(Collectors.toList());
             //获取书单列表
@@ -199,12 +202,13 @@ public class ClassifyController {
 
     /**
      * 获取分类页的商品列表
+     *
      * @param classifyGoodsAndBookListModelPageRequest
-     * @menu 新版首页
      * @return
+     * @menu 新版首页
      */
     @PostMapping("/list-by-classify-id")
-    public BaseResponse<MicroServicePage<BookListModelAndGoodsCustomResponse> > listByClassifyId(@Validated @RequestBody ClassifyGoodsAndBookListModelPageRequest classifyGoodsAndBookListModelPageRequest) {
+    public BaseResponse<MicroServicePage<BookListModelAndGoodsCustomResponse>> listByClassifyId(@Validated @RequestBody ClassifyGoodsAndBookListModelPageRequest classifyGoodsAndBookListModelPageRequest) {
         MicroServicePage<BookListModelAndGoodsCustomResponse> result = new MicroServicePage<>();
         result.setContent(new ArrayList<>());
         result.setTotal(0);
@@ -228,14 +232,26 @@ public class ClassifyController {
 
         esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
 
+        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+
         if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
         } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+            esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
 
+            if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
+                return BaseResponse.success(null);
+            }
         } else if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-
+            //按照时间排序
+            sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
+            esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+            if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
+                return BaseResponse.success(null);
+            }
         }
-        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+
         //拼装条件 0 表示推荐
         if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {
             //TODO

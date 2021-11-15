@@ -9,6 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -39,6 +40,11 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      * 知识顾问专享 0:不是 ，1：是
      */
     private Integer cpsSpecial;
+
+    /**
+     * 上架时间之后
+     */
+    private Date afterAddedTime;
 
     /**
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新

@@ -157,7 +157,10 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(rangeQuery("stock").gt(0));
             boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
-
+        // 大于或等于 上架时间
+        if (request.getAfterAddedTime() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTime").gte(DateUtil.format(request.getAfterAddedTime(), DateUtil.FMT_TIME_4)));
+        }
         // 大于或等于 搜索条件:创建时间开始
         if (request.getCreateTimeBegin() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").gte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));

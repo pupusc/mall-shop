@@ -2,6 +2,8 @@ package com.wanmi.sbc.classify.request;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * Description: 获取店铺分类列表中的商品信息
  * Company    : 上海黄豆网络科技有限公司
@@ -28,4 +30,9 @@ public class ClassifyGoodsAndBookListModelPageRequest {
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
      */
     private String anchorPushs;
+
+    /**
+     * 上架时间之后
+     */
+    private Date afterAddedTime;
 }
