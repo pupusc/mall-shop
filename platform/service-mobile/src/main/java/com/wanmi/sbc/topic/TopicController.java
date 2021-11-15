@@ -1,9 +1,9 @@
 package com.wanmi.sbc.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
+import com.wanmi.sbc.topic.response.TopicResponse;
+import com.wanmi.sbc.topic.service.TopicService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TopicController {
 
     @Autowired
-    private TopicConfigProvider topicConfigProvider;
+    private TopicService topicService;
 
     /**
      * @description 根据专题id返回页面数据
@@ -36,8 +36,8 @@ public class TopicController {
      */
     @ApiOperation(value = "根据专题id返回页面数据")
     @PostMapping(value = "detail")
-    public BaseResponse<TopicActivityVO> detail(@RequestBody TopicQueryRequest request) {
-        return topicConfigProvider.detail(request);
+    public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request) {
+        return topicService.detail(request);
     }
 
 
