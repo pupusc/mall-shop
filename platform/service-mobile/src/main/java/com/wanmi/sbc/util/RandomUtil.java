@@ -2,6 +2,7 @@ package com.wanmi.sbc.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -27,10 +28,12 @@ public class RandomUtil {
         if (backCount > rawCount) {
             backCount = rawCount;
         }
-        List<Integer> randomList = new ArrayList<>();
-        while (randomList.size() < backCount) {
+        Set<Integer> randomList = new HashSet<>();
+        int randomTimes = 0;
+        while (randomList.size() < backCount && randomTimes < 50) {
             int i = (int)(Math.random() * rawCount);       //  生成0-100的随机数
             randomList.add(i);
+            randomTimes++;
         }
         return randomList;
     }

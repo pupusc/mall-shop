@@ -6825,7 +6825,7 @@ public class TradeService {
             } else {
                 signVerified = AlipaySignature.rsaCheckV1(params, aliPayPublicKey, "UTF-8", "RSA2"); //调用SDK验证签名
             }
-            log.info("验证签名返回的结果为：{}" , signVerified);
+            log.info("{} 验证签名返回的结果为：{}" ,out_trade_no, signVerified);
         } catch (AlipayApiException e) {
             log.error("支付宝回调签名校验异常：", e);
         }
