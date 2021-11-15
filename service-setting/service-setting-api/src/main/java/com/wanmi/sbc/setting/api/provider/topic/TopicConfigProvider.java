@@ -59,4 +59,7 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/content/list")
     BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/modify/headimage")
+    BaseResponse modifyHeadImage(@RequestBody TopicHeadImageModifyRequest request);
 }

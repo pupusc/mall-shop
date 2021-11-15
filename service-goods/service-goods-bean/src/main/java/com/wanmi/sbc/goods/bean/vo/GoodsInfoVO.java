@@ -18,6 +18,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -614,6 +615,8 @@ public class GoodsInfoVO implements Serializable {
     @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
     private Boolean combinedCommodity;
 
+    @ApiModelProperty(name = "组合商品类型 0-组合商品 1-跨分类组合商品")
+    private Integer combinedType;
 
     /**
      * 企业购 设价类型,0:按市场价 1:按会员等级设价 2:按购买数量设价

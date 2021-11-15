@@ -14,6 +14,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
+import com.wanmi.sbc.goods.api.enums.HasTopEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
@@ -40,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -119,11 +121,11 @@ public class BookListModelController {
             throw new IllegalArgumentException("商品最大为100");
         }
         List<GoodsIdListRequest> checkParam = bookListMixRequest.getChooseRuleGoodsListModel().getGoodsIdListRequestList().stream()
-                .filter(ex -> StringUtils.isEmpty(ex.getSkuId()) ||
-                        StringUtils.isEmpty(ex.getSpuId()) ||
-                        StringUtils.isEmpty(ex.getSkuNo()) ||
-                        StringUtils.isEmpty(ex.getErpGoodsNo()) ||
-                        StringUtils.isEmpty(ex.getErpGoodsInfoNo())).collect(Collectors.toList());
+                .filter(ex -> StringUtils.isEmpty(ex.getSkuId())
+                                || StringUtils.isEmpty(ex.getSpuId())
+                                || StringUtils.isEmpty(ex.getSkuNo())
+                        /*|| StringUtils.isEmpty(ex.getErpGoodsNo())
+                        || StringUtils.isEmpty(ex.getErpGoodsInfoNo())*/).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(checkParam)) {
             throw new IllegalArgumentException("请求参数错误");
         }
@@ -255,6 +257,28 @@ public class BookListModelController {
             }
         }
         return BaseResponse.success(bookListMixResponse);
+    }
+
+
+    /**
+     * 置顶 0取消 1置顶 feature_d_v0.02
+     * @menu 后台CMS2.0
+     * @status undone
+     * @return
+     */
+    @GetMapping("/top/{bookListModelId}/{hasTop}")
+    public BaseResponse top(@PathVariable("bookListModelId") Integer bookListModelId, @PathVariable("hasTop") Integer hasTop){
+        if (HasTopEnum.getByCode(hasTop) == null) {
+            throw new IllegalStateException("K-000009");
+        }
+        BaseResponse<BookListModelProviderResponse> simpleBookListModelResponse =
+                bookListModelProvider.findSimpleById(BookListModelProviderRequest.builder().id(bookListModelId).build());
+        BookListModelProviderResponse simpleBookListModel = simpleBookListModelResponse.getContext();
+        if (Objects.equals(simpleBookListModel.getHasTop(), hasTop)) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        bookListModelProvider.top(bookListModelId, hasTop);
+        return BaseResponse.SUCCESSFUL();
     }
 
 

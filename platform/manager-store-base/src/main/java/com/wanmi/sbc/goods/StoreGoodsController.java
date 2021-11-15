@@ -26,6 +26,7 @@ import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
 import com.wanmi.sbc.elastic.api.response.spu.EsSpuPageResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.goods.api.provider.ares.GoodsAresProvider;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.excel.GoodsSupplierExcelProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -42,6 +43,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfRequest;
+import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByGoodsResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse;
@@ -147,6 +149,9 @@ public class StoreGoodsController {
     @Autowired
     private EnterpriseGoodsInfoQueryProvider enterpriseGoodsInfoQueryProvider;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
     /**
      * 查询商品
      *
@@ -173,17 +178,11 @@ public class StoreGoodsController {
 
         //补充店铺分类
         if(queryRequest.getStoreCateId() != null) {
-            BaseResponse<StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse>  baseResponse = storeCateQueryProvider.listGoodsRelByStoreCateIdAndIsHaveSelf(new StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfRequest(queryRequest.getStoreCateId(), true));
-            StoreCateListGoodsRelByStoreCateIdAndIsHaveSelfResponse cateIdAndIsHaveSelfResponse = baseResponse.getContext();
-            if (Objects.nonNull(cateIdAndIsHaveSelfResponse)) {
-                List<StoreCateGoodsRelaVO> relas = cateIdAndIsHaveSelfResponse.getStoreCateGoodsRelaVOList();
-                if (CollectionUtils.isEmpty(relas)) {
-                    EsSpuPageResponse response = new EsSpuPageResponse();
-                    response.setGoodsPage(new MicroServicePage<>(Collections.emptyList(), queryRequest.getPageable(), 0));
-                    return BaseResponse.success(response);
-                }
-                queryRequest.setStoreCateGoodsIds(relas.stream().map(StoreCateGoodsRelaVO::getGoodsId).collect(Collectors.toList()));
-            }else{
+            BaseResponse<List<ClassifyGoodsProviderResponse>> goodsIdsContext = classifyProvider.listGoodsIdByClassifyIdColl(Collections.singletonList(queryRequest.getStoreCateId().intValue()));
+            if(CollectionUtils.isNotEmpty(goodsIdsContext.getContext())){
+                List<ClassifyGoodsProviderResponse> goodsIds = goodsIdsContext.getContext();
+                queryRequest.setStoreCateGoodsIds(goodsIds.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toList()));
+            }else {
                 EsSpuPageResponse response = new EsSpuPageResponse();
                 response.setGoodsPage(new MicroServicePage<>(Collections.emptyList(), queryRequest.getPageable(), 0));
                 return BaseResponse.success(response);
@@ -195,25 +194,21 @@ public class StoreGoodsController {
         List<GoodsPageSimpleVO> goodses = response.getGoodsPage().getContent();
         if(CollectionUtils.isNotEmpty(goodses)) {
             List<String> goodsIds = goodses.stream().map(GoodsPageSimpleVO::getGoodsId).collect(Collectors.toList());
-            BaseResponse<StoreCateListByGoodsResponse> baseResponse = storeCateQueryProvider.listByGoods(new StoreCateListByGoodsRequest(goodsIds));
-            StoreCateListByGoodsResponse cateListByGoodsResponse = baseResponse.getContext();
-            if (Objects.isNull(cateListByGoodsResponse)){
-                return BaseResponse.success(response);
-            }
-            Map<String, List<StoreCateGoodsRelaVO>> storeCateMap = cateListByGoodsResponse.getStoreCateGoodsRelaVOList()
-                    .stream().collect(Collectors.groupingBy(StoreCateGoodsRelaVO::getGoodsId));
-            //为每个spu填充店铺分类编号
-            if(MapUtils.isNotEmpty(storeCateMap)){
-                goodses.stream()
-                        .filter(goods -> storeCateMap.containsKey(goods.getGoodsId()))
-                        .forEach(goods -> {
-                            goods.setStoreCateIds(storeCateMap.get(goods.getGoodsId()).stream().map(StoreCateGoodsRelaVO::getStoreCateId).filter(id -> id != null).collect(Collectors.toList()));
-                        });
+            BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds);
+            if(mapBaseResponse.getContext() != null){
+                Map<String, List<Integer>> storeCateMap = mapBaseResponse.getContext();
+                for (GoodsPageSimpleVO goods : goodses) {
+                    List<Integer> classifies = storeCateMap.get(goods.getGoodsId());
+                    if(classifies == null){
+                        goods.setStoreCateIds(new ArrayList<>());
+                    }else{
+                        goods.setStoreCateIds(classifies.stream().map(Integer::longValue).collect(Collectors.toList()));
+                    }
+                }
             }
         }
         return BaseResponse.success(response);
     }
-
 
     /**
      * 查询商品列表(供添加拼团活动中选择商品用)

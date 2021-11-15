@@ -11,8 +11,6 @@ public class HeadImageConfigAddRequest implements Serializable {
 
     private static final long serialVersionUID = -797995665161219409L;
 
-    @ApiModelProperty("主键，编辑的时候传，新增接口过滤")
-    private Integer id;
 
     @ApiModelProperty("主题id")
     private Integer topicId;

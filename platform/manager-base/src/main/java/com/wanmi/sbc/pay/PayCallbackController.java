@@ -1089,7 +1089,7 @@ public class PayCallbackController {
                 params.put(name, valueStr);
             }
             String aliPayResultStr = JSONObject.toJSONString(params);
-            log.info(" 支付宝回调 参数 param: {}", aliPayResultStr);
+            log.info(" 支付宝回调 参数 param: {} out_trade_no:{}", aliPayResultStr, out_trade_no);
             //支付和退款公用一个回调，所以要判断回调的类型
             if (params.containsKey("refund_fee")) {
                 //退款只有app支付的订单有回调，退款的逻辑在同步方法中已经处理了，这儿不再做处理

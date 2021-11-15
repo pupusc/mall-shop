@@ -134,7 +134,9 @@ public class GoodsEvaluateService {
         goodsEvaluate.setGoodsId(res.getGoods().getGoodsId());
         goodsEvaluate.setGoodsInfoId(res.getGoodsInfo().getGoodsInfoId());
         goodsEvaluate.setGoodsInfoName(res.getGoodsInfo().getGoodsInfoName());
-        goodsEvaluate.setGoodsImg(res.getImages().get(0).getArtworkUrl());
+        if(CollectionUtils.isNotEmpty(res.getImages())){
+            goodsEvaluate.setGoodsImg(res.getImages().get(0).getArtworkUrl());
+        }
         goodsEvaluate.setCustomerName(bookFriendEvaluateAddRequest.customerName);
         goodsEvaluate.setEvaluateContent(bookFriendEvaluateAddRequest.evaluateContent);
         LocalDateTime time = bookFriendEvaluateAddRequest.evaluateTime == null ? LocalDateTime.now()

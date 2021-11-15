@@ -48,6 +48,21 @@ public class RedisListService {
     /**
      * 从redis 中查询数据
      */
+    public boolean putAllStr(final String key, List list, long minutes) {
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
+        }
+        redisTemplate.setValueSerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, String> operations = redisTemplate.opsForList();
+        operations.rightPushAll(key, list);
+        redisTemplate.expire(key, minutes, TimeUnit.MINUTES);
+        return true;
+    }
+
+    /**
+     * 从redis 中查询数据
+     */
     public List<JSONObject> findByRange(final String key, Integer start, Integer end) {
         redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
         redisTemplate.setValueSerializer(new FastJsonRedisSerializer(Object.class));
@@ -62,4 +77,23 @@ public class RedisListService {
         List<JSONObject> lists = operations.range(key, start, end);
         return lists;
     }
+
+    /**
+     * 从redis 中查询数据
+     */
+    public List<String> findByRangeString(final String key, Integer start, Integer end) {
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setValueSerializer(redisTemplate.getStringSerializer());
+        ListOperations<String, String> operations = redisTemplate.opsForList();
+        Long size = operations.size(key);
+        if (start > size) {
+            return new ArrayList<>();
+        }
+        if (end > size) {
+            end = size.intValue();
+        }
+        List<String> lists = operations.range(key, start, end);
+        return lists;
+    }
+
 }

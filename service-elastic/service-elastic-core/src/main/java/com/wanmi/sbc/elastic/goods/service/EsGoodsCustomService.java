@@ -3,6 +3,7 @@ package com.wanmi.sbc.elastic.goods.service;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
@@ -13,9 +14,9 @@ import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -25,6 +26,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -148,6 +150,28 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(rangeQuery("stock").gt(0));
             boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
+
+        // 大于或等于 搜索条件:创建时间开始
+        if (request.getCreateTimeBegin() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").gte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));
+        }
+        // 小于或等于 搜索条件:创建时间截止
+        if (request.getCreateTimeEnd() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").lte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));
+        }
+
+        if (!StringUtils.isEmpty(request.getScriptSpecialOffer())) {
+            boolQueryBuilder.filter(QueryBuilders.scriptQuery(new Script("(doc['goodsInfos.marketPrice'].value / doc['goodsExtProps.price'].value) < " + request.getScriptSpecialOffer())));
+        }
+
+        //这个必须的放到最后，因为是或者操作
+        if (!StringUtils.isEmpty(request.getClassifyIdList())) {
+            BoolQueryBuilder shouldBuilder = new BoolQueryBuilder();
+            shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("storeCateIds", request.getClassifyIdList())));
+            shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList())));
+            return shouldBuilder;
+        }
+
         return boolQueryBuilder;
     }
 

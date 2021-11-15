@@ -329,9 +329,12 @@ public class TradePushERPService {
         TradeState tradeState = trade.getTradeState();
 
         //积分价格
+
         BigDecimal pointsPrice=tradePrice.getPointsPrice();
+
         if(tradePrice.getActualPoints() != null ){
             pointsPrice = tradePrice.getActualPoints();
+
         }
         //现金价格
         BigDecimal totalPrice=tradePrice.getTotalPrice();

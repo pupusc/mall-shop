@@ -5,13 +5,11 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoDetailByGoodsInfoResponse;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeQueryRequest;
 import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
@@ -28,7 +26,6 @@ import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.repository.CouponMarketingScopeRepository;
 import com.wanmi.sbc.marketing.coupon.service.CouponCacheService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
-import com.wanmi.sbc.marketing.distribution.service.DistributionCacheService;
 import com.wanmi.sbc.marketing.plugin.IGoodsDetailPlugin;
 import com.wanmi.sbc.marketing.plugin.IGoodsListPlugin;
 import com.wanmi.sbc.marketing.plugin.ITradeCommitPlugin;
@@ -42,6 +39,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +65,9 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
     @Autowired
     private StoreCateQueryProvider storeCateQueryProvider;
 
+    @Autowired
+    private ClassifyProvider classifyProvider;
+
     /**
      * 商品列表处理
      *
@@ -81,29 +82,23 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
         List<String> goodsIds=new ArrayList<>();
         goodsInfos.forEach(goodsInfo -> {
             goodsIds.add(goodsInfo.getGoodsId());
-
         });
 
         //去重
-        List<String> distinctGoodsIds = new ArrayList<>();
-        distinctGoodsIds = goodsIds.stream().distinct().collect(Collectors.toList());
+        List<String> distinctGoodsIds = goodsIds.stream().distinct().collect(Collectors.toList());
 
         //优化 将goodsid对应的店铺分类放置内存中
         //组装店铺分类
-        List<StoreCateGoodsRelaVO> storeCateGoodsRelaVOS = storeCateQueryProvider.listByGoods(
-                new StoreCateListByGoodsRequest(distinctGoodsIds)).getContext().getStoreCateGoodsRelaVOList();
-        HashMap<String,List<Long>> storeCateIdMap = new HashMap<>();
-        for(int i=0 ; i<storeCateGoodsRelaVOS.size();i++){
-            List<Long> storeCateId=new ArrayList<>();
-            storeCateId.add(storeCateGoodsRelaVOS.get(i).getStoreCateId());
-            if(i==0){
-                storeCateIdMap.put(storeCateGoodsRelaVOS.get(i).getGoodsId(),storeCateId);
-            }
-        }
+        Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(distinctGoodsIds).getContext();
 
         couponCacheService.refreshCache();
         goodsInfos.forEach(item -> {
-            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),storeCateIdMap.get(item.getGoodsId()));
+            List<Integer> classifyIds = storeCateIdMap.get(item.getGoodsId());
+            List<Long> classifyIdLong = null;
+            if(classifyIds != null){
+                classifyIdLong = classifyIds.stream().map(Integer::longValue).collect(Collectors.toList());
+            }
+            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),classifyIdLong);
             List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
                     CouponLabelVO.builder()
                             .couponActivityId(cache.getCouponActivityId())

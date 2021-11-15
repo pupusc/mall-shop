@@ -27,6 +27,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -111,6 +112,9 @@ public class BookListModelClassifyRelService {
         if (CollectionUtils.isEmpty(request.getBusinessTypeList())
             || CollectionUtils.isEmpty(request.getClassifyIdColl())) {
             return new ArrayList<>();
+        }
+        if (CollectionUtils.isEmpty(request.getUnShowBookListModelIdList())) {
+            request.setUnShowBookListModelIdList(Collections.singletonList(-1));
         }
         Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize());
         Page<BookListModelClassifyLinkResponse> bookListModelClassifyLinkResponses =

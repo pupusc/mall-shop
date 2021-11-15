@@ -82,6 +82,13 @@ public class TopicConfigService {
         topicHeadImageRepository.save(headImage);
     }
 
+    public void modifyHeadImage(TopicHeadImageModifyRequest request){
+        TopicHeadImage headImage = KsBeanUtil.convert(request, TopicHeadImage.class);
+        headImage.setCreateTime(LocalDateTime.now());
+        headImage.setUpdateTime(LocalDateTime.now());
+        headImage.setDeleted(DeleteFlag.NO.toValue());
+        topicHeadImageRepository.save(headImage);
+    }
 
     public List<TopicHeadImageDTO> listHeadImage(TopicHeadImageQueryRequest request){
         List<TopicHeadImage> list = topicHeadImageRepository.getByTopicId(request.getTopicId());
@@ -125,7 +132,8 @@ public class TopicConfigService {
         if(CollectionUtils.isEmpty(storeys)){
             return topicVO;
         }
-        topicVO.setStoreyList(KsBeanUtil.convertList(storeys, TopicStoreyDTO.class));
+        List<TopicStorey> sortStoreys = storeys.stream().sorted(Comparator.comparing(TopicStorey::getSorting)).collect(Collectors.toList());
+        topicVO.setStoreyList(KsBeanUtil.convertList(sortStoreys, TopicStoreyDTO.class));
         List<TopicStoreyContent> contents = contentRepository.getByTopicId(topic.getId());
         if(CollectionUtils.isEmpty(contents)){
             return topicVO;
@@ -134,8 +142,8 @@ public class TopicConfigService {
             List<TopicStoreyContent> items = contents.stream().filter(g->g.getStoreyId().equals(p.getId())).sorted().collect(Collectors.toList());;
             if(CollectionUtils.isNotEmpty(items)){
                 //排序
-                items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting));
-                p.setContents(KsBeanUtil.convertList(items, TopicStoreyContentDTO.class));
+                List<TopicStoreyContent> sortContents = items.stream().sorted(Comparator.comparing(TopicStoreyContent::getType).thenComparing(TopicStoreyContent::getSorting)).collect(Collectors.toList());
+                p.setContents(KsBeanUtil.convertList(sortContents, TopicStoreyContentDTO.class));
             }
         });
         return topicVO;

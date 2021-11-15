@@ -1,10 +1,15 @@
 package com.wanmi.sbc.booklistmodel.request;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -36,6 +41,11 @@ public class BookListModelRequest {
     private String desc;
 
     /**
+     * 名家名称 ✅Add feature_d_v0.02
+     */
+    private String famousName;
+
+    /**
      * 书单模板类型 1 排行榜 2 书单 3 编辑推荐 4 专题 ✅Add
      */
     @NotNull(groups = BookListModelRequest.Add.class, message = "模板类型为空")
@@ -54,6 +64,12 @@ public class BookListModelRequest {
     private String headImgUrl;
 
     /**
+     * 方图 ✅Add feature_d_v0.02
+     */
+    @NotBlank(message = "方图不能为空")
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     private String headImgHref;
@@ -63,6 +79,34 @@ public class BookListModelRequest {
      */
     private String pageHref;
 
+    /**
+     * 是否置顶 0否 1 是 ✅Add feature_d_v0.02
+     */
+    private Integer hasTop;
+
+    /**
+     * 标签类型 标签类型 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private Integer tagType;
+
+    /**
+     * 标签类型名称 1 新上 2 热门 3 自定义 ✅Add feature_d_v0.02
+     */
+    private String tagName;
+
+    /**
+     * 标签有效开始时间 ✅Add feature_d_v0.02
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime tagValidBeginTime;
+
+    /**
+     * 标签有效结束时间 ✅Add feature_d_v0.02
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime tagValidEndTime;
 
 
     public interface Add{}

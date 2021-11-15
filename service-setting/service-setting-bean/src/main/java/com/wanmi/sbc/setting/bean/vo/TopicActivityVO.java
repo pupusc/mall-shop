@@ -5,6 +5,7 @@ import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.checkerframework.checker.units.qual.A;
 
 import java.io.Serializable;
 import java.util.List;
@@ -19,4 +20,11 @@ public class TopicActivityVO implements Serializable {
 
     @ApiModelProperty("楼层信息")
     private List<TopicStoreyDTO> storeyList;
+
+    @ApiModelProperty("专题名称")
+    private String topicName;
+
+    @ApiModelProperty("背景色")
+    private String background;
+
 }

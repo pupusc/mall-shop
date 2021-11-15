@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Version;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -35,6 +36,12 @@ public class BookListModelDTO {
     private String name;
 
     /**
+     * 名家名人
+     */
+    @Column(name = "famous_name")
+    private String famousName;
+
+    /**
      * 描述
      */
     @Column(name = "description")
@@ -53,6 +60,12 @@ public class BookListModelDTO {
     private String headImgUrl;
 
     /**
+     * 头图方图
+     */
+    @Column(name = "head_square_img_url")
+    private String headSquareImgUrl;
+
+    /**
      * 头图跳转地址
      */
     @Column(name = "head_img_href")
@@ -63,6 +76,36 @@ public class BookListModelDTO {
      */
     @Column(name = "page_href")
     private String pageHref;
+
+    /**
+     * 是否置顶 0否 1 是
+     */
+    @Column(name = "has_top")
+    private Integer hasTop;
+
+    /**
+     * 标签类型 1 新上 2 热门 3 自定义
+     */
+    @Column(name = "tag_type")
+    private Integer tagType;
+
+    /**
+     * 标签名称
+     */
+    @Column(name = "tag_name")
+    private String tagName;
+
+    /**
+     * 标签有效结束时间
+     */
+    @Column(name = "tag_valid_end_time")
+    private LocalDateTime tagValidEndTime;
+
+    /**
+     * 标签有效开始时间
+     */
+    @Column(name = "tag_valid_begin_time")
+    private LocalDateTime tagValidBeginTime;
 
     /**
      * 发布状态 0 草稿 1 已编辑未发布 2 已发布
