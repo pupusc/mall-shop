@@ -29,7 +29,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
@@ -161,8 +160,9 @@ public class EsGoodsCustomService {
         }
         // 大于或等于 上架时间
         if (request.getAfterAddedTime() != null) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTime").gte(DateUtil.format(request.getAfterAddedTime(), DateUtil.FMT_TIME_4)));
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTime").lte(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4)));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTime")
+                    .gte(DateUtil.format(request.getAfterAddedTime(), DateUtil.FMT_TIME_4))
+                    .lte(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4)));
         }
         // 大于或等于 搜索条件:创建时间开始
         if (request.getCreateTimeBegin() != null) {

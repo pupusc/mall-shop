@@ -181,7 +181,7 @@ public class EsGoods implements Serializable {
     /**
      * 商品销量
      */
-    @Field(index = false, type = FieldType.Long)
+    @Field(type = FieldType.Long)
     private Long goodsSalesNum;
 
     /**

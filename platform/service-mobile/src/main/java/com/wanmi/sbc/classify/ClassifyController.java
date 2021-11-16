@@ -250,6 +250,7 @@ public class ClassifyController {
                 //按照销售数量排序
                 sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+                esGoodsCustomRequest.setPageNum(0);
                 esGoodsCustomRequest.setPageSize(page_size);
                 esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
@@ -269,6 +270,7 @@ public class ClassifyController {
                 esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
                 esGoodsCustomRequest.setPageSize(page_size);
+                esGoodsCustomRequest.setPageNum(0);
                 esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
                 List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
@@ -288,6 +290,7 @@ public class ClassifyController {
             } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
                 sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             }
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
         } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 1) {
             //按照评分排序
             sortBuilderList.add(new SortCustomBuilder("goodsExtProps.score", SortOrder.DESC));
