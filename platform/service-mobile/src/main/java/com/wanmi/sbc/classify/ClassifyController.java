@@ -251,12 +251,13 @@ public class ClassifyController {
                 sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
                 esGoodsCustomRequest.setPageSize(page_size);
+                esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
                 List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
                 List<String> goodIds = esGoodsVOList.stream().map(goodVo -> goodVo.getId()).collect(Collectors.toList());
                 esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
                 esGoodsCustomRequest.setGoodIdList(goodIds);
-                redis.setString(CLASS_HOT_KEY, String.join(",", goodIds), 1000 * 60 * 10);
+                redis.setString(CLASS_HOT_KEY, String.join(",", goodIds), 60 * 10);
             }
         } else if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             if (redis.hasKey(CLASS_NEW_KEY)) {
@@ -268,12 +269,13 @@ public class ClassifyController {
                 esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
                 esGoodsCustomRequest.setPageSize(page_size);
+                esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
                 List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
                 List<String> goodIds = esGoodsVOList.stream().map(goodVo -> goodVo.getId()).collect(Collectors.toList());
                 esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
                 esGoodsCustomRequest.setGoodIdList(goodIds);
-                redis.setString(CLASS_NEW_KEY, String.join(",", goodIds), 1000 * 60 * 10);
+                redis.setString(CLASS_NEW_KEY, String.join(",", goodIds), 60 * 10);
             }
         }
 
