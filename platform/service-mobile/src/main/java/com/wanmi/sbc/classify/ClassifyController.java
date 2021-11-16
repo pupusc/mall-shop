@@ -73,6 +73,17 @@ public class ClassifyController {
     @Autowired
     private BookListModelProvider bookListModelProvider;
 
+
+    private static final Integer page_size = 80;
+
+    /**
+     * 分类上新80条数据KEY
+     */
+    private static final String CLASS_NEW_KEY = "CLASS:NEW:KEY";
+    /**
+     * 分类热销80条数据KEY
+     */
+    private static final String CLASS_HOT_KEY = "CLASS:HOT:KEY";
     /**
      * 分类  获取分类信息
      *
@@ -225,33 +236,49 @@ public class ClassifyController {
             Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
             esGoodsCustomRequest.setClassifyIdList(childClassifySet);
         }
-        //获取二级分类列表
-        esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
-        esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
+
+
         List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
 
         if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
         } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-            esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
-            //按照销售数量排序
-            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
-            if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
-                return BaseResponse.success(null);
+            if (redis.hasKey(CLASS_HOT_KEY)) {
+                esGoodsCustomRequest.setGoodIdList(Arrays.asList(redis.getString(CLASS_HOT_KEY).split(",")));
+            } else {
+                esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
+                //按照销售数量排序
+                sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+                esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+                esGoodsCustomRequest.setPageSize(page_size);
+                MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
+                List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
+                List<String> goodIds = esGoodsVOList.stream().map(goodVo -> goodVo.getId()).collect(Collectors.toList());
+                esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+                esGoodsCustomRequest.setGoodIdList(goodIds);
+                redis.setString(CLASS_HOT_KEY, String.join(",", goodIds), 1000 * 60 * 10);
             }
         } else if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-            //按照时间排序
-
-            sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
-            esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
-            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
-            if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
-                return BaseResponse.success(null);
+            if (redis.hasKey(CLASS_NEW_KEY)) {
+                esGoodsCustomRequest.setGoodIdList(Arrays.asList(redis.getString(CLASS_NEW_KEY).split(",")));
+            } else {
+                //按照时间排序
+                sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
+                esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
+                esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+                esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+                esGoodsCustomRequest.setPageSize(page_size);
+                MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
+                List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();
+                List<String> goodIds = esGoodsVOList.stream().map(goodVo -> goodVo.getId()).collect(Collectors.toList());
+                esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+                esGoodsCustomRequest.setGoodIdList(goodIds);
+                redis.setString(CLASS_NEW_KEY, String.join(",", goodIds), 1000 * 60 * 10);
             }
         }
 
+        esGoodsCustomRequest.setPageNum(classifyGoodsAndBookListModelPageRequest.getPageNum());
+        esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
         //拼装条件 0 表示推荐
         if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {
             //TODO
