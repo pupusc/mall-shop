@@ -174,6 +174,11 @@ public class EsGoodsCustomService {
             boolQueryBuilder.filter(QueryBuilders.scriptQuery(new Script("(doc['goodsInfos.marketPrice'].value / doc['goodsExtProps.price'].value) < " + request.getScriptSpecialOffer())));
         }
 
+        // 1 表示图书
+        if (request.getBookFlag() != null && request.getBookFlag() == 1) {
+            boolQueryBuilder.must(termQuery("goodsCate.bookFlag", request.getBookFlag()));
+        }
+
         //这个必须的放到最后，因为是或者操作
         if (!StringUtils.isEmpty(request.getClassifyIdList())) {
             BoolQueryBuilder shouldBuilder = new BoolQueryBuilder();

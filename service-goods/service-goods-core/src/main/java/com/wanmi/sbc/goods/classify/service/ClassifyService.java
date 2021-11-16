@@ -69,17 +69,20 @@ public class ClassifyService {
                 parent.setChildrenList(new ArrayList<>());
                 resultMap.put(classifyParam.getId(), parent);
                 result.add(parent);
-            } else {
-                ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
-                if (parent == null) {
-                    continue;
-                }
-                ClassifyProviderResponse children = new ClassifyProviderResponse();
-                children.setId(classifyParam.getId());
-                children.setClassifyName(classifyParam.getClassifyName());
-                parent.getChildrenList().add(children);
             }
-        };
+        }
+
+        for (ClassifyDTO classifyParam : classifyDTOList) {
+            if (classifyParam.getParentId() == null || classifyParam.getParentId() == 0) {
+                continue;
+            }
+            ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
+            ClassifyProviderResponse children = new ClassifyProviderResponse();
+            children.setId(classifyParam.getId());
+            children.setClassifyName(classifyParam.getClassifyName());
+            parent.getChildrenList().add(children);
+        }
+
         return result;
     }
 
@@ -127,8 +130,7 @@ public class ClassifyService {
             classifyDTO.setLevel(2);
         }
         classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
-//        classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
-        classifyDTO.setOrderNum(0);
+        classifyDTO.setOrderNum(9999); //后续更改
         classifyDTO.setCreateTime(new Date());
         classifyDTO.setUpdateTime(new Date());
         classifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
