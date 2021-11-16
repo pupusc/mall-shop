@@ -25,7 +25,6 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.RedisKeyUtil;
-import org.apache.commons.lang3.time.DateUtils;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +37,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -233,7 +233,7 @@ public class ClassifyController {
         if (Arrays.asList("1", "2", "3").contains(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             esGoodsCustomRequest.setAnchorPushs(classifyGoodsAndBookListModelPageRequest.getAnchorPushs());
         } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-            esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
+            esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
             //按照销售数量排序
             sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
@@ -242,8 +242,9 @@ public class ClassifyController {
             }
         } else if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
             //按照时间排序
+
             sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
-            esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
+            esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {

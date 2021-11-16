@@ -9,7 +9,6 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,12 +43,14 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     /**
      * 上架时间之后
      */
-    private Date afterAddedTime;
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime afterAddedTime;
 
     /**
      * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
      */
-    private String anchorPushs = org.apache.commons.lang3.StringUtils.EMPTY;
+    private String anchorPushs;
     /**
      * 是否展示无库存
      */
