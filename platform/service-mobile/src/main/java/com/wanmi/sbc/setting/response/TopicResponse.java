@@ -1,7 +1,6 @@
-package com.wanmi.sbc.topic.response;
+package com.wanmi.sbc.setting.response;
 
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

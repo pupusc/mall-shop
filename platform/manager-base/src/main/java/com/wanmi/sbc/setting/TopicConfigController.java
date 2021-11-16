@@ -1,4 +1,4 @@
-package com.wanmi.sbc.topic;
+package com.wanmi.sbc.setting;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -163,5 +164,12 @@ public class TopicConfigController {
     @PostMapping("/storey/content/list")
     public  BaseResponse<TopicStoreyContentResponse> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request){
         return topicConfigProvider.listStoryContent(request);
+    }
+
+
+    @ApiOperation("上传氛围信息")
+    @PostMapping("/upload/atoms")
+    public  BaseResponse uploadAutomsFile(@RequestParam("uploadFile") MultipartFile uploadFile){
+
     }
 }

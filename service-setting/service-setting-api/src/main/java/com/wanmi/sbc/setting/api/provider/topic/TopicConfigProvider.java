@@ -63,4 +63,6 @@ public interface TopicConfigProvider {
 
     @PostMapping("/setting/${application.setting.version}/topic/modify/headimage")
     BaseResponse modifyHeadImage(@RequestBody TopicHeadImageModifyRequest request);
+
+
 }
