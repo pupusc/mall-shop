@@ -13,6 +13,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.api.enums.BookFlagEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
@@ -235,6 +236,7 @@ public class ClassifyController {
             esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
             //按照销售数量排序
             sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
                 return BaseResponse.success(null);
             }
@@ -243,6 +245,7 @@ public class ClassifyController {
             sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
             esGoodsCustomRequest.setAfterAddedTime(DateUtils.addDays(new Date(), -30));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+            esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
             if (classifyGoodsAndBookListModelPageRequest.getPageNum() > 8) {
                 return BaseResponse.success(null);
             }
