@@ -281,7 +281,11 @@ public class ClassifyController {
         esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
         //拼装条件 0 表示推荐
         if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {
-            //TODO
+            if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+                sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
+            } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
+                sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            }
         } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 1) {
             //按照评分排序
             sortBuilderList.add(new SortCustomBuilder("goodsExtProps.score", SortOrder.DESC));
