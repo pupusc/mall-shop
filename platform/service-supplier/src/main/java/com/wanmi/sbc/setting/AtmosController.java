@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  */
 @Api(tags = "AtmosController", description = "氛围配置")
 @RestController
-@RequestMapping("/atoms")
+@RequestMapping("/atmos")
 public class AtmosController {
     @Autowired
     private AtmosService atmosService;
