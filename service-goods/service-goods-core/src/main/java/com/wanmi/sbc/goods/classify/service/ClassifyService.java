@@ -119,7 +119,7 @@ public class ClassifyService {
      */
     public List<ClassifyProviderResponse> listIndexClassify() {
         List<ClassifyProviderResponse> result = new ArrayList<>();
-        Sort sort = Sort.by(Sort.Direction.ASC, "index_order_num").and(Sort.by(Sort.Direction.ASC, "updateTime"));
+        Sort sort = Sort.by(Sort.Direction.ASC, "indexOrderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
         List<ClassifyDTO> resultList = classifyRepository.findAll(this.packageWhere(null, null, 1), sort);
         for (ClassifyDTO classifyParam : resultList) {
             result.add(this.classifyDTO2ClassifyProviderResponse(classifyParam));

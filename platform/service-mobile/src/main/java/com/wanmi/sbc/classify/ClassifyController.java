@@ -92,7 +92,8 @@ public class ClassifyController {
 
 
     /**
-     * 分类  获取首页分类信息
+     * 分类获取首页分类信息
+     *
      * @menu 新版首页
      *
      * @return

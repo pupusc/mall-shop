@@ -132,7 +132,8 @@ public class ClassifyController {
 
 
     /**
-     * 修改首页的排序
+     * 后台分类 修改首页的排序
+     * @menu 后台CMS2.0
      * @param classifyIndexSortRequest
      * @return
      */
@@ -148,7 +149,8 @@ public class ClassifyController {
 
 
     /**
-     * 排序
+     * 后台分类 排序
+     * @menu 后台CMS2.0
      * @param sortProviderRequestList
      * @return
      */
