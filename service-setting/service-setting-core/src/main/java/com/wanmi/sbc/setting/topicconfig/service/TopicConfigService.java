@@ -129,7 +129,7 @@ public class TopicConfigService {
         TopicActivityVO topicVO = new TopicActivityVO();
         List<TopicHeadImage> images = topicHeadImageRepository.getByTopicId(topic.getId());
         topicVO.setHeadImageList(KsBeanUtil.convertList(images, TopicHeadImageDTO.class));
-        List<TopicStorey> storeys = storeyRepository.getByTopicId(topic.getId());
+        List<TopicStorey> storeys = storeyRepository.getAvailByTopicId(topic.getId());
         if(CollectionUtils.isEmpty(storeys)){
             return topicVO;
         }

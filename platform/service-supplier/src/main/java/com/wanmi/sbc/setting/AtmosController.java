@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -14,6 +15,7 @@ import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
@@ -82,10 +84,26 @@ public class AtmosController {
         return BaseResponse.success(res);
     }
 
+    /**
+     * @description 氛围列表
+     * @menu 氛围配置
+     * @status undone
+     */
     @ApiOperation(value = "氛围列表")
     @PostMapping(value = "/page")
-    public BaseResponse<String> page() {
-        return BaseResponse.success("");
+    public BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request) {
+        return BaseResponse.success(new MicroServicePage<>());
+    }
+
+    /**
+     * @description 删除氛围
+     * @menu 氛围配置
+     * @status undone
+     */
+    @ApiOperation(value = "删除氛围")
+    @GetMapping(value = "/delete")
+    public BaseResponse delete(@RequestParam("id")Integer id) {
+        return BaseResponse.SUCCESSFUL();
     }
 
     private final Function<Workbook, List<AtmosphereDTO>> analysisFunctionByAtmos = (workbook) -> {
@@ -127,7 +145,7 @@ public class AtmosController {
             atmosphereDTO.setImageUrl(ExcelHelper.getValue(cells[5]).trim());
             String elementOne = ExcelHelper.getValue(cells[6]).trim();
             String elementTwo = ExcelHelper.getValue(cells[7]).trim();
-            String elementThird = ExcelHelper.getValue(cells[8]).trim();
+            String elementThree = ExcelHelper.getValue(cells[8]).trim();
             String elementFour = ExcelHelper.getValue(cells[9]).trim();
             //开始结束时间校验
             try{
@@ -189,11 +207,11 @@ public class AtmosController {
                 skuNos.put(atmosphereDTO.getSkuNo(), cells[3]);
             }
             //文字
-            Map<Integer,String> map  = new HashMap<>(16);
-            map.put(1,elementOne);
-            map.put(2,elementTwo);
-            map.put(3,elementThird);
-            map.put(4,elementFour);
+            Map<String,String> map  = new HashMap<>(16);
+            map.put("elementOne",elementOne);
+            map.put("elementTwo",elementTwo);
+            map.put("elementThree",elementThree);
+            map.put("elementFour",elementFour);
             atmosphereDTO.setElementDesc(JSON.toJSONString(map));
             list.add(atmosphereDTO);
 

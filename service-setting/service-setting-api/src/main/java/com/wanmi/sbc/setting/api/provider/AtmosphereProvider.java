@@ -6,8 +6,10 @@ import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.ConfigStatusModifyByTypeAndKeyRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -26,4 +28,6 @@ public interface AtmosphereProvider {
     @PostMapping("/setting/${application.setting.version}/atmos/page")
     BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request);
 
+    @GetMapping("/setting/${application.setting.version}/atmos/delete")
+    BaseResponse delete(@RequestParam("id") Integer id);
 }
