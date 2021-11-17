@@ -42,26 +42,34 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
             return;
         }
         List<Long> marketingIds = marketingList.stream().map(MarketingResponse::getMarketingId).collect(Collectors.toList());
+        List<String> skuIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
 
         Map<String, List<MarketingResponse>> marketingMap = request.getMarketingMap();
         Map<Long, String> labelMap = null;
+        List<MarketingPointBuyLevel> levelsMap = null;
         for (GoodsInfoVO goodsInfo : goodsInfos) {
             List<MarketingResponse> marketingResponses = marketingMap.get(goodsInfo.getGoodsInfoId());
             if(marketingResponses != null){
                 for (MarketingResponse marketingRespons : marketingResponses) {
                     if(MarketingType.POINT_BUY.equals(marketingRespons.getMarketingType())){
-                        if(labelMap == null){
-                            List<MarketingPointBuyLevel> levelsMap = marketingPointBuyLevelRepository.findAllByMarketingIdIn(marketingIds);
+                        if(labelMap == null || levelsMap == null){
+                            levelsMap = marketingPointBuyLevelRepository.findAllByMarketingIdInAndSkuIdIn(marketingIds, skuIds);
                             labelMap = new HashMap<>();
                             for (MarketingPointBuyLevel marketingPointBuyLevel : levelsMap) {
-                                labelMap.put(marketingPointBuyLevel.getMarketingId(), marketingPointBuyLevel.getPointNeed() + "积分+" + marketingPointBuyLevel.getMoney() + "元换购");
+                                labelMap.put(marketingPointBuyLevel.getMarketingId(), marketingPointBuyLevel.getPointNeed() + "积分换购");
                             }
                         }
-                        MarketingLabelVO label = new MarketingLabelVO();
-                        label.setMarketingId(marketingRespons.getMarketingId());
-                        label.setMarketingType(marketingRespons.getMarketingType().toValue());
-                        label.setMarketingDesc(labelMap.get(marketingRespons.getMarketingId()));
-                        goodsInfo.getMarketingLabels().add(label);
+                        for (MarketingPointBuyLevel marketingPointBuyLevel : levelsMap) {
+                            if(marketingPointBuyLevel.getSkuId().equals(goodsInfo.getGoodsInfoId())){
+                                MarketingLabelVO label = new MarketingLabelVO();
+                                label.setMarketingId(marketingRespons.getMarketingId());
+                                label.setMarketingType(marketingRespons.getMarketingType().toValue());
+                                label.setMarketingDesc(labelMap.get(marketingRespons.getMarketingId()));
+                                label.setPrice(marketingPointBuyLevel.getPrice());
+                                goodsInfo.getMarketingLabels().add(label);
+                                break;
+                            }
+                        }
                     }
                 }
             }

@@ -4,8 +4,10 @@ import com.wanmi.sbc.marketing.common.request.MarketingSaveRequest;
 import com.wanmi.sbc.marketing.discount.model.entity.MarketingPointBuyLevel;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class MarketingPointBuySaveRequest extends MarketingSaveRequest {
 
-    private MarketingPointBuyLevel marketingPointBuyLevel;
+    private List<MarketingPointBuyLevel> marketingPointBuyLevel;
 }

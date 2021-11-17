@@ -26,9 +26,10 @@ public class MarketingPointBuyController {
     private MarketingPointBuyProvider marketingPointBuyProvider;
 
     /**
-     * 新增满减营销信息
+     * @description 添加积分营销
      * @param request
-     * @return
+     * @menu 积分营销
+     * @status done
      */
     @ApiOperation(value = "积分换购活动")
     @RequestMapping(method = RequestMethod.POST)
@@ -41,9 +42,10 @@ public class MarketingPointBuyController {
     }
 
     /**
-     * 修改满折营销信息
+     * @description 修改积分营销
      * @param request
-     * @return
+     * @menu 积分营销
+     * @status done
      */
     @ApiOperation(value = "修改积分换购活动")
     @RequestMapping(method = RequestMethod.PUT)

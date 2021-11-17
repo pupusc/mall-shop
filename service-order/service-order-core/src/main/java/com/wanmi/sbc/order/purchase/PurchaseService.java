@@ -2485,7 +2485,6 @@ public class PurchaseService {
             goodsInfoIds.addAll(request.getGoodsInfoIds());
         }
 
-
         // 2.查询商品、店铺、营销相关信息
         //todo 考虑未登录情况 by wugongjiang
         GoodsInfoForPurchaseResponse goodsResp = goodsCommonQueryProvider.queryInfoForPurchase(
@@ -2631,22 +2630,22 @@ public class PurchaseService {
         );
 
         int size = goodsInfoList.size();
-        if(purchaseList != null && (purchaseList.size() > 1 || purchaseList.get(0).getGoodsNum() > 1)){
-            // 购物车只有一件商品时才能触发积分换购
-            List<GoodsInfoMarketingVO> goodsInfos = marketResp.getGoodsInfos();
-            for (GoodsInfoMarketingVO goodsInfo : goodsInfos) {
-                List<MarketingViewVO> marketingViewList = goodsInfo.getMarketingViewList();
-                if(marketingViewList != null){
-                    Iterator<MarketingViewVO> it = marketingViewList.iterator();
-                    while (it.hasNext()) {
-                        MarketingViewVO marketingViewVO = it.next();
-                        if(marketingViewVO.getMarketingType().equals(MarketingType.POINT_BUY)){
-                            it.remove();
-                        }
-                    }
-                }
-            }
-        }
+//        if(purchaseList != null && (purchaseList.size() > 1 || purchaseList.get(0).getGoodsNum() > 1)){
+//            // 购物车只有一件商品时才能触发积分换购
+//            List<GoodsInfoMarketingVO> goodsInfos = marketResp.getGoodsInfos();
+//            for (GoodsInfoMarketingVO goodsInfo : goodsInfos) {
+//                List<MarketingViewVO> marketingViewList = goodsInfo.getMarketingViewList();
+//                if(marketingViewList != null){
+//                    Iterator<MarketingViewVO> it = marketingViewList.iterator();
+//                    while (it.hasNext()) {
+//                        MarketingViewVO marketingViewVO = it.next();
+//                        if(marketingViewVO.getMarketingType().equals(MarketingType.POINT_BUY)){
+//                            it.remove();
+//                        }
+//                    }
+//                }
+//            }
+//        }
         for (int idx = 0; idx < size; idx++) {
             GoodsInfoVO goodsInfo = response.getGoodsInfos().get(idx);
             GoodsVO goods = response.getGoodses().stream().filter(i -> i.getGoodsId().equals(goodsInfo.getGoodsId())).findFirst().orElse(null);
