@@ -30,6 +30,6 @@ public class AtmosphereDTO {
 
     private String imageUrl;
 
-    private String desc;
+    private String elementDesc;
 
 }

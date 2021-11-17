@@ -28,8 +28,8 @@ public class Atmosphere {
     private LocalDateTime updateTime;
     @Column(name = "deleted")
     private Integer deleted;
-    @Column(name = "desc")
-    private String desc;
+    @Column(name = "element_desc")
+    private String elementDesc;
     @Column(name = "type")
     private Integer type;
 }
