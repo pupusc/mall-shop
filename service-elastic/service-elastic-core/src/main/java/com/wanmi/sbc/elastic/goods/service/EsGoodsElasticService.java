@@ -372,6 +372,9 @@ public class EsGoodsElasticService {
                         esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
                         esGoods.setAnchorPushs(goods.getAnchorPushs());
+                        if (StringUtils.isNotBlank(goods.getAnchorPushs()) && goods.getAnchorPushs().contains("1")) {
+                            esGoods.setFdjd(1);
+                        }
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
                         esGoods.setAddedTime(goods.getAddedTime());

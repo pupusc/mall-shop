@@ -314,6 +314,12 @@ public class EsGoods implements Serializable {
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     @Field(searchAnalyzer = EsConstants.PINYIN_ANALYZER, analyzer = EsConstants.PINYIN_ANALYZER, type = FieldType.Text)
     private String anchorPushs;
+
+    /**
+     * 主播推荐 1樊登解读
+     */
+    @Field(type = FieldType.Integer)
+    private Integer fdjd = 0;
     /**
      * 商品库存
      */
