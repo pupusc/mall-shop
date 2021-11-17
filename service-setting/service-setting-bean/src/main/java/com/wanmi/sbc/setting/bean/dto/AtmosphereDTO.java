@@ -22,7 +22,7 @@ public class AtmosphereDTO {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
-    private Integer atmosType;
+    private Integer type;
 
     private String skuNo;
 
