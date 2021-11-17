@@ -52,6 +52,18 @@ public class ClassifyDTO {
     private Integer orderNum;
 
     /**
+     * 是否首页展示 0 不展示 1 展示
+     */
+    @Column(name = "has_show_index")
+    private Integer hasShowIndex;
+
+    /**
+     * 是否首页展示 顺序
+     */
+    @Column(name = "index_order_num")
+    private Integer indexOrderNum;
+
+    /**
      * 广告图
      */
     @Column(name = "ad_img_url")

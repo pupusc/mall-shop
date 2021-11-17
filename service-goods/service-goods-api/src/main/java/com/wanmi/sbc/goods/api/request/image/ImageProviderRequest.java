@@ -33,7 +33,7 @@ public class ImageProviderRequest implements Serializable {
     /**
      * 图片地址
      */
-    @NotBlank(groups = Add.class, message = "图片地址不能为空")
+//    @NotBlank(groups = Add.class, message = "图片地址不能为空")
     private String imgUrl;
 
     /**

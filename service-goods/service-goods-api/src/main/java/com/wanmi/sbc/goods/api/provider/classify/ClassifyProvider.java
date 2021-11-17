@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.api.provider.classify;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
@@ -66,6 +67,13 @@ public interface ClassifyProvider {
     BaseResponse<List<ClassifyProviderResponse>> listClassifyNoChildByParentId(@RequestBody ClassifyCollectionProviderRequest classifyCollectionProviderRequest);
 
     /**
+     * 获取店铺下 首页分类列表
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/classify/listIndexClassify")
+    BaseResponse<List<ClassifyProviderResponse>> listIndexClassify();
+
+    /**
      * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品列表
      * @param goodsId
      * @return
@@ -103,6 +111,13 @@ public interface ClassifyProvider {
     @PostMapping("/goods/${application.goods.version}/classify/listBookListModelByClassifyIdColl")
     BaseResponse<List<BookListModelClassifyLinkProviderResponse>> listBookListModelByClassifyIdColl(@RequestBody BookListModelClassifyLinkPageProviderRequest bookListModelClassifyLinkPageProviderRequest);
 
+    /**
+     * 分类排序
+     * @param sortProviderRequestList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/classify/sort")
+    BaseResponse sort(@RequestBody List<BaseSortProviderRequest> sortProviderRequestList);
 
 //    @PostMapping("/goods/${application.goods.version}/classify/listPublishGoodsByIds")
 //    BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(@NotNull @RequestBody Collection<Integer> bookListModelIdCollection);
