@@ -66,6 +66,7 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
                                 label.setMarketingType(marketingRespons.getMarketingType().toValue());
                                 label.setMarketingDesc(labelMap.get(marketingRespons.getMarketingId()));
                                 label.setPrice(marketingPointBuyLevel.getPrice());
+                                label.setPointNeed(marketingPointBuyLevel.getPointNeed());
                                 goodsInfo.getMarketingLabels().add(label);
                                 break;
                             }

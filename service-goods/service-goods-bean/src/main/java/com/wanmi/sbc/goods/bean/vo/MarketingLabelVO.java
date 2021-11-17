@@ -74,4 +74,9 @@ public class MarketingLabelVO  implements Serializable {
      */
     private Double price;
 
+    /**
+     * 积分活动所需积分
+     */
+    private Integer pointNeed;
+
 }
