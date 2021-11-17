@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class MarketingPointBuyService {
 
@@ -24,16 +27,26 @@ public class MarketingPointBuyService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void addPointBuyDiscount(MarketingPointBuySaveRequest request) throws SbcRuntimeException {
-        if(request.getMarketingPointBuyLevel().getMoney() == null || request.getMarketingPointBuyLevel().getPointNeed() == null){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+        List<MarketingPointBuyLevel> marketingPointBuyLevel1 = request.getMarketingPointBuyLevel();
+        for (MarketingPointBuyLevel marketingPointBuyLevel : marketingPointBuyLevel1) {
+            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null
+                    || marketingPointBuyLevel.getPrice() == null){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+            }
         }
         Marketing marketing = marketingService.addMarketing(request);
-        MarketingPointBuyLevel marketingPointBuyLevel = request.getMarketingPointBuyLevel();
-        MarketingPointBuyLevel level = new MarketingPointBuyLevel();
-        level.setMarketingId(marketing.getMarketingId());
-        level.setMoney(marketingPointBuyLevel.getMoney());
-        level.setPointNeed(marketingPointBuyLevel.getPointNeed());
-        marketingPointBuyLevelRepository.save(level);
+        List<MarketingPointBuyLevel> marketingPointBuyLevel = request.getMarketingPointBuyLevel();
+        List<MarketingPointBuyLevel> toSave = new ArrayList<>();
+        for (MarketingPointBuyLevel pointBuyLevel : marketingPointBuyLevel) {
+            MarketingPointBuyLevel level = new MarketingPointBuyLevel();
+            level.setMarketingId(marketing.getMarketingId());
+            level.setMoney(pointBuyLevel.getMoney());
+            level.setPointNeed(pointBuyLevel.getPointNeed());
+            level.setPrice(pointBuyLevel.getPrice());
+            level.setSkuId(pointBuyLevel.getSkuId());
+            toSave.add(level);
+        }
+        marketingPointBuyLevelRepository.saveAll(toSave);
     }
 
     /**
@@ -41,16 +54,29 @@ public class MarketingPointBuyService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void updatePointBuyDiscount(MarketingPointBuySaveRequest request) throws SbcRuntimeException {
-        if(request.getMarketingId() == null || request.getMarketingPointBuyLevel().getMoney() == null || request.getMarketingPointBuyLevel().getPointNeed() == null){
+        if(request.getMarketingId() == null){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
         }
+        List<MarketingPointBuyLevel> marketingPointBuyLevel1 = request.getMarketingPointBuyLevel();
+        for (MarketingPointBuyLevel marketingPointBuyLevel : marketingPointBuyLevel1) {
+            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null
+                || marketingPointBuyLevel.getPrice() == null){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+            }
+        }
         marketingService.modifyMarketing(request);
-        marketingPointBuyLevelRepository.deleteById(request.getMarketingPointBuyLevel().getId());
-        MarketingPointBuyLevel marketingPointBuyLevel = request.getMarketingPointBuyLevel();
-        MarketingPointBuyLevel level = new MarketingPointBuyLevel();
-        level.setMarketingId(request.getMarketingId());
-        level.setMoney(marketingPointBuyLevel.getMoney());
-        level.setPointNeed(marketingPointBuyLevel.getPointNeed());
-        marketingPointBuyLevelRepository.save(level);
+        marketingPointBuyLevelRepository.deleteByMarketingId(request.getMarketingId());
+        List<MarketingPointBuyLevel> marketingPointBuyLevel = request.getMarketingPointBuyLevel();
+        List<MarketingPointBuyLevel> toSave = new ArrayList<>();
+        for (MarketingPointBuyLevel pointBuyLevel : marketingPointBuyLevel) {
+            MarketingPointBuyLevel level = new MarketingPointBuyLevel();
+            level.setMarketingId(request.getMarketingId());
+            level.setMoney(pointBuyLevel.getMoney());
+            level.setPointNeed(pointBuyLevel.getPointNeed());
+            level.setPrice(pointBuyLevel.getPrice());
+            level.setSkuId(pointBuyLevel.getSkuId());
+            toSave.add(level);
+        }
+        marketingPointBuyLevelRepository.saveAll(toSave);
     }
 }

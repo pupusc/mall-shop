@@ -13,4 +13,6 @@ public interface MarketingPointBuyLevelRepository extends JpaRepository<Marketin
     List<MarketingPointBuyLevel> findByMarketingIdOrderByMoneyAsc(Long marketingId);
 
     List<MarketingPointBuyLevel> findAllByMarketingIdInAndSkuIdIn(List<Long> marketingIds, List<String> skuIds);
+
+    void deleteByMarketingId(Long marketingId);
 }
