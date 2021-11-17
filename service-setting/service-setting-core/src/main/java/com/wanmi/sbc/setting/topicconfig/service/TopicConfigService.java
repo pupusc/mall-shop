@@ -127,6 +127,8 @@ public class TopicConfigService {
         }
         Topic topic = list.get(0);
         TopicActivityVO topicVO = new TopicActivityVO();
+        topicVO.setTopicColor(topic.getTopicColor());
+        topicVO.setNavigationColor(topic.getNavigationColor());
         List<TopicHeadImage> images = topicHeadImageRepository.getByTopicId(topic.getId());
         topicVO.setHeadImageList(KsBeanUtil.convertList(images, TopicHeadImageDTO.class));
         List<TopicStorey> storeys = storeyRepository.getAvailByTopicId(topic.getId());
