@@ -26,9 +26,11 @@ import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.RedisKeyUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -58,6 +60,7 @@ import java.util.stream.Collectors;
  ********************************************************************/
 @RequestMapping("/classify")
 @RestController
+@Slf4j
 public class ClassifyController {
 
     @Autowired
@@ -74,6 +77,9 @@ public class ClassifyController {
 
     @Autowired
     private BookListModelProvider bookListModelProvider;
+
+    @Value("${exclude-classifyIdStr:000}")
+    private String excludeClassifyIdStr;
 
 
     private static final Integer page_size = 80;
@@ -102,7 +108,11 @@ public class ClassifyController {
     public BaseResponse<List<ClassifyNoChildResponse>> listHomeClassify() {
         List<ClassifyNoChildResponse> result = new ArrayList<>();
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listIndexClassify();
+        int maxSize = 6;
         for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
+            if (result.size() >= maxSize) {
+                break;
+            }
             ClassifyNoChildResponse classifyNoChildResponse = new ClassifyNoChildResponse();
             classifyNoChildResponse.setId(classifyProviderResponseParam.getId());
             classifyNoChildResponse.setClassifyName(classifyProviderResponseParam.getClassifyName());
@@ -123,7 +133,16 @@ public class ClassifyController {
         ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
         classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(0));
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
+        List<String> excludeClassifyIdList = new ArrayList<>() ;
+        if (!StringUtils.isEmpty(excludeClassifyIdStr)) {
+            String[] excludeClassifyIdAttr = excludeClassifyIdStr.split(",");
+            excludeClassifyIdList.addAll(Arrays.asList(excludeClassifyIdAttr));
+        }
         for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
+            if (excludeClassifyIdList.contains(classifyProviderResponseParam.getId() + "")) {
+                log.info("---->>>> 当前分类页面要排除的 分类id为：{}", classifyProviderResponseParam.getId());
+                continue;
+            }
             ClassifyNoChildResponse classifyNoChildResponse = new ClassifyNoChildResponse();
             classifyNoChildResponse.setId(classifyProviderResponseParam.getId());
             classifyNoChildResponse.setClassifyName(classifyProviderResponseParam.getClassifyName());
