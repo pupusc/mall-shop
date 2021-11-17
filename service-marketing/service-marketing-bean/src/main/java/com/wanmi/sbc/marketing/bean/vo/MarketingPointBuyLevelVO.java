@@ -27,4 +27,15 @@ public class MarketingPointBuyLevelVO {
      * 积分
      */
     private Integer pointNeed;
+
+    /**
+     * 定价
+     */
+    private Double price;
+
+    /**
+     * sku
+     */
+    private String skuId;
+
 }

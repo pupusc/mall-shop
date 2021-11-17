@@ -1,10 +1,18 @@
 package com.wanmi.sbc.marketing.plugin.impl;
 
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoDetailByGoodsInfoResponse;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
+import com.wanmi.sbc.marketing.common.model.entity.TradeMarketing;
+import com.wanmi.sbc.marketing.common.model.root.Marketing;
+import com.wanmi.sbc.marketing.common.repository.MarketingRepository;
+import com.wanmi.sbc.marketing.common.request.TradeItemInfo;
 import com.wanmi.sbc.marketing.common.request.TradeMarketingPluginRequest;
+import com.wanmi.sbc.marketing.common.request.TradeMarketingRequest;
 import com.wanmi.sbc.marketing.common.response.MarketingResponse;
 import com.wanmi.sbc.marketing.common.response.TradeMarketingResponse;
 import com.wanmi.sbc.marketing.discount.model.entity.MarketingPointBuyLevel;
@@ -30,6 +38,8 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
 
     @Autowired
     private MarketingPointBuyLevelRepository marketingPointBuyLevelRepository;
+    @Autowired
+    private MarketingRepository marketingRepository;
 
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
@@ -84,6 +94,43 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
 
     @Override
     public TradeMarketingResponse wraperMarketingFullInfo(TradeMarketingPluginRequest request) {
-        return null;
+        TradeMarketingRequest tradeMarketingDTO = request.getTradeMarketingDTO();
+        if (tradeMarketingDTO == null) return null;
+        Marketing marketing = marketingRepository.findById(tradeMarketingDTO.getMarketingId()).get();
+        if (marketing.getMarketingType() != MarketingType.POINT_BUY) {
+            return null;
+        }
+        List<TradeItemInfo> tradeItems = request.getTradeItems();
+        // 校验营销关联商品中，是否存在分销商品
+        List<String> distriSkuIds = tradeItems.stream()
+                .filter(item -> item.getDistributionGoodsAudit() == DistributionGoodsAudit.CHECKED)
+                .map(TradeItemInfo::getSkuId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(distriSkuIds)) {
+            tradeMarketingDTO.getSkuIds().forEach(skuId -> {
+                if (distriSkuIds.contains(skuId)) {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+            });
+        }
+        List<MarketingPointBuyLevel> levels = marketingPointBuyLevelRepository.findAllByMarketingIdInAndSkuIdIn(Arrays.asList(tradeMarketingDTO.getMarketingId()),
+                Arrays.asList(tradeItems.get(0).getSkuId()));
+        if(CollectionUtils.isEmpty(levels) || levels.size() > 1){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分活动校验错误");
+        }
+
+//        MarketingPointBuyLevel level = levels.get(0);
+        TradeMarketingResponse response = new TradeMarketingResponse();
+//        response.setTradeMarketing(TradeMarketing.builder()
+//                .fullDiscountLevel(level)
+//                .discountsAmount(price.subtract(amount))
+//                .realPayAmount(amount)
+//                .marketingId(marketing.getMarketingId())
+//                .marketingName(marketing.getMarketingName())
+//                .marketingType(marketing.getMarketingType())
+//                .skuIds(tradeMarketingDTO.getSkuIds())
+//                .subType(marketing.getSubType())
+//                .build());
+
+        return response;
     }
 }

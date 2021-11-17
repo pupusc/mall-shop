@@ -37,6 +37,7 @@ public class MarketingPointBuyLevel extends BaseBean {
     /**
      * 定价
      */
+    @Column(name = "price")
     private Double price;
 
     /**
@@ -48,5 +49,6 @@ public class MarketingPointBuyLevel extends BaseBean {
     /**
      * 商品sku
      */
+    @Column(name = "sku_id")
     private String skuId;
 }
