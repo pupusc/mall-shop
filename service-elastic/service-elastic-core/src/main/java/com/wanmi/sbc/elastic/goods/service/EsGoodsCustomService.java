@@ -17,6 +17,9 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.ScriptSortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -58,8 +61,8 @@ public class EsGoodsCustomService {
      * @param request
      * @return
      */
-    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request){
-
+    @SuppressWarnings("checkstyle:NoWhitespaceBefore")
+    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
         int pageNum = request.getPageNum();
@@ -71,6 +74,13 @@ public class EsGoodsCustomService {
                 builder.withSort(new FieldSortBuilder(sortBuilder.getFieldName()).order(sortBuilder.getSortOrder()));
             }
         }
+        //脚本排序
+        if (request.getScriptSort() != null) {
+            Script script = new Script(request.getScriptSort());
+            ScriptSortBuilder sortBuilder = SortBuilders.scriptSort(script, ScriptSortBuilder.ScriptSortType.NUMBER).order(SortOrder.DESC);
+            builder.withSort(sortBuilder);
+        }
+
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsGoodsCustomService.listEsGoodsNormal DSL: {}", build.getQuery().toString());
         MicroServicePage<EsGoodsVO> query = elasticsearchTemplate.query(build, new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {

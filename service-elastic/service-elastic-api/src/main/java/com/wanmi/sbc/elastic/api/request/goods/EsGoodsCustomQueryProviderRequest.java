@@ -97,4 +97,9 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      */
     private Integer bookFlag;
 
+    /**
+     * 脚本排序
+     */
+    private String scriptSort;
+
 }

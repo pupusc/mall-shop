@@ -38,4 +38,9 @@ public class RefreshConfig {
 
     @Value("${shop.activity.branch.top.config}")
     private volatile String shopActivityBranchTopConfig;
+
+    @Value("${recommend.sort}")
+    private volatile String recommendSort;
+
+
 }
