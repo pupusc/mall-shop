@@ -41,6 +41,17 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
     private Integer cpsSpecial;
 
     /**
+     * 上架时间之后
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime afterAddedTime;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
+     */
+    private String anchorPushs;
+    /**
      * 是否展示无库存
      */
     private Boolean hasShowUnStock;
@@ -85,5 +96,19 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      * 是否是图书，1 是 其他否
      */
     private Integer bookFlag;
+
+    /**
+     * 脚本排序
+     */
+    private String scriptSort;
+
+    /**
+     * 评分
+     */
+    private Integer score;
+    /**
+     * 评分
+     */
+    private Double esSortPrice;
 
 }

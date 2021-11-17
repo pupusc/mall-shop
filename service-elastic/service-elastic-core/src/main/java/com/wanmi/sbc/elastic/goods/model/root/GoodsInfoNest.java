@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -606,6 +607,12 @@ public class GoodsInfoNest implements Serializable {
     @Field(type = FieldType.Integer)
     private Integer cpsSpecial;
 
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
+    @Field(type = FieldType.Keyword)
+    private String anchorPushs;
     /**
      * ERP的SPU编码
      */

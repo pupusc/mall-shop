@@ -10,12 +10,20 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Proxy;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -141,6 +149,12 @@ public class Goods {
      */
     @Column(name = "cps_special")
     private Integer cpsSpecial;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @Column(name = "anchor_pushs")
+    private String anchorPushs;
 
     /**
      * 划线价格

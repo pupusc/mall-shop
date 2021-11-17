@@ -1,17 +1,23 @@
 package com.wanmi.sbc.classify;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.base.BaseSortRequest;
+import com.wanmi.sbc.classify.request.ClassifyIndexSortRequest;
 import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteStoreCateRequest;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.util.CommonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.wanmi.sbc.order.api.request.trade.TradePushRequest;
@@ -123,5 +129,37 @@ public class ClassifyController {
         String listClassifyJsonStr = JSON.toJSONString(listClassifyResponse.getContext());
         List<ClassifyResponse> result = JSON.parseArray(listClassifyJsonStr, ClassifyResponse.class);
         return BaseResponse.success(result);
+    }
+
+
+    /**
+     * 后台分类 修改首页的排序
+     * @menu 后台CMS2.0
+     * @param classifyIndexSortRequest
+     * @return
+     */
+    @PostMapping("/update-index-sort")
+    public BaseResponse updateIndexSort(@Validated @RequestBody ClassifyIndexSortRequest classifyIndexSortRequest) {
+        ClassifyProviderRequest classifyProviderRequest = new ClassifyProviderRequest();
+        classifyProviderRequest.setId(classifyIndexSortRequest.getId());
+        classifyProviderRequest.setHasShowIndex(classifyIndexSortRequest.getHasShowIndex());
+        classifyProviderRequest.setIndexOrderNum(classifyIndexSortRequest.getIndexOrderNum());
+        classifyProvider.update(classifyProviderRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 后台分类 排序
+     * @menu 后台CMS2.0
+     * @return
+     */
+    @PostMapping("/sort")
+    public BaseResponse sort(@Validated @RequestBody BaseSortRequest sortRequest) {
+        if (CollectionUtils.isEmpty(sortRequest.getSortList())) {
+            throw new IllegalStateException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        classifyProvider.sort(sortRequest.getSortList());
+        return BaseResponse.SUCCESSFUL();
     }
 }

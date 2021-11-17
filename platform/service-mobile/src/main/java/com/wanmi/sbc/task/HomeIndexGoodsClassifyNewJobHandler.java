@@ -84,6 +84,9 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
             log.info("HomeIndexGoodsClassifyNewJobHandler execute classifyId: {} classifyName: {} end",
                     classifyProviderResponseParam.getId(), classifyProviderResponseParam.getClassifyName());
         }
+        if (refreshCount >= 1000) {
+            redis.setString(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT, "1", -1);
+        }
         return SUCCESS;
     }
 
