@@ -51,7 +51,7 @@ public class TopicConfigController {
      */
     @ApiOperation(value = "专题列表")
     @PostMapping("/page")
-    public BaseResponse<MicroServicePage<TopicConfigVO>> page(TopicQueryRequest request){
+    public BaseResponse<MicroServicePage<TopicConfigVO>> page(@RequestBody  TopicQueryRequest request){
         return topicConfigProvider.page(request);
     }
 

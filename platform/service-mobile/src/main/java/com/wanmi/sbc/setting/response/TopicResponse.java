@@ -11,6 +11,7 @@ import java.util.List;
 public class TopicResponse implements Serializable {
 
 
+    private static final long serialVersionUID = 5851382043660081007L;
     @ApiModelProperty("头图信息")
     private List<TopicHeadImageDTO> headImageList;
 

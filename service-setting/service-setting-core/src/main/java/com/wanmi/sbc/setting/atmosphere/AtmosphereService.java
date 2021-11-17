@@ -1,5 +1,6 @@
 package com.wanmi.sbc.setting.atmosphere;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -13,6 +14,7 @@ import com.wanmi.sbc.setting.topicconfig.model.root.Topic;
 import com.wanmi.sbc.setting.topicconfig.model.root.TopicStoreyContent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +24,7 @@ import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -45,11 +48,25 @@ public class AtmosphereService {
         pageQuery.setPageNum(request.getPageNum());
         pageQuery.setPageSize(request.getPageSize());
         Page<Atmosphere> page = atmosphereRepository.findAll(getAtmosphereWhereCriteria(request), pageQuery.getPageRequest());
-        if(page == null){
+        if(page == null || CollectionUtils.isEmpty(page.getContent())){
             return new MicroServicePage<>();
         }
-        return KsBeanUtil.convertPage(page, AtmosphereDTO.class);
+        MicroServicePage<AtmosphereDTO> list = KsBeanUtil.convertPage(page, AtmosphereDTO.class);
+        list.getContent().forEach(p->{
+            if(StringUtils.isNotEmpty(p.getElementDesc())){
+                Map<String,String> map = (Map<String, String>) JSON.parse(p.getElementDesc());
+                p.setElementOne(map.get("elementOne"));
+                p.setElementTwo(map.get("elementTwo"));
+                p.setElementThree(map.get("elementThree"));
+                p.setElementFour(map.get("elementFour"));
+            }
+        });
+        return list;
 
+    }
+
+    public void delete(Integer id){
+        atmosphereRepository.disableById(id);
     }
 
     public Specification<Atmosphere> getAtmosphereWhereCriteria(AtmosphereQueryRequest request) {

@@ -127,9 +127,11 @@ public class TopicConfigService {
         }
         Topic topic = list.get(0);
         TopicActivityVO topicVO = new TopicActivityVO();
+        topicVO.setTopicColor(topic.getTopicColor());
+        topicVO.setNavigationColor(topic.getNavigationColor());
         List<TopicHeadImage> images = topicHeadImageRepository.getByTopicId(topic.getId());
         topicVO.setHeadImageList(KsBeanUtil.convertList(images, TopicHeadImageDTO.class));
-        List<TopicStorey> storeys = storeyRepository.getByTopicId(topic.getId());
+        List<TopicStorey> storeys = storeyRepository.getAvailByTopicId(topic.getId());
         if(CollectionUtils.isEmpty(storeys)){
             return topicVO;
         }
@@ -209,8 +211,8 @@ public class TopicConfigService {
             if (request.getTopicKey() != null) {
                 predicates.add(cbuild.equal(root.get("topicKey"), request.getTopicKey()));
             }
-            if (StringUtils.isNotEmpty(request.getName())) {
-                predicates.add(cbuild.like(root.get("topicName"), StringUtil.SQL_LIKE_CHAR.concat(XssUtils.replaceLikeWildcard(request.getName().trim())).concat(StringUtil.SQL_LIKE_CHAR)));
+            if (StringUtils.isNotEmpty(request.getTopicName())) {
+                predicates.add(cbuild.like(root.get("topicName"), StringUtil.SQL_LIKE_CHAR.concat(XssUtils.replaceLikeWildcard(request.getTopicName().trim())).concat(StringUtil.SQL_LIKE_CHAR)));
             }
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

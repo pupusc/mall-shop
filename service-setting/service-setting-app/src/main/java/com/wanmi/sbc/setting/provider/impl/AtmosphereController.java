@@ -25,7 +25,12 @@ public class AtmosphereController implements AtmosphereProvider {
 
     @Override
     public BaseResponse<MicroServicePage<AtmosphereDTO>> page(AtmosphereQueryRequest request) {
+        return BaseResponse.success(atmosphereService.page(request));
+    }
 
-        return null;
+    @Override
+    public BaseResponse delete(Integer id) {
+        atmosphereService.delete(id);
+        return BaseResponse.SUCCESSFUL();
     }
 }

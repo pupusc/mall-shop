@@ -10,8 +10,8 @@ public class AtmosphereQueryRequest {
     @ApiModelProperty("sku编码")
     private List<String> skuNo;
 
-    private Integer pageNum;
+    private Integer pageNum = 0 ;
 
-    private Integer pageSize;
+    private Integer pageSize = 10;
 
 }
