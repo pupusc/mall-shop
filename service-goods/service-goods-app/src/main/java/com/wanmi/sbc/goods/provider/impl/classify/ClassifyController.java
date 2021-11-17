@@ -10,7 +10,6 @@ import com.wanmi.sbc.goods.api.response.classify.BookListModelClassifyLinkProvid
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
-import com.wanmi.sbc.goods.booklistmodel.service.BookListModelService;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyLinkPageRequest;
@@ -22,10 +21,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -176,8 +180,10 @@ public class ClassifyController implements ClassifyProvider {
         for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
             List<ClassifySimpleProviderResponse> list = result.computeIfAbsent(classifyGoodsRelDTO.getGoodsId(), k -> new ArrayList<>());
             ClassifySimpleProviderResponse classifySimpleProviderResponse = new ClassifySimpleProviderResponse();
-            BeanUtils.copyProperties(classifyMap.get(classifyGoodsRelDTO.getClassifyId()), classifySimpleProviderResponse);
-            list.add(classifySimpleProviderResponse);
+            if (classifyMap.get(classifyGoodsRelDTO.getClassifyId()) != null) {
+                BeanUtils.copyProperties(classifyMap.get(classifyGoodsRelDTO.getClassifyId()), classifySimpleProviderResponse);
+                list.add(classifySimpleProviderResponse);
+            }
         }
         return BaseResponse.success(result);
     }

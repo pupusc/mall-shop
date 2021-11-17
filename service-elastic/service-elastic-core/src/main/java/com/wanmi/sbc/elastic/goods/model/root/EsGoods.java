@@ -219,7 +219,7 @@ public class EsGoods implements Serializable {
      * 排序的价格
      */
     @ApiModelProperty(value = "排序的价格")
-    @Field(index = false, type = FieldType.Double)
+    @Field(type = FieldType.Double)
     private BigDecimal esSortPrice;
 
     @Field(index = false, type = FieldType.Text)
