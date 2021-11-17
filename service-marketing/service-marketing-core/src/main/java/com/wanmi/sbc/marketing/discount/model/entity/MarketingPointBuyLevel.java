@@ -1,6 +1,9 @@
 package com.wanmi.sbc.marketing.discount.model.entity;
 
+import com.wanmi.sbc.marketing.common.BaseBean;
+import com.wanmi.sbc.marketing.common.MarketingLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -8,10 +11,11 @@ import java.math.BigDecimal;
 /**
  * 积分换购营销
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "marketing_point_buy_level")
-public class MarketingPointBuyLevel {
+public class MarketingPointBuyLevel extends BaseBean {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,12 +31,12 @@ public class MarketingPointBuyLevel {
     /**
      * 金额
      */
-    @Column(name = "amount")
-    private BigDecimal amount;
+    @Column(name = "money")
+    private Double money;
 
     /**
      * 积分
      */
-    @Column(name = "point")
-    private Integer point;
+    @Column(name = "point_need")
+    private Integer pointNeed;
 }

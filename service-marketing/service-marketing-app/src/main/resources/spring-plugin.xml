@@ -14,6 +14,7 @@
             <list>
                 <value>customerLevelPlugin</value>
                 <value>paidCardPlugin</value>
+                <value>pointBuyPlugin</value>
                 <value>reductionPlugin</value>
                 <value>discountPlugin</value>
                 <value>giftPlugin</value>
@@ -30,6 +31,7 @@
             <description>商品详情插件集</description>
             <list>
                 <value>customerLevelPlugin</value>
+                <value>pointBuyPlugin</value>
                 <value>reductionPlugin</value>
                 <value>discountPlugin</value>
                 <value>giftPlugin</value>

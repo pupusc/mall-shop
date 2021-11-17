@@ -16,18 +16,15 @@ public class MarketingPointBuyLevelVO {
     /**
      * 营销id
      */
-    @Column(name = "marketing_id")
     private Long marketingId;
 
     /**
      * 金额
      */
-    @Column(name = "amount")
-    private BigDecimal amount;
+    private Double money;
 
     /**
      * 积分
      */
-    @Column(name = "point")
-    private Integer point;
+    private Integer pointNeed;
 }

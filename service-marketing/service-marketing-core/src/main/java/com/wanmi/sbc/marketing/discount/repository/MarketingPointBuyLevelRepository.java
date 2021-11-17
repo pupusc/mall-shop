@@ -10,5 +10,7 @@ import java.util.List;
 @Repository
 public interface MarketingPointBuyLevelRepository extends JpaRepository<MarketingPointBuyLevel, Long>, JpaSpecificationExecutor<MarketingPointBuyLevel> {
 
-    List<MarketingPointBuyLevel> findByMarketingIdOrderByAmountAsc(Long marketingId);
+    List<MarketingPointBuyLevel> findByMarketingIdOrderByMoneyAsc(Long marketingId);
+
+    List<MarketingPointBuyLevel> findAllByMarketingIdIn(List<Long> marketingIds);
 }

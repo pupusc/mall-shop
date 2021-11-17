@@ -109,7 +109,6 @@ public class MarketingController {
                 if(CollectionUtils.isNotEmpty(skuIds)){
                     esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().skuIds(skuIds).build());
                 }
-
                 String name = getMarketingName(marketingId);
                 operateLogMQUtil.convertAndSend("营销","删除促销活动","删除促销活动："+ name);
                 return BaseResponse.SUCCESSFUL();

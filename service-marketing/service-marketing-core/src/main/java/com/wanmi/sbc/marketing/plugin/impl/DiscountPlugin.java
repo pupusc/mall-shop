@@ -51,7 +51,7 @@ public class DiscountPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
      * 商品列表处理
      *
      * @param goodsInfos 商品数据
-     * @param request    参数
+     * @param request 参数
      */
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {

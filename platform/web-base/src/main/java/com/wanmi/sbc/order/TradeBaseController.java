@@ -1117,7 +1117,7 @@ public class TradeBaseController {
             Map<String, List<MarketingViewVO>> marketingResponse = purchaseQueryProvider.getGoodsMarketing(marketingRequest).getContext().getMap();
             //优化- boolean isIepCustomerFlag = isIepCustomer();重复调用commonUtil.getCustomer()。zc_2021/03/24
             EnterpriseCheckState customerState = customer.getEnterpriseCheckState();
-            boolean isIepCustomerFlag = commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING) && !Objects.isNull(customerState) && customerState == EnterpriseCheckState.CHECKED;
+//            boolean isIepCustomerFlag = commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING) && !Objects.isNull(customerState) && customerState == EnterpriseCheckState.CHECKED;
             //优化。zc_2021/03/24
             DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
             DefaultFlag storeOpenFlag = distributionCacheService.queryStoreOpenFlag(String.valueOf(storeId));
@@ -1192,20 +1192,21 @@ public class TradeBaseController {
         TradeMarketingDTO tradeMarketing = new TradeMarketingDTO();
         tradeMarketing.setSkuIds(Collections.singletonList(tradeItem.getSkuId()));
         tradeMarketing.setGiftSkuIds(new ArrayList<>());
-
         if (CollectionUtils.isNotEmpty(marketings)) {
+            // 积分换购优先级最高
             for (MarketingViewVO marketing : marketings) {
                 // 积分换购
                 if(marketing.getSubType() == MarketingSubType.POINT_BUY){
                     List<MarketingPointBuyLevelVO> pointBuyLevelList = marketing.getPointBuyLevelList();
                     if(CollectionUtils.isNotEmpty(pointBuyLevelList)){
-                        pointBuyLevelList.sort(Comparator.comparing(MarketingPointBuyLevelVO::getAmount));
+                        pointBuyLevelList.sort(Comparator.comparing(MarketingPointBuyLevelVO::getMoney));
                         tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getMarketingId());
                         tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
                         return tradeMarketing;
                     }
                 }
-
+            }
+            for (MarketingViewVO marketing : marketings) {
                 // 满金额减
                 if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT) {
                     List<MarketingFullReductionLevelVO> levels = marketing.getFullReductionLevelList();
@@ -1337,7 +1338,6 @@ public class TradeBaseController {
                 }
             }
         }
-
         return null;
     }
 
@@ -1810,7 +1810,6 @@ public class TradeBaseController {
                         if (CollectionUtils.isNotEmpty(tradeItemVOList)) {
                             flashSaleGoodsIds.add(tradeItemVOList.get(0).getFlashSaleGoodsId());
                         }
-
                     }
                     tradeItemVOList.forEach(tradeItemVO -> {
 
@@ -2651,6 +2650,11 @@ public class TradeBaseController {
                             if (levelVO != null) {
                                 desc = String.format("您已满足%s加价购", levelVO.getLevelAmount());
                                 confirmMarketingVO.setMarkupLevelVO(levelVO);
+                            }
+                        } else if(MarketingType.POINT_BUY.equals(marketingViewVO.getMarketingType())) {
+                            MarketingPointBuyLevelVO levelVO = marketingViewVO.getPointBuyLevelList().stream().filter(l -> l.getId().equals(levelId)).findFirst().orElse(null);
+                            if(levelVO != null){
+                                desc = String.format("您已满足%s积分+s%元换购", levelVO.getPointNeed(), levelVO.getMoney());
                             }
                         }
                         if (!MarketingType.SUITS.equals(marketingViewVO.getMarketingType())) {
