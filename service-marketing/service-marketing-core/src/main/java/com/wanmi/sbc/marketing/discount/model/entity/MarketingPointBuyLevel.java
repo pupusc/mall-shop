@@ -35,8 +35,18 @@ public class MarketingPointBuyLevel extends BaseBean {
     private Double money;
 
     /**
+     * 定价
+     */
+    private Double price;
+
+    /**
      * 积分
      */
     @Column(name = "point_need")
     private Integer pointNeed;
+
+    /**
+     * 商品sku
+     */
+    private String skuId;
 }
