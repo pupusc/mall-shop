@@ -14,6 +14,7 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.buyoutprice.model.entry.MarketingBuyoutPriceLevel;
 import com.wanmi.sbc.marketing.common.model.root.MarketingScope;
 import com.wanmi.sbc.marketing.discount.model.entity.MarketingFullDiscountLevel;
+import com.wanmi.sbc.marketing.discount.model.entity.MarketingPointBuyLevel;
 import com.wanmi.sbc.marketing.gift.model.root.MarketingFullGiftLevel;
 import com.wanmi.sbc.marketing.halfpricesecondpiece.model.entry.MarketingHalfPriceSecondPieceLevel;
 import com.wanmi.sbc.marketing.markup.model.root.MarkupLevel;
@@ -139,6 +140,11 @@ public class MarketingResponse{
      * 关联商品
      */
     private List<MarketingScope> marketingScopeList;
+
+    /**
+     * 积分换购
+     */
+    private List<MarketingPointBuyLevel> pointBuyLevelList;
 
     /**
      * 满减等级

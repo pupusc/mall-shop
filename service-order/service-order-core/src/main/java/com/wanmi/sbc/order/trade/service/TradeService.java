@@ -621,7 +621,7 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
-    @Value("${whiteOrder}")
+    @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
 

@@ -139,18 +139,7 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingJoinLevel;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.enums.RecruitApplyType;
-import com.wanmi.sbc.marketing.bean.vo.DistributionRecordVO;
-import com.wanmi.sbc.marketing.bean.vo.DistributionSettingVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingBuyoutPriceLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullDiscountLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingFullReductionLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingHalfPriceSecondPieceLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingSuitsSkuVO;
-import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelDetailVO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
+import com.wanmi.sbc.marketing.bean.vo.*;
 import com.wanmi.sbc.order.api.provider.appointmentrecord.AppointmentRecordQueryProvider;
 import com.wanmi.sbc.order.api.provider.groupon.GrouponProvider;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
@@ -1150,8 +1139,7 @@ public class TradeBaseController {
                             if (isIepCustomerFlag && isEnjoyIepGoodsInfo(sku.getEnterPriseAuditState())) {
                                 buyCountMap.put(i.getSkuId(), i.getNum());
                             }
-                            TradeMarketingDTO tradeMarketing = chooseDefaultMarketing(i,
-                                    marketingResponse.get(i.getSkuId()));
+                            TradeMarketingDTO tradeMarketing = chooseDefaultMarketing(i, marketingResponse.get(i.getSkuId()));
                             if (tradeMarketing != null) {
                                 tradeMarketingList.add(tradeMarketing);
                                 i.setMarketingIds(Collections.singletonList(tradeMarketing.getMarketingId()));
@@ -1204,8 +1192,20 @@ public class TradeBaseController {
         TradeMarketingDTO tradeMarketing = new TradeMarketingDTO();
         tradeMarketing.setSkuIds(Collections.singletonList(tradeItem.getSkuId()));
         tradeMarketing.setGiftSkuIds(new ArrayList<>());
-
         if (CollectionUtils.isNotEmpty(marketings)) {
+            // 积分换购优先级最高
+            for (MarketingViewVO marketing : marketings) {
+                // 积分换购
+                if(marketing.getSubType() == MarketingSubType.POINT_BUY){
+                    List<MarketingPointBuyLevelVO> pointBuyLevelList = marketing.getPointBuyLevelList();
+                    if(CollectionUtils.isNotEmpty(pointBuyLevelList)){
+                        pointBuyLevelList.sort(Comparator.comparing(MarketingPointBuyLevelVO::getMoney));
+                        tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getMarketingId());
+                        tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
+                        return tradeMarketing;
+                    }
+                }
+            }
             for (MarketingViewVO marketing : marketings) {
                 // 满金额减
                 if (marketing.getSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT) {
@@ -1338,7 +1338,6 @@ public class TradeBaseController {
                 }
             }
         }
-
         return null;
     }
 
@@ -1811,7 +1810,6 @@ public class TradeBaseController {
                         if (CollectionUtils.isNotEmpty(tradeItemVOList)) {
                             flashSaleGoodsIds.add(tradeItemVOList.get(0).getFlashSaleGoodsId());
                         }
-
                     }
                     tradeItemVOList.forEach(tradeItemVO -> {
 
@@ -2652,6 +2650,11 @@ public class TradeBaseController {
                             if (levelVO != null) {
                                 desc = String.format("您已满足%s加价购", levelVO.getLevelAmount());
                                 confirmMarketingVO.setMarkupLevelVO(levelVO);
+                            }
+                        } else if(MarketingType.POINT_BUY.equals(marketingViewVO.getMarketingType())) {
+                            MarketingPointBuyLevelVO levelVO = marketingViewVO.getPointBuyLevelList().stream().filter(l -> l.getId().equals(levelId)).findFirst().orElse(null);
+                            if(levelVO != null){
+                                desc = String.format("您已满足%s积分+s%元换购", levelVO.getPointNeed(), levelVO.getMoney());
                             }
                         }
                         if (!MarketingType.SUITS.equals(marketingViewVO.getMarketingType())) {
