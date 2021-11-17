@@ -166,7 +166,7 @@ public class EsGoodsCustomService {
          * 价格大于EsSortPrice
          */
         if (request.getEsSortPrice() != null) {
-            boolQueryBuilder.must(rangeQuery("esSortPrice").gte(request.getEsSortPrice()));
+            boolQueryBuilder.must(rangeQuery("sortPrice").gte(request.getEsSortPrice()));
         }
         /**
          * 主播推荐
@@ -183,7 +183,7 @@ public class EsGoodsCustomService {
         }
         // 大于或等于 上架时间
         if (request.getAfterAddedTime() != null) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTime")
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTimeNew")
                     .gte(DateUtil.format(request.getAfterAddedTime(), DateUtil.FMT_TIME_4))
                     .lte(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4)));
         }

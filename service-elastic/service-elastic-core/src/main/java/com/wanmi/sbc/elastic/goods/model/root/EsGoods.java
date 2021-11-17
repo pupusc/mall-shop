@@ -79,6 +79,14 @@ public class EsGoods implements Serializable {
     private LocalDateTime addedTime;
 
     /**
+     * 上下架时间
+     */
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime addedTimeNew;
+
+    /**
      * SKU相关规格
      */
     @Field(type = FieldType.Nested)
@@ -183,6 +191,11 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Long)
     private Long goodsSalesNum;
+    /**
+     * 商品销量
+     */
+    @Field(type = FieldType.Long)
+    private Long goodsSalesNumNew;
 
     /**
      * 真实的商品销量
@@ -221,6 +234,13 @@ public class EsGoods implements Serializable {
     @ApiModelProperty(value = "排序的价格")
     @Field(type = FieldType.Double)
     private BigDecimal esSortPrice;
+
+    /**
+     * 排序的价格
+     */
+    @ApiModelProperty(value = "排序的价格")
+    @Field(type = FieldType.Double)
+    private BigDecimal sortPrice;
 
     @Field(index = false, type = FieldType.Text)
     @ApiModelProperty(value = "计算单位")

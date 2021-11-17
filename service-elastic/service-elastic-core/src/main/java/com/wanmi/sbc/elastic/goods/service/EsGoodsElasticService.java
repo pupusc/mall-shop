@@ -378,6 +378,7 @@ public class EsGoodsElasticService {
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
                         esGoods.setAddedTime(goods.getAddedTime());
+                        esGoods.setAddedTimeNew(goods.getAddedTime());
                         esGoods.setLowGoodsName(StringUtils.lowerCase(goods.getGoodsName()));
                         esGoods.setPinyinGoodsName(esGoods.getLowGoodsName());
                         esGoods.setGoodsUnit(goods.getGoodsUnit());
@@ -401,6 +402,8 @@ public class EsGoodsElasticService {
                         //填充商品销量
                         Long shamSalesNum = goods.getShamSalesNum() == null ? 0 : goods.getShamSalesNum();
                         esGoods.setGoodsSalesNum(goods.getGoodsSalesNum() == null ? shamSalesNum : goods.getGoodsSalesNum() + shamSalesNum);
+                        esGoods.setGoodsSalesNumNew(goods.getGoodsSalesNum() == null ? shamSalesNum : goods.getGoodsSalesNum() + shamSalesNum);
+
                         //填充商品收藏量
                         esGoods.setGoodsCollectNum(goods.getGoodsCollectNum() == null ? 0 : goods.getGoodsCollectNum());
                         //填充商品评论数
@@ -607,6 +610,7 @@ public class EsGoodsElasticService {
                         if (MapUtils.isNotEmpty(firstSkuBySpuId)) {
                             GoodsInfoNest goodsInfoNest = firstSkuBySpuId.get(esGoods.getId());
                             esGoods.setEsSortPrice(goodsInfoNest.getEsSortPrice());
+                            esGoods.setSortPrice(goodsInfoNest.getEsSortPrice());
                             esGoods.setBuyPoint(goodsInfoNest.getBuyPoint());
 //                        esGoods.setGoodsLevelPrices(levelPriceMap.getOrDefault(goodsInfoNest.getGoodsInfoId(), new ArrayList<>()));
 //                        esGoods.setCustomerPrices(customerPriceMap.getOrDefault(goodsInfoNest.getGoodsInfoId(), new ArrayList<>()));
@@ -899,6 +903,7 @@ public class EsGoodsElasticService {
                         esGoods.setId(goods.getGoodsId());
                         esGoods.setVendibilityStatus(buildGoodsVendibility(goods, providerStoreMap, providerGoodsVOMap));
                         esGoods.setAddedTime(goods.getAddedTime());
+                        esGoods.setAddedTimeNew(goods.getAddedTime());
                         esGoods.setLowGoodsName(StringUtils.lowerCase(goods.getGoodsName()));
                         esGoods.setPinyinGoodsName(esGoods.getLowGoodsName());
                         esGoods.setGoodsUnit(goods.getGoodsUnit());
@@ -922,6 +927,7 @@ public class EsGoodsElasticService {
                         //填充商品销量
                         Long shamSalesNum = goods.getShamSalesNum() == null ? 0 : goods.getShamSalesNum();
                         esGoods.setGoodsSalesNum(goods.getGoodsSalesNum() == null ? shamSalesNum : goods.getGoodsSalesNum() + shamSalesNum);
+                        esGoods.setGoodsSalesNumNew(goods.getGoodsSalesNum() == null ? shamSalesNum : goods.getGoodsSalesNum() + shamSalesNum);
                         //填充商品收藏量
                         esGoods.setGoodsCollectNum(goods.getGoodsCollectNum() == null ? 0 : goods.getGoodsCollectNum());
                         //填充商品评论数
@@ -1099,6 +1105,7 @@ public class EsGoodsElasticService {
                         if (MapUtils.isNotEmpty(firstSkuBySpuId)) {
                             GoodsInfoNest goodsInfoNest = firstSkuBySpuId.get(esGoods.getId());
                             esGoods.setEsSortPrice(goodsInfoNest.getEsSortPrice());
+                            esGoods.setSortPrice(goodsInfoNest.getEsSortPrice());
                             esGoods.setBuyPoint(goodsInfoNest.getBuyPoint());
 //                        esGoods.setGoodsLevelPrices(levelPriceMap.getOrDefault(goodsInfoNest.getGoodsInfoId(), new ArrayList<>()));
 //                        esGoods.setCustomerPrices(customerPriceMap.getOrDefault(goodsInfoNest.getGoodsInfoId(), new ArrayList<>()));
