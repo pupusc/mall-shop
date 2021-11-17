@@ -970,8 +970,10 @@ public class EsGoodsInfoElasticService {
                         GoodsInfoVO info = goodsInfoMap.get(esGoodsInfo.getGoodsInfoId());
                         esGoodsInfo.setAddedTime(info.getAddedTime());
                         esGoods.setAddedTime(info.getAddedTime());
+                        esGoods.setAddedTimeNew(info.getAddedTime());
                     } else {
                         esGoods.setAddedTime(now);
+                        esGoods.setAddedTimeNew(now);
                         esGoodsInfo.setAddedTime(now);
                     }
                     esGoodsInfo.setEsSortPrice();

@@ -316,7 +316,7 @@ public class ClassifyController {
                 esGoodsCustomRequest.setGoodIdList(Arrays.asList(redis.getString(CLASS_NEW_KEY).split(",")));
             } else {
                 //按照时间排序
-                sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
+                sortBuilderList.add(new SortCustomBuilder("addedTimeNew", SortOrder.DESC));
                 esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
                 esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
@@ -349,7 +349,7 @@ public class ClassifyController {
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
         } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 3) {
             //按照销售数量排序
-            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            sortBuilderList.add(new SortCustomBuilder("goodsSalesNumNew", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
         } else {
             return BaseResponse.success(result);
