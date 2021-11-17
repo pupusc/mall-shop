@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderReques
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
+import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.RedisKeyUtil;
@@ -42,6 +43,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,6 +86,9 @@ public class ClassifyController {
      * 分类热销80条数据KEY
      */
     private static final String CLASS_HOT_KEY = "CLASS:HOT:KEY";
+
+    @Autowired
+    private  RefreshConfig refreshConfig;
     /**
      * 分类  获取分类信息
      *
@@ -285,12 +290,9 @@ public class ClassifyController {
         esGoodsCustomRequest.setPageSize(classifyGoodsAndBookListModelPageRequest.getPageSize());
         //拼装条件 0 表示推荐
         if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 0) {
-            if ("5".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-                sortBuilderList.add(new SortCustomBuilder("addedTime", SortOrder.DESC));
-            } else if ("4".equals(classifyGoodsAndBookListModelPageRequest.getAnchorPushs())) {
-                sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-            }
-            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+            Long days = new Date().getTime() / (1000 * 3600 * 24);
+            String script = String.format(refreshConfig.getRecommendSort(), days);
+            esGoodsCustomRequest.setScriptSort(script);
         } else if (classifyGoodsAndBookListModelPageRequest.getClassifySelectType() == 1) {
             //按照评分排序
             sortBuilderList.add(new SortCustomBuilder("goodsExtProps.score", SortOrder.DESC));
