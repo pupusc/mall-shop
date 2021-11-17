@@ -31,6 +31,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -61,6 +62,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/classify")
 @RestController
 @Slf4j
+@RefreshScope
 public class ClassifyController {
 
     @Autowired
