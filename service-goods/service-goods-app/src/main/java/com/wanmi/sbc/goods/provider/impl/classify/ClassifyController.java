@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.classify;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
@@ -111,6 +112,14 @@ public class ClassifyController implements ClassifyProvider {
         return BaseResponse.success(result);
     }
 
+
+    @Override
+    public BaseResponse<List<ClassifyProviderResponse>> listIndexClassify(){
+        return BaseResponse.success(classifyService.listIndexClassify());
+    }
+
+
+
     /**
      * 根据 商品id 获取商品所在分类的 父分类下的所有 子分类对应的商品id列表
      * @param goodsId
@@ -219,19 +228,14 @@ public class ClassifyController implements ClassifyProvider {
     }
 
 
-    public void test(ClassifyCollectionProviderRequest request) {
-        List<ClassifyDTO> classifyAllChildOfParentList = classifyService.listChildClassifyNoPageByParentId(request.getParentIdColl());
-        //根据子分类id 获取商品列表
-        if (CollectionUtils.isEmpty(classifyAllChildOfParentList)) {
-//            return BaseResponse.SUCCESSFUL();
-        }
-
-        //根据子分类 获取分类下的所有商品信息
-
+    /**
+     * 排序
+     * @param sortProviderRequestList
+     * @return
+     */
+    @Override
+    public BaseResponse sort(List<BaseSortProviderRequest> sortProviderRequestList) {
+        classifyService.sort(sortProviderRequestList);
+        return BaseResponse.SUCCESSFUL();
     }
-
-//    @Override
-//    public BaseResponse<List<BookListMixProviderResponse>> listPublishGoodsByIds(Collection<Integer> bookListModelIdCollection){
-//        return BaseResponse.success(bookListModelService.listPublishGoodsByModelIds(bookListModelIdCollection, CategoryEnum.BOOK_CLASSIFY));
-//    }
 }

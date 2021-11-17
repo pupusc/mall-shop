@@ -27,9 +27,18 @@ public class ClassifyProviderRequest implements Serializable {
     /**
      * 分类名称
      */
-    @NotBlank(groups = {Add.class, Update.class}, message = "名称不能为空")
+//    @NotBlank(groups = {Add.class, Update.class}, message = "名称不能为空")
     private String classifyName;
 
+    /**
+     * 是否首页展示 0 不展示 1 展示
+     */
+    private Integer hasShowIndex;
+
+    /**
+     * 是否首页展示 顺序
+     */
+    private Integer indexOrderNum;
 
     public interface Add{}
     public interface Update{}

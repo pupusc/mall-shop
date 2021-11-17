@@ -89,6 +89,27 @@ public class ClassifyController {
 
     @Autowired
     private  RefreshConfig refreshConfig;
+
+
+    /**
+     * 分类  获取首页分类信息
+     * @menu 新版首页
+     *
+     * @return
+     */
+    @GetMapping("/listClassify/home")
+    public BaseResponse<List<ClassifyNoChildResponse>> listHomeClassify() {
+        List<ClassifyNoChildResponse> result = new ArrayList<>();
+        BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listIndexClassify();
+        for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
+            ClassifyNoChildResponse classifyNoChildResponse = new ClassifyNoChildResponse();
+            classifyNoChildResponse.setId(classifyProviderResponseParam.getId());
+            classifyNoChildResponse.setClassifyName(classifyProviderResponseParam.getClassifyName());
+            result.add(classifyNoChildResponse);
+        }
+        return BaseResponse.success(result);
+    }
+
     /**
      * 分类  获取分类信息
      *
