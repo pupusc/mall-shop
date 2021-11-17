@@ -20,6 +20,10 @@ public class TopicResponse implements Serializable {
     @ApiModelProperty("专题名称")
     private String topicName;
 
-    @ApiModelProperty("背景色")
-    private String background;
+    @ApiModelProperty("主题色")
+    private String topicColor;
+
+    @ApiModelProperty("导航色")
+    private String navigationColor;
+
 }
