@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
@@ -158,29 +159,47 @@ public class TopicConfigService {
 
     @Transactional
     public void addStoreyContents(TopicStoreyContentAddRequest request){
-        if(request == null || CollectionUtils.isEmpty(request.getContents())){
+        if(request == null){
             throw  new  SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //删除原数据
-        contentRepository.deleteBySid(request.getContents().get(0).getStoreyId());
-        List<TopicStoreyContent> contents = KsBeanUtil.convertList(request.getContents(),TopicStoreyContent.class);
+        contentRepository.deleteBySid(request.getStoreyId());
+        List<TopicStoreyContent> contents = new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(request.getGoodsContents())){
+            contents.addAll(KsBeanUtil.convertList(request.getGoodsContents(),TopicStoreyContent.class));
+        }
+        if(CollectionUtils.isNotEmpty(request.getLinkContents())){
+            contents.addAll(KsBeanUtil.convertList(request.getLinkContents(),TopicStoreyContent.class));
+        }
         contents.forEach(c->{
             c.setCreateTime(LocalDateTime.now());
             c.setUpdateTime(LocalDateTime.now());
             c.setDeleted(DeleteFlag.NO.toValue());
+            c.setStoreyId(request.getStoreyId());
+            c.setTopicId(request.getTopicId());
         });
         contentRepository.saveAll(contents);
     }
 
-    public List<TopicStoreyContentDTO> listTopicStoreyContent(TopicStoreyContentQueryRequest request){
+    public TopicStoreyContentResponse listTopicStoreyContent(TopicStoreyContentQueryRequest request){
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC,"type"));
         orders.add(new Sort.Order(Sort.Direction.ASC,"sorting"));
          List<TopicStoreyContent> list = contentRepository.findAll(getTopicStoreyContentWhereCriteria(request),Sort.by(orders));
          if(CollectionUtils.isEmpty(list)){
-             return Collections.EMPTY_LIST;
+             return null;
          }
-         return KsBeanUtil.convertList(list,TopicStoreyContentDTO.class);
+        TopicStoreyContentResponse response = new TopicStoreyContentResponse();
+         response.setStoreyId(request.getStoreyId());
+         List<TopicStoreyContent> goodsContents = list.stream().filter(p->p.getType() == 1).collect(Collectors.toList());
+         if(CollectionUtils.isNotEmpty(goodsContents)){
+             response.setGoodsContents(KsBeanUtil.convertList(goodsContents,TopicStoreyContentDTO.class));
+         }
+        List<TopicStoreyContent> linkContents = list.stream().filter(p->p.getType() == 2).collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(linkContents)){
+            response.setLinkContents(KsBeanUtil.convertList(linkContents,TopicStoreyContentDTO.class));
+        }
+        return response;
     }
 
 

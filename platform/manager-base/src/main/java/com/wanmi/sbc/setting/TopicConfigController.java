@@ -1,17 +1,18 @@
-package com.wanmi.sbc.topic;
+package com.wanmi.sbc.setting;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
-import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -161,7 +162,14 @@ public class TopicConfigController {
      */
     @ApiOperation("楼层内容列表")
     @PostMapping("/storey/content/list")
-    public  BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request){
+    public  BaseResponse<TopicStoreyContentResponse> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request){
         return topicConfigProvider.listStoryContent(request);
+    }
+
+
+    @ApiOperation("上传氛围信息")
+    @PostMapping("/upload/atoms")
+    public  BaseResponse uploadAutomsFile(@RequestParam("uploadFile") MultipartFile uploadFile){
+
     }
 }

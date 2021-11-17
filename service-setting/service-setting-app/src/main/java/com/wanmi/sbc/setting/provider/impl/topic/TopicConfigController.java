@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.baseconfig.model.root.BaseConfig;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
@@ -81,7 +82,7 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
-    public BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(TopicStoreyContentQueryRequest request) {
+    public BaseResponse<TopicStoreyContentResponse> listStoryContent(TopicStoreyContentQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopicStoreyContent(request));
     }
 

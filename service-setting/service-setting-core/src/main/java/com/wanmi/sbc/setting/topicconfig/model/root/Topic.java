@@ -29,7 +29,8 @@ public class Topic {
     private String topicKey;
     @Column(name = "track_key")
     private  String trackKey;
-    @Column(name = "background")
-    private String background;
-
+    @Column(name = "topic_color")
+    private String topicColor;
+    @Column(name = "navigation_color")
+    private String navigationColor;
 }

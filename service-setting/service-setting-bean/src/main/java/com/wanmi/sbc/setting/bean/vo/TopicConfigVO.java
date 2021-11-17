@@ -20,6 +20,9 @@ public class TopicConfigVO implements Serializable {
     private String topicName;
 
     private String linkUrl;
-    @ApiModelProperty("背景色")
-    private String background;
+    @ApiModelProperty("主题色")
+    private String topicColor;
+
+    @ApiModelProperty("导航色")
+    private String navigationColor;
 }

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.topic.response;
+package com.wanmi.sbc.setting.response;
 
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;

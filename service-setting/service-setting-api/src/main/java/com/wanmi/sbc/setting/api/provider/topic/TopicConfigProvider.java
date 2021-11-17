@@ -4,6 +4,7 @@ package com.wanmi.sbc.setting.api.provider.topic;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
+import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
@@ -58,8 +59,10 @@ public interface TopicConfigProvider {
     BaseResponse addStoryContent(@RequestBody TopicStoreyContentAddRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/storey/content/list")
-    BaseResponse<List<TopicStoreyContentDTO>> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request);
+    BaseResponse<TopicStoreyContentResponse> listStoryContent(@RequestBody TopicStoreyContentQueryRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/modify/headimage")
     BaseResponse modifyHeadImage(@RequestBody TopicHeadImageModifyRequest request);
+
+
 }
