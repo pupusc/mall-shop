@@ -102,4 +102,13 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      */
     private String scriptSort;
 
+    /**
+     * 评分
+     */
+    private Integer score;
+    /**
+     * 评分
+     */
+    private Double esSortPrice;
+
 }
