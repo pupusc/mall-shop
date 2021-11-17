@@ -166,10 +166,4 @@ public class TopicConfigController {
         return topicConfigProvider.listStoryContent(request);
     }
 
-
-    @ApiOperation("上传氛围信息")
-    @PostMapping("/upload/atoms")
-    public  BaseResponse uploadAutomsFile(@RequestParam("uploadFile") MultipartFile uploadFile){
-
-    }
 }

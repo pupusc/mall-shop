@@ -78,7 +78,7 @@ public class AtmosController {
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
         boolean isError = false;
-        int maxCell = 4;
+        int maxCell = 10;
         Map<String, Cell> skuNos = new HashMap<>();
         //this.checkExcel(workbook);
         //循环除了第一行的所有行

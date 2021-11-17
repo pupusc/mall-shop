@@ -30,4 +30,6 @@ public class Atmosphere {
     private Integer deleted;
     @Column(name = "desc")
     private String desc;
+    @Column(name = "type")
+    private Integer type;
 }
