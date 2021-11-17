@@ -1,6 +1,7 @@
 package com.wanmi.sbc.classify;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.base.BaseSortRequest;
 import com.wanmi.sbc.classify.request.ClassifyIndexSortRequest;
 import com.wanmi.sbc.classify.request.TradeRequest;
 import com.wanmi.sbc.classify.response.ClassifyResponse;
@@ -151,15 +152,14 @@ public class ClassifyController {
     /**
      * 后台分类 排序
      * @menu 后台CMS2.0
-     * @param sortProviderRequestList
      * @return
      */
     @PostMapping("/sort")
-    public BaseResponse sort(@Validated @RequestBody List<BaseSortProviderRequest> sortProviderRequestList) {
-        if (CollectionUtils.isEmpty(sortProviderRequestList)) {
+    public BaseResponse sort(@Validated @RequestBody BaseSortRequest sortRequest) {
+        if (CollectionUtils.isEmpty(sortRequest.getSortList())) {
             throw new IllegalStateException(CommonErrorCode.PARAMETER_ERROR);
         }
-        classifyProvider.sort(sortProviderRequestList);
+        classifyProvider.sort(sortRequest.getSortList());
         return BaseResponse.SUCCESSFUL();
     }
 }
