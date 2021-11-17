@@ -155,6 +155,19 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(termQuery("goodsInfos.cpsSpecial", request.getCpsSpecial()));
             boolQueryBuilder.must(termQuery("cpsSpecial", request.getCpsSpecial()));
         }
+
+        /**
+         * 评分大于Score
+         */
+        if (request.getScore() != null) {
+            boolQueryBuilder.must(rangeQuery("goodsExtProps.score").gte(request.getScore()));
+        }
+        /**
+         * 价格大于EsSortPrice
+         */
+        if (request.getEsSortPrice() != null) {
+            boolQueryBuilder.must(rangeQuery("esSortPrice").gte(request.getEsSortPrice()));
+        }
         /**
          * 主播推荐
          */

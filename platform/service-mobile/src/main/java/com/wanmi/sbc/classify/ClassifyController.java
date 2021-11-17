@@ -292,9 +292,12 @@ public class ClassifyController {
             if (redis.hasKey(CLASS_HOT_KEY)) {
                 esGoodsCustomRequest.setGoodIdList(Arrays.asList(redis.getString(CLASS_HOT_KEY).split(",")));
             } else {
-                esGoodsCustomRequest.setAfterAddedTime(LocalDateTime.now().minus(30, ChronoUnit.DAYS));
                 //按照销售数量排序
-                sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+                Long days = new Date().getTime() / (1000 * 3600 * 24);
+                String script = String.format(refreshConfig.getRecommendSort(), days);
+                esGoodsCustomRequest.setScriptSort(script);
+                esGoodsCustomRequest.setScore(7);
+                esGoodsCustomRequest.setEsSortPrice(20d);
                 esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
                 esGoodsCustomRequest.setPageNum(0);
                 esGoodsCustomRequest.setPageSize(page_size);
