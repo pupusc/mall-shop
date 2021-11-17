@@ -1,5 +1,7 @@
 package com.wanmi.sbc.setting;
 
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.ResourceType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -17,6 +19,7 @@ import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.quartz.service.TaskJobService;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
+import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunFileDeleteRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunGetResourceRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunUploadResourceRequest;
@@ -29,6 +32,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -181,5 +185,13 @@ public class AtmosService {
 
     private void saveAtmosConfig(List<AtmosphereDTO> details){
         atmosphereProvider.add(details);
+    }
+
+    public BaseResponse<MicroServicePage<AtmosphereDTO>> page(AtmosphereQueryRequest request){
+        return atmosphereProvider.page(request);
+    }
+
+    public BaseResponse delete(Integer id){
+        return atmosphereProvider.delete(id);
     }
 }

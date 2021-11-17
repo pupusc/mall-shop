@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.util.CommonUtil;
@@ -92,7 +93,7 @@ public class AtmosController {
     @ApiOperation(value = "氛围列表")
     @PostMapping(value = "/page")
     public BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request) {
-        return BaseResponse.success(new MicroServicePage<>());
+        return atmosService.page(request);
     }
 
     /**
@@ -103,7 +104,7 @@ public class AtmosController {
     @ApiOperation(value = "删除氛围")
     @GetMapping(value = "/delete")
     public BaseResponse delete(@RequestParam("id")Integer id) {
-        return BaseResponse.SUCCESSFUL();
+        return atmosService.delete(id);
     }
 
     private final Function<Workbook, List<AtmosphereDTO>> analysisFunctionByAtmos = (workbook) -> {
