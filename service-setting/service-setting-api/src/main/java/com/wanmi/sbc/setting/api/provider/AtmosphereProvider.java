@@ -1,6 +1,8 @@
 package com.wanmi.sbc.setting.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.ConfigStatusModifyByTypeAndKeyRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -20,5 +22,8 @@ public interface AtmosphereProvider {
      */
     @PostMapping("/setting/${application.setting.version}/atmos/add")
     BaseResponse add(@RequestBody List<AtmosphereDTO> request);
+
+    @PostMapping("/setting/${application.setting.version}/atmos/page")
+    BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request);
 
 }

@@ -27,10 +27,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -80,11 +77,16 @@ public class AtmosController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "ext", value = "后缀", required = true)
     @RequestMapping(value = "/import", method = RequestMethod.GET)
     @GlobalTransactional
-    public BaseResponse<String> implGoods() {
+    public BaseResponse<String> importAtmos() {
         String res = atmosService.importAtmosFile(analysisFunctionByAtmos);
         return BaseResponse.success(res);
     }
 
+    @ApiOperation(value = "氛围列表")
+    @PostMapping(value = "/page")
+    public BaseResponse<String> page() {
+        return BaseResponse.success("");
+    }
 
     private final Function<Workbook, List<AtmosphereDTO>> analysisFunctionByAtmos = (workbook) -> {
         Sheet sheet = workbook.getSheetAt(0);

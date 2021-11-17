@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.checkerframework.checker.units.qual.A;
 
 import java.time.LocalDateTime;
 
@@ -15,21 +16,38 @@ public class AtmosphereDTO {
     @ApiModelProperty(value = "开始时间")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-
     private LocalDateTime startTime;
+
     @ApiModelProperty(value = "结束时间")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    @ApiModelProperty("氛围类型1通用类型2积分类型")
     private Integer type;
 
+    @ApiModelProperty("商品编码")
     private String skuNo;
 
+    @ApiModelProperty("商品名称")
     private String goodsName;
 
+    @ApiModelProperty("图片地址")
     private String imageUrl;
 
+    @ApiModelProperty(value = "元素内容",hidden = true)
     private String elementDesc;
+
+    @ApiModelProperty("元素1")
+    private String elementOne;
+
+    @ApiModelProperty("元素2")
+    private String elementTwo;
+
+    @ApiModelProperty("元素3")
+    private String elementThree;
+
+    @ApiModelProperty("元素4")
+    private String elementFour;
 
 }
