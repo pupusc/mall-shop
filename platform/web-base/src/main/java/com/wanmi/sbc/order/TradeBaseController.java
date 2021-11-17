@@ -1117,7 +1117,7 @@ public class TradeBaseController {
             Map<String, List<MarketingViewVO>> marketingResponse = purchaseQueryProvider.getGoodsMarketing(marketingRequest).getContext().getMap();
             //优化- boolean isIepCustomerFlag = isIepCustomer();重复调用commonUtil.getCustomer()。zc_2021/03/24
             EnterpriseCheckState customerState = customer.getEnterpriseCheckState();
-//            boolean isIepCustomerFlag = commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING) && !Objects.isNull(customerState) && customerState == EnterpriseCheckState.CHECKED;
+            boolean isIepCustomerFlag = commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING) && !Objects.isNull(customerState) && customerState == EnterpriseCheckState.CHECKED;
             //优化。zc_2021/03/24
             DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
             DefaultFlag storeOpenFlag = distributionCacheService.queryStoreOpenFlag(String.valueOf(storeId));
