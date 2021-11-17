@@ -40,6 +40,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * @menu 氛围配置
+ * @tag atoms
+ * @status undone
+ */
 @Api(tags = "AtmosController", description = "氛围配置")
 @RestController
 @RequestMapping("/atoms")
@@ -53,7 +58,12 @@ public class AtmosController {
     @Autowired
     private CommonUtil commonUtil;
 
-
+    /**
+     * @description 上传氛围表格
+     * @menu 氛围配置
+     * @param uploadFile
+     * @status undone
+     */
     @ApiOperation(value = "上传氛围")
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public BaseResponse<String> upload(@RequestParam("uploadFile") MultipartFile uploadFile) {
@@ -62,7 +72,9 @@ public class AtmosController {
 
 
     /**
-     * 确认导入模版
+     * @description 确认导入模版
+     * @menu 氛围配置
+     * @status undone
      */
     @ApiOperation(value = "确认导入模版")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "ext", value = "后缀", required = true)
@@ -78,7 +90,7 @@ public class AtmosController {
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
         boolean isError = false;
-        int maxCell = 4;
+        int maxCell = 10;
         Map<String, Cell> skuNos = new HashMap<>();
         //this.checkExcel(workbook);
         //循环除了第一行的所有行
@@ -137,7 +149,7 @@ public class AtmosController {
                     ExcelHelper.setError(workbook, cells[2], "选项不合法");
                     isError = true;
                 } else {
-                    atmosphereDTO.setAtmosType("积分氛围".equals(atmosTypeValue) ? 1 : 2);
+                    atmosphereDTO.setType("积分氛围".equals(atmosTypeValue) ? 1 : 2);
                 }
             }
             //SKU编码
@@ -180,7 +192,7 @@ public class AtmosController {
             map.put(2,elementTwo);
             map.put(3,elementThird);
             map.put(4,elementFour);
-            atmosphereDTO.setDesc(JSON.toJSONString(map));
+            atmosphereDTO.setElementDesc(JSON.toJSONString(map));
             list.add(atmosphereDTO);
 
         }

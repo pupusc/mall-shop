@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.api.provider.priceadjustmentrecorddetail.PriceAdjustm
 import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.quartz.service.TaskJobService;
+import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
 import com.wanmi.sbc.setting.api.request.yunservice.YunFileDeleteRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunGetResourceRequest;
@@ -55,6 +56,9 @@ public class AtmosService {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    @Autowired
+    private AtmosphereProvider atmosphereProvider;
 
     /**
      * 批量设价文件上传
@@ -141,12 +145,10 @@ public class AtmosService {
                 }
                 throw se;
             }
-
-            //改价记录入库
-            String recordId = saveRecord(details.size(), type).getId();
+            saveAtmosConfig(details);
             //云服务删除原文件
             yunServiceProvider.deleteFile(new YunFileDeleteRequest(Collections.singletonList(resourceKey)));
-            return recordId;
+            return "";
         } catch (SbcRuntimeException e) {
             log.error("批量设价文件导入异常，resourceKey={}", resourceKey, e);
             if (CommonErrorCode.FAILED.equals(e.getErrorCode())){
@@ -178,6 +180,6 @@ public class AtmosService {
     }
 
     private void saveAtmosConfig(List<AtmosphereDTO> details){
-
+        atmosphereProvider.add(details);
     }
 }
