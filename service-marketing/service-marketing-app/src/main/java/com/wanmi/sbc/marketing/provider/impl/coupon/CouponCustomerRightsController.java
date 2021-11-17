@@ -143,6 +143,7 @@ public class CouponCustomerRightsController implements CouponCustomerRightsProvi
                             customerRelPageRequest).getContext().getPaidCardCustomerRelVOPage();
                     log.info("当前查询的页数{},当前页数返回的页码{},当前返回的全部数据{}",pageNum,customerRelVOPage.getTotalPages(),customerRelVOPage);
                     customerRelVOPage.getContent().stream().forEach(item -> {
+                        log.info("CouponCustomerRightsController customerId:{} activityId:{}", item.getCustomerId(), rights.getActivityId());
                         Map<String, Object> map = new HashMap<>();
                         map.put("customerId",  item.getCustomerId());
                         map.put("activityId", rights.getActivityId());
