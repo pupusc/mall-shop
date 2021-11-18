@@ -131,6 +131,6 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
 //                .subType(marketing.getSubType())
 //                .build());
 
-        return response;
+        return null;
     }
 }
