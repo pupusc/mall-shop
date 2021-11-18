@@ -26,6 +26,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -118,19 +119,23 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分活动校验错误");
         }
 
-//        MarketingPointBuyLevel level = levels.get(0);
-        TradeMarketingResponse response = new TradeMarketingResponse();
-//        response.setTradeMarketing(TradeMarketing.builder()
-//                .fullDiscountLevel(level)
-//                .discountsAmount(price.subtract(amount))
-//                .realPayAmount(amount)
-//                .marketingId(marketing.getMarketingId())
-//                .marketingName(marketing.getMarketingName())
-//                .marketingType(marketing.getMarketingType())
-//                .skuIds(tradeMarketingDTO.getSkuIds())
-//                .subType(marketing.getSubType())
-//                .build());
+        //积分换购只能有一件商品
+        BigDecimal price = tradeItems.get(0).getPrice();
 
-        return null;
+        MarketingPointBuyLevel level = levels.get(0);
+        Integer pointNeed = level.getPointNeed();
+        BigDecimal pointMoney = BigDecimal.valueOf(pointNeed).divide(BigDecimal.valueOf(100));
+        TradeMarketingResponse response = new TradeMarketingResponse();
+        response.setTradeMarketing(TradeMarketing.builder()
+                .marketingPointBuyLevel(level)
+                .discountsAmount(price.subtract(BigDecimal.valueOf(level.getMoney())).subtract(pointMoney))
+                .realPayAmount(BigDecimal.valueOf(level.getMoney()))
+                .marketingId(marketing.getMarketingId())
+                .marketingName(marketing.getMarketingName())
+                .marketingType(marketing.getMarketingType())
+                .skuIds(tradeMarketingDTO.getSkuIds())
+                .subType(marketing.getSubType())
+                .build());
+        return response;
     }
 }

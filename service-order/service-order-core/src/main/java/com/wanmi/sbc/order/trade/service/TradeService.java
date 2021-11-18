@@ -5441,16 +5441,14 @@ public class TradeService {
         //计算商品总价
         handlePrice(g.getTradeItems(), price);
         //验证并计算各营销活动的优惠金额,实付金额,赠品List
-        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(),
-                g.getTradeMarketingList());
+        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(), g.getTradeMarketingList());
         List<Discounts> discountsList = new ArrayList<>();
         //每个订单的多个优惠信息(满折优惠了xx,满减优惠了yy)
         item.setDiscountsPrice(discountsList);
-        List<TradeMarketingVO> tempList =
-                tradeMarketings.stream()
-                        .filter(i -> i.getMarketingType() != MarketingType.GIFT
-                                && i.getMarketingType() != MarketingType.MARKUP)
-                        .collect(Collectors.toList());
+
+
+        List<TradeMarketingVO> tempList = tradeMarketings.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT
+                && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
         tempList.forEach(i -> {
             Discounts discounts = Discounts.builder()
                     .amount(i.getDiscountsAmount())
@@ -5530,8 +5528,7 @@ public class TradeService {
         // requests.stream().filter(r->CollectionUtils.isNotEmpty(r.getTradeItems())).collect(Collectors.toList());
         // 2.调用营销插件，并设置满系营销信息
         if (CollectionUtils.isNotEmpty(requests)) {
-            List<TradeMarketingWrapperVO> voList =
-                    marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
+            List<TradeMarketingWrapperVO> voList = marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
                             .wraperDTOList(requests).build()).getContext().getWraperVOList();
             if (CollectionUtils.isNotEmpty(voList)) {
                 voList.forEach(tradeMarketingWrapperVO -> {

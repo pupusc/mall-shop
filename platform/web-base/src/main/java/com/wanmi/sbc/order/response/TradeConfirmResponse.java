@@ -7,6 +7,7 @@ import com.wanmi.sbc.marketing.bean.vo.MarkupLevelDetailVO;
 import com.wanmi.sbc.order.bean.vo.CycleBuyInfoVO;
 import com.wanmi.sbc.order.bean.vo.DiscountsVO;
 import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeConfirmMarketingVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

@@ -744,8 +744,7 @@ public class TradeItemService {
                 .terminalToken(request.getTerminalToken())
                 .build();
 
-        this.snapshot(snapshotRequest, tradeItems,
-                request.getTradeMarketingList(), KsBeanUtil.convertList(response.getGoodsInfos(), GoodsInfoDTO.class));
+        this.snapshot(snapshotRequest, tradeItems, request.getTradeMarketingList(), KsBeanUtil.convertList(response.getGoodsInfos(), GoodsInfoDTO.class));
     }
 
     /**

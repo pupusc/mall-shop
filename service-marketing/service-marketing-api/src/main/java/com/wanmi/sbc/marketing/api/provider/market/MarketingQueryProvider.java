@@ -4,9 +4,12 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.marketing.api.request.market.MarketingGoodsForXsiteRequest;
 import com.wanmi.sbc.marketing.api.request.market.*;
 import com.wanmi.sbc.marketing.api.response.market.*;
+import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -110,4 +113,12 @@ public interface MarketingQueryProvider {
 
     @PostMapping("/marketing/${application.marketing.version}/groupon/queryGrouponInfoForXsite")
     BaseResponse<MarketingGoodsForXsiteResponse> queryForXsite(@RequestBody @Valid MarketingGoodsForXsiteRequest request);
+
+    /**
+     * 查找积分换购活动详情
+     * @param id
+     * @return
+     */
+    @GetMapping("/marketing/${application.marketing.version}/point-buy")
+    BaseResponse<MarketingPointBuyLevelDto> getPointBuyLevel(@RequestParam Long id);
 }

@@ -6,9 +6,12 @@ import com.wanmi.sbc.marketing.api.response.market.MarketingAddResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingDeleteResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingPauseResponse;
 import com.wanmi.sbc.marketing.api.response.market.MarketingStartResponse;
+import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -59,4 +62,5 @@ public interface MarketingProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/start-by-id")
     BaseResponse<MarketingStartResponse> startById(@RequestBody @Valid MarketingStartByIdRequest startByIdRequest);
+
 }

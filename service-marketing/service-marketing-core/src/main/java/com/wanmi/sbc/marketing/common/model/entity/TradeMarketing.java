@@ -4,6 +4,7 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.buyoutprice.model.entry.MarketingBuyoutPriceLevel;
 import com.wanmi.sbc.marketing.discount.model.entity.MarketingFullDiscountLevel;
+import com.wanmi.sbc.marketing.discount.model.entity.MarketingPointBuyLevel;
 import com.wanmi.sbc.marketing.gift.model.root.MarketingFullGiftLevel;
 import com.wanmi.sbc.marketing.halfpricesecondpiece.model.entry.MarketingHalfPriceSecondPieceLevel;
 import com.wanmi.sbc.marketing.markup.model.root.MarkupLevel;
@@ -55,6 +56,11 @@ public class TradeMarketing {
      * 满折信息
      */
     private MarketingFullDiscountLevel fullDiscountLevel;
+
+    /**
+     * 积分换购
+     */
+    private MarketingPointBuyLevel marketingPointBuyLevel;
 
     /**
      * 满赠信息

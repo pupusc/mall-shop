@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MarketingPointBuyService {
@@ -79,4 +80,9 @@ public class MarketingPointBuyService {
         }
         marketingPointBuyLevelRepository.saveAll(toSave);
     }
+
+    public MarketingPointBuyLevel findPointBuyById(Long id){
+        return marketingPointBuyLevelRepository.findById(id).orElse(null);
+    }
+
 }

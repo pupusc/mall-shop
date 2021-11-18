@@ -3,12 +3,14 @@ package com.wanmi.sbc.order.trade.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.SiteResultCode;
@@ -26,6 +28,10 @@ import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
 import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
+import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
+import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
+import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
+import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
@@ -112,6 +118,9 @@ public class TradeOptimizeService {
 
     @Autowired
     private ExternalProvider externalProvider;
+
+    @Autowired
+    private MarketingQueryProvider marketingQueryProvider;
     /**
      * C端下单
      */
@@ -128,8 +137,26 @@ public class TradeOptimizeService {
         if (tradeItemSnapshot == null) {
             throw new SbcRuntimeException(SiteResultCode.ERROR_050201);
         }
-        List<TradeItemGroup> tradeItemGroups = tradeItemSnapshot.getItemGroups();
 
+        List<TradeItemGroup> tradeItemGroups = tradeItemSnapshot.getItemGroups();
+        List<TradeMarketingDTO> tradeMarketingList = tradeItemGroups.get(0).getTradeMarketingList();
+        TradeMarketingDTO pointBuy = null;
+        for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList) {
+            if(MarketingSubType.POINT_BUY.equals(tradeMarketingDTO.getMarketingSubType())){
+                pointBuy = tradeMarketingDTO;
+                break;
+            }
+        }
+        // 积分换购活动积分合法性校验
+        if(pointBuy != null){
+            BaseResponse<MarketingPointBuyLevelDto> pointBuyLevel = marketingQueryProvider.getPointBuyLevel(pointBuy.getMarketingLevelId());
+            if(pointBuyLevel.getContext() == null){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+            }
+            if(!pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints())){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+            }
+        }
         // 组合购标记
         boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE, s.getSuitMarketingFlag()));
         //开店礼包

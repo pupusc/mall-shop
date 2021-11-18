@@ -1123,12 +1123,17 @@ public class TradeBaseController {
             DefaultFlag storeOpenFlag = distributionCacheService.queryStoreOpenFlag(String.valueOf(storeId));
             //企业会员判断
             Map<String, Long> buyCountMap = new HashMap<>();
-            tradeItems.stream()
-                    .filter(i -> (Objects.isNull(i.getIsAppointmentSaleGoods()) || Boolean.FALSE.equals(i.getIsAppointmentSaleGoods()))
+
+            // 积分换购活动只允许存在一件商品
+            long count = tradeItems.stream().filter(i -> i.getNum() > 1).count();
+            if(marketingResponse.size() > 1 || count > 0){
+                marketingResponse.forEach((k, v) -> {
+                    v.removeIf(marketing -> MarketingSubType.POINT_BUY.equals(marketing.getSubType()));
+                });
+            }
+            tradeItems.stream().filter(i -> (Objects.isNull(i.getIsAppointmentSaleGoods()) || Boolean.FALSE.equals(i.getIsAppointmentSaleGoods()))
                             && (Objects.isNull(i.getIsBookingSaleGoods()) || Boolean.FALSE.equals(i.getIsBookingSaleGoods()))
-                            && skuMap.containsKey(i.getSkuId())
-                    )
-                    .forEach(i -> {
+                            && skuMap.containsKey(i.getSkuId())).forEach(i -> {
                         GoodsInfoVO sku = skuMap.get(i.getSkuId());
                         if (sku.getDistributionGoodsAudit() != DistributionGoodsAudit.CHECKED
                                 || DefaultFlag.NO.equals(openFlag)
@@ -2656,6 +2661,8 @@ public class TradeBaseController {
                             MarketingPointBuyLevelVO levelVO = marketingViewVO.getPointBuyLevelList().stream().filter(l -> l.getId().equals(levelId)).findFirst().orElse(null);
                             if(levelVO != null){
                                 desc = String.format("您已满足%s积分+%s元换购", levelVO.getPointNeed(), levelVO.getMoney());
+                                confirmMarketingVO.setPointNeed(levelVO.getPointNeed());
+                                levelVO.setMoney(levelVO.getMoney());
                             }
                         }
                         if (!MarketingType.SUITS.equals(marketingViewVO.getMarketingType())) {
