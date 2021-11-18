@@ -7,9 +7,9 @@ import lombok.Data;
 
 @Data
 public class TopicStoreyContentReponse extends TopicStoreyContentDTO {
-    @ApiModelProperty("商品信息")
-    private GoodsCustomResponse goods;
 
-    @ApiModelProperty("氛围信息")
-    private AtmosphereResponse atmosphere;
+    @ApiModelProperty("商品信息")
+    private GoodsAndAtmosphereResponse goods;
+
+
 }

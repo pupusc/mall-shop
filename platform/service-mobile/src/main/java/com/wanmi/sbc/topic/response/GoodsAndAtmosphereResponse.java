@@ -1,12 +1,13 @@
 package com.wanmi.sbc.topic.response;
 
+import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class AtmosphereResponse implements Serializable {
+public class GoodsAndAtmosphereResponse extends GoodsCustomResponse implements Serializable {
     private static final long serialVersionUID = -2138644833913932141L;
 
     @ApiModelProperty("图片地址")

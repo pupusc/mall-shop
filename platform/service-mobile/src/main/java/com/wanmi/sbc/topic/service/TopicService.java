@@ -21,6 +21,7 @@ import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.AtmosphereResponse;
+import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -72,7 +73,8 @@ public class TopicService {
                 response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
                     p.getContents().stream().filter(g->g.getType().equals(1)).forEach(g->{
                         if(list.stream().anyMatch(l->l.getGoodsInfoId().equals(g.getSkuId()))){
-                            g.setGoods(list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get());
+                            GoodsCustomResponse goodsCustomResponse = list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
+                            g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
                         }
                     });
                 });
@@ -83,13 +85,22 @@ public class TopicService {
         if(CollectionUtils.isEmpty(atmosphereList) ){
             return BaseResponse.success(response);
         }
-        response.getStoreyList().forEach(storey->{
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(storey->{
             if(CollectionUtils.isNotEmpty(storey.getContents()) &&  storey.getContents().stream().anyMatch(p->p.getType() == 1)){
                 storey.getContents().stream().filter(p->p.getType() == 1).forEach(c->{
                     Optional<AtmosphereDTO> atmosphereDTOOptional = atmosphereList.stream().filter(atmos->atmos.getSkuId().equals(c.getSkuId())).findFirst();
                     if(atmosphereDTOOptional.isPresent()){
                         AtmosphereDTO atmosphereDTO = atmosphereDTOOptional.get();
-                        c.setAtmosphere(KsBeanUtil.convert(atmosphereDTO, AtmosphereResponse.class));
+                        GoodsAndAtmosphereResponse goodsAtmos = c.getGoods();
+                        if(goodsAtmos ==null){
+                            goodsAtmos = new GoodsAndAtmosphereResponse();
+                        }
+                        goodsAtmos.setElementFour(atmosphereDTO.getElementFour());
+                        goodsAtmos.setElementThree(atmosphereDTO.getElementThree());
+                        goodsAtmos.setElementTwo(atmosphereDTO.getElementTwo());
+                        goodsAtmos.setElementOne(atmosphereDTO.getElementOne());
+                        goodsAtmos.setImageUrl(atmosphereDTO.getImageUrl());
+                        c.setGoods(goodsAtmos);
                     }
                 });
             }
