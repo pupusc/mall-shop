@@ -142,7 +142,7 @@ public class TradeOptimizeService {
         List<TradeMarketingDTO> tradeMarketingList = tradeItemGroups.get(0).getTradeMarketingList();
         TradeMarketingDTO pointBuy = null;
         for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList) {
-            if(MarketingSubType.POINT_BUY.equals(tradeMarketingDTO.getMarketingSubType())){
+            if(tradeMarketingDTO.getMarketingSubType().equals(MarketingSubType.POINT_BUY.toValue())){
                 pointBuy = tradeMarketingDTO;
                 break;
             }
@@ -153,7 +153,7 @@ public class TradeOptimizeService {
             if(pointBuyLevel.getContext() == null){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
-            if(!pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints())){
+            if(!pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints().intValue())){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
         }
