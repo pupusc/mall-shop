@@ -1,4 +1,4 @@
-package com.wanmi.sbc.setting.service;
+package com.wanmi.sbc.topic.service;
 
 
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
@@ -8,7 +8,6 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
-import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -18,9 +17,12 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
-import com.wanmi.sbc.setting.response.TopicResponse;
+import com.wanmi.sbc.topic.response.AtmosphereResponse;
+import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
+import com.wanmi.sbc.topic.response.TopicResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,14 +44,13 @@ public class TopicService {
     private TopicConfigProvider topicConfigProvider;
 
     @Autowired
-    private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
-
-
-    @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
 
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
+
+    @Autowired
+    private AtmosphereService atmosphereService;
 
     public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -71,12 +73,38 @@ public class TopicService {
                 response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
                     p.getContents().stream().filter(g->g.getType().equals(1)).forEach(g->{
                         if(list.stream().anyMatch(l->l.getGoodsInfoId().equals(g.getSkuId()))){
-                            g.setGoods(list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get());
+                            GoodsCustomResponse goodsCustomResponse = list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
+                            g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
                         }
                     });
                 });
             }
         }
+        //氛围信息
+        List<AtmosphereDTO> atmosphereList = atmosphereService.getAtmosphere();
+        if(CollectionUtils.isEmpty(atmosphereList) ){
+            return BaseResponse.success(response);
+        }
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(storey->{
+            if(CollectionUtils.isNotEmpty(storey.getContents()) &&  storey.getContents().stream().anyMatch(p->p.getType().equals(1))){
+                storey.getContents().stream().filter(p->p.getType().equals(1)).forEach(c->{
+                    Optional<AtmosphereDTO> atmosphereDTOOptional = atmosphereList.stream().filter(atmos->atmos.getSkuId().equals(c.getSkuId())).findFirst();
+                    if(atmosphereDTOOptional.isPresent()){
+                        AtmosphereDTO atmosphereDTO = atmosphereDTOOptional.get();
+                        GoodsAndAtmosphereResponse goodsAtmos = c.getGoods();
+                        if(goodsAtmos ==null){
+                            goodsAtmos = new GoodsAndAtmosphereResponse();
+                        }
+                        goodsAtmos.setElementFour(atmosphereDTO.getElementFour());
+                        goodsAtmos.setElementThree(atmosphereDTO.getElementThree());
+                        goodsAtmos.setElementTwo(atmosphereDTO.getElementTwo());
+                        goodsAtmos.setElementOne(atmosphereDTO.getElementOne());
+                        goodsAtmos.setImageUrl(atmosphereDTO.getImageUrl());
+                        c.setGoods(goodsAtmos);
+                    }
+                });
+            }
+        });
         return BaseResponse.success(response);
     }
 
@@ -85,9 +113,8 @@ public class TopicService {
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
         queryRequest.setPageNum(0);
-        queryRequest.setPageSize(goodIds.size()); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
+        queryRequest.setPageSize(goodIds.size());
         queryRequest.setGoodsInfoIds(goodIds);
-        //获取会员和等级
         queryRequest.setQueryGoods(true);
         queryRequest.setAddedFlag(AddedFlag.YES.toValue());
         queryRequest.setDelFlag(DeleteFlag.NO.toValue());

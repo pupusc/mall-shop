@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.goods.adjust.PriceAdjustExcuteService;
 import com.wanmi.sbc.goods.api.constant.GoodsImportErrorCode;
 import com.wanmi.sbc.goods.api.provider.adjustprice.PriceAdjustmentImportProvider;
@@ -14,6 +15,7 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.priceadjustmentrecord.PriceAdjustmentRecordProvider;
 import com.wanmi.sbc.goods.api.provider.priceadjustmentrecord.PriceAdjustmentRecordQueryProvider;
 import com.wanmi.sbc.goods.api.provider.priceadjustmentrecorddetail.PriceAdjustmentRecordDetailProvider;
+import com.wanmi.sbc.goods.api.request.adjustprice.PriceAdjustmentTemplateExportRequest;
 import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.quartz.service.TaskJobService;
@@ -26,6 +28,7 @@ import com.wanmi.sbc.setting.api.request.yunservice.YunUploadResourceRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -34,10 +37,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import sun.misc.BASE64Decoder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -64,8 +69,22 @@ public class AtmosService {
     @Autowired
     private AtmosphereProvider atmosphereProvider;
 
+    public void downloadAtmosTemplate(PriceAdjustmentTemplateExportRequest request, String templateFileName) {
+        request.setStoreId(commonUtil.getStoreId());
+
+        if (StringUtils.isNotBlank(file)) {
+            try {
+                String fileName = URLEncoder.encode(templateFileName, "UTF-8");
+                HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";" +
+                        "filename*=\"utf-8''%s\"", fileName, fileName));
+                HttpUtil.getResponse().getOutputStream().write(new BASE64Decoder().decodeBuffer(file));
+            } catch (Exception e) {
+                throw new SbcRuntimeException(CommonErrorCode.FAILED);
+            }
+        }
+    }
     /**
-     * 批量设价文件上传
+     * 氛围文件上传
      *
      * @param uploadFile
      * @return
