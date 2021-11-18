@@ -705,4 +705,22 @@ public class GoodsInfoVO implements Serializable {
      * 区间价列表
      */
     private List<GoodsIntervalPriceVO> intervalPriceList;
+
+    @ApiModelProperty("氛围图片")
+    private String imageUrl;
+
+    @ApiModelProperty("氛围类型")
+    private String atmosType;
+
+    @ApiModelProperty("元素1,左侧第一行文字")
+    private String elementOne;
+
+    @ApiModelProperty("元素2：左侧第二行文字")
+    private String elementTwo;
+
+    @ApiModelProperty("元素3：右侧第一行文字")
+    private String elementThree;
+
+    @ApiModelProperty("元素4：右侧第二行文字")
+    private String elementFour;
 }

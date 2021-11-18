@@ -86,8 +86,8 @@ public class TopicService {
             return BaseResponse.success(response);
         }
         response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(storey->{
-            if(CollectionUtils.isNotEmpty(storey.getContents()) &&  storey.getContents().stream().anyMatch(p->p.getType() == 1)){
-                storey.getContents().stream().filter(p->p.getType() == 1).forEach(c->{
+            if(CollectionUtils.isNotEmpty(storey.getContents()) &&  storey.getContents().stream().anyMatch(p->p.getType().equals(1))){
+                storey.getContents().stream().filter(p->p.getType().equals(1)).forEach(c->{
                     Optional<AtmosphereDTO> atmosphereDTOOptional = atmosphereList.stream().filter(atmos->atmos.getSkuId().equals(c.getSkuId())).findFirst();
                     if(atmosphereDTOOptional.isPresent()){
                         AtmosphereDTO atmosphereDTO = atmosphereDTOOptional.get();
