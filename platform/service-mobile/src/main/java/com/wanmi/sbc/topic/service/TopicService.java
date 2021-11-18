@@ -81,7 +81,7 @@ public class TopicService {
             }
         }
         //氛围信息
-        List<AtmosphereDTO> atmosphereList = atmosphereService.getAtmosphere();
+        List<AtmosphereDTO> atmosphereList = atmosphereService.getAtmosphere(null);
         if(CollectionUtils.isEmpty(atmosphereList) ){
             return BaseResponse.success(response);
         }
@@ -108,13 +108,13 @@ public class TopicService {
         return BaseResponse.success(response);
     }
 
-    private List<GoodsCustomResponse> initGoods(List<String> goodIds) {
+    private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
         queryRequest.setPageNum(0);
-        queryRequest.setPageSize(goodIds.size());
-        queryRequest.setGoodsInfoIds(goodIds);
+        queryRequest.setPageSize(goodsInfoIds.size());
+        queryRequest.setGoodsInfoIds(goodsInfoIds);
         queryRequest.setQueryGoods(true);
         queryRequest.setAddedFlag(AddedFlag.YES.toValue());
         queryRequest.setDelFlag(DeleteFlag.NO.toValue());

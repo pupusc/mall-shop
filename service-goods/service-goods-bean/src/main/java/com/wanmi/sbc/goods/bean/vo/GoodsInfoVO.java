@@ -710,7 +710,7 @@ public class GoodsInfoVO implements Serializable {
     private String imageUrl;
 
     @ApiModelProperty("氛围类型")
-    private String atmosType;
+    private Integer atmosType;
 
     @ApiModelProperty("元素1,左侧第一行文字")
     private String elementOne;

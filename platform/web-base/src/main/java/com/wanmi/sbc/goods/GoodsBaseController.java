@@ -116,7 +116,9 @@ import com.wanmi.sbc.order.bean.vo.GrouponDetailWithGoodsVO;
 import com.wanmi.sbc.setting.api.provider.WechatAuthProvider;
 import com.wanmi.sbc.setting.api.request.MiniProgramQrCodeRequest;
 import com.wanmi.sbc.setting.api.request.ShareMiniProgramRequest;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.system.service.SystemPointsConfigService;
+import com.wanmi.sbc.topic.service.AtmosphereService;
 import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -252,6 +254,9 @@ public class GoodsBaseController {
 
     @Value("${search.unshow.goodsIds}")
     private String searchUnShowGoodsIds;
+
+    @Autowired
+    private AtmosphereService atmosphereService;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -738,6 +743,24 @@ public class GoodsBaseController {
             });
         } else {
             throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+        }
+        //sku氛围
+        List<String> skuNos = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoNo).collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(skuNos)){
+            List<AtmosphereDTO> atmos =atmosphereService.getAtmosphere(skuNos);
+            if(CollectionUtils.isNotEmpty(atmos)){
+                response.getGoodsInfos().forEach(g->{
+                    if(atmos.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsInfoId()))){
+                        AtmosphereDTO atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(g.getGoodsInfoId())).findFirst().get();
+                        g.setImageUrl(atmosphereDTO.getImageUrl());
+                        g.setAtmosType(atmosphereDTO.getType());
+                        g.setElementFour(atmosphereDTO.getElementFour());
+                        g.setElementThree(atmosphereDTO.getElementThree());
+                        g.setElementTwo(atmosphereDTO.getElementTwo());
+                        g.setElementOne(atmosphereDTO.getElementOne());
+                    }
+                });
+            }
         }
         return response;
     }

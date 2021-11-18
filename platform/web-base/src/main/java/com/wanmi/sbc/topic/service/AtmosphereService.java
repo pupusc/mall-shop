@@ -1,13 +1,14 @@
 package com.wanmi.sbc.topic.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.index.RefreshConfig;
-import com.wanmi.sbc.index.response.ProductConfigResponse;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import com.wanmi.sbc.topic.response.ProductAtmosphereResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +27,21 @@ public class AtmosphereService {
     @Autowired
     private AtmosphereProvider atmosphereProvider;
 
-    @Autowired
-    private RefreshConfig  refreshConfig;
+    @Value("${ribbon.config}")
+    private volatile String ribbonConfig;
 
     @Value("${atmos.flag:false}")
     private Boolean atmosFlag;
 
-    public List<AtmosphereDTO> getAtmosphere(){
+    @Autowired
+    private RedisService redisService;
+
+    private static final  String ATMOS_KEY ="atmos";
+
+    public List<AtmosphereDTO> getAtmosphere(List<String> skuNos){
         //开关，用nacos配置
         if(!atmosFlag){
-            List<ProductConfigResponse> list = JSONArray.parseArray(refreshConfig.getRibbonConfig(), ProductConfigResponse.class);
+            List<ProductAtmosphereResponse> list = JSONArray.parseArray(ribbonConfig, ProductAtmosphereResponse.class);
             List<AtmosphereDTO> atmosphereDTOS= new ArrayList<>(list.size());
             list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).forEach(p->{
                 AtmosphereDTO atmosphereDTO = new AtmosphereDTO();
@@ -44,11 +50,16 @@ public class AtmosphereService {
                 atmosphereDTO.setElementTwo(p.getContent());
                 atmosphereDTO.setImageUrl(p.getImageUrl());
                 atmosphereDTO.setElementFour(p.getPrice());
+                atmosphereDTO.setType(1);
                 atmosphereDTOS.add(atmosphereDTO);
                });
             return atmosphereDTOS;
         }
         //查缓存
+        List<AtmosphereDTO> atmosList = redisService.getList(ATMOS_KEY,AtmosphereDTO.class);
+        if(CollectionUtils.isNotEmpty(atmosList)){
+            return atmosList;
+        }
         AtmosphereQueryRequest request = new AtmosphereQueryRequest();
         request.setPageNum(0);
         request.setPageSize(10000);
@@ -58,6 +69,7 @@ public class AtmosphereService {
         if(page == null || page.getContext() == null || CollectionUtils.isEmpty(page.getContext().getContent())){
             return null;
         }
+        redisService.put(ATMOS_KEY, JSON.toJSONString(page));
         return page.getContext().getContent();
     }
 }

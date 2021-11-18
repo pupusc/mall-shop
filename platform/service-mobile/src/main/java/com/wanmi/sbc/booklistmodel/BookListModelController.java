@@ -30,6 +30,8 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import com.wanmi.sbc.topic.service.AtmosphereService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
@@ -79,6 +81,9 @@ public class BookListModelController {
 
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
+
+    @Autowired
+    private AtmosphereService atmosphereService;
 
 
 
@@ -434,6 +439,22 @@ public class BookListModelController {
             resultTmp.add(param);
         }
         result.setContent(resultTmp);
+        //氛围
+        List<AtmosphereDTO> atmosphereDTOS = atmosphereService.getAtmosphere(null);
+        if(CollectionUtils.isEmpty(atmosphereDTOS)){
+            return BaseResponse.success(result);
+        }
+        result.getContent().forEach(g->{
+            if(g.getGoodsCustomVo()!=null && !StringUtils.isEmpty(g.getGoodsCustomVo().getGoodsInfoId()) && atmosphereDTOS.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsCustomVo().getGoodsInfoId()))){
+                AtmosphereDTO atmosphereDTO = atmosphereDTOS.stream().filter(p->p.getSkuId().equals(g.getGoodsCustomVo().getGoodsInfoId())).findFirst().get();
+                g.getGoodsCustomVo().setImageUrl(atmosphereDTO.getImageUrl());
+                g.getGoodsCustomVo().setAtmosType(atmosphereDTO.getType());
+                g.getGoodsCustomVo().setElementOne(atmosphereDTO.getElementOne());
+                g.getGoodsCustomVo().setElementTwo(atmosphereDTO.getElementTwo());
+                g.getGoodsCustomVo().setElementThree(atmosphereDTO.getElementThree());
+                g.getGoodsCustomVo().setElementFour(atmosphereDTO.getElementFour());
+            }
+        });
         return BaseResponse.success(result);
     }
 }

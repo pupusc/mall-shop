@@ -1,5 +1,6 @@
 package com.wanmi.sbc.booklistmodel.response;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -97,5 +98,23 @@ public class GoodsCustomResponse implements Serializable{
      * 扩展信息
      */
     private GoodsExtPropertiesCustomResponse goodsExtProperties;
+
+    @ApiModelProperty("图片地址")
+    private String imageUrl;
+
+    @ApiModelProperty("氛围类型1通用2积分")
+    private Integer atmosType;
+
+    @ApiModelProperty("元素1,左侧第一行文字")
+    private String elementOne;
+
+    @ApiModelProperty("元素2：左侧第二行文字")
+    private String elementTwo;
+
+    @ApiModelProperty("元素3：右侧第一行文字")
+    private String elementThree;
+
+    @ApiModelProperty("元素4：右侧第二行文字")
+    private String elementFour;
 
 }
