@@ -120,5 +120,5 @@ public interface MarketingQueryProvider {
      * @return
      */
     @GetMapping("/marketing/${application.marketing.version}/point-buy")
-    BaseResponse<MarketingPointBuyLevelDto> getPointBuyLevel(@RequestParam Long id);
+    BaseResponse<MarketingPointBuyLevelDto> getPointBuyLevel(@RequestParam("marketingLevelId") Long id);
 }
