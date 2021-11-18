@@ -55,6 +55,11 @@ public class MarketingForEndVO extends MarketingVO {
     private List<MarketingHalfPriceSecondPieceLevelVO> halfPriceSecondPieceLevel;
 
     /**
+     * 积分换购
+     */
+    private List<MarketingPointBuyLevelVO> pointBuyLevelList;
+
+    /**
      * 营销关联商品
      */
     @ApiModelProperty(value = "营销关联商品信息")
