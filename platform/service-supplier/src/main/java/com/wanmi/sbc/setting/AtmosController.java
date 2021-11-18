@@ -10,6 +10,7 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.ValidateUtil;
 import com.wanmi.sbc.common.util.excel.ExcelHelper;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.request.adjustprice.PriceAdjustmentTemplateExportRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
@@ -57,6 +58,23 @@ public class AtmosController {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    private final static String TAMPLATE_FILE_NAME = "氛围导入模板.xlsx";
+    /**
+     * 氛围excel模板下载
+     *
+     * @param encrypted
+     * @return
+     */
+    @ApiOperation(value = "氛围excel模板下载")
+    @RequestMapping(value = "/template/{encrypted}", method = RequestMethod.GET)
+    @ApiImplicitParam(paramType = "path", dataType = "String", name = "encrypted",
+            value = "鉴权加密串", required = true)
+    public void template(@PathVariable String encrypted) {
+        PriceAdjustmentTemplateExportRequest request = PriceAdjustmentTemplateExportRequest.builder()
+                .priceAdjustmentType(PriceAdjustmentType.MARKET).build();
+        atmosService.downloadAtmosTemplate(request, TAMPLATE_FILE_NAME);
+    }
 
     /**
      * @description 上传氛围表格

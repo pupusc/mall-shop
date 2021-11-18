@@ -1,9 +1,9 @@
-package com.wanmi.sbc.setting;
+package com.wanmi.sbc.topic;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import com.wanmi.sbc.setting.response.TopicResponse;
-import com.wanmi.sbc.setting.service.TopicService;
+import com.wanmi.sbc.topic.response.TopicResponse;
+import com.wanmi.sbc.topic.service.TopicService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.setting.response;
+package com.wanmi.sbc.topic.response;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
