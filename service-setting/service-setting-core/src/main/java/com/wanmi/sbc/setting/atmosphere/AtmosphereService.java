@@ -75,6 +75,15 @@ public class AtmosphereService {
             if (CollectionUtils.isNotEmpty(request.getSkuNo())) {
                 predicates.add(root.get("skuNo").in(request.getSkuNo()));
             }
+            if (CollectionUtils.isNotEmpty(request.getSkuNo())) {
+                predicates.add(root.get("skuId").in(request.getSkuId()));
+            }
+            if (request.getStartTime() != null) {
+                predicates.add(cbuild.lessThanOrEqualTo(root.get("startTime"),request.getStartTime()));
+            }
+            if (request.getEndTime() != null) {
+                predicates.add(cbuild.greaterThanOrEqualTo(root.get("endTime"),request.getEndTime()));
+            }
             predicates.add(cbuild.equal(root.get("deleted"), 0));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

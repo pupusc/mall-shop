@@ -1963,7 +1963,9 @@ public class EsGoodsInfoElasticService {
                 .goodsInfoIds(request.getGoodsInfoIds()).build()).getContext().getGoodsInfos();
         List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
         AtmosphereQueryRequest atmosphereQueryRequest = new AtmosphereQueryRequest();
-        atmosphereQueryRequest.setSkuNo(request.getGoodsInfoIds());
+        atmosphereQueryRequest.setSkuId(request.getGoodsInfoIds());
+        atmosphereQueryRequest.setStartTime(LocalDateTime.now());
+        atmosphereQueryRequest.setEndTime(LocalDateTime.now());
         atmosphereQueryRequest.setPageNum(0);
         atmosphereQueryRequest.setPageSize(1000);
         BaseResponse<MicroServicePage<AtmosphereDTO>> atmosphereList =atmosphereProvider.page(atmosphereQueryRequest);
@@ -1984,12 +1986,14 @@ public class EsGoodsInfoElasticService {
                 //设置氛围信息
                 Optional<AtmosphereDTO> atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(esGoodsInfo.getId())).findFirst();
                 if(atmosphereDTO.isPresent()){
+                    esGoodsInfo.getGoodsInfo().setStartTime(atmosphereDTO.get().getStartTime());
+                    esGoodsInfo.getGoodsInfo().setEndTime(atmosphereDTO.get().getEndTime());
                     esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
                     esGoodsInfo.getGoodsInfo().setAtmosType(atmosphereDTO.get().getType());
                     esGoodsInfo.getGoodsInfo().setElementOne(atmosphereDTO.get().getElementOne());
                     esGoodsInfo.getGoodsInfo().setElementTwo(atmosphereDTO.get().getElementTwo());
                     esGoodsInfo.getGoodsInfo().setElementThree(atmosphereDTO.get().getElementThree());
-                    esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
+                    esGoodsInfo.getGoodsInfo().setElementFour(atmosphereDTO.get().getElementFour());
                 }
                 IndexQuery iq = new IndexQuery();
                 iq.setId(esGoodsInfo.getId());
@@ -2011,24 +2015,19 @@ public class EsGoodsInfoElasticService {
         List<IndexQuery> esGoodsQuery = new ArrayList<>();
         if (esGoodsList != null) {
             esGoodsList.forEach(esGoods -> {
-                GoodsVO goodsVO = goodsVOMap.get(esGoods.getId());
                 esGoods.getGoodsInfos().forEach(esGoodsInfo -> {
-                    GoodsInfoVO goodsInfoVO = goodsInfoVOMap.get(esGoodsInfo.getGoodsInfoId());
-                    if (Objects.nonNull(goodsInfoVO)) {
-                        esGoodsInfo.setAloneFlag(goodsInfoVO.getAloneFlag());
-                        esGoodsInfo.setPriceType(goodsVO.getPriceType());
-                        esGoodsInfo.setSaleType(goodsInfoVO.getSaleType());
-                        esGoodsInfo.setMarketPrice(goodsInfoVO.getMarketPrice());
-                        esGoodsInfo.setSupplyPrice(goodsInfoVO.getSupplyPrice());
-                        //区间价
-                        if (CollectionUtils.isNotEmpty(intervalPriceMap.get(goodsInfoVO.getGoodsInfoId()))) {
-                            List<BigDecimal> prices = intervalPriceMap.get(goodsInfoVO.getGoodsInfoId()).stream().map(GoodsIntervalPriceVO::getPrice).filter(Objects::nonNull).collect(Collectors.toList());
-                            esGoodsInfo.setIntervalMinPrice(prices.stream().filter(Objects::nonNull).min(BigDecimal::compareTo).orElse(goodsInfoVO.getMarketPrice()));
-                            esGoodsInfo.setIntervalMaxPrice(prices.stream().filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(goodsInfoVO.getMarketPrice()));
-                        }
-                    }
+                    Optional<AtmosphereDTO> atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(esGoodsInfo.getGoodsInfoId())).findFirst();
+                   if(request.getGoodsInfoIds().contains(esGoodsInfo.getGoodsInfoId()) && atmosphereDTO.isPresent()){
+                       esGoodsInfo.setStartTime(atmosphereDTO.get().getStartTime());
+                       esGoodsInfo.setEndTime(atmosphereDTO.get().getEndTime());
+                       esGoodsInfo.setImageUrl(atmosphereDTO.get().getImageUrl());
+                       esGoodsInfo.setAtmosType(atmosphereDTO.get().getType());
+                       esGoodsInfo.setElementOne(atmosphereDTO.get().getElementOne());
+                       esGoodsInfo.setElementTwo(atmosphereDTO.get().getElementTwo());
+                       esGoodsInfo.setElementThree(atmosphereDTO.get().getElementThree());
+                       esGoodsInfo.setElementFour(atmosphereDTO.get().getElementFour());
+                   }
                 });
-
                 IndexQuery iq = new IndexQuery();
                 iq.setId(esGoods.getId());
                 iq.setIndexName(EsConstants.DOC_GOODS_TYPE);

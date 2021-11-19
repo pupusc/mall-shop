@@ -74,4 +74,7 @@ public interface EsGoodsInfoElasticProvider {
 
     @PostMapping("/elastic/${application.elastic.version}/goods/adjust/price")
     BaseResponse adjustPrice(@RequestBody @Valid EsGoodsInfoAdjustPriceRequest request);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/adjust/atmosphere")
+    BaseResponse adjustAtmosphere(@RequestBody @Valid EsGoodsAtmosphereRequest request);
 }

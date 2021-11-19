@@ -12,6 +12,7 @@ import com.wanmi.sbc.common.util.excel.ExcelHelper;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.adjustprice.PriceAdjustmentTemplateExportRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
@@ -24,6 +25,7 @@ import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -236,17 +238,28 @@ public class AtmosController {
 
         }
 
-        List<String> nos = goodsInfoQueryProvider.listByCondition(GoodsInfoListByConditionRequest.builder().delFlag
+        BaseResponse<GoodsInfoListByConditionResponse> responseBaseResponse = goodsInfoQueryProvider.listByCondition(GoodsInfoListByConditionRequest.builder().delFlag
                 (DeleteFlag.NO.toValue()).goodsInfoNos(new ArrayList<>(skuNos.keySet())).storeId(commonUtil.getStoreId())
-                .build()).getContext().getGoodsInfos().stream().map(GoodsInfoVO::getGoodsInfoNo).collect(Collectors.toList());
+                .build());
+
 
         //商品是否存在
         for (Map.Entry<String, Cell> entry : skuNos.entrySet()) {
             Cell cell = skuNos.get(entry.getKey());
-            if (!nos.contains(entry.getKey())) {
+            if(responseBaseResponse == null || responseBaseResponse.getContext() ==null || CollectionUtils.isEmpty(responseBaseResponse.getContext().getGoodsInfos())){
                 ExcelHelper.setError(workbook, cell, "商品不存在");
                 isError = true;
             }
+            Optional<GoodsInfoVO> goodsInfoVO = responseBaseResponse.getContext().getGoodsInfos().stream().filter(p->p.getGoodsInfoNo().equals(entry.getKey())).findFirst();
+            if(!goodsInfoVO.isPresent()){
+                ExcelHelper.setError(workbook, cell, "商品不存在");
+                isError = true;
+            }
+            list.stream().filter(p->p.getSkuNo().equals(entry.getKey())).forEach(p->{
+                p.setSkuId(goodsInfoVO.get().getGoodsInfoId());
+            });
+
+
         }
         if (isError) {
             throw new SbcRuntimeException(CommonErrorCode.IMPORTED_DATA_ERROR);

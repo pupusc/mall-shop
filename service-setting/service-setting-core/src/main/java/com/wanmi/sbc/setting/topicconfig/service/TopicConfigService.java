@@ -187,18 +187,17 @@ public class TopicConfigService {
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC,"type"));
         orders.add(new Sort.Order(Sort.Direction.ASC,"sorting"));
-
-         List<TopicStoreyContent> list = contentRepository.findAll(getTopicStoreyContentWhereCriteria(request),Sort.by(orders));
-         if(CollectionUtils.isEmpty(list)){
-             return null;
-         }
          TopicStorey topicStorey = storeyRepository.getOne(request.getTopicId());
          if(topicStorey == null){
              return null;
          }
-        TopicStoreyContentResponse response = new TopicStoreyContentResponse();
+         TopicStoreyContentResponse response = new TopicStoreyContentResponse();
          response.setStoreyId(request.getStoreyId());
          response.setStoreyType(topicStorey.getStoreyType());
+         List<TopicStoreyContent> list = contentRepository.findAll(getTopicStoreyContentWhereCriteria(request),Sort.by(orders));
+         if(CollectionUtils.isEmpty(list)){
+            return response;
+         }
          List<TopicStoreyContent> goodsContents = list.stream().filter(p->p.getType() == 1).collect(Collectors.toList());
          if(CollectionUtils.isNotEmpty(goodsContents)){
              response.setGoodsContents(KsBeanUtil.convertList(goodsContents,TopicStoreyContentDTO.class));
