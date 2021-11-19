@@ -142,7 +142,7 @@ public class TradeOptimizeService {
         List<TradeMarketingDTO> tradeMarketingList = tradeItemGroups.get(0).getTradeMarketingList();
         TradeMarketingDTO pointBuy = null;
         for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList) {
-            if(tradeMarketingDTO.getMarketingSubType().equals(MarketingSubType.POINT_BUY.toValue())){
+            if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType().equals(MarketingSubType.POINT_BUY.toValue())){
                 pointBuy = tradeMarketingDTO;
                 break;
             }
