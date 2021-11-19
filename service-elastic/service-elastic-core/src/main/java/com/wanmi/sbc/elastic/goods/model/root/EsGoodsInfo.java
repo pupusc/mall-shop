@@ -174,4 +174,6 @@ public class EsGoodsInfo implements Serializable {
     //@Field(type = FieldType.Keyword)
     @Field(searchAnalyzer = EsConstants.DEF_ANALYZER, analyzer = EsConstants.DEF_ANALYZER, type = FieldType.Text)
     private String goodsName;
+
+
 }
