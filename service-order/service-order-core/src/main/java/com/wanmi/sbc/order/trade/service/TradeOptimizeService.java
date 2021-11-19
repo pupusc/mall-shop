@@ -153,7 +153,7 @@ public class TradeOptimizeService {
             if(pointBuyLevel.getContext() == null){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
-            if(!pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints().intValue())){
+            if(tradeCommitRequest.getPoints() == null || !pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints().intValue())){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
         }
