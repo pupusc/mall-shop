@@ -59,7 +59,7 @@ public class TopicConfigService {
         topic.setCreateTime(LocalDateTime.now());
         topic.setUpdateTime(LocalDateTime.now());
         topic.setDeleted(DeleteFlag.NO.toValue());
-        topic.setStatus(1);
+        topic.setStatus(0);
         topicSettingRepository.save(topic);
     }
 
