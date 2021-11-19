@@ -64,10 +64,15 @@ public class TopicConfigService {
     }
 
     public void modifyTopic(TopicConfigModifyRequest request) {
-        Topic topic = KsBeanUtil.convert(request, Topic.class);
+        Topic oldTopic = topicSettingRepository.getOne(request.getId());
+        if(oldTopic == null){
+            addTopic(request);
+        }
+        Topic topic = KsBeanUtil.convert(oldTopic, Topic.class);
+        topic.setTopicName(request.getTopicName());
+        topic.setTopicColor(request.getTopicColor());
+        topic.setNavigationColor(request.getNavigationColor());
         topic.setUpdateTime(LocalDateTime.now());
-        topic.setDeleted(DeleteFlag.NO.toValue());
-        topic.setStatus(1);
         topicSettingRepository.save(topic);
     }
 
@@ -125,8 +130,15 @@ public class TopicConfigService {
     }
 
     public void modifyStorey(TopicStoreyModifyRequest request){
+        TopicStorey oldStorey = storeyRepository.getOne(request.getId());
+        if(oldStorey == null){
+            addStorey(request);
+        }
         TopicStorey storey = KsBeanUtil.convert(request, TopicStorey.class);
+        storey.setCreateTime(oldStorey.getCreateTime());
         storey.setUpdateTime(LocalDateTime.now());
+        storey.setDeleted(DeleteFlag.NO.toValue());
+        storey.setStatus(1);
         storeyRepository.save(storey);
     }
 

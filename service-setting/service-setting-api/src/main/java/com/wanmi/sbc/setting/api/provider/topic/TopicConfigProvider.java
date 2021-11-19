@@ -53,6 +53,8 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/enable/storey")
     BaseResponse enableStorey(@RequestBody EnableTopicStoreyRequest request);
 
+    @PostMapping("/setting/${application.setting.version}/topic/modify/storey")
+    BaseResponse modifyStorey(@RequestBody TopicStoreyModifyRequest request);
 
     @PostMapping("/setting/${application.setting.version}/topic/detail")
     BaseResponse<TopicActivityVO> detail(@RequestBody TopicQueryRequest request);

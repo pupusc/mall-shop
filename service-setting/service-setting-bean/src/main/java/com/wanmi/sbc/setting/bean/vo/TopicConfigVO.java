@@ -25,4 +25,7 @@ public class TopicConfigVO implements Serializable {
 
     @ApiModelProperty("导航色")
     private String navigationColor;
+
+    @ApiModelProperty("状态1启用0禁用")
+    private Integer status;
 }

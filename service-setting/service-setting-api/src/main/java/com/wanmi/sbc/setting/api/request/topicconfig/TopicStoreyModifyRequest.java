@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class TopicStoreyModifyRequest implements Serializable {
+public class TopicStoreyModifyRequest extends  TopicStoreyAddRequest implements Serializable {
     private static final long serialVersionUID = -2872297385196659222L;
     @ApiModelProperty("id")
     private Integer id;
