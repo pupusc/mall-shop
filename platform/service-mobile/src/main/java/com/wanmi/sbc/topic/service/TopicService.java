@@ -11,6 +11,7 @@ import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -29,10 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -80,31 +78,6 @@ public class TopicService {
                 });
             }
         }
-        //氛围信息
-        List<AtmosphereDTO> atmosphereList = atmosphereService.getAtmosphere(null);
-        if(CollectionUtils.isEmpty(atmosphereList) ){
-            return BaseResponse.success(response);
-        }
-        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(storey->{
-            if(CollectionUtils.isNotEmpty(storey.getContents()) &&  storey.getContents().stream().anyMatch(p->p.getType().equals(1))){
-                storey.getContents().stream().filter(p->p.getType().equals(1)).forEach(c->{
-                    Optional<AtmosphereDTO> atmosphereDTOOptional = atmosphereList.stream().filter(atmos->atmos.getSkuId().equals(c.getSkuId())).findFirst();
-                    if(atmosphereDTOOptional.isPresent()){
-                        AtmosphereDTO atmosphereDTO = atmosphereDTOOptional.get();
-                        GoodsAndAtmosphereResponse goodsAtmos = c.getGoods();
-                        if(goodsAtmos ==null){
-                            goodsAtmos = new GoodsAndAtmosphereResponse();
-                        }
-                        goodsAtmos.setElementFour(atmosphereDTO.getElementFour());
-                        goodsAtmos.setElementThree(atmosphereDTO.getElementThree());
-                        goodsAtmos.setElementTwo(atmosphereDTO.getElementTwo());
-                        goodsAtmos.setElementOne(atmosphereDTO.getElementOne());
-                        goodsAtmos.setImageUrl(atmosphereDTO.getImageUrl());
-                        c.setGoods(goodsAtmos);
-                    }
-                });
-            }
-        });
         return BaseResponse.success(response);
     }
 
@@ -124,10 +97,12 @@ public class TopicService {
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, null);
+        List<GoodsInfoNestVO> goodsInfoVOList =  esGoodsVOS.stream().map(EsGoodsVO::getGoodsInfos)
+                .flatMap(Collection::stream).filter(p->goodsInfoIds.contains(p.getGoodsInfoId())).collect(Collectors.toList());
+        List<GoodsInfoVO> goodsInfoVOS = KsBeanUtil.convertList(goodsInfoVOList,GoodsInfoVO.class);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
-                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
+                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOS);
             goodList.add(goodsCustom);
         }
         return goodList;

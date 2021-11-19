@@ -72,16 +72,16 @@ public class AtmosService {
     public void downloadAtmosTemplate(PriceAdjustmentTemplateExportRequest request, String templateFileName) {
         request.setStoreId(commonUtil.getStoreId());
 
-        if (StringUtils.isNotBlank(file)) {
-            try {
-                String fileName = URLEncoder.encode(templateFileName, "UTF-8");
-                HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";" +
-                        "filename*=\"utf-8''%s\"", fileName, fileName));
-                HttpUtil.getResponse().getOutputStream().write(new BASE64Decoder().decodeBuffer(file));
-            } catch (Exception e) {
-                throw new SbcRuntimeException(CommonErrorCode.FAILED);
-            }
-        }
+//        if (StringUtils.isNotBlank(file)) {
+//            try {
+//                String fileName = URLEncoder.encode(templateFileName, "UTF-8");
+//                HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";" +
+//                        "filename*=\"utf-8''%s\"", fileName, fileName));
+//                HttpUtil.getResponse().getOutputStream().write(new BASE64Decoder().decodeBuffer(file));
+//            } catch (Exception e) {
+//                throw new SbcRuntimeException(CommonErrorCode.FAILED);
+//            }
+//        }
     }
     /**
      * 氛围文件上传
