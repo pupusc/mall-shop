@@ -75,7 +75,7 @@ public class AtmosphereService {
             if (CollectionUtils.isNotEmpty(request.getSkuNo())) {
                 predicates.add(root.get("skuNo").in(request.getSkuNo()));
             }
-            if (CollectionUtils.isNotEmpty(request.getSkuNo())) {
+            if (CollectionUtils.isNotEmpty(request.getSkuId())) {
                 predicates.add(root.get("skuId").in(request.getSkuId()));
             }
             if (request.getStartTime() != null) {

@@ -30,6 +30,18 @@ public class TopicConfigController implements TopicConfigProvider {
     }
 
     @Override
+    public BaseResponse modifyTopic(TopicConfigModifyRequest request) {
+        topicConfigService.modifyTopic(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse enableTopic(EnableTopicRequest request) {
+        topicConfigService.enableTopic(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse<MicroServicePage<TopicConfigVO>> page(TopicQueryRequest request) {
         return BaseResponse.success(topicConfigService.listTopic(request));
     }

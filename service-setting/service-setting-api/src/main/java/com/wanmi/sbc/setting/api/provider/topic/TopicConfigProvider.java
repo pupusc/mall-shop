@@ -29,6 +29,12 @@ public interface TopicConfigProvider {
     @PostMapping("/setting/${application.setting.version}/topic/add")
     BaseResponse add(@RequestBody TopicConfigAddRequest request);
 
+    @PostMapping("/setting/${application.setting.version}/topic/modify")
+    BaseResponse modifyTopic(@RequestBody TopicConfigModifyRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/topic/enable")
+    BaseResponse enableTopic(@RequestBody EnableTopicRequest request);
+
     @PostMapping("/setting/${application.setting.version}/topic/page")
     BaseResponse<MicroServicePage<TopicConfigVO>> page(@RequestBody TopicQueryRequest request);
 

@@ -753,7 +753,7 @@ public class GoodsBaseController {
                     if(atmos.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsInfoId()))){
                         AtmosphereDTO atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(g.getGoodsInfoId())).findFirst().get();
                         g.setImageUrl(atmosphereDTO.getImageUrl());
-                        g.setAtmosType(atmosphereDTO.getType());
+                        g.setAtmosType(atmosphereDTO.getAtmosType());
                         g.setElementFour(atmosphereDTO.getElementFour());
                         g.setElementThree(atmosphereDTO.getElementThree());
                         g.setElementTwo(atmosphereDTO.getElementTwo());

@@ -1989,7 +1989,7 @@ public class EsGoodsInfoElasticService {
                     esGoodsInfo.getGoodsInfo().setStartTime(atmosphereDTO.get().getStartTime());
                     esGoodsInfo.getGoodsInfo().setEndTime(atmosphereDTO.get().getEndTime());
                     esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
-                    esGoodsInfo.getGoodsInfo().setAtmosType(atmosphereDTO.get().getType());
+                    esGoodsInfo.getGoodsInfo().setAtmosType(atmosphereDTO.get().getAtmosType());
                     esGoodsInfo.getGoodsInfo().setElementOne(atmosphereDTO.get().getElementOne());
                     esGoodsInfo.getGoodsInfo().setElementTwo(atmosphereDTO.get().getElementTwo());
                     esGoodsInfo.getGoodsInfo().setElementThree(atmosphereDTO.get().getElementThree());
@@ -2021,7 +2021,7 @@ public class EsGoodsInfoElasticService {
                        esGoodsInfo.setStartTime(atmosphereDTO.get().getStartTime());
                        esGoodsInfo.setEndTime(atmosphereDTO.get().getEndTime());
                        esGoodsInfo.setImageUrl(atmosphereDTO.get().getImageUrl());
-                       esGoodsInfo.setAtmosType(atmosphereDTO.get().getType());
+                       esGoodsInfo.setAtmosType(atmosphereDTO.get().getAtmosType());
                        esGoodsInfo.setElementOne(atmosphereDTO.get().getElementOne());
                        esGoodsInfo.setElementTwo(atmosphereDTO.get().getElementTwo());
                        esGoodsInfo.setElementThree(atmosphereDTO.get().getElementThree());

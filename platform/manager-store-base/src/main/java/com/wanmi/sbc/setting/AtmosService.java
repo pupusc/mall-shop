@@ -21,6 +21,7 @@ import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.quartz.service.TaskJobService;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
+import com.wanmi.sbc.setting.api.request.AtmosphereDeleteRequest;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunFileDeleteRequest;
 import com.wanmi.sbc.setting.api.request.yunservice.YunGetResourceRequest;
@@ -210,7 +211,7 @@ public class AtmosService {
         return atmosphereProvider.page(request);
     }
 
-    public BaseResponse delete(Integer id){
-        return atmosphereProvider.delete(id);
+    public BaseResponse delete(AtmosphereDeleteRequest request){
+        return atmosphereProvider.delete(request);
     }
 }

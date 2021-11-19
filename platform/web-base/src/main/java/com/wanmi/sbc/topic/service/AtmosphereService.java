@@ -38,38 +38,33 @@ public class AtmosphereService {
 
     private static final  String ATMOS_KEY ="atmos";
 
-    public List<AtmosphereDTO> getAtmosphere(List<String> skuNos){
+    public List<AtmosphereDTO> getAtmosphere(List<String> skuIds){
         //开关，用nacos配置
-        if(!atmosFlag){
-            List<ProductAtmosphereResponse> list = JSONArray.parseArray(ribbonConfig, ProductAtmosphereResponse.class);
-            List<AtmosphereDTO> atmosphereDTOS= new ArrayList<>(list.size());
-            list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).forEach(p->{
-                AtmosphereDTO atmosphereDTO = new AtmosphereDTO();
-                atmosphereDTO.setSkuId(p.getSkuId());
-                atmosphereDTO.setElementOne(p.getTitle());
-                atmosphereDTO.setElementTwo(p.getContent());
-                atmosphereDTO.setImageUrl(p.getImageUrl());
-                atmosphereDTO.setElementFour(p.getPrice());
-                atmosphereDTO.setType(1);
-                atmosphereDTOS.add(atmosphereDTO);
-               });
-            return atmosphereDTOS;
-        }
-        //查缓存
-        List<AtmosphereDTO> atmosList = redisService.getList(ATMOS_KEY,AtmosphereDTO.class);
-        if(CollectionUtils.isNotEmpty(atmosList)){
-            return atmosList;
-        }
+//        if(!atmosFlag){
+//            List<ProductAtmosphereResponse> list = JSONArray.parseArray(ribbonConfig, ProductAtmosphereResponse.class);
+//            List<AtmosphereDTO> atmosphereDTOS= new ArrayList<>(list.size());
+//            list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).forEach(p->{
+//                AtmosphereDTO atmosphereDTO = new AtmosphereDTO();
+//                atmosphereDTO.setSkuId(p.getSkuId());
+//                atmosphereDTO.setElementOne(p.getTitle());
+//                atmosphereDTO.setElementTwo(p.getContent());
+//                atmosphereDTO.setImageUrl(p.getImageUrl());
+//                atmosphereDTO.setElementFour(p.getPrice());
+//                atmosphereDTO.setType(1);
+//                atmosphereDTOS.add(atmosphereDTO);
+//               });
+//            return atmosphereDTOS;
+//        }
         AtmosphereQueryRequest request = new AtmosphereQueryRequest();
         request.setPageNum(0);
         request.setPageSize(10000);
         request.setStartTime(LocalDateTime.now());
         request.setEndTime(LocalDateTime.now());
+        request.setSkuId(skuIds);
         BaseResponse<MicroServicePage<AtmosphereDTO>> page = atmosphereProvider.page(request);
         if(page == null || page.getContext() == null || CollectionUtils.isEmpty(page.getContext().getContent())){
             return null;
         }
-        redisService.put(ATMOS_KEY, JSON.toJSONString(page));
         return page.getContext().getContent();
     }
 }

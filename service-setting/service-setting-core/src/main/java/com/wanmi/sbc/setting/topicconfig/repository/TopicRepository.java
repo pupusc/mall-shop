@@ -3,6 +3,7 @@ package com.wanmi.sbc.setting.topicconfig.repository;
 import com.wanmi.sbc.setting.topicconfig.model.root.Topic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +16,8 @@ public interface TopicRepository extends JpaRepository<Topic, Integer>,
 
     @Query("from Topic w where w.topicKey = ?1 and w.deleted = 0")
     List<Topic> getByKey(String topicKey);
+
+    @Modifying
+    @Query("update Topic w set w.status = ?2, w.updateTime = now() where w.id = ?1")
+    int enable(Integer storeyId,Integer status);
 }

@@ -2,6 +2,7 @@ package com.wanmi.sbc.setting.api.provider;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.setting.api.request.AtmosphereDeleteRequest;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.ConfigStatusModifyByTypeAndKeyRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
@@ -28,6 +29,6 @@ public interface AtmosphereProvider {
     @PostMapping("/setting/${application.setting.version}/atmos/page")
     BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request);
 
-    @GetMapping("/setting/${application.setting.version}/atmos/delete")
-    BaseResponse delete(@RequestParam("id") Integer id);
+    @PostMapping("/setting/${application.setting.version}/atmos/delete")
+    BaseResponse delete(@RequestBody AtmosphereDeleteRequest request);
 }

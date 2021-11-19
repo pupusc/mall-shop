@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
+import com.wanmi.sbc.setting.api.request.AtmosphereDeleteRequest;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.util.CommonUtil;
@@ -122,9 +123,9 @@ public class AtmosController {
      * @status undone
      */
     @ApiOperation(value = "删除氛围")
-    @GetMapping(value = "/delete")
-    public BaseResponse delete(@RequestParam("id")Integer id) {
-        return atmosService.delete(id);
+    @PostMapping(value = "/delete")
+    public BaseResponse delete(@RequestBody AtmosphereDeleteRequest request) {
+        return atmosService.delete(request);
     }
 
     private final Function<Workbook, List<AtmosphereDTO>> analysisFunctionByAtmos = (workbook) -> {
@@ -190,7 +191,7 @@ public class AtmosController {
                     ExcelHelper.setError(workbook, cells[2], "选项不合法");
                     isError = true;
                 } else {
-                    atmosphereDTO.setType("积分氛围".equals(atmosTypeValue) ? 1 : 2);
+                    atmosphereDTO.setAtmosType("积分氛围".equals(atmosTypeValue) ? 2 : 1);
                 }
             }
             //SKU编码

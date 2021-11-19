@@ -63,6 +63,18 @@ public class TopicConfigService {
         topicSettingRepository.save(topic);
     }
 
+    public void modifyTopic(TopicConfigModifyRequest request) {
+        Topic topic = KsBeanUtil.convert(request, Topic.class);
+        topic.setUpdateTime(LocalDateTime.now());
+        topic.setDeleted(DeleteFlag.NO.toValue());
+        topic.setStatus(1);
+        topicSettingRepository.save(topic);
+    }
+
+    public void enableTopic(EnableTopicRequest request) {
+        topicSettingRepository.enable(request.getId(),request.getOptType());
+    }
+
     public MicroServicePage<TopicConfigVO> listTopic(TopicQueryRequest request) {
         BaseQueryRequest pageQuery = new BaseQueryRequest();
         pageQuery.setPageNum(request.getPageNum());
@@ -112,6 +124,12 @@ public class TopicConfigService {
         storeyRepository.save(storey);
     }
 
+    public void modifyStorey(TopicStoreyModifyRequest request){
+        TopicStorey storey = KsBeanUtil.convert(request, TopicStorey.class);
+        storey.setUpdateTime(LocalDateTime.now());
+        storeyRepository.save(storey);
+    }
+
     public List<TopicStoreyDTO> listStorey(TopicHeadImageQueryRequest request){
         List<TopicStorey> list = storeyRepository.getByTopicId(request.getTopicId());
         if(CollectionUtils.isEmpty(list)){
@@ -129,6 +147,7 @@ public class TopicConfigService {
         TopicActivityVO topicVO = new TopicActivityVO();
         topicVO.setTopicColor(topic.getTopicColor());
         topicVO.setNavigationColor(topic.getNavigationColor());
+        topicVO.setTopicName(topic.getTopicName());
         List<TopicHeadImage> images = topicHeadImageRepository.getByTopicId(topic.getId());
         topicVO.setHeadImageList(KsBeanUtil.convertList(images, TopicHeadImageDTO.class));
         List<TopicStorey> storeys = storeyRepository.getAvailByTopicId(topic.getId());
@@ -187,7 +206,7 @@ public class TopicConfigService {
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC,"type"));
         orders.add(new Sort.Order(Sort.Direction.ASC,"sorting"));
-         TopicStorey topicStorey = storeyRepository.getOne(request.getTopicId());
+         TopicStorey topicStorey = storeyRepository.getOne(request.getStoreyId());
          if(topicStorey == null){
              return null;
          }

@@ -30,6 +30,8 @@ public class Atmosphere {
     private Integer deleted;
     @Column(name = "element_desc")
     private String elementDesc;
-    @Column(name = "type")
-    private Integer type;
+    @Column(name = "atmos_type")
+    private Integer atmosType;
+    @Column(name = "image_url")
+    private String imageUrl;
 }

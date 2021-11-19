@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Data
 public class AtmosphereDTO implements Serializable {
 
-    private static final long serialVersionUID = 4382882288896922539L;
+
+    private static final long serialVersionUID = -4653924566911253775L;
     @ApiModelProperty(value = "开始时间")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
@@ -26,7 +27,7 @@ public class AtmosphereDTO implements Serializable {
     private LocalDateTime endTime;
 
     @ApiModelProperty("氛围类型1通用类型2积分类型")
-    private Integer type;
+    private Integer atmosType;
 
     @ApiModelProperty("商品编码")
     private String skuNo;
