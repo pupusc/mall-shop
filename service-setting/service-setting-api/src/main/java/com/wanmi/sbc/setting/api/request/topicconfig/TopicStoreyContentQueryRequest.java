@@ -16,6 +16,6 @@ public class TopicStoreyContentQueryRequest implements Serializable {
     @ApiModelProperty("楼层ID")
     private Integer storeyId;
 
-    @ApiModelProperty(value = "楼层id",hidden = true)
+    @ApiModelProperty(value = "专题id",hidden = true)
     private Integer topicId;
 }

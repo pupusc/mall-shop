@@ -50,9 +50,12 @@ import com.wanmi.sbc.goods.bean.dto.BatchEnterPrisePriceDTO;
 import com.wanmi.sbc.goods.bean.dto.DistributionGoodsInfoModifyDTO;
 import com.wanmi.sbc.goods.bean.enums.*;
 import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.provider.thirdplatformconfig.ThirdPlatformConfigQueryProvider;
+import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.thirdplatformconfig.ThirdPlatformConfigByTypeRequest;
 import com.wanmi.sbc.setting.api.response.thirdplatformconfig.ThirdPlatformConfigResponse;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -139,6 +142,9 @@ public class EsGoodsInfoElasticService {
 
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+
+    @Autowired
+    private AtmosphereProvider atmosphereProvider;
 
     /**
      * ES价格排序脚本
@@ -1948,4 +1954,93 @@ public class EsGoodsInfoElasticService {
         response.setGoodsInfos(KsBeanUtil.convert(esGoodsInfoVOS, EsGoodsInfoVO.class));
         return response;
     }
+
+
+    public void adjustAtmosphere(EsGoodsAtmosphereRequest request) {
+
+        //根据goodsInfoIds获取goodsIds
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder()
+                .goodsInfoIds(request.getGoodsInfoIds()).build()).getContext().getGoodsInfos();
+        List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+        AtmosphereQueryRequest atmosphereQueryRequest = new AtmosphereQueryRequest();
+        atmosphereQueryRequest.setSkuNo(request.getGoodsInfoIds());
+        atmosphereQueryRequest.setPageNum(0);
+        atmosphereQueryRequest.setPageSize(1000);
+        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosphereList =atmosphereProvider.page(atmosphereQueryRequest);
+        if(atmosphereList == null || atmosphereList.getContext() ==null || CollectionUtils.isEmpty(atmosphereList.getContext().getContent())){
+            log.info("没有氛围信息，request:{}",request);
+            return;
+        }
+        List<AtmosphereDTO> atmos = atmosphereList.getContext().getContent();
+        EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+        //sku
+        queryRequest.setGoodsIds(goodsIds);
+        queryRequest.setPageSize(request.getGoodsInfoIds().size());
+        SearchQuery searchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoodsInfo> esGoodsInfoList = elasticsearchTemplate.queryForList(searchQuery, EsGoodsInfo.class);
+        List<IndexQuery> esGoodsInfoQuery = new ArrayList<>();
+        if (esGoodsInfoList != null) {
+            esGoodsInfoList.forEach(esGoodsInfo -> {
+                //设置氛围信息
+                Optional<AtmosphereDTO> atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(esGoodsInfo.getId())).findFirst();
+                if(atmosphereDTO.isPresent()){
+                    esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
+                    esGoodsInfo.getGoodsInfo().setAtmosType(atmosphereDTO.get().getType());
+                    esGoodsInfo.getGoodsInfo().setElementOne(atmosphereDTO.get().getElementOne());
+                    esGoodsInfo.getGoodsInfo().setElementTwo(atmosphereDTO.get().getElementTwo());
+                    esGoodsInfo.getGoodsInfo().setElementThree(atmosphereDTO.get().getElementThree());
+                    esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
+                }
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoodsInfo.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setObject(esGoodsInfo);
+                esGoodsInfoQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsInfoQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsInfoQuery);
+            }
+        }
+
+        //spu
+        queryRequest.setQueryGoods(true);
+        SearchQuery infoSearchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(infoSearchQuery, EsGoods.class);
+        //spu
+        List<IndexQuery> esGoodsQuery = new ArrayList<>();
+        if (esGoodsList != null) {
+            esGoodsList.forEach(esGoods -> {
+                GoodsVO goodsVO = goodsVOMap.get(esGoods.getId());
+                esGoods.getGoodsInfos().forEach(esGoodsInfo -> {
+                    GoodsInfoVO goodsInfoVO = goodsInfoVOMap.get(esGoodsInfo.getGoodsInfoId());
+                    if (Objects.nonNull(goodsInfoVO)) {
+                        esGoodsInfo.setAloneFlag(goodsInfoVO.getAloneFlag());
+                        esGoodsInfo.setPriceType(goodsVO.getPriceType());
+                        esGoodsInfo.setSaleType(goodsInfoVO.getSaleType());
+                        esGoodsInfo.setMarketPrice(goodsInfoVO.getMarketPrice());
+                        esGoodsInfo.setSupplyPrice(goodsInfoVO.getSupplyPrice());
+                        //区间价
+                        if (CollectionUtils.isNotEmpty(intervalPriceMap.get(goodsInfoVO.getGoodsInfoId()))) {
+                            List<BigDecimal> prices = intervalPriceMap.get(goodsInfoVO.getGoodsInfoId()).stream().map(GoodsIntervalPriceVO::getPrice).filter(Objects::nonNull).collect(Collectors.toList());
+                            esGoodsInfo.setIntervalMinPrice(prices.stream().filter(Objects::nonNull).min(BigDecimal::compareTo).orElse(goodsInfoVO.getMarketPrice()));
+                            esGoodsInfo.setIntervalMaxPrice(prices.stream().filter(Objects::nonNull).max(BigDecimal::compareTo).orElse(goodsInfoVO.getMarketPrice()));
+                        }
+                    }
+                });
+
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoods.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_TYPE);
+                iq.setObject(esGoods);
+                esGoodsQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsQuery);
+            }
+        }
+
+    }
+
 }
