@@ -20,4 +20,9 @@ public interface AtmosphereRepository extends JpaRepository<Atmosphere, Integer>
     @Transactional
     @Query("update Atmosphere w set w.deleted = 1, w.updateTime = now() where w.id = ?1")
     int disableById(Integer id);
+
+    @Modifying
+    @Transactional
+    @Query("update Atmosphere w set w.syncStatus = 1, w.updateTime = now() where w.id in ?1")
+    int syncStatus(List<Integer> ids);
 }

@@ -3,6 +3,7 @@ package com.wanmi.sbc.topic.service;
 
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
+import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -10,8 +11,10 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
+import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -24,12 +27,16 @@ import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.AtmosphereResponse;
 import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
+import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,16 +74,22 @@ public class TopicService {
             } });
         if(CollectionUtils.isNotEmpty(skuIds)){
             List<GoodsCustomResponse> list = initGoods(skuIds);
-            if(CollectionUtils.isNotEmpty(list)){
-                response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
-                    p.getContents().stream().filter(g->g.getType().equals(1)).forEach(g->{
-                        if(list.stream().anyMatch(l->l.getGoodsInfoId().equals(g.getSkuId()))){
-                            GoodsCustomResponse goodsCustomResponse = list.stream().filter(l->l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
-                            g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
-                        }
-                    });
+            response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
+                if(CollectionUtils.isEmpty(p.getContents())){
+                    return;
+                }
+                List<TopicStoreyContentReponse> contents = new ArrayList<>(p.getContents().size());
+                p.getContents().stream().filter(g -> g.getType().equals(1)).forEach(g -> {
+                    if (CollectionUtils.isNotEmpty(list) && list.stream().anyMatch(l -> l.getGoodsInfoId().equals(g.getSkuId()))) {
+                        GoodsCustomResponse goodsCustomResponse = list.stream().filter(l -> l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
+                        g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
+                        contents.add(g);
+                    }
                 });
-            }
+                contents.addAll(p.getContents().stream().filter(o->o.getType().equals(2)).collect(Collectors.toList()));
+                p.setContents(contents);
+            });
+
         }
         return BaseResponse.success(response);
     }
@@ -94,6 +107,7 @@ public class TopicService {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
+        //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
@@ -103,7 +117,28 @@ public class TopicService {
         for (EsGoodsVO goodsVo : esGoodsVOS) {
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
                     .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOS);
-            goodList.add(goodsCustom);
+            goodsVo.getGoodsInfos().forEach(p->{
+                GoodsCustomResponse goods = KsBeanUtil.convert(goodsCustom,GoodsCustomResponse.class);
+                goods.setGoodsInfoId(p.getGoodsInfoId());
+                goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
+                    goods.setAtmosType(p.getAtmosType());
+                    goods.setImageUrl(p.getImageUrl());
+                    goods.setElementOne(p.getElementOne());
+                    goods.setElementTwo(p.getElementTwo());
+                    goods.setElementThree(p.getElementThree());
+                    goods.setElementFour(p.getElementFour());
+                }else{
+                    goods.setAtmosType(null);
+                    goods.setImageUrl(null);
+                    goods.setElementOne(null);
+                    goods.setElementTwo(null);
+                    goods.setElementThree(null);
+                    goods.setElementFour(null);
+                }
+                goodList.add(goods);
+            });
+
         }
         return goodList;
     }

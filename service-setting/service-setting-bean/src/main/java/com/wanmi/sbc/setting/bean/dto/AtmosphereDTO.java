@@ -16,6 +16,8 @@ public class AtmosphereDTO implements Serializable {
 
 
     private static final long serialVersionUID = -4653924566911253775L;
+    @ApiModelProperty("id")
+    private Integer id;
     @ApiModelProperty(value = "开始时间")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
@@ -36,7 +38,7 @@ public class AtmosphereDTO implements Serializable {
     private String skuId;
 
     @ApiModelProperty("商品名称")
-    private String goodsName;
+    private String goodsInfoName;
 
     @ApiModelProperty("图片地址")
     private String imageUrl;

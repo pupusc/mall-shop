@@ -39,6 +39,7 @@ public class AtmosphereService {
             a.setCreateTime(LocalDateTime.now());
             a.setUpdateTime(LocalDateTime.now());
             a.setDeleted(0);
+            a.setSyncStatus(0);
         });
         atmosphereRepository.saveAll(atmospheres);
     }
@@ -69,6 +70,14 @@ public class AtmosphereService {
         atmosphereRepository.disableById(id);
     }
 
+
+    public void syncStatus(AtmosphereQueryRequest request){
+        if(request == null || CollectionUtils.isEmpty(request.getIds())){
+            return;
+        }
+        atmosphereRepository.syncStatus(request.getIds());
+    }
+
     public Specification<Atmosphere> getAtmosphereWhereCriteria(AtmosphereQueryRequest request) {
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -83,6 +92,9 @@ public class AtmosphereService {
             }
             if (request.getEndTime() != null) {
                 predicates.add(cbuild.greaterThanOrEqualTo(root.get("endTime"),request.getEndTime()));
+            }
+            if (request.getSyncStatus() != null) {
+                predicates.add(cbuild.equal(root.get("syncStatus"), request.getSyncStatus()));
             }
             predicates.add(cbuild.equal(root.get("deleted"), 0));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);

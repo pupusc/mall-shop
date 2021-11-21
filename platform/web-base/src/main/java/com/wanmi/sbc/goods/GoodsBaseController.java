@@ -79,16 +79,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
-import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
-import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
-import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
-import com.wanmi.sbc.goods.bean.vo.DistributorGoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.request.GrouponGoodsViewByIdResponse;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -139,14 +130,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -751,7 +735,7 @@ public class GoodsBaseController {
             if(CollectionUtils.isNotEmpty(atmos)){
                 response.getGoodsInfos().forEach(g->{
                     if(atmos.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsInfoId()))){
-                        AtmosphereDTO atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(g.getGoodsInfoId())).findFirst().get();
+                        AtmosphereDTO atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(g.getGoodsInfoId())).sorted(Comparator.comparing(AtmosphereDTO::getId).reversed()).findFirst().get();
                         g.setImageUrl(atmosphereDTO.getImageUrl());
                         g.setAtmosType(atmosphereDTO.getAtmosType());
                         g.setElementFour(atmosphereDTO.getElementFour());

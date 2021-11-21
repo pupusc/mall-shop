@@ -34,4 +34,8 @@ public class Atmosphere {
     private Integer atmosType;
     @Column(name = "image_url")
     private String imageUrl;
+    @Column(name = "sync_status")
+    private Integer syncStatus;
+    @Column(name = "goods_info_name")
+    private String goodsInfoName;
 }

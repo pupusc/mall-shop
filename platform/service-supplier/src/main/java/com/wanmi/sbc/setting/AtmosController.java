@@ -15,7 +15,9 @@ import com.wanmi.sbc.goods.api.constant.GoodsImportErrorCode;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.adjustprice.PriceAdjustmentTemplateExportRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoMarketingPriceByNosRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMarketingPriceDTO;
 import com.wanmi.sbc.goods.bean.dto.PriceAdjustmentRecordDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.goods.bean.enums.SaleType;
@@ -77,12 +79,11 @@ public class AtmosController {
 
     private final static String TAMPLATE_FILE_NAME = "氛围导入模板.xlsx";
 
-    @Value("classpath:/download/atmosphere" +
-            ".xlsx")
+    @Value("classpath:/download/atmosphere.xlsx")
     private Resource templateFile;
     /**
      * 氛围excel模板下载
-     *
+     * @menu 氛围配置
      * @param encrypted
      * @return
      */
@@ -154,6 +155,18 @@ public class AtmosController {
         return atmosService.delete(request);
     }
 
+
+    /**
+     * 下载错误文档
+     */
+    @ApiOperation(value = "下载错误文档")
+    @RequestMapping(value = "/err/{ext}/{decrypted}", method = RequestMethod.GET)
+    public void downErrExcel(@PathVariable String ext, @PathVariable String decrypted) {
+        atmosService.downErrorFile(ext);
+    }
+
+
+
     private final Function<Workbook, List<AtmosphereDTO>> analysisFunctionByAtmos = (workbook) -> {
         Sheet sheet = workbook.getSheetAt(0);
         int lastRowNum = sheet.getLastRowNum();
@@ -223,7 +236,7 @@ public class AtmosController {
             //SKU编码
             String goodsInfoNo = ExcelHelper.getValue(cells[3]);
             if (StringUtils.isBlank(goodsInfoNo)) {
-                ExcelHelper.setError(workbook, cells[3], "必填，请填写要调价的商品sku编码");
+                ExcelHelper.setError(workbook, cells[3], "必填，请填写要上传的商品sku编码");
                 isError = true;
             } else if (goodsInfoNo.length() > 20) {
                 ExcelHelper.setError(workbook, cells[3], "长度必须1-20个字");
@@ -231,12 +244,10 @@ public class AtmosController {
             } else if (!ValidateUtil.isNotChs(goodsInfoNo)) {
                 ExcelHelper.setError(workbook, cells[3], "仅允许英文、数字、特殊字符");
                 isError = true;
-            } else if (skuNos.containsKey(goodsInfoNo)) {
-                ExcelHelper.setError(workbook, cells[3], "文档中出现重复的SKU编码");
-                isError = true;
             } else {
                 atmosphereDTO.setSkuNo(goodsInfoNo);
             }
+
 
             //商品名称
             String goodsInfoName = ExcelHelper.getValue(cells[4]);
@@ -248,7 +259,7 @@ public class AtmosController {
                     ExcelHelper.setError(workbook, cells[4], "含有非法字符");
                     isError = true;
                 } else {
-                    atmosphereDTO.setGoodsName(goodsInfoName);
+                    atmosphereDTO.setGoodsInfoName(goodsInfoName);
                 }
             }
             if (!isError) {
@@ -264,29 +275,27 @@ public class AtmosController {
             list.add(atmosphereDTO);
 
         }
-
-        BaseResponse<GoodsInfoListByConditionResponse> responseBaseResponse = goodsInfoQueryProvider.listByCondition(GoodsInfoListByConditionRequest.builder().delFlag
-                (DeleteFlag.NO.toValue()).goodsInfoNos(new ArrayList<>(skuNos.keySet())).storeId(commonUtil.getStoreId())
-                .build());
-
-
-        //商品是否存在
-        for (Map.Entry<String, Cell> entry : skuNos.entrySet()) {
-            Cell cell = skuNos.get(entry.getKey());
-            if(responseBaseResponse == null || responseBaseResponse.getContext() ==null || CollectionUtils.isEmpty(responseBaseResponse.getContext().getGoodsInfos())){
-                ExcelHelper.setError(workbook, cell, "商品不存在");
-                isError = true;
+        if (!isError) {
+            BaseResponse<GoodsInfoListByConditionResponse> responseBaseResponse = goodsInfoQueryProvider.listByCondition(GoodsInfoListByConditionRequest.builder().delFlag
+                    (DeleteFlag.NO.toValue()).goodsInfoNos(new ArrayList<>(skuNos.keySet())).storeId(commonUtil.getStoreId())
+                    .build());
+            for (Map.Entry<String, Cell> entry : skuNos.entrySet()) {
+                Cell cell = entry.getValue();
+                if(responseBaseResponse == null || responseBaseResponse.getContext() ==null || CollectionUtils.isEmpty(responseBaseResponse.getContext().getGoodsInfos())){
+                    ExcelHelper.setError(workbook, cell, "商品不存在");
+                    isError = true;
+                    continue;
+                }
+                Optional<GoodsInfoVO> goodsInfoVO = responseBaseResponse.getContext().getGoodsInfos().stream().filter(p->p.getGoodsInfoNo().equals(entry.getKey())).findFirst();
+                if(!goodsInfoVO.isPresent()){
+                    ExcelHelper.setError(workbook, cell, "商品不存在");
+                    isError = true;
+                    continue;
+                }
+                list.stream().filter(p->p.getSkuNo().equals(entry.getKey())).forEach(p->{
+                    p.setSkuId(goodsInfoVO.get().getGoodsInfoId());
+                });
             }
-            Optional<GoodsInfoVO> goodsInfoVO = responseBaseResponse.getContext().getGoodsInfos().stream().filter(p->p.getGoodsInfoNo().equals(entry.getKey())).findFirst();
-            if(!goodsInfoVO.isPresent()){
-                ExcelHelper.setError(workbook, cell, "商品不存在");
-                isError = true;
-            }
-            list.stream().filter(p->p.getSkuNo().equals(entry.getKey())).forEach(p->{
-                p.setSkuId(goodsInfoVO.get().getGoodsInfoId());
-            });
-
-
         }
         if (isError) {
             throw new SbcRuntimeException(CommonErrorCode.IMPORTED_DATA_ERROR);

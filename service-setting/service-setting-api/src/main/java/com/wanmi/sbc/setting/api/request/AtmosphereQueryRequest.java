@@ -30,4 +30,12 @@ public class AtmosphereQueryRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+
+    @ApiModelProperty(value = "ids",hidden = true)
+    private List<Integer> ids;
+
+    @ApiModelProperty(value = "同步状态",hidden = true)
+    private Integer syncStatus;
+
+
 }

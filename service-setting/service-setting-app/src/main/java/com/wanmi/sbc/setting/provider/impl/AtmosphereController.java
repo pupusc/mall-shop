@@ -34,4 +34,10 @@ public class AtmosphereController implements AtmosphereProvider {
         atmosphereService.delete(request.getId());
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse syncStatus(AtmosphereQueryRequest request) {
+        atmosphereService.syncStatus(request);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

@@ -77,4 +77,7 @@ public interface EsGoodsInfoElasticProvider {
 
     @PostMapping("/elastic/${application.elastic.version}/goods/adjust/atmosphere")
     BaseResponse adjustAtmosphere(@RequestBody @Valid EsGoodsAtmosphereRequest request);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/disable/atmosphere")
+    BaseResponse disableAtmosphere(@RequestBody @Valid EsGoodsAtmosphereRequest request);
 }

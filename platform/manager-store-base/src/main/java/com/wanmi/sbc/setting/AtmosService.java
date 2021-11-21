@@ -2,12 +2,15 @@ package com.wanmi.sbc.setting;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.ResultCode;
 import com.wanmi.sbc.common.enums.ResourceType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsAtmosphereRequest;
 import com.wanmi.sbc.goods.adjust.PriceAdjustExcuteService;
 import com.wanmi.sbc.goods.api.constant.GoodsImportErrorCode;
 import com.wanmi.sbc.goods.api.provider.adjustprice.PriceAdjustmentImportProvider;
@@ -40,10 +43,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Decoder;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -70,20 +77,10 @@ public class AtmosService {
     @Autowired
     private AtmosphereProvider atmosphereProvider;
 
-    public void downloadAtmosTemplate(PriceAdjustmentTemplateExportRequest request, String templateFileName) {
-        request.setStoreId(commonUtil.getStoreId());
+    @Autowired
+    private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
-//        if (StringUtils.isNotBlank(file)) {
-//            try {
-//                String fileName = URLEncoder.encode(templateFileName, "UTF-8");
-//                HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";" +
-//                        "filename*=\"utf-8''%s\"", fileName, fileName));
-//                HttpUtil.getResponse().getOutputStream().write(new BASE64Decoder().decodeBuffer(file));
-//            } catch (Exception e) {
-//                throw new SbcRuntimeException(CommonErrorCode.FAILED);
-//            }
-//        }
-    }
+
     /**
      * 氛围文件上传
      *
@@ -212,6 +209,61 @@ public class AtmosService {
     }
 
     public BaseResponse delete(AtmosphereDeleteRequest request){
-        return atmosphereProvider.delete(request);
+        BaseResponse response =  atmosphereProvider.delete(request);
+        if(response!= null && response.getCode().equals(ResultCode.SUCCESSFUL)){
+            //更新es-如果当前是最新一条记录
+            EsGoodsAtmosphereRequest esRequest = new EsGoodsAtmosphereRequest();
+            esRequest.setGoodsInfoIds(Arrays.asList(request.getSkuId()));
+            esGoodsInfoElasticProvider.disableAtmosphere(esRequest);
+        }
+        return BaseResponse.SUCCESSFUL();
     }
+
+    /**
+     * 下载错误表格
+     *
+     * @return
+     */
+    public void downErrorFile(String ext) {
+
+        if (!(ext.equalsIgnoreCase("xls") || ext.equalsIgnoreCase("xlsx"))) {
+            throw new SbcRuntimeException(GoodsImportErrorCode.FILE_EXT_ERROR);
+        }
+
+        String errorResourceKey = String.format("%s/%s/%s/%s", ATMOS_DIR, env, commonUtil.getStoreId(),
+                commonUtil.getOperatorId()).concat("_error");
+        byte[] content = yunServiceProvider.getFile(YunGetResourceRequest.builder()
+                .resourceKey(errorResourceKey)
+                .build()).getContext().getContent();
+        if (content == null) {
+            throw new SbcRuntimeException(CommonErrorCode.ERROR_FILE_LOST);
+        }
+        try (
+                InputStream is = new ByteArrayInputStream(content);
+                ServletOutputStream os = HttpUtil.getResponse().getOutputStream()
+        ) {
+            //下载错误文档时强制清除页面文档缓存\
+            HttpServletResponse response = HttpUtil.getResponse();
+            response.setHeader("Pragma", "No-cache");
+            response.setHeader("Cache-Control", "no-cache");
+            response.setHeader("Cache-Control", "no-store");
+            response.setDateHeader("expries", -1);
+            String fileName = URLEncoder.encode("错误表格.".concat(ext), "UTF-8");
+            response.setHeader("Content-Disposition",
+                    String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
+
+            byte b[] = new byte[1024];
+            //读取文件，存入字节数组b，返回读取到的字符数，存入read,默认每次将b数组装满
+            int read = is.read(b);
+            while (read != -1) {
+                os.write(b, 0, read);
+                read = is.read(b);
+            }
+            HttpUtil.getResponse().flushBuffer();
+        } catch (Exception e) {
+            log.error("下载EXCEL文件异常->", e);
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+        }
+    }
+
 }

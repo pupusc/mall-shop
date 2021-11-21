@@ -31,4 +31,11 @@ public interface AtmosphereProvider {
 
     @PostMapping("/setting/${application.setting.version}/atmos/delete")
     BaseResponse delete(@RequestBody AtmosphereDeleteRequest request);
+
+    @PostMapping("/setting/${application.setting.version}/atmos/sync")
+    BaseResponse syncStatus(@RequestBody AtmosphereQueryRequest request);
+
+
+
+
 }
