@@ -5,10 +5,13 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.ValidateUtil;
 import com.wanmi.sbc.common.util.excel.ExcelHelper;
+import com.wanmi.sbc.goods.api.constant.GoodsImportErrorCode;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.adjustprice.PriceAdjustmentTemplateExportRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
@@ -20,24 +23,33 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereDeleteRequest;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
+import com.wanmi.sbc.setting.api.request.storeexpresscompanyrela.StoreExpressCompanyRelaListRequest;
+import com.wanmi.sbc.setting.api.response.storeexpresscompanyrela.StoreExpressCompanyRelaListResponse;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import com.wanmi.sbc.setting.bean.vo.ExpressCompanyVO;
+import com.wanmi.sbc.setting.bean.vo.StoreExpressCompanyRelaVO;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -52,6 +64,7 @@ import java.util.stream.Collectors;
 @Api(tags = "AtmosController", description = "氛围配置")
 @RestController
 @RequestMapping("/atmos")
+@Slf4j
 public class AtmosController {
     @Autowired
     private AtmosService atmosService;
@@ -63,6 +76,10 @@ public class AtmosController {
     private CommonUtil commonUtil;
 
     private final static String TAMPLATE_FILE_NAME = "氛围导入模板.xlsx";
+
+    @Value("classpath:/download/atmosphere" +
+            ".xlsx")
+    private Resource templateFile;
     /**
      * 氛围excel模板下载
      *
@@ -74,9 +91,18 @@ public class AtmosController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "encrypted",
             value = "鉴权加密串", required = true)
     public void template(@PathVariable String encrypted) {
-        PriceAdjustmentTemplateExportRequest request = PriceAdjustmentTemplateExportRequest.builder()
-                .priceAdjustmentType(PriceAdjustmentType.MARKET).build();
-        atmosService.downloadAtmosTemplate(request, TAMPLATE_FILE_NAME);
+        Resource file = templateFile;
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            InputStream is = file.getInputStream();
+            Workbook wk = WorkbookFactory.create(is)){
+            wk.write(outputStream);
+            String fileName = URLEncoder.encode("氛围导入模板.xlsx", "UTF-8");
+            HttpUtil.getResponse().setHeader("Content-Disposition", String.format("attachment;filename=\"%s\";filename*=\"utf-8''%s\"", fileName, fileName));
+            HttpUtil.getResponse().getOutputStream().write(outputStream.toByteArray());
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, e);
+        }
     }
 
     /**

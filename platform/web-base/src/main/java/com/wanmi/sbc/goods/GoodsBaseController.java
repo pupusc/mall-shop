@@ -745,9 +745,9 @@ public class GoodsBaseController {
             throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
         }
         //sku氛围
-        List<String> skuNos = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoNo).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(skuNos)){
-            List<AtmosphereDTO> atmos =atmosphereService.getAtmosphere(skuNos);
+        List<String> skuIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(skuIds)){
+            List<AtmosphereDTO> atmos =atmosphereService.getAtmosphere(skuIds);
             if(CollectionUtils.isNotEmpty(atmos)){
                 response.getGoodsInfos().forEach(g->{
                     if(atmos.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsInfoId()))){

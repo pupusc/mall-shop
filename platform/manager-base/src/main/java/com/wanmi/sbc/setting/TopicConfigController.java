@@ -12,7 +12,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -166,4 +165,39 @@ public class TopicConfigController {
         return topicConfigProvider.listStoryContent(request);
     }
 
+    /**
+     * @description 编辑专题
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation(value = "编辑专题")
+    @PostMapping(value = "/modify")
+    public BaseResponse modifyTopic(@RequestBody TopicConfigModifyRequest request) {
+        return topicConfigProvider.modifyTopic(request);
+    }
+
+    /**
+     * @description 启用/禁用专题
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation(value = "启用/禁用专题")
+    @PostMapping(value = "/enable")
+    public BaseResponse enableTopic(@RequestBody EnableTopicRequest request) {
+        return topicConfigProvider.enableTopic(request);
+    }
+
+    /**
+     * @description 编辑楼层
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation(value = "编辑楼层")
+    @PostMapping(value = "/modify/storey")
+    public BaseResponse modifyTopic(@RequestBody TopicStoreyModifyRequest request) {
+        return topicConfigProvider.modifyStorey(request);
+    }
 }
