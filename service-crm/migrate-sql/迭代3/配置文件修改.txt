@@ -1,2 +1,0 @@
-1..#crm mysql连接后面需要添加下列配置
-&allowMultiQueries=true
