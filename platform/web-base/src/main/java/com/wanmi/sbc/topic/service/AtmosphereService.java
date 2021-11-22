@@ -8,7 +8,6 @@ import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
-import com.wanmi.sbc.topic.response.ProductAtmosphereResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,34 +26,8 @@ public class AtmosphereService {
     @Autowired
     private AtmosphereProvider atmosphereProvider;
 
-    @Value("${ribbon.config}")
-    private volatile String ribbonConfig;
-
-    @Value("${atmos.flag:false}")
-    private Boolean atmosFlag;
-
-    @Autowired
-    private RedisService redisService;
-
-    private static final  String ATMOS_KEY ="atmos";
 
     public List<AtmosphereDTO> getAtmosphere(List<String> skuIds){
-        //开关，用nacos配置
-//        if(!atmosFlag){
-//            List<ProductAtmosphereResponse> list = JSONArray.parseArray(ribbonConfig, ProductAtmosphereResponse.class);
-//            List<AtmosphereDTO> atmosphereDTOS= new ArrayList<>(list.size());
-//            list.stream().filter(productConfig -> new Date().after(productConfig.getStartTime()) && new Date().before(productConfig.getEndTime())).forEach(p->{
-//                AtmosphereDTO atmosphereDTO = new AtmosphereDTO();
-//                atmosphereDTO.setSkuId(p.getSkuId());
-//                atmosphereDTO.setElementOne(p.getTitle());
-//                atmosphereDTO.setElementTwo(p.getContent());
-//                atmosphereDTO.setImageUrl(p.getImageUrl());
-//                atmosphereDTO.setElementFour(p.getPrice());
-//                atmosphereDTO.setType(1);
-//                atmosphereDTOS.add(atmosphereDTO);
-//               });
-//            return atmosphereDTOS;
-//        }
         AtmosphereQueryRequest request = new AtmosphereQueryRequest();
         request.setPageNum(0);
         request.setPageSize(10000);
