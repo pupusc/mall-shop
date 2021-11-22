@@ -156,7 +156,7 @@ public class TopicConfigService {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         Topic topic = list.get(0);
-        if(Objects.equals(topic.getStatus(),0){
+        if(Objects.equals(topic.getStatus(),0)){
             return null;
         }
         TopicActivityVO topicVO = new TopicActivityVO();
