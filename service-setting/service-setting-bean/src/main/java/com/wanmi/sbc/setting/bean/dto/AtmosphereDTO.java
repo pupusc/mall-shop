@@ -43,9 +43,6 @@ public class AtmosphereDTO implements Serializable {
     @ApiModelProperty("图片地址")
     private String imageUrl;
 
-    @ApiModelProperty(value = "元素内容",hidden = true)
-    private String elementDesc;
-
     @ApiModelProperty("元素1,左侧第一行文字")
     private String elementOne;
 

@@ -48,20 +48,13 @@ public class AtmosphereService {
         BaseQueryRequest pageQuery = new BaseQueryRequest();
         pageQuery.setPageNum(request.getPageNum());
         pageQuery.setPageSize(request.getPageSize());
+        pageQuery.setSortColumn(request.getSortColumn());
+        pageQuery.setSortRole(request.getSortRole());
         Page<Atmosphere> page = atmosphereRepository.findAll(getAtmosphereWhereCriteria(request), pageQuery.getPageRequest());
         if(page == null || CollectionUtils.isEmpty(page.getContent())){
             return new MicroServicePage<>();
         }
         MicroServicePage<AtmosphereDTO> list = KsBeanUtil.convertPage(page, AtmosphereDTO.class);
-        list.getContent().forEach(p->{
-            if(StringUtils.isNotEmpty(p.getElementDesc())){
-                Map<String,String> map = (Map<String, String>) JSON.parse(p.getElementDesc());
-                p.setElementOne(map.get("elementOne"));
-                p.setElementTwo(map.get("elementTwo"));
-                p.setElementThree(map.get("elementThree"));
-                p.setElementFour(map.get("elementFour"));
-            }
-        });
         return list;
 
     }

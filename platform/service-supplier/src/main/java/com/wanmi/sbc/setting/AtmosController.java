@@ -204,10 +204,10 @@ public class AtmosController {
             String endTime = ExcelHelper.getValue(cells[1]).trim();
             String atmosTypeValue = ExcelHelper.getValue(cells[2]).trim();
             atmosphereDTO.setImageUrl(ExcelHelper.getValue(cells[5]).trim());
-            String elementOne = ExcelHelper.getValue(cells[6]).trim();
-            String elementTwo = ExcelHelper.getValue(cells[7]).trim();
-            String elementThree = ExcelHelper.getValue(cells[8]).trim();
-            String elementFour = ExcelHelper.getValue(cells[9]).trim();
+            atmosphereDTO.setElementOne(ExcelHelper.getValue(cells[6]).trim());
+            atmosphereDTO.setElementTwo(ExcelHelper.getValue(cells[7]).trim());
+            atmosphereDTO.setElementThree(ExcelHelper.getValue(cells[8]).trim());
+            atmosphereDTO.setElementFour(ExcelHelper.getValue(cells[9]).trim());
             //开始结束时间校验
             try{
                 LocalDateTime sTime = LocalDateTime.parse(startTime,df);
@@ -265,13 +265,6 @@ public class AtmosController {
             if (!isError) {
                 skuNos.put(atmosphereDTO.getSkuNo(), cells[3]);
             }
-            //文字
-            Map<String,String> map  = new HashMap<>(16);
-            map.put("elementOne",elementOne);
-            map.put("elementTwo",elementTwo);
-            map.put("elementThree",elementThree);
-            map.put("elementFour",elementFour);
-            atmosphereDTO.setElementDesc(JSON.toJSONString(map));
             list.add(atmosphereDTO);
 
         }
