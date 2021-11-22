@@ -24,7 +24,6 @@ import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
-import com.wanmi.sbc.topic.response.AtmosphereResponse;
 import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
