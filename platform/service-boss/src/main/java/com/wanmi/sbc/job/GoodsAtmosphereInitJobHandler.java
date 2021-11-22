@@ -37,27 +37,29 @@ public class GoodsAtmosphereInitJobHandler extends IJobHandler {
         log.info("=====氛围同步start======");
         AtmosphereQueryRequest request = new AtmosphereQueryRequest();
         request.setPageNum(0);
-        request.setPageSize(200);
+        request.setPageSize(10);
         request.setSyncStatus(0);
-        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosList = atmosphereProvider.page(request);
-        if(atmosList == null || atmosList.getContext() ==null || CollectionUtils.isEmpty(atmosList.getContext().getContent())){
-            log.info("没有未同步的氛围信息");
-            return SUCCESS;
-        }
-        List<String> skuIds = atmosList.getContext().getContent().stream().map(AtmosphereDTO::getSkuId).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(skuIds)){
-            log.info("没有未同步的氛围信息");
-            return SUCCESS;
-        }
-        EsGoodsAtmosphereRequest esGoodsAtmosphereRequest = new EsGoodsAtmosphereRequest();
-        esGoodsAtmosphereRequest.setGoodsInfoIds(skuIds);
-        BaseResponse response = esGoodsInfoElasticProvider.adjustAtmosphere(esGoodsAtmosphereRequest);
-        //更新状态
-        if(response != null && response.getCode().equals(ResultCode.SUCCESSFUL)){
-            List<Integer> ids = atmosList.getContext().getContent().stream().map(AtmosphereDTO::getId).collect(Collectors.toList());
-            AtmosphereQueryRequest queryRequest = new AtmosphereQueryRequest();
-            queryRequest.setIds(ids);
-            atmosphereProvider.syncStatus(queryRequest);
+        while(true) {
+            BaseResponse<MicroServicePage<AtmosphereDTO>> atmosList = atmosphereProvider.page(request);
+            if (atmosList == null || atmosList.getContext() == null || CollectionUtils.isEmpty(atmosList.getContext().getContent())) {
+                log.info("没有未同步的氛围信息");
+               break;
+            }
+            List<String> skuIds = atmosList.getContext().getContent().stream().map(AtmosphereDTO::getSkuId).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(skuIds)) {
+                log.info("没有未同步的氛围信息");
+               break;
+            }
+            EsGoodsAtmosphereRequest esGoodsAtmosphereRequest = new EsGoodsAtmosphereRequest();
+            esGoodsAtmosphereRequest.setGoodsInfoIds(skuIds);
+            BaseResponse response = esGoodsInfoElasticProvider.adjustAtmosphere(esGoodsAtmosphereRequest);
+            //更新状态
+            if (response != null && response.getCode().equals(ResultCode.SUCCESSFUL)) {
+                List<Integer> ids = atmosList.getContext().getContent().stream().map(AtmosphereDTO::getId).collect(Collectors.toList());
+                AtmosphereQueryRequest queryRequest = new AtmosphereQueryRequest();
+                queryRequest.setIds(ids);
+                atmosphereProvider.syncStatus(queryRequest);
+            }
         }
         log.info("=====氛围同步end======");
         return SUCCESS;
