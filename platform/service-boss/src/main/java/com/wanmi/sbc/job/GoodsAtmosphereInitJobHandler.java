@@ -37,7 +37,7 @@ public class GoodsAtmosphereInitJobHandler extends IJobHandler {
         log.info("=====氛围同步start======");
         AtmosphereQueryRequest request = new AtmosphereQueryRequest();
         request.setPageNum(0);
-        request.setPageSize(10);
+        request.setPageSize(100);
         request.setSyncStatus(0);
         while(true) {
             BaseResponse<MicroServicePage<AtmosphereDTO>> atmosList = atmosphereProvider.page(request);
