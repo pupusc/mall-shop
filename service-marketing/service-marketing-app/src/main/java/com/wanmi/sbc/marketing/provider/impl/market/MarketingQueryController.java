@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.api.request.market.*;
 import com.wanmi.sbc.marketing.api.response.market.*;
+import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
@@ -26,10 +27,13 @@ import com.wanmi.sbc.marketing.common.request.SkuExistsRequest;
 import com.wanmi.sbc.marketing.common.response.MarketingResponse;
 import com.wanmi.sbc.marketing.common.service.MarkeingGoodsLevelService;
 import com.wanmi.sbc.marketing.common.service.MarketingService;
+import com.wanmi.sbc.marketing.discount.model.entity.MarketingPointBuyLevel;
+import com.wanmi.sbc.marketing.discount.service.MarketingPointBuyService;
 import com.wanmi.sbc.marketing.halfpricesecondpiece.service.MarketingHalfPriceSecondPieceLevelService;
 import com.wanmi.sbc.marketing.util.error.MarketingErrorCode;
 import com.wanmi.sbc.setting.api.provider.SystemPointsConfigQueryProvider;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,6 +73,9 @@ public class MarketingQueryController implements MarketingQueryProvider {
 
     @Autowired
     private MarkeingGoodsLevelService markeingGoodsLevelService;
+
+    @Autowired
+    private MarketingPointBuyService marketingPointBuyService;
 
     /**
      * @param request 查询参数 {@link ExistsSkuByMarketingTypeRequest}
@@ -247,5 +254,13 @@ public class MarketingQueryController implements MarketingQueryProvider {
     public BaseResponse<MarketingGoodsForXsiteResponse> queryForXsite(@RequestBody @Valid MarketingGoodsForXsiteRequest request){
         BaseResponse<MarketingGoodsForXsiteResponse> response = markeingGoodsLevelService.dealByMarketingLevel(request.getGoodsInfoIds(), request.getMarketingLevelType());
         return response;
+    }
+
+    @Override
+    public BaseResponse<MarketingPointBuyLevelDto> getPointBuyLevel(Long id) {
+        MarketingPointBuyLevel pointBuy = marketingPointBuyService.findPointBuyById(id);
+        MarketingPointBuyLevelDto marketingPointBuyLevelDto = new MarketingPointBuyLevelDto();
+        BeanUtils.copyProperties(pointBuy, marketingPointBuyLevelDto);
+        return BaseResponse.success(marketingPointBuyLevelDto);
     }
 }

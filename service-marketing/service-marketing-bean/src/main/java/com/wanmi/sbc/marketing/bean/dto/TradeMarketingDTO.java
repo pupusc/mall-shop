@@ -56,4 +56,9 @@ public class TradeMarketingDTO implements Serializable {
      */
     @ApiModelProperty(value = "如果是加价购，则填入用户选择的换购商品id集合")
     private List<String> markupSkuIds;
+
+    /**
+     * 营销活动类型
+     */
+    private Integer marketingSubType;
 }

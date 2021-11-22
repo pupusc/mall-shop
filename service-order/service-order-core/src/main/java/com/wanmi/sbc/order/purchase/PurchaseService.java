@@ -2485,7 +2485,6 @@ public class PurchaseService {
             goodsInfoIds.addAll(request.getGoodsInfoIds());
         }
 
-
         // 2.查询商品、店铺、营销相关信息
         //todo 考虑未登录情况 by wugongjiang
         GoodsInfoForPurchaseResponse goodsResp = goodsCommonQueryProvider.queryInfoForPurchase(
@@ -2609,7 +2608,6 @@ public class PurchaseService {
                     goodsInfo.setSalePrice(goodsInfo.getEnterPrisePrice());
                 }
             }
-
         }
 
         // 3.合并信息至response

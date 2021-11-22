@@ -1388,6 +1388,9 @@ public class VerifyService {
                                             info = "第" + halfPriceSecondPieceLevel.getNumber() + "件" + halfPriceSecondPieceLevel.getDiscount() + "折";
                                         }
                                         break;
+                                    case POINT_BUY:
+                                        info = "积分换购活动";
+                                        break;
                                     case SUITS:
                                         throw new SbcRuntimeException("K-600019");
                                     default:

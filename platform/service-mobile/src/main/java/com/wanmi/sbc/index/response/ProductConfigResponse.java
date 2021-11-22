@@ -38,4 +38,9 @@ public class ProductConfigResponse implements Serializable {
      * 价格
      */
     private String price;
+
+    /**
+     * 图片地址
+     */
+    private String imageUrl;
 }

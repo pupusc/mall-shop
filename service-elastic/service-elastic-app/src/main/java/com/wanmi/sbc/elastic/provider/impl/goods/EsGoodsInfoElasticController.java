@@ -133,4 +133,16 @@ public class EsGoodsInfoElasticController implements EsGoodsInfoElasticProvider 
         esGoodsInfoElasticService.adjustPrice(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse adjustAtmosphere(@Valid EsGoodsAtmosphereRequest request) {
+        esGoodsInfoElasticService.adjustAtmosphere(request);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse disableAtmosphere(@Valid EsGoodsAtmosphereRequest request) {
+        esGoodsInfoElasticService.disableAtmosphere(request);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

@@ -8,7 +8,6 @@ import com.wanmi.sbc.classify.response.ClassifyResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteStoreCateRequest;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;

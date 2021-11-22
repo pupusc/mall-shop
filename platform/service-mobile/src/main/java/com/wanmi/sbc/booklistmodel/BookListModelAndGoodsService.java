@@ -17,6 +17,7 @@ import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
@@ -62,6 +63,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -449,6 +451,18 @@ public class BookListModelAndGoodsService {
                     extProperties.setPrice(esGoodsVO.getGoodsExtProps().getPrice() == null ? new BigDecimal("1000") : esGoodsVO.getGoodsExtProps().getPrice());
                     esGoodsCustomResponse.setGoodsExtProperties(extProperties);
                     lineSalePrice = extProperties.getPrice();
+                }
+            }
+            //氛围
+            if(!CollectionUtils.isEmpty(esGoodsVO.getGoodsInfos())){
+                GoodsInfoNestVO goodsInfoVO = esGoodsVO.getGoodsInfos().get(0);
+                if(goodsInfoVO.getStartTime()!=null && goodsInfoVO.getEndTime() !=null &&  goodsInfoVO.getStartTime().compareTo(LocalDateTime.now()) < 0 && goodsInfoVO.getEndTime().compareTo(LocalDateTime.now()) >0){
+                    esGoodsCustomResponse.setImageUrl(goodsInfoVO.getImageUrl());
+                    esGoodsCustomResponse.setAtmosType(goodsInfoVO.getAtmosType());
+                    esGoodsCustomResponse.setElementFour(goodsInfoVO.getElementFour());
+                    esGoodsCustomResponse.setElementThree(goodsInfoVO.getElementThree());
+                    esGoodsCustomResponse.setElementTwo(goodsInfoVO.getElementTwo());
+                    esGoodsCustomResponse.setElementOne(goodsInfoVO.getElementOne());
                 }
             }
         }
