@@ -83,14 +83,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -196,7 +189,7 @@ public class EsGoodsElasticService {
             infoQueryRequest.setGoodsIds(request.getGoodsIds());
             infoQueryRequest.setBrandIds(request.getBrandIds());
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(infoQueryRequest).getContext().getGoodsInfos();
-
+            goodsInfoIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).distinct().collect(Collectors.toList());
             List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(goodsIds)) {
                 request.getGoodsIds().addAll(goodsIds);
@@ -258,6 +251,17 @@ public class EsGoodsElasticService {
         goodsPageRequest.setDelFlag(DeleteFlag.NO.toValue());
         goodsPageRequest.setGoodsIds(goodsCountQueryRequest.getGoodsIds());
 
+        //查询氛围
+        AtmosphereQueryRequest atmosRequest = new AtmosphereQueryRequest();
+        atmosRequest.setPageNum(0);
+        atmosRequest.setPageSize(1000);
+        atmosRequest.setSkuId(goodsInfoIds);
+        atmosRequest.setStartTime(LocalDateTime.now());
+        atmosRequest.setEndTime(LocalDateTime.now());
+        atmosRequest.setSortColumn("id");
+        atmosRequest.setSortRole("desc");
+
+        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosResponse = atmosphereProvider.page(atmosRequest);
         int errorThrow = 0;//满10次，退出循环往上抛异常
         int pageIndex = 0; //开始位置
         if (request.getPageIndex() != null) {
@@ -587,6 +591,21 @@ public class EsGoodsElasticService {
                                     if (Objects.nonNull(esCateBrand.getGoodsBrand())) {
                                         esGoodsInfo.setGoodsBrand(esCateBrand.getGoodsBrand());
                                     }
+                                    //设置氛围
+                                    if(atmosResponse!= null && atmosResponse.getContext()!=null && CollectionUtils.isNotEmpty(atmosResponse.getContext().getContent())){
+                                        Optional<AtmosphereDTO> atmos = atmosResponse.getContext().getContent().stream().filter(p->p.getSkuId().equals(goodsInfoNest.getGoodsInfoId())).findFirst();
+                                        if(atmos.isPresent()){
+                                            goodsInfoNest.setAtmosType(atmos.get().getAtmosType());
+                                            goodsInfoNest.setStartTime(atmos.get().getStartTime());
+                                            goodsInfoNest.setEndTime(atmos.get().getEndTime());
+                                            goodsInfoNest.setImageUrl(atmos.get().getImageUrl());
+                                            goodsInfoNest.setElementOne(atmos.get().getElementOne());
+                                            goodsInfoNest.setElementTwo(atmos.get().getElementTwo());
+                                            goodsInfoNest.setElementThree(atmos.get().getElementThree());
+                                            goodsInfoNest.setElementFour(atmos.get().getElementFour());
+
+                                        }
+                                    }
                                     esGoodsInfo.setGoodsInfo(goodsInfoNest);
                                     esGoodsInfo.setAddedTime(goodsInfoNest.getAddedTime());
                                     esGoodsInfo.setGoodsLevelPrices(levelPriceMap.get(goodsInfoNest.getGoodsInfoId()));
@@ -721,7 +740,6 @@ public class EsGoodsElasticService {
             infoQueryRequest.setGoodsIds(request.getGoodsIds());
             infoQueryRequest.setBrandIds(request.getBrandIds());
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(infoQueryRequest).getContext().getGoodsInfos();
-            goodsInfoIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).distinct().collect(Collectors.toList());
             List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(goodsIds)) {
                 request.getGoodsIds().addAll(goodsIds);
@@ -784,17 +802,7 @@ public class EsGoodsElasticService {
         KsBeanUtil.copyPropertiesThird(goodsCountQueryRequest, goodsPageRequest);
         goodsPageRequest.setDelFlag(DeleteFlag.NO.toValue());
         goodsPageRequest.setGoodsIds(goodsCountQueryRequest.getGoodsIds());
-        //查询氛围
-        AtmosphereQueryRequest atmosRequest = new AtmosphereQueryRequest();
-        atmosRequest.setPageNum(0);
-        atmosRequest.setPageSize(1000);
-        atmosRequest.setSkuId(goodsInfoIds);
-        atmosRequest.setStartTime(LocalDateTime.now());
-        atmosRequest.setEndTime(LocalDateTime.now());
-        atmosRequest.setSortColumn("id");
-        atmosRequest.setSortRole("desc");
 
-        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosResponse = atmosphereProvider.page(atmosRequest);
         int errorThrow = 0;//满10次，退出循环往上抛异常
         int pageIndex = 0; //开始位置
         if (request.getPageIndex() != null) {
@@ -1091,21 +1099,6 @@ public class EsGoodsElasticService {
                                     }
                                     if (Objects.nonNull(esCateBrand.getGoodsBrand())) {
                                         esGoodsInfo.setGoodsBrand(esCateBrand.getGoodsBrand());
-                                    }
-                                    //设置氛围
-                                    if(atmosResponse!= null && atmosResponse.getContext()!=null && CollectionUtils.isNotEmpty(atmosResponse.getContext().getContent())){
-                                        Optional<AtmosphereDTO> atmos = atmosResponse.getContext().getContent().stream().filter(p->p.getSkuId().equals(goodsInfoNest.getGoodsInfoId())).findFirst();
-                                        if(atmos.isPresent()){
-                                            goodsInfoNest.setAtmosType(atmos.get().getAtmosType());
-                                            goodsInfoNest.setStartTime(atmos.get().getStartTime());
-                                            goodsInfoNest.setEndTime(atmos.get().getEndTime());
-                                            goodsInfoNest.setImageUrl(atmos.get().getImageUrl());
-                                            goodsInfoNest.setElementOne(atmos.get().getElementOne());
-                                            goodsInfoNest.setElementTwo(atmos.get().getElementTwo());
-                                            goodsInfoNest.setElementThree(atmos.get().getElementThree());
-                                            goodsInfoNest.setElementFour(atmos.get().getElementFour());
-
-                                        }
                                     }
                                     esGoodsInfo.setGoodsInfo(goodsInfoNest);
                                     esGoodsInfo.setAddedTime(goodsInfoNest.getAddedTime());
