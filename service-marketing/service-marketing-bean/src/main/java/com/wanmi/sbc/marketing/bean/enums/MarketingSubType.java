@@ -65,8 +65,10 @@ public enum MarketingSubType {
      * 加价购
      */
     @ApiEnumProperty("9：加价购")
-    MARKUP,;
+    MARKUP,
 
+    @ApiEnumProperty("10：积分换购")
+    POINT_BUY;
 
     @JsonCreator
     public static MarketingSubType fromValue(int value) {

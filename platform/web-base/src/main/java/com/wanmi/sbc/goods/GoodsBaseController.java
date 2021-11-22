@@ -79,16 +79,7 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
-import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
-import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
-import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
-import com.wanmi.sbc.goods.bean.vo.DistributorGoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.goods.request.GrouponGoodsViewByIdResponse;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -116,7 +107,9 @@ import com.wanmi.sbc.order.bean.vo.GrouponDetailWithGoodsVO;
 import com.wanmi.sbc.setting.api.provider.WechatAuthProvider;
 import com.wanmi.sbc.setting.api.request.MiniProgramQrCodeRequest;
 import com.wanmi.sbc.setting.api.request.ShareMiniProgramRequest;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.system.service.SystemPointsConfigService;
+import com.wanmi.sbc.topic.service.AtmosphereService;
 import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -137,14 +130,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -252,6 +238,9 @@ public class GoodsBaseController {
 
     @Value("${search.unshow.goodsIds}")
     private String searchUnShowGoodsIds;
+
+    @Autowired
+    private AtmosphereService atmosphereService;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -738,6 +727,24 @@ public class GoodsBaseController {
             });
         } else {
             throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+        }
+        //sku氛围
+        List<String> skuIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+        if(CollectionUtils.isNotEmpty(skuIds)){
+            List<AtmosphereDTO> atmos =atmosphereService.getAtmosphere(skuIds);
+            if(CollectionUtils.isNotEmpty(atmos)){
+                response.getGoodsInfos().forEach(g->{
+                    if(atmos.stream().anyMatch(p->p.getSkuId().equals(g.getGoodsInfoId()))){
+                        AtmosphereDTO atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(g.getGoodsInfoId())).sorted(Comparator.comparing(AtmosphereDTO::getId).reversed()).findFirst().get();
+                        g.setImageUrl(atmosphereDTO.getImageUrl());
+                        g.setAtmosType(atmosphereDTO.getAtmosType());
+                        g.setElementFour(atmosphereDTO.getElementFour());
+                        g.setElementThree(atmosphereDTO.getElementThree());
+                        g.setElementTwo(atmosphereDTO.getElementTwo());
+                        g.setElementOne(atmosphereDTO.getElementOne());
+                    }
+                });
+            }
         }
         return response;
     }

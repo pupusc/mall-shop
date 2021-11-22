@@ -91,6 +91,8 @@ public class ImageService {
             throw new SbcRuntimeException("K-000009");
         }
         ImageDTO imageDTO = imageDTOList.get(0);
+        imageDTO.setImgUrl(imageProviderRequest.getImgUrl());
+        imageDTO.setImgHref(imageProviderRequest.getImgHref());
         if (!StringUtils.isEmpty(imageProviderRequest.getName())) {
             imageDTO.setName(imageProviderRequest.getName());
         }
@@ -103,13 +105,13 @@ public class ImageService {
             imageDTO.setEndTime(imageProviderRequest.getEndTime());
         }
 
-        if (!StringUtils.isEmpty(imageProviderRequest.getImgUrl())) {
-            imageDTO.setImgUrl(imageProviderRequest.getImgUrl());
-        }
+//        if (!StringUtils.isEmpty(imageProviderRequest.getImgUrl())) {
+//            imageDTO.setImgUrl(imageProviderRequest.getImgUrl());
+//        }
 
-        if (!StringUtils.isEmpty(imageProviderRequest.getImgHref())) {
-            imageDTO.setImgHref(imageProviderRequest.getImgHref());
-        }
+//        if (!StringUtils.isEmpty(imageProviderRequest.getImgHref())) {
+//            imageDTO.setImgHref(imageProviderRequest.getImgHref());
+//        }
 
         if (imageProviderRequest.getPublishState() != null) {
             imageDTO.setPublishState(imageProviderRequest.getPublishState());

@@ -70,4 +70,14 @@ public class TradeConfirmMarketingVO implements Serializable {
      * 加价购
      */
     private MarkupLevelVO markupLevelVO;
+
+    /**
+     * 积分换购积分
+     */
+    private Integer pointNeed;
+
+    /**
+     * 积分换购金额
+     */
+    private Double money;
 }

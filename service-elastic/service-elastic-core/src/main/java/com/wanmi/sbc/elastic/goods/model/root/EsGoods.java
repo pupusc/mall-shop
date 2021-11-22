@@ -73,10 +73,18 @@ public class EsGoods implements Serializable {
     /**
      * 上下架时间
      */
-    @Field(index = false, type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime addedTime;
+
+    /**
+     * 上下架时间
+     */
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime addedTimeNew;
 
     /**
      * SKU相关规格
@@ -181,8 +189,13 @@ public class EsGoods implements Serializable {
     /**
      * 商品销量
      */
-    @Field(index = false, type = FieldType.Long)
+    @Field(type = FieldType.Long)
     private Long goodsSalesNum;
+    /**
+     * 商品销量
+     */
+    @Field(type = FieldType.Long)
+    private Long goodsSalesNumNew;
 
     /**
      * 真实的商品销量
@@ -219,8 +232,15 @@ public class EsGoods implements Serializable {
      * 排序的价格
      */
     @ApiModelProperty(value = "排序的价格")
-    @Field(index = false, type = FieldType.Double)
+    @Field(type = FieldType.Double)
     private BigDecimal esSortPrice;
+
+    /**
+     * 排序的价格
+     */
+    @ApiModelProperty(value = "排序的价格")
+    @Field(type = FieldType.Double)
+    private BigDecimal sortPrice;
 
     @Field(index = false, type = FieldType.Text)
     @ApiModelProperty(value = "计算单位")
@@ -307,6 +327,19 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Integer)
     private Integer cpsSpecial;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
+    @Field(searchAnalyzer = EsConstants.PINYIN_ANALYZER, analyzer = EsConstants.PINYIN_ANALYZER, type = FieldType.Text)
+    private String anchorPushs;
+
+    /**
+     * 主播推荐 1樊登解读
+     */
+    @Field(type = FieldType.Integer)
+    private Integer fdjd = 0;
     /**
      * 商品库存
      */

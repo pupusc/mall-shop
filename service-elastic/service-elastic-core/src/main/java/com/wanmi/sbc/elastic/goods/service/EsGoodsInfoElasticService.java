@@ -50,9 +50,12 @@ import com.wanmi.sbc.goods.bean.dto.BatchEnterPrisePriceDTO;
 import com.wanmi.sbc.goods.bean.dto.DistributionGoodsInfoModifyDTO;
 import com.wanmi.sbc.goods.bean.enums.*;
 import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.provider.thirdplatformconfig.ThirdPlatformConfigQueryProvider;
+import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.api.request.thirdplatformconfig.ThirdPlatformConfigByTypeRequest;
 import com.wanmi.sbc.setting.api.response.thirdplatformconfig.ThirdPlatformConfigResponse;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -139,6 +142,9 @@ public class EsGoodsInfoElasticService {
 
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+
+    @Autowired
+    private AtmosphereProvider atmosphereProvider;
 
     /**
      * ES价格排序脚本
@@ -970,8 +976,10 @@ public class EsGoodsInfoElasticService {
                         GoodsInfoVO info = goodsInfoMap.get(esGoodsInfo.getGoodsInfoId());
                         esGoodsInfo.setAddedTime(info.getAddedTime());
                         esGoods.setAddedTime(info.getAddedTime());
+                        esGoods.setAddedTimeNew(info.getAddedTime());
                     } else {
                         esGoods.setAddedTime(now);
+                        esGoods.setAddedTimeNew(now);
                         esGoodsInfo.setAddedTime(now);
                     }
                     esGoodsInfo.setEsSortPrice();
@@ -1948,4 +1956,160 @@ public class EsGoodsInfoElasticService {
         response.setGoodsInfos(KsBeanUtil.convert(esGoodsInfoVOS, EsGoodsInfoVO.class));
         return response;
     }
+
+
+    public void adjustAtmosphere(EsGoodsAtmosphereRequest request) {
+
+        //根据goodsInfoIds获取goodsIds
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder()
+                .goodsInfoIds(request.getGoodsInfoIds()).build()).getContext().getGoodsInfos();
+        List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+        AtmosphereQueryRequest atmosphereQueryRequest = new AtmosphereQueryRequest();
+        atmosphereQueryRequest.setSkuId(request.getGoodsInfoIds());
+        atmosphereQueryRequest.setStartTime(LocalDateTime.now());
+        atmosphereQueryRequest.setEndTime(LocalDateTime.now());
+        atmosphereQueryRequest.setPageNum(0);
+        atmosphereQueryRequest.setPageSize(1000);
+        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosphereList =atmosphereProvider.page(atmosphereQueryRequest);
+        if(atmosphereList == null || atmosphereList.getContext() ==null || CollectionUtils.isEmpty(atmosphereList.getContext().getContent())){
+            log.info("没有氛围信息，request:{}",request);
+            return;
+        }
+        List<AtmosphereDTO> atmos = atmosphereList.getContext().getContent();
+        EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+        //sku
+        queryRequest.setGoodsIds(goodsIds);
+        queryRequest.setPageSize(request.getGoodsInfoIds().size());
+        SearchQuery searchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoodsInfo> esGoodsInfoList = elasticsearchTemplate.queryForList(searchQuery, EsGoodsInfo.class);
+        List<IndexQuery> esGoodsInfoQuery = new ArrayList<>();
+        if (esGoodsInfoList != null) {
+            esGoodsInfoList.forEach(esGoodsInfo -> {
+                //设置氛围信息
+                Optional<AtmosphereDTO> atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(esGoodsInfo.getId())).sorted(Comparator.comparing(AtmosphereDTO::getId).reversed()).findFirst();
+                if(atmosphereDTO.isPresent()){
+                    esGoodsInfo.getGoodsInfo().setStartTime(atmosphereDTO.get().getStartTime());
+                    esGoodsInfo.getGoodsInfo().setEndTime(atmosphereDTO.get().getEndTime());
+                    esGoodsInfo.getGoodsInfo().setImageUrl(atmosphereDTO.get().getImageUrl());
+                    esGoodsInfo.getGoodsInfo().setAtmosType(atmosphereDTO.get().getAtmosType());
+                    esGoodsInfo.getGoodsInfo().setElementOne(atmosphereDTO.get().getElementOne());
+                    esGoodsInfo.getGoodsInfo().setElementTwo(atmosphereDTO.get().getElementTwo());
+                    esGoodsInfo.getGoodsInfo().setElementThree(atmosphereDTO.get().getElementThree());
+                    esGoodsInfo.getGoodsInfo().setElementFour(atmosphereDTO.get().getElementFour());
+                }
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoodsInfo.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setObject(esGoodsInfo);
+                esGoodsInfoQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsInfoQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsInfoQuery);
+            }
+        }
+
+        //spu
+        queryRequest.setQueryGoods(true);
+        SearchQuery infoSearchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(infoSearchQuery, EsGoods.class);
+        //spu
+        List<IndexQuery> esGoodsQuery = new ArrayList<>();
+        if (esGoodsList != null) {
+            esGoodsList.forEach(esGoods -> {
+                esGoods.getGoodsInfos().forEach(esGoodsInfo -> {
+                    Optional<AtmosphereDTO> atmosphereDTO = atmos.stream().filter(p->p.getSkuId().equals(esGoodsInfo.getGoodsInfoId())).sorted(Comparator.comparing(AtmosphereDTO::getId).reversed()).findFirst();
+                   if(request.getGoodsInfoIds().contains(esGoodsInfo.getGoodsInfoId()) && atmosphereDTO.isPresent()){
+                       esGoodsInfo.setStartTime(atmosphereDTO.get().getStartTime());
+                       esGoodsInfo.setEndTime(atmosphereDTO.get().getEndTime());
+                       esGoodsInfo.setImageUrl(atmosphereDTO.get().getImageUrl());
+                       esGoodsInfo.setAtmosType(atmosphereDTO.get().getAtmosType());
+                       esGoodsInfo.setElementOne(atmosphereDTO.get().getElementOne());
+                       esGoodsInfo.setElementTwo(atmosphereDTO.get().getElementTwo());
+                       esGoodsInfo.setElementThree(atmosphereDTO.get().getElementThree());
+                       esGoodsInfo.setElementFour(atmosphereDTO.get().getElementFour());
+                   }
+                });
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoods.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_TYPE);
+                iq.setObject(esGoods);
+                esGoodsQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsQuery);
+            }
+        }
+
+    }
+
+    public  void disableAtmosphere(EsGoodsAtmosphereRequest request){
+        //根据goodsInfoIds获取goodsIds
+        List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder()
+                .goodsInfoIds(request.getGoodsInfoIds()).build()).getContext().getGoodsInfos();
+        List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+        EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+        //sku
+        queryRequest.setGoodsIds(goodsIds);
+        queryRequest.setPageSize(request.getGoodsInfoIds().size());
+        SearchQuery searchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoodsInfo> esGoodsInfoList = elasticsearchTemplate.queryForList(searchQuery, EsGoodsInfo.class);
+        List<IndexQuery> esGoodsInfoQuery = new ArrayList<>();
+        if (esGoodsInfoList != null) {
+            esGoodsInfoList.forEach(esGoodsInfo -> {
+                    esGoodsInfo.getGoodsInfo().setStartTime(null);
+                    esGoodsInfo.getGoodsInfo().setEndTime(null);
+                    esGoodsInfo.getGoodsInfo().setImageUrl(null);
+                    esGoodsInfo.getGoodsInfo().setAtmosType(null);
+                    esGoodsInfo.getGoodsInfo().setElementOne(null);
+                    esGoodsInfo.getGoodsInfo().setElementTwo(null);
+                    esGoodsInfo.getGoodsInfo().setElementThree(null);
+                    esGoodsInfo.getGoodsInfo().setElementFour(null);
+
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoodsInfo.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_INFO_TYPE);
+                iq.setObject(esGoodsInfo);
+                esGoodsInfoQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsInfoQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsInfoQuery);
+            }
+        }
+
+        //spu
+        queryRequest.setQueryGoods(true);
+        SearchQuery infoSearchQuery = (new NativeSearchQueryBuilder()).withQuery(queryRequest.getWhereCriteria()).withPageable(queryRequest.getPageable()).build();
+        Iterable<EsGoods> esGoodsList = elasticsearchTemplate.queryForList(infoSearchQuery, EsGoods.class);
+        //spu
+        List<IndexQuery> esGoodsQuery = new ArrayList<>();
+        if (esGoodsList != null) {
+            esGoodsList.forEach(esGoods -> {
+                esGoods.getGoodsInfos().forEach(esGoodsInfo -> {
+
+                        esGoodsInfo.setStartTime(null);
+                        esGoodsInfo.setEndTime(null);
+                        esGoodsInfo.setImageUrl(null);
+                        esGoodsInfo.setAtmosType(null);
+                        esGoodsInfo.setElementOne(null);
+                        esGoodsInfo.setElementTwo(null);
+                        esGoodsInfo.setElementThree(null);
+                        esGoodsInfo.setElementFour(null);
+
+                IndexQuery iq = new IndexQuery();
+                iq.setId(esGoods.getId());
+                iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
+                iq.setType(EsConstants.DOC_GOODS_TYPE);
+                iq.setObject(esGoods);
+                esGoodsQuery.add(iq);
+            });
+            if (CollectionUtils.isNotEmpty(esGoodsQuery)) {
+                elasticsearchTemplate.bulkIndex(esGoodsQuery);
+            }
+        });
+      }
+    }
+
 }

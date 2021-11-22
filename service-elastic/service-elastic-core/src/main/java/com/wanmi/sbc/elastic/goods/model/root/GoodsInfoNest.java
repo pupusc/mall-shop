@@ -18,6 +18,7 @@ import com.wanmi.sbc.goods.bean.vo.MarketingLabelVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -607,10 +608,51 @@ public class GoodsInfoNest implements Serializable {
     private Integer cpsSpecial;
 
     /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
+    @Field(type = FieldType.Keyword)
+    private String anchorPushs;
+    /**
      * ERP的SPU编码
      */
     @Field(index = false,type = FieldType.Text)
     private String erpGoodsNo;
 
+    @ApiModelProperty(value = "氛围开始时间")
+    @Field( type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime startTime;
+
+    @ApiModelProperty(value = "氛围结束时间")
+    @Field( type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime endTime;
+
+    @ApiModelProperty("氛围类型1通用类型2积分类型")
+    @Field(type = FieldType.Integer)
+    private Integer atmosType;
+
+    @ApiModelProperty("图片地址")
+    @Field(type = FieldType.Text)
+    private String imageUrl;
+
+    @ApiModelProperty("元素1,左侧第一行文字")
+    @Field(type = FieldType.Text)
+    private String elementOne;
+
+    @ApiModelProperty("元素2：左侧第二行文字")
+    @Field(type = FieldType.Text)
+    private String elementTwo;
+
+    @ApiModelProperty("元素3：右侧第一行文字")
+    @Field(type = FieldType.Text)
+    private String elementThree;
+
+    @ApiModelProperty("元素4：右侧第二行文字")
+    @Field(type = FieldType.Text)
+    private String elementFour;
 
 }

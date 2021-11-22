@@ -79,6 +79,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     @ApiModelProperty(value = "模糊条件-商品名称")
     private String likeGoodsName;
 
+
     /**
      * 上下架状态
      */
@@ -253,7 +254,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     /**
      * 是否需要反查分类
      */
-    @ApiModelProperty(value = "是否需要反查分类",dataType = "com.wanmi.sbc.common.enums.BoolFlag")
+    @ApiModelProperty(value = "是否需要反查分类", dataType = "com.wanmi.sbc.common.enums.BoolFlag")
     private boolean cateAggFlag;
 
     /**
@@ -327,6 +328,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "知识顾问专享 0:不是 ，1：是")
     private Integer cpsSpecial;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
+    private String anchorPushs;
     /**
      * 封装公共条件
      * @return

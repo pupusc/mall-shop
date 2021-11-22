@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.classify.service;
 
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.request.BaseSortProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyProviderRequest;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
@@ -27,6 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -43,14 +47,27 @@ public class ClassifyService {
 
     @Resource
     private ClassifyGoodsRelService classifyGoodsRelService;
+
+    private ClassifyProviderResponse  classifyDTO2ClassifyProviderResponse (ClassifyDTO classifyParam) {
+        ClassifyProviderResponse parent = new ClassifyProviderResponse();
+        parent.setId(classifyParam.getId());
+        parent.setClassifyName(classifyParam.getClassifyName());
+        parent.setChildrenList(new ArrayList<>());
+        parent.setOrderNum(classifyParam.getOrderNum());
+        parent.setHasShowIndex(classifyParam.getHasShowIndex());
+        parent.setIndexOrderNum(classifyParam.getIndexOrderNum());
+        return parent;
+    }
+
     /**
      * 获取类目列表
      * @param classifyIdList
      * @return
      */
-    public List<ClassifyDTO> listNoPage(List<Integer> classifyIdList) {
-        return classifyRepository.findAll(this.packageWhere(classifyIdList, null));
+    public List<ClassifyDTO> listNoPage(Collection<Integer> classifyIdList) {
+        return classifyRepository.findAll(this.packageWhere(classifyIdList, null, null));
     }
+
 
     /**
      * 获取所有的类目列表
@@ -58,15 +75,12 @@ public class ClassifyService {
      */
     public List<ClassifyProviderResponse> listClassify(){
         Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
-        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null, null), sort);
+        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(null, null, null), sort);
         List<ClassifyProviderResponse>  result = new ArrayList<>();
         Map<Integer, ClassifyProviderResponse> resultMap = new HashMap<>();
         for (ClassifyDTO classifyParam : classifyDTOList) {
             if (classifyParam.getParentId() == null || classifyParam.getParentId() == 0) {
-                ClassifyProviderResponse parent = new ClassifyProviderResponse();
-                parent.setId(classifyParam.getId());
-                parent.setClassifyName(classifyParam.getClassifyName());
-                parent.setChildrenList(new ArrayList<>());
+                ClassifyProviderResponse parent = this.classifyDTO2ClassifyProviderResponse(classifyParam);
                 resultMap.put(classifyParam.getId(), parent);
                 result.add(parent);
             }
@@ -77,9 +91,12 @@ public class ClassifyService {
                 continue;
             }
             ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
-            ClassifyProviderResponse children = new ClassifyProviderResponse();
+            ClassifyProviderResponse children = this.classifyDTO2ClassifyProviderResponse(classifyParam);
             children.setId(classifyParam.getId());
             children.setClassifyName(classifyParam.getClassifyName());
+//            children.setOrderNum(classifyParam.getOrderNum());
+//            children.setHasShowIndex(classifyParam.getHasShowIndex());
+//            children.setIndexOrderNum(classifyParam.getIndexOrderNum());
             parent.getChildrenList().add(children);
         }
 
@@ -93,11 +110,25 @@ public class ClassifyService {
      */
     public List<ClassifyDTO> listChildClassifyNoPageByParentId(Collection<Integer> parentClassifyIdList) {
         Sort sort = Sort.by(Sort.Direction.ASC, "orderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
-        return classifyRepository.findAll(this.packageWhere(null, parentClassifyIdList), sort);
+        return classifyRepository.findAll(this.packageWhere(null, parentClassifyIdList, null), sort);
+    }
+
+    /**
+     * 首页展示的分类列表
+     * @return
+     */
+    public List<ClassifyProviderResponse> listIndexClassify() {
+        List<ClassifyProviderResponse> result = new ArrayList<>();
+        Sort sort = Sort.by(Sort.Direction.ASC, "indexOrderNum").and(Sort.by(Sort.Direction.ASC, "updateTime"));
+        List<ClassifyDTO> resultList = classifyRepository.findAll(this.packageWhere(null, null, 1), sort);
+        for (ClassifyDTO classifyParam : resultList) {
+            result.add(this.classifyDTO2ClassifyProviderResponse(classifyParam));
+        }
+        return result;
     }
 
 
-    private Specification<ClassifyDTO> packageWhere(List<Integer> classifyIdList, Collection<Integer> parentClassifyIdList) {
+    private Specification<ClassifyDTO> packageWhere(Collection<Integer> classifyIdList, Collection<Integer> parentClassifyIdList, Integer hasShowIndex) {
         return new Specification<ClassifyDTO>() {
             @Override
             public Predicate toPredicate(Root<ClassifyDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -111,10 +142,15 @@ public class ClassifyService {
                 if (!CollectionUtils.isEmpty(parentClassifyIdList)) {
                     conditionList.add(root.get("parentId").in(parentClassifyIdList));
                 }
+                if (hasShowIndex != null) {
+                    conditionList.add(criteriaBuilder.equal(root.get("hasShowIndex"), hasShowIndex));
+                }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }
         };
     }
+
+
 
     /**
      * 新增店铺分类
@@ -129,8 +165,17 @@ public class ClassifyService {
             classifyDTO.setParentId(classifyProviderRequest.getParentId());
             classifyDTO.setLevel(2);
         }
+        //这里会有并发问题
+        List<ClassifyDTO> classifyDTOList = this.listChildClassifyNoPageByParentId(Collections.singletonList(0));
+        int orderNum = 0;
+        if (!CollectionUtils.isEmpty(classifyDTOList)) {
+            ClassifyDTO classifyDTOParam = classifyDTOList.get(classifyDTOList.size() - 1);
+            orderNum = classifyDTOParam.getOrderNum() + 1;
+        }
         classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
-        classifyDTO.setOrderNum(9999); //后续更改
+        classifyDTO.setOrderNum(orderNum); //后续更改
+        classifyDTO.setHasShowIndex(0);
+        classifyDTO.setIndexOrderNum(0);
         classifyDTO.setCreateTime(new Date());
         classifyDTO.setUpdateTime(new Date());
         classifyDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
@@ -142,13 +187,20 @@ public class ClassifyService {
      * @param classifyProviderRequest
      */
     public void update(ClassifyProviderRequest classifyProviderRequest) {
-        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Arrays.asList(classifyProviderRequest.getId()), null));
+        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Arrays.asList(classifyProviderRequest.getId()), null, null));
         if (CollectionUtils.isEmpty(classifyDTOList)) {
             throw new SbcRuntimeException("K-000009");
         }
         ClassifyDTO classifyDTO = classifyDTOList.get(0);
         if (!StringUtils.isEmpty(classifyProviderRequest.getClassifyName())) {
             classifyDTO.setClassifyName(classifyProviderRequest.getClassifyName());
+        }
+        if (classifyProviderRequest.getHasShowIndex() != null) {
+            classifyDTO.setHasShowIndex(classifyProviderRequest.getHasShowIndex());
+        }
+
+        if (classifyProviderRequest.getIndexOrderNum() != null) {
+            classifyDTO.setIndexOrderNum(classifyProviderRequest.getIndexOrderNum());
         }
 //        if (classifyProviderRequest.getOrderNum() != null) {
 //            classifyDTO.setOrderNum(classifyProviderRequest.getOrderNum());
@@ -164,14 +216,14 @@ public class ClassifyService {
      * @param classifyProviderRequest
      */
     public void delete(ClassifyProviderRequest classifyProviderRequest) {
-        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Collections.singletonList(classifyProviderRequest.getId()), null));
+        List<ClassifyDTO> classifyDTOList = classifyRepository.findAll(this.packageWhere(Collections.singletonList(classifyProviderRequest.getId()), null, null));
         if (CollectionUtils.isEmpty(classifyDTOList)) {
             throw new SbcRuntimeException("K-000009");
         }
         ClassifyDTO classifyDTO = classifyDTOList.get(0);
         if (Objects.equals(classifyDTO.getParentId(), 0)) {
             //查看店铺分类下是否存在子分类
-            List<ClassifyDTO> classifyDTOChildList = classifyRepository.findAll(this.packageWhere(null, Collections.singletonList(classifyDTO.getId())));
+            List<ClassifyDTO> classifyDTOChildList = classifyRepository.findAll(this.packageWhere(null, Collections.singletonList(classifyDTO.getId()), null));
             if (!CollectionUtils.isEmpty(classifyDTOChildList)) {
                 throw new SbcRuntimeException("K-000009");
             }
@@ -190,6 +242,28 @@ public class ClassifyService {
     }
 
 
+    /**
+     * 排序
+     * @param sortProviderRequestList
+     */
+    public void sort(List<BaseSortProviderRequest> sortProviderRequestList) {
+        //获取商品
+        Set<Integer> imageIdSet = sortProviderRequestList.stream().map(BaseSortProviderRequest::getId).collect(Collectors.toSet());
+        List<ClassifyDTO> classifyDTOList = this.listNoPage(imageIdSet);
+        if (classifyDTOList.size() != imageIdSet.size()) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        Map<Integer, ClassifyDTO> collect = classifyDTOList.stream().collect(Collectors.toMap(ClassifyDTO::getId, Function.identity(), (k1, k2) -> k1));
+        for (BaseSortProviderRequest sortProviderParam : sortProviderRequestList) {
+            ClassifyDTO classifyDTO = collect.get(sortProviderParam.getId());
+            if (classifyDTO == null) {
+                throw new SbcRuntimeException("K-000009");
+            }
+            classifyDTO.setOrderNum(sortProviderParam.getOrderNum());
+            classifyRepository.save(classifyDTO);
+        }
+
+    }
 
 
 

@@ -84,6 +84,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -113,6 +114,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/site")
 @Validated
+@Slf4j
 public class PurchaseBaseController {
 
     @Autowired
@@ -941,7 +943,6 @@ public class PurchaseBaseController {
     @ApiOperation(value = "获取购物车信息")
     @RequestMapping(value = "/purchaseInfo", method = RequestMethod.POST)
     public BaseResponse<PurchaseListResponse> purchaseInfo(@RequestBody PurchaseListRequest request) {
-        System.out.println("purchaseQueryProvider" + purchaseQueryProvider);
         return purchaseQueryProvider.purchaseInfo(PurchaseInfoRequest.builder()
                 .customer(commonUtil.getCustomer())
                 .areaId(request.getAreaId())

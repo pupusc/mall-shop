@@ -25,5 +25,20 @@ public class ClassifyResponse {
     private String classifyName;
 
 
+    /**
+     * 列表排序
+     */
+    private Integer orderNum;
+
+    /**
+     * 是否在首页显示 0 不显示 1显示
+     */
+    private Integer hasShowIndex;
+
+    /**
+     * 首页展示顺序
+     */
+    private Integer indexOrderNum;
+
     private List<ClassifyResponse> childrenList;
 }

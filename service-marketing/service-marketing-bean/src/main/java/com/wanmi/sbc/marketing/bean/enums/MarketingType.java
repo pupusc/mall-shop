@@ -46,7 +46,10 @@ public enum MarketingType {
     @ApiEnumProperty("6：组合套餐")
     SUITS("组合套餐"),
     @ApiEnumProperty("7：加价购")
-    MARKUP("加价购"),;
+    MARKUP("加价购"),
+
+    @ApiEnumProperty("8：积分换购")
+    POINT_BUY("积分换购");
 
     MarketingType(String desc) {
         this.desc = desc;

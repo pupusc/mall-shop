@@ -69,4 +69,14 @@ public class MarketingLabelVO  implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    /**
+     * 积分活动定价
+     */
+    private Double price;
+
+    /**
+     * 积分活动所需积分
+     */
+    private Integer pointNeed;
+
 }

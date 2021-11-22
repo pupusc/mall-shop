@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.api.response.goods;
 
 import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.setting.bean.vo.OperateDataLogVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -132,5 +133,7 @@ public class GoodsViewByIdResponse implements Serializable {
      */
     @ApiModelProperty(value = "商品额外属性")
     private Map<String, String> extProps;
+
+
 
 }

@@ -79,7 +79,6 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         dealCustomerType(goodsInfos, paidCardVO, isIndependent, excludeIds);
         //按订货量设价
         //  dealBuyNumType(goodsInfos, request, paidCardDiscount,storeId);
-        System.out.println("end");
     }
 
     private void dealBuyNumType(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request, BigDecimal paidCardDiscount, Long storeId) {

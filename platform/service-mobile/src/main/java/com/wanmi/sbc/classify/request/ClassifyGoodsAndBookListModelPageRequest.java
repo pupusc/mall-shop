@@ -2,7 +2,7 @@ package com.wanmi.sbc.classify.request;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
  * Description: 获取店铺分类列表中的商品信息
@@ -18,11 +18,21 @@ public class ClassifyGoodsAndBookListModelPageRequest {
 
     private int pageSize = 10;
 
-    @NotNull
+    //@NotNull
     private Integer classifyId;
 
     /**
      * 店铺类型 0 推荐 1评分 2 上新 3 销售额
      */
     private Integer classifySelectType = 0;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播,4热销，5上新
+     */
+    private String anchorPushs;
+
+    /**
+     * 上架时间之后
+     */
+    private Date afterAddedTime;
 }

@@ -17,6 +17,9 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.ScriptSortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -28,9 +31,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:
@@ -55,8 +61,8 @@ public class EsGoodsCustomService {
      * @param request
      * @return
      */
-    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request){
-
+    @SuppressWarnings("checkstyle:NoWhitespaceBefore")
+    public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
         int pageNum = request.getPageNum();
@@ -68,6 +74,13 @@ public class EsGoodsCustomService {
                 builder.withSort(new FieldSortBuilder(sortBuilder.getFieldName()).order(sortBuilder.getSortOrder()));
             }
         }
+        //脚本排序
+        if (request.getScriptSort() != null) {
+            Script script = new Script(request.getScriptSort());
+            ScriptSortBuilder sortBuilder = SortBuilders.scriptSort(script, ScriptSortBuilder.ScriptSortType.NUMBER).order(SortOrder.DESC);
+            builder.withSort(sortBuilder);
+        }
+
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsGoodsCustomService.listEsGoodsNormal DSL: {}", build.getQuery().toString());
         MicroServicePage<EsGoodsVO> query = elasticsearchTemplate.query(build, new ResultsExtractor<MicroServicePage<EsGoodsVO>>() {
@@ -144,13 +157,36 @@ public class EsGoodsCustomService {
         }
 
         /**
+         * 评分大于Score
+         */
+        if (request.getScore() != null) {
+            boolQueryBuilder.must(rangeQuery("goodsExtProps.score").gte(request.getScore()));
+        }
+        /**
+         * 价格大于EsSortPrice
+         */
+        if (request.getEsSortPrice() != null) {
+            boolQueryBuilder.must(rangeQuery("sortPrice").gte(request.getEsSortPrice()));
+        }
+        /**
+         * 主播推荐
+         */
+        if (!StringUtils.isEmpty(request.getAnchorPushs())) {
+            boolQueryBuilder.must(termQuery("anchorPushs", request.getAnchorPushs()));
+        }
+        /**
          * 不展示无库存 库存大于0
          */
         if (request.getHasShowUnStock() != null && !request.getHasShowUnStock()) {
             boolQueryBuilder.must(rangeQuery("stock").gt(0));
             boolQueryBuilder.must(rangeQuery("goodsInfos.stock").gt(0));
         }
-
+        // 大于或等于 上架时间
+        if (request.getAfterAddedTime() != null) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("addedTimeNew")
+                    .gte(DateUtil.format(request.getAfterAddedTime(), DateUtil.FMT_TIME_4))
+                    .lte(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_4)));
+        }
         // 大于或等于 搜索条件:创建时间开始
         if (request.getCreateTimeBegin() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("createTime").gte(DateUtil.format(request.getCreateTimeBegin(), DateUtil.FMT_TIME_4)));

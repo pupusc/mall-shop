@@ -30,6 +30,8 @@ import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderRespo
 import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import com.wanmi.sbc.topic.service.AtmosphereService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
@@ -79,6 +81,9 @@ public class BookListModelController {
 
     @Autowired
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
+
+    @Autowired
+    private AtmosphereService atmosphereService;
 
 
 

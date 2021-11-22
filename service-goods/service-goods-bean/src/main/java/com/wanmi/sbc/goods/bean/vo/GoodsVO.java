@@ -124,6 +124,13 @@ public class GoodsVO  implements Serializable {
      */
     @Column(name = "cps_special")
     private Integer cpsSpecial = 0;
+
+    /**
+     * 主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔
+     */
+    @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
+    private String anchorPushs;
+
     /**
      * 成本价
      */

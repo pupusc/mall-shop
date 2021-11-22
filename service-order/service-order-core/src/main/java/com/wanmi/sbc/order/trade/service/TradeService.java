@@ -183,6 +183,7 @@ import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingWrapperDTO;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
+import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.vo.GrouponActivityVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingFullGiftDetailVO;
@@ -621,7 +622,7 @@ public class TradeService {
     @Autowired
     private SensorsDataService sensorsDataService;
 
-    @Value("${whiteOrder}")
+    @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
 
@@ -5440,16 +5441,14 @@ public class TradeService {
         //计算商品总价
         handlePrice(g.getTradeItems(), price);
         //验证并计算各营销活动的优惠金额,实付金额,赠品List
-        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(),
-                g.getTradeMarketingList());
+        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(), g.getTradeMarketingList());
         List<Discounts> discountsList = new ArrayList<>();
         //每个订单的多个优惠信息(满折优惠了xx,满减优惠了yy)
         item.setDiscountsPrice(discountsList);
-        List<TradeMarketingVO> tempList =
-                tradeMarketings.stream()
-                        .filter(i -> i.getMarketingType() != MarketingType.GIFT
-                                && i.getMarketingType() != MarketingType.MARKUP)
-                        .collect(Collectors.toList());
+
+
+        List<TradeMarketingVO> tempList = tradeMarketings.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT
+                && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
         tempList.forEach(i -> {
             Discounts discounts = Discounts.builder()
                     .amount(i.getDiscountsAmount())
@@ -5490,6 +5489,20 @@ public class TradeService {
     public List<TradeMarketingVO> wrapperMarketingForConfirm(List<TradeItem> skus, List<TradeMarketingDTO>
             tradeMarketingRequests) {
 
+        //积分换购活动只允许购物车存在一件商品
+        for (TradeMarketingDTO tradeMarketingRequest : tradeMarketingRequests) {
+            Integer marketingSubType = tradeMarketingRequest.getMarketingSubType();
+            if(marketingSubType != null && MarketingSubType.POINT_BUY.toValue() == marketingSubType){
+                if(skus.size() > 1){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "不满足积分换购活动条件");
+                }
+                for (TradeItem tradeItem : skus) {
+                    if(tradeItem.getNum() > 1){
+                        throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "不满足积分换购活动条件");
+                    }
+                }
+            }
+        }
         // 1.构建营销插件请求对象
         List<TradeMarketingWrapperDTO> requests = new ArrayList<>();
         List<TradeMarketingVO> tradeMarketings = new ArrayList<>();
@@ -5506,8 +5519,7 @@ public class TradeService {
                                 .distributionGoodsAudit(t.getDistributionGoodsAudit())
                                 .build())
                         .collect(Collectors.toList());
-                requests.add(TradeMarketingWrapperDTO.builder()
-                        .tradeMarketingDTO(tradeMarketing)
+                requests.add(TradeMarketingWrapperDTO.builder().tradeMarketingDTO(tradeMarketing)
                         .tradeItems(tradeItems).build());
             });
 
@@ -5516,8 +5528,7 @@ public class TradeService {
         // requests.stream().filter(r->CollectionUtils.isNotEmpty(r.getTradeItems())).collect(Collectors.toList());
         // 2.调用营销插件，并设置满系营销信息
         if (CollectionUtils.isNotEmpty(requests)) {
-            List<TradeMarketingWrapperVO> voList =
-                    marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
+            List<TradeMarketingWrapperVO> voList = marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
                             .wraperDTOList(requests).build()).getContext().getWraperVOList();
             if (CollectionUtils.isNotEmpty(voList)) {
                 voList.forEach(tradeMarketingWrapperVO -> {
