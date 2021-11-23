@@ -13,7 +13,7 @@ import java.util.Collection;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class GoodsBlackListCacheProviderRequest implements Serializable {
+public class GoodsBlackListPageProviderRequest implements Serializable {
 
     private Integer id;
 
