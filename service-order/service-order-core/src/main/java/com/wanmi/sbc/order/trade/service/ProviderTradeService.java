@@ -1347,7 +1347,7 @@ public class ProviderTradeService {
     }
 
 
-    @Transactional
+
     public String changeTradeProvider(ChangeTradeProviderRequest request) {
         ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
         if (providerTrade == null) {
@@ -1394,11 +1394,13 @@ public class ProviderTradeService {
                 item.setProviderId(defaultProviderId);
             }
         });
+
         newProviderTrade.getSupplier().setStoreId(defaultProviderId);
+        newProviderTrade.getSupplier().setStoreName("");
         //作废原订单
         providerTrade.getTradeState().setFlowState(FlowState.VOID);
         providerTradeRepository.save(providerTrade);
-        newProviderTrade.setId(generatorService.generateStoreTid());
+        newProviderTrade.setId(generatorService.generateProviderTid());
         newProviderTrade.getTradeState().setPushCount(0);
         providerTradeRepository.save(newProviderTrade);
         //更新trade的item信息
