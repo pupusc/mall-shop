@@ -151,7 +151,7 @@ public class ProviderTradeController implements ProviderTradeProvider {
 
     @Override
     public BaseResponse<String> changeTradeProvider(ChangeTradeProviderRequest request) {
-        if(request == null || StringUtils.isEmpty(request.getPid()) || CollectionUtils.isEmpty(request.getSkuNos())){
+        if(request == null || StringUtils.isEmpty(request.getPid()) || request.getSkuNos().isEmpty()){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
         }
         return BaseResponse.success(providerTradeService.changeTradeProvider(request));

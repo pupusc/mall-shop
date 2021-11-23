@@ -1348,38 +1348,44 @@ public class ProviderTradeService {
 
 
     @Transactional
-    public String changeTradeProvider(ChangeTradeProviderRequest request){
-         ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
-         if(providerTrade == null){
-             log.warn("changeTradeProvider发货单不存在，request:{}",request);
-             throw new SbcRuntimeException("");
-         }
-         ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade,ProviderTrade.class);
-         if(request.getSkuNos().size() != newProviderTrade.getTradeItems().size()){
-             log.warn("changeTradeProvider商品信息个数不匹配，request:{}",request);
-             throw new SbcRuntimeException("");
-         }
-         List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());;
-         List<String> oldSku = new ArrayList<>(request.getSkuNos().keySet());
-         if(!oldSkuIds.containsAll(oldSku) || !oldSku.containsAll(oldSkuIds)){
-             log.warn("changeTradeProvider商品信息不匹配，request:{}",request);
-             throw new SbcRuntimeException("");
-         }
-         List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
-         //查询sku信息
+    public String changeTradeProvider(ChangeTradeProviderRequest request) {
+        ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
+        if (providerTrade == null) {
+            log.warn("changeTradeProvider发货单不存在，request:{}", request);
+            throw new SbcRuntimeException("");
+        }
+
+        if (request.getSkuNos().size() != providerTrade.getTradeItems().size()) {
+            log.warn("changeTradeProvider商品信息个数不匹配，request:{}", request);
+            throw new SbcRuntimeException("");
+        }
+        List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());
+        List<String> oldSku = new ArrayList<>(request.getSkuNos().keySet());
+        if (!oldSkuIds.containsAll(oldSku) || !oldSku.containsAll(oldSkuIds)) {
+            log.warn("changeTradeProvider商品信息不匹配，request:{}", request);
+            throw new SbcRuntimeException("");
+        }
+        Optional<Trade> trade = tradeRepository.findById(providerTrade.getParentId());
+        if (!trade.isPresent()) {
+            log.warn("changeTradeProvider主单信息不存在，request:{}", request);
+            throw new SbcRuntimeException("");
+        }
+        ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade, ProviderTrade.class);
+        List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
+        //查询sku信息
         GoodsInfoListByConditionRequest goodsInfoRequest = GoodsInfoListByConditionRequest.builder()
                 .goodsInfoNos(newSkuNos)
                 .build();
         BaseResponse<GoodsInfoListByConditionResponse> goodsInfoResponse = goodsInfoQueryProvider.listByCondition(goodsInfoRequest);
         if (goodsInfoResponse == null || goodsInfoResponse.getContext() == null || CollectionUtils.isEmpty(goodsInfoResponse.getContext().getGoodsInfos())) {
-            log.warn("changeTradeProvider替换的商品信息为空，request:{}",request);
+            log.warn("changeTradeProvider替换的商品信息为空，request:{}", request);
             throw new SbcRuntimeException("");
         }
-        List<GoodsInfoVO> goodsInfos  = goodsInfoResponse.getContext().getGoodsInfos();
-         //更新商品信息和供应商信息
-        newProviderTrade.getTradeItems().forEach(item->{
-            Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p->p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
-            if(goodsInfoVO.isPresent()){
+        List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getContext().getGoodsInfos();
+        //更新商品信息和供应商信息
+        newProviderTrade.getTradeItems().forEach(item -> {
+            Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
+            if (goodsInfoVO.isPresent()) {
                 item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
                 item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
                 item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
@@ -1390,7 +1396,17 @@ public class ProviderTradeService {
         });
         newProviderTrade.getSupplier().setStoreId(defaultProviderId);
         //作废原订单
-
-         return null;
+        providerTrade.getTradeState().setFlowState(FlowState.VOID);
+        providerTradeRepository.save(providerTrade);
+        newProviderTrade.setId(generatorService.generateStoreTid());
+        newProviderTrade.getTradeState().setPushCount(0);
+        providerTradeRepository.save(newProviderTrade);
+        //更新trade的item信息
+        List<TradeItem> tradeItems = new ArrayList<>(trade.get().getTradeItems().size());
+        tradeItems.addAll(trade.get().getTradeItems().stream().filter(p->!oldSkuIds.contains(p.getSkuNo())).collect(Collectors.toList()));
+        tradeItems.addAll(newProviderTrade.getTradeItems());
+        trade.get().setTradeItems(tradeItems);
+        tradeRepository.save(trade.get());
+        return newProviderTrade.getId();
     }
 }
