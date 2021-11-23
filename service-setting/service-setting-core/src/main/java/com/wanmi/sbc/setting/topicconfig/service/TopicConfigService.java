@@ -175,9 +175,9 @@ public class TopicConfigService {
         if(CollectionUtils.isEmpty(contents)){
             return topicVO;
         }
-        List<TopicStoreyContentDTO>  contentDTOS = KsBeanUtil.convertList(contents, TopicStoreyContentDTO.class));
+        List<TopicStoreyContentDTO>  contentDTOS = KsBeanUtil.convertList(contents, TopicStoreyContentDTO.class);
         topicVO.getStoreyList().forEach(p->{
-            List<TopicStoreyContentDTO> items = contentDTOS.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());;
+            List<TopicStoreyContentDTO> items = contentDTOS.stream().filter(g->g.getStoreyId().equals(p.getId())).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(items)){
                 //排序
                 List<TopicStoreyContentDTO> sortContents = items.stream().sorted(Comparator.comparing(TopicStoreyContentDTO::getType).thenComparing(TopicStoreyContentDTO::getSorting)).collect(Collectors.toList());
