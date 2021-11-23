@@ -9,6 +9,8 @@ import com.wanmi.sbc.goods.api.request.image.ImageSortProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -59,5 +61,15 @@ public interface ImageProvider {
      */
     @PostMapping("/goods/${application.goods.version}/image/sort")
     BaseResponse sort(@RequestBody List<ImageSortProviderRequest> imageSortProviderRequestList);
+
+    /**
+     * 轮播图 开启关闭
+     * @menu 后台CMS2.0
+     * @param id false 关闭
+     * @param isOpen true 开启
+     * @return
+     */
+    @GetMapping("/publish/{imageId}/{isOpen}")
+    BaseResponse publish(@PathVariable("imageId") Integer id, @PathVariable("isOpen") Boolean isOpen);
 
 }
