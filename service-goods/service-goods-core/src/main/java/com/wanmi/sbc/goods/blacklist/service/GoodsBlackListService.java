@@ -115,40 +115,40 @@ public class GoodsBlackListService {
         //存入到redis中
         if (result.getNewBooksBlackListModel() != null) {
             //存入redis
-            if (CollectionUtils.isEmpty(result.getNewBooksBlackListModel().getGoodsIdList())) {
+            if (!CollectionUtils.isEmpty(result.getNewBooksBlackListModel().getGoodsIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_NEW_BOOKS_BLACK_LIST, RedisKeyConstant.KEY_SPU_ID, result.getNewBooksBlackListModel().getGoodsIdList());
             }
-            if (CollectionUtils.isEmpty(result.getNewBooksBlackListModel().getSecondClassifyIdList())) {
+            if (!CollectionUtils.isEmpty(result.getNewBooksBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_NEW_BOOKS_BLACK_LIST, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getNewBooksBlackListModel().getSecondClassifyIdList());
             }
         }
         //存入到redis中
         if (result.getSellWellBooksBlackListModel() != null) {
             //存入redis
-            if (CollectionUtils.isEmpty(result.getSellWellBooksBlackListModel().getGoodsIdList())) {
+            if (!CollectionUtils.isEmpty(result.getSellWellBooksBlackListModel().getGoodsIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_SELL_WELL_BOOKS, RedisKeyConstant.KEY_SPU_ID, result.getSellWellBooksBlackListModel().getGoodsIdList());
             }
-            if (CollectionUtils.isEmpty(result.getSellWellBooksBlackListModel().getSecondClassifyIdList())) {
+            if (!CollectionUtils.isEmpty(result.getSellWellBooksBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_SELL_WELL_BOOKS, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getSellWellBooksBlackListModel().getSecondClassifyIdList());
             }
         }
         //存入到redis中
         if (result.getSpecialOfferBooksBlackListModel() != null) {
             //存入redis
-            if (CollectionUtils.isEmpty(result.getSpecialOfferBooksBlackListModel().getGoodsIdList())) {
+            if (!CollectionUtils.isEmpty(result.getSpecialOfferBooksBlackListModel().getGoodsIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_SPECIAL_OFFER_BOOKS, RedisKeyConstant.KEY_SPU_ID, result.getSpecialOfferBooksBlackListModel().getGoodsIdList());
             }
-            if (CollectionUtils.isEmpty(result.getSpecialOfferBooksBlackListModel().getSecondClassifyIdList())) {
+            if (!CollectionUtils.isEmpty(result.getSpecialOfferBooksBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_SPECIAL_OFFER_BOOKS, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getSpecialOfferBooksBlackListModel().getSecondClassifyIdList());
             }
         }
         //存入到redis中
         if (result.getUnVipPriceBlackListModel() != null) {
             //存入redis
-            if (CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getGoodsIdList())) {
+            if (!CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getGoodsIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_SPU_ID, result.getUnVipPriceBlackListModel().getGoodsIdList());
             }
-            if (CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getSecondClassifyIdList())) {
+            if (!CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getUnVipPriceBlackListModel().getSecondClassifyIdList());
             }
         }
@@ -174,6 +174,9 @@ public class GoodsBlackListService {
                 List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_NEW_BOOKS_BLACK_LIST, RedisKeyConstant.KEY_SPU_ID);
                 List<String> classifyIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND);
                 BlackListCategoryProviderResponse newBooksBlackListModel = result.getNewBooksBlackListModel();
+                if (newBooksBlackListModel == null) {
+                    newBooksBlackListModel = new BlackListCategoryProviderResponse();
+                }
                 newBooksBlackListModel.setGoodsIdList(goodsIdList);
                 newBooksBlackListModel.setSecondClassifyIdList(classifyIdList);
                 result.setNewBooksBlackListModel(newBooksBlackListModel);
@@ -181,23 +184,32 @@ public class GoodsBlackListService {
                 List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_SELL_WELL_BOOKS, RedisKeyConstant.KEY_SPU_ID);
                 List<String> classifyIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_SELL_WELL_BOOKS, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND);
                 BlackListCategoryProviderResponse sellWellBooksBlackListModel = result.getSellWellBooksBlackListModel();
+                if (sellWellBooksBlackListModel == null) {
+                    sellWellBooksBlackListModel = new BlackListCategoryProviderResponse();
+                }
                 sellWellBooksBlackListModel.setGoodsIdList(goodsIdList);
                 sellWellBooksBlackListModel.setSecondClassifyIdList(classifyIdList);
                 result.setSellWellBooksBlackListModel(sellWellBooksBlackListModel);
             } else if (Objects.equals(businessCateGoryId, GoodsBlackListCategoryEnum.SPECIAL_OFFER_BOOKS.getCode())) {
                 List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_SPECIAL_OFFER_BOOKS, RedisKeyConstant.KEY_SPU_ID);
                 List<String> classifyIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_SPECIAL_OFFER_BOOKS, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND);
-                BlackListCategoryProviderResponse newBooksBlackListModel = result.getSpecialOfferBooksBlackListModel();
-                newBooksBlackListModel.setGoodsIdList(goodsIdList);
-                newBooksBlackListModel.setSecondClassifyIdList(classifyIdList);
-                result.setSpecialOfferBooksBlackListModel(newBooksBlackListModel);
+                BlackListCategoryProviderResponse specialOfferBooksBlackListModel = result.getSpecialOfferBooksBlackListModel();
+                if (specialOfferBooksBlackListModel == null) {
+                    specialOfferBooksBlackListModel = new BlackListCategoryProviderResponse();
+                }
+                specialOfferBooksBlackListModel.setGoodsIdList(goodsIdList);
+                specialOfferBooksBlackListModel.setSecondClassifyIdList(classifyIdList);
+                result.setSpecialOfferBooksBlackListModel(specialOfferBooksBlackListModel);
             } else if (Objects.equals(businessCateGoryId, GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode())) {
                 List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_SPU_ID);
                 List<String> classifyIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND);
-                BlackListCategoryProviderResponse newBooksBlackListModel = result.getUnVipPriceBlackListModel();
-                newBooksBlackListModel.setGoodsIdList(goodsIdList);
-                newBooksBlackListModel.setSecondClassifyIdList(classifyIdList);
-                result.setUnVipPriceBlackListModel(newBooksBlackListModel);
+                BlackListCategoryProviderResponse unVipPriceBlackListModel = result.getUnVipPriceBlackListModel();
+                if (unVipPriceBlackListModel == null) {
+                    unVipPriceBlackListModel = new BlackListCategoryProviderResponse();
+                }
+                unVipPriceBlackListModel.setGoodsIdList(goodsIdList);
+                unVipPriceBlackListModel.setSecondClassifyIdList(classifyIdList);
+                result.setUnVipPriceBlackListModel(unVipPriceBlackListModel);
             } else {
                 log.error("===>>> CommonBlackListService listNoPage 参数有误 {}", JSON.toJSONString(goodsBlackListPageProviderRequest));
             }

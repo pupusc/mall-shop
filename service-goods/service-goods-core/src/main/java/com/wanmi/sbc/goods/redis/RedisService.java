@@ -369,9 +369,9 @@ public class RedisService {
      * @param key
      */
     public void putHashStrValueList(String key,String hashKey, List<String> hashValue) {
-//        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
-//        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
-//        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
         redisTemplate.opsForHash().put(key, hashKey, hashValue);
     }
 
@@ -380,9 +380,9 @@ public class RedisService {
      * @param key
      */
     public List<String> getHashStrValueList(String key, String hashKey) {
-//        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
-//        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
-//        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
         return (List<String>) redisTemplate.opsForHash().get(key, hashKey);
     }
 }

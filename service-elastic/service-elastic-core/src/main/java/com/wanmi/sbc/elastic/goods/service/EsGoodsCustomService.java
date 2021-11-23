@@ -205,8 +205,13 @@ public class EsGoodsCustomService {
             boolQueryBuilder.must(termQuery("goodsCate.bookFlag", request.getBookFlag()));
         }
 
+        //不显示分类
+        if (!CollectionUtils.isEmpty(request.getUnClassifyIdList())) {
+            boolQueryBuilder.mustNot(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList()));
+        }
+
         //这个必须的放到最后，因为是或者操作
-        if (!StringUtils.isEmpty(request.getClassifyIdList())) {
+        if (!CollectionUtils.isEmpty(request.getClassifyIdList())) {
             BoolQueryBuilder shouldBuilder = new BoolQueryBuilder();
             shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("storeCateIds", request.getClassifyIdList())));
             shouldBuilder.should(QueryBuilders.boolQuery().filter(boolQueryBuilder).filter(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList())));

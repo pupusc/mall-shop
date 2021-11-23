@@ -16,7 +16,7 @@ import java.io.Serializable;
 @Data
 public class GoodsBlackListProviderRequest implements Serializable {
 
-//    private Integer id;
+    private Integer id;
 
     /**
      * 业务名字
