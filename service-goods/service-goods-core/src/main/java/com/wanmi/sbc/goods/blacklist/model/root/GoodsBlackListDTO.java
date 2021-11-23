@@ -41,7 +41,7 @@ public class GoodsBlackListDTO {
     private String businessId;
 
     /**
-     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜
+     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品
      */
     @Column(name = "business_category")
     private Integer businessCategory;

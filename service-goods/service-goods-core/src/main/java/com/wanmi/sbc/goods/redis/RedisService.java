@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.redis;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.apache.commons.lang3.StringUtils;
@@ -361,5 +362,27 @@ public class RedisService {
             LOGGER.error("putString value to redis fail...", e);
         }
         return false;
+    }
+
+    /**
+     * 存入黑名单
+     * @param key
+     */
+    public void putHashStrValueList(String key,String hashKey, List<String> hashValue) {
+//        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+//        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+//        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
+        redisTemplate.opsForHash().put(key, hashKey, hashValue);
+    }
+
+    /**
+     * 获取存入黑名单
+     * @param key
+     */
+    public List<String> getHashStrValueList(String key, String hashKey) {
+//        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+//        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+//        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
+        return (List<String>) redisTemplate.opsForHash().get(key, hashKey);
     }
 }

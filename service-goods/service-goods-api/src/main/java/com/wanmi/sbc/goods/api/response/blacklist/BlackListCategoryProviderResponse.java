@@ -18,7 +18,7 @@ public class BlackListCategoryProviderResponse implements Serializable {
     /**
      * 二级分类列表
      */
-    private List<Integer> secondClassifyIdList;
+    private List<String> secondClassifyIdList;
 
     /**
      * 商品id列表

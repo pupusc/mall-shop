@@ -32,5 +32,5 @@ public class GoodsBlackListPageProviderResponse implements Serializable {
     /**
      * 会员商品价格 黑名单
      */
-    private BlackListCategoryProviderResponse vipPriceBlackListModel;
+    private BlackListCategoryProviderResponse unVipPriceBlackListModel;
 }
