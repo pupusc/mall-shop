@@ -36,6 +36,9 @@ public class TopicStoreyDTO implements Serializable {
     @ApiModelProperty("是否有间距0无间距1有间距")
     private Integer hasPadding;
 
+    @ApiModelProperty("状态1启用0禁用")
+    private Integer status;
+
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentDTO> contents;
 

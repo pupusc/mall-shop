@@ -8,11 +8,19 @@ import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
+import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.common.OperationLogMq;
@@ -137,6 +145,9 @@ public class ProviderTradeService {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+    @Autowired
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     /**
      * 新增文档
@@ -1335,4 +1346,51 @@ public class ProviderTradeService {
         return new Query(newCriteria);
     }
 
+
+    @Transactional
+    public String changeTradeProvider(ChangeTradeProviderRequest request){
+         ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
+         if(providerTrade == null){
+             log.warn("changeTradeProvider发货单不存在，request:{}",request);
+             throw new SbcRuntimeException("");
+         }
+         ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade,ProviderTrade.class);
+         if(request.getSkuNos().size() != newProviderTrade.getTradeItems().size()){
+             log.warn("changeTradeProvider商品信息个数不匹配，request:{}",request);
+             throw new SbcRuntimeException("");
+         }
+         List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());;
+         List<String> oldSku = new ArrayList<>(request.getSkuNos().keySet());
+         if(!oldSkuIds.containsAll(oldSku) || !oldSku.containsAll(oldSkuIds)){
+             log.warn("changeTradeProvider商品信息不匹配，request:{}",request);
+             throw new SbcRuntimeException("");
+         }
+         List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
+         //查询sku信息
+        GoodsInfoListByConditionRequest goodsInfoRequest = GoodsInfoListByConditionRequest.builder()
+                .goodsInfoNos(newSkuNos)
+                .build();
+        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoResponse = goodsInfoQueryProvider.listByCondition(goodsInfoRequest);
+        if (goodsInfoResponse == null || goodsInfoResponse.getContext() == null || CollectionUtils.isEmpty(goodsInfoResponse.getContext().getGoodsInfos())) {
+            log.warn("changeTradeProvider替换的商品信息为空，request:{}",request);
+            throw new SbcRuntimeException("");
+        }
+        List<GoodsInfoVO> goodsInfos  = goodsInfoResponse.getContext().getGoodsInfos();
+         //更新商品信息和供应商信息
+        newProviderTrade.getTradeItems().forEach(item->{
+            Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p->p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
+            if(goodsInfoVO.isPresent()){
+                item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
+                item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
+                item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
+                item.setErpSkuNo(goodsInfoVO.get().getErpGoodsNo());
+                item.setSpuId(goodsInfoVO.get().getGoodsId());
+                item.setProviderId(defaultProviderId);
+            }
+        });
+        newProviderTrade.getSupplier().setStoreId(defaultProviderId);
+        //作废原订单
+
+         return null;
+    }
 }
