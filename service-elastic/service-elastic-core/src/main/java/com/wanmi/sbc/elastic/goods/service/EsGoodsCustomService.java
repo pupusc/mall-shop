@@ -207,7 +207,7 @@ public class EsGoodsCustomService {
 
         //不显示分类
         if (!CollectionUtils.isEmpty(request.getUnClassifyIdList())) {
-            boolQueryBuilder.mustNot(QueryBuilders.termsQuery("classify.id", request.getClassifyIdList()));
+            boolQueryBuilder.mustNot(QueryBuilders.termsQuery("classify.id", request.getUnClassifyIdList()));
         }
 
         //这个必须的放到最后，因为是或者操作
