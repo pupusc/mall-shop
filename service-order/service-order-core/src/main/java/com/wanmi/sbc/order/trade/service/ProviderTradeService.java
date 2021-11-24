@@ -1509,8 +1509,11 @@ public class ProviderTradeService {
         if(providerTrade.getTradeItems().stream().anyMatch(p->p.getSplitPrice()!=null)){
             tradePrice.setActualPrice(providerTrade.getTradeItems().stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
         }
+        Long points = 0L;
+        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getPoints()!=null)){
+            points=providerTrade.getTradeItems().stream().filter(p->p.getPoints()!=null).mapToLong(TradeItem::getPoints).sum();
+        }
         //计算积分的总和
-        Long points=providerTrade.getTradeItems().stream().mapToLong(TradeItem::getPoints).sum();
         BigDecimal bigDecimal=new BigDecimal(points);
         //计算积分金额的总和
         tradePrice.setActualPoints(bigDecimal.divide(new BigDecimal(100)));
