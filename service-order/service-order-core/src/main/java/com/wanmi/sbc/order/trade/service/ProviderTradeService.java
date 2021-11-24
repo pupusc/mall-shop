@@ -1408,7 +1408,7 @@ public class ProviderTradeService {
                 item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
                 item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
                 item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
-                item.setErpSkuNo(goodsInfoVO.get().getErpGoodsNo());
+                item.setErpSpuNo(goodsInfoVO.get().getErpGoodsNo());
                 item.setSpuId(goodsInfoVO.get().getGoodsId());
                 item.setProviderId(defaultProviderId);
                 // 供应商名称
