@@ -33,6 +33,9 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("是否有间距0无间距1有间距")
     private Integer hasPadding;
+
+    @ApiModelProperty("瀑布流类型：100=首页瀑布流、200=好书5折瀑布流、300=童书会场瀑布流")
+    private Integer waterFallType;
     
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentReponse> contents;
