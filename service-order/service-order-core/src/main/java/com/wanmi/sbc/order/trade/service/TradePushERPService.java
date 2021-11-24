@@ -1338,8 +1338,8 @@ public class TradePushERPService {
             //更新主订单TradeItem/Gift,多供应商不能直接覆盖-update
             List<TradeItem> tradeItems = new ArrayList<>();
             List<TradeItem> gifts = new ArrayList<>();
-            tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
-            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
+            tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
+            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
             tradeItems.addAll(providerTrade.getTradeItems());
             gifts.addAll(providerTrade.getGifts());
             trade.setTradeItems(tradeItems);
