@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
@@ -26,7 +27,9 @@ import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.common.GoodsCommonQueryProvider;
 import com.wanmi.sbc.goods.api.provider.distributor.goods.DistributorGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
@@ -40,6 +43,7 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsPriceAssistProvider;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.common.InfoForPurchaseRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoVerifyRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
@@ -51,6 +55,7 @@ import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsPriceSetBatchByIepRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelByGoodsIdAndSkuIdRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleInProcessResponse;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.common.GoodsInfoForPurchaseResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
@@ -250,6 +255,9 @@ public class PurchaseService {
 
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
     /**
      * 新增采购单
@@ -2444,23 +2452,23 @@ public class PurchaseService {
     public PurchaseListResponse purchaseInfo(PurchaseInfoRequest request) {
         PurchaseListResponse response = new PurchaseListResponse();
         CustomerVO customer = request.getCustomer();
-        //查询是否购买付费会员卡
-        PaidCardVO paidCardVO = new PaidCardVO();
-        if(Objects.nonNull(customer)) {
-            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
-                    .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
-                            .customerId(customer.getCustomerId())
-                            .delFlag(DeleteFlag.NO)
-                            .endTimeFlag(LocalDateTime.now())
-                            .build())
-                    .getContext();
-
-            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
-                paidCardVO = paidCardCustomerRelVOList.stream()
-                        .map(PaidCardCustomerRelVO::getPaidCardVO)
-                        .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
-            }
-        }
+//        //查询是否购买付费会员卡
+//        PaidCardVO paidCardVO = new PaidCardVO();
+//        if(Objects.nonNull(customer)) {
+//            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+//                    .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+//                            .customerId(customer.getCustomerId())
+//                            .delFlag(DeleteFlag.NO)
+//                            .endTimeFlag(LocalDateTime.now())
+//                            .build())
+//                    .getContext();
+//
+//            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+//                paidCardVO = paidCardCustomerRelVOList.stream()
+//                        .map(PaidCardCustomerRelVO::getPaidCardVO)
+//                        .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+//            }
+//        }
 
         List<String> goodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
@@ -2538,11 +2546,25 @@ public class PurchaseService {
         // 营销优先级过滤
         boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();
         this.getGoodsLevelPrices(response, customer, goodsInfoList);
+//        List<String> unVipPriceBlackList = new ArrayList<>();
+//        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+//            //获取黑名单
+//            GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+//            goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+//                    Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
+//            BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+//            GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+//            if (context.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnVipPriceBlackListModel().getGoodsIdList())) {
+//                unVipPriceBlackList.addAll(context.getUnVipPriceBlackListModel().getGoodsIdList());
+//            }
+//        }
+
         for (GoodsInfoVO goodsInfo : goodsInfoList) {
             //获取付费会员价
-            if (Objects.nonNull(paidCardVO.getDiscountRate())) {
-                goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
-            }
+//            logger.info("PurchaseService  goodsId:{} 黑名单为：{}", goodsInfo.getGoodsId(), JSON.toJSONString(unVipPriceBlackList));
+//            if (Objects.nonNull(paidCardVO.getDiscountRate()) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
+//                goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
+//            }
             // 是否积分价
             if (!isGoodsPoint) goodsInfo.setBuyPoint(null);
             boolean pointFlag = Objects.nonNull(goodsInfo.getBuyPoint()) && goodsInfo.getBuyPoint() > 0L;

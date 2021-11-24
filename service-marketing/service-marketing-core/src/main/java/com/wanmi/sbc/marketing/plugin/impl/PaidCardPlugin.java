@@ -2,15 +2,19 @@ package com.wanmi.sbc.marketing.plugin.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreCustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceListBySkuIdsRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoDetailByGoodsInfoResponse;
-import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
@@ -20,7 +24,6 @@ import com.wanmi.sbc.marketing.request.MarketingPluginRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Repository;
 
@@ -47,8 +50,29 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     @Autowired
     private GoodsIntervalPriceQueryProvider goodsIntervalPriceQueryProvider;
 
-    @Value("${exclude-product:000}")
-    private String excludeProduct;
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
+
+//    @Value("${exclude-product:000}")
+//    private String excludeProduct;
+
+    /**
+     * 获取黑名单
+     * @return
+     */
+    private List<String> listUnVipPriceBlackList () {
+        List<String> unVipPriceBlackList = new ArrayList<>();
+        //获取黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnVipPriceBlackListModel().getGoodsIdList())) {
+            unVipPriceBlackList.addAll(context.getUnVipPriceBlackListModel().getGoodsIdList());
+        }
+        return unVipPriceBlackList;
+    }
 
     /**
      * 商品列表处理
@@ -58,7 +82,8 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      */
     @Override
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
-        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONArray.toJSONString(goodsInfos), excludeProduct);
+        List<String> unVipPriceBlackList = this.listUnVipPriceBlackList();
+        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONArray.toJSONString(goodsInfos), JSONArray.toJSONString(unVipPriceBlackList));
 
         if (Objects.isNull(request.getCustomer())) {
             return;
@@ -71,12 +96,10 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         //是否设置独立字段
         Boolean isIndependent = request.getIsIndependent();
 
-        String[] split = excludeProduct.split(",");
-        List<String> excludeIds = Arrays.asList(split);
         //按市场设价处理逻辑
-        dealMarketType(goodsInfos, paidCardVO, isIndependent, excludeIds);
+        dealMarketType(goodsInfos, paidCardVO, isIndependent, unVipPriceBlackList);
         //按客户等级设价
-        dealCustomerType(goodsInfos, paidCardVO, isIndependent, excludeIds);
+        dealCustomerType(goodsInfos, paidCardVO, isIndependent, unVipPriceBlackList);
         //按订货量设价
         //  dealBuyNumType(goodsInfos, request, paidCardDiscount,storeId);
     }
@@ -113,7 +136,7 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
                 && (goodsInfo.getCompanyType().equals(BoolFlag.NO))).collect(Collectors.toList());
         goodsInfoList.forEach(goodsInfo -> {
             if(excludeIds.contains(goodsInfo.getGoodsId())){
-                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+                log.info("PaidCardPlugin goodsListFilter，{}", goodsInfo.getGoodsId());
                 return;
             }
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -143,7 +166,7 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         }
         goodsInfoList.forEach(goodsInfo -> {
             if(excludeIds.contains(goodsInfo.getGoodsId())){
-                log.info("PaidCardPlugin goodsListFilter，{}", excludeProduct);
+                log.info("PaidCardPlugin goodsListFilter，{}", goodsInfo.getGoodsId());
                 return;
             }
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -164,7 +187,8 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
      */
     @Override
     public void goodsDetailFilter(GoodsInfoDetailByGoodsInfoResponse detailResponse, MarketingPluginRequest request) {
-        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONObject.toJSONString(detailResponse), excludeProduct);
+        List<String> unVipPriceBlackList = this.listUnVipPriceBlackList();
+        log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONObject.toJSONString(detailResponse), JSONArray.toJSONString(unVipPriceBlackList));
         if (Objects.isNull(request.getCustomer())
                 || (!Integer.valueOf(GoodsPriceType.MARKET.toValue()).equals(detailResponse.getGoodsInfo().getPriceType()))) {
             return;
@@ -175,12 +199,10 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
             return;
         }
 
-        String[] split = excludeProduct.split(",");
-        List<String> excludeIds = Arrays.asList(split);
         //按市场设价处理逻辑
-        dealMarketType(goodsInfoVOList, paidCardVO, Boolean.TRUE, excludeIds);
+        dealMarketType(goodsInfoVOList, paidCardVO, Boolean.TRUE, unVipPriceBlackList);
         //按客户等级设价
-        dealCustomerType(goodsInfoVOList, paidCardVO, Boolean.TRUE, excludeIds);
+        dealCustomerType(goodsInfoVOList, paidCardVO, Boolean.TRUE, unVipPriceBlackList);
         //按订货量设价
        // dealBuyNumType(goodsInfoVOList, request, paidCardDiscount, storeId);
     }

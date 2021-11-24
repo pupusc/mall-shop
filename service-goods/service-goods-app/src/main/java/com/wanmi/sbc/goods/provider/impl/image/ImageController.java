@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.image.service.ImageService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ public class ImageController implements ImageProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+
     @Override
     public BaseResponse<MicroServicePage<ImageProviderResponse>> list(ImagePageProviderRequest imagePageProviderRequest) {
 
@@ -70,6 +72,13 @@ public class ImageController implements ImageProvider {
     @Override
     public BaseResponse sort(List<ImageSortProviderRequest> imageSortProviderRequestList) {
         imageService.sort(imageSortProviderRequestList);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    @Override
+    public BaseResponse publish(Integer id, Boolean isOpen) {
+        imageService.publish(id, isOpen);
         return BaseResponse.SUCCESSFUL();
     }
 
