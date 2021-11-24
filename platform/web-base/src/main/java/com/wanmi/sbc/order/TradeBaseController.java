@@ -1174,13 +1174,16 @@ public class TradeBaseController {
             // 如果有积分换购活动，设置一下定价
             boolean hasPointMarketing = false;
             Iterator<TradeMarketingDTO> it = tradeMarketingList.iterator();
+            Long currentPoint = -1L;
             while (it.hasNext()){
                 TradeMarketingDTO tradeMarketingDTO = it.next();
                 if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType() == 10){
                     //检查用户积分是否足够
-                    String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
-                    Long currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
-                    if(currentPoint != null && currentPoint < tradeMarketingDTO.getPointNeed()){
+                    if(currentPoint == -1){
+                        String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
+                        currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
+                    }
+                    if(currentPoint == null || currentPoint < tradeMarketingDTO.getPointNeed()){
                         it.remove();
                     }else{
                         hasPointMarketing = true;
@@ -2686,7 +2689,7 @@ public class TradeBaseController {
                             if(levelVO != null){
                                 desc = String.format("您已满足%s积分+%s元换购", levelVO.getPointNeed(), levelVO.getMoney());
                                 confirmMarketingVO.setPointNeed(levelVO.getPointNeed());
-                                levelVO.setMoney(levelVO.getMoney());
+                                confirmMarketingVO.setMoney(levelVO.getMoney());
                             }
                         }
                         if (!MarketingType.SUITS.equals(marketingViewVO.getMarketingType())) {

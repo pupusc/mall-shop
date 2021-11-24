@@ -141,8 +141,14 @@ public class TradeOptimizeService {
         List<TradeItemGroup> tradeItemGroups = tradeItemSnapshot.getItemGroups();
         List<TradeMarketingDTO> tradeMarketingList = tradeItemGroups.get(0).getTradeMarketingList();
         TradeMarketingDTO pointBuy = null;
-        for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList) {
+        Iterator<TradeMarketingDTO> it = tradeMarketingList.iterator();
+        while (it.hasNext()) {
+            TradeMarketingDTO tradeMarketingDTO = it.next();
             if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType().equals(MarketingSubType.POINT_BUY.toValue())){
+                if(tradeCommitRequest.getJoinPointMarketing() != null && tradeCommitRequest.getJoinPointMarketing() == 0){
+                    it.remove();
+                    continue;
+                }
                 pointBuy = tradeMarketingDTO;
                 break;
             }
