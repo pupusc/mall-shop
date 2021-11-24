@@ -54,7 +54,6 @@ import com.wanmi.sbc.order.trade.request.ProviderTradeQueryRequest;
 import com.wanmi.sbc.order.trade.request.TradeDeliverRequest;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import io.seata.spring.annotation.GlobalTransactional;
-import javafx.event.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
