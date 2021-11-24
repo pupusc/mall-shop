@@ -12,31 +12,31 @@ public class RedisKeyConstant {
     /**
      * 新上列表 黑名单KEY
      */
-    public static final String KEY_NEW_BOOKS_BLACK_LIST = "KEY_NEW_BOOKS_BLACK_LIST";
+    public static final String KEY_NEW_BOOKS_BLACK_LIST = "KEY_BLACK_LIST_NEW_BOOKS";
 
     /**
      * 畅销列表 黑名单KEY
      */
-    public static final String KEY_SELL_WELL_BOOKS = "KEY_SELL_WELL_BOOKS";
+    public static final String KEY_SELL_WELL_BOOKS = "KEY_BLACK_LIST_SELL_WELL_BOOKS";
 
     /**
      * 特价书 黑名单KEY
      */
-    public static final String KEY_SPECIAL_OFFER_BOOKS = "KEY_SPECIAL_OFFER_BOOKS";
+    public static final String KEY_SPECIAL_OFFER_BOOKS = "KEY_BLACK_LIST_SPECIAL_OFFER_BOOKS";
 
 
     /**
      * 不享受会员优惠商品 黑名单KEY
      */
-    public static final String KEY_UN_SHOW_VIP_PRICE = "KEY_UN_SHOW_VIP_PRICE";
+    public static final String KEY_UN_SHOW_VIP_PRICE = "KEY_BLACK_LIST_UN_SHOW_VIP_PRICE";
 
     /**
      * SPU_ID hashKey
      */
-    public static final String KEY_SPU_ID = "KEY_SPU_ID";
+    public static final String KEY_SPU_ID = "KEY_BLACK_LIST_SPU_ID";
 
     /**
      * CLASSIFY_ID_SECOND hashKey
      */
-    public static final String KEY_CLASSIFY_ID_SECOND = "KEY_CLASSIFY_ID_SECOND";
+    public static final String KEY_CLASSIFY_ID_SECOND = "KEY_BLACK_LIST_CLASSIFY_ID_SECOND";
 }
