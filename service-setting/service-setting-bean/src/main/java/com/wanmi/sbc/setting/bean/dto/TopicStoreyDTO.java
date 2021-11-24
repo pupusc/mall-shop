@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -33,10 +34,12 @@ public class TopicStoreyDTO implements Serializable {
     @ApiModelProperty("背景色")
     private String background;
 
+    @ApiModelProperty("状态1启用1禁用")
+    private Integer status;
+
     @ApiModelProperty("是否有间距0无间距1有间距")
     private Integer hasPadding;
 
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentDTO> contents;
-
 }
