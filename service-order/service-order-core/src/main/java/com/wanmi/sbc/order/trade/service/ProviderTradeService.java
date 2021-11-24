@@ -35,6 +35,7 @@ import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
 import com.wanmi.sbc.order.common.OperationLogMq;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
@@ -1424,7 +1425,8 @@ public class ProviderTradeService {
             }
         });
         newProviderTrade.setTradeItems(newTradeItems);
-        List<String> oids = providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList());
+        List<String> oids = providerTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).map(TradeItem::getOid).collect(Collectors.toList());
+        newProviderTrade.getTradeState().setErpTradeState(DeliverStatus.NOT_YET_SHIPPED.toString());
         // 供应商信息
         newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
         newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
@@ -1508,9 +1510,11 @@ public class ProviderTradeService {
         if(providerTrade.getTradeItems().stream().anyMatch(p->p.getSplitPrice()!=null)){
             tradePrice.setActualPrice(providerTrade.getTradeItems().stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
         }
-        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getPointsPrice()!=null)){
-            tradePrice.setActualPoints(providerTrade.getTradeItems().stream().map(p->Objects.isNull(p.getPointsPrice()) ? new BigDecimal("0") : p.getPointsPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
-        }
+        //计算积分的总和
+        Long points=providerTrade.getTradeItems().stream().mapToLong(TradeItem::getPoints).sum();
+        BigDecimal bigDecimal=new BigDecimal(points);
+        //计算积分金额的总和
+        tradePrice.setActualPoints(bigDecimal.divide(new BigDecimal(100)));
         if(providerTrade.getTradeItems().stream().anyMatch(p->p.getKnowledge()!=null)){
             tradePrice.setActualKnowledge(providerTrade.getTradeItems().stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
         }
