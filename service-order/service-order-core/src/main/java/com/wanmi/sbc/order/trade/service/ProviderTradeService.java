@@ -1401,7 +1401,7 @@ public class ProviderTradeService {
         BaseResponse<ListNoDeleteStoreByIdsResponse> storesResposne =
                 storeQueryProvider.listNoDeleteStoreByIds(ListNoDeleteStoreByIdsRequest.builder().storeIds(Arrays.asList(defaultProviderId)).build());
         StoreVO provider = storesResposne.getContext().getStoreVOList().get(0);
-        List<TradeItem> newTradeItems = newProviderTrade.getTradeItems().stream().filter(p->newSkuNos.contains(p.getSkuNo())).collect(Collectors.toList());
+        List<TradeItem> newTradeItems = newProviderTrade.getTradeItems().stream().filter(p->changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
         newTradeItems.forEach(item -> {
             Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
             if (goodsInfoVO.isPresent()) {
