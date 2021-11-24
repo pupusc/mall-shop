@@ -42,7 +42,7 @@ public class TopicStoreyDTO implements Serializable {
 
     @ApiModelProperty("瀑布流类型：100=首页瀑布流、200=好书5折瀑布流、300=童书会场瀑布流")
     private Integer waterFallType;
-
+    
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentDTO> contents;
 }

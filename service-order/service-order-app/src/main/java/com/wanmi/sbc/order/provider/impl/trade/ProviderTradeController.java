@@ -1,6 +1,8 @@
 package com.wanmi.sbc.order.provider.impl.trade;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeProvider;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeRemedySellerRemarkRequest;
@@ -21,6 +23,7 @@ import com.wanmi.sbc.order.trade.service.TradeService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -144,5 +147,13 @@ public class ProviderTradeController implements ProviderTradeProvider {
         providerTradeService.updateReturnOrderNumByRid(
                 request.getReturnOrderId(), request.getAddFlag() == null ? true : request.getAddFlag());
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<String> changeTradeProvider(ChangeTradeProviderRequest request) {
+        if(request == null || StringUtils.isEmpty(request.getPid()) || request.getSkuNos().isEmpty()){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
+        }
+        return BaseResponse.success(providerTradeService.changeTradeProvider(request));
     }
 }
