@@ -1453,6 +1453,8 @@ public class ProviderTradeService {
         providerTradeRepository.save(providerTrade);
         newProviderTrade.setId(generatorService.generateProviderTid());
         newProviderTrade.getTradeState().setPushCount(0);
+        newProviderTrade.getTradeState().setFlowState(FlowState.AUDIT);
+        newProviderTrade.getTradeState().setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
         //价格
         initPrice(newProviderTrade);
         providerTradeRepository.save(newProviderTrade);
