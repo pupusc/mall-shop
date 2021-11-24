@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
@@ -2560,6 +2561,7 @@ public class PurchaseService {
 
         for (GoodsInfoVO goodsInfo : goodsInfoList) {
             //获取付费会员价
+            logger.info("PurchaseService  goodsId:{} 黑名单为：{}", goodsInfo.getGoodsId(), JSON.toJSONString(unVipPriceBlackList));
             if (Objects.nonNull(paidCardVO.getDiscountRate()) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
                 goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
             }
