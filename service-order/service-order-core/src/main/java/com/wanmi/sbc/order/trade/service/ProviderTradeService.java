@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.alibaba.fastjson.JSON;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -1372,13 +1373,9 @@ public class ProviderTradeService {
             log.warn("changeTradeProvider已作废，请不要重复操作，request:{}", request);
             throw new SbcRuntimeException("K-000001");
         }
-        if (request.getSkuNos().size() != providerTrade.getTradeItems().size()) {
-            log.warn("changeTradeProvider商品信息个数不匹配，request:{}", request);
-            throw new SbcRuntimeException("K-000001");
-        }
         List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());
-        List<String> oldSku = new ArrayList<>(request.getSkuNos().keySet());
-        if (!oldSkuIds.containsAll(oldSku) || !oldSku.containsAll(oldSkuIds)) {
+        List<String> changeSkuIds = new ArrayList<>(request.getSkuNos().keySet());
+        if (!oldSkuIds.containsAll(changeSkuIds)) {
             log.warn("changeTradeProvider商品信息不匹配，request:{}", request);
             throw new SbcRuntimeException("K-000001");
         }
@@ -1401,12 +1398,11 @@ public class ProviderTradeService {
 
         List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getContext().getGoodsInfos();
         //更新商品信息和供应商信息
-        // 查询供货商店铺信息
         BaseResponse<ListNoDeleteStoreByIdsResponse> storesResposne =
                 storeQueryProvider.listNoDeleteStoreByIds(ListNoDeleteStoreByIdsRequest.builder().storeIds(Arrays.asList(defaultProviderId)).build());
         StoreVO provider = storesResposne.getContext().getStoreVOList().get(0);
-
-        newProviderTrade.getTradeItems().forEach(item -> {
+        List<TradeItem> newTradeItems = newProviderTrade.getTradeItems().stream().filter(p->newSkuNos.contains(p.getSkuNo())).collect(Collectors.toList());
+        newTradeItems.forEach(item -> {
             Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
             if (goodsInfoVO.isPresent()) {
                 item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
@@ -1421,20 +1417,31 @@ public class ProviderTradeService {
                 item.setProviderCode(provider.getCompanyInfo().getCompanyCode());
             }
         });
+        newProviderTrade.setTradeItems(newTradeItems);
         // 供应商信息
         newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
         newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
         newProviderTrade.getSupplier().setSupplierId(provider.getCompanyInfo().getCompanyInfoId());
         newProviderTrade.getSupplier().setSupplierCode(provider.getCompanyInfo().getCompanyCode());
-        //作废原订单
-        providerTrade.getTradeState().setFlowState(FlowState.VOID);
-        providerTrade.appendTradeEventLog(TradeEventLog
-                .builder()
-                .eventType(FlowState.VOID.getDescription())
-                .eventDetail("发货单更新为管易云发货，作废原订单")
-                .eventTime(LocalDateTime.now())
-                .build());
-
+        //若没有剩余商品，作废原订单
+        List<TradeItem> leftTradeItems = providerTrade.getTradeItems().stream().filter(p->!changeSkuIds.contains(p.getSkuNo())).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(leftTradeItems)) {
+            providerTrade.getTradeState().setFlowState(FlowState.VOID);
+            providerTrade.appendTradeEventLog(TradeEventLog
+                    .builder()
+                    .eventType(FlowState.VOID.getDescription())
+                    .eventDetail(String.format("发货单更新为管易云发货，作废原订单，更新的商品:%s",JSON.toJSONString(request)))
+                    .eventTime(LocalDateTime.now())
+                    .build());
+        }else{
+            providerTrade.setTradeItems(leftTradeItems);
+            providerTrade.appendTradeEventLog(TradeEventLog
+                    .builder()
+                    .eventType(FlowState.VOID.getDescription())
+                    .eventDetail(String.format("发货单更新为管易云发货，更新的商品:%s",JSON.toJSONString(request)))
+                    .eventTime(LocalDateTime.now())
+                    .build());
+        }
         providerTradeRepository.save(providerTrade);
         newProviderTrade.setId(generatorService.generateProviderTid());
         newProviderTrade.getTradeState().setPushCount(0);
