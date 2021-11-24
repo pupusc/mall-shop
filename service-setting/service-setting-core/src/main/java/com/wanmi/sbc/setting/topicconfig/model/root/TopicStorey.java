@@ -49,4 +49,8 @@ public class TopicStorey {
 
     @Column(name = "has_padding")
     private Integer hasPadding;
+
+    @Column(name = "water_fall_type")
+    private Integer waterFallType;
+
 }
