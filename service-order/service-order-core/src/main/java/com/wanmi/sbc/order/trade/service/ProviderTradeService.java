@@ -6,6 +6,7 @@ import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.OrderType;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -31,6 +32,7 @@ import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
 import com.wanmi.sbc.order.common.OperationLogMq;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
@@ -42,6 +44,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.ProviderTradeRepository;
@@ -54,6 +57,7 @@ import javafx.event.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.bson.Document;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -72,6 +76,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -1405,6 +1410,7 @@ public class ProviderTradeService {
         newTradeItems.forEach(item -> {
             Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
             if (goodsInfoVO.isPresent()) {
+                item.setOid(generatorService.generateOid());
                 item.setSkuNo(goodsInfoVO.get().getGoodsInfoNo());
                 item.setSkuId(goodsInfoVO.get().getGoodsInfoId());
                 item.setErpSkuNo(goodsInfoVO.get().getErpGoodsInfoNo());
@@ -1418,6 +1424,7 @@ public class ProviderTradeService {
             }
         });
         newProviderTrade.setTradeItems(newTradeItems);
+        List<String> oids = providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList());
         // 供应商信息
         newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
         newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
@@ -1445,13 +1452,68 @@ public class ProviderTradeService {
         providerTradeRepository.save(providerTrade);
         newProviderTrade.setId(generatorService.generateProviderTid());
         newProviderTrade.getTradeState().setPushCount(0);
+        //价格
+        initPrice(newProviderTrade);
         providerTradeRepository.save(newProviderTrade);
         //更新trade的item信息
         List<TradeItem> tradeItems = new ArrayList<>(trade.get().getTradeItems().size());
-        tradeItems.addAll(trade.get().getTradeItems().stream().filter(p->!oldSkuIds.contains(p.getSkuNo())).collect(Collectors.toList()));
+        tradeItems.addAll(trade.get().getTradeItems().stream().filter(p->!oids.contains(p.getOid())).collect(Collectors.toList()));
         tradeItems.addAll(newProviderTrade.getTradeItems());
         trade.get().setTradeItems(tradeItems);
         tradeRepository.save(trade.get());
         return newProviderTrade.getId();
+    }
+
+    private void initPrice(ProviderTrade providerTrade){
+
+        // 拆单后，重新计算价格信息
+        TradePrice tradePrice = providerTrade.getTradePrice();
+        // 商品总价
+        BigDecimal goodsPrice = BigDecimal.ZERO;
+        // 订单总价:实付金额
+        BigDecimal orderPrice = BigDecimal.ZERO;
+        // 订单供货价总额
+        BigDecimal orderSupplyPrice = BigDecimal.ZERO;
+        //积分价
+        Long buyPoints = NumberUtils.LONG_ZERO;
+        for (TradeItem providerTradeItem : providerTrade.getTradeItems()) {
+            //积分
+            if (Objects.nonNull(providerTradeItem.getBuyPoint())) {
+                buyPoints += providerTradeItem.getBuyPoint();
+            }
+            // 商品总价
+            goodsPrice =
+                    goodsPrice.add(providerTradeItem.getPrice().multiply(new BigDecimal(providerTradeItem.getNum())));
+            // 商品分摊价格
+            BigDecimal splitPrice = Objects.isNull(providerTradeItem.getSplitPrice()) ? BigDecimal.ZERO :
+                    providerTradeItem.getSplitPrice();
+            orderPrice = orderPrice.add(splitPrice);
+            // 订单供货价总额
+            orderSupplyPrice = orderSupplyPrice.add(providerTradeItem.getTotalSupplyPrice());
+
+        }
+
+        // 商品总价
+        tradePrice.setGoodsPrice(goodsPrice);
+        tradePrice.setOriginPrice(goodsPrice);
+        // 订单总价
+        tradePrice.setTotalPrice(orderPrice);
+        tradePrice.setTotalPayCash(orderPrice);
+        // 订单供货价总额
+        tradePrice.setOrderSupplyPrice(orderSupplyPrice);
+        //积分价
+        tradePrice.setBuyPoints(buyPoints);
+        tradePrice.setDeliveryPrice(BigDecimal.ZERO);
+        //实际金额
+        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getSplitPrice()!=null)){
+            tradePrice.setActualPrice(providerTrade.getTradeItems().stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+        }
+        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getPointsPrice()!=null)){
+            tradePrice.setActualPoints(providerTrade.getTradeItems().stream().map(p->Objects.isNull(p.getPointsPrice()) ? new BigDecimal("0") : p.getPointsPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+        }
+        if(providerTrade.getTradeItems().stream().anyMatch(p->p.getKnowledge()!=null)){
+            tradePrice.setActualKnowledge(providerTrade.getTradeItems().stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
+        }
+        providerTrade.setTradePrice(tradePrice);
     }
 }
