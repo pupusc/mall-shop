@@ -61,4 +61,9 @@ public class TradeMarketingDTO implements Serializable {
      * 营销活动类型
      */
     private Integer marketingSubType;
+
+    /**
+     * 所需积分
+     */
+    private Integer pointNeed;
 }

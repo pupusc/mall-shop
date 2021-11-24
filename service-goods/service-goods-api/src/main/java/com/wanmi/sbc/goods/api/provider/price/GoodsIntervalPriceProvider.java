@@ -50,4 +50,7 @@ public interface GoodsIntervalPriceProvider {
     @PostMapping("/goods/${application.goods.version}/price/interval/put-goods-and-sku")
     BaseResponse<GoodsIntervalPriceByGoodsAndSkuResponse> putGoodsAndSku(
             @RequestBody @Valid GoodsIntervalPriceByGoodsAndSkuRequest request);
+
+    @PostMapping("/goods/${application.goods.version}/price/propPrice")
+    BaseResponse<String> findPriceByGoodsId(String goodsId);
 }

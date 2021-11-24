@@ -27,6 +27,7 @@ import com.wanmi.sbc.constants.WebBaseErrorCode;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.distribution.DistributionCustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreCustomerQueryProvider;
@@ -35,6 +36,7 @@ import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdReq
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerListForOrderCommitRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelByCustomerIdAndStoreIdRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
@@ -66,6 +68,7 @@ import com.wanmi.sbc.goods.api.provider.flashsalegoods.FlashSaleGoodsQueryProvid
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storetobeevaluate.StoreTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
@@ -292,18 +295,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
@@ -480,6 +472,12 @@ public class TradeBaseController {
 
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+
+    @Autowired
+    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
+
+    @Autowired
+    private ExternalProvider externalProvider;
 
     /**
      * @description 商城配合知识顾问
@@ -1101,9 +1099,8 @@ public class TradeBaseController {
         tradeItems = fillActivityPrice(tradeItems, goodsInfos, customer, storeVO);
 
         // 2.填充商品区间价
-        tradeItems = tradeItemMapper.tradeItemVOsToTradeItemDTOs(verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Lists.newArrayList(), tradeGoodsInfoPageMapper.goodsInfoResponseToTradeGoodsInfoPageDTO(response),
-                storeId, true)).getContext().getTradeItems());
-
+        tradeItems = tradeItemMapper.tradeItemVOsToTradeItemDTOs(verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Lists.newArrayList(),
+                tradeGoodsInfoPageMapper.goodsInfoResponseToTradeGoodsInfoPageDTO(response), storeId, true)).getContext().getTradeItems());
 
         List<TradeMarketingDTO> tradeMarketingList = new ArrayList<>();
 
@@ -1173,6 +1170,32 @@ public class TradeBaseController {
                 });
             }
         }
+        if (CollectionUtils.isNotEmpty(tradeMarketingList)) {
+            // 如果有积分换购活动，设置一下定价
+            boolean hasPointMarketing = false;
+            Iterator<TradeMarketingDTO> it = tradeMarketingList.iterator();
+            while (it.hasNext()){
+                TradeMarketingDTO tradeMarketingDTO = it.next();
+                if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType() == 10){
+                    //检查用户积分是否足够
+                    String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
+                    Long currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
+                    if(currentPoint != null && currentPoint < tradeMarketingDTO.getPointNeed()){
+                        it.remove();
+                    }else{
+                        hasPointMarketing = true;
+                    }
+                }
+            }
+            if(hasPointMarketing){
+                for (TradeItemDTO tradeItem : tradeItems) {
+                    BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+                    if(priceByGoodsId.getContext() != null){
+                        tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+                    }
+                }
+            }
+        }
         return tradeItemProvider.snapshot(
                 TradeItemSnapshotRequest.builder()
                         .customerId(customer.getCustomerId())
@@ -1208,6 +1231,7 @@ public class TradeBaseController {
                         tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getId());
                         tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
                         tradeMarketing.setMarketingSubType(marketing.getSubType().toValue());
+                        tradeMarketing.setPointNeed(pointBuyLevelList.get(0).getPointNeed());
                         return tradeMarketing;
                     }
                 }
