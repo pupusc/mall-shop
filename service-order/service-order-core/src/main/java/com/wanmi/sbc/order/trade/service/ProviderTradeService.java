@@ -11,6 +11,13 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
+import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
+import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
+import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
+import com.wanmi.sbc.customer.api.response.store.ListNoDeleteStoreByIdsResponse;
+import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.HistoryDeliveryInfoRequest;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
@@ -42,6 +49,7 @@ import com.wanmi.sbc.order.trade.request.ProviderTradeQueryRequest;
 import com.wanmi.sbc.order.trade.request.TradeDeliverRequest;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import io.seata.spring.annotation.GlobalTransactional;
+import javafx.event.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -119,6 +127,9 @@ public class ProviderTradeService {
     @Autowired
     private RedissonClient redissonClient;
 
+    @Autowired
+    private StoreQueryProvider storeQueryProvider;
+
     /**
      * 更新券码信息lock
      */
@@ -148,6 +159,9 @@ public class ProviderTradeService {
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Value("${default.companyId:1182}")
+    private Long defaultCompanyId;
 
     /**
      * 新增文档
@@ -1352,23 +1366,26 @@ public class ProviderTradeService {
         ProviderTrade providerTrade = providerTradeRepository.findFirstById(request.getPid());
         if (providerTrade == null) {
             log.warn("changeTradeProvider发货单不存在，request:{}", request);
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-000001");
         }
-
+        if(providerTrade.getTradeState().getFlowState().equals(FlowState.VOID)){
+            log.warn("changeTradeProvider已作废，请不要重复操作，request:{}", request);
+            throw new SbcRuntimeException("K-000001");
+        }
         if (request.getSkuNos().size() != providerTrade.getTradeItems().size()) {
             log.warn("changeTradeProvider商品信息个数不匹配，request:{}", request);
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-000001");
         }
         List<String> oldSkuIds = providerTrade.getTradeItems().stream().map(TradeItem::getSkuNo).collect(Collectors.toList());
         List<String> oldSku = new ArrayList<>(request.getSkuNos().keySet());
         if (!oldSkuIds.containsAll(oldSku) || !oldSku.containsAll(oldSkuIds)) {
             log.warn("changeTradeProvider商品信息不匹配，request:{}", request);
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-000001");
         }
         Optional<Trade> trade = tradeRepository.findById(providerTrade.getParentId());
         if (!trade.isPresent()) {
             log.warn("changeTradeProvider主单信息不存在，request:{}", request);
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-000001");
         }
         ProviderTrade newProviderTrade = KsBeanUtil.convert(providerTrade, ProviderTrade.class);
         List<String> newSkuNos = new ArrayList<>(request.getSkuNos().values());
@@ -1379,10 +1396,16 @@ public class ProviderTradeService {
         BaseResponse<GoodsInfoListByConditionResponse> goodsInfoResponse = goodsInfoQueryProvider.listByCondition(goodsInfoRequest);
         if (goodsInfoResponse == null || goodsInfoResponse.getContext() == null || CollectionUtils.isEmpty(goodsInfoResponse.getContext().getGoodsInfos())) {
             log.warn("changeTradeProvider替换的商品信息为空，request:{}", request);
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-000001");
         }
+
         List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getContext().getGoodsInfos();
         //更新商品信息和供应商信息
+        // 查询供货商店铺信息
+        BaseResponse<ListNoDeleteStoreByIdsResponse> storesResposne =
+                storeQueryProvider.listNoDeleteStoreByIds(ListNoDeleteStoreByIdsRequest.builder().storeIds(Arrays.asList(defaultProviderId)).build());
+        StoreVO provider = storesResposne.getContext().getStoreVOList().get(0);
+
         newProviderTrade.getTradeItems().forEach(item -> {
             Optional<GoodsInfoVO> goodsInfoVO = goodsInfos.stream().filter(p -> p.getGoodsInfoNo().equals(request.getSkuNos().get(item.getSkuNo()))).findFirst();
             if (goodsInfoVO.isPresent()) {
@@ -1392,13 +1415,26 @@ public class ProviderTradeService {
                 item.setErpSkuNo(goodsInfoVO.get().getErpGoodsNo());
                 item.setSpuId(goodsInfoVO.get().getGoodsId());
                 item.setProviderId(defaultProviderId);
+                // 供应商名称
+                item.setProviderName(provider.getSupplierName());
+                // 供应商编号
+                item.setProviderCode(provider.getCompanyInfo().getCompanyCode());
             }
         });
-
-        newProviderTrade.getSupplier().setStoreId(defaultProviderId);
-        newProviderTrade.getSupplier().setStoreName("");
+        // 供应商信息
+        newProviderTrade.getSupplier().setStoreId(provider.getStoreId());
+        newProviderTrade.getSupplier().setSupplierName(provider.getSupplierName());
+        newProviderTrade.getSupplier().setSupplierId(provider.getCompanyInfo().getCompanyInfoId());
+        newProviderTrade.getSupplier().setSupplierCode(provider.getCompanyInfo().getCompanyCode());
         //作废原订单
         providerTrade.getTradeState().setFlowState(FlowState.VOID);
+        providerTrade.appendTradeEventLog(TradeEventLog
+                .builder()
+                .eventType(FlowState.VOID.getDescription())
+                .eventDetail("发货单更新为管易云发货，作废原订单")
+                .eventTime(LocalDateTime.now())
+                .build());
+
         providerTradeRepository.save(providerTrade);
         newProviderTrade.setId(generatorService.generateProviderTid());
         newProviderTrade.getTradeState().setPushCount(0);
