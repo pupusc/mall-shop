@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.common;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -15,9 +16,12 @@ import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.common.GoodsCommonBatchAddRequest;
 import com.wanmi.sbc.goods.api.request.common.InfoForPurchaseRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.common.GoodsInfoForPurchaseResponse;
 import com.wanmi.sbc.goods.bean.dto.BatchGoodsImageDTO;
 import com.wanmi.sbc.goods.bean.dto.BatchGoodsInfoDTO;
@@ -25,6 +29,7 @@ import com.wanmi.sbc.goods.bean.dto.BatchGoodsSpecDTO;
 import com.wanmi.sbc.goods.bean.dto.BatchGoodsSpecDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.*;
 import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import com.wanmi.sbc.goods.goodsrestrictedsale.service.GoodsRestrictedSaleService;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
@@ -123,6 +128,9 @@ public class GoodsCommonService {
 
     @Autowired
     private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
+    @Autowired
+    private GoodsBlackListService goodsBlackListService;
 
     /**
      * 批量导入商品数据
@@ -483,10 +491,20 @@ public class GoodsCommonService {
                     .build()).getContext();
         }
 
+        List<String> unVipPriceBlackList = new ArrayList<>();
         BigDecimal discountRate = null;
         if(CollectionUtils.isNotEmpty(paidCardVOList)){
 
             discountRate = paidCardVOList.get(0).getDiscountRate();
+
+            //获取黑名单
+            GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+            goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                    Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
+            GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse = goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest);
+            if (goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel().getGoodsIdList())) {
+                unVipPriceBlackList.addAll(goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel().getGoodsIdList());
+            }
         }
         BigDecimal finalDiscountRate = discountRate;
         goodsInfoList.forEach(goodsInfo -> {
@@ -494,7 +512,7 @@ public class GoodsCommonService {
             if (priceType.equals(GoodsPriceType.MARKET.toValue())) {
                 // 按市场价销售
                 // 添加付费会员折扣
-                if(Objects.nonNull(finalDiscountRate)){
+                if(Objects.nonNull(finalDiscountRate) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())){
                     goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(finalDiscountRate).setScale(2, BigDecimal.ROUND_HALF_UP));
                 }else{
                     goodsInfo.setSalePrice(goodsInfo.getMarketPrice());
@@ -503,7 +521,7 @@ public class GoodsCommonService {
             }
             if (priceType.equals(GoodsPriceType.CUSTOMER.toValue())) {
 
-                if(Objects.nonNull(finalDiscountRate)) {
+                if(Objects.nonNull(finalDiscountRate) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
                     goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(finalDiscountRate).setScale(2, BigDecimal.ROUND_HALF_UP));
                 } else {
                     // 按客户设价--级别价

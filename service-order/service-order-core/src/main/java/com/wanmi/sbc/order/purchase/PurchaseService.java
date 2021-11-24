@@ -2452,23 +2452,23 @@ public class PurchaseService {
     public PurchaseListResponse purchaseInfo(PurchaseInfoRequest request) {
         PurchaseListResponse response = new PurchaseListResponse();
         CustomerVO customer = request.getCustomer();
-        //查询是否购买付费会员卡
-        PaidCardVO paidCardVO = new PaidCardVO();
-        if(Objects.nonNull(customer)) {
-            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
-                    .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
-                            .customerId(customer.getCustomerId())
-                            .delFlag(DeleteFlag.NO)
-                            .endTimeFlag(LocalDateTime.now())
-                            .build())
-                    .getContext();
-
-            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
-                paidCardVO = paidCardCustomerRelVOList.stream()
-                        .map(PaidCardCustomerRelVO::getPaidCardVO)
-                        .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
-            }
-        }
+//        //查询是否购买付费会员卡
+//        PaidCardVO paidCardVO = new PaidCardVO();
+//        if(Objects.nonNull(customer)) {
+//            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+//                    .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+//                            .customerId(customer.getCustomerId())
+//                            .delFlag(DeleteFlag.NO)
+//                            .endTimeFlag(LocalDateTime.now())
+//                            .build())
+//                    .getContext();
+//
+//            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+//                paidCardVO = paidCardCustomerRelVOList.stream()
+//                        .map(PaidCardCustomerRelVO::getPaidCardVO)
+//                        .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+//            }
+//        }
 
         List<String> goodsInfoIds = new ArrayList<>();
         Map<String, Long> buyCountMap = new HashMap<>();
@@ -2546,25 +2546,25 @@ public class PurchaseService {
         // 营销优先级过滤
         boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();
         this.getGoodsLevelPrices(response, customer, goodsInfoList);
-        List<String> unVipPriceBlackList = new ArrayList<>();
-        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
-            //获取黑名单
-            GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-            goodsBlackListPageProviderRequest.setBusinessCategoryColl(
-                    Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
-            BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-            GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-            if (context.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnVipPriceBlackListModel().getGoodsIdList())) {
-                unVipPriceBlackList.addAll(context.getUnVipPriceBlackListModel().getGoodsIdList());
-            }
-        }
+//        List<String> unVipPriceBlackList = new ArrayList<>();
+//        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+//            //获取黑名单
+//            GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+//            goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+//                    Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()));
+//            BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+//            GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+//            if (context.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnVipPriceBlackListModel().getGoodsIdList())) {
+//                unVipPriceBlackList.addAll(context.getUnVipPriceBlackListModel().getGoodsIdList());
+//            }
+//        }
 
         for (GoodsInfoVO goodsInfo : goodsInfoList) {
             //获取付费会员价
-            logger.info("PurchaseService  goodsId:{} 黑名单为：{}", goodsInfo.getGoodsId(), JSON.toJSONString(unVipPriceBlackList));
-            if (Objects.nonNull(paidCardVO.getDiscountRate()) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
-                goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
-            }
+//            logger.info("PurchaseService  goodsId:{} 黑名单为：{}", goodsInfo.getGoodsId(), JSON.toJSONString(unVipPriceBlackList));
+//            if (Objects.nonNull(paidCardVO.getDiscountRate()) && !unVipPriceBlackList.contains(goodsInfo.getGoodsId())) {
+//                goodsInfo.setSalePrice(goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2,BigDecimal.ROUND_HALF_UP));;
+//            }
             // 是否积分价
             if (!isGoodsPoint) goodsInfo.setBuyPoint(null);
             boolean pointFlag = Objects.nonNull(goodsInfo.getBuyPoint()) && goodsInfo.getBuyPoint() > 0L;
