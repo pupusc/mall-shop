@@ -14,21 +14,25 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BookFlagEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.IndexModuleEnum;
 import com.wanmi.sbc.goods.api.enums.PublishStateEnum;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
 import com.wanmi.sbc.goods.api.provider.IndexCmsProvider;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.image.ImageProvider;
 import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -82,9 +86,6 @@ public class HomePageService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
-//    @Autowired
-//    private RedisTemplate redisTemplate;
-
     @Autowired
     private ImageProvider imageProvider;
 
@@ -99,6 +100,9 @@ public class HomePageService {
 
     @Autowired
     private RedisListService redisService;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
     /**
      * 基础失效时间
@@ -281,12 +285,18 @@ public class HomePageService {
         int pageSize = 20;
         HomeGoodsListResponse homeGoodsListResponse = new HomeGoodsListResponse();
 
+        //获取要排除的商品和分类
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Arrays.asList(GoodsBlackListCategoryEnum.NEW_BOOKS.getCode(), GoodsBlackListCategoryEnum.SELL_WELL_BOOKS.getCode(), GoodsBlackListCategoryEnum.SPECIAL_OFFER_BOOKS.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
         //新上
         Map<String, HomeTopicResponse> homeTopicMap = this.getHomeTopic();
         HomeTopicResponse newBooks = homeTopicMap.get(IndexModuleEnum.NEW_BOOKS.getCode());
         try {
             if (newBooks != null) {
-                HomeGoodsListSubResponse newBookList = this.newBookList(pageSize);
+                HomeGoodsListSubResponse newBookList = this.newBookList(pageSize, context);
                 newBookList.setHomeTopicResponse(newBooks);
                 homeGoodsListResponse.setNewBookGoods(newBookList);
             }
@@ -298,7 +308,7 @@ public class HomePageService {
         HomeTopicResponse sellWellBooks = homeTopicMap.get(IndexModuleEnum.SELL_WELL_BOOKS.getCode());
         try {
             if (sellWellBooks != null) {
-                HomeGoodsListSubResponse sellWellBookResponse = this.sellWellBookList(pageSize);
+                HomeGoodsListSubResponse sellWellBookResponse = this.sellWellBookList(pageSize, context);
                 sellWellBookResponse.setHomeTopicResponse(sellWellBooks);
                 homeGoodsListResponse.setSellWellGoods(sellWellBookResponse);
             }
@@ -310,7 +320,7 @@ public class HomePageService {
            //特价
            HomeTopicResponse specialOfferBooks = homeTopicMap.get(IndexModuleEnum.SPECIAL_OFFER_BOOKS.getCode());
            if (specialOfferBooks != null) {
-               HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize);
+               HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize, context);
                specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
                homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
            }
@@ -325,17 +335,6 @@ public class HomePageService {
            if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
                unSellWellBooks.setTitle(unSellWellBooks.getTitle());
                unSellWellBooks.setSubTitle(unSellWellBooks.getSubTitle());
-//               //获取书单信息
-//               BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
-//               bookListModelProviderRequest.setId(unSellWellBooks.getBookListModelId());
-//               BaseResponse<BookListModelProviderResponse> bookListModelProviderSimpleByIdResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest);
-//               BookListModelProviderResponse context = bookListModelProviderSimpleByIdResponse.getContext();
-//               if (context != null) {
-//                   unSellWellBooks.setTitle(context.getName());
-//                   unSellWellBooks.setSubTitle(context.getDesc());
-//               } else {
-//                   throw new SbcRuntimeException("HomePageController 书单id：" + unSellWellBooks.getBookListModelId() + "不存在");
-//               }
                BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
                        bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, null);
                List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
@@ -365,7 +364,7 @@ public class HomePageService {
      * @param pageSize
      * @return
      */
-    private HomeGoodsListSubResponse newBookList(int pageSize) {
+    private HomeGoodsListSubResponse newBookList(int pageSize, GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse) {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
@@ -381,6 +380,15 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            if (goodsBlackListPageProviderResponse.getNewBooksBlackListModel() != null) {
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList())) {
+                    esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList());
+                }
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getSecondClassifyIdList())) {
+                    Set<Integer> unClassifyIdSet = goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getSecondClassifyIdList().stream().map(Integer::parseInt).collect(Collectors.toSet());
+                    esGoodsCustomRequest.setUnClassifyIdList(unClassifyIdSet);
+                }
+            }
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             //按照更新时间排序
             sortBuilderList.add(new SortCustomBuilder("createTime", SortOrder.DESC));
@@ -410,7 +418,7 @@ public class HomePageService {
      * @param pageSize
      * @return
      */
-    private HomeGoodsListSubResponse sellWellBookList(int pageSize){
+    private HomeGoodsListSubResponse sellWellBookList(int pageSize, GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse){
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
@@ -426,6 +434,15 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            if (goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel() != null) {
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList())) {
+                    esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList());
+                }
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getSecondClassifyIdList())) {
+                    Set<Integer> unClassifyIdSet = goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getSecondClassifyIdList().stream().map(Integer::parseInt).collect(Collectors.toSet());
+                    esGoodsCustomRequest.setUnClassifyIdList(unClassifyIdSet);
+                }
+            }
             List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
             sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
@@ -453,7 +470,7 @@ public class HomePageService {
      * @param pageSize
      * @return
      */
-    private HomeGoodsListSubResponse specialOfferBookList(int pageSize){
+    private HomeGoodsListSubResponse specialOfferBookList(int pageSize, GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse){
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
@@ -469,6 +486,15 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setScriptSpecialOffer("0.5");
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            if (goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel() != null) {
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList())) {
+                    esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList());
+                }
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getSecondClassifyIdList())) {
+                    Set<Integer> unClassifyIdSet = goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getSecondClassifyIdList().stream().map(Integer::parseInt).collect(Collectors.toSet());
+                    esGoodsCustomRequest.setUnClassifyIdList(unClassifyIdSet);
+                }
+            }
             resultTmp.addAll(bookListModelAndGoodsService.listRandomEsGoodsVo(esGoodsCustomRequest, pageSize));
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式

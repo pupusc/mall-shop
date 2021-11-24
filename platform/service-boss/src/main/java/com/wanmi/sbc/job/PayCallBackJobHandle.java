@@ -101,7 +101,9 @@ public class PayCallBackJobHandle extends IJobHandler {
                     String endTime = paramStrArr[1];
                     payCallBackResultPageRequest.setCreateTimeEnd(LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 } else {
-                    payCallBackResultPageRequest.setCreateTimeEnd(LocalDateTime.now().minusMinutes(30));
+                    LocalDateTime now = LocalDateTime.now();
+                    payCallBackResultPageRequest.setCreateTimeBegin(now.minusHours(24));
+                    payCallBackResultPageRequest.setCreateTimeEnd(now.minusMinutes(30));
                 }
             } else if(type.equals(FAILED)){
                 //查询处理失败的支付回调记录，并且失败的次数《=5次
