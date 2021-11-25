@@ -1171,8 +1171,6 @@ public class TradeBaseController {
             }
         }
         if (CollectionUtils.isNotEmpty(tradeMarketingList)) {
-            // 如果有积分换购活动，设置一下定价
-            boolean hasPointMarketing = false;
             Iterator<TradeMarketingDTO> it = tradeMarketingList.iterator();
             Long currentPoint = -1L;
             while (it.hasNext()){
@@ -1185,18 +1183,15 @@ public class TradeBaseController {
                     }
                     if(currentPoint == null || currentPoint < tradeMarketingDTO.getPointNeed()){
                         it.remove();
-                    }else{
-                        hasPointMarketing = true;
                     }
                 }
             }
-            if(hasPointMarketing){
-                for (TradeItemDTO tradeItem : tradeItems) {
-                    BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
-                    if(priceByGoodsId.getContext() != null){
-                        tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
-                    }
-                }
+        }
+        // 结算页要显示定价
+        for (TradeItemDTO tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+            if(priceByGoodsId.getContext() != null){
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
         }
         return tradeItemProvider.snapshot(

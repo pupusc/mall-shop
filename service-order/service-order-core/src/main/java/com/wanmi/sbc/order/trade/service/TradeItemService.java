@@ -737,20 +737,12 @@ public class TradeItemService {
          */
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
 
-        List<TradeMarketingDTO> tradeMarketingList1 = request.getTradeMarketingList();
-        if(CollectionUtils.isNotEmpty(tradeMarketingList1)){
-            for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList1) {
-                if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType() == 10){
-                    for (TradeItem tradeItem : tradeItems) {
-                        BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
-                        if(priceByGoodsId.getContext() != null){
-                            tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
-                        }
-                    }
-                }
+        for (TradeItem tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+            if(priceByGoodsId.getContext() != null){
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
         }
-
         List<TradeItemDTO> tradeItemDTOs = KsBeanUtil.convert(tradeItems, TradeItemDTO.class);
         TradeItemSnapshotRequest snapshotRequest = TradeItemSnapshotRequest.builder().customerId(customerId).pointGoodsFlag(true)
                 .tradeItems(tradeItemDTOs)
