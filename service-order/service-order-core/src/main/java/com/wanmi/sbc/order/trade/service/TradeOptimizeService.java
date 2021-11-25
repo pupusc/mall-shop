@@ -159,9 +159,7 @@ public class TradeOptimizeService {
             if(pointBuyLevel.getContext() == null){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
-            if(tradeCommitRequest.getPoints() == null || !pointBuyLevel.getContext().getPointNeed().equals(tradeCommitRequest.getPoints().intValue())){
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
-            }
+            tradeCommitRequest.setPoints(pointBuyLevel.getContext().getPointNeed().longValue());
         }
         // 组合购标记
         boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE, s.getSuitMarketingFlag()));
