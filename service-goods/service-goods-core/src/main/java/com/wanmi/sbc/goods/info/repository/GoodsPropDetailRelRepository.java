@@ -25,8 +25,8 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
     @Query(value = " from GoodsPropDetailRel a where a.goodsId= ?1 and delFlag = 0")
     List<GoodsPropDetailRel> queryByGoodsId(String goodsId);
 
-    @Query(value = "select r.* from goods_prop as gp join goods_prop_detail_rel as r on r.prop_id=gp.prop_id where gp.prop_name='定价' and r.goods_id=?1", nativeQuery = true)
-    GoodsPropDetailRel findPriceByGoodsId(String goodsId);
+    @Query(value = "select r.* from goods_prop as gp join goods_prop_detail_rel as r on r.prop_id=gp.prop_id join goods_info as g on r.goods_id=g.goods_id where gp.prop_name='定价' and g.goods_info_id=?1", nativeQuery = true)
+    GoodsPropDetailRel findPriceByGoodsId(String goodsInfoId);
 
     @Query
     List<GoodsPropDetailRel> findAllByPropId(Long propId);

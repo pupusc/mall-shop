@@ -2541,30 +2541,30 @@ public class PurchaseService {
         MarketInfoForPurchaseResponse marketResp = marketingCommonQueryProvider.queryInfoForPurchase(
                 new InfoForPurchseRequest(marketingInfos, customer, goodsResp.getLevelsMap())).getContext();
 
-        Long currentPoint = -1L;
-        List<GoodsInfoMarketingVO> goodsMarketings = marketResp.getGoodsInfos();
-        for (GoodsInfoMarketingVO goodsMarketing : goodsMarketings) {
-            // 用户积分不足、商品大于一件、未登录的情况，去掉积分换购活动
-            List<MarketingViewVO> marketingViewList = goodsMarketing.getMarketingViewList();
-            if(CollectionUtils.isNotEmpty(marketingViewList)){
-                Iterator<MarketingViewVO> it = marketingViewList.iterator();
-                while (it.hasNext()) {
-                    MarketingViewVO marketingViewVO = it.next();
-                    if(MarketingSubType.POINT_BUY.equals(marketingViewVO.getSubType())){
-                        if(customer == null || productMoreThanOne){
-                            it.remove();
-                            continue;
-                        }
-                        if(currentPoint == -1){
-                            currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(customer.getFanDengUserNo()).build()).getContext().getCurrentPoint();
-                        }
-                        if(currentPoint == null || currentPoint < marketingViewVO.getPointBuyLevelList().get(0).getPointNeed()){
-                            it.remove();
-                        }
-                    }
-                }
-            }
-        }
+//        Long currentPoint = -1L;
+//        List<GoodsInfoMarketingVO> goodsMarketings = marketResp.getGoodsInfos();
+//        for (GoodsInfoMarketingVO goodsMarketing : goodsMarketings) {
+//            // 用户积分不足、商品大于一件、未登录的情况，去掉积分换购活动
+//            List<MarketingViewVO> marketingViewList = goodsMarketing.getMarketingViewList();
+//            if(CollectionUtils.isNotEmpty(marketingViewList)){
+//                Iterator<MarketingViewVO> it = marketingViewList.iterator();
+//                while (it.hasNext()) {
+//                    MarketingViewVO marketingViewVO = it.next();
+//                    if(MarketingSubType.POINT_BUY.equals(marketingViewVO.getSubType())){
+//                        if(customer == null || productMoreThanOne){
+//                            it.remove();
+//                            continue;
+//                        }
+//                        if(currentPoint == -1){
+//                            currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(customer.getFanDengUserNo()).build()).getContext().getCurrentPoint();
+//                        }
+//                        if(currentPoint == null || currentPoint < marketingViewVO.getPointBuyLevelList().get(0).getPointNeed()){
+//                            it.remove();
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         // 营销优先级过滤
         boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();

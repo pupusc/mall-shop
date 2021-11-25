@@ -1189,7 +1189,7 @@ public class TradeBaseController {
         }
         // 结算页要显示定价
         for (TradeItemDTO tradeItem : tradeItems) {
-            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if(priceByGoodsId.getContext() != null){
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }

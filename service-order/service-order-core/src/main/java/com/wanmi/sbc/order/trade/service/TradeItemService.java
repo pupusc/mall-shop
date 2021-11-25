@@ -738,7 +738,7 @@ public class TradeItemService {
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
 
         for (TradeItem tradeItem : tradeItems) {
-            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if(priceByGoodsId.getContext() != null){
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
