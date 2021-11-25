@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -735,6 +736,20 @@ public class TradeItemService {
          *  校验预售活动资格，初始化价格
          */
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
+
+        List<TradeMarketingDTO> tradeMarketingList1 = request.getTradeMarketingList();
+        if(CollectionUtils.isNotEmpty(tradeMarketingList1)){
+            for (TradeMarketingDTO tradeMarketingDTO : tradeMarketingList1) {
+                if(tradeMarketingDTO.getMarketingSubType() != null && tradeMarketingDTO.getMarketingSubType() == 10){
+                    for (TradeItem tradeItem : tradeItems) {
+                        BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSpuId());
+                        if(priceByGoodsId.getContext() != null){
+                            tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+                        }
+                    }
+                }
+            }
+        }
 
         List<TradeItemDTO> tradeItemDTOs = KsBeanUtil.convert(tradeItems, TradeItemDTO.class);
         TradeItemSnapshotRequest snapshotRequest = TradeItemSnapshotRequest.builder().customerId(customerId).pointGoodsFlag(true)

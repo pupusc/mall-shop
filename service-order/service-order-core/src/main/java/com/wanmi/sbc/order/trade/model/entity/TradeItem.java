@@ -570,4 +570,9 @@ public class TradeItem implements Serializable, Cloneable {
     @ApiModelProperty("成本价")
     private BigDecimal costPrice;
 
+    /**
+     * 商品属性的定价
+     */
+    private Double propPrice;
+
 }
