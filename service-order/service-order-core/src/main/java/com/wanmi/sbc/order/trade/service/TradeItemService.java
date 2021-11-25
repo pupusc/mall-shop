@@ -612,6 +612,19 @@ public class TradeItemService {
         String customerId = request.getCustomerId();
         String inviteeId = request.getInviteeId();
 
+        // 积分换购活动只能一件商品
+        List<TradeMarketingDTO> tradeMarketingList1 = request.getTradeMarketingList();
+        Iterator<TradeMarketingDTO> it = tradeMarketingList1.iterator();
+        while (it.hasNext()) {
+            TradeMarketingDTO next = it.next();
+            if(next.getMarketingSubType() != null && next.getMarketingSubType() == 10){
+                if(request.getTradeItems().size() > 1 || request.getTradeItems().get(0).getNum() > 1){
+                    request.setTradeMarketingList(new ArrayList<>());
+                    break;
+                }
+            }
+        }
+
         //查询是否购买付费会员卡
         List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
                 .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
