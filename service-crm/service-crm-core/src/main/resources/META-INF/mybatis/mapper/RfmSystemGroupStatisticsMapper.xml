@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.crm.rfmgroupstatistics.mapper.RfmSystemGroupStatisticsMapper">
+    <resultMap id="BaseResultMap" type="com.wanmi.sbc.crm.rfmgroupstatistics.model.RfmSystemGroupStatistics">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="customer_num" jdbcType="INTEGER" property="customerNum"/>
+        <result column="uv_num" jdbcType="INTEGER" property="uvNum"/>
+        <result column="trade_num" jdbcType="INTEGER" property="tradeNum"/>
+        <result column="system_group_id" jdbcType="BIGINT" property="systemGroupId"/>
+        <result column="stat_date" jdbcType="DATE" property="statDate"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="RfmGroupStatisticsDataResultMap" type="com.wanmi.sbc.crm.bean.vo.RfmgroupstatisticsDataVo">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="groupId" jdbcType="BIGINT" property="groupId"/>
+        <result column="groupName" jdbcType="VARCHAR" property="groupName" />
+        <result column="groupDefinition" jdbcType="VARCHAR" property="groupDefinition" />
+        <result column="groupAdvise" jdbcType="VARCHAR" property="groupAdvise" />
+        <result column="customerNum" jdbcType="INTEGER" property="customerNum"/>
+        <result column="uvNum" jdbcType="INTEGER" property="uvNum"/>
+        <result column="tradeNum" jdbcType="INTEGER" property="tradeNum"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, customer_num, uv_num, trade_num, system_group_id, stat_date, create_time
+  </sql>
+    <insert id="saveSystemGroupStatistics"
+            parameterType="com.wanmi.sbc.crm.api.request.rfmgroupstatistics.RfmGroupStatisticsRequest">
+    insert into rfm_system_group_statistics (customer_num, uv_num,
+      trade_num, system_group_id, stat_date,
+      create_time)
+    SELECT
+        sum( result.customer_num ) AS customer_num,
+        sum( result.uv_num ) AS uv_num,
+        sum( result.trade_num ) AS trade_num,
+        result.system_group_id AS system_group_id,
+        #{statDate} AS stat_date,
+        now( ) AS create_time
+    FROM
+      (
+        SELECT
+            count( DISTINCT ( rcd.customer_id ) ) AS customer_num,
+            0 AS uv_num,
+            0 AS trade_num,
+            rcd.system_group_id AS system_group_id
+        FROM
+            rfm_customer_detail rcd
+            LEFT JOIN rfm_system_group rsg ON rcd.system_group_id = rsg.id
+        where rcd.stat_date = #{statDate}
+        GROUP BY
+            rcd.system_group_id UNION
+        SELECT
+            0 AS customer_num,
+            count( DISTINCT ( rcd.customer_id ) ) AS uv_num,
+            0 AS trade_num,
+            rcd.system_group_id AS system_group_id
+        FROM
+            rfm_customer_detail rcd
+            INNER JOIN ${aresDB}replay_flow_day_user_info u ON u.user_id = rcd.customer_id
+            where rcd.stat_date = #{statDate} and u.flow_date = #{statDate}
+        GROUP BY
+            rcd.system_group_id UNION
+        SELECT
+            0 AS customer_num,
+            0 AS uv_num,
+            count( DISTINCT ( rcd.customer_id ) ) AS trade_num,
+            rcd.system_group_id AS system_group_id
+        FROM
+            rfm_customer_detail rcd
+            INNER JOIN ${aresDB}replay_trade rt ON rt.customer_id = rcd.customer_id
+        where rcd.stat_date = #{statDate} and rt.pay_state = 2 and rt.pay_time >= #{beginTime} and rt.pay_time <![CDATA[ <= ]]>  #{endTime}
+        GROUP BY
+            rcd.system_group_id
+	) result
+    GROUP BY result.system_group_id
+  </insert>
+    <select id="queryRfmGroupStatisticsDataPage"
+            parameterType="com.wanmi.sbc.crm.api.request.rfmgroupstatistics.RfmGroupStatisticsPageRequest"
+            resultMap="RfmGroupStatisticsDataResultMap">
+       SELECT
+            rsgs.id as id,
+            rsgs.system_group_id as groupId,
+            rsg.name as groupName,
+            rsg.definition as groupDefinition,
+            rsg.advise as groupAdvise,
+            rsgs.customer_num as customerNum,
+            rsgs.uv_num as uvNum,
+            rsgs.trade_num as tradeNum
+        FROM
+            rfm_system_group_statistics rsgs
+            RIGHT JOIN rfm_system_group rsg ON rsg.id = rsgs.system_group_id
+        WHERE
+            rsgs.stat_date = #{statDate}
+        order by rsg.id
+    </select>
+    <select id="queryRfmGroupStatisticsDataList"
+            parameterType="com.wanmi.sbc.crm.api.request.rfmgroupstatistics.RfmGroupStatisticsPageRequest"
+            resultMap="RfmGroupStatisticsDataResultMap">
+
+        SELECT
+            rsgs.id as id,
+            rsg.id as groupId,
+            rsg.name as groupName,
+            rsg.definition as groupDefinition,
+            rsg.advise as groupAdvise,
+            ifnull(rsgs.customer_num,0) as customerNum,
+            ifnull(rsgs.uv_num,0) as uvNum,
+            ifnull(rsgs.trade_num,0) as tradeNum
+        FROM rfm_system_group rsg left JOIN
+        (
+            select
+                id,system_group_id,customer_num,uv_num,trade_num
+            from rfm_system_group_statistics
+            WHERE stat_date = #{statDate}
+        )rsgs ON rsg.id = rsgs.system_group_id
+        order by rsg.id
+    </select>
+
+    <delete id="deleteSystemGroupStatistics">
+        delete from rfm_system_group_statistics where stat_date = #{statDate}
+    </delete>
+</mapper>

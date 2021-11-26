@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.crm.customgroup.mapper.CustomerBaseInfoMapper">
+  <resultMap id="BaseResultMap" type="com.wanmi.sbc.crm.customgroup.model.CustomerBaseInfo">
+    <id column="customer_id" jdbcType="VARCHAR" property="customerId" />
+    <result column="province_id" jdbcType="BIGINT" property="provinceId" />
+    <result column="city_id" jdbcType="BIGINT" property="cityId" />
+    <result column="area_id" jdbcType="BIGINT" property="areaId" />
+    <result column="growth_value" jdbcType="BIGINT" property="growthValue" />
+    <result column="customer_level_id" jdbcType="BIGINT" property="customerLevelId" />
+    <result column="points" jdbcType="BIGINT" property="points" />
+    <result column="account_balance" jdbcType="DECIMAL" property="accountBalance" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    customer_id, province_id, city_id, area_id, growth_value, customer_level_id, points, 
+    account_balance, create_time
+  </sql>
+  <sql id="selectSql">
+    select
+      c.customer_id customerId,
+      cd.province_id provinceId,
+      cd.city_id cityId,
+      cd.area_id aresId,
+      ifnull(c.points_available,0) points,
+      ifnull(c.customer_level_id,0) customerLevelId,
+      ifnull(c.growth_value,0) growthValue,
+      ifnull(cf.account_balance,0) accountBalance,
+      cd.birth_day birth_day,
+      cd.gender gender,
+      c.create_time register_time
+    from ${aresDB} replay_customer c
+    left join ${aresDB} replay_customer_detail cd on(c.customer_id=cd.customer_id)
+    left join ${aresDB} replay_customer_funds cf on(c.customer_id=cf.customer_id)
+    where c.del_flag=0 and c.check_state=1
+
+
+  </sql>
+  <delete id="delete" >
+    TRUNCATE table customer_base_info
+  </delete>
+  <insert id="save" >
+    insert into ${crmDB} customer_base_info (
+      customer_id,
+      province_id,
+      city_id,
+      area_id,
+      points,
+      customer_level_id,
+      growth_value,
+      account_balance,
+      birth_day,
+      gender,
+      register_time,
+      create_time
+    )select tmp.*,now()
+    from (
+      <include refid="selectSql"/>
+    )tmp
+  </insert>
+
+  <select id="selectPhoneByCustomerId" resultType="java.lang.String">
+    select customer_account from ${aresDB} replay_customer
+    <where>
+      <if test="idList!=null and idList.size()>0 ">
+        and customer_id in
+        <foreach collection="idList" item="item" separator="," open="(" close=")" index="">
+          #{item,jdbcType=BIGINT}
+        </foreach>
+      </if>
+
+    </where>
+  </select>
+
+</mapper>
