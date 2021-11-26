@@ -199,6 +199,33 @@
         </dependencies>
     </dependencyManagement>
 
+    <modules>
+        <module>of-parent</module>
+        <module>common-service</module>
+        <module>common-config</module>
+        <module>common-osd</module>
+        <module>common-wx-pay-sdk</module>
+
+        <module>service-setting</module>
+        <module>service-vas</module>
+        <module>service-perseus</module>
+        <module>service-ares</module>
+        <module>service-erp</module>
+        <module>service-customer</module>
+        <module>service-account</module>
+        <module>service-linkedmall</module>
+        <module>service-goods</module>
+        <module>service-elastic</module>
+        <module>service-marketing</module>
+        <module>service-crm</module>
+        <module>service-message</module>
+        <module>service-pay</module>
+        <module>service-order</module>
+        <module>platform</module>
+        <module>service-dock</module>
+
+    </modules>
+
     <build>
         <pluginManagement>
             <plugins>
