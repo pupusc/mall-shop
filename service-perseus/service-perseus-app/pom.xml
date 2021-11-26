@@ -99,12 +99,12 @@
 <!--                        <version>1.2.0.RELEASE</version>-->
 <!--                    </dependency>-->
 <!--                </dependencies>-->
-<!--                <configuration>-->
+                <configuration>
 <!--                    &lt;!&ndash; 指定该Main Class为全局的唯一入口 &ndash;&gt;-->
-<!--                    <mainClass>${start-class}</mainClass>-->
-<!--                    <layout>ZIP</layout>-->
-<!--                    <fork>true</fork>-->
-<!--                </configuration>-->
+                    <mainClass>${start-class}</mainClass>
+                    <layout>ZIP</layout>
+                    <fork>true</fork>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

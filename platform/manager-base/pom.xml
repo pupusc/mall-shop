@@ -203,11 +203,11 @@
 <!--            <artifactId>service-crm-api</artifactId>-->
 <!--            <version>${wm.micro.service.crm.version}</version>-->
 <!--        </dependency>-->
-        <dependency>
-            <groupId>com.wanmi.sbc</groupId>
-            <artifactId>service-crm-api</artifactId>
-            <version>${wm.micro.service.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.wanmi.sbc</groupId>-->
+<!--            <artifactId>service-crm-api</artifactId>-->
+<!--            <version>${wm.micro.service.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-message-api</artifactId>

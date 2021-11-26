@@ -7,10 +7,10 @@
 
     <modules>
         <module>of-parent</module>
-        <module>service-common</module>
-        <module>wm-micro-service</module>
-        <module>sbc-osd</module>
-        <module>wx-pay-sdk</module>
+        <module>common-service</module>
+        <module>common-config</module>
+        <module>common-osd</module>
+        <module>common-wx-pay-sdk</module>
 
         <module>service-setting</module>
         <module>service-vas</module>
@@ -19,11 +19,11 @@
         <module>service-erp</module>
         <module>service-customer</module>
         <module>service-account</module>
-        <module>service-linkedmall</module>
+<!--        <module>service-linkedmall</module>-->
         <module>service-goods</module>
         <module>service-elastic</module>
         <module>service-marketing</module>
-        <module>service-crm</module>
+<!--        <module>service-crm</module>-->
         <module>service-message</module>
         <module>service-pay</module>
         <module>service-order</module>

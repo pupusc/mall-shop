@@ -11,11 +11,12 @@
         <groupId>com.wanmi</groupId>
         <artifactId>parent</artifactId>
         <version>2.2.4-RELEASE</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <properties>
         <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
-        <wm.micro.service.crm.version>4.1.5-RELEASE</wm.micro.service.crm.version>
+<!--        <wm.micro.service.crm.version>4.1.5-RELEASE</wm.micro.service.crm.version>-->
 
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
 
@@ -36,50 +37,50 @@
         <classmate.version>1.3.4</classmate.version>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <username>${git.username}</username>
-                    <password>${git.password}</password>
-                    <tagNameFormat>sbc-platform-v@{project.version}</tagNameFormat>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>true</skipTests>
-                    <testFailureIgnore>true</testFailureIgnore>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                    <doclint>none</doclint>
-                    <failOnError>false</failOnError>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <addMavenDescriptor>false</addMavenDescriptor>-->
+<!--                    </archive>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-source-plugin</artifactId>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-release-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <username>${git.username}</username>-->
+<!--                    <password>${git.password}</password>-->
+<!--                    <tagNameFormat>sbc-platform-v@{project.version}</tagNameFormat>-->
+<!--                    <autoVersionSubmodules>true</autoVersionSubmodules>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-surefire-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <skipTests>true</skipTests>-->
+<!--                    <testFailureIgnore>true</testFailureIgnore>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <skip>true</skip>-->
+<!--                    <doclint>none</doclint>-->
+<!--                    <failOnError>false</failOnError>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
 <!--    <scm>-->
 <!--        <connection>scm:git:http://172.19.25.151/b2b/sbc-platform.git</connection>-->
 <!--        <developerConnection>scm:git:http://172.19.25.151/b2b/sbc-platform.git</developerConnection>-->
@@ -193,7 +194,7 @@
 
     <modules>
         <module>web-base</module>
-        <module>web-pc</module>
+<!--        <module>web-pc</module>-->
 
         <module>service-provider</module>
 
