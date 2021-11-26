@@ -31,6 +31,8 @@ import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.util.DateUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/index")
+@Slf4j
 public class IndexHomeController {
 
 
@@ -165,9 +168,14 @@ public class IndexHomeController {
     public BaseResponse<Boolean> isActivity() {
         String dateStartStr = refreshConfig.getActivityStartTime();
         String dateEndStr = refreshConfig.getActivityEndTime();
-        Date dateStr = DateUtil.parseDateTime(dateStartStr);
-        Date dateEnd = DateUtil.parseDateTime(dateEndStr);
-        return BaseResponse.success(new Date().after(dateStr) && new Date().before(dateEnd));
+        try {
+            Date dateStr = DateUtil.parse(dateStartStr);
+            Date dateEnd = DateUtil.parse(dateEndStr);
+            return BaseResponse.success(new Date().after(dateStr) && new Date().before(dateEnd));
+        } catch (Exception ex) {
+            log.error("IndexHomeController.isActivity error", ex);
+        }
+        return BaseResponse.FAILED();
     }
 
 
