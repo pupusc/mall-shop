@@ -108,7 +108,21 @@ public class TopicService {
         queryRequest.setVendibility(Constants.yes);
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
-        return bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
+        List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
+        for (EsGoodsVO goodsVo : esGoodsVOS) {
+            Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
+            if(goodsCustom.isPresent()) {
+                goodsVo.getGoodsInfos().forEach(p -> {
+                    GoodsCustomResponse goods = goodsCustom.get();
+                    goods.setGoodsInfoId(p.getGoodsInfoId());
+                    goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                    goodList.add(goods);
+                });
+            }
+
+        }
+        return goodList;
+
     }
 
 }
