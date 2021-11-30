@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -50,4 +51,7 @@ public interface GoodsIntervalPriceProvider {
     @PostMapping("/goods/${application.goods.version}/price/interval/put-goods-and-sku")
     BaseResponse<GoodsIntervalPriceByGoodsAndSkuResponse> putGoodsAndSku(
             @RequestBody @Valid GoodsIntervalPriceByGoodsAndSkuRequest request);
+
+    @PostMapping("/goods/${application.goods.version}/price/propPrice")
+    BaseResponse<String> findPriceByGoodsId(@RequestParam("spuId") String goodsId);
 }

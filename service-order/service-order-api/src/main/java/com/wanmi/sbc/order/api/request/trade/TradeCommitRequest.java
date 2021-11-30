@@ -186,4 +186,10 @@ public class TradeCommitRequest extends BaseRequest {
      * 推广人用户id
      */
     private String source;
+
+    /**
+     * 是否参加积分换购活动
+     * 0-否 1-是
+     */
+    private Integer joinPointMarketing;
 }

@@ -23,6 +23,8 @@ import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.price.model.root.GoodsIntervalPrice;
 import com.wanmi.sbc.goods.price.service.GoodsIntervalPriceService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,6 +60,9 @@ public class GoodsIntervalPriceController implements GoodsIntervalPriceProvider 
 
     @Autowired
     private StoreCustomerQueryProvider storeCustomerQueryProvider;
+
+    @Autowired
+    private GoodsPropDetailRelRepository goodsPropDetailRelRepository;
 
     /**
      * 为每个SKU填充区间价范围值intervalMinPrice,intervalMaxPrice,intervalPriceIds，并返回相应区间价结果
@@ -149,5 +154,13 @@ public class GoodsIntervalPriceController implements GoodsIntervalPriceProvider 
         }
         response.setGoodsIntervalPriceVOList(KsBeanUtil.convert(goodsIntervalPriceList, GoodsIntervalPriceVO.class));
         return BaseResponse.success(response);
+    }
+
+    public BaseResponse<String> findPriceByGoodsId(String goodsId){
+        GoodsPropDetailRel rel = goodsPropDetailRelRepository.findPriceByGoodsId(goodsId);
+        if(rel != null){
+            return BaseResponse.success(rel.getPropValue());
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 }

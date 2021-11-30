@@ -11,11 +11,13 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
+import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.company.CompanyInfoQueryByIdsRequest;
 import com.wanmi.sbc.customer.api.request.company.CompanyListRequest;
 import com.wanmi.sbc.customer.api.request.enterpriseinfo.EnterpriseInfoByCustomerIdRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
@@ -233,10 +235,8 @@ public class PurchaseService {
     @Autowired
     private ThirdAddressQueryProvider thirdAddressQueryProvider;
 
-
     @Autowired
     private TradeCacheService tradeCacheService;
-
 
     @Autowired
     private GoodsInfoMapper goodsInfoMapper;
@@ -255,9 +255,10 @@ public class PurchaseService {
 
     @Autowired
     private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
-
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+    @Autowired
+    private ExternalProvider externalProvider;
 
     /**
      * 新增采购单
@@ -2474,13 +2475,19 @@ public class PurchaseService {
         Map<String, Long> buyCountMap = new HashMap<>();
         // 1.登录的情况，查询采购单信息
         List<PurchaseVO> purchaseList = null;
+        boolean productMoreThanOne = false;
         if (Objects.nonNull(customer)) {
             purchaseList = KsBeanUtil.convertList(this.queryPurchase(customer.getCustomerId(), null, request.getInviteeId()), PurchaseVO.class);
-            purchaseList.forEach(purchase -> {
-                goodsInfoIds.add(purchase.getGoodsInfoId());
-                buyCountMap.put(purchase.getGoodsInfoId(), purchase.getGoodsNum());
-            });
-
+            if(purchaseList.size() > 1){
+                productMoreThanOne = true;
+            }
+            for (PurchaseVO purchaseVO : purchaseList) {
+                goodsInfoIds.add(purchaseVO.getGoodsInfoId());
+                buyCountMap.put(purchaseVO.getGoodsInfoId(), purchaseVO.getGoodsNum());
+                if(purchaseVO.getGoodsNum() > 1){
+                    productMoreThanOne = true;
+                }
+            }
             request.setGoodsInfoIds(goodsInfoIds);
 
             if (CollectionUtils.isEmpty(request.getGoodsInfoIds())) {
@@ -2494,7 +2501,6 @@ public class PurchaseService {
         }
 
         // 2.查询商品、店铺、营销相关信息
-        //todo 考虑未登录情况 by wugongjiang
         GoodsInfoForPurchaseResponse goodsResp = goodsCommonQueryProvider.queryInfoForPurchase(
                 InfoForPurchaseRequest.builder().goodsInfoIds(request.getGoodsInfoIds()).customer(customer).areaId(request.getAreaId()).build()).getContext();
         if (CollectionUtils.isEmpty(goodsResp.getGoodsList())) return response;
@@ -2527,7 +2533,6 @@ public class PurchaseService {
         List<GoodsVO> goodsList = goodsResp.getGoodsList();
         goodsList = goodsList.stream().sorted(Comparator.comparingInt(a -> goodsIds.indexOf(a.getGoodsId()))).collect(Collectors.toList());
 
-
         List<Long> companyIds = goodsList.stream().map(GoodsVO::getCompanyInfoId).distinct().collect(Collectors.toList());
         List<Long> storeIds = goodsList.stream().map(GoodsVO::getStoreId).distinct().collect(Collectors.toList());
         ListCompanyStoreByCompanyIdsResponse storeResp = tradeCacheService.listCompanyStoreByCompanyIds(companyIds, storeIds);
@@ -2536,12 +2541,36 @@ public class PurchaseService {
         List<MiniCompanyInfoVO> companyInfoVOList = storeResp.getCompanyInfoVOList();
         companyInfoVOList = companyInfoVOList.stream().sorted(Comparator.comparingInt(a -> companyIds.indexOf(a.getCompanyInfoId()))).collect(Collectors.toList());
 
-
         List<GoodsInfoMarketingVO> marketingInfos = goodsInfoList.stream().map(i ->
                 GoodsInfoMarketingVO.builder().storeId(i.getStoreId()).goodsInfoId(i.getGoodsInfoId()).distributionGoodsAudit(i.getDistributionGoodsAudit()).build()
         ).collect(Collectors.toList());
         MarketInfoForPurchaseResponse marketResp = marketingCommonQueryProvider.queryInfoForPurchase(
                 new InfoForPurchseRequest(marketingInfos, customer, goodsResp.getLevelsMap())).getContext();
+
+//        Long currentPoint = -1L;
+//        List<GoodsInfoMarketingVO> goodsMarketings = marketResp.getGoodsInfos();
+//        for (GoodsInfoMarketingVO goodsMarketing : goodsMarketings) {
+//            // 用户积分不足、商品大于一件、未登录的情况，去掉积分换购活动
+//            List<MarketingViewVO> marketingViewList = goodsMarketing.getMarketingViewList();
+//            if(CollectionUtils.isNotEmpty(marketingViewList)){
+//                Iterator<MarketingViewVO> it = marketingViewList.iterator();
+//                while (it.hasNext()) {
+//                    MarketingViewVO marketingViewVO = it.next();
+//                    if(MarketingSubType.POINT_BUY.equals(marketingViewVO.getSubType())){
+//                        if(customer == null || productMoreThanOne){
+//                            it.remove();
+//                            continue;
+//                        }
+//                        if(currentPoint == -1){
+//                            currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(customer.getFanDengUserNo()).build()).getContext().getCurrentPoint();
+//                        }
+//                        if(currentPoint == null || currentPoint < marketingViewVO.getPointBuyLevelList().get(0).getPointNeed()){
+//                            it.remove();
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         // 营销优先级过滤
         boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();
