@@ -463,6 +463,13 @@ public class BookListModelAndGoodsService {
                     esGoodsCustomResponse.setElementThree(goodsInfoVO.getElementThree());
                     esGoodsCustomResponse.setElementTwo(goodsInfoVO.getElementTwo());
                     esGoodsCustomResponse.setElementOne(goodsInfoVO.getElementOne());
+                }else{
+                    esGoodsCustomResponse.setImageUrl(null);
+                    esGoodsCustomResponse.setAtmosType(null);
+                    esGoodsCustomResponse.setElementFour(null);
+                    esGoodsCustomResponse.setElementThree(null);
+                    esGoodsCustomResponse.setElementTwo(null);
+                    esGoodsCustomResponse.setElementOne(null);
                 }
             }
         }

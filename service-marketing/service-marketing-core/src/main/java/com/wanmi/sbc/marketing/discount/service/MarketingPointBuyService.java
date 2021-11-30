@@ -30,8 +30,7 @@ public class MarketingPointBuyService {
     public void addPointBuyDiscount(MarketingPointBuySaveRequest request) throws SbcRuntimeException {
         List<MarketingPointBuyLevel> marketingPointBuyLevel1 = request.getMarketingPointBuyLevel();
         for (MarketingPointBuyLevel marketingPointBuyLevel : marketingPointBuyLevel1) {
-            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null
-                    || marketingPointBuyLevel.getPrice() == null){
+            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
         }
@@ -60,8 +59,7 @@ public class MarketingPointBuyService {
         }
         List<MarketingPointBuyLevel> marketingPointBuyLevel1 = request.getMarketingPointBuyLevel();
         for (MarketingPointBuyLevel marketingPointBuyLevel : marketingPointBuyLevel1) {
-            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null
-                || marketingPointBuyLevel.getPrice() == null){
+            if(marketingPointBuyLevel.getMoney() == null || marketingPointBuyLevel.getPointNeed() == null || marketingPointBuyLevel.getSkuId() == null){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "参数错误");
             }
         }

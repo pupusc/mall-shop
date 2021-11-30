@@ -179,6 +179,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private BigDecimal price;
 
     /**
+     * 商品属性的定价
+     */
+    private Double propPrice;
+
+    /**
      * 定金
      */
     @ApiModelProperty(value = "定金")
@@ -575,6 +580,7 @@ public class TradeItemVO implements Serializable, Cloneable {
         @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
         @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
         private LocalDateTime exchangeEndTime;
+
     }
     /**
      * 优惠券优惠商品结算Bean
@@ -616,5 +622,6 @@ public class TradeItemVO implements Serializable, Cloneable {
          */
         @ApiModelProperty(value = "优惠金额")
         private BigDecimal reducePrice;
+
     }
 }

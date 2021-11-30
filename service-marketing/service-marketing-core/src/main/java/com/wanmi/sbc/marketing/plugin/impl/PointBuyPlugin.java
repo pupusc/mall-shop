@@ -129,7 +129,7 @@ public class PointBuyPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITr
         response.setTradeMarketing(TradeMarketing.builder()
                 .marketingPointBuyLevel(level)
                 .discountsAmount(price.subtract(BigDecimal.valueOf(level.getMoney())).subtract(pointMoney))
-                .realPayAmount(BigDecimal.valueOf(level.getMoney()))
+                .realPayAmount(BigDecimal.valueOf(level.getMoney()).add(pointMoney))
                 .marketingId(marketing.getMarketingId())
                 .marketingName(marketing.getMarketingName())
                 .marketingType(marketing.getMarketingType())

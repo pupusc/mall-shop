@@ -108,38 +108,21 @@ public class TopicService {
         queryRequest.setVendibility(Constants.yes);
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
-        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
-        Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        List<GoodsInfoNestVO> goodsInfoVOList =  esGoodsVOS.stream().map(EsGoodsVO::getGoodsInfos)
-                .flatMap(Collection::stream).filter(p->goodsInfoIds.contains(p.getGoodsInfoId())).collect(Collectors.toList());
-        List<GoodsInfoVO> goodsInfoVOS = KsBeanUtil.convertList(goodsInfoVOList,GoodsInfoVO.class);
+        List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
-            GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
-                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOS);
-            goodsVo.getGoodsInfos().forEach(p->{
-                GoodsCustomResponse goods = KsBeanUtil.convert(goodsCustom,GoodsCustomResponse.class);
-                goods.setGoodsInfoId(p.getGoodsInfoId());
-                goods.setGoodsInfoNo(p.getGoodsInfoNo());
-                if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
-                    goods.setAtmosType(p.getAtmosType());
-                    goods.setImageUrl(p.getImageUrl());
-                    goods.setElementOne(p.getElementOne());
-                    goods.setElementTwo(p.getElementTwo());
-                    goods.setElementThree(p.getElementThree());
-                    goods.setElementFour(p.getElementFour());
-                }else{
-                    goods.setAtmosType(null);
-                    goods.setImageUrl(null);
-                    goods.setElementOne(null);
-                    goods.setElementTwo(null);
-                    goods.setElementThree(null);
-                    goods.setElementFour(null);
-                }
-                goodList.add(goods);
-            });
+            Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
+            if(goodsCustom.isPresent()) {
+                goodsVo.getGoodsInfos().forEach(p -> {
+                    GoodsCustomResponse goods = goodsCustom.get();
+                    goods.setGoodsInfoId(p.getGoodsInfoId());
+                    goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                    goodList.add(goods);
+                });
+            }
 
         }
         return goodList;
+
     }
 
 }

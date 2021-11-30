@@ -163,6 +163,11 @@ public class TradeItem implements Serializable, Cloneable {
     private BigDecimal price;
 
     /**
+     * 商品属性的定价
+     */
+    private Double propPrice;
+
+    /**
      * 定金
      */
     private BigDecimal earnestPrice;

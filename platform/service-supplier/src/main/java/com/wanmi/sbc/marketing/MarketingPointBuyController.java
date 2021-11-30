@@ -51,6 +51,7 @@ public class MarketingPointBuyController {
     @RequestMapping(method = RequestMethod.PUT)
     public BaseResponse modify(@RequestBody MarketingPointBuyAddRequest request) {
         request.setUpdatePerson(commonUtil.getOperatorId());
+        request.setStoreId(commonUtil.getStoreIdWithDefault());
         marketingPointBuyProvider.update(request);
         return BaseResponse.SUCCESSFUL();
     }
