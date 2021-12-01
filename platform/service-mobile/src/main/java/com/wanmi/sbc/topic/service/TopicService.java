@@ -113,9 +113,29 @@ public class TopicService {
             Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
             if(goodsCustom.isPresent()) {
                 goodsVo.getGoodsInfos().forEach(p -> {
-                    GoodsCustomResponse goods = KsBeanUtil.convert(goodsCustom,GoodsCustomResponse.class);
+                    GoodsCustomResponse goods = new GoodsCustomResponse();
+                    goods.setGoodsId(goodsCustom.get().getGoodsId());
+                    goods.setGoodsNo(goodsCustom.get().getGoodsNo());
                     goods.setGoodsInfoId(p.getGoodsInfoId());
                     goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                    goods.setGoodsName(goodsCustom.get().getGoodsName());
+                    goods.setGoodsSubName(goodsCustom.get().getGoodsSubName());
+                    goods.setGoodsCoverImg(goodsCustom.get().getGoodsCoverImg());
+                    goods.setGoodsUnBackImg(goodsCustom.get().getGoodsUnBackImg());
+                    goods.setCpsSpecial(goodsCustom.get().getCpsSpecial());
+                    goods.setShowPrice(goodsCustom.get().getShowPrice());
+                    goods.setLinePrice(goodsCustom.get().getLinePrice());
+                    goods.setMarketingPrice(goodsCustom.get().getMarketingPrice());
+                    goods.setCouponLabelList(goodsCustom.get().getCouponLabelList());
+                    goods.setGoodsLabelList(goodsCustom.get().getGoodsLabelList());
+                    goods.setGoodsScore(goodsCustom.get().getGoodsScore());
+                    goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
+                    goods.setImageUrl(goodsCustom.get().getImageUrl());
+                    goods.setAtmosType(goodsCustom.get().getAtmosType());
+                    goods.setElementOne(goodsCustom.get().getElementOne());
+                    goods.setElementTwo(goodsCustom.get().getElementTwo());
+                    goods.setElementThree(goodsCustom.get().getElementThree());
+                    goods.setElementFour(goodsCustom.get().getElementFour());
                     goodList.add(goods);
                 });
             }
