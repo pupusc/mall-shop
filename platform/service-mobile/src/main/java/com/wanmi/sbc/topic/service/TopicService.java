@@ -113,7 +113,7 @@ public class TopicService {
             Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
             if(goodsCustom.isPresent()) {
                 goodsVo.getGoodsInfos().forEach(p -> {
-                    GoodsCustomResponse goods = goodsCustom.get();
+                    GoodsCustomResponse goods = KsBeanUtil.convert(goodsCustom,GoodsCustomResponse.class);
                     goods.setGoodsInfoId(p.getGoodsInfoId());
                     goods.setGoodsInfoNo(p.getGoodsInfoNo());
                     goodList.add(goods);
