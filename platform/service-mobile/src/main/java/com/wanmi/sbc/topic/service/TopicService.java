@@ -113,9 +113,38 @@ public class TopicService {
             Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
             if(goodsCustom.isPresent()) {
                 goodsVo.getGoodsInfos().forEach(p -> {
-                    GoodsCustomResponse goods = goodsCustom.get();
+                    GoodsCustomResponse goods = new GoodsCustomResponse();
+                    goods.setGoodsId(goodsCustom.get().getGoodsId());
+                    goods.setGoodsNo(goodsCustom.get().getGoodsNo());
                     goods.setGoodsInfoId(p.getGoodsInfoId());
                     goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                    goods.setGoodsName(goodsCustom.get().getGoodsName());
+                    goods.setGoodsSubName(goodsCustom.get().getGoodsSubName());
+                    goods.setGoodsCoverImg(goodsCustom.get().getGoodsCoverImg());
+                    goods.setGoodsUnBackImg(goodsCustom.get().getGoodsUnBackImg());
+                    goods.setCpsSpecial(goodsCustom.get().getCpsSpecial());
+                    goods.setShowPrice(goodsCustom.get().getShowPrice());
+                    goods.setLinePrice(goodsCustom.get().getLinePrice());
+                    goods.setMarketingPrice(goodsCustom.get().getMarketingPrice());
+                    goods.setCouponLabelList(goodsCustom.get().getCouponLabelList());
+                    goods.setGoodsLabelList(goodsCustom.get().getGoodsLabelList());
+                    goods.setGoodsScore(goodsCustom.get().getGoodsScore());
+                    goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
+                    if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
+                        goods.setAtmosType(p.getAtmosType());
+                        goods.setImageUrl(p.getImageUrl());
+                        goods.setElementOne(p.getElementOne());
+                        goods.setElementTwo(p.getElementTwo());
+                        goods.setElementThree(p.getElementThree());
+                        goods.setElementFour(p.getElementFour());
+                    }else{
+                        goods.setAtmosType(null);
+                        goods.setImageUrl(null);
+                        goods.setElementOne(null);
+                        goods.setElementTwo(null);
+                        goods.setElementThree(null);
+                        goods.setElementFour(null);
+                    }
                     goodList.add(goods);
                 });
             }
