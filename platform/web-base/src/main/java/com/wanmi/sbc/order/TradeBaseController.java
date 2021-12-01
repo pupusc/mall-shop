@@ -1223,14 +1223,18 @@ public class TradeBaseController {
             for (MarketingViewVO marketing : marketings) {
                 // 积分换购
                 if(marketing.getSubType() == MarketingSubType.POINT_BUY){
+                    String skuId = tradeItem.getSkuId();
                     List<MarketingPointBuyLevelVO> pointBuyLevelList = marketing.getPointBuyLevelList();
                     if(CollectionUtils.isNotEmpty(pointBuyLevelList)){
-                        pointBuyLevelList.sort(Comparator.comparing(MarketingPointBuyLevelVO::getMoney));
-                        tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getId());
-                        tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
-                        tradeMarketing.setMarketingSubType(marketing.getSubType().toValue());
-                        tradeMarketing.setPointNeed(pointBuyLevelList.get(0).getPointNeed());
-                        return tradeMarketing;
+                        for (MarketingPointBuyLevelVO marketingPointBuyLevelVO : pointBuyLevelList) {
+                            if(marketingPointBuyLevelVO.getSkuId().equals(skuId)){
+                                tradeMarketing.setMarketingLevelId(pointBuyLevelList.get(0).getId());
+                                tradeMarketing.setMarketingId(pointBuyLevelList.get(0).getMarketingId());
+                                tradeMarketing.setMarketingSubType(marketing.getSubType().toValue());
+                                tradeMarketing.setPointNeed(pointBuyLevelList.get(0).getPointNeed());
+                                return tradeMarketing;
+                            }
+                        }
                     }
                 }
             }
@@ -2680,12 +2684,27 @@ public class TradeBaseController {
                                 confirmMarketingVO.setMarkupLevelVO(levelVO);
                             }
                         } else if(MarketingType.POINT_BUY.equals(marketingViewVO.getMarketingType())) {
-                            MarketingPointBuyLevelVO levelVO = marketingViewVO.getPointBuyLevelList().stream().filter(l -> l.getId().equals(levelId)).findFirst().orElse(null);
+                            List<MarketingPointBuyLevelVO> pointBuyLevelList = marketingViewVO.getPointBuyLevelList();
+                            List<TradeItemVO> tradeItems = tradeItemGroups.get(0).getTradeItems();
+                            boolean got = false;
+                            for (MarketingPointBuyLevelVO levelVO : pointBuyLevelList) {
+                                if(got) break;
+                                for (TradeItemVO tradeItem : tradeItems) {
+                                    if(levelVO.getSkuId().equals(tradeItem.getSkuId())){
+                                        desc = String.format("您已满足%s积分+%s元换购", levelVO.getPointNeed(), levelVO.getMoney());
+                                        confirmMarketingVO.setPointNeed(levelVO.getPointNeed());
+                                        confirmMarketingVO.setMoney(levelVO.getMoney());
+                                        got = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            /*MarketingPointBuyLevelVO levelVO = marketingViewVO.getPointBuyLevelList().stream().filter(l -> l.getId().equals(levelId)).findFirst().orElse(null);
                             if(levelVO != null){
                                 desc = String.format("您已满足%s积分+%s元换购", levelVO.getPointNeed(), levelVO.getMoney());
                                 confirmMarketingVO.setPointNeed(levelVO.getPointNeed());
                                 confirmMarketingVO.setMoney(levelVO.getMoney());
-                            }
+                            }*/
                         }
                         if (!MarketingType.SUITS.equals(marketingViewVO.getMarketingType())) {
                             confirmMarketingVO.setMarketingDesc(desc);
