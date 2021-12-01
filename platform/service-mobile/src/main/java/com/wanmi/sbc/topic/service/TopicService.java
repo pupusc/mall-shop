@@ -130,12 +130,21 @@ public class TopicService {
                     goods.setGoodsLabelList(goodsCustom.get().getGoodsLabelList());
                     goods.setGoodsScore(goodsCustom.get().getGoodsScore());
                     goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
-                    goods.setImageUrl(goodsCustom.get().getImageUrl());
-                    goods.setAtmosType(goodsCustom.get().getAtmosType());
-                    goods.setElementOne(goodsCustom.get().getElementOne());
-                    goods.setElementTwo(goodsCustom.get().getElementTwo());
-                    goods.setElementThree(goodsCustom.get().getElementThree());
-                    goods.setElementFour(goodsCustom.get().getElementFour());
+                    if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
+                        goods.setAtmosType(p.getAtmosType());
+                        goods.setImageUrl(p.getImageUrl());
+                        goods.setElementOne(p.getElementOne());
+                        goods.setElementTwo(p.getElementTwo());
+                        goods.setElementThree(p.getElementThree());
+                        goods.setElementFour(p.getElementFour());
+                    }else{
+                        goods.setAtmosType(null);
+                        goods.setImageUrl(null);
+                        goods.setElementOne(null);
+                        goods.setElementTwo(null);
+                        goods.setElementThree(null);
+                        goods.setElementFour(null);
+                    }
                     goodList.add(goods);
                 });
             }
