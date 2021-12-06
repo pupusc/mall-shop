@@ -1,16 +1,25 @@
 package com.wanmi.sbc.marketing.provider.impl.coupon;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchSendCouponRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCustomizeProviderRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
+import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
+import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
+import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponMarketingCustomerScope;
+import com.wanmi.sbc.marketing.coupon.mq.PaidCouponsMqService;
+import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
+import com.wanmi.sbc.marketing.coupon.service.CouponActivityConfigService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeCopyService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
 import com.wanmi.sbc.marketing.coupon.service.CouponMarketingCustomerScopeService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +37,7 @@ import java.util.stream.Collectors;
  */
 @Validated
 @RestController
+@Slf4j
 public class CouponCodeController implements CouponCodeProvider {
 
     @Autowired
@@ -38,6 +48,14 @@ public class CouponCodeController implements CouponCodeProvider {
 
     @Autowired
     private CouponMarketingCustomerScopeService couponMarketingCustomerScopeService;
+
+    @Autowired
+    private CouponActivityConfigService couponActivityConfigService;
+
+    @Autowired
+    private CouponInfoRepository couponInfoRepository;
+
+
 
     /**
      * 领取优惠券
@@ -112,5 +130,28 @@ public class CouponCodeController implements CouponCodeProvider {
         return BaseResponse.success(this.couponCodeService.sendBatchCouponCodeByCustomerList(request));
     }
 
+
+    @Override
+    public BaseResponse sendCouponCodeByCustomize(@RequestBody List<CouponCodeByCustomizeProviderRequest> couponCodeByCustomizeProviderRequestList) {
+        log.info("****************手动发放优惠券   开始 ****************");
+        for (CouponCodeByCustomizeProviderRequest param : couponCodeByCustomizeProviderRequestList) {
+            log.info("手动发放优惠券：activityId:{} customerId:{}", param.getActivityId(), param.getCustomerId());
+            List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(param.getActivityId());
+            // 根据配置查询需要发放的优惠券列表
+            List<CouponInfo> couponInfoList = couponInfoRepository.queryByIds(couponActivityConfigList.stream().map(
+                    CouponActivityConfig::getCouponId).collect(Collectors.toList()));
+//            log.info("根据配置查询需要发放的优惠券列表:{}",couponInfoList);
+            // 组装优惠券发放数据
+            List<GetCouponGroupResponse> getCouponGroupResponse = KsBeanUtil.copyListProperties(couponInfoList, GetCouponGroupResponse.class);
+            getCouponGroupResponse = getCouponGroupResponse.stream().peek(item -> couponActivityConfigList.forEach(config -> {
+                if (item.getCouponId().equals(config.getCouponId())) {
+                    item.setTotalCount(config.getTotalCount());
+                }
+            })).collect(Collectors.toList());
+            couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, param.getCustomerId(), param.getActivityId());
+        }
+        log.info("****************手动发放优惠券   结束 ****************");
+        return BaseResponse.SUCCESSFUL();
+    }
 
 }

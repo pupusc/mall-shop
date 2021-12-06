@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * <p>对优惠券码操作接口</p>
@@ -63,4 +64,11 @@ public interface CouponCodeProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-batch")
     BaseResponse sendBatchCouponCodeByCustomerList(@RequestBody @Valid CouponCodeBatchSendCouponRequest request);
+
+    /**
+     * 手动发放优惠券
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-customize")
+    BaseResponse sendCouponCodeByCustomize(@RequestBody List<CouponCodeByCustomizeProviderRequest> couponCodeByCustomizeProviderRequestList);
 }
