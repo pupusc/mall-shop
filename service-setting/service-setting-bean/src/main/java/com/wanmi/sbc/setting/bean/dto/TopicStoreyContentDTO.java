@@ -34,5 +34,7 @@ public class TopicStoreyContentDTO implements Serializable {
     private String linkUrl;
     @ApiModelProperty("排序")
     private Integer sorting;
+    @ApiModelProperty("商品ID")
+    private String spuId;
 
 }

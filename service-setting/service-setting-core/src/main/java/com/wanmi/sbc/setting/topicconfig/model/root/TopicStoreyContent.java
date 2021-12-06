@@ -33,7 +33,6 @@ public class TopicStoreyContent {
     @Column(name = "type")
     private Integer type;
 
-
     @Column(name = "image_url")
     private String imageUrl;
 
@@ -54,4 +53,7 @@ public class TopicStoreyContent {
 
     @Column(name = "goods_name")
     private String goodsName;
+
+    @Column(name = "spu_id")
+    private String spuId;
 }
