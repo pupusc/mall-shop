@@ -76,6 +76,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -1024,7 +1025,7 @@ public class CouponCodeService {
      * @param couponActivityId
      * @return
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<CouponCode> sendBatchCouponCodeByCustomer(List<GetCouponGroupResponse> couponInfoList,
                                                           String customerId, String couponActivityId) {
         List<CouponCode> couponCodeList = new ArrayList<>();
@@ -1055,12 +1056,15 @@ public class CouponCodeService {
         log.info("发券插入数据:{}", JSONArray.toJSONString(couponCodeList));
 //        List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
 //        log.info("customerId all: {} result: {}", customerId, JSON.toJSONString(couponCodeListResult));
+
         for (CouponCode couponCode : couponCodeList) {
+            long count = couponCodeRepository.count();
+            log.info("customerId: {} result: {}", customerId, count);
             CouponCode couponCodeParam = couponCodeRepository.save(couponCode);
             log.info("customerId: {} result: {}", customerId, JSON.toJSONString(couponCodeParam));
 
         }
-
+//        couponCodeRepository.flush(); //异常
         log.info("发券插入数据完成 activityId: {} customerId:{}", couponActivityId, customerId);
         return couponCodeList;
 

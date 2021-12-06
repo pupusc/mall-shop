@@ -6,6 +6,7 @@ import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchSendCouponRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCustomizeProviderRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByFileCustomizeProviderRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
 import com.wanmi.sbc.marketing.coupon.service.CouponMarketingCustomerScopeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -28,6 +30,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -151,6 +158,61 @@ public class CouponCodeController implements CouponCodeProvider {
             couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, param.getCustomerId(), param.getActivityId());
         }
         log.info("****************手动发放优惠券   结束 ****************");
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    @Override
+    public BaseResponse sendCouponCodeByFileCustomize(CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest) {
+        log.info("****************手动文件发放优惠券   开始 ****************");
+        List<CouponCodeByCustomizeProviderRequest> couponCodeByCustomizeProviderRequestList = new ArrayList<>();
+        //读取文件
+        FileReader fileReader = null;
+        BufferedReader bufferedReader = null;
+        try {
+            if (StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getPath())) {
+                return BaseResponse.FAILED();
+            }
+            fileReader = new FileReader(couponCodeByFileCustomizeProviderRequest.getPath());
+            bufferedReader = new BufferedReader(fileReader);
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] arrs = line.split(",");
+                String activityId = arrs[0];
+                String customerId = arrs[1];
+                log.info("手动文件发放优惠券：activityId:{} customerId:{}", activityId, customerId);
+                List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(activityId);
+                // 根据配置查询需要发放的优惠券列表
+                List<CouponInfo> couponInfoList = couponInfoRepository.queryByIds(couponActivityConfigList.stream().map(
+                        CouponActivityConfig::getCouponId).collect(Collectors.toList()));
+                // 组装优惠券发放数据
+                List<GetCouponGroupResponse> getCouponGroupResponse = KsBeanUtil.copyListProperties(couponInfoList, GetCouponGroupResponse.class);
+                getCouponGroupResponse = getCouponGroupResponse.stream().peek(item -> couponActivityConfigList.forEach(config -> {
+                    if (item.getCouponId().equals(config.getCouponId())) {
+                        item.setTotalCount(config.getTotalCount());
+                    }
+                })).collect(Collectors.toList());
+                couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId);
+            }
+            log.info("****************手动文件发放优惠券   结束 ****************");
+        } catch (FileNotFoundException e) {
+            log.error("读取文件异常", e);
+        } catch (IOException e) {
+            log.error("读取文件异常2", e);
+        } finally {
+
+                try {
+                    if (bufferedReader != null) {
+                        bufferedReader.close();
+                    }
+                    if (fileReader != null) {
+                        fileReader.close();
+                    }
+                } catch (IOException e) {
+                    log.error("读取文件关闭异常", e);
+                }
+
+        }
         return BaseResponse.SUCCESSFUL();
     }
 
