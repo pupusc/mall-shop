@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.coupon.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -1047,9 +1048,10 @@ public class CouponCodeService {
                 couponCode.setCreateTime(LocalDateTime.now());
                 couponCode.setCreatePerson(customerId);
                 couponCodeList.add(couponCode);
+                log.info("发券插入的数据是:{}", JSON.toJSONString(couponCode));
             }
         });
-//        log.info("发券插入数据:{}",couponCodeList);
+        log.info("发券插入数据:{}",couponCodeList.size());
         couponCodeRepository.saveAll(couponCodeList);
         return couponCodeList;
 
