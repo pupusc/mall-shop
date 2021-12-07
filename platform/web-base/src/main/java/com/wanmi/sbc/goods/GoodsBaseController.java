@@ -311,8 +311,8 @@ public class GoodsBaseController {
     @ApiOperation(value = "购物车弹框查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/spu/shopcart/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> detailForShopCart(@PathVariable String skuId) {
-        return BaseResponse.success(detail(null,skuId, commonUtil.getCustomer(), Boolean.FALSE));
+    public BaseResponse<GoodsViewByIdResponse> detailForShopCart(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        return BaseResponse.success(detail(spuId,skuId, commonUtil.getCustomer(), Boolean.FALSE));
     }
 
     /**
@@ -403,15 +403,15 @@ public class GoodsBaseController {
     @ApiOperation(value = "未登录时,购物车弹框查询查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/shopcart/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> unLoginDetailForShopCart(@PathVariable String skuId) {
-        return BaseResponse.success(detail(null,skuId, null, Boolean.FALSE));
+    public BaseResponse<GoodsViewByIdResponse> unLoginDetailForShopCart(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        return BaseResponse.success(detail(spuId,skuId, null, Boolean.FALSE));
     }
 
     @ApiOperation(value = "未登录时,查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> unLoginDetail(@PathVariable String skuId) {
-        return BaseResponse.success(detail(null,skuId, null, Boolean.TRUE));
+    public BaseResponse<GoodsViewByIdResponse> unLoginDetail(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        return BaseResponse.success(detail(spuId,skuId, null, Boolean.TRUE));
     }
 
 
