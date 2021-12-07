@@ -30,6 +30,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.order.api.request.trade.ChangeTradeProviderRequest;
+import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
@@ -144,7 +145,7 @@ public class ProviderTradeService {
     /**
      * 重置扫描次数
      */
-    private final String BATCH_UPDATE_ERP_PUSH_COUNT = "autoResetErpPushCount";
+    private final String BATCH_UPDATE_ERP_SCAN_COUNT = "autoResetErpScanCount";
 
     /**
      * 查询未发货订单
@@ -159,6 +160,11 @@ public class ProviderTradeService {
     private final String BATCH_PUSH_ORDER_LOCKS = "autoBatchPushOrder";
 
     private final String BATCH_PUSH_NORMAL_ORDER_LOCKS = "autoBatchNormalPushOrder";
+
+    /**
+     * 重置推送次数
+     */
+    private final String BATCH_UPDATE_ERP_PUSH_COUNT = "autoResetErpPushCount";
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
@@ -1197,7 +1203,7 @@ public class ProviderTradeService {
      * @param ptid
      */
     public void batchResetScanCount(String ptid) {
-        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_PUSH_COUNT);
+        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_SCAN_COUNT);
         if (lock.isLocked()) {
             log.error("定时任务在执行中,下次执行.");
             return;
@@ -1523,5 +1529,57 @@ public class ProviderTradeService {
             tradePrice.setActualKnowledge(providerTrade.getTradeItems().stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
         }
         providerTrade.setTradePrice(tradePrice);
+    }
+
+    /**
+     * 重置推送次数
+     *
+     * @param request
+     */
+    public void batchResetPushCount(ProviderTradeErpRequest request) {
+        RLock lock = redissonClient.getLock(BATCH_UPDATE_ERP_PUSH_COUNT);
+        if (lock.isLocked()) {
+            log.error("定时任务在执行中,下次执行.");
+            return;
+        }
+        lock.lock();
+        try {
+            /**
+             * 查询所有推送次数为4的数据
+             */
+            Query query = this.queryProviderTradePushCountCondition(request);
+            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+
+            if (CollectionUtils.isNotEmpty(providerTrades)) {
+                providerTrades.forEach(providerTrade -> {
+                    providerTrade.getTradeState().setPushCount(ScanCount.COUNT_ZERO.toValue());
+                });
+                this.updateProviderTradeList(providerTrades);
+            }
+        } catch (Exception e) {
+            log.error("Error message ： #批量重置推送次数失败:{}", e.getMessage(), e);
+        } finally {
+            //释放锁
+            lock.unlock();
+        }
+    }
+
+    public Query queryProviderTradePushCountCondition(ProviderTradeErpRequest request) {
+        List<Criteria> criterias = new ArrayList<>();
+        // 查询条件组装
+        criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+        criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+        criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
+        criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+        criterias.add(Criteria.where("tradeState.pushCount").gt(3));
+        if (StringUtils.isNoneBlank(request.getPtid())) {
+            criterias.add(Criteria.where("id").is(request.getPtid()));
+            return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
+        }
+        if (request.getPageSize() <= 0) {
+            request.setPageSize(200);
+        }
+        Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+        return new Query(newCriteria).limit(request.getPageSize());
     }
 }

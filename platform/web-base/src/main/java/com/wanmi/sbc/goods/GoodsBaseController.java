@@ -298,8 +298,8 @@ public class GoodsBaseController {
      */
     @ApiOperation(value = "查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
-    @RequestMapping(value = "/spu/{skuId}/{spuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> detail(@PathVariable("skuId") String skuId,@PathVariable("spuId")String spuId) {
+    @RequestMapping(value = "/spu/{skuId}", method = RequestMethod.GET)
+    public BaseResponse<GoodsViewByIdResponse> detail(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
         return BaseResponse.success(detail(spuId,skuId, commonUtil.getCustomer(), Boolean.TRUE));
     }
 
