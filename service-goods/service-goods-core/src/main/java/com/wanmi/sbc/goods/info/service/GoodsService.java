@@ -1122,14 +1122,21 @@ public class GoodsService {
      * @author yangzhen
      * @date 2020/9/3 11:17
      */
-    public GoodsDetailResponse findGoodsDetail(String skuId) {
-        List<GoodsInfo> goodsInfo = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(skuId));
-        GoodsDetailResponse response = new GoodsDetailResponse();
-        if (CollectionUtils.isNotEmpty(goodsInfo)) {
-            String goodsDetail = goodsRepository.getGoodsDetail(goodsInfo.get(0).getGoodsId());
-            response.setGoodsDetail(goodsDetail);
-            response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goodsInfo.get(0).getGoodsId()));
+    public GoodsDetailResponse findGoodsDetail(String skuId, String spuId) {
+        String goodsId = spuId;
+        if (StringUtils.isEmpty(spuId)) {
+            List<GoodsInfo> goodsInfo = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(skuId));
+            if (CollectionUtils.isNotEmpty(goodsInfo)) {
+                goodsId = goodsInfo.get(0).getGoodsId();
+            }
         }
+        if(StringUtils.isEmpty(goodsId)){
+            return new GoodsDetailResponse();
+        }
+        GoodsDetailResponse response = new GoodsDetailResponse();
+        String goodsDetail = goodsRepository.getGoodsDetail(goodsId);
+        response.setGoodsDetail(goodsDetail);
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goodsId));
         return response;
     }
     /**

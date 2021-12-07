@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
@@ -253,12 +254,17 @@ public class GoodsQueryController implements GoodsQueryProvider {
      */
     @Override
     public BaseResponse<GoodsViewByIdResponse> getCacheViewById(@RequestBody @Valid GoodsCacheInfoByIdRequest request) {
-
-        GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
-        if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
-            throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+        if(StringUtils.isEmpty(request.getGoodsId()) && StringUtils.isEmpty(request.getGoodsInfoId())){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        String goodsId = goodsInfo.getGoodsId();
+        String goodsId = request.getGoodsId();
+        if(StringUtils.isEmpty(request.getGoodsId())){
+            GoodsInfo goodsInfo = goodsInfoService.findOne(request.getGoodsInfoId());
+            if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+            goodsId = goodsInfo.getGoodsId();
+        }
         String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsId);
         GoodsViewByIdResponse goodsByIdResponse = null;
         if (StringUtils.isBlank(goodsDetailInfo)) {
@@ -315,7 +321,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Override
     public BaseResponse<GoodsDetailProperResponse> getGoodsDetail(@RequestBody @Valid GoodsDetailProperBySkuIdRequest request) {
-        return BaseResponse.success(KsBeanUtil.convert(goodsService.findGoodsDetail(request.getSkuId()), GoodsDetailProperResponse.class));
+        return BaseResponse.success(KsBeanUtil.convert(goodsService.findGoodsDetail(request.getSkuId(),request.getSpuId()), GoodsDetailProperResponse.class));
     }
 
     @Override

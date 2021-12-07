@@ -27,8 +27,10 @@ public class GoodsCacheInfoByIdRequest implements Serializable {
      * SKU编号
      */
     @ApiModelProperty(value = "SKU编号")
-    @NotBlank
     private String goodsInfoId;
+
+    @ApiModelProperty(value = "商品id")
+    private String goodsId;
 
     @ApiModelProperty(value = "店铺Id")
     private Long storeId;

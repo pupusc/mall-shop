@@ -23,4 +23,6 @@ public class GoodsDetailProperBySkuIdRequest implements Serializable {
     @ApiModelProperty(value = "skuId")
     @NotBlank
     private String skuId;
+
+    private String spuId;
 }
