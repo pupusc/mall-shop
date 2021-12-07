@@ -342,7 +342,7 @@ public class GoodsBaseController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId",
             required = true)
     @RequestMapping(value = "/goodsDetailProper/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsDetailProperResponse> goodsDetailProper(@PathVariable String skuId) {
+    public BaseResponse<GoodsDetailProperResponse> goodsDetailProper(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
         GoodsDetailProperBySkuIdRequest request = new GoodsDetailProperBySkuIdRequest();
         request.setSkuId(skuId);
         return BaseResponse.success(goodsQueryProvider.getGoodsDetail(request).getContext());
@@ -356,17 +356,22 @@ public class GoodsBaseController {
      */
     @ApiOperation(value = "查询商品页面展示简易信息")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId",
-            required = true)
+            required = false)
     @RequestMapping(value = "/goodsDetailSimple/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsDetailSimpleResponse> goodsDetailSimple(@PathVariable String skuId) {
-        GoodsInfoVO goodsInfo = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder().goodsInfoId(skuId).build
-                ()).getContext();
-
-        if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
-            throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+    public BaseResponse<GoodsDetailSimpleResponse> goodsDetailSimple(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        if(StringUtils.isEmpty(skuId) && StringUtils.isEmpty(spuId)){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         GoodsDetailSimpleRequest request = new GoodsDetailSimpleRequest();
-        request.setGoodsId(goodsInfo.getGoodsId());
+        request.setGoodsId(spuId);
+        if(StringUtils.isEmpty(spuId)) {
+            GoodsInfoVO goodsInfo = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder().goodsInfoId(skuId).build
+                    ()).getContext();
+            if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+            request.setGoodsId(goodsInfo.getGoodsId());
+        }
         GoodsDetailSimpleResponse response = goodsQueryProvider.getGoodsDetailSimple(request).getContext();
         return BaseResponse.success(response);
     }

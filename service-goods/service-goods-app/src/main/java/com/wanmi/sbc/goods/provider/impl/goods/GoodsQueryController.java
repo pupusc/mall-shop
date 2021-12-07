@@ -321,7 +321,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Override
     public BaseResponse<GoodsDetailProperResponse> getGoodsDetail(@RequestBody @Valid GoodsDetailProperBySkuIdRequest request) {
-        return BaseResponse.success(KsBeanUtil.convert(goodsService.findGoodsDetail(request.getSkuId()), GoodsDetailProperResponse.class));
+        return BaseResponse.success(KsBeanUtil.convert(goodsService.findGoodsDetail(request.getSkuId(),request.getSpuId()), GoodsDetailProperResponse.class));
     }
 
     @Override
