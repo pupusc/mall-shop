@@ -1025,7 +1025,7 @@ public class CouponCodeService {
      * @param couponActivityId
      * @return
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public List<CouponCode> sendBatchCouponCodeByCustomer(List<GetCouponGroupResponse> couponInfoList,
                                                           String customerId, String couponActivityId) {
         List<CouponCode> couponCodeList = new ArrayList<>();
