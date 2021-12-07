@@ -345,6 +345,7 @@ public class GoodsBaseController {
     public BaseResponse<GoodsDetailProperResponse> goodsDetailProper(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
         GoodsDetailProperBySkuIdRequest request = new GoodsDetailProperBySkuIdRequest();
         request.setSkuId(skuId);
+        request.setSpuId(spuId);
         return BaseResponse.success(goodsQueryProvider.getGoodsDetail(request).getContext());
     }
 
