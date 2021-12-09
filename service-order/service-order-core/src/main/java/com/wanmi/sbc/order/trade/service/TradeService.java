@@ -7357,7 +7357,7 @@ public class TradeService {
                 if(providerTradeItems.stream().anyMatch(p->p.getSplitPrice()!=null)){
                     tradePrice.setActualPrice(providerTradeItems.stream().map(p -> Objects.isNull(p.getSplitPrice()) ? new BigDecimal("0") : p.getSplitPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
                 }
-                if(providerTradeItems.stream().anyMatch(p->p.getPointsPrice()!=null)){
+                if(providerTradeItems.stream().anyMatch(p->p.getPoints()!=null)){
                     tradePrice.setActualPoints(providerTradeItems.stream().map(p->Objects.isNull(p.getPointsPrice()) ? new BigDecimal("0") : p.getPointsPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
                 }
                 if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
