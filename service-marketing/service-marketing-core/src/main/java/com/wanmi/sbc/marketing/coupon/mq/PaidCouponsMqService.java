@@ -10,6 +10,7 @@ import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
 import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.service.CouponActivityConfigService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
+import io.seata.core.context.RootContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class PaidCouponsMqService {
      */
     @StreamListener(PaidCouponMqSink.INPUT)
     public void receiveCoupon(String msg) {
-        log.info("开始消费发券消息:{}",msg);
+        log.info("开始消费发券消息:{} couponCodeService: {}",msg, couponCodeService);
         // 解析消息数据
         Map<String, Object> response = JSONObject.parseObject(msg);
         String customerId = response.get("customerId").toString();
@@ -70,6 +71,6 @@ public class PaidCouponsMqService {
             // 批量发放优惠券
             couponCodeService.sendBatchCouponCodeByCustomer(getCouponGroupResponse, customerId, activityId);
 //        }
-        log.info("优惠券发放结束:{}",customerId);
+        log.info("优惠券发放结束:{} ",customerId);
     }
 }

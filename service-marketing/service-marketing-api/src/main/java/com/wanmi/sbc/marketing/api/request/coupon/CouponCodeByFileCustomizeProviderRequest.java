@@ -15,4 +15,6 @@ import java.io.Serializable;
 public class CouponCodeByFileCustomizeProviderRequest implements Serializable {
 
     private String path;
+
+    private String activityId;
 }

@@ -64,6 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shardingsphere.transaction.annotation.ShardingTransactionType;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -1026,6 +1029,7 @@ public class CouponCodeService {
      * @return
      */
     @Transactional
+//    @GlobalTransactional(propagation = io.seata.tm.api.transaction.Propagation.NEVER)
     public List<CouponCode> sendBatchCouponCodeByCustomer(List<GetCouponGroupResponse> couponInfoList,
                                                           String customerId, String couponActivityId) {
         List<CouponCode> couponCodeList = new ArrayList<>();
@@ -1054,18 +1058,64 @@ public class CouponCodeService {
             }
         });
         log.info("发券插入数据:{}", JSONArray.toJSONString(couponCodeList));
-//        List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
-//        log.info("customerId all: {} result: {}", customerId, JSON.toJSONString(couponCodeListResult));
+        List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
+        log.info("customerId all: {} result: {}", customerId, JSON.toJSONString(couponCodeListResult));
 
-        for (CouponCode couponCode : couponCodeList) {
-            long count = couponCodeRepository.count();
-            log.info("customerId: {} result: {}", customerId, count);
-            CouponCode couponCodeParam = couponCodeRepository.save(couponCode);
-            log.info("customerId: {} result: {}", customerId, JSON.toJSONString(couponCodeParam));
-
-        }
+//        for (CouponCode couponCode : couponCodeList) {
+//            long count = couponCodeRepository.count();
+//            log.info("customerId: {} result: {}", customerId, count);
+//            CouponCode couponCodeParam = couponCodeRepository.save(couponCode);
+//            log.info("customerId: {} result: {}", customerId, JSON.toJSONString(couponCodeParam));
+//        }
 //        couponCodeRepository.flush(); //异常
         log.info("发券插入数据完成 activityId: {} customerId:{}", couponActivityId, customerId);
+        return couponCodeList;
+
+    }
+
+    @Transactional
+//    @GlobalTransactional(propagation = io.seata.tm.api.transaction.Propagation.NEVER)
+    public List<CouponCode> sendBatchCouponCodeByCustomer2(List<GetCouponGroupResponse> couponInfoList,
+                                                          List<String> customerIdList, String couponActivityId) {
+        List<CouponCode> couponCodeList = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        for (String customerId : customerIdList) {
+            couponInfoList.forEach(item -> {
+                for (int i = 0; i < item.getTotalCount(); i++) {
+                    CouponCode couponCode = new CouponCode();
+                    couponCode.setCouponCode(CodeGenUtil.toSerialCode(RandomUtils.nextInt(1, 10000)).toUpperCase());
+                    couponCode.setCouponId(item.getCouponId());
+                    couponCode.setActivityId(couponActivityId);
+                    couponCode.setCustomerId(customerId);
+                    couponCode.setUseStatus(DefaultFlag.NO);
+                    couponCode.setAcquireTime(LocalDateTime.now());
+                    if (Objects.equals(RangeDayType.RANGE_DAY, item.getRangeDayType())) {//优惠券的起止时间
+                        couponCode.setStartTime(item.getStartTime());
+                        couponCode.setEndTime(item.getEndTime());
+                    } else {//领取生效
+                        couponCode.setStartTime(now);
+                        couponCode.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusDays(item.getEffectiveDays()).minusSeconds(1));
+                    }
+                    couponCode.setDelFlag(DeleteFlag.NO);
+                    couponCode.setCreateTime(LocalDateTime.now());
+                    couponCode.setCreatePerson(customerId);
+                    couponCodeList.add(couponCode);
+                    log.info("发券插入的数据是:{}", JSON.toJSONString(couponCode));
+                }
+            });
+        }
+        log.info("发券插入数据:{}", JSONArray.toJSONString(couponCodeList));
+        List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
+        log.info("customerId all: {} result: {}", JSON.toJSONString(customerIdList), JSON.toJSONString(couponCodeListResult));
+
+//        for (CouponCode couponCode : couponCodeList) {
+//            long count = couponCodeRepository.count();
+//            log.info("customerId: {} result: {}", customerId, count);
+//            CouponCode couponCodeParam = couponCodeRepository.save(couponCode);
+//            log.info("customerId: {} result: {}", customerId, JSON.toJSONString(couponCodeParam));
+//        }
+//        couponCodeRepository.flush(); //异常
+        log.info("发券插入数据完成 activityId: {} customerId:{}", couponActivityId, JSON.toJSONString(customerIdList));
         return couponCodeList;
 
     }
