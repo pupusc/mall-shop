@@ -582,20 +582,22 @@ public class TradeItemService {
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
             if (i == size - 1) {
-                tradeItem.setKnowledgePrice(knowledgePriceTotal.subtract(splitPriceTotal));
+                BigDecimal subtract = knowledgePriceTotal.subtract(splitPriceTotal);
+                tradeItem.setKnowledgePrice(subtract);
                 tradeItem.setKnowledge(knowledgeTotal - splitKnowledgeTotal);
+                tradeItem.setPointsPrice(subtract);
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                tradeItem.setPointsPrice(
-                        splitPrice
-                                .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
-                                .multiply(knowledgePriceTotal)
-                                .setScale(2, BigDecimal.ROUND_HALF_UP));
+                tradeItem.setPointsPrice(splitPrice
+                        .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
+                        .multiply(knowledgePriceTotal)
+                        .setScale(2, BigDecimal.ROUND_HALF_UP));
                 splitPriceTotal = splitPriceTotal.add(tradeItem.getPointsPrice());
-
                 tradeItem.setKnowledge(tradeItem.getPointsPrice().multiply(knowledgeWorth).longValue());
+                tradeItem.setKnowledgePrice(tradeItem.getPointsPrice());
                 splitKnowledgeTotal = splitKnowledgeTotal + tradeItem.getKnowledge();
             }
+
         }
     }
 
