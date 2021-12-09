@@ -3,6 +3,7 @@ package com.wanmi.sbc.marketing.api.request.coupon;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -17,4 +18,6 @@ public class CouponCodeByFileCustomizeProviderRequest implements Serializable {
     private String path;
 
     private String activityId;
+
+    private List<String> customerIdList;
 }

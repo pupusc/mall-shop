@@ -180,77 +180,97 @@ public class CouponCodeController implements CouponCodeProvider {
     @Override
     public BaseResponse sendCouponCodeByFileCustomize(CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest) {
         log.info("****************手动文件发放优惠券   开始 ****************");
-        if (StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getPath()) || StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getActivityId())) {
+//        if (StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getPath()) || StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getActivityId())) {
+//            return BaseResponse.FAILED();
+//        }
+        if (CollectionUtils.isEmpty(couponCodeByFileCustomizeProviderRequest.getCustomerIdList()) || StringUtils.isBlank(couponCodeByFileCustomizeProviderRequest.getActivityId())) {
             return BaseResponse.FAILED();
         }
-        executeAsync(couponCodeByFileCustomizeProviderRequest);
+        sendCouponCodeByOuterFileCustomize(couponCodeByFileCustomizeProviderRequest);
+        log.info("****************手动文件发放优惠券   结束 ****************");
         return BaseResponse.SUCCESSFUL();
     }
 
-
-    public void executeAsync(CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest) {
-        log.info("start executeAsync");
-        //读取文件
-        FileReader fileReader = null;
-        BufferedReader bufferedReader = null;
-        try {
-
-            fileReader = new FileReader(couponCodeByFileCustomizeProviderRequest.getPath());
-            bufferedReader = new BufferedReader(fileReader);
-
-
-            String activityId = couponCodeByFileCustomizeProviderRequest.getActivityId();
-            List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(activityId);
-            // 根据配置查询需要发放的优惠券列表
-            List<CouponInfo> couponInfoList = couponInfoRepository.queryByIds(couponActivityConfigList.stream().map(
-                    CouponActivityConfig::getCouponId).collect(Collectors.toList()));
-            // 组装优惠券发放数据
-            List<GetCouponGroupResponse> getCouponGroupResponse = KsBeanUtil.copyListProperties(couponInfoList, GetCouponGroupResponse.class);
-            getCouponGroupResponse = getCouponGroupResponse.stream().peek(item -> couponActivityConfigList.forEach(config -> {
-                if (item.getCouponId().equals(config.getCouponId())) {
-                    item.setTotalCount(config.getTotalCount());
-                }
-            })).collect(Collectors.toList());
-
-            String customerId = "";
-            int i = 0;
-            List<String> customerIdList = new ArrayList<>();
-            while ((customerId = bufferedReader.readLine()) != null) {
-//                String[] arrs = line.split(",");
-//                String activityId = arrs[0];
-//                String customerId = arrs[0];
-                log.info("手动文件发放优惠券：activityId:{} customerId:{}", activityId, customerId);
-                long beginTime = System.currentTimeMillis();
-                customerIdList.add(customerId);
-                if (customerIdList.size() >= 100) {
-                    couponCodeService.sendBatchCouponCodeByCustomer2(getCouponGroupResponse, customerIdList, activityId);
-                    customerIdList.clear();
-                }
-
-                i++;
-                log.info("**************** customerId:{} activityId:{} time:{} ms ", customerId, activityId, (System.currentTimeMillis() - beginTime));
+    public void sendCouponCodeByOuterFileCustomize(CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest) {
+        String activityId = couponCodeByFileCustomizeProviderRequest.getActivityId();
+        List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(activityId);
+        // 根据配置查询需要发放的优惠券列表
+        List<CouponInfo> couponInfoList = couponInfoRepository.queryByIds(couponActivityConfigList.stream().map(
+                CouponActivityConfig::getCouponId).collect(Collectors.toList()));
+        // 组装优惠券发放数据
+        List<GetCouponGroupResponse> getCouponGroupResponse = KsBeanUtil.copyListProperties(couponInfoList, GetCouponGroupResponse.class);
+        getCouponGroupResponse = getCouponGroupResponse.stream().peek(item -> couponActivityConfigList.forEach(config -> {
+            if (item.getCouponId().equals(config.getCouponId())) {
+                item.setTotalCount(config.getTotalCount());
             }
-            log.info("****************手动文件发放优惠券   结束 ****************");
-        } catch (FileNotFoundException e) {
-            log.error("读取文件异常", e);
-        } catch (IOException e) {
-            log.error("读取文件异常2", e);
-        }  finally {
-
-            try {
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-                if (fileReader != null) {
-                    fileReader.close();
-                }
-            } catch (IOException e) {
-                log.error("读取文件关闭异常", e);
-            }
-
-        }
-        log.info("end executeAsync");
+        })).collect(Collectors.toList());
+        couponCodeService.sendBatchCouponCodeByCustomer2(getCouponGroupResponse, couponCodeByFileCustomizeProviderRequest.getCustomerIdList(), activityId);
     }
+
+
+//    public void executeAsync(CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest) {
+//        log.info("start executeAsync");
+//        //读取文件
+//        FileReader fileReader = null;
+//        BufferedReader bufferedReader = null;
+//        try {
+//
+//            fileReader = new FileReader(couponCodeByFileCustomizeProviderRequest.getPath());
+//            bufferedReader = new BufferedReader(fileReader);
+//
+//
+//            String activityId = couponCodeByFileCustomizeProviderRequest.getActivityId();
+//            List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(activityId);
+//            // 根据配置查询需要发放的优惠券列表
+//            List<CouponInfo> couponInfoList = couponInfoRepository.queryByIds(couponActivityConfigList.stream().map(
+//                    CouponActivityConfig::getCouponId).collect(Collectors.toList()));
+//            // 组装优惠券发放数据
+//            List<GetCouponGroupResponse> getCouponGroupResponse = KsBeanUtil.copyListProperties(couponInfoList, GetCouponGroupResponse.class);
+//            getCouponGroupResponse = getCouponGroupResponse.stream().peek(item -> couponActivityConfigList.forEach(config -> {
+//                if (item.getCouponId().equals(config.getCouponId())) {
+//                    item.setTotalCount(config.getTotalCount());
+//                }
+//            })).collect(Collectors.toList());
+//
+//            String customerId = "";
+//            int i = 0;
+//            List<String> customerIdList = new ArrayList<>();
+//            while ((customerId = bufferedReader.readLine()) != null) {
+////                String[] arrs = line.split(",");
+////                String activityId = arrs[0];
+////                String customerId = arrs[0];
+//                log.info("手动文件发放优惠券：activityId:{} customerId:{}", activityId, customerId);
+//                long beginTime = System.currentTimeMillis();
+//                customerIdList.add(customerId);
+//                if (customerIdList.size() >= 100) {
+//                    couponCodeService.sendBatchCouponCodeByCustomer2(getCouponGroupResponse, customerIdList, activityId);
+//                    customerIdList.clear();
+//                }
+//
+//                i++;
+//                log.info("**************** customerId:{} activityId:{} time:{} ms ", customerId, activityId, (System.currentTimeMillis() - beginTime));
+//            }
+//            log.info("****************手动文件发放优惠券   结束 ****************");
+//        } catch (FileNotFoundException e) {
+//            log.error("读取文件异常", e);
+//        } catch (IOException e) {
+//            log.error("读取文件异常2", e);
+//        }  finally {
+//
+//            try {
+//                if (bufferedReader != null) {
+//                    bufferedReader.close();
+//                }
+//                if (fileReader != null) {
+//                    fileReader.close();
+//                }
+//            } catch (IOException e) {
+//                log.error("读取文件关闭异常", e);
+//            }
+//
+//        }
+//        log.info("end executeAsync");
+//    }
 
 
 }
