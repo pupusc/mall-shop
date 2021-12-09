@@ -227,9 +227,11 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         for (EsGoodsVO goodsVo : esGoodsVOS) {
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
                     .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
-            SortGoodsCustomResponse goodsCustomResponse = KsBeanUtil.copyPropertiesThird(goodsCustom, SortGoodsCustomResponse.class);
-            goodsCustomResponse.setType(1);
-            goodList.add(goodsCustomResponse);
+            if (goodsCustom != null) {
+                SortGoodsCustomResponse goodsCustomResponse = KsBeanUtil.copyPropertiesThird(goodsCustom, SortGoodsCustomResponse.class);
+                goodsCustomResponse.setType(1);
+                goodList.add(goodsCustomResponse);
+            }
         }
         return goodList;
     }

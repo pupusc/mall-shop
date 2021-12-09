@@ -362,6 +362,9 @@ public class BookListModelAndGoodsService {
      * @return
      */
     public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO, List<GoodsInfoVO> goodsInfoVOList) {
+        if (goodsVO == null) {
+            return null;
+        }
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
