@@ -225,8 +225,12 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, null);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
+            GoodsVO goods = spuId2GoodsVoMap.get(goodsVo.getId());
+            if(goods == null){
+                continue;
+            }
             GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
-                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOList);
+                    .packageGoodsCustomResponse(goods, goodsVo, goodsInfoVOList);
             SortGoodsCustomResponse goodsCustomResponse = KsBeanUtil.copyPropertiesThird(goodsCustom, SortGoodsCustomResponse.class);
             goodsCustomResponse.setType(1);
             goodList.add(goodsCustomResponse);

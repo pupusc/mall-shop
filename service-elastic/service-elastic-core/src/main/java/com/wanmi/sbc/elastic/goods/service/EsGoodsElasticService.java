@@ -178,7 +178,6 @@ public class EsGoodsElasticService {
         if (StringUtils.isNotBlank(request.getGoodsId())) {
             request.getGoodsIds().add(request.getGoodsId());
         }
-        List<String> goodsInfoIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(request.getSkuIds())) {
             //批量查询所有SKU信息列表
             GoodsInfoListByConditionRequest infoQueryRequest = new GoodsInfoListByConditionRequest();
@@ -189,7 +188,6 @@ public class EsGoodsElasticService {
             infoQueryRequest.setGoodsIds(request.getGoodsIds());
             infoQueryRequest.setBrandIds(request.getBrandIds());
             List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(infoQueryRequest).getContext().getGoodsInfos();
-            goodsInfoIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).distinct().collect(Collectors.toList());
             List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(goodsIds)) {
                 request.getGoodsIds().addAll(goodsIds);
@@ -255,13 +253,13 @@ public class EsGoodsElasticService {
         AtmosphereQueryRequest atmosRequest = new AtmosphereQueryRequest();
         atmosRequest.setPageNum(0);
         atmosRequest.setPageSize(1000);
-        atmosRequest.setSkuId(goodsInfoIds);
+
         atmosRequest.setStartTime(LocalDateTime.now());
         atmosRequest.setEndTime(LocalDateTime.now());
         atmosRequest.setSortColumn("id");
         atmosRequest.setSortRole("desc");
 
-        BaseResponse<MicroServicePage<AtmosphereDTO>> atmosResponse = atmosphereProvider.page(atmosRequest);
+
         int errorThrow = 0;//满10次，退出循环往上抛异常
         int pageIndex = 0; //开始位置
         if (request.getPageIndex() != null) {
@@ -287,7 +285,7 @@ public class EsGoodsElasticService {
                         continue;
                     }
                     List<String> skuIds = goodsinfos.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
-
+                    atmosRequest.setSkuId(skuIds);
                     List<String> providerGoodsInfoIds = goodsinfos.stream().map(GoodsInfoVO::getProviderGoodsInfoId).collect(Collectors.toList());
                     providerGoodsInfoIds = providerGoodsInfoIds.stream()
                             .filter(v -> !providerGoodsInfoVOMap.containsKey(v)) //仅提取不存在map的
@@ -374,6 +372,9 @@ public class EsGoodsElasticService {
                                 .getContext().getStoreVOList().stream()
                                 .collect(Collectors.toMap(StoreVO::getStoreId, store -> store)));
                     }
+
+                    //氛围
+                    BaseResponse<MicroServicePage<AtmosphereDTO>> atmosResponse = atmosphereProvider.page(atmosRequest);
 
                     //遍历SKU，填充SPU、图片
                     List<IndexQuery> esGoodsList = new ArrayList<>();
