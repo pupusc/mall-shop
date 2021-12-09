@@ -350,9 +350,6 @@ public class BookListModelAndGoodsService {
      * @return
      */
     public GoodsCustomResponse packageGoodsCustomResponse(GoodsVO goodsVO, EsGoodsVO esGoodsVO, List<GoodsInfoVO> goodsInfoVOList) {
-        if (goodsVO == null) {
-            return null;
-        }
         String goodsInfoId = "";
         String goodsInfoNo = "";
         String goodsInfoImg = "";
@@ -664,7 +661,7 @@ public class BookListModelAndGoodsService {
             }
 
             result.setContent(esGoodsVOList.stream()
-                    .map(ex ->
+                    .filter(ex -> spuId2GoodsVoMap.get(ex.getId()) != null).map(ex ->
                             this.packageGoodsCustomResponse(spuId2GoodsVoMap.get(ex.getId()), ex, goodsInfoVOList)).collect(Collectors.toList()));
             return BaseResponse.success(result);
         }
