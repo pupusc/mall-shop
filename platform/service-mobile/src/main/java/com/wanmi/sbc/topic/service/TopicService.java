@@ -68,8 +68,10 @@ public class TopicService {
             return BaseResponse.success(response);
         }
         if(!allLoad) {
-            int size = response.getStoreyList().size() > 1 ? 2 : 1;
-            response.setStoreyList(response.getStoreyList().subList(0, size));
+            int index = response.getStoreyList().size() > 1 ? 2 : 1;
+            for (int i= index ;i<response.getStoreyList().size();i++){
+                response.getStoreyList().get(index).setContents(null);
+            }
         }
         response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
