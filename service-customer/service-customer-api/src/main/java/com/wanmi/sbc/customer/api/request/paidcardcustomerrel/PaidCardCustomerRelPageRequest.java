@@ -54,6 +54,7 @@ public class PaidCardCustomerRelPageRequest extends BaseQueryRequest {
 	 */
 	@ApiModelProperty(value = "付费会员类型ID集合")
 	private List<String> paidCardIdList;
+
 	/**
 	 * 搜索条件:开始时间开始
 	 */

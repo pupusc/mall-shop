@@ -1,18 +1,13 @@
 package com.wanmi.sbc.customer.provider.impl.paidcardcustomerrel;
 
-import com.wanmi.sbc.customer.api.request.customer.CustomerDetailListByCustomerIdsRequest;
 import com.wanmi.sbc.customer.api.request.paidcard.PaidCardQueryRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.*;
 import com.wanmi.sbc.customer.api.response.paidcardcustomerrel.*;
-import com.wanmi.sbc.customer.bean.vo.CustomerDetailFromEsVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
-import com.wanmi.sbc.customer.detail.model.root.CustomerDetail;
-import com.wanmi.sbc.customer.detail.service.CustomerDetailService;
 import com.wanmi.sbc.customer.model.root.Customer;
 import com.wanmi.sbc.customer.paidcard.model.root.PaidCard;
 import com.wanmi.sbc.customer.paidcard.service.PaidCardService;
 import com.wanmi.sbc.customer.service.CustomerService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +21,7 @@ import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.paidcardcustomerrel.service.PaidCardCustomerRelService;
 import com.wanmi.sbc.customer.paidcardcustomerrel.model.root.PaidCardCustomerRel;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,6 +51,16 @@ public class PaidCardCustomerRelQueryController implements PaidCardCustomerRelQu
 		MicroServicePage<PaidCardCustomerRelVO> microPage = new MicroServicePage<>(newPage, paidCardCustomerRelPageReq.getPageable());
 		PaidCardCustomerRelPageResponse finalRes = new PaidCardCustomerRelPageResponse(microPage);
 		return BaseResponse.success(finalRes);
+	}
+
+	@Override
+	public BaseResponse<List<PaidCardCustomerRelVO>> pageByMaxAutoId(@RequestBody @Valid PaidCardCustomerRelQueryRequest request) {
+		List<PaidCardCustomerRel> paidCardCustomerRelList = paidCardCustomerRelService.pageByMaxAutoId(request);
+		List<PaidCardCustomerRelVO> result = new ArrayList<>();
+		for (PaidCardCustomerRel paidCardCustomerRelParam : paidCardCustomerRelList) {
+			result.add(paidCardCustomerRelService.wrapperVo(paidCardCustomerRelParam));
+		}
+		return BaseResponse.success(result);
 	}
 
 	@Override

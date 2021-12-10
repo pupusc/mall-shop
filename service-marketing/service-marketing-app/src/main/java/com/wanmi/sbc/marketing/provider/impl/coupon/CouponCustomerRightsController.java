@@ -1,8 +1,8 @@
 package com.wanmi.sbc.marketing.provider.impl.coupon;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
@@ -14,7 +14,9 @@ import com.wanmi.sbc.customer.api.request.growthvalue.CustomerByGrowthValueReque
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelByIdsRequest;
 import com.wanmi.sbc.customer.api.request.levelrights.CustomerLevelRightsRelRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelPageRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelQueryRequest;
 import com.wanmi.sbc.customer.api.request.paidcardrightsrel.PaidCardRightsRelListRequest;
+import com.wanmi.sbc.customer.api.response.levelrights.CustomerLevelRightsRelListResponse;
 import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCustomerRightsProvider;
 import com.wanmi.sbc.marketing.coupon.mq.PaidCouponMqSink;
@@ -79,39 +81,40 @@ public class CouponCustomerRightsController implements CouponCustomerRightsProvi
      */
     @Override
     public BaseResponse customerRightsIssueCoupons() {
+        log.info("******** 发券全部开始 ********");
         // 查询需要发放优惠券的权益
         List<CustomerLevelRightsVO> rightsList = customerLevelRightsCouponAnalyseProvider.queryIssueCouponsData()
                 .getContext().getCustomerLevelRightsVOList();
         rightsList.forEach(rights -> {
-            List<String> customerIds = new ArrayList<>();
+            log.info("******** activityId:{} 发券开始  ********", rights.getActivityId());
+//            List<String> customerIds = new ArrayList<>();
             // 查询包含该权益的等级id
-            List<Long> levelIds = customerLevelRightsRelQueryProvider
-                    .listByRightsId(CustomerLevelRightsRelRequest.builder().rightsId(rights.getRightsId()).build())
-                    .getContext()
-                    .getCustomerLevelRightsRelVOList()
-                    .stream()
-                    .map(CustomerLevelRightsRelVO::getCustomerLevelId)
-                    .distinct()
-                    .collect(Collectors.toList());
+            CustomerLevelRightsRelRequest build = CustomerLevelRightsRelRequest.builder().rightsId(rights.getRightsId()).build();
+            BaseResponse<CustomerLevelRightsRelListResponse> customerLevelRightsRelListResponseBaseResponse = customerLevelRightsRelQueryProvider.listByRightsId(build);
+            List<CustomerLevelRightsRelVO> customerLevelRightsRelVOList = customerLevelRightsRelListResponseBaseResponse.getContext().getCustomerLevelRightsRelVOList();
+            List<Long> levelIds = customerLevelRightsRelVOList.stream().map(CustomerLevelRightsRelVO::getCustomerLevelId).distinct().collect(Collectors.toList());
+
             if (CollectionUtils.isNotEmpty(levelIds)) {
                 // 根据等级id查询等级详情信息
-                List<CustomerLevelVO> customerLevels = customerLevelQueryProvider
-                        .listCustomerLevelByIds(CustomerLevelByIdsRequest.builder().customerLevelIds(levelIds).build())
-                        .getContext()
-                        .getCustomerLevelVOList();
+                CustomerLevelByIdsRequest customerLevelByIdsRequest = CustomerLevelByIdsRequest.builder().customerLevelIds(levelIds).build();
+                List<CustomerLevelVO> customerLevels = customerLevelQueryProvider.listCustomerLevelByIds(customerLevelByIdsRequest).getContext().getCustomerLevelVOList();
                 // 高等级必然拥有低等级所有权益，所以只需找出包含该权益的会员等级中最低成长值即可
-                Long growthValue = customerLevels.stream()
-                        .min(Comparator.comparing(CustomerLevelVO::getGrowthValue))
-                        .get().getGrowthValue();
+                Long growthValue = customerLevels.stream().min(Comparator.comparing(CustomerLevelVO::getGrowthValue)).get().getGrowthValue();
                 // 查询达到该成长值的会员id列表
 //                List<String> customerIds = customerQueryProvider
 //                        .listCustomerIdByGrowthValue(new CustomerByGrowthValueRequest(growthValue))
 //                        .getContext().getCustomerIdList();
-                customerIds.addAll(customerQueryProvider
-                        .listCustomerIdByGrowthValue(new CustomerByGrowthValueRequest(growthValue))
-                        .getContext().getCustomerIdList());
-
+//                customerIds.addAll(customerQueryProvider.listCustomerIdByGrowthValue(new CustomerByGrowthValueRequest(growthValue)).getContext().getCustomerIdList());
+                List<String> customerIds = customerQueryProvider.listCustomerIdByGrowthValue(new CustomerByGrowthValueRequest(growthValue)).getContext().getCustomerIdList();
+                //会员级别权益发券
+                for (String customerId : customerIds) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("customerId",  customerId);
+                    map.put("activityId", rights.getActivityId());
+                    paidCouponMqSink.sendCoupon().send(new GenericMessage<>(JSONObject.toJSONString(map)));
+                }
             }
+
 /*            // 查询券礼包权益关联的优惠券活动配置列表
             List<CouponActivityConfig> couponActivityConfigList = couponActivityConfigService.queryByActivityId(rights.getActivityId());
             // 根据配置查询需要发放的优惠券列表
@@ -130,51 +133,39 @@ public class CouponCustomerRightsController implements CouponCustomerRightsProvi
             List<PaidCardRightsRelVO> rightsRelVOList = paidCardRightsRelQueryProvider.list
                     (PaidCardRightsRelListRequest.builder().rightsId(rights.getRightsId()).build()).getContext().getPaidCardRightsRelVOList();
             List<String> paidCardIdList = rightsRelVOList.stream().map(PaidCardRightsRelVO::getPaidCardId).distinct().collect(Collectors.toList());
-
+            int pageSize = 2000;
+            int maxTmpId = 0;
+            int pageNum = 1;
             if (CollectionUtils.isNotEmpty(paidCardIdList)){
-               int pageNum = 0;
-                LocalDateTime localDateTime = LocalDateTime.now();
-                PaidCardCustomerRelPageRequest customerRelPageRequest = PaidCardCustomerRelPageRequest.builder().paidCardIdList(paidCardIdList)
-                        .endTimeBegin(localDateTime).delFlag(DeleteFlag.NO).build();
-                customerRelPageRequest.setPageSize(2000);
+
+                PaidCardCustomerRelQueryRequest paidCardCustomerRelQueryRequest = PaidCardCustomerRelQueryRequest.builder().paidCardIdList(paidCardIdList)
+                        .currentTime(LocalDateTime.now()).delFlag(DeleteFlag.NO).build();
                 while (true){
-                    customerRelPageRequest.setPageNum(pageNum);
-                    MicroServicePage<PaidCardCustomerRelVO> customerRelVOPage = paidCardCustomerRelQueryProvider.page(
-                            customerRelPageRequest).getContext().getPaidCardCustomerRelVOPage();
-                    log.info("当前查询的页数{},当前页数返回的页码{},当前返回的全部数据{}",pageNum,customerRelVOPage.getTotalPages(),customerRelVOPage);
-                    customerRelVOPage.getContent().stream().forEach(item -> {
-                        log.info("CouponCustomerRightsController customerId:{} activityId:{}", item.getCustomerId(), rights.getActivityId());
+                    long beginTime = System.currentTimeMillis();
+                    paidCardCustomerRelQueryRequest.setPageNum(0);
+                    paidCardCustomerRelQueryRequest.setPageSize(pageSize);
+                    paidCardCustomerRelQueryRequest.setMaxTmpId(maxTmpId);
+                    BaseResponse<List<PaidCardCustomerRelVO>> listBaseResponse = paidCardCustomerRelQueryProvider.pageByMaxAutoId(paidCardCustomerRelQueryRequest);
+                    List<PaidCardCustomerRelVO> context = listBaseResponse.getContext();
+                    log.info("activityId:{} 当前查询的页数{},当前返回的数据是{} 耗时 {}ms", rights.getActivityId(), pageNum, context.size(), System.currentTimeMillis() - beginTime);
+                    for (PaidCardCustomerRelVO paidCardCustomerRelVOParam : context) {
+                        log.info("activityId:{} paidCardIdList:{} customerId:{}", rights.getActivityId(), JSON.toJSONString(paidCardIdList), paidCardCustomerRelVOParam.getCustomerId());
                         Map<String, Object> map = new HashMap<>();
-                        map.put("customerId",  item.getCustomerId());
+                        map.put("customerId",  paidCardCustomerRelVOParam.getCustomerId());
                         map.put("activityId", rights.getActivityId());
-//                        List<CouponCode> statusCouponCode = couponCodeService.findNotUseStatusCouponCode(
-//                                CouponCodeQueryRequest.builder().customerId(item.getCustomerId())
-//                                        .activityId(rights.getActivityId()).build());
-//                        if (CollectionUtils.isEmpty(statusCouponCode)){
-//                            couponCodeService.sendBatchCouponCodeByCustomer(finalGetCouponGroupResponse, item.getCustomerId(), rights.getActivityId());
                         paidCouponMqSink.sendCoupon().send(new GenericMessage<>(JSONObject.toJSONString(map)));
-//                        }
-//                        log.info("本次发券用户:{}券活动id:{}", item.getCustomerId(),rights.getActivityId());
-                    });
-                    pageNum++;
-                    if (pageNum >= customerRelVOPage.getTotalPages()){
-                        break;
+                        maxTmpId = paidCardCustomerRelVOParam.getMaxTmpId();
                     }
 
+                    if (context.size() < pageSize) {
+                        break;
+                    }
+                    pageNum++;
                 }
-
             }
-        //会员级别权益发券
-      if (CollectionUtils.isNotEmpty(customerIds)){
-            for (String customerId : customerIds) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("customerId",  customerId);
-                map.put("activityId", rights.getActivityId());
-                paidCouponMqSink.sendCoupon().send(new GenericMessage<>(JSONObject.toJSONString(map)));
-            }
-         }
+            log.info("******** activityId:{} 发券结束 总获取轮次为:{} 每次过去数据为:{}  ********", rights.getActivityId(), pageNum, pageSize);
         });
-        log.info("发券结束");
+        log.info("******** 发券全部结束 ********");
         return BaseResponse.SUCCESSFUL();
     }
 
