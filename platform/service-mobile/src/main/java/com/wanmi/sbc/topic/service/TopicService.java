@@ -54,10 +54,9 @@ public class TopicService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
-    @Autowired
-    private AtmosphereService atmosphereService;
 
-    public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request){
+
+    public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
             return BaseResponse.success(null);
@@ -68,48 +67,11 @@ public class TopicService {
         if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
             return BaseResponse.success(response);
         }
-        int size = response.getStoreyList().size() >1 ? 2:1;
-        List<TopicStoreyResponse> storeyList = response.getStoreyList().subList(0,size);
-        response.setStoreyList(storeyList);
-
-        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
-            if(CollectionUtils.isNotEmpty(p.getContents())) {
-                skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
-            } });
-        if(CollectionUtils.isNotEmpty(skuIds)){
-            List<GoodsCustomResponse> list = initGoods(skuIds);
-            response.getStoreyList().stream().filter(p->p.getStoreyType().equals(3)).forEach(p->{
-                if(CollectionUtils.isEmpty(p.getContents())){
-                    return;
-                }
-                List<TopicStoreyContentReponse> contents = new ArrayList<>(p.getContents().size());
-                p.getContents().stream().filter(g -> g.getType().equals(1)).forEach(g -> {
-                    if (CollectionUtils.isNotEmpty(list) && list.stream().anyMatch(l -> l.getGoodsInfoId().equals(g.getSkuId()))) {
-                        GoodsCustomResponse goodsCustomResponse = list.stream().filter(l -> l.getGoodsInfoId().equals(g.getSkuId())).findFirst().get();
-                        g.setGoods(KsBeanUtil.convert(goodsCustomResponse, GoodsAndAtmosphereResponse.class));
-                        contents.add(g);
-                    }
-                });
-                contents.addAll(p.getContents().stream().filter(o->o.getType().equals(2)).collect(Collectors.toList()));
-                p.setContents(contents);
-            });
-
+        if(!allLoad) {
+            int size = response.getStoreyList().size() > 1 ? 2 : 1;
+            response.setStoreyList(response.getStoreyList().subList(0, size));
         }
-        return BaseResponse.success(response);
-    }
-
-    public BaseResponse<TopicResponse> storeyList(@RequestBody TopicQueryRequest request){
-        BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
-        if(activityVO == null || activityVO.getContext() ==null){
-            return BaseResponse.success(null);
-        }
-        TopicResponse response = KsBeanUtil.convert(activityVO.getContext(),TopicResponse.class);
-        //如果配置有一行两个商品的配置信息，查询商品
-        List<String> skuIds = new ArrayList<>();
-        if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
-            return BaseResponse.success(response);
-        }
-        activityVO.getContext().getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
                 skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
             } });
