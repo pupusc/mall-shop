@@ -34,12 +34,18 @@ public class TopicController {
      * @param request
      * @status undone
      */
-    @ApiOperation(value = "根据专题id返回页面数据")
+    @ApiOperation(value = "根据专题id返回页面数据，")
     @PostMapping(value = "detail")
     public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request) {
-        return topicService.detail(request);
+        return topicService.detail(request,true);
     }
 
+
+    @ApiOperation(value = "根据专题id返回数据，第一次加载只返回1，2楼层数据信息")
+    @PostMapping(value = "/headTopic")
+    public BaseResponse<TopicResponse> storey(@RequestBody TopicQueryRequest request) {
+        return topicService.detail(request,false);
+    }
 
 
 
