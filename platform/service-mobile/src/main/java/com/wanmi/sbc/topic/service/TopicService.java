@@ -70,7 +70,7 @@ public class TopicService {
         if(!allLoad) {
             int index = response.getStoreyList().size() > 1 ? 2 : 1;
             for (int i= index ;i<response.getStoreyList().size();i++){
-                response.getStoreyList().get(index).setContents(null);
+                response.getStoreyList().get(i).setContents(null);
             }
         }
         response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
