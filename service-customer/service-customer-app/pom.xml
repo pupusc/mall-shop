@@ -98,7 +98,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>5.1.10.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>

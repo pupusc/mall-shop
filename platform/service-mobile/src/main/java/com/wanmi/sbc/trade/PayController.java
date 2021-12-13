@@ -590,8 +590,10 @@ public class PayController {
                 title = title.substring(0, 28) + "...";
             }
         }
-        title = title.replaceAll("([&,'])", "");
-        body = body.replaceAll("([&,'])", "");
+//        title = title.replaceAll("([&,'])", "");
+//        body = body.replaceAll("([&,'])", "");
+        title = "樊登读书官方旗舰店";
+        body = "";
         log.info("=============body", body);
         log.info("=============title", title);
         payExtraRequest.setSubject(title);
