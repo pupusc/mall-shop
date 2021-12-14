@@ -44,8 +44,8 @@
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-            <version>${spring-cloud-starter-alibaba-sentinel.version}</version>
-            <!--            <version>2.2.0.RELEASE</version>-->
+<!--            <version>${spring-cloud-starter-alibaba-sentinel.version}</version>-->
+            <version>2.2.0.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <artifactId>log4j-api</artifactId>
