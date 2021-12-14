@@ -71,6 +71,16 @@
             </exclusions>
         </dependency>
         <dependency>
+            <artifactId>log4j-api</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>log4j-core</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>of-security</groupId>
             <artifactId>security-component</artifactId>
             <version>${security-component.version}</version>
