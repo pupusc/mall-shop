@@ -27,6 +27,7 @@ import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
+import com.wanmi.sbc.topic.response.TopicStoreyResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,9 @@ public class TopicService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
-    @Autowired
-    private AtmosphereService atmosphereService;
 
-    public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request){
+
+    public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
             return BaseResponse.success(null);
@@ -67,7 +67,13 @@ public class TopicService {
         if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
             return BaseResponse.success(response);
         }
-        activityVO.getContext().getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
+        if(!allLoad) {
+            int index = response.getStoreyList().size() > 1 ? 2 : 1;
+            for (int i= index ;i<response.getStoreyList().size();i++){
+                response.getStoreyList().get(i).setContents(null);
+            }
+        }
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
                 skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
             } });

@@ -106,6 +106,7 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/index/shopActivityBranchHot")
                     || requestURI.startsWith("/index/shopActivityBranchConfig")
                     || requestURI.startsWith("/topic/detail")
+                    || requestURI.startsWith("/topic/headTopic")
             ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);

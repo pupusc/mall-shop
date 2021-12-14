@@ -311,6 +311,30 @@ public class CustomerBaseController {
     }
 
     /**
+     * 查询可用积分-放缓存里
+     */
+    @ApiOperation(value = "查询可用积分-走缓存")
+    @RequestMapping(value = "/getPointsChe", method = RequestMethod.GET)
+    public BaseResponse<CustomerPointsAvailableByCustomerIdResponse> getPointsCache() {
+        String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
+        String pointsAndTime = redisService.getString("point_" + fanDengUserNo);
+        CustomerPointsAvailableByCustomerIdResponse  customerIdResponse = new CustomerPointsAvailableByCustomerIdResponse();
+        long currentTime = System.currentTimeMillis();
+        if(pointsAndTime != null){
+            String[] split = pointsAndTime.split(",");
+            //缓存5分钟
+            if(currentTime - Long.parseLong(split[1]) < 300000){
+                customerIdResponse.setPointsAvailable(Long.parseLong(split[0]));
+                return BaseResponse.success(customerIdResponse);
+            }
+        }
+        Long currentPoint = externalProvider.getByUserNoPoint(FanDengPointRequest.builder().userNo(fanDengUserNo).build()).getContext().getCurrentPoint();
+        customerIdResponse.setPointsAvailable(currentPoint);
+        redisService.setString("point_" + fanDengUserNo, currentPoint.toString().concat(",").concat(currentTime + ""));
+        return BaseResponse.success(customerIdResponse);
+    }
+
+    /**
      * 会员中心查询会员绑定的手机号
      *
      * @return
