@@ -372,10 +372,6 @@ public class TradeOptimizeService {
                 log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
             }
 
-
-
-
-
             throw  new SbcRuntimeException("K-000001");
         }
         try {

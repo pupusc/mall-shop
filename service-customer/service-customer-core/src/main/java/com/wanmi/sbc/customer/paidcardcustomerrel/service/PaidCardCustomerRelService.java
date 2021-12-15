@@ -150,6 +150,7 @@ public class PaidCardCustomerRelService {
 		if (paidCardCustomerRel != null){
 			PaidCardCustomerRelVO paidCardCustomerRelVO=new PaidCardCustomerRelVO();
 			KsBeanUtil.copyPropertiesThird(paidCardCustomerRel,paidCardCustomerRelVO);
+			paidCardCustomerRelVO.setMaxTmpId(paidCardCustomerRel.getTmpId());
 			return paidCardCustomerRelVO;
 		}
 		return null;
