@@ -600,6 +600,10 @@ public class PayController {
         body = body.replaceAll("([&,', ,<,>,-,+])", "");
 //        title = "樊登读书官方旗舰店";
 //        body = "";
+        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
+            title = "樊登读书官方旗舰店";
+            body = "商品";
+        }
         log.info("=============body", body);
         log.info("=============title", title);
         payExtraRequest.setSubject(title);
