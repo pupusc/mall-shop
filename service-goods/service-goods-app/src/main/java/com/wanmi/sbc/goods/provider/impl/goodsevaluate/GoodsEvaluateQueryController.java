@@ -139,19 +139,19 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 
 		List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(request.getSkuId()));
 		if (CollectionUtils.isNotEmpty(goodsInfos)) {
+
+			GoodsEvaluateQueryRequest goodsEvaluateQueryRequest = GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId())
+					.evaluateCatetory(0).delFlag(DeleteFlag.NO.toValue()).isShow(1).build();
+			Long count = goodsEvaluateService.getGoodsEvaluateNum(goodsEvaluateQueryRequest);
+
 			//商品详情中的评价总数
 			GoodsEvaluateQueryRequest queryRequest =
 					GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId()).delFlag(0).evaluateCatetory(0).build();
-			Long count = goodsEvaluateService.getGoodsEvaluateNum(GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId())
-					.evaluateCatetory(0)
-					.delFlag(DeleteFlag.NO.toValue())
-					.isShow(1).build());
 			queryRequest.setIsUpload(1);
+
 			Long uploadCount = goodsEvaluateService.getGoodsEvaluateNum(queryRequest);
 			String praise = goodsEvaluateService.getGoodsPraise(GoodsEvaluateCountRequset
-					.builder()
-					.goodsId(goodsInfos.get(0).getGoodsId())
-					.build());
+					.builder().goodsId(goodsInfos.get(0).getGoodsId()).build());
 			return BaseResponse.success(GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
 					.praise(praise).goodsId(goodsInfos.get(0).getGoodsId()).build());
 		}

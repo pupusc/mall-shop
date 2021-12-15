@@ -37,16 +37,12 @@ public class GoodsEvaluateImageWhereCriteriaBuilder {
 
             // 模糊查询 - 评价id
             if (StringUtils.isNotEmpty(queryRequest.getEvaluateId())) {
-                predicates.add(cbuild.like(root.get("evaluateId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getEvaluateId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("evaluateId"),queryRequest.getEvaluateId()));
             }
 
             // 模糊查询 - 图片KEY
             if (StringUtils.isNotEmpty(queryRequest.getImageKey())) {
-                predicates.add(cbuild.like(root.get("imageKey"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getImageKey()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("imageKey"),queryRequest.getImageKey()));
             }
 
             // 模糊查询 - 图片名称
