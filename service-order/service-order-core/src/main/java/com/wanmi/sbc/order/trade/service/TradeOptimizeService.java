@@ -39,6 +39,7 @@ import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.TradeBatchDeliverDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
@@ -46,6 +47,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.*;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
@@ -59,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -319,18 +322,17 @@ public class TradeOptimizeService {
         // 3.批量提交订单
         List<TradeCommitResult> successResults;
         try {
-        // 处理积分抵扣
-        tradeService.dealPoints(trades, tradeCommitRequest);
-        // 处理知豆抵扣
-        tradeService.dealKnowledge(trades, tradeCommitRequest);
-        // 预售补充尾款价格
-        tradeService.dealTailPrice(trades, tradeCommitRequest);
-
-        if (tradeGroup != null) {
-            successResults = tradeService.createBatchWithGroup(trades, tradeGroup, operator);
-        } else {
-            successResults = tradeService.createBatch(trades, null, operator);
-        }
+            // 处理积分抵扣
+            tradeService.dealPoints(trades, tradeCommitRequest);
+            // 处理知豆抵扣
+            tradeService.dealKnowledge(trades, tradeCommitRequest);
+            // 预售补充尾款价格
+            tradeService.dealTailPrice(trades, tradeCommitRequest);
+            if (tradeGroup != null) {
+                successResults = tradeService.createBatchWithGroup(trades, tradeGroup, operator);
+            } else {
+                successResults = tradeService.createBatch(trades, null, operator);
+            }
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {
@@ -348,7 +350,32 @@ public class TradeOptimizeService {
                                 .desc("订单提交异常返还(退单号:" + trade.getId() + ")").build());
                     }
                 }
+
+                log.info("************* 提交订单异常 订单 {} 作废 begin *************:", trade.getId());
+
+                //异常订单，主单和子单全部标记作废
+                if (trade.getTradeState() != null) {
+                    trade.getTradeState().setFlowState(FlowState.VOID); //此处只是做标记，不做其他任何处理
+                    trade.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+                    tradeService.addTrade(trade);
+                }
+                log.info("提交订单异常 订单：{} Trade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId());
+                //获取子单列表
+                List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(trade.getId());
+                for (ProviderTrade providerTradeParam : providerTradeList) {
+                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
+                    providerTradeParam.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+                    providerTradeService.addProviderTrade(providerTradeParam);
+                    log.info("提交订单异常 订单：{} 子单：{} ProviderTrade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId(), providerTradeParam.getId());
+                }
+
+                log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
             }
+
+
+
+
+
             throw  new SbcRuntimeException("K-000001");
         }
         try {

@@ -46,16 +46,18 @@ public class GoodsEvaluateWhereCriteriaBuilder {
 
             // 模糊查询 - 商品id(spuId)
             if (StringUtils.isNotEmpty(queryRequest.getGoodsId())) {
-                predicates.add(cbuild.like(root.get("goodsId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getGoodsId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+//                predicates.add(cbuild.like(root.get("goodsId"), StringUtil.SQL_LIKE_CHAR
+//                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getGoodsId()))
+//                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("goodsId"), queryRequest.getGoodsId()));
             }
 
             // 模糊查询 - 货品id(skuId)
             if (StringUtils.isNotEmpty(queryRequest.getGoodsInfoId())) {
-                predicates.add(cbuild.like(root.get("goodsInfoId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getGoodsInfoId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+//                predicates.add(cbuild.like(root.get("goodsInfoId"), StringUtil.SQL_LIKE_CHAR
+//                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getGoodsInfoId()))
+//                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("goodsInfoId"),queryRequest.getGoodsInfoId()));
             }
 
             // 模糊查询 - 商品名称
@@ -72,16 +74,12 @@ public class GoodsEvaluateWhereCriteriaBuilder {
 
             // 模糊查询 - 订单号
             if (StringUtils.isNotEmpty(queryRequest.getOrderNo())) {
-                predicates.add(cbuild.like(root.get("orderNo"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getOrderNo()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("orderNo"),queryRequest.getOrderNo()));
             }
 
             // 模糊查询 - 会员Id
             if (StringUtils.isNotEmpty(queryRequest.getCustomerId())) {
-                predicates.add(cbuild.like(root.get("customerId"), StringUtil.SQL_LIKE_CHAR
-                        .concat(XssUtils.replaceLikeWildcard(queryRequest.getCustomerId()))
-                        .concat(StringUtil.SQL_LIKE_CHAR)));
+                predicates.add(cbuild.equal(root.get("customerId"), queryRequest.getCustomerId()));
             }
 
             // 模糊查询 - 会员名称
