@@ -12,6 +12,7 @@ import com.wanmi.sbc.customer.api.request.customer.CustomerDeletePaidCardRequest
 import com.wanmi.sbc.customer.api.request.paidcard.PaidCardQueryRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCardRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelPageRequest;
 import com.wanmi.sbc.customer.bean.enums.EnableEnum;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.paidcard.model.root.PaidCard;
@@ -20,6 +21,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +118,19 @@ public class PaidCardCustomerRelService {
 				PaidCardCustomerRelWhereCriteriaBuilder.build(queryReq),
 				queryReq.getPageRequest());
 	}
+
+
+	/**
+	 * 分页查询付费会员
+	 * @author xuhai
+	 */
+	public List<PaidCardCustomerRel> pageByMaxAutoId(PaidCardCustomerRelQueryRequest request){
+		Sort sort = Sort.by(Sort.Order.asc("tmpId"));
+		Specification<PaidCardCustomerRel> build = PaidCardCustomerRelWhereCriteriaBuilder.build(request);
+		Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
+		Page<PaidCardCustomerRel> all = paidCardCustomerRelRepository.findAll(build, pageable);
+		return all.getContent();
+	}
 	
 	/** 
 	 * 列表查询付费会员
@@ -133,6 +150,7 @@ public class PaidCardCustomerRelService {
 		if (paidCardCustomerRel != null){
 			PaidCardCustomerRelVO paidCardCustomerRelVO=new PaidCardCustomerRelVO();
 			KsBeanUtil.copyPropertiesThird(paidCardCustomerRel,paidCardCustomerRelVO);
+			paidCardCustomerRelVO.setMaxTmpId(paidCardCustomerRel.getTmpId());
 			return paidCardCustomerRelVO;
 		}
 		return null;

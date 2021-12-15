@@ -217,6 +217,12 @@ public class PayController {
                 title = title.substring(0, 28) + "...";
             }
         }
+        title = title.replaceAll("([&,', ,<,>,-,+])", "");
+        body = body.replaceAll("([&,', ,<,>,-,+])", "");
+        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
+            title = "樊登读书官方旗舰店";
+            body = "商品";
+        }
 
         payExtraRequest.setSubject(title);
         payExtraRequest.setBody(body);
@@ -590,8 +596,14 @@ public class PayController {
                 title = title.substring(0, 28) + "...";
             }
         }
-        title = title.replaceAll("&", "");
-        body = body.replaceAll("&", "");
+        title = title.replaceAll("([&,', ,<,>,-,+])", "");
+        body = body.replaceAll("([&,', ,<,>,-,+])", "");
+//        title = "樊登读书官方旗舰店";
+//        body = "";
+        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
+            title = "樊登读书官方旗舰店";
+            body = "商品";
+        }
         log.info("=============body", body);
         log.info("=============title", title);
         payExtraRequest.setSubject(title);

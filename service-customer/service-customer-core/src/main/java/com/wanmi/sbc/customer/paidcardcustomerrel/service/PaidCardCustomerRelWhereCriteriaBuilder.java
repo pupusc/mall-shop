@@ -32,6 +32,16 @@ public class PaidCardCustomerRelWhereCriteriaBuilder {
             if (CollectionUtils.isNotEmpty(queryRequest.getPaidCardIdList())) {
                 predicates.add(root.get("paidCardId").in(queryRequest.getPaidCardIdList()));
             }
+
+            if (queryRequest.getCurrentTime() != null) {
+                predicates.add(cbuild.lessThan(root.get("beginTime"), queryRequest.getCurrentTime()));
+                predicates.add(cbuild.greaterThanOrEqualTo(root.get("endTime"), queryRequest.getCurrentTime()));
+            }
+
+            if (queryRequest.getMaxTmpId() != null) {
+                predicates.add(cbuild.greaterThan(root.get("tmpId"), queryRequest.getMaxTmpId()));
+            }
+
             // 主键
             if (StringUtils.isNotEmpty(queryRequest.getId())) {
                 predicates.add(cbuild.equal(root.get("id"), queryRequest.getId()));

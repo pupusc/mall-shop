@@ -89,4 +89,10 @@ public class PaidCardCustomerRel implements Serializable {
 	 */
 	@Column(name = "paid_source")
 	private Integer paidSource;
+
+	/**
+	 * 临时唯一id 自增
+	 */
+	@Column(name = "tmp_id")
+	private Integer tmpId;
 }

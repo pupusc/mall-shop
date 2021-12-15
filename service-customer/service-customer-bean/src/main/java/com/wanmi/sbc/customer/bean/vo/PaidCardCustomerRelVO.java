@@ -26,25 +26,21 @@ public class PaidCardCustomerRelVO implements Serializable {
 	/**
 	 * 主键
 	 */
-	@ApiModelProperty(value = "主键")
 	private String id;
 
 	/**
 	 * 会员id
 	 */
-	@ApiModelProperty(value = "会员id")
 	private String customerId;
 
 	/**
 	 * 付费会员类型ID
 	 */
-	@ApiModelProperty(value = "付费会员类型ID")
 	private String paidCardId;
 
 	/**
 	 * 开始时间
 	 */
-	@ApiModelProperty(value = "开始时间")
 	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime beginTime;
@@ -52,7 +48,6 @@ public class PaidCardCustomerRelVO implements Serializable {
 	/**
 	 * 结束时间
 	 */
-	@ApiModelProperty(value = "结束时间")
 	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	private LocalDateTime endTime;
@@ -60,33 +55,28 @@ public class PaidCardCustomerRelVO implements Serializable {
 	/**
 	 * 状态： 0：未删除 1：删除
 	 */
-	@ApiModelProperty(value = "状态： 0：未删除 1：删除")
 	private DeleteFlag delFlag;
 
 	/**
 	 * 卡号
 	 */
-	@ApiModelProperty(value = "卡号")
 	private String cardNo;
 
 
 	/**
 	 * 付费会员卡信息
 	 */
-	@ApiModelProperty(value = "付费会员卡信息")
 	private PaidCardVO paidCardVO;
 
 	/**
 	 * 是否发送了即将过期提醒短信
 	 */
-	@ApiModelProperty(value = "是否发送了即将过期提醒短信")
 	private Boolean sendMsgFlag;
 
 
 	/**
 	 * 是否发送了已经过期提醒短信
 	 */
-	@ApiModelProperty(value = "是否发送了已经过期提醒短信")
 	private Boolean sendExpireMsgFlag;
 
 
@@ -97,6 +87,10 @@ public class PaidCardCustomerRelVO implements Serializable {
 	/**
 	 * 状态： 0：樊登同步的会员 1：商城的会员
 	 */
-	@ApiModelProperty(value = "状态： 0：樊登同步的会员 1：商城的会员")
 	private Integer paidSource;
+
+	/**
+	 * 最大的临时id
+	 */
+	private Integer maxTmpId;
 }
