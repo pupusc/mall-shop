@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name="BookRec")
 public  class GoodsItemDTO implements Serializable {
+    private static final long serialVersionUID = -3781688617709959387L;
     @XmlElement(name = "BookID")
     private String bookId;
     @XmlElement(name = "BookNum")

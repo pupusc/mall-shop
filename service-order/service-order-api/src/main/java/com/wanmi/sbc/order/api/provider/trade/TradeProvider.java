@@ -434,7 +434,7 @@ public interface TradeProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/trade/sync-provider-trade-delivery-status")
-    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody @Valid ProviderTradeStatusSyncRequest request);
+    BaseResponse syncProviderTradeDeliveryStatus(@RequestBody ProviderTradeDeliveryStatusSyncRequest request);
 
 
     /**

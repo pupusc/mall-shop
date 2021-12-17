@@ -1,6 +1,10 @@
 package com.fangdeng.server.dto;
 
+import com.fangdeng.server.enums.DeliveryStatus;
+import com.fangdeng.server.vo.DeliveryItemVO;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -16,21 +21,13 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProviderTradeOrderConfirmDTO implements Serializable {
+    private static final long serialVersionUID = 7948263149837706860L;
     @ApiModelProperty("第三方订单号")
     private String orderId;
     @ApiModelProperty("发货单号")
     private String platformCode;
-    @ApiModelProperty("快递公司")
-    private String post;
-    @ApiModelProperty("快递单号")
-    private String postNumber;
-    @ApiModelProperty("发货时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date postDate;
-    private Integer orderStatus;
-    @ApiModelProperty("下单状态0成功1失败")
     private Integer status;
     @ApiModelProperty("下单失败描述")
     private String statusDesc;
-    private List<GoodsItemDTO> goodsList;
+
 }

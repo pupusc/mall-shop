@@ -244,4 +244,25 @@ public class BookuuClient {
         return response;
     }
 
+    public BookuuPackStatusQueryResponse queryPackageStatus(BookuuPackStatusQueryRequest request) {
+        request.setChannelID(channelID);
+        request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+        String url = String.format(path, "packstatus");
+        String result = null;
+        try {
+            result = OkHttpUtil.postXml(url, XmlUtil.convertToXml(request));
+            log.info("bookuu query pack status request:{}, response: {}", JSONObject.toJSONString(request), result);
+        } catch (Exception e) {
+            log.warn("bookuu query pack status error,request:{},error:{}", request, e.getMessage());
+        }
+        BookuuPackStatusQueryResponse response = null;
+        try {
+            response = XmlUtil.convertToJavaBean(result, BookuuPackStatusQueryResponse.class);
+            log.info("bookuu query pack status  request:{}, response: {}",request,response);
+        } catch (Exception e) {
+            log.warn("bookuu query pack status convert error,request:{},error",request,e);
+        }
+        return response;
+    }
+
 }

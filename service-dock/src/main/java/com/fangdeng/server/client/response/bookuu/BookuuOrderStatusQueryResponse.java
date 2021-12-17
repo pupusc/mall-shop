@@ -14,6 +14,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class BookuuOrderStatusQueryResponse implements Serializable {
 
+    private static final long serialVersionUID = 114467375725045694L;
     @XmlElement(name = "StatusList")
     private List<OrderStatusDTO> statusDTOS;
 
@@ -21,6 +22,7 @@ public class BookuuOrderStatusQueryResponse implements Serializable {
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlRootElement(name="StatusList")
     public static  class  OrderStatusDTO implements Serializable{
+        private static final long serialVersionUID = -2448368164865875340L;
         @XmlElement(name = "OrderID")
         private String orderId;
         @XmlElement(name = "OrderStatus")
@@ -32,7 +34,8 @@ public class BookuuOrderStatusQueryResponse implements Serializable {
         @XmlElement(name = "PostDate")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
         private String postDate;
-
+        @XmlElement(name = "Unpacking")
+        private Integer unpacking;
         @XmlElement(name = "BookRec")
         private List<GoodsItemDTO> bookRecs;
 
