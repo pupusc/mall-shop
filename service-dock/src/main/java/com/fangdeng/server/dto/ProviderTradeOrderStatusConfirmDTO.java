@@ -1,7 +1,5 @@
 package com.fangdeng.server.dto;
 
-
-import com.fangdeng.server.enums.DeliveryStatus;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -16,7 +14,7 @@ public class ProviderTradeOrderStatusConfirmDTO implements Serializable {
     private String platformCode;
 
     @ApiModelProperty("发货状态")
-    private DeliveryStatus deliveryStatus;
+    private Integer deliveryStatus;
 
     @ApiModelProperty("已发货数据")
     private List<DeliveryInfoDTO> deliveryInfoList;

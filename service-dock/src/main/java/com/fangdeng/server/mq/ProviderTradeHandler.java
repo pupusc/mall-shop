@@ -216,9 +216,9 @@ public class ProviderTradeHandler {
                 confirmDTO.setDeliveryInfoList(deliveryList);
                 //有取消的怎么处理？取消+发货=全部发货
                 if(packItemList.stream().anyMatch(p->Arrays.asList(0,1,2,3).contains(p.getStatus()))){
-                    confirmDTO.setDeliveryStatus(DeliveryStatus.PART_DELIVERY);
+                    confirmDTO.setDeliveryStatus(DeliveryStatus.PART_DELIVERY.getKey());
                 }else{
-                    confirmDTO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
+                    confirmDTO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE.getKey());
                     //取消
                     List<OrderPackItemDTO> cancelItems = packItemList.stream().filter(p->Objects.equals(p.getStatus(),7)).collect(Collectors.toList());
                     if(CollectionUtils.isEmpty(cancelItems)){
