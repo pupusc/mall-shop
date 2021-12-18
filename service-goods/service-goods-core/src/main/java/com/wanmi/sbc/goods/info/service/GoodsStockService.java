@@ -40,6 +40,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -91,6 +92,9 @@ public class GoodsStockService {
 
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
+
+    @Value("${stock.size:5}")
+    private Integer stockSize;
     /**
      * 批量加库存
      *
@@ -298,8 +302,8 @@ public class GoodsStockService {
 
     @Transactional
     public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
-        if (stock.getStock() <= 10) {
-            log.info("goods stock is less than 10,stock:{}", stock);
+        if (stock.getStock() <= stockSize) {
+            log.info("goods stock is less than stockSize,stock:{}", stock);
             stock.setStock(0);
         }
         //查询sku信息

@@ -76,7 +76,7 @@ public class BookuuClient {
         request.setChannelID(channelID);
         request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
 
-        String url = String.format(path, "stock");
+        String url = String.format(path, "maxstock");
 
         String result = null;
         try {

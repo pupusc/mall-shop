@@ -5,6 +5,7 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsExtPropertiesCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
@@ -42,9 +43,11 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -97,6 +100,9 @@ public class BookListModelAndGoodsService {
 
     @Autowired
     private ChooseRuleProvider chooseRuleProvider;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 获取是否是知识顾问
@@ -207,6 +213,7 @@ public class BookListModelAndGoodsService {
         if (Objects.nonNull(filterResponse) && org.apache.commons.collections4.CollectionUtils.isNotEmpty(filterResponse.getGoodsInfoVOList())) {
             result = filterResponse.getGoodsInfoVOList();
         }
+        this.initGoodsInfoStock(filterResponse.getGoodsInfoVOList());
         return result;
     }
 
@@ -275,7 +282,6 @@ public class BookListModelAndGoodsService {
             if (CollectionUtils.isEmpty(goodsInfoVOList)) {
                 return microServicePageResult;
             }
-
             // EsGoods -> Map
             Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
             Map<String, EsGoodsVO> spuId2EsGoodsVoMap = content.stream().collect(Collectors.toMap(EsGoodsVO::getId, Function.identity(), (k1, k2) -> k1));
@@ -360,7 +366,7 @@ public class BookListModelAndGoodsService {
         BigDecimal currentSalePrice = new BigDecimal("100000");
         BigDecimal currentMarketingPrice = new BigDecimal("100000");
         BigDecimal lineSalePrice = null;
-
+        Long stock = 0L;
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
                 Map<String, List<GoodsInfoVO>> goodsId2GoodsInfoListMap = new HashMap<>();
@@ -417,6 +423,7 @@ public class BookListModelAndGoodsService {
                         }
                     }
                 }
+                stock = goodsInfoVoListLast.stream().mapToLong(GoodsInfoVO::getStock).sum();
             }
 
             List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
@@ -426,7 +433,8 @@ public class BookListModelAndGoodsService {
                 esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
             }
 
-
+            //库存
+            esGoodsCustomResponse.setStock(stock);
             if (esGoodsVO.getGoodsExtProps() != null) {
                 esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
 
@@ -478,7 +486,6 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setLinePrice(lineSalePrice == null ? currentMarketingPrice : lineSalePrice);
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
-
 
         return esGoodsCustomResponse;
     }
@@ -659,7 +666,6 @@ public class BookListModelAndGoodsService {
             if (CollectionUtils.isEmpty(goodsInfoVOList)) {
                 return BaseResponse.success(result);
             }
-
             result.setContent(esGoodsVOList.stream()
                     .filter(ex -> spuId2GoodsVoMap.get(ex.getId()) != null).map(ex ->
                             this.packageGoodsCustomResponse(spuId2GoodsVoMap.get(ex.getId()), ex, goodsInfoVOList)).collect(Collectors.toList()));
@@ -683,5 +689,21 @@ public class BookListModelAndGoodsService {
         List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
         //list转化成map
         return listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
+    }
+
+    /**
+     * 初始化sku库存，以redis为准
+     * @param goodsInfoVOList
+     */
+    private void initGoodsInfoStock(List<GoodsInfoVO> goodsInfoVOList){
+        if(CollectionUtils.isEmpty(goodsInfoVOList)){
+            return;
+        }
+        goodsInfoVOList.forEach(goodsInfo->{
+            String stock = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfo.getGoodsInfoId());
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(stock)) {
+                goodsInfo.setStock(NumberUtils.toLong(stock));
+            }
+        });
     }
 }
