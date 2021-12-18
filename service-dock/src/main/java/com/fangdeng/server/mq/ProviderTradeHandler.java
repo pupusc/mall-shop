@@ -144,38 +144,7 @@ public class ProviderTradeHandler {
                 if (packStatusQueryResponse == null || CollectionUtils.isEmpty(packStatusQueryResponse.getStatusDTOS())) {
                     return confirmDTO;
                 }
-                //List<OrderPackItemDTO> packItemList = packStatusQueryResponse.getStatusDTOS().get(0).getPackRecs();
-                //测试代码，
-
-                List<OrderPackItemDTO> packItemList = new ArrayList<>();
-                OrderPackItemDTO packItemDTO1 = new OrderPackItemDTO();
-                packItemDTO1.setBookId("31239863");
-                packItemDTO1.setBookNum(1);
-                packItemDTO1.setSendNum(1);
-                packItemDTO1.setStatus(5);
-                packItemDTO1.setBookUUID("Y10002353833");
-                packItemDTO1.setPost("圆通");
-                packItemDTO1.setPostNumber("11111");
-                packItemList.add(packItemDTO1);
-
-                OrderPackItemDTO packItemDTO2 = new OrderPackItemDTO();
-                packItemDTO2.setBookId("31239866");
-                packItemDTO2.setBookNum(1);
-                packItemDTO2.setSendNum(1);
-                packItemDTO2.setStatus(1);
-                packItemDTO2.setBookUUID("Y10002353834");
-                packItemDTO2.setPost("申通");
-                packItemDTO2.setPostNumber("22222");
-                packItemList.add(packItemDTO2);
-
-                OrderPackItemDTO packItemDTO3 = new OrderPackItemDTO();
-                packItemDTO3.setBookId("3425195");
-                packItemDTO3.setBookNum(1);
-                packItemDTO3.setSendNum(1);
-                packItemDTO3.setStatus(7);
-                packItemDTO3.setBookUUID("Y10002353835");
-                packItemDTO3.setPost("申通");
-                packItemList.add(packItemDTO2);
+                List<OrderPackItemDTO> packItemList = packStatusQueryResponse.getStatusDTOS().get(0).getPackRecs();
                 if (CollectionUtils.isEmpty(packItemList)) {
                     return confirmDTO;
                 }
