@@ -747,7 +747,7 @@ public class OrderConsumerService {
     public void deliveryStatusSyncConsumer(Message message, @Payload String body){
         log.info("order delivery status sync confirm message:{}", body);
         try {
-            ProviderTradeStatusSyncRequest request = JSONObject.parseObject(body, ProviderTradeStatusSyncRequest.class);
+            ProviderTradeDeliveryStatusSyncRequest request = JSONObject.parseObject(body, ProviderTradeDeliveryStatusSyncRequest.class);
             tradeProvider.syncProviderTradeDeliveryStatus(request);
             log.info("=============== 订单状态变更完成 ===============");
         }catch (Exception e){

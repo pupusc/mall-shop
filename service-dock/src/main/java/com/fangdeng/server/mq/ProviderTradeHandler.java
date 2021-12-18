@@ -256,7 +256,7 @@ public class ProviderTradeHandler {
                 }
                 deliveryList.add(deliveryInfo);
                 confirmDTO.setDeliveryInfoList(deliveryList);
-                confirmDTO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
+                confirmDTO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE.getKey());
                 return confirmDTO;
             }
         }catch (Exception e) {

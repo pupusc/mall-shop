@@ -51,7 +51,7 @@ public class GoodsService {
     @Value("${bookuu.providerId}")
     private  Long providerId;
 
-    @Value("${stock.sync.second:300}}")
+    @Value("${stock.sync.second:300}")
     private Long stockSyncSecond;
 
 
