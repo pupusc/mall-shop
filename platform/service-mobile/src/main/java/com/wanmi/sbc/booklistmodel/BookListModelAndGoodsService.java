@@ -49,6 +49,9 @@ import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -102,7 +105,7 @@ public class BookListModelAndGoodsService {
     private ChooseRuleProvider chooseRuleProvider;
 
     @Autowired
-    private RedisService redisService;
+    private RedisTemplate redisTemplate;
 
     /**
      * 获取是否是知识顾问
@@ -699,11 +702,27 @@ public class BookListModelAndGoodsService {
         if(CollectionUtils.isEmpty(goodsInfoVOList)){
             return;
         }
-        goodsInfoVOList.forEach(goodsInfo->{
-            String stock = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfo.getGoodsInfoId());
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(stock)) {
-                goodsInfo.setStock(NumberUtils.toLong(stock));
+        List<String> goodsInfoIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+        try {
+            redisTemplate.setKeySerializer(new StringRedisSerializer());
+            redisTemplate.setValueSerializer(new StringRedisSerializer());
+            List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+                for (String  key : goodsInfoIds) {
+                    redisConnection.get(redisTemplate.getStringSerializer().serialize(key));
+                }
+                return null;
+            });
+            if(CollectionUtils.isEmpty(objects)){
+                return;
             }
-        });
+            for(int i = 0; i < goodsInfoVOList.size();i++){
+                if(objects.get(i)!=null){
+                    goodsInfoVOList.get(i).setStock(NumberUtils.toLong(objects.get(i).toString()));
+                }
+            }
+        } catch (Exception e) {
+           log.warn("获取redis库存失败");
+        }
+
     }
 }
