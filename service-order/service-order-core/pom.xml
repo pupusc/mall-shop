@@ -71,6 +71,16 @@
         </dependency>
         <dependency>
             <artifactId>service-goods-api</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-api</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-core</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+            </exclusions>
             <groupId>com.wanmi.sbc</groupId>
             <version>${wm.micro.service.version}</version>
         </dependency>
@@ -280,6 +290,17 @@
 <!--            <artifactId>SensorsAnalyticsSDK</artifactId>-->
 <!--            <version>3.2.0</version>-->
 <!--        </dependency>-->
+
+        <dependency>
+            <artifactId>log4j-api</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>log4j-core</artifactId>
+            <groupId>org.apache.logging.log4j</groupId>
+            <version>${log4j.version}</version>
+        </dependency>
 
     </dependencies>
 
