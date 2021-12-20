@@ -138,6 +138,7 @@ public class ProviderTradeHandler {
             List<DeliveryInfoDTO> deliveryList = new ArrayList<>();
             //如果有拆包
             if (Objects.equals(response.getStatusDTOS().get(0).getUnpacking(), 1)) {
+                confirmDTO.setPacking(1);
                 BookuuPackStatusQueryRequest bookuuPackStatusQueryRequest = new BookuuPackStatusQueryRequest();
                 bookuuPackStatusQueryRequest.setOrderId(response.getStatusDTOS().get(0).getOrderId());
                 BookuuPackStatusQueryResponse packStatusQueryResponse = bookuuClient.queryPackageStatus(bookuuPackStatusQueryRequest);

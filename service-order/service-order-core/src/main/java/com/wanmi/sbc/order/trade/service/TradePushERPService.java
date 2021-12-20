@@ -125,6 +125,9 @@ public class TradePushERPService {
     @Value("${default.providerId}")
     private Long defaultProviderId;
 
+    @Value("${bookuu.providerId}")
+    private Long bookuuProviderId;
+
 
     @Autowired
     private ProviderTradeOrderService providerTradeOrderService;
@@ -1132,7 +1135,11 @@ public class TradePushERPService {
                                         && !tradeItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
                         if (deliveryItemVOOptional.isPresent()) {
                             DeliveryItemVO deliveryItemVO = deliveryItemVOOptional.get();
-                            tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
+                            if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+                                tradeItem.setDeliveredNum(deliveryItemVO.getQty());
+                            }else {
+                                tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
+                            }
                             if (tradeItem.getDeliveredNum() < tradeItem.getNum() && tradeItem.getDeliveredNum() > 0) {
                                 tradeItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
                             } else if (tradeItem.getDeliveredNum() >= tradeItem.getNum()) {
@@ -1175,7 +1182,11 @@ public class TradePushERPService {
                                             && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
                             if (deliveryGiftVOOptional.isPresent()) {
                                 DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
-                                giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+                                if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+                                    giftItem.setDeliveredNum(deliveryItemVO.getQty());
+                                }else {
+                                    giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+                                }
                                 if (giftItem.getDeliveredNum() < giftItem.getNum() && giftItem.getDeliveredNum() > 0) {
                                     giftItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
                                 } else if (giftItem.getDeliveredNum() >= giftItem.getNum()) {
@@ -1267,30 +1278,30 @@ public class TradePushERPService {
             List<DeliverStatus> itemDeliverStatusList = providerTrade.getTradeItems().stream().map(item -> item.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> giftDeliverStatusList = providerTrade.getGifts().stream().map(gift -> gift.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> totalDeliverStatusList = Stream.of(itemDeliverStatusList, giftDeliverStatusList).flatMap(Collection::stream).distinct().collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1) {
-                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED) {
+            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && !totalDeliverStatusList.stream().anyMatch(deliverStatus ->
+                    deliverStatus.getStatusId().equals(DeliverStatus.NOT_YET_SHIPPED.getStatusId())))) {
+                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                     tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
 
-                    log.info("=========TradeDelivers:{}======",tradeDeliverVOList);
+                    log.info("=========TradeDelivers:{}======", tradeDeliverVOList);
 
                     //设置发货时间
-                    TradeDeliverVO tradeDeliver =  tradeDeliverVOList.get(0);
+                    TradeDeliverVO tradeDeliver = tradeDeliverVOList.get(0);
                     providerTrade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
                     tradeVO.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
-                    if(CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(),FlowState.VOID))))){
+                    //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
+                    if (CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
                         tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                         tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                         tradeVO.getTradeState().setDeliverTime(null);
                     }
-                    if(!providerTrade.getSupplier().getStoreId().equals(defaultProviderId) && providerTrade.getTradeItems().stream().anyMatch(p->p.getDeliverStatus() != DeliverStatus.SHIPPED)){
+                    if (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && providerTrade.getTradeItems().stream().anyMatch(p -> p.getDeliverStatus() != DeliverStatus.SHIPPED)) {
                         providerTrade.getTradeState().setVirtualAllDelivery(1);
                         tradeVO.getTradeState().setVirtualAllDelivery(1);
                     }
-
-
                 } else if (totalDeliverStatusList.get(0) == DeliverStatus.PART_SHIPPED) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
@@ -1304,6 +1315,9 @@ public class TradePushERPService {
                 providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                 tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                 tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+
+                }
             }
             // 添加日志
             tradeEventLog.setEventDetail(String.format("自订单同步ERP订单%s发货清单", providerTrade.getId()));
@@ -1451,6 +1465,11 @@ public class TradePushERPService {
                 DeliveryInfoVO deliveryInfoVO = KsBeanUtil.convert(deliveryInfoDTO, DeliveryInfoVO.class);
                 deliveryInfoVO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
+                if(request.getPacking().equals(0)){
+                    //未分仓是要设置code
+                    deliveryInfoVO.setCode(generatorService.generate("TD"));
+
+                }
                 deliveryInfoDTO.getGoodsList().forEach(g -> {
                     if (providerTrade.getTradeItems().stream().anyMatch(p -> p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();

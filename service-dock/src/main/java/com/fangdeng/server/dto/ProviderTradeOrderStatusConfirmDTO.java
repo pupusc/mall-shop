@@ -21,4 +21,7 @@ public class ProviderTradeOrderStatusConfirmDTO implements Serializable {
 
     @ApiModelProperty("取消商品信息")
     private List<GoodsItemDTO> cancelGoods;
+
+    @ApiModelProperty("分仓标记0未分仓1分仓")
+    private Integer packing = 0;
 }
