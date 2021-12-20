@@ -651,11 +651,11 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.success(resultMap);
     }
 
-//    @Override
-//    public BaseResponse delAllLinkedMallGoods() {
-//        linkedMallGoodsService.delAllLinkedMallGoods();
-//        return BaseResponse.SUCCESSFUL();
-//    }
+    @Override
+    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo){
+        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo);
+        return BaseResponse.success(resultMap);
+    }
 
     public String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
         String path = "0";

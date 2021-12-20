@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.google.common.collect.Lists;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
 import com.wanmi.sbc.common.util.IteratorUtils;
@@ -37,6 +38,7 @@ import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.persistence.criteria.Predicate;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -62,6 +66,8 @@ import java.util.stream.Collectors;
 @Service
 public class GoodsStockService {
 
+    //代发商品编码前缀
+    private static final String AGENCY_PRODUCT_PREFIX = "DF";
 
     @Autowired
     private RedisService redisService;
@@ -249,6 +255,73 @@ public class GoodsStockService {
         resultMap.put("skus", skuStockMap);
         resultMap.put("spus", spuStockMap);
         log.info("resultMap====================>:{}", resultMap);
+        return resultMap;
+    }
+
+    public Map<String, Map<String, Integer>> partialUpdateStock(String erpGoodInfoNo) {
+        String lastSyncTime = redisService.getString(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
+        Date currentDate = new Date();
+        if(lastSyncTime == null){
+            lastSyncTime = "2021-01-01 00:00:00";
+        }
+        BaseResponse<List<ERPGoodsInfoVO>> updatedStock = guanyierpProvider.getUpdatedStock(lastSyncTime, erpGoodInfoNo);
+        Map<String, Integer> erpSkuStockMap = new HashMap<>();
+        Map<String, String> stockStatusMap = new HashMap<>();
+        for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext()) {
+            int salableQty = erpGoodsInfoVO.getSalableQty();
+            if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
+                //停用商品库存设置为0
+                salableQty = 0;
+                log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
+            }else {
+                if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
+                    salableQty = 9999;
+                }else {
+                    if(salableQty < 6){
+                        String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                        if(stockStatus == null){
+                            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
+                            for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
+                                stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
+                            }
+                            stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                        }
+                        if(stockStatus == null) {
+                            log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
+                            salableQty = 0;
+                        }else if(stockStatus == "0"){
+                            salableQty = 9999;
+                        }else {
+                            salableQty = 0;
+                        }
+                    }
+                }
+            }
+            erpSkuStockMap.put(erpGoodsInfoVO.getSkuCode(), salableQty);
+        }
+        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
+        Map<String, Integer> goodsStockMap = new HashMap<>();
+        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(erpSkuStockMap.keySet()));
+        List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+        for (GoodsInfo goodsInfo : goodsInfos) {
+            Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+            goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
+                if(v == null) return erpGoodsInfoStock;
+                return v + erpGoodsInfoStock;
+            });
+            goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), erpGoodsInfoStock);
+        }
+        goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfoStockMap);
+        goodsInfoStockService.batchUpdateGoodsStock(goodsStockMap);
+
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        resultMap.put("skus", goodsInfoStockMap);
+        resultMap.put("spus", goodsStockMap);
+        if(erpGoodInfoNo == null){
+            redisService.setString(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate));
+        }
         return resultMap;
     }
 

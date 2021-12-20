@@ -44,17 +44,12 @@ import java.util.Map;
 @JobHandler(value = "erpGoodsStockSyncJobHandler")
 @Component
 @Slf4j
-public class ERPGoodsStockSyncJobHandler extends IJobHandler{
+public class ERPGoodsStockSyncJobHandler extends IJobHandler {
 
     @Autowired
     private GoodsProvider goodsProvider;
-
-    @Autowired
-    private GoodsInfoQueryProvider goodsInfoQueryProvider;
-
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
-
     @Autowired
     private RedissonClient redissonClient;
 
@@ -62,83 +57,35 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler{
     private static final String BATCH_GET_GOODS_STOCK_LOCKS = "BATCH_GET_GOODS_STOCK_LOCKS";
 
     @Override
-    public ReturnT<String> execute(String params) throws Exception {
+    public ReturnT<String> execute(String erpGoodsInfoNo) {
         RLock lock = redissonClient.getLock(BATCH_GET_GOODS_STOCK_LOCKS);
         if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
+            log.error("全量同步ERP商品库存任务在执行中,下次执行.");
             return null;
         }
         lock.lock();
-        log.info("全量同步ERP商品库存任务执行开始");
-        String[] paramterArray = params.split(",");
-        int pageSize = 10;
-        String skuNo = StringUtils.EMPTY;
+        long startTime = System.currentTimeMillis();
+        log.info("全量同步ERP商品库存任务执行开始,参数:{}", erpGoodsInfoNo);
         try {
-            pageSize = Integer.parseInt(paramterArray[0]);
-            if (paramterArray.length>1){
-                skuNo = paramterArray[1];
+            BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo);
+            Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
+            //更新ES中的SPU和SKU库存数据
+            if (!resultMap.isEmpty()) {
+                Map<String, Integer> skusMap = resultMap.get("skus");
+                log.info("============Es更新sku的库存:{}==================", skusMap);
+                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
+                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
+                Map<String, Integer> spusMap = resultMap.get("spus");
+                log.info("============Es更新spu的库存:{}==================", spusMap);
+                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
             }
-            GoodsInfoCountByConditionRequest goodsInfoCountByConditionRequest = GoodsInfoCountByConditionRequest.builder()
-                    .goodsType(GoodsType.VIRTUAL_COUPON.toValue())
-                    .delFlag(DeleteFlag.NO.toValue())
-                    .auditStatus(CheckStatus.CHECKED).build();
-            if(StringUtils.isNotEmpty(skuNo)){
-                goodsInfoCountByConditionRequest.setLikeGoodsInfoNo(skuNo);
-            }
-            BaseResponse<GoodsInfoCountByConditionResponse> goodsInfoCountResponse = goodsInfoQueryProvider.countByCondition(goodsInfoCountByConditionRequest);
-            Long count = goodsInfoCountResponse.getContext().getCount();
-            log.info("============count==============:{}",count);
-            if (count > 0){
-                long pageCount = count % pageSize == 0 ? count / pageSize : count / pageSize + 1;
-                log.info("============pageCount==============:{}",pageCount);
-                for (int pageNum = 0; pageNum < pageCount; pageNum++) {
-                    try {
-                        GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                                .pageNum(pageNum)
-                                .pageSize(pageSize)
-                                .build();
-                        // 判断skuNo不为空 添加到实体
-                        if(!StringUtils.isEmpty(skuNo)){
-                            goodsInfoListByIdRequest.setGoodsInfoNo(skuNo);
-                        }
-
-                        BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncERPStock(goodsInfoListByIdRequest);
-                        Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
-
-
-                        //更新ES中的SPU和SKU库存数据
-                        if (!resultMap.isEmpty()){
-                            Map<String, Integer> skusMap = resultMap.get("skus");
-                            log.info("============Es更新sku的库存:{}==================",skusMap);
-/*                            skusMap.entrySet().stream().forEach(entity->{
-                                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skuId(entity.getKey()).stock(Long.valueOf(entity.getValue())).build();
-                                esGoodsStockProvider.resetStockBySkuId(esGoodsSkuStockSubRequest);
-                            });*/
-                            EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
-                            esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-                            Map<String, Integer> spusMap = resultMap.get("spus");
-                            log.info("============Es更新spu的库存:{}==================",spusMap);
-                 /*           spusMap.entrySet().stream().forEach(entity->{
-                                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest= EsGoodsSpuStockSubRequest.builder()
-                                        .spuId(entity.getKey())
-                                        .stock(Long.valueOf(entity.getValue())).build();
-                                esGoodsStockProvider.resetStockBySpuId(esGoodsSpuStockSubRequest);
-                            });*/
-                            EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest= EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
-                            esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-                        }
-                    }catch (Exception e){
-                        //打印异常堆栈信息
-                        e.printStackTrace();
-                    }
-                }
-            }
-            log.info("全量同步ERP商品库存任务执行结束");
+            log.info("库存同步ERP任务执行结束,耗时:{}", System.currentTimeMillis() - startTime);
             return SUCCESS;
         } catch (RuntimeException e) {
-            log.error("同步ERP库存定时任务,参数错误", e);
+            log.error("同步ERP库存定时任务出错", e);
             throw new SbcRuntimeException(CommonErrorCode.FAILED);
-        }finally {
+        } finally {
             //释放锁
             lock.unlock();
         }

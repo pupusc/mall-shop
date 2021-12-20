@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.redis;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.apache.commons.lang3.StringUtils;
@@ -10,13 +11,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,10 +136,8 @@ public class RedisService {
         } catch (Exception e) {
             LOGGER.error("hsetPipeline value to redis fail...", e);
         }
-
         return false;
     }
-
 
     public String hget(final String key, final String field) {
         try {
@@ -152,7 +152,6 @@ public class RedisService {
 
         return null;
     }
-
 
     public Map<String, String> hgetAll(final String key) {
         try {

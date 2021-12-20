@@ -7,10 +7,7 @@ import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.DateUtil;
-import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.erp.api.constant.ErpErrorCode;
 import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.erp.entity.ERPGoodsInfoStock;
@@ -28,9 +25,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.URLEncoder;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -195,7 +190,6 @@ public class GuanyierpService {
         }
     }
 
-
     /**
      * ERP商品库存查询接口
      * @param request
@@ -241,10 +235,46 @@ public class GuanyierpService {
                         ERPGoodsInfoVO.class);
                 return Optional.of(erpGoodsInfoVOList);
             }
-
         }else {
             log.info("#库存查询接口调用失败,返回状态码:{}",goodsStockResponse.getErrorCode());
             return Optional.empty();
+        }
+    }
+
+    public List<ERPGoodsInfoVO> getUpdatedStock(String startTime, String erpGoodInfoNo) {
+        log.info("getUpdatedStock获取库存,参数:{}", startTime);
+        Map<String, String> request = new HashMap<>();
+        request.put("appkey", appkey);
+        request.put("sessionkey", sessionkey);
+        request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
+        request.put("warehouse_code", stockwarehouseCode);
+        if(erpGoodInfoNo != null){
+            request.put("item_sku_code", erpGoodInfoNo);
+        }else {
+            request.put("start_date", startTime);
+        }
+        String paramStr;
+        try {
+            paramStr = objectMapper.writeValueAsString(request);
+            String buildSign = guanyierpUtil.buildSign(paramStr);
+            request.put("sign", buildSign);
+            paramStr = objectMapper.writeValueAsString(request);
+        }catch (Exception e) {
+            log.error("getUpdatedStock获取库存生成签名错误", e);
+            return Collections.emptyList();
+        }
+        String response = guanyierpUtil.execute(path, paramStr);
+        ERPGoodsStockQueryResponse goodsStockResponse = JSONObject.parseObject(response, ERPGoodsStockQueryResponse.class);
+        if (goodsStockResponse.isSuccess()){
+            if (goodsStockResponse.getStocks() == null) {
+                log.info("getUpdatedStock获取库存返回为空,参数:{}", startTime);
+                return Collections.emptyList();
+            }else{
+                return KsBeanUtil.convert(goodsStockResponse.getStocks(), ERPGoodsInfoVO.class);
+            }
+        }else {
+            log.error("getUpdatedStock获取库存报错,参数:{},返回状态码:{}", startTime, goodsStockResponse.getErrorCode());
+            return Collections.emptyList();
         }
     }
 
@@ -254,7 +284,6 @@ public class GuanyierpService {
      * @return
      */
     public Optional<ERPGoodsQueryResponse> getERPGoodsInfo(ERPGoodsQueryRequest request){
-        // TODO: 2021/1/27
         request.setAppkey(appkey);
         request.setSessionkey(sessionkey);
         request.setMethod(GuanyierpContants.GOODS_QUERY_METHOD);

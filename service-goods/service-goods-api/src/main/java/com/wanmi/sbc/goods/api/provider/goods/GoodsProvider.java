@@ -266,6 +266,14 @@ public interface GoodsProvider {
     BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
     /**
+     * 增量更新库存
+     * @param erpGoodInfoNo
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/partial-update-stock")
+    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo);
+
+    /**
      * 同步商品库存
      * @param goodsInfoListByIdRequest
      * @return

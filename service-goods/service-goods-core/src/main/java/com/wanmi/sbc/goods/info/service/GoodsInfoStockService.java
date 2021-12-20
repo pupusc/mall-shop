@@ -9,19 +9,26 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.mq.GoodsInfoStockSink;
 import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,6 +51,9 @@ public class GoodsInfoStockService {
 
     @Autowired
     private GoodsInfoRepository goodsInfoRepository;
+
+    @Autowired
+    private GoodsRepository goodsRepository;
 
     @Autowired
     private RedisService redisService;
@@ -80,7 +90,22 @@ public class GoodsInfoStockService {
       //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
         int updateCount = goodsInfoRepository.resetStockById(stock, goodsInfoId);
         log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+    }
 
+    @Transactional
+    public void batchUpdateGoodsInfoStock(Map<String, Integer> data){
+        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+
+        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
+            return null;
+        });
+        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
+    }
+
+    @Transactional
+    public void batchUpdateGoodsStock(Map<String, Integer> data){
+        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
     }
 
 

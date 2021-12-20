@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -59,6 +60,14 @@ public class GuanyierpController implements GuanyierpProvider {
             return BaseResponse.success(erpSyncGoodsStockResponse);
         }
         return BaseResponse.success(SyncGoodsInfoResponse.builder().build());
+    }
+
+    /**
+     * 获取商品库存
+     */
+    @Override
+    public BaseResponse<List<ERPGoodsInfoVO>> getUpdatedStock(String startTime, String erpGoodInfoNo) {
+        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo));
     }
 
     /**
@@ -106,6 +115,28 @@ public class GuanyierpController implements GuanyierpProvider {
     }
 
     /**
+     * 获取ERP商品信息,不带库存
+     */
+    @Override
+    public BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(String erpGoodsNum) {
+        ERPGoodsQueryRequest erpGoodsQueryRequest = ERPGoodsQueryRequest.builder().code(erpGoodsNum).build();
+        Optional<ERPGoodsQueryResponse> optionalErpGoodsInfo = guanyierpService.getERPGoodsInfo(erpGoodsQueryRequest);
+        List<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        if(optionalErpGoodsInfo.isPresent()) {
+            ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
+            erpGoods.getSkus().stream().forEach(erpGoodsInfo -> {
+                ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
+                        .itemSkuName(erpGoodsInfo.getName()).skuCode(erpGoodsInfo.getCode())
+                        .costPrice(erpGoodsInfo.getCostPrice()).stockStatusCode(erpGoodsInfo.getStockStatusCode())
+                        .itemCode(erpGoods.getCode()).itemName(erpGoods.getName())
+                        .build();
+                erpGoodsInfoVOList.add(erpGoodsInfoVO);
+            });
+        }
+        return BaseResponse.success(erpGoodsInfoVOList);
+    }
+
+    /**
      * 推送订单到ERP
      * @param request
      * @return
@@ -120,8 +151,6 @@ public class GuanyierpController implements GuanyierpProvider {
         }
         return BaseResponse.FAILED();
     }
-
-
 
     /**
      * 推送订单到ERP--已发货
