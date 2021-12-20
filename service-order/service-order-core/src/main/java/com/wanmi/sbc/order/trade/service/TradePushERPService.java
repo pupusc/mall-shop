@@ -640,7 +640,7 @@ public class TradePushERPService {
                             .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
                 }
                 if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
-                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList);
+                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList,0);
                 } else {
                     // 扫描次数小于3的加1
                     if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
@@ -1082,7 +1082,7 @@ public class TradePushERPService {
      * @param providerTrade
      * @param deliveryInfoVOList
      */
-    public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
+    public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList,Integer allDelivery) {
         List<TradeDeliverVO> tradeDeliverVOs = new ArrayList<>();
         List<TradeDeliverVO> tradeDeliverVOList = new ArrayList<>();
         TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
@@ -1278,9 +1278,8 @@ public class TradePushERPService {
             List<DeliverStatus> itemDeliverStatusList = providerTrade.getTradeItems().stream().map(item -> item.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> giftDeliverStatusList = providerTrade.getGifts().stream().map(gift -> gift.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> totalDeliverStatusList = Stream.of(itemDeliverStatusList, giftDeliverStatusList).flatMap(Collection::stream).distinct().collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && !totalDeliverStatusList.stream().anyMatch(deliverStatus ->
-                    deliverStatus.getStatusId().equals(DeliverStatus.NOT_YET_SHIPPED.getStatusId())))) {
-                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)) {
+            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && allDelivery == 1)) {
+                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && allDelivery == 1)) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                     tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
@@ -1484,7 +1483,7 @@ public class TradePushERPService {
 
 
             if (CollectionUtils.isNotEmpty(deliveryInfoVOListVo)) {
-                this.fillERPTradeDelivers(providerTrade, deliveryInfoVOListVo);
+                this.fillERPTradeDelivers(providerTrade, deliveryInfoVOListVo,request.getDeliveryStatus());
                 //如果有取消商品行且商品全部已发货或者已取消
                 if(Objects.equals(request.getDeliveryStatus(),DeliveryStatus.DELIVERY_COMPLETE.getKey()) && CollectionUtils.isNotEmpty(request.getCancelGoods())){
                      this.updateProviderAllDelivery(request);

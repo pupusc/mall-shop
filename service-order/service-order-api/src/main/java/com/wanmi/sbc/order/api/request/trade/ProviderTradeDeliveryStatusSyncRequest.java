@@ -20,7 +20,7 @@ public class ProviderTradeDeliveryStatusSyncRequest implements Serializable {
     private String platformCode;
 
     @ApiModelProperty("发货状态")
-    private Integer deliveryStatus;
+    private Integer deliveryStatus = 0;
 
     @ApiModelProperty("已发货数据")
     private List<DeliveryInfoDTO> deliveryInfoList;
