@@ -134,7 +134,7 @@ public class ProviderTradeHandler {
                 log.warn("query order delivery status error,body:{}", body);
                 return confirmDTO;
             }
-            if(Arrays.asList(BookuuDeliveryStatus.DELIVERYED.getKey(),BookuuDeliveryStatus.SALED.getKey()).contains(response.getStatusDTOS().get(0).getOrderStatus())){
+            if(!Arrays.asList(BookuuDeliveryStatus.DELIVERYED.getKey(),BookuuDeliveryStatus.SALED.getKey()).contains(response.getStatusDTOS().get(0).getOrderStatus())){
                 log.warn("order status is not delivery", body);
                 return confirmDTO;
             }
@@ -171,7 +171,16 @@ public class ProviderTradeHandler {
                             .expressName(value.get(0).getPost())
                             .platformCode(syncDTO.getTid())
                             .code(value.get(0).getBookUUID())
+                            .deliverTime(LocalDateTime.now())
                             .build();
+                    if(StringUtils.isNotEmpty(value.get(0).getPostDate())) {
+                        try {
+                            DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                            deliveryInfoDTO.setDeliverTime(LocalDateTime.parse(response.getStatusDTOS().get(0).getPostDate(), df));
+                        } catch (Exception e) {
+                            log.warn("syncProviderTradeDeliveryStatus trans time error,request:{}", request, e);
+                        }
+                    }
                     List<GoodsItemDTO> goods = new ArrayList<>(value.size());
                     value.forEach(g->{
                         GoodsItemDTO goodsItemDTO = new GoodsItemDTO();

@@ -24,13 +24,13 @@ public  class OrderPackItemDTO implements Serializable {
     private Integer sendNum;
     @XmlElement(name = "STATUS")
     private Integer status;
-    @XmlElement(name = "ORI_BOOKUUID")
+    @XmlElement(name = "BOOKUUID")
     private String bookUUID;
     @XmlElement(name = "YSGSYH")
     private String postNumber;
     @XmlElement(name = "SHGS")
     private String post;
-    @XmlElement(name = "PostDate")
+    @XmlElement(name = "SendTime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private String postDate;
 
