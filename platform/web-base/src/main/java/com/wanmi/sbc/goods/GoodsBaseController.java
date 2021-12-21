@@ -426,8 +426,15 @@ public class GoodsBaseController {
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }
+
         if (queryRequest.getCpsSpecial() != null) {
             queryRequest.setSortFlag(11); //添加排序
+        } else {
+            if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
+                log.info("---->>> 搜索过滤的 goodsId is {}", searchUnShowGoodsIds);
+                String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
+                queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
+            }
         }
         if (Objects.nonNull(queryRequest.getMarketingId())) {
             MarketingGetByIdRequest marketingGetByIdRequest = new MarketingGetByIdRequest();
@@ -469,11 +476,7 @@ public class GoodsBaseController {
             queryRequest.setGoodsType(GoodsType.CYCLE_BUY);
             queryRequest.setKeywords(null);
         }
-        if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
-            log.info("---->>> 搜索过滤的 goodsIdi is {}", searchUnShowGoodsIds);
-            String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
-            queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
-        }
+
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
         List<GoodsInfoNestVO> goodsInfoNestList = response.getEsGoods().getContent().stream()

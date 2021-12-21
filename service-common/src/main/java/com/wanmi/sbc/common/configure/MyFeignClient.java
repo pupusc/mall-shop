@@ -37,8 +37,8 @@ public class MyFeignClient extends Client.Default {
             log.info("{} invoke url: {} method:{} request:{} options:{} ", sourceProjectName,
                     request.url(), request.httpMethod(), JSON.toJSONString(request), JSON.toJSONString(options));
             return super.execute(request, options);
-        } catch (IOException e) {
-            log.info("请求{} 异常 =====>> {}", request.url(), e.getMessage());
+        } catch (Exception e) {
+            log.error("请求{} 异常", request.url(), e);
             throw e;
         }
     }
