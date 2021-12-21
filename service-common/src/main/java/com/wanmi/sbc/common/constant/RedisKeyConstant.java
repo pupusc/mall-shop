@@ -18,6 +18,11 @@ public final class RedisKeyConstant {
     public static final String FLASH_SALE_GOODS_INFO = "flashSaleGoodsInfo:";
 
     /**
+     * 上一次第三方库存缓存
+     */
+    public static final String GOODS_INFO_LAST_STOCK_PREFIX = "GOODS_INFO_LAST_STOCK_";
+
+    /**
      * 秒杀+积分兑换优惠券迭代---商品秒杀抢购资格对应key前缀
      */
     public static final String FLASH_SALE_GOODS_QUALIFICATIONS = "flashSaleGoodsQualifications:";

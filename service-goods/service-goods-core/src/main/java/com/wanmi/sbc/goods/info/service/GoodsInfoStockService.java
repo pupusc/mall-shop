@@ -81,7 +81,16 @@ public class GoodsInfoStockService {
         log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, stock);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
+        //计算库存
+        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+        if(lastStock != null && nowStock != null){
+            if(Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) >0){
+                stock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
+            }
+        }
         redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, stock.toString());
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
 
         //发送mq，更新数据库库存
@@ -94,13 +103,15 @@ public class GoodsInfoStockService {
 
     @Transactional
     public void batchUpdateGoodsInfoStock(Map<String, Integer> data){
-        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+        data.forEach((k, v) -> resetGoodsById(Long.valueOf(v), k));
 
-        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
-            return null;
-        });
-        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
+//        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+//
+//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
+//            return null;
+//        });
+//        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
     }
 
     @Transactional

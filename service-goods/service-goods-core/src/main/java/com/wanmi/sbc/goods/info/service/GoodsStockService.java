@@ -266,7 +266,7 @@ public class GoodsStockService {
         String lastSyncTime = redisService.getString(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
         Date currentDate = new Date();
         if(lastSyncTime == null){
-            lastSyncTime = "2021-01-01 00:00:00";
+            lastSyncTime = "2020-01-01 00:00:00";
         }
         BaseResponse<List<ERPGoodsInfoVO>> updatedStock = guanyierpProvider.getUpdatedStock(lastSyncTime, erpGoodInfoNo);
         Map<String, Integer> erpSkuStockMap = new HashMap<>();
@@ -278,26 +278,25 @@ public class GoodsStockService {
                 salableQty = 0;
                 log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
             }else {
-                if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
-                    salableQty = 9999;
-                }else {
-                    if(salableQty < 6){
-                        String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                        if(stockStatus == null){
-                            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
-                            for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
-                                stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
-                            }
-                            stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                if(salableQty < 6){
+                    if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
+                        salableQty = 99;
+                    }
+                    String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    if(stockStatus == null){
+                        BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
+                        for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
+                            stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
                         }
-                        if(stockStatus == null) {
-                            log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
-                            salableQty = 0;
-                        }else if(stockStatus == "0"){
-                            salableQty = 9999;
-                        }else {
-                            salableQty = 0;
-                        }
+                        stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    }
+                    if(stockStatus == null) {
+                        log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
+                        salableQty = 0;
+                    }else if(stockStatus == "0"){
+                        salableQty = 99;
+                    }else {
+                        salableQty = 0;
                     }
                 }
             }
