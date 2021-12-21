@@ -160,7 +160,7 @@ public class RedisService {
                 Map<byte[],byte[]> bytes = redisConnection.hGetAll(redisTemplate.getStringSerializer().serialize(key));
                 if(bytes != null) {
                     bytes.forEach((k, v) -> res.put(redisTemplate.getStringSerializer().deserialize(k),
-                                redisTemplate.getStringSerializer().deserialize(v)));
+                            redisTemplate.getStringSerializer().deserialize(v)));
                 }
                 return res;
             });

@@ -86,8 +86,8 @@ public class GoodsInfoStockService {
 
         //发送mq，更新数据库库存
         log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
-       // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
-      //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+        // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+        //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
         int updateCount = goodsInfoRepository.resetStockById(stock, goodsInfoId);
         log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
     }

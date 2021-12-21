@@ -242,13 +242,13 @@ public class GuanyierpService {
     }
 
     public List<ERPGoodsInfoVO> getUpdatedStock(String startTime, String erpGoodInfoNo) {
-        log.info("getUpdatedStock获取库存,参数:{}", startTime);
+        log.info("getUpdatedStock获取库存,参数:{},{}", startTime, erpGoodInfoNo);
         Map<String, String> request = new HashMap<>();
         request.put("appkey", appkey);
         request.put("sessionkey", sessionkey);
         request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
         request.put("warehouse_code", stockwarehouseCode);
-        if(erpGoodInfoNo != null){
+        if(StringUtils.isNotEmpty(erpGoodInfoNo)){
             request.put("item_sku_code", erpGoodInfoNo);
         }else {
             request.put("start_date", startTime);

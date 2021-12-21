@@ -60,12 +60,12 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
     public ReturnT<String> execute(String erpGoodsInfoNo) {
         RLock lock = redissonClient.getLock(BATCH_GET_GOODS_STOCK_LOCKS);
         if (lock.isLocked()) {
-            log.error("全量同步ERP商品库存任务在执行中,下次执行.");
+            log.error("增量同步ERP商品库存任务在执行中,下次执行.");
             return null;
         }
         lock.lock();
         long startTime = System.currentTimeMillis();
-        log.info("全量同步ERP商品库存任务执行开始,参数:{}", erpGoodsInfoNo);
+        log.info("增量同步ERP商品库存任务执行开始,参数:{}", erpGoodsInfoNo);
         try {
             BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo);
             Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();

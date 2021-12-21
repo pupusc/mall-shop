@@ -585,7 +585,7 @@ public class GoodsController implements GoodsProvider {
 
     @Override
     public BaseResponse updateGoodsCollectNum(@RequestBody @Valid GoodsModifyCollectNumRequest
-                                                          goodsModifyCollectNumRequest) {
+                                                      goodsModifyCollectNumRequest) {
         goodsService.updateGoodsCollectNum(goodsModifyCollectNumRequest);
         return BaseResponse.SUCCESSFUL();
     }
