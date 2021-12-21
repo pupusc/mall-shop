@@ -49,6 +49,7 @@ import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -106,6 +107,9 @@ public class BookListModelAndGoodsService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Value("${stock.size:5}")
+    private Long stockSize;
 
     /**
      * 获取是否是知识顾问
@@ -426,7 +430,11 @@ public class BookListModelAndGoodsService {
                         }
                     }
                 }
-                stock = goodsInfoVoListLast.stream().mapToLong(GoodsInfoVO::getStock).sum();
+                stock = goodsInfoVoListLast.stream().filter(p->p.getStock()!=null).mapToLong(GoodsInfoVO::getStock).sum();
+                //商品<5个不销售
+                if(stock.compareTo(stockSize) <=0){
+                    stock = 0L;
+                }
             }
 
             List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();

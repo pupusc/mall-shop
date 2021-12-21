@@ -93,8 +93,7 @@ public class GoodsStockService {
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
 
-    @Value("${stock.size:5}")
-    private Integer stockSize;
+
     /**
      * 批量加库存
      *
@@ -302,10 +301,6 @@ public class GoodsStockService {
 
     @Transactional
     public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
-        if (stock.getStock() <= stockSize) {
-            log.info("goods stock is less than stockSize,stock:{}", stock);
-            stock.setStock(0);
-        }
         //查询sku信息
         GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
         if (goodsInfo ==null) {

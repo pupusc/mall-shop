@@ -20,6 +20,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -71,7 +72,16 @@ public class GoodsInfoStockService {
         log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, stock);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
+        //计算库存
+        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+        if(lastStock != null && nowStock != null){
+            if(Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) >0){
+                stock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
+            }
+        }
         redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, stock.toString());
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
 
         //发送mq，更新数据库库存
