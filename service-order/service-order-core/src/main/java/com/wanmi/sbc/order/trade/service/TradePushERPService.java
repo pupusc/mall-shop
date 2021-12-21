@@ -1458,6 +1458,14 @@ public class TradePushERPService {
             return BaseResponse.SUCCESSFUL();
         }
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
+        if(providerTrade == null){
+            log.warn("syncProviderTradeDeliveryStatus未查询到订单，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
+        if(Objects.equals(providerTrade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
+            log.info("syncProviderTradeDeliveryStatus订单已是发货，不需再次操作，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
             request.getDeliveryInfoList().forEach(deliveryInfoDTO -> {
@@ -1467,7 +1475,6 @@ public class TradePushERPService {
                 if(request.getPacking().equals(0)){
                     //未分仓是要设置code
                     deliveryInfoVO.setCode(generatorService.generate("TD"));
-
                 }
                 deliveryInfoDTO.getGoodsList().forEach(g -> {
                     if (providerTrade.getTradeItems().stream().anyMatch(p -> p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
@@ -1501,7 +1508,7 @@ public class TradePushERPService {
 
             }
         } catch (Exception e) {
-            log.error("#同步发货状态异常:{}", e);
+            log.error("#同步发货状态异常,request:{},error:{}",request, e);
         }
         return BaseResponse.SUCCESSFUL();
     }

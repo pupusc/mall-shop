@@ -12,6 +12,7 @@ import com.fangdeng.server.client.response.bookuu.BookuuOrderStatusQueryResponse
 import com.fangdeng.server.client.response.bookuu.BookuuPackStatusQueryResponse;
 import com.fangdeng.server.constant.ConsumerConstants;
 import com.fangdeng.server.dto.*;
+import com.fangdeng.server.enums.BookuuDeliveryStatus;
 import com.fangdeng.server.enums.DeliveryStatus;
 import com.fangdeng.server.vo.DeliveryItemVO;
 import lombok.extern.slf4j.Slf4j;
@@ -129,12 +130,14 @@ public class ProviderTradeHandler {
             BookuuOrderStatusQueryRequest request = new BookuuOrderStatusQueryRequest();
             request.setOutID(Arrays.asList(syncDTO.getTid()));
             BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
-            if (response == null || CollectionUtils.isEmpty(response.getStatusDTOS())) {
+            if (response == null || CollectionUtils.isEmpty(response.getStatusDTOS()))  {
                 log.warn("query order delivery status error,body:{}", body);
                 return confirmDTO;
             }
-            //方便测试，要去掉，测试代码
-            response.getStatusDTOS().get(0).setUnpacking(1);
+            if(Arrays.asList(BookuuDeliveryStatus.DELIVERYED.getKey(),BookuuDeliveryStatus.SALED.getKey()).contains(response.getStatusDTOS().get(0).getOrderStatus())){
+                log.warn("order status is not delivery", body);
+                return confirmDTO;
+            }
             List<DeliveryInfoDTO> deliveryList = new ArrayList<>();
             //如果有拆包
             if (Objects.equals(response.getStatusDTOS().get(0).getUnpacking(), 1)) {
@@ -156,15 +159,14 @@ public class ProviderTradeHandler {
                         p.setSourceSpbs(goodsItemDTOOptional.get().getSourceSpbs());
                     }
                 });
-                Map<String, List<OrderPackItemDTO>> map = packItemList.stream().filter(p -> Arrays.asList(4, 5).contains(p.getStatus())).collect(Collectors.groupingBy(t -> t.getPostNumber()));
-                //博库是返回全部数据，所以数据要自己处理
-                //先处理已发货的
+                Map<String, List<OrderPackItemDTO>> map = packItemList.stream().filter(p -> Arrays.asList(BookuuDeliveryStatus.SALED.getKey(), BookuuDeliveryStatus.DELIVERYED.getKey()).contains(p.getStatus())).collect(Collectors.groupingBy(t -> t.getPostNumber()));
+                //博库是返回全部数据，所以数据要自己处理,先处理已发货的
                 if (map.isEmpty()) {
                     return confirmDTO;
                 }
                 map.forEach((key, value) -> {
                     DeliveryInfoDTO deliveryInfoDTO = DeliveryInfoDTO.builder()
-                            .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
+                            .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE.getKey())
                             .expressNo(value.get(0).getPostNumber())
                             .expressName(value.get(0).getPost())
                             .platformCode(syncDTO.getTid())
@@ -190,7 +192,7 @@ public class ProviderTradeHandler {
                 }else{
                     confirmDTO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE.getKey());
                     //取消
-                    List<OrderPackItemDTO> cancelItems = packItemList.stream().filter(p->Objects.equals(p.getStatus(),7)).collect(Collectors.toList());
+                    List<OrderPackItemDTO> cancelItems = packItemList.stream().filter(p->Objects.equals(p.getStatus(),BookuuDeliveryStatus.CANCEL.getKey())).collect(Collectors.toList());
                     if(CollectionUtils.isEmpty(cancelItems)){
                         return confirmDTO;
                     }
@@ -212,7 +214,7 @@ public class ProviderTradeHandler {
                         .platformCode(syncDTO.getTid())
                         .expressNo(response.getStatusDTOS().get(0).getPostNumber())
                         .expressName(response.getStatusDTOS().get(0).getPost())
-                        .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
+                        .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE.getKey())
                         .deliverTime(LocalDateTime.now())
                         .goodsList(response.getStatusDTOS().get(0).getBookRecs())
                         .build();

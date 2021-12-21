@@ -32,7 +32,7 @@ public class DeliveryInfoDTO implements Serializable {
      * 2:部分发货)
      */
     @ApiModelProperty(value = "订单商品发货状态")
-    private DeliveryStatus deliveryStatus;
+    private Integer deliveryStatus;
 
     /**
      * 发货时间
