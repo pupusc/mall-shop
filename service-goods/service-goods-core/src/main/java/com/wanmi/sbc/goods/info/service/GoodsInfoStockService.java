@@ -73,13 +73,7 @@ public class GoodsInfoStockService {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
         //计算库存
-        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
-        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
-        if(lastStock != null && nowStock != null){
-            if(Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) >0){
-                stock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
-            }
-        }
+        stock = this.resetGoodsStock(stock,goodsInfoId);
         redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
         redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, stock.toString());
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
@@ -91,6 +85,22 @@ public class GoodsInfoStockService {
         int updateCount = goodsInfoRepository.resetStockById(stock, goodsInfoId);
         log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
 
+    }
+
+    public Long resetGoodsStock(Long stock,String goodsInfoId){
+        //计算库存
+        try {
+            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+            if (lastStock != null && nowStock != null) {
+                if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+                    stock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
+                }
+            }
+        }catch (Exception e){
+            log.warn("更新库存失败，stock:{},goodsInfoId:{}",stock,goodsInfoId,e);
+        }
+        return stock;
     }
 
 
