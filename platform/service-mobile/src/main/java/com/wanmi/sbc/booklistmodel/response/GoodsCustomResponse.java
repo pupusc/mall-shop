@@ -117,4 +117,7 @@ public class GoodsCustomResponse implements Serializable{
     @ApiModelProperty("元素4：右侧第二行文字")
     private String elementFour;
 
+    @ApiModelProperty("商品库存")
+    private Long stock;
+
 }

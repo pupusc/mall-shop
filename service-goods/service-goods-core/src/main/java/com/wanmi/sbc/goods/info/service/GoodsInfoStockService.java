@@ -26,6 +26,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -77,20 +78,22 @@ public class GoodsInfoStockService {
      * @param stock
      * @param goodsInfoId
      */
-    public void resetGoodsById(Long stock,String goodsInfoId){
+    public void resetGoodsById(Long stock,String goodsInfoId,Long actualStock){
         log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, stock);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
-        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
-        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, stock.toString());
+        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
 
         //发送mq，更新数据库库存
-        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
+        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
         // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
         //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
-        int updateCount = goodsInfoRepository.resetStockById(stock, goodsInfoId);
-        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+        int updateCount = goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
+        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
     }
+
 
     @Transactional
     public void batchUpdateGoodsInfoStock(Map<String, Integer> data){
@@ -106,6 +109,23 @@ public class GoodsInfoStockService {
     @Transactional
     public void batchUpdateGoodsStock(Map<String, Integer> data){
         data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+    }
+
+    public Long getActualStock(Long stock,String goodsInfoId){
+        Long actualStock = stock;
+        //计算库存
+        try {
+            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+            if (lastStock != null && nowStock != null) {
+                if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+                    actualStock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
+                }
+            }
+        }catch (Exception e){
+            log.warn("更新库存失败，stock:{},goodsInfoId:{}",stock,goodsInfoId,e);
+        }
+        return actualStock;
     }
 
 

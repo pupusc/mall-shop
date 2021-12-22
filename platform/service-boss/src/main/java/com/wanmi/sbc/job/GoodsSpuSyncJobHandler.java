@@ -155,6 +155,7 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
             request.getGoods().setCompanyType(companyInfo.getCompanyType());
             request.getGoods().setStoreId(defaultStoreId);
             request.getGoods().setSupplierName(companyInfo.getSupplierName());
+            request.getGoods().setAnchorPushs("1");
             BaseResponse<GoodsAddResponse> baseResponse = goodsProvider.add(request);
             GoodsAddResponse response = baseResponse.getContext();
             String goodsId = Optional.ofNullable(response)

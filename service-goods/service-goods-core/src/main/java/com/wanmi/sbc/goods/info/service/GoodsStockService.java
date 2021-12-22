@@ -99,8 +99,7 @@ public class GoodsStockService {
     @Autowired
     private GoodsPriceSyncRepository goodsPriceSyncRepository;
 
-    @Value("${stock.size:5}")
-    private Integer stockSize;
+
     /**
      * 批量加库存
      *
@@ -376,10 +375,6 @@ public class GoodsStockService {
 
     @Transactional
     public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
-        if (stock.getStock() <= stockSize) {
-            log.info("goods stock is less than stockSize,stock:{}", stock);
-            stock.setStock(0);
-        }
         //查询sku信息
         GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
         if (goodsInfo ==null) {
@@ -387,11 +382,13 @@ public class GoodsStockService {
             log.info("there is no sku,stock:{}", stock);
             return;
         }
-        goodsInfoStockService.resetGoodsById(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId());
-        skuStockMap.put(goodsInfo.getGoodsInfoId(), stock.getStock());
+        //更新后的库存
+        Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId())
+        goodsInfoStockService.resetGoodsById(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
+        skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
         //更新spu库存
-        goodsRepository.resetGoodsStockById(Long.valueOf(stock.getStock()), goodsInfo.getGoodsId());
-        spuStockMap.put(goodsInfo.getGoodsId(), stock.getStock());
+        goodsRepository.resetGoodsStockById(actualStock, goodsInfo.getGoodsId());
+        spuStockMap.put(goodsInfo.getGoodsId(), actualStock.intValue());
         //更新状态
         goodsStockSyncRepository.updateStatus(stock.getId());
     }

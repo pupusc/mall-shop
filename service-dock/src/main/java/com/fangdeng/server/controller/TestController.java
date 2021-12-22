@@ -9,9 +9,16 @@ import com.fangdeng.server.job.SyncGoodsStockJobHandler;
 import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -41,10 +48,31 @@ public class TestController {
     @Autowired
     private GoodsCateSyncMapper goodsCateSyncMapper;
 
-    
+    @Autowired
+    private RedisTemplate<Object,Object> redisTemplate;
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
+            List<String> keys =new ArrayList<>();
+            keys.add("GOODS_INFO_STOCK_2c90e856787e5162017881b8cf8d003c");
+            keys.add("GOODS_INFO_STOCK_2c90e856787e5162017881b8cf8d0031");
+            Map<String,String> map = new HashMap<>();
+            try {
+                redisTemplate.setKeySerializer(new StringRedisSerializer());
+                redisTemplate.setValueSerializer(new StringRedisSerializer());
+                List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+                    for (String  key : keys) {
+                        redisConnection.get(redisTemplate.getStringSerializer().serialize(key));
+                    }
+                    return null;
+                });
+                String a="";
+            } catch (Exception e) {
+
+            }
+
+
+
         try {
             providerTradeHandler.orderPushConsumer(null, JSONObject.toJSONString(orderTradeDTO));
             //providerTradeHandler.deliveryStatusSyncConsumer(null,"{\"tid\":\"P202110081721309415007\"}");
