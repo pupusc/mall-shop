@@ -286,7 +286,7 @@ public class GoodsInfoQueryRequest extends BaseQueryRequest implements Serializa
                 predicates.add(root.get("erpGoodsInfoNo").in(erpGoodsInfoNos));
             }
             //ERP 批量SPU编号
-            if(CollectionUtils.isNotEmpty(erpGoodsInfoNos)){
+            if(CollectionUtils.isNotEmpty(erpGoodsNos)){
                 predicates.add(root.get("erpGoodsNo").in(erpGoodsNos));
             }
             //批量SPU编号
