@@ -35,6 +35,7 @@ import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
+import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
@@ -117,9 +118,11 @@ public class TradePushERPService {
     @Autowired
     private TradeRepository tradeRepository;
 
-
     @Autowired
     private OrderInvoiceService orderInvoiceService;
+
+    @Autowired
+    private RedisService redisService;
 
 
     @Value("${default.providerId}")
@@ -162,6 +165,7 @@ public class TradePushERPService {
                 this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
             } else {
                 this.updateTradeInfo(providerTrade.getId(), true, true, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
+                releaseFrozenStock(providerTrade);
                 return BaseResponse.SUCCESSFUL();
             }
         } catch (Exception e) {
@@ -174,6 +178,11 @@ public class TradePushERPService {
         return BaseResponse.FAILED();
     }
 
+    private void releaseFrozenStock(ProviderTrade providerTrade){
+        List<TradeItem> tradeItems = providerTrade.getTradeItems();
+        Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
+        redisService.decrPipeline(map);
+    }
 
     /**
      * 推送订单到erp系统--区分已发货和未发货接口的调用
@@ -212,15 +221,13 @@ public class TradePushERPService {
         return baseResponse;
     }
 
-
     /**
      * 构建接口调用参数
      *
      * @param trade
      * @return
      */
-    private Optional<PushTradeRequest>     buildERPOrder(ProviderTrade trade, Integer cycleNum, boolean isFirstCycle) {
-
+    private Optional<PushTradeRequest> buildERPOrder(ProviderTrade trade, Integer cycleNum, boolean isFirstCycle) {
         //查询主单信息
         Trade parentTrade = detail(trade.getParentId());
         trade.setPayWay(parentTrade.getPayWay());
@@ -316,8 +323,6 @@ public class TradePushERPService {
                 .build();
         return Optional.of(pushTradeRequest);
     }
-
-
 
     /**
      * 组装推送erp相关的金额业务
@@ -543,6 +548,7 @@ public class TradePushERPService {
                 this.updateCycleTradeInfo(providerTrade, false, pushDeliverCalendar, cycleNum);
             } else {
                 this.updateCycleTradeInfo(providerTrade, true, pushDeliverCalendar, cycleNum);
+                releaseFrozenStock(providerTrade);
                 return BaseResponse.SUCCESSFUL();
             }
         } catch (Exception e) {
@@ -1441,6 +1447,7 @@ public class TradePushERPService {
                 this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, request.getStatusDesc(), LocalDateTime.now(),"");
             } else {
                 this.updateTradeInfo(request.getPlatformCode(), true, true, providerTrade.getTradeState().getPushCount() + 1, "success", LocalDateTime.now(),request.getOrderId());
+                releaseFrozenStock(providerTrade);
             }
             return BaseResponse.SUCCESSFUL();
         } catch (Exception e) {

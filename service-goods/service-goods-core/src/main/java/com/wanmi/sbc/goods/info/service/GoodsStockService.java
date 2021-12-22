@@ -203,8 +203,8 @@ public class GoodsStockService {
                         log.info("========GoodsInfoId:{} ========  erpGoodsInfoVO：{}==========", goodsInfo.getGoodsInfoId(), erpGoodsInfoVO);
                         // 只有大于0的库存才能同步
                         if (Long.valueOf(erpGoodsInfoVO.getSalableQty()) > 0) {
-                            goodsInfoStockService.resetGoodsById(Long.valueOf(erpGoodsInfoVO.getSalableQty()),
-                                    goodsInfo.getGoodsInfoId());
+                            Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(erpGoodsInfoVO.getSalableQty()), goodsInfo.getGoodsInfoId());
+                            goodsInfoStockService.resetGoodsById(Long.valueOf(erpGoodsInfoVO.getSalableQty()), goodsInfo.getGoodsInfoId(), actualStock);
                             skuStockMap.put(goodsInfo.getGoodsInfoId(), erpGoodsInfoVO.getSalableQty());
                         }
                     }
@@ -265,7 +265,7 @@ public class GoodsStockService {
         String lastSyncTime = redisService.getString(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
         Date currentDate = new Date();
         if(lastSyncTime == null){
-            lastSyncTime = "2021-01-01 00:00:00";
+            lastSyncTime = "2020-01-01 00:00:00";
         }
         BaseResponse<List<ERPGoodsInfoVO>> updatedStock = guanyierpProvider.getUpdatedStock(lastSyncTime, erpGoodInfoNo);
         Map<String, Integer> erpSkuStockMap = new HashMap<>();
@@ -277,53 +277,55 @@ public class GoodsStockService {
                 salableQty = 0;
                 log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
             }else {
-                if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
-                    salableQty = 9999;
-                }else {
-                    if(salableQty < 6){
-                        String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                        if(stockStatus == null){
-                            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
-                            for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
-                                stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
-                            }
-                            stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                if(salableQty < 6){
+                    if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
+                        salableQty = 99;
+                    }
+                    String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    if(stockStatus == null){
+                        BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
+                        for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
+                            stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
                         }
-                        if(stockStatus == null) {
-                            log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
-                            salableQty = 0;
-                        }else if(stockStatus == "0"){
-                            salableQty = 9999;
-                        }else {
-                            salableQty = 0;
-                        }
+                        stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    }
+                    if(stockStatus == null) {
+                        log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
+                        salableQty = 0;
+                    }else if(stockStatus == "0"){
+                        salableQty = 99;
+                    }else {
+                        salableQty = 0;
                     }
                 }
             }
             erpSkuStockMap.put(erpGoodsInfoVO.getSkuCode(), salableQty);
         }
-        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
-        Map<String, Integer> goodsStockMap = new HashMap<>();
+//        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
+//        Map<String, Integer> goodsStockMap = new HashMap<>();
+        List<GoodsInfo> goodsInfos = null;
         if(!erpSkuStockMap.isEmpty()){
             GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
             infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
             infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(erpSkuStockMap.keySet()));
-            List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-            for (GoodsInfo goodsInfo : goodsInfos) {
-                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
-                goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
-                    if(v == null) return erpGoodsInfoStock;
-                    return v + erpGoodsInfoStock;
-                });
-                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), erpGoodsInfoStock);
-            }
-            goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfoStockMap);
-            goodsInfoStockService.batchUpdateGoodsStock(goodsStockMap);
+            goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+//            for (GoodsInfo goodsInfo : goodsInfos) {
+//                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+////                Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
+//                goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
+//                    if(v == null) return erpGoodsInfoStock;
+//                    return v + erpGoodsInfoStock;
+//                });
+//                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), erpGoodsInfoStock);
+//            }
+//            Map<String, Map<String, Integer>> resultMap = goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfos, erpSkuStockMap);
+//            goodsInfoStockService.batchUpdateGoodsStock(goodsStockMap);
         }
-        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
-        resultMap.put("skus", goodsInfoStockMap);
-        resultMap.put("spus", goodsStockMap);
-        if(StringUtils.isEmpty(erpGoodInfoNo) && !goodsInfoStockMap.isEmpty()){
+//        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+//        resultMap.put("skus", goodsInfoStockMap);
+//        resultMap.put("spus", goodsStockMap);
+        Map<String, Map<String, Integer>> resultMap = goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfos, erpSkuStockMap);
+        if(StringUtils.isEmpty(erpGoodInfoNo) && CollectionUtils.isNotEmpty(goodsInfos)){
             redisService.setString(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate));
         }
         return resultMap;
@@ -383,7 +385,7 @@ public class GoodsStockService {
             return;
         }
         //更新后的库存
-        Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId())
+        Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId());
         goodsInfoStockService.resetGoodsById(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
         skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
         //更新spu库存

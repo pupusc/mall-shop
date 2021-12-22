@@ -643,7 +643,8 @@ public class GoodsService {
         infoQueryRequest.setGoodsId(goods.getGoodsId());
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        goodsInfos.forEach(goodsInfo -> {
+        Long goodsStock = 0L;
+        for (GoodsInfo goodsInfo : goodsInfos) {
             if (goodsInfo.getEnterPriseAuditState() == EnterpriseAuditState.CHECKED) {
                 enterpriseGoodsInfoIds.add(goodsInfo.getGoodsInfoId());
                 buyCountMap.put(goodsInfo.getGoodsInfoId(), 1L);
@@ -652,8 +653,11 @@ public class GoodsService {
             goodsInfo.setPriceType(goods.getPriceType());
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
-            goodsInfo.setStock(goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId()));
-        });
+            Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
+            goodsInfo.setStock(goodsInfoStock);
+            goodsStock += goodsInfoStock;
+        }
+        goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
         List<Long> itemIds = goodsInfos.stream()
                 .filter(v -> ThirdPlatformType.LINKED_MALL.equals(v.getThirdPlatformType()))
@@ -754,7 +758,6 @@ public class GoodsService {
         return response;
     }
 
-
     /**
      * @param goodsId 商品ID
      * @return list
@@ -822,7 +825,8 @@ public class GoodsService {
         infoQueryRequest.setGoodsId(goods.getGoodsId());
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        goodsInfos.forEach(goodsInfo -> {
+        Long goodsStock = 0L;
+        for (GoodsInfo goodsInfo : goodsInfos) {
             if (goodsInfo.getEnterPriseAuditState() == EnterpriseAuditState.CHECKED) {
                 enterpriseGoodsInfoIds.add(goodsInfo.getGoodsInfoId());
                 buyCountMap.put(goodsInfo.getGoodsInfoId(), 1L);
@@ -831,8 +835,11 @@ public class GoodsService {
             goodsInfo.setPriceType(goods.getPriceType());
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
-            goodsInfo.setStock(goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId()));
-        });
+            Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
+            goodsInfo.setStock(goodsInfoStock);
+            goodsStock += goodsInfoStock;
+        }
+        goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
         List<Long> itemIds = goodsInfos.stream()
                 .filter(v -> ThirdPlatformType.LINKED_MALL.equals(v.getThirdPlatformType()))

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.erp.provider.impl;
 
+import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
 import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.enums.InterceptType;
 import com.sbc.wanmi.erp.bean.enums.RefundPhaseType;
@@ -143,8 +144,7 @@ public class GuanyierpController implements GuanyierpProvider {
      */
     @Override
     public BaseResponse autoPushTrade(@RequestBody @Valid PushTradeRequest request) {
-        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
-                ERPPushTradeRequest.class);
+        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request, ERPPushTradeRequest.class);
         Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTrade(erpPushTradeRequest);
         if (erpPushTradeResponse.isPresent()){
             return BaseResponse.SUCCESSFUL();
@@ -159,8 +159,7 @@ public class GuanyierpController implements GuanyierpProvider {
      */
     @Override
     public BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest request) {
-        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
-                ERPPushTradeRequest.class);
+        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request, ERPPushTradeRequest.class);
         Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTradeDelivered(erpPushTradeRequest);
         if (erpPushTradeResponse.isPresent()){
             return BaseResponse.SUCCESSFUL();

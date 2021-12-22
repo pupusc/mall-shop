@@ -1,8 +1,10 @@
 package com.wanmi.sbc.order.redis;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,16 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * redis 工具类
  *
  * @author djk
  */
+@Slf4j
 @Service
 public class RedisService {
 
@@ -95,6 +97,21 @@ public class RedisService {
         return false;
     }
 
+    public void decrPipeline(Map<String, Long> datas) {
+        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+            return null;
+        });
+        List<Object> failedItem = new ArrayList<>();
+        Object[] keys = datas.keySet().toArray();
+        for (int i = 0; i<objects.size(); i++) {
+            if(objects.get(i) == null) failedItem.add(keys[i]);
+        }
+        if(!failedItem.isEmpty()){
+            log.info("decrPipeline failed: {}", Arrays.toString(failedItem.toArray()));
+        }
+    }
+
     public boolean hsetPipeline(final String key, final List<RedisHsetBean> fieldValues) {
         try {
             return redisTemplate.execute(new RedisCallback<Boolean>() {
@@ -103,8 +120,8 @@ public class RedisService {
                     redisConnection.openPipeline();
                     for (RedisHsetBean bean : fieldValues) {
                         redisConnection.hSet(redisTemplate.getStringSerializer().serialize(key),
-                                redisTemplate.getStringSerializer().serialize(bean.getField()),
-                                redisTemplate.getStringSerializer().serialize(bean.getValue()));
+                            redisTemplate.getStringSerializer().serialize(bean.getField()),
+                            redisTemplate.getStringSerializer().serialize(bean.getValue()));
                     }
                     List<Object> objects = redisConnection.closePipeline();
                     return !CollectionUtils.isEmpty(objects);
@@ -113,7 +130,6 @@ public class RedisService {
         } catch (Exception e) {
             LOGGER.error("hsetPipeline value to redis fail...", e);
         }
-
         return false;
     }
 
