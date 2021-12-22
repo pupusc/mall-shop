@@ -99,13 +99,20 @@ public class RedisService {
     }
 
     public void decrPipeline(Map<String, Long> datas) {
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
-            return null;
+        datas.forEach((k, v) -> {
+            String key = RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k);
+            log.info("decry {} {}", key, v);
+            redisTemplate.opsForValue().decrement(key, v);
         });
-        log.info("decrPipeline result:{}", Arrays.toString(objects.toArray()));
+
+
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setValueSerializer(new StringRedisSerializer());
+//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+//            return null;
+//        });
+//        log.info("decrPipeline result:{}", Arrays.toString(objects.toArray()));
 //        List<Object> failedItem = new ArrayList<>();
 //        Object[] keys = datas.keySet().toArray();
 //        for (int i = 0; i<objects.size(); i++) {
