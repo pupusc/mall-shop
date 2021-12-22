@@ -43,7 +43,6 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
-import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -59,16 +58,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -430,7 +420,13 @@ public class BookListModelAndGoodsService {
                         }
                     }
                 }
-                stock = goodsInfoVoListLast.stream().filter(p->p.getStock()!=null).mapToLong(GoodsInfoVO::getStock).sum();
+                //多规格，要过滤
+                Map<String,List<GoodsInfoVO>> goodsInfoMap = goodsInfoVoListLast.stream().collect(Collectors.groupingBy(GoodsInfoVO::getGoodsInfoId));
+                if(!goodsInfoMap.isEmpty()){
+                    for(String key:goodsInfoMap.keySet()){//keySet获取map集合key的集合  然后在遍历key即可
+                        stock += goodsInfoMap.get(key).get(0).getStock();
+                    }
+                }
                 //商品<5个不销售
                 if(stock.compareTo(stockSize) <=0){
                     stock = 0L;

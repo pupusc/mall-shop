@@ -292,7 +292,6 @@ public class IndexHomeController {
                     if (goodsInfoVO != null) {
                         BigDecimal showPrice = goodsInfoVO.getSalePrice() == null ? goodsInfoVO.getMarketPrice() == null ? new BigDecimal("100000") : goodsInfoVO.getMarketPrice() : goodsInfoVO.getSalePrice();
                         goodsInfo.setShowPrice(showPrice);
-                        //设置库存
                         Long stock = goodsInfoVOList.stream().filter(p->p.getGoodsId().equals(goodsInfo.getGoodsId()) && p.getStock()!=null).mapToLong(GoodsInfoVO::getStock).sum();
                         //商品<5个不销售
                         if(stock.compareTo(stockSize) <=0){
