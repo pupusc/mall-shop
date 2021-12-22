@@ -27,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -96,20 +93,47 @@ public class GoodsInfoStockService {
 
 
     @Transactional
-    public void batchUpdateGoodsInfoStock(Map<String, Integer> data){
-        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap){
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        Map<String, Integer> goodsStockMap = new HashMap<>();
+        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
+        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
+            for (GoodsInfo goodsInfo : goodsInfos) {
+                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+                Long actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
+                resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), actualStock);
+//                Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
+                goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
+                    if(v == null) return actualStock.intValue();
+                    return v + actualStock.intValue();
+                });
+                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
+            }
+            goodsStockMap.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+        }
+        resultMap.put("skus", goodsInfoStockMap);
+        resultMap.put("spus", goodsStockMap);
+        return resultMap;
+//        data.forEach((k, v) -> {
+//            Long actualStock = getActualStock(Long.valueOf(v), k);
+//            resetGoodsById(Long.valueOf(v), k, actualStock);
+//        });
 
-        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
-            return null;
-        });
-        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
+
+
+//        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+//
+//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
+//            return null;
+//        });
+//        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
     }
 
-    @Transactional
-    public void batchUpdateGoodsStock(Map<String, Integer> data){
-        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
-    }
+//    @Transactional
+//    public void batchUpdateGoodsStock(Map<String, Integer> data){
+//        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+//    }
 
     public Long getActualStock(Long stock,String goodsInfoId){
         Long actualStock = stock;
