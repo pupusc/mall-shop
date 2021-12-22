@@ -270,6 +270,7 @@ public class GoodsStockService {
         BaseResponse<List<ERPGoodsInfoVO>> updatedStock = guanyierpProvider.getUpdatedStock(lastSyncTime, erpGoodInfoNo);
         Map<String, Integer> erpSkuStockMap = new HashMap<>();
         Map<String, String> stockStatusMap = new HashMap<>();
+        HashSet<String> erpGoodsNos = new HashSet<>();
         for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext()) {
             int salableQty = erpGoodsInfoVO.getSalableQty();
             if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
@@ -291,14 +292,13 @@ public class GoodsStockService {
                     }
                     if(stockStatus == null) {
                         log.info("{}库存状态为空,视为正常补货", erpGoodsInfoVO.getSkuCode());
-                        salableQty = 0;
+//                        salableQty = 0;
                     }else if(stockStatus == "0"){
                         salableQty = 99;
-                    }else {
-                        salableQty = 0;
                     }
                 }
             }
+            erpGoodsNos.add(erpGoodsInfoVO.getItemCode());
             erpSkuStockMap.put(erpGoodsInfoVO.getSkuCode(), salableQty);
         }
 //        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
@@ -307,7 +307,8 @@ public class GoodsStockService {
         if(!erpSkuStockMap.isEmpty()){
             GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
             infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-            infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(erpSkuStockMap.keySet()));
+            infoQueryRequest.setErpGoodsNos(new ArrayList<>(erpGoodsNos));
+//            infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(erpSkuStockMap.keySet()));
             goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
 //            for (GoodsInfo goodsInfo : goodsInfos) {
 //                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());

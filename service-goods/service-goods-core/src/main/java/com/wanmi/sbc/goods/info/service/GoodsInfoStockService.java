@@ -91,7 +91,6 @@ public class GoodsInfoStockService {
         log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
     }
 
-
     @Transactional
     public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap){
         Map<String, Map<String, Integer>> resultMap = new HashMap<>();
@@ -100,6 +99,14 @@ public class GoodsInfoStockService {
         if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
             for (GoodsInfo goodsInfo : goodsInfos) {
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+                if(erpGoodsInfoStock == null) {
+                    Long stock = goodsInfo.getStock();
+                    if(stock == null) {
+                        erpGoodsInfoStock = 0;
+                    }else {
+                        erpGoodsInfoStock = stock.intValue();
+                    }
+                }
                 Long actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
                 resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), actualStock);
 //                Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
