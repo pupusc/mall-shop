@@ -309,12 +309,12 @@ public class GoodsStockService {
             return;
         }
         //更新后的库存
-        Long stockSize = goodsInfoStockService.resetGoodsStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId())
-        goodsInfoStockService.resetGoodsById(stockSize, goodsInfo.getGoodsInfoId());
-        skuStockMap.put(goodsInfo.getGoodsInfoId(), stockSize.intValue());
+        Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId())
+        goodsInfoStockService.resetGoodsById(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
+        skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
         //更新spu库存
-        goodsRepository.resetGoodsStockById(stockSize, goodsInfo.getGoodsId());
-        spuStockMap.put(goodsInfo.getGoodsId(), stockSize.intValue());
+        goodsRepository.resetGoodsStockById(actualStock, goodsInfo.getGoodsId());
+        spuStockMap.put(goodsInfo.getGoodsId(), actualStock.intValue());
         //更新状态
         goodsStockSyncRepository.updateStatus(stock.getId());
     }
