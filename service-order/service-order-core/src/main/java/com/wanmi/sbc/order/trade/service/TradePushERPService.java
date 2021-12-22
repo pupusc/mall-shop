@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mongodb.client.result.UpdateResult;
 import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
 import com.sbc.wanmi.erp.bean.dto.ERPTradePaymentDTO;
@@ -181,6 +182,7 @@ public class TradePushERPService {
     private void releaseFrozenStock(ProviderTrade providerTrade){
         List<TradeItem> tradeItems = providerTrade.getTradeItems();
         Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
+        log.info("冻结库存:{}", JSONObject.toJSONString(map));
         redisService.decrPipeline(map);
     }
 
