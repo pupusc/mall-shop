@@ -98,11 +98,6 @@ public class RedisService {
         return false;
     }
 
-    public static void main(String[] args) {
-        String aasfasf = RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat("aasfasf");
-        System.out.println(aasfasf);
-    }
-
     public void decrPipeline(Map<String, Long> datas) {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
