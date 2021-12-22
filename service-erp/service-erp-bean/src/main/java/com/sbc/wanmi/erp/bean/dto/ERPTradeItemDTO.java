@@ -89,4 +89,5 @@ public class ERPTradeItemDTO implements Serializable {
     成本价
      */
     private BigDecimal costPrice;
+
 }
