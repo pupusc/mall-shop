@@ -289,5 +289,8 @@ public interface GoodsProvider {
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
     BaseResponse<Map<String,String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
+    @PostMapping("/goods/${application.goods.version}/decry-last-stock")
+    BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
+
 
 }

@@ -18,6 +18,7 @@ import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.erp.api.request.PushTradeRequest;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
@@ -109,6 +110,8 @@ public class TradePushERPService {
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
+    @Autowired
+    private GoodsProvider goodsProvider;
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
@@ -183,7 +186,7 @@ public class TradePushERPService {
         List<TradeItem> tradeItems = providerTrade.getTradeItems();
         Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
         log.info("冻结库存:{}", JSONObject.toJSONString(map));
-        redisService.decrPipeline(map);
+        goodsProvider.decryLastStock(map);
     }
 
     /**

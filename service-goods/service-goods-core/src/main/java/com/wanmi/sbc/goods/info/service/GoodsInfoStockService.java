@@ -84,11 +84,18 @@ public class GoodsInfoStockService {
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
 
         //发送mq，更新数据库库存
-        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
+//        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
         // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
         //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
-        int updateCount = goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
-        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
+        goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
+//        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
+    }
+
+    public void decryLastStock(Map<String, Long> datas){
+        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+            return null;
+        });
     }
 
     @Transactional

@@ -96,6 +96,9 @@ public class GoodsController implements GoodsProvider {
     private GoodsStockService goodsStockService;
 
     @Autowired
+    private GoodsInfoStockService goodsInfoStockService;
+
+    @Autowired
     private LinkedMallGoodsService linkedMallGoodsService;
 
     @Autowired
@@ -655,6 +658,12 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo){
         Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo);
         return BaseResponse.success(resultMap);
+    }
+
+    @Override
+    public BaseResponse<Map<String,String>> decryLastStock(Map<String, Long> datas){
+        goodsInfoStockService.decryLastStock(datas);
+        return BaseResponse.SUCCESSFUL();
     }
 
     public String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
