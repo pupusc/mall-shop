@@ -707,7 +707,7 @@ public class BookListModelAndGoodsService {
      * @param goodsInfoVOList
      */
     private void initGoodsInfoStock(List<GoodsInfoVO> goodsInfoVOList){
-        if(CollectionUtils.isEmpty(goodsInfoVOList)){
+         if(CollectionUtils.isEmpty(goodsInfoVOList)){
             return;
         }
         List<String> goodsInfoIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
@@ -716,7 +716,7 @@ public class BookListModelAndGoodsService {
             redisTemplate.setValueSerializer(new StringRedisSerializer());
             List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
                 for (String  key : goodsInfoIds) {
-                    redisConnection.get(redisTemplate.getStringSerializer().serialize(key));
+                    redisConnection.get((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX+key).getBytes());
                 }
                 return null;
             });
