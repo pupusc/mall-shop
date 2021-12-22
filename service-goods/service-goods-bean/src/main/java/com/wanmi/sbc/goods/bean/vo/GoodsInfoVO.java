@@ -78,11 +78,6 @@ public class GoodsInfoVO implements Serializable {
     @ApiModelProperty(value = "商品库存")
     private Long stock;
 
-    public Long getStock() {
-        if(stock != null && stock <= 5) return 0L;
-        return stock;
-    }
-
     /**
      * 商品市场价
      */

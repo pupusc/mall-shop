@@ -102,14 +102,15 @@ public class RedisService {
             datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
             return null;
         });
-        List<Object> failedItem = new ArrayList<>();
-        Object[] keys = datas.keySet().toArray();
-        for (int i = 0; i<objects.size(); i++) {
-            if(objects.get(i) == null) failedItem.add(keys[i]);
-        }
-        if(!failedItem.isEmpty()){
-            log.info("decrPipeline failed: {}", Arrays.toString(failedItem.toArray()));
-        }
+        log.info("decrPipeline result:{}", Arrays.toString(objects.toArray()));
+//        List<Object> failedItem = new ArrayList<>();
+//        Object[] keys = datas.keySet().toArray();
+//        for (int i = 0; i<objects.size(); i++) {
+//            if(objects.get(i) == null) failedItem.add(keys[i]);
+//        }
+//        if(!failedItem.isEmpty()){
+//            log.info("decrPipeline failed: {}", Arrays.toString(failedItem.toArray()));
+//        }
     }
 
     public boolean hsetPipeline(final String key, final List<RedisHsetBean> fieldValues) {
