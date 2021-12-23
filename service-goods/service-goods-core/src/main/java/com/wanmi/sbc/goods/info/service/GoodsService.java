@@ -179,6 +179,9 @@ public class GoodsService {
 
     private static Logger log = LoggerFactory.getLogger(GoodsService.class);
 
+    @Value("${stock.threshold:5}")
+    private Integer stockThreshold;
+
     @Autowired
     GoodsAresService goodsAresService;
 
@@ -659,7 +662,7 @@ public class GoodsService {
                 actualStock = 0L;
             }
             goodsInfo.setStock(actualStock);
-            goodsStock += goodsInfoStock;
+            goodsStock += actualStock;
         }
         if(goodsStock <= 5) {
             goodsStock = 0L;
@@ -844,13 +847,13 @@ public class GoodsService {
             goodsInfo.setCateId(goods.getCateId());
             Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
             Long actualStock = goodsInfoStock;
-            if(goodsInfoStock <= 5){
+            if(goodsInfoStock <= stockThreshold){
                 actualStock = 0L;
             }
             goodsInfo.setStock(actualStock);
-            goodsStock += goodsInfoStock;
+            goodsStock += actualStock;
         }
-        if(goodsStock <= 5) {
+        if(goodsStock <= stockThreshold) {
             goodsStock = 0L;
         }
         goods.setStock(goodsStock);
