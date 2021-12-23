@@ -120,8 +120,13 @@ public class GoodsInfoStockService {
                             actualStock = 0;
                             resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 0L);
                         }else {
-                            actualStock = 99;
-                            resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 99L);
+                            Long stock = goodsInfo.getStock();
+                            if(stock == null || stock <= 9) {
+                                actualStock = 99;
+                                resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 99L);
+                            }else {
+                                actualStock = stock.intValue();
+                            }
                         }
                     }
                 }else {

@@ -99,28 +99,10 @@ public class RedisService {
     }
 
     public void decrPipeline(Map<String, Long> datas) {
-        datas.forEach((k, v) -> {
-            String key = RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k);
-            log.info("decry {} {}", key, v);
-            redisTemplate.opsForValue().decrement(key, v);
+        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+            return null;
         });
-
-
-//        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new StringRedisSerializer());
-//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
-//            return null;
-//        });
-//        log.info("decrPipeline result:{}", Arrays.toString(objects.toArray()));
-//        List<Object> failedItem = new ArrayList<>();
-//        Object[] keys = datas.keySet().toArray();
-//        for (int i = 0; i<objects.size(); i++) {
-//            if(objects.get(i) == null) failedItem.add(keys[i]);
-//        }
-//        if(!failedItem.isEmpty()){
-//            log.info("decrPipeline failed: {}", Arrays.toString(failedItem.toArray()));
-//        }
     }
 
     public boolean hsetPipeline(final String key, final List<RedisHsetBean> fieldValues) {

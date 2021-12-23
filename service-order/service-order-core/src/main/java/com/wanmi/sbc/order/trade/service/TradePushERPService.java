@@ -185,7 +185,7 @@ public class TradePushERPService {
     private void releaseFrozenStock(ProviderTrade providerTrade){
         List<TradeItem> tradeItems = providerTrade.getTradeItems();
         Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
-        log.info("冻结库存:{}", JSONObject.toJSONString(map));
+        log.info("释放虚拟冻结库存:{}", JSONObject.toJSONString(map));
         goodsProvider.decryLastStock(map);
     }
 
