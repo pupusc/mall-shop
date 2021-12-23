@@ -654,7 +654,7 @@ public class GoodsService {
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
             Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
-            Long actualStock = goodsStock;
+            Long actualStock = goodsInfoStock;
             if(goodsInfoStock <= 5){
                 actualStock = 0L;
             }
@@ -843,7 +843,7 @@ public class GoodsService {
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
             Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
-            Long actualStock = goodsStock;
+            Long actualStock = goodsInfoStock;
             if(goodsInfoStock <= 5){
                 actualStock = 0L;
             }

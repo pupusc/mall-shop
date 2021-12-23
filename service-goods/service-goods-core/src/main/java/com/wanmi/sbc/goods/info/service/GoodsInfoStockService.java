@@ -106,22 +106,42 @@ public class GoodsInfoStockService {
         if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
             for (GoodsInfo goodsInfo : goodsInfos) {
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
-                if(erpGoodsInfoStock == null) {
-                    Long stock = goodsInfo.getStock();
-                    if(stock == null) {
-                        erpGoodsInfoStock = 0;
+                int actualStock;
+                if(goodsInfo.getErpGoodsInfoNo() != null && goodsInfo.getErpGoodsInfoNo().startsWith("DF")){
+                    if(erpGoodsInfoStock == null) {
+                        Long stock = goodsInfo.getStock();
+                        if(stock == null) {
+                            actualStock = 0;
+                        }else {
+                            actualStock = stock.intValue();
+                        }
                     }else {
-                        erpGoodsInfoStock = stock.intValue();
+                        if(erpGoodsInfoStock == 0) {
+                            actualStock = 0;
+                            resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 0L);
+                        }else {
+                            actualStock = 99;
+                            resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 99L);
+                        }
+                    }
+                }else {
+                    if(erpGoodsInfoStock == null) {
+                        Long stock = goodsInfo.getStock();
+                        if(stock == null) {
+                            actualStock = 0;
+                        }else {
+                            actualStock = stock.intValue();
+                        }
+                    }else {
+                        actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId()).intValue();
+                        resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), (long) actualStock);
                     }
                 }
-                Long actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
-                resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), actualStock);
-//                Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId());
                 goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
-                    if(v == null) return actualStock.intValue();
-                    return v + actualStock.intValue();
+                    if(v == null) return actualStock;
+                    return v + actualStock;
                 });
-                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
+                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), actualStock);
             }
             goodsStockMap.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
         }
