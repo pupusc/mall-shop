@@ -1,5 +1,6 @@
 package com.wanmi.sbc.erp.provider.impl;
 
+import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
 import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.enums.InterceptType;
 import com.sbc.wanmi.erp.bean.enums.RefundPhaseType;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -59,6 +61,14 @@ public class GuanyierpController implements GuanyierpProvider {
             return BaseResponse.success(erpSyncGoodsStockResponse);
         }
         return BaseResponse.success(SyncGoodsInfoResponse.builder().build());
+    }
+
+    /**
+     * 获取商品库存
+     */
+    @Override
+    public BaseResponse<List<ERPGoodsInfoVO>> getUpdatedStock(String startTime, String erpGoodInfoNo) {
+        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo));
     }
 
     /**
@@ -106,22 +116,41 @@ public class GuanyierpController implements GuanyierpProvider {
     }
 
     /**
+     * 获取ERP商品信息,不带库存
+     */
+    @Override
+    public BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(String erpGoodsNum) {
+        ERPGoodsQueryRequest erpGoodsQueryRequest = ERPGoodsQueryRequest.builder().code(erpGoodsNum).build();
+        Optional<ERPGoodsQueryResponse> optionalErpGoodsInfo = guanyierpService.getERPGoodsInfo(erpGoodsQueryRequest);
+        List<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        if(optionalErpGoodsInfo.isPresent()) {
+            ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
+            erpGoods.getSkus().stream().forEach(erpGoodsInfo -> {
+                ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
+                        .itemSkuName(erpGoodsInfo.getName()).skuCode(erpGoodsInfo.getCode())
+                        .costPrice(erpGoodsInfo.getCostPrice()).stockStatusCode(erpGoodsInfo.getStockStatusCode())
+                        .itemCode(erpGoods.getCode()).itemName(erpGoods.getName())
+                        .build();
+                erpGoodsInfoVOList.add(erpGoodsInfoVO);
+            });
+        }
+        return BaseResponse.success(erpGoodsInfoVOList);
+    }
+
+    /**
      * 推送订单到ERP
      * @param request
      * @return
      */
     @Override
     public BaseResponse autoPushTrade(@RequestBody @Valid PushTradeRequest request) {
-        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
-                ERPPushTradeRequest.class);
+        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request, ERPPushTradeRequest.class);
         Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTrade(erpPushTradeRequest);
         if (erpPushTradeResponse.isPresent()){
             return BaseResponse.SUCCESSFUL();
         }
         return BaseResponse.FAILED();
     }
-
-
 
     /**
      * 推送订单到ERP--已发货
@@ -130,8 +159,7 @@ public class GuanyierpController implements GuanyierpProvider {
      */
     @Override
     public BaseResponse autoPushTradeDelivered(@RequestBody @Valid PushTradeRequest request) {
-        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request,
-                ERPPushTradeRequest.class);
+        ERPPushTradeRequest erpPushTradeRequest = KsBeanUtil.convert(request, ERPPushTradeRequest.class);
         Optional<ERPPushTradeResponse> erpPushTradeResponse = guanyierpService.pushTradeDelivered(erpPushTradeRequest);
         if (erpPushTradeResponse.isPresent()){
             return BaseResponse.SUCCESSFUL();
@@ -190,12 +218,12 @@ public class GuanyierpController implements GuanyierpProvider {
         Optional<ERPRefundUpdateResponse> refundUpdateReponseOptional =
                 guanyierpService.refundOrderUpdate(refundUpdateRequest);
         if (refundUpdateReponseOptional.isPresent()){
- //           log.info("--->> guanyierpController RefundTrade tid:{} oid:{} isIntercept:{}", request.getTid(), request.getOid(), request.getIsIntercept());
+            //           log.info("--->> guanyierpController RefundTrade tid:{} oid:{} isIntercept:{}", request.getTid(), request.getOid(), request.getIsIntercept());
 //            if (request.getIsIntercept() != null && Objects.equals(request.getIsIntercept(), 1)) {
 //                log.info("--->> guanyierpController RefundTrade tid:{} oid:{} 当前强制退款，不需要管易云执行终止操作", request.getTid(), request.getOid());
 //                return BaseResponse.SUCCESSFUL();
 //            }
-           //进行订单拦截
+            //进行订单拦截
             ERPTradeInterceptRequest tradeInterceptRequest = ERPTradeInterceptRequest.builder()
                     .operateType(1)
                     .platformCode(request.getTid())

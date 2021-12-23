@@ -23,7 +23,7 @@
 
     <properties>
         <discovery.version>6.3.3</discovery.version>
-        <log4j.version>2.16.0</log4j.version>
+        <log4j.version>2.17.0</log4j.version>
         <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
         <java.version>1.8</java.version>
         <micro-service-autoconfigure.version>seata-sharding-4.0.2-RELEASE</micro-service-autoconfigure.version>

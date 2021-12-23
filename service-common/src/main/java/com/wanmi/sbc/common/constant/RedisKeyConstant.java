@@ -18,6 +18,11 @@ public final class RedisKeyConstant {
     public static final String FLASH_SALE_GOODS_INFO = "flashSaleGoodsInfo:";
 
     /**
+     * 上一次第三方库存缓存
+     */
+    public static final String GOODS_INFO_LAST_STOCK_PREFIX = "GOODS_INFO_LAST_STOCK_";
+
+    /**
      * 秒杀+积分兑换优惠券迭代---商品秒杀抢购资格对应key前缀
      */
     public static final String FLASH_SALE_GOODS_QUALIFICATIONS = "flashSaleGoodsQualifications:";
@@ -73,6 +78,8 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
+    public static final String STOCK_SYNC_TIME_PREFIX = "STOCK_SYNC_TIME_";
+
     /**
      * LinkedMall---验证支付并自动退款， 后缀为订单id
      */
@@ -97,4 +104,5 @@ public final class RedisKeyConstant {
     public static final String VIRTUAL_COUPON_NO_CHECK_KEY= "virtual_coupon_code:coupon-no-check:";
 
     public static final  String ACCESS_TOKEN_KEY="access:token";
+
 }

@@ -32,6 +32,7 @@ import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
@@ -82,6 +83,9 @@ public class IndexHomeController {
 
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+
+    @Value("${stock.size:5}")
+    private Long stockSize;
 
     /**
      * @description 获取首页配置数据
@@ -288,6 +292,12 @@ public class IndexHomeController {
                     if (goodsInfoVO != null) {
                         BigDecimal showPrice = goodsInfoVO.getSalePrice() == null ? goodsInfoVO.getMarketPrice() == null ? new BigDecimal("100000") : goodsInfoVO.getMarketPrice() : goodsInfoVO.getSalePrice();
                         goodsInfo.setShowPrice(showPrice);
+                        Long stock = goodsInfoVOList.stream().filter(p->p.getGoodsId().equals(goodsInfo.getGoodsId()) && p.getStock()!=null).mapToLong(GoodsInfoVO::getStock).sum();
+                        //商品<5个不销售
+                        if(stock.compareTo(stockSize) <=0){
+                            stock = 0L;
+                        }
+                        goodsInfo.setStock(stock);
                     }
                 }
         );

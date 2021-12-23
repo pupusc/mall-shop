@@ -9,20 +9,25 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.mq.GoodsInfoStockSink;
 import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +51,9 @@ public class GoodsInfoStockService {
     private GoodsInfoRepository goodsInfoRepository;
 
     @Autowired
+    private GoodsRepository goodsRepository;
+
+    @Autowired
     private RedisService redisService;
 
     /**
@@ -67,20 +75,120 @@ public class GoodsInfoStockService {
      * @param stock
      * @param goodsInfoId
      */
-    public void resetGoodsById(Long stock,String goodsInfoId){
+    public void resetGoodsById(Long stock,String goodsInfoId,Long actualStock){
         log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, stock);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());
-        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
-        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, stock.toString());
+        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
 
         //发送mq，更新数据库库存
-        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
-       // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
-      //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
-        int updateCount = goodsInfoRepository.resetStockById(stock, goodsInfoId);
-        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+//        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
+        // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+        //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+        goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
+//        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
+    }
 
+    public void decryLastStock(Map<String, Long> datas){
+        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+            return null;
+        });
+    }
+
+    @Transactional
+    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap){
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        Map<String, Integer> goodsStockMap = new HashMap<>();
+        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
+        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
+            for (GoodsInfo goodsInfo : goodsInfos) {
+                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+                int actualStock;
+                if(goodsInfo.getErpGoodsInfoNo() != null && goodsInfo.getErpGoodsInfoNo().startsWith("DF")){
+                    if(erpGoodsInfoStock == null) {
+                        Long stock = goodsInfo.getStock();
+                        if(stock == null) {
+                            actualStock = 0;
+                        }else {
+                            actualStock = stock.intValue();
+                        }
+                    }else {
+                        if(erpGoodsInfoStock == 0) {
+                            actualStock = 0;
+                            resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 0L);
+                        }else {
+                            Long stock = goodsInfo.getStock();
+                            if(stock == null || stock <= 9) {
+                                actualStock = 99;
+                                resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 99L);
+                            }else {
+                                actualStock = stock.intValue();
+                            }
+                        }
+                    }
+                }else {
+                    if(erpGoodsInfoStock == null) {
+                        Long stock = goodsInfo.getStock();
+                        if(stock == null) {
+                            actualStock = 0;
+                        }else {
+                            actualStock = stock.intValue();
+                        }
+                    }else {
+                        actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId()).intValue();
+                        resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), (long) actualStock);
+                    }
+                }
+                goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
+                    if(v == null) return actualStock;
+                    return v + actualStock;
+                });
+                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), actualStock);
+            }
+            goodsStockMap.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+        }
+        resultMap.put("skus", goodsInfoStockMap);
+        resultMap.put("spus", goodsStockMap);
+        return resultMap;
+//        data.forEach((k, v) -> {
+//            Long actualStock = getActualStock(Long.valueOf(v), k);
+//            resetGoodsById(Long.valueOf(v), k, actualStock);
+//        });
+
+
+
+//        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
+//
+//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
+//            return null;
+//        });
+//        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
+    }
+
+//    @Transactional
+//    public void batchUpdateGoodsStock(Map<String, Integer> data){
+//        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+//    }
+
+    public Long getActualStock(Long stock,String goodsInfoId){
+        Long actualStock = stock;
+        //计算库存
+        try {
+            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+            if (lastStock != null && nowStock != null) {
+                if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+                    actualStock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
+                }
+            }
+        }catch (Exception e){
+            log.warn("更新库存失败，stock:{},goodsInfoId:{}",stock,goodsInfoId,e);
+        }
+        return actualStock;
     }
 
 

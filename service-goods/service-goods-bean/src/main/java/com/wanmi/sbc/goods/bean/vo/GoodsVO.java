@@ -308,6 +308,11 @@ public class GoodsVO  implements Serializable {
     @Transient
     private Long stock;
 
+    public Long getStock() {
+        if(stock <= 5) return 0L;
+        return stock;
+    }
+
     /**
      * 一对多关系，多个SKU编号
      */
