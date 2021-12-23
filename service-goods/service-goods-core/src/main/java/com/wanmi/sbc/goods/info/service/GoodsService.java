@@ -654,8 +654,15 @@ public class GoodsService {
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
             Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
-            goodsInfo.setStock(goodsInfoStock);
+            Long actualStock = goodsStock;
+            if(goodsInfoStock <= 5){
+                actualStock = 0L;
+            }
+            goodsInfo.setStock(actualStock);
             goodsStock += goodsInfoStock;
+        }
+        if(goodsStock <= 5) {
+            goodsStock = 0L;
         }
         goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
@@ -836,8 +843,15 @@ public class GoodsService {
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
             Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
-            goodsInfo.setStock(goodsInfoStock);
+            Long actualStock = goodsStock;
+            if(goodsInfoStock <= 5){
+                actualStock = 0L;
+            }
+            goodsInfo.setStock(actualStock);
             goodsStock += goodsInfoStock;
+        }
+        if(goodsStock <= 5) {
+            goodsStock = 0L;
         }
         goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
