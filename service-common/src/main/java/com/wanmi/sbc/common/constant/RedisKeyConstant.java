@@ -105,5 +105,4 @@ public final class RedisKeyConstant {
 
     public static final  String ACCESS_TOKEN_KEY="access:token";
 
-    public static final String GOODS_INFO_LAST_STOCK_PREFIX = "GOODS_INFO_LAST_STOCK_";
 }
