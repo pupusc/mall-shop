@@ -23,6 +23,7 @@
         <discovery.version>6.3.3</discovery.version>
 
         <!-- wanmi -->
+        <log4j.version>2.17.0</log4j.version>
         <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
     </properties>

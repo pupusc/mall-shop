@@ -31,7 +31,7 @@
         <jna.version>4.1.0</jna.version>
         <xstream.version>1.4.11.1</xstream.version>
         <wxpay-sdk.version>wanmi-3.0.9</wxpay-sdk.version>
-        <log4j.version>2.16.0</log4j.version>
+        <log4j.version>2.17.0</log4j.version>
 
     </properties>
 
