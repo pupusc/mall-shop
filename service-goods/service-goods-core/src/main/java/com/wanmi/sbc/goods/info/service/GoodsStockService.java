@@ -267,6 +267,10 @@ public class GoodsStockService {
         if(lastSyncTime == null){
             lastSyncTime = "2020-01-01 00:00:00";
         }
+        if(erpGoodInfoNo != null && erpGoodInfoNo.equals("initial")){
+            lastSyncTime = "";
+            erpGoodInfoNo = "";
+        }
         BaseResponse<List<ERPGoodsInfoVO>> updatedStock = guanyierpProvider.getUpdatedStock(lastSyncTime, erpGoodInfoNo);
         Map<String, Integer> erpSkuStockMap = new HashMap<>();
         Map<String, String> stockStatusMap = new HashMap<>();

@@ -250,8 +250,10 @@ public class GuanyierpService {
         request.put("warehouse_code", stockwarehouseCode);
         if(StringUtils.isNotEmpty(erpGoodInfoNo)){
             request.put("item_sku_code", erpGoodInfoNo);
-        }else {
+        }else if(StringUtils.isNotEmpty(startTime)){
             request.put("start_date", startTime);
+        }else {
+            log.info("库存全量同步...");
         }
         String paramStr;
         try {
