@@ -3,15 +3,11 @@ package com.wanmi.sbc.erp.service;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
-import com.wanmi.sbc.common.base.BaseResponse;
+import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.erp.api.constant.ErpErrorCode;
-import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
-import com.wanmi.sbc.erp.entity.ERPGoodsInfoStock;
-import com.wanmi.sbc.erp.entity.ERPTrade;
 import com.wanmi.sbc.erp.request.*;
 import com.wanmi.sbc.erp.response.*;
 import com.wanmi.sbc.erp.util.GuanyierpContants;
@@ -26,7 +22,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @program: sbc-background
@@ -241,19 +236,58 @@ public class GuanyierpService {
         }
     }
 
-    public List<ERPGoodsInfoVO> getUpdatedStock(String startTime, String erpGoodInfoNo) {
+    public static void main(String[] args) throws JsonProcessingException {
+        String url = "http://v2.api.guanyierp.com/rest/erp_open";
+
+        String req = stock();
+//        String req = wareStatus();
+//        String req = buyOrder();
+
+        String res = new GuanyierpUtil().execute(url, req);
+        System.out.println(res);
+    }
+
+    private static String stock() throws JsonProcessingException {
+        Map<String, String> param = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        param.put("appkey", "185394");
+        param.put("sessionkey", "87cd1d253240400691ff62ff3a6ded77");
+        param.put("method", "gy.erp.new.stock.get");
+        param.put("warehouse_code", "SSJC");
+        param.put("start_date", "2020-12-15 20:30:00");
+        param.put("page_no", "2");
+        param.put("page_size", "15");
+//        param.put("end_date", "2021-12-15 23:30:00");
+//        param.put("item_code", );
+//        param.put("item_sku_code", "20200512163008");
+
+        String buildSignParams = objectMapper.writeValueAsString(param);
+
+        StringBuilder  enValue = new StringBuilder();
+        enValue.append("a18b79905fb34c0da3684a374b28889e");
+        enValue.append(buildSignParams);
+        enValue.append("a18b79905fb34c0da3684a374b28889e");
+        String buildSign = MD5Util.md5Hex(enValue.toString(),"utf-8");
+//        String buildSign = toHexString(md5(enValue.toString(), "utf-8"));
+        param.put("sign", buildSign);
+
+        buildSignParams = objectMapper.writeValueAsString(param);
+        return buildSignParams;
+    }
+
+    public ErpStockVo getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
         log.info("getUpdatedStock获取库存,参数:{},{}", startTime, erpGoodInfoNo);
         Map<String, String> request = new HashMap<>();
         request.put("appkey", appkey);
         request.put("sessionkey", sessionkey);
         request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
         request.put("warehouse_code", stockwarehouseCode);
+        if(StringUtils.isNotEmpty(pageNum)) request.put("page_no", pageNum);
+        if(StringUtils.isNotEmpty(pageSize)) request.put("page_size", pageSize);
         if(StringUtils.isNotEmpty(erpGoodInfoNo)){
             request.put("item_sku_code", erpGoodInfoNo);
-        }else if(StringUtils.isNotEmpty(startTime)){
-            request.put("start_date", startTime);
         }else {
-            log.info("库存全量同步...");
+            request.put("start_date", startTime);
         }
         String paramStr;
         try {
@@ -263,20 +297,25 @@ public class GuanyierpService {
             paramStr = objectMapper.writeValueAsString(request);
         }catch (Exception e) {
             log.error("getUpdatedStock获取库存生成签名错误", e);
-            return Collections.emptyList();
+            return new ErpStockVo();
         }
         String response = guanyierpUtil.execute(path, paramStr);
         ERPGoodsStockQueryResponse goodsStockResponse = JSONObject.parseObject(response, ERPGoodsStockQueryResponse.class);
         if (goodsStockResponse.isSuccess()){
             if (goodsStockResponse.getStocks() == null) {
                 log.info("getUpdatedStock获取库存返回为空,参数:{}", startTime);
-                return Collections.emptyList();
+                return new ErpStockVo();
             }else{
-                return KsBeanUtil.convert(goodsStockResponse.getStocks(), ERPGoodsInfoVO.class);
+                return KsBeanUtil.convert(goodsStockResponse, ErpStockVo.class);
+//                List<ERPGoodsInfoVO> list = KsBeanUtil.convert(goodsStockResponse.getStocks(), ERPGoodsInfoVO.class);
+//                ErpStockVo erpStockVo = new ErpStockVo();
+//                erpStockVo.setTotal(goodsStockResponse.getTotal());
+//                erpStockVo.setErpGoodsInfoVOList(list);
+//                return erpStockVo;
             }
         }else {
             log.error("getUpdatedStock获取库存报错,参数:{},返回状态码:{}", startTime, goodsStockResponse.getErrorCode());
-            return Collections.emptyList();
+            return new ErpStockVo();
         }
     }
 

@@ -271,7 +271,9 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/partial-update-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo);
+    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo, @RequestParam("lastSyncTime") String lastSyncTime,
+                                                                       @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
 
     /**
      * 同步商品库存
