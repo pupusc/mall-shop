@@ -25,8 +25,6 @@ public class OfflineAccountController {
 
     @Autowired
     private CompanyAccountQueryProvider companyAccountQueryProvider;
-    @Autowired
-    private ERPGoodsStockSyncJobHandler erpGoodsStockSyncJobHandler;
 
     /**
      * 获取商家结算银行账户
@@ -43,9 +41,4 @@ public class OfflineAccountController {
         ).getContext().getCompanyAccountVOList());
     }
 
-    @GetMapping("/stock")
-    public String teststock(String param){
-        erpGoodsStockSyncJobHandler.execute(param);
-        return "ok";
-    }
 }
