@@ -23,7 +23,7 @@ public class TopicStoreyAddRequest implements Serializable {
     @ApiModelProperty("导航名称")
     private String navigationName;
 
-    @ApiModelProperty("楼层类型1：一行一个图片+商品，2：一行两个图片+商品3：一行两个商品4：一行三个图片 5：瀑布流 6 轮播")
+    @ApiModelProperty("楼层类型1：一行一个图片+商品，2：一行两个图片+商品3：一行两个商品4：一行三个图片 5：瀑布流 6 轮播 7  异形轮播")
     private String storeyType;
 
     @ApiModelProperty("图片地址")
@@ -40,6 +40,9 @@ public class TopicStoreyAddRequest implements Serializable {
 
     @ApiModelProperty("瀑布流类型：100=首页瀑布流、200=好书5折瀑布流、300=童书会场瀑布流")
     private Integer waterFallType;
+
+    @ApiModelProperty("背景图片地址")
+    private String backgroundImageUrl;
 
 
 }
