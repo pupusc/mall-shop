@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.info.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
@@ -280,47 +281,51 @@ public class GoodsStockService {
         Map<String, String> stockStatusMap = new HashMap<>();
         HashSet<String> erpGoodsNos = new HashSet<>();
         for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext().getStocks()) {
-            int salableQty = erpGoodsInfoVO.getSalableQty();
-            if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
-                //停用商品库存设置为0
-                salableQty = 0;
-                log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
-            }else {
-                if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
-                    String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                    if(stockStatus == null){
-                        BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
-                        for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
-                            stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
-                        }
-                        stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                    }
-                    // 代发商品没有库存状态、不停用就认为有货
-                    if(stockStatus == null) {
-                        salableQty = 99;
-                    }else {
-                        salableQty = 0;
-                    }
+            try {
+                int salableQty = erpGoodsInfoVO.getSalableQty();
+                if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
+                    //停用商品库存设置为0
+                    salableQty = 0;
+                    log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
                 }else {
-                    if(salableQty < 9){
+                    if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
                         String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                        if(stockStatus == null){
+                        if(StringUtils.isEmpty(stockStatus)){
                             BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
                             for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
                                 stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
                             }
                             stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
                         }
-                        if(stockStatus == null || stockStatus.equals("1")) {
-                            if(salableQty < 0) salableQty = 0;
-                        }else if(stockStatus.equals("0")){
+                        // 代发商品没有库存状态、不停用就认为有货
+                        if(StringUtils.isEmpty(stockStatus)) {
                             salableQty = 99;
+                        }else {
+                            salableQty = 0;
+                        }
+                    }else {
+                        if(salableQty < 9){
+                            String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                            if(StringUtils.isEmpty(stockStatus)){
+                                BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
+                                for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
+                                    stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
+                                }
+                                stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                            }
+                            if(StringUtils.isEmpty(stockStatus) || stockStatus.equals("1")) {
+                                if(salableQty < 0) salableQty = 0;
+                            }else if(stockStatus.equals("0")){
+                                salableQty = 99;
+                            }
                         }
                     }
                 }
+                erpGoodsNos.add(erpGoodsInfoVO.getItemCode());
+                erpSkuStockMap.put(erpGoodsInfoVO.getSkuCode(), salableQty);
+            }catch (Exception e) {
+                log.error("partialUpdateStock error :" + JSONObject.toJSON(erpGoodsInfoVO), e);
             }
-            erpGoodsNos.add(erpGoodsInfoVO.getItemCode());
-            erpSkuStockMap.put(erpGoodsInfoVO.getSkuCode(), salableQty);
         }
         List<GoodsInfo> goodsInfos = null;
         if(!erpSkuStockMap.isEmpty()){
@@ -389,8 +394,7 @@ public class GoodsStockService {
             log.info("there is no sku,stock:{}", stock);
             return;
         }
-        //更新后的库存
-        Long actualStock = goodsInfoStockService.getActualStock(Long.valueOf(stock.getStock()), goodsInfo.getGoodsInfoId());
+        Long actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());
         goodsInfoStockService.resetGoodsById(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
         skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
         //更新spu库存

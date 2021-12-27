@@ -80,10 +80,10 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
             String lastSyncTime;
             String erpGoodsInfoNo = "";
             if("initial".equals(param)){
-                lastSyncTime = "2020-01-01 00:00:00";
+                lastSyncTime = "2020-01-01 20:00:00";
             }else if(StringUtils.isEmpty(param)) {
                 lastSyncTime = stringRedisTemplate.opsForValue().get(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
-                if(lastSyncTime == null) lastSyncTime = "2020-01-01 00:00:00";
+                if(lastSyncTime == null) lastSyncTime = "2021-12-27 20:00:00";
             }else {
                 lastSyncTime = "";
                 erpGoodsInfoNo = param;
@@ -117,7 +117,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
             }else {
                 log.info("同步ERP商品库存查询结果为空2");
             }
-            if(updateLastSyncTime && StringUtils.isEmpty(param)) stringRedisTemplate.opsForValue().set(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate));
+            if(updateLastSyncTime && (StringUtils.isEmpty(param) || "initial".equals(param))) stringRedisTemplate.opsForValue().set(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate));
             log.info("库存同步ERP任务执行结束,耗时:{}", System.currentTimeMillis() - startTime);
             return SUCCESS;
         } catch (RuntimeException e) {
