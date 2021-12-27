@@ -22,6 +22,18 @@
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-message-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>druid</artifactId>
+                    <groupId>com.alibaba</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.18</version>
         </dependency>
 
         <dependency>
