@@ -279,7 +279,7 @@ public class GoodsStockService {
         Map<String, Integer> erpSkuStockMap = new HashMap<>();
         Map<String, String> stockStatusMap = new HashMap<>();
         HashSet<String> erpGoodsNos = new HashSet<>();
-        for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext().getErpGoodsInfoVOList()) {
+        for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext().getStocks()) {
             int salableQty = erpGoodsInfoVO.getSalableQty();
             if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
                 //停用商品库存设置为0

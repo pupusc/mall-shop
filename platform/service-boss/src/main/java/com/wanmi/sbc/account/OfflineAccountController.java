@@ -5,6 +5,7 @@ import com.wanmi.sbc.account.api.request.company.CompanyAccountByCompanyInfoIdAn
 import com.wanmi.sbc.account.bean.vo.CompanyAccountVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.job.ERPGoodsStockSyncJobHandler;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -24,6 +25,8 @@ public class OfflineAccountController {
 
     @Autowired
     private CompanyAccountQueryProvider companyAccountQueryProvider;
+    @Autowired
+    private ERPGoodsStockSyncJobHandler erpGoodsStockSyncJobHandler;
 
     /**
      * 获取商家结算银行账户
@@ -38,5 +41,11 @@ public class OfflineAccountController {
                 CompanyAccountByCompanyInfoIdAndDefaultFlagRequest.builder()
                         .companyInfoId(companyInfoId).defaultFlag(DefaultFlag.NO).build()
         ).getContext().getCompanyAccountVOList());
+    }
+
+    @GetMapping("/stock")
+    public String teststock(String param){
+        erpGoodsStockSyncJobHandler.execute(param);
+        return "ok";
     }
 }

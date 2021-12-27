@@ -9,5 +9,5 @@ public class ErpStockVo {
 
     private int total;
 
-    private List<ERPGoodsInfoVO> erpGoodsInfoVOList;
+    private List<ERPGoodsInfoVO> stocks;
 }
