@@ -99,13 +99,13 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                     if(pageNum > 1) baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo, lastSyncTime, pageNum + "", "20");
                     //更新ES中的SPU和SKU库存数据
                     if(baseResponse.getContext() != null){
-                        Map<String, Integer> skusMap = context.get("skus");
+                        Map<String, Integer> skusMap = baseResponse.getContext().get("skus");
                         if(!skusMap.isEmpty()){
                             updateLastSyncTime = true;
                             EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
                             esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
                         }
-                        Map<String, Integer> spusMap = context.get("spus");
+                        Map<String, Integer> spusMap = baseResponse.getContext().get("spus");
                         if(!spusMap.isEmpty()){
                             updateLastSyncTime = true;
                             EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();

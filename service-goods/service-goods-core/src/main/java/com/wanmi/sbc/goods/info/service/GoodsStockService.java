@@ -282,6 +282,7 @@ public class GoodsStockService {
         HashSet<String> erpGoodsNos = new HashSet<>();
         for (ERPGoodsInfoVO erpGoodsInfoVO : updatedStock.getContext().getStocks()) {
             try {
+                if(StringUtils.isEmpty(erpGoodsInfoVO.getSkuCode())) continue;
                 int salableQty = erpGoodsInfoVO.getSalableQty();
                 if(BooleanUtils.isTrue(erpGoodsInfoVO.getDel())){
                     //停用商品库存设置为0
