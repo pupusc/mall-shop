@@ -16,18 +16,18 @@ import org.springframework.stereotype.Service;
 public class ReturnOrderNewService {
 
 
-    public void createReturnOrder(ReturnOrderAddProviderRequest returnOrderAddProviderRequest) {
-
-
-        long count = returnOrder.getReturnItems().stream()
-                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
-                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
-        long giftsCount = returnOrder.getReturnGifts().stream()
-                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
-                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
-        if (count + giftsCount == returnOrder.getReturnItems().size() + returnOrder.getReturnGifts().size()) {
-            // 虚拟商品 只能直接退款
-            returnOrder.setReturnWay(ReturnWay.OTHER);
-        }
-    }
+//    public void createReturnOrder(ReturnOrderAddProviderRequest returnOrderAddProviderRequest) {
+//
+//
+//        long count = returnOrder.getReturnItems().stream()
+//                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
+//                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
+//        long giftsCount = returnOrder.getReturnGifts().stream()
+//                .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType())
+//                        || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
+//        if (count + giftsCount == returnOrder.getReturnItems().size() + returnOrder.getReturnGifts().size()) {
+//            // 虚拟商品 只能直接退款
+//            returnOrder.setReturnWay(ReturnWay.OTHER);
+//        }
+//    }
 }
