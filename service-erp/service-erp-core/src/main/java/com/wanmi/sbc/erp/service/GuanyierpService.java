@@ -236,45 +236,6 @@ public class GuanyierpService {
         }
     }
 
-    public static void main(String[] args) throws JsonProcessingException {
-        String url = "http://v2.api.guanyierp.com/rest/erp_open";
-
-        String req = stock();
-//        String req = wareStatus();
-//        String req = buyOrder();
-
-        String res = new GuanyierpUtil().execute(url, req);
-        System.out.println(res);
-    }
-
-    private static String stock() throws JsonProcessingException {
-        Map<String, String> param = new HashMap<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-        param.put("appkey", "185394");
-        param.put("sessionkey", "87cd1d253240400691ff62ff3a6ded77");
-        param.put("method", "gy.erp.new.stock.get");
-        param.put("warehouse_code", "SSJC");
-        param.put("start_date", "2020-12-15 20:30:00");
-        param.put("page_no", "2");
-        param.put("page_size", "15");
-//        param.put("end_date", "2021-12-15 23:30:00");
-//        param.put("item_code", );
-//        param.put("item_sku_code", "20200512163008");
-
-        String buildSignParams = objectMapper.writeValueAsString(param);
-
-        StringBuilder  enValue = new StringBuilder();
-        enValue.append("a18b79905fb34c0da3684a374b28889e");
-        enValue.append(buildSignParams);
-        enValue.append("a18b79905fb34c0da3684a374b28889e");
-        String buildSign = MD5Util.md5Hex(enValue.toString(),"utf-8");
-//        String buildSign = toHexString(md5(enValue.toString(), "utf-8"));
-        param.put("sign", buildSign);
-
-        buildSignParams = objectMapper.writeValueAsString(param);
-        return buildSignParams;
-    }
-
     public ErpStockVo getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
         log.info("getUpdatedStock获取库存,参数:{},{}", startTime, erpGoodInfoNo);
         Map<String, String> request = new HashMap<>();

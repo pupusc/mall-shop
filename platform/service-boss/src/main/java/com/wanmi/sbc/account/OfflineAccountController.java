@@ -5,7 +5,6 @@ import com.wanmi.sbc.account.api.request.company.CompanyAccountByCompanyInfoIdAn
 import com.wanmi.sbc.account.bean.vo.CompanyAccountVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.job.ERPGoodsStockSyncJobHandler;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -40,5 +39,4 @@ public class OfflineAccountController {
                         .companyInfoId(companyInfoId).defaultFlag(DefaultFlag.NO).build()
         ).getContext().getCompanyAccountVOList());
     }
-
 }
