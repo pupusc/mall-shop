@@ -1,5 +1,6 @@
 package com.wanmi.sbc.erp.api.provider;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.request.*;
 import com.wanmi.sbc.erp.api.response.*;
@@ -33,7 +34,9 @@ public interface GuanyierpProvider {
      * @return
      */
     @PostMapping("/erp/${application.erp.version}/guanyierp/get-updated-stock")
-    BaseResponse<List<ERPGoodsInfoVO>> getUpdatedStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodInfoNo") String erpGoodInfoNo);
+    BaseResponse<ErpStockVo> getUpdatedStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodInfoNo") String erpGoodInfoNo,
+                                             @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
 
     /**
      * 获取Goods信息
