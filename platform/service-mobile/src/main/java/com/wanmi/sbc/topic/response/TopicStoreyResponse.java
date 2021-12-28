@@ -39,4 +39,7 @@ public class TopicStoreyResponse implements Serializable {
     
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentReponse> contents;
+
+    @ApiModelProperty("背景图片")
+    private String backgroundImageUrl;
 }
