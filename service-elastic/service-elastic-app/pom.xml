@@ -20,6 +20,16 @@
 			<groupId>com.wanmi.sbc</groupId>
 			<artifactId>service-elastic-core</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j-api</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j-core</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -75,6 +85,14 @@
 					<artifactId>jackson-databind</artifactId>
 					<groupId>com.fasterxml.jackson.core</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>log4j-api</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j-to-slf4j</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -121,7 +139,16 @@
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-
+		<dependency>
+			<artifactId>log4j-api</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>log4j-core</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
     </dependencies>
 
 	<build>

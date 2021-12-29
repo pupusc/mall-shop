@@ -799,7 +799,7 @@ public class TradeController implements TradeProvider {
     }
 
     @Override
-    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeStatusSyncRequest request) {
+    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
         return tradePushERPService.syncProviderTradeDeliveryStatus(request);
     }
 }

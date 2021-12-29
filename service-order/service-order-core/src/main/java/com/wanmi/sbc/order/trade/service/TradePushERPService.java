@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mongodb.client.result.UpdateResult;
 import com.sbc.wanmi.erp.bean.dto.ERPTradeItemDTO;
 import com.sbc.wanmi.erp.bean.dto.ERPTradePaymentDTO;
@@ -17,12 +18,14 @@ import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.erp.api.request.PushTradeRequest;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdAndSkuIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
 import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.LogisticsVO;
@@ -34,6 +37,7 @@ import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
+import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
@@ -60,6 +64,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -105,6 +110,8 @@ public class TradePushERPService {
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
+    @Autowired
+    private GoodsProvider goodsProvider;
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
@@ -115,13 +122,18 @@ public class TradePushERPService {
     @Autowired
     private TradeRepository tradeRepository;
 
-
     @Autowired
     private OrderInvoiceService orderInvoiceService;
+
+    @Autowired
+    private RedisService redisService;
 
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+    @Value("${bookuu.providerId}")
+    private Long bookuuProviderId;
 
 
     @Autowired
@@ -157,6 +169,7 @@ public class TradePushERPService {
                 this.updateTradeInfo(providerTrade.getId(), true, false, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
             } else {
                 this.updateTradeInfo(providerTrade.getId(), true, true, providerTrade.getTradeState().getPushCount() + 1, baseResponse.getMessage(), LocalDateTime.now(),"");
+                releaseFrozenStock(providerTrade);
                 return BaseResponse.SUCCESSFUL();
             }
         } catch (Exception e) {
@@ -169,6 +182,12 @@ public class TradePushERPService {
         return BaseResponse.FAILED();
     }
 
+    private void releaseFrozenStock(ProviderTrade providerTrade){
+        List<TradeItem> tradeItems = providerTrade.getTradeItems();
+        Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
+        log.info("释放虚拟冻结库存:{}", JSONObject.toJSONString(map));
+        goodsProvider.decryLastStock(map);
+    }
 
     /**
      * 推送订单到erp系统--区分已发货和未发货接口的调用
@@ -207,15 +226,13 @@ public class TradePushERPService {
         return baseResponse;
     }
 
-
     /**
      * 构建接口调用参数
      *
      * @param trade
      * @return
      */
-    private Optional<PushTradeRequest>     buildERPOrder(ProviderTrade trade, Integer cycleNum, boolean isFirstCycle) {
-
+    private Optional<PushTradeRequest> buildERPOrder(ProviderTrade trade, Integer cycleNum, boolean isFirstCycle) {
         //查询主单信息
         Trade parentTrade = detail(trade.getParentId());
         trade.setPayWay(parentTrade.getPayWay());
@@ -311,8 +328,6 @@ public class TradePushERPService {
                 .build();
         return Optional.of(pushTradeRequest);
     }
-
-
 
     /**
      * 组装推送erp相关的金额业务
@@ -538,6 +553,7 @@ public class TradePushERPService {
                 this.updateCycleTradeInfo(providerTrade, false, pushDeliverCalendar, cycleNum);
             } else {
                 this.updateCycleTradeInfo(providerTrade, true, pushDeliverCalendar, cycleNum);
+                releaseFrozenStock(providerTrade);
                 return BaseResponse.SUCCESSFUL();
             }
         } catch (Exception e) {
@@ -635,7 +651,7 @@ public class TradePushERPService {
                             .getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
                 }
                 if (CollectionUtils.isNotEmpty(deliveryInfoVOList)) {
-                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList);
+                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOList,0);
                 } else {
                     // 扫描次数小于3的加1
                     if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
@@ -1077,7 +1093,7 @@ public class TradePushERPService {
      * @param providerTrade
      * @param deliveryInfoVOList
      */
-    public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
+    public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList,Integer allDelivery) {
         List<TradeDeliverVO> tradeDeliverVOs = new ArrayList<>();
         List<TradeDeliverVO> tradeDeliverVOList = new ArrayList<>();
         TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
@@ -1130,7 +1146,11 @@ public class TradePushERPService {
                                         && !tradeItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
                         if (deliveryItemVOOptional.isPresent()) {
                             DeliveryItemVO deliveryItemVO = deliveryItemVOOptional.get();
-                            tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
+                            if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+                                tradeItem.setDeliveredNum(deliveryItemVO.getQty());
+                            }else {
+                                tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
+                            }
                             if (tradeItem.getDeliveredNum() < tradeItem.getNum() && tradeItem.getDeliveredNum() > 0) {
                                 tradeItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
                             } else if (tradeItem.getDeliveredNum() >= tradeItem.getNum()) {
@@ -1173,7 +1193,11 @@ public class TradePushERPService {
                                             && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
                             if (deliveryGiftVOOptional.isPresent()) {
                                 DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
-                                giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+                                if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+                                    giftItem.setDeliveredNum(deliveryItemVO.getQty());
+                                }else {
+                                    giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+                                }
                                 if (giftItem.getDeliveredNum() < giftItem.getNum() && giftItem.getDeliveredNum() > 0) {
                                     giftItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
                                 } else if (giftItem.getDeliveredNum() >= giftItem.getNum()) {
@@ -1265,30 +1289,29 @@ public class TradePushERPService {
             List<DeliverStatus> itemDeliverStatusList = providerTrade.getTradeItems().stream().map(item -> item.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> giftDeliverStatusList = providerTrade.getGifts().stream().map(gift -> gift.getDeliverStatus()).distinct().collect(Collectors.toList());
             List<DeliverStatus> totalDeliverStatusList = Stream.of(itemDeliverStatusList, giftDeliverStatusList).flatMap(Collection::stream).distinct().collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || !providerTrade.getSupplier().getStoreId().equals(defaultProviderId)) {
-                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || !providerTrade.getSupplier().getStoreId().equals(defaultProviderId)) {
+            if (CollectionUtils.isNotEmpty(totalDeliverStatusList) && totalDeliverStatusList.size() == 1 || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && allDelivery == 1)) {
+                if (totalDeliverStatusList.get(0) == DeliverStatus.SHIPPED || (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && allDelivery == 1)) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
                     tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                     tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
 
-                    log.info("=========TradeDelivers:{}======",tradeDeliverVOList);
+                    log.info("=========TradeDelivers:{}======", tradeDeliverVOList);
 
                     //设置发货时间
-                    TradeDeliverVO tradeDeliver =  tradeDeliverVOList.get(0);
+                    TradeDeliverVO tradeDeliver = tradeDeliverVOList.get(0);
                     providerTrade.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
                     tradeVO.getTradeState().setDeliverTime(tradeDeliver.getDeliverTime());
-                    if(CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(),FlowState.VOID))))){
+                    //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
+                    if (CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
                         tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                         tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                         tradeVO.getTradeState().setDeliverTime(null);
                     }
-                    if(!providerTrade.getSupplier().getStoreId().equals(defaultProviderId) && providerTrade.getTradeItems().stream().anyMatch(p->p.getDeliverStatus() != DeliverStatus.SHIPPED)){
+                    if (providerTrade.getSupplier().getStoreId().equals(bookuuProviderId) && providerTrade.getTradeItems().stream().anyMatch(p -> p.getDeliverStatus() != DeliverStatus.SHIPPED)) {
                         providerTrade.getTradeState().setVirtualAllDelivery(1);
                         tradeVO.getTradeState().setVirtualAllDelivery(1);
                     }
-
-
                 } else if (totalDeliverStatusList.get(0) == DeliverStatus.PART_SHIPPED) {
                     providerTrade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                     providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
@@ -1302,6 +1325,9 @@ public class TradePushERPService {
                 providerTrade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                 tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                 tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+
+                }
             }
             // 添加日志
             tradeEventLog.setEventDetail(String.format("自订单同步ERP订单%s发货清单", providerTrade.getId()));
@@ -1338,8 +1364,8 @@ public class TradePushERPService {
             //更新主订单TradeItem/Gift,多供应商不能直接覆盖-update
             List<TradeItem> tradeItems = new ArrayList<>();
             List<TradeItem> gifts = new ArrayList<>();
-            tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
-            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList()).contains(p.getSkuId())).collect(Collectors.toList()));
+            tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
+            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
             tradeItems.addAll(providerTrade.getTradeItems());
             gifts.addAll(providerTrade.getGifts());
             trade.setTradeItems(tradeItems);
@@ -1426,6 +1452,7 @@ public class TradePushERPService {
                 this.updateTradeInfo(request.getPlatformCode(), true, false, providerTrade.getTradeState().getPushCount() + 1, request.getStatusDesc(), LocalDateTime.now(),"");
             } else {
                 this.updateTradeInfo(request.getPlatformCode(), true, true, providerTrade.getTradeState().getPushCount() + 1, "success", LocalDateTime.now(),request.getOrderId());
+                releaseFrozenStock(providerTrade);
             }
             return BaseResponse.SUCCESSFUL();
         } catch (Exception e) {
@@ -1438,58 +1465,83 @@ public class TradePushERPService {
         return BaseResponse.FAILED();
     }
 
-    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeStatusSyncRequest request) {
+    public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
+        if (request == null || StringUtils.isEmpty(request.getPlatformCode()) || CollectionUtils.isEmpty(request.getDeliveryInfoList())) {
+            return BaseResponse.SUCCESSFUL();
+        }
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
+        if(providerTrade == null){
+            log.warn("syncProviderTradeDeliveryStatus未查询到订单，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
+        if(Objects.equals(providerTrade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
+            log.info("syncProviderTradeDeliveryStatus订单已是发货，不需再次操作，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
-            if(request.getOrderStatus() != null && request.getOrderStatus().equals(5)) {
-                DeliveryInfoVO deliveryInfoVO = DeliveryInfoVO.builder()
-                        .expressName(request.getPost())
-                        .deliveryStatus(DeliveryStatus.DELIVERY_COMPLETE)
-                        .expressNo(request.getPostNumber())
-                        .code(generatorService.generate("TD"))
-                        .platformCode(request.getPlatformCode()).build();
-                if(request.getPostDate() !=null){
-                    try{
-                        Instant instant = request.getPostDate().toInstant();
-                        ZoneId zoneId = ZoneId.systemDefault();
-                        deliveryInfoVO.setDeliverTime(instant.atZone(zoneId).toLocalDateTime());
-
-                    }catch (Exception e){
-                        log.warn("syncProviderTradeDeliveryStatus trans time error,request:{}",request,e);
-                        deliveryInfoVO.setDeliverTime(LocalDateTime.now());
-                    }
-                }
+            request.getDeliveryInfoList().forEach(deliveryInfoDTO -> {
+                DeliveryInfoVO deliveryInfoVO = KsBeanUtil.convert(deliveryInfoDTO, DeliveryInfoVO.class);
+                deliveryInfoVO.setDeliveryStatus(DeliveryStatus.DELIVERY_COMPLETE);
                 List<DeliveryItemVO> deliveryItemVOS = new ArrayList<>();
-                request.getGoodsList().forEach(g -> {
-                    if(providerTrade.getTradeItems().stream().anyMatch(p->p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
+                if(request.getPacking().equals(0)){
+                    //未分仓是要设置code
+                    deliveryInfoVO.setCode(generatorService.generate("TD"));
+                }
+                deliveryInfoDTO.getGoodsList().forEach(g -> {
+                    if (providerTrade.getTradeItems().stream().anyMatch(p -> p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId()))) {
                         DeliveryItemVO deliveryItemVO = new DeliveryItemVO();
                         deliveryItemVO.setQty(g.getBookSendNum().longValue());
-                        deliveryItemVO.setOid(providerTrade.getTradeItems().stream().filter(p -> p.getErpSpuNo().equals(g.getSourceSpbs()) ||  p.getErpSpuNo().equals(g.getBookId())).findFirst().get().getOid());
+                        deliveryItemVO.setOid(providerTrade.getTradeItems().stream().filter(p -> p.getErpSpuNo().equals(g.getSourceSpbs()) || p.getErpSpuNo().equals(g.getBookId())).findFirst().get().getOid());
                         deliveryItemVOS.add(deliveryItemVO);
                     }
                 });
                 deliveryInfoVO.setItemVOList(deliveryItemVOS);
                 deliveryInfoVOListVo.add(deliveryInfoVO);
-            }
+            });
+
 
             if (CollectionUtils.isNotEmpty(deliveryInfoVOListVo)) {
-                    this.fillERPTradeDelivers(providerTrade, deliveryInfoVOListVo);
-            } else {
-                    // 扫描次数小于3的加1
-                    if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
-                        TradeState tradeState = providerTrade.getTradeState();
-                        if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
-                            tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
-                        }
-                    }
-                    providerTradeService.updateProviderTrade(providerTrade);
-
+                this.fillERPTradeDelivers(providerTrade, deliveryInfoVOListVo,request.getDeliveryStatus());
+                //如果有取消商品行且商品全部已发货或者已取消
+                if(Objects.equals(request.getDeliveryStatus(),DeliveryStatus.DELIVERY_COMPLETE.getKey()) && CollectionUtils.isNotEmpty(request.getCancelGoods())){
+                     this.updateProviderAllDelivery(request);
                 }
+
+            } else {
+                // 扫描次数小于3的加1
+                if (!ObjectUtils.isEmpty(providerTrade.getTradeState())) {
+                    TradeState tradeState = providerTrade.getTradeState();
+                    if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                        tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                    }
+                }
+                providerTradeService.updateProviderTrade(providerTrade);
+
+            }
         } catch (Exception e) {
-            log.error("#同步发货状态异常:{}", e);
+            log.error("#同步发货状态异常,request:{},error:{}",request, e);
         }
         return BaseResponse.SUCCESSFUL();
+    }
+
+    //如果有取消商品行且全部已发货或已取消，则将发货单修改成全部发货，并修改主订单状态
+    private void updateProviderAllDelivery(ProviderTradeDeliveryStatusSyncRequest request){
+        ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
+        TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
+        //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
+        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(tradeVO.getId());
+        providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+        providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+        providerTrade.getTradeState().setVirtualAllDelivery(1);
+        tradeVO.getTradeState().setVirtualAllDelivery(1);
+        providerTradeService.updateProviderTrade(providerTrade);
+        if(!providerTrades.stream().anyMatch(p->!Objects.equals(p.getId(),providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(),DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(),FlowState.VOID))))){
+            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+        }
+        Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
+        tradeService.updateTrade(trade);
     }
 
 }

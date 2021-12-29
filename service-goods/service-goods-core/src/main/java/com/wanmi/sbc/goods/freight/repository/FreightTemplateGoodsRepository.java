@@ -37,14 +37,14 @@ public interface FreightTemplateGoodsRepository extends JpaRepository<FreightTem
     @Query("from FreightTemplateGoods f where f.freightTempId = :freightTempId and f.delFlag = 0")
     FreightTemplateGoods queryById(@Param("freightTempId") Long freightTempId);
 
-    /**
-     * 查询店铺下未删除的单品运费模板总数
-     *
-     * @param storeId
-     * @param delFlag
-     * @return
-     */
-    int countByStoreIdAndDelFlag(Long storeId, DeleteFlag delFlag);
+//    /**
+//     * 查询店铺下未删除的单品运费模板总数
+//     *
+//     * @param storeId
+//     * @param delFlag
+//     * @return
+//     */
+//    int countByStoreIdAndDelFlag(Long storeId, DeleteFlag delFlag);
 
     /**
      * 根据单品名称查询

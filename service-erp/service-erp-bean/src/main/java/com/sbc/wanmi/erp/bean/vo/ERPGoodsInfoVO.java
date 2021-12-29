@@ -25,6 +25,11 @@ import java.math.BigDecimal;
 public class ERPGoodsInfoVO implements Serializable {
 
     /**
+     * 是否停用
+     */
+    private Boolean del;
+
+    /**
      * 商品代码
      */
     @ApiModelProperty(value = "商品代码")
@@ -71,5 +76,10 @@ public class ERPGoodsInfoVO implements Serializable {
      */
     @ApiModelProperty(value = "成本价")
     private BigDecimal costPrice;
+
+    /**
+     * 库存状态
+     */
+    private String stockStatusCode;
 
 }

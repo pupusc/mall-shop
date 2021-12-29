@@ -113,9 +113,25 @@ public class ImageService {
 //            imageDTO.setImgHref(imageProviderRequest.getImgHref());
 //        }
 
-        if (imageProviderRequest.getPublishState() != null) {
-            imageDTO.setPublishState(imageProviderRequest.getPublishState());
+//        if (imageProviderRequest.getPublishState() != null) {
+//            imageDTO.setPublishState(imageProviderRequest.getPublishState());
+//        }
+        imageRepository.save(imageDTO);
+    }
+
+
+    public void publish(Integer id, Boolean isOpen) {
+        if (id == null) {
+            throw new SbcRuntimeException("K-000009");
         }
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setId(id);
+        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
+        if (CollectionUtils.isEmpty(imageDTOList)) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        ImageDTO imageDTO = imageDTOList.get(0);
+        imageDTO.setPublishState(isOpen ? UsingStateEnum.USING.getCode() : UsingStateEnum.UN_USING.getCode());
         imageRepository.save(imageDTO);
     }
 

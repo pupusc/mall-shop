@@ -122,11 +122,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -303,8 +299,8 @@ public class GoodsBaseController {
     @ApiOperation(value = "查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/spu/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> detail(@PathVariable String skuId) {
-        return BaseResponse.success(detail(skuId, commonUtil.getCustomer(), Boolean.TRUE));
+    public BaseResponse<GoodsViewByIdResponse> detail(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        return BaseResponse.success(detail(spuId,skuId, commonUtil.getCustomer(), Boolean.TRUE));
     }
 
     /**
@@ -316,7 +312,7 @@ public class GoodsBaseController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/spu/shopcart/{skuId}", method = RequestMethod.GET)
     public BaseResponse<GoodsViewByIdResponse> detailForShopCart(@PathVariable String skuId) {
-        return BaseResponse.success(detail(skuId, commonUtil.getCustomer(), Boolean.FALSE));
+        return BaseResponse.success(detail(null,skuId, commonUtil.getCustomer(), Boolean.FALSE));
     }
 
     /**
@@ -346,9 +342,10 @@ public class GoodsBaseController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId",
             required = true)
     @RequestMapping(value = "/goodsDetailProper/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsDetailProperResponse> goodsDetailProper(@PathVariable String skuId) {
+    public BaseResponse<GoodsDetailProperResponse> goodsDetailProper(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
         GoodsDetailProperBySkuIdRequest request = new GoodsDetailProperBySkuIdRequest();
         request.setSkuId(skuId);
+        request.setSpuId(spuId);
         return BaseResponse.success(goodsQueryProvider.getGoodsDetail(request).getContext());
     }
 
@@ -360,17 +357,22 @@ public class GoodsBaseController {
      */
     @ApiOperation(value = "查询商品页面展示简易信息")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId",
-            required = true)
+            required = false)
     @RequestMapping(value = "/goodsDetailSimple/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsDetailSimpleResponse> goodsDetailSimple(@PathVariable String skuId) {
-        GoodsInfoVO goodsInfo = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder().goodsInfoId(skuId).build
-                ()).getContext();
-
-        if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
-            throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+    public BaseResponse<GoodsDetailSimpleResponse> goodsDetailSimple(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        if(StringUtils.isEmpty(skuId) && StringUtils.isEmpty(spuId)){
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         GoodsDetailSimpleRequest request = new GoodsDetailSimpleRequest();
-        request.setGoodsId(goodsInfo.getGoodsId());
+        request.setGoodsId(spuId);
+        if(StringUtils.isEmpty(spuId)) {
+            GoodsInfoVO goodsInfo = goodsInfoQueryProvider.getById(GoodsInfoByIdRequest.builder().goodsInfoId(skuId).build
+                    ()).getContext();
+            if (Objects.isNull(goodsInfo) || (!Objects.equals(CheckStatus.CHECKED, goodsInfo.getAuditStatus()))) {
+                throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+            }
+            request.setGoodsId(goodsInfo.getGoodsId());
+        }
         GoodsDetailSimpleResponse response = goodsQueryProvider.getGoodsDetailSimple(request).getContext();
         return BaseResponse.success(response);
     }
@@ -402,14 +404,14 @@ public class GoodsBaseController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/shopcart/{skuId}", method = RequestMethod.GET)
     public BaseResponse<GoodsViewByIdResponse> unLoginDetailForShopCart(@PathVariable String skuId) {
-        return BaseResponse.success(detail(skuId, null, Boolean.FALSE));
+        return BaseResponse.success(detail(null,skuId, null, Boolean.FALSE));
     }
 
     @ApiOperation(value = "未登录时,查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/{skuId}", method = RequestMethod.GET)
-    public BaseResponse<GoodsViewByIdResponse> unLoginDetail(@PathVariable String skuId) {
-        return BaseResponse.success(detail(skuId, null, Boolean.TRUE));
+    public BaseResponse<GoodsViewByIdResponse> unLoginDetail(@PathVariable("skuId") String skuId,@RequestParam(value = "spuId",required = false)String spuId) {
+        return BaseResponse.success(detail(spuId,skuId, null, Boolean.TRUE));
     }
 
 
@@ -424,8 +426,15 @@ public class GoodsBaseController {
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }
+
         if (queryRequest.getCpsSpecial() != null) {
             queryRequest.setSortFlag(11); //添加排序
+        } else {
+            if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
+                log.info("---->>> 搜索过滤的 goodsId is {}", searchUnShowGoodsIds);
+                String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
+                queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
+            }
         }
         if (Objects.nonNull(queryRequest.getMarketingId())) {
             MarketingGetByIdRequest marketingGetByIdRequest = new MarketingGetByIdRequest();
@@ -467,11 +476,7 @@ public class GoodsBaseController {
             queryRequest.setGoodsType(GoodsType.CYCLE_BUY);
             queryRequest.setKeywords(null);
         }
-        if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
-            log.info("---->>> 搜索过滤的 goodsIdi is {}", searchUnShowGoodsIds);
-            String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
-            queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
-        }
+
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
         List<GoodsInfoNestVO> goodsInfoNestList = response.getEsGoods().getContent().stream()
@@ -655,13 +660,13 @@ public class GoodsBaseController {
      * @return SPU商品详情
      * fullMarketing
      */
-    private GoodsViewByIdResponse detail(String skuId, CustomerVO customer, Boolean fullMarketing) {
+    private GoodsViewByIdResponse detail(String spuId,String skuId, CustomerVO customer, Boolean fullMarketing) {
 
         String customerId = null;
         if (Objects.nonNull(customer) && StringUtils.isNotBlank(customer.getCustomerId())) {
             customerId = customer.getCustomerId();
         }
-        GoodsViewByIdResponse response = goodsDetailBaseInfoNew(skuId, customerId);
+        GoodsViewByIdResponse response = goodsDetailBaseInfoNew(spuId,skuId, customerId);
         if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
             if (customer == null || StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
@@ -684,7 +689,7 @@ public class GoodsBaseController {
                 })
                 .collect(Collectors.toList());
         //当前sku不在可售之内，则不存在
-        if (goodsInfoVOList.stream().noneMatch(i -> i.getGoodsInfoId().equals(skuId))) {
+        if (StringUtils.isEmpty(spuId) && goodsInfoVOList.stream().noneMatch(i -> i.getGoodsInfoId().equals(skuId))) {
             throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
         }
         List<GoodsLevelPriceVO> goodsLevelPrices = this.getGoodsLevelPrices(response.getGoodsInfos().stream()
@@ -888,10 +893,11 @@ public class GoodsBaseController {
      * @param skuId 商品skuId
      * @return SPU商品详情
      */
-    private GoodsViewByIdResponse goodsDetailBaseInfoNew(String skuId, String customerId) {
+    private GoodsViewByIdResponse goodsDetailBaseInfoNew(String spuId,String skuId, String customerId) {
         GoodsCacheInfoByIdRequest request = new GoodsCacheInfoByIdRequest();
         request.setCustomerId(customerId);
         request.setGoodsInfoId(skuId);
+        request.setGoodsId(spuId);
         request.setShowLabelFlag(true);
         request.setShowSiteLabelFlag(true);
         GoodsViewByIdResponse response = goodsQueryProvider.getCacheViewById(request).getContext();

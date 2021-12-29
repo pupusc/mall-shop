@@ -1,6 +1,8 @@
 package com.wanmi.sbc.job;
 
+import com.sun.corba.se.impl.oa.toa.TOA;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -22,16 +24,20 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
-import io.seata.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -44,101 +50,80 @@ import java.util.Map;
 @JobHandler(value = "erpGoodsStockSyncJobHandler")
 @Component
 @Slf4j
-public class ERPGoodsStockSyncJobHandler extends IJobHandler{
+public class ERPGoodsStockSyncJobHandler extends IJobHandler {
 
     @Autowired
     private GoodsProvider goodsProvider;
-
-    @Autowired
-    private GoodsInfoQueryProvider goodsInfoQueryProvider;
-
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
-
     @Autowired
     private RedissonClient redissonClient;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     //分布式锁名称
     private static final String BATCH_GET_GOODS_STOCK_LOCKS = "BATCH_GET_GOODS_STOCK_LOCKS";
 
     @Override
-    public ReturnT<String> execute(String params) throws Exception {
+    public ReturnT<String> execute(String param) {
         RLock lock = redissonClient.getLock(BATCH_GET_GOODS_STOCK_LOCKS);
         if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
+            log.error("同步ERP商品库存任务在执行中,下次执行.");
             return null;
         }
         lock.lock();
-        log.info("全量同步ERP商品库存任务执行开始");
-        String[] paramterArray = params.split(",");
-        int pageSize = 10;
-        String skuNo = StringUtils.EMPTY;
+        long startTime = System.currentTimeMillis();
+        log.info("同步ERP商品库存任务执行开始,参数:{}", param);
         try {
-            pageSize = Integer.parseInt(paramterArray[0]);
-            if (paramterArray.length>1){
-                skuNo = paramterArray[1];
+            boolean updateLastSyncTime = false;
+            Date currentDate = new Date();
+            String lastSyncTime;
+            String erpGoodsInfoNo = "";
+            if("initial".equals(param)){
+                lastSyncTime = "2020-01-01 20:00:00";
+            }else if(StringUtils.isEmpty(param)) {
+                lastSyncTime = stringRedisTemplate.opsForValue().get(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
+                if(lastSyncTime == null) lastSyncTime = "2021-12-27 20:00:00";
+            }else {
+                lastSyncTime = "";
+                erpGoodsInfoNo = param;
             }
-            GoodsInfoCountByConditionRequest goodsInfoCountByConditionRequest = GoodsInfoCountByConditionRequest.builder()
-                    .goodsType(GoodsType.VIRTUAL_COUPON.toValue())
-                    .delFlag(DeleteFlag.NO.toValue())
-                    .auditStatus(CheckStatus.CHECKED).build();
-            if(StringUtils.isNotEmpty(skuNo)){
-                goodsInfoCountByConditionRequest.setLikeGoodsInfoNo(skuNo);
-            }
-            BaseResponse<GoodsInfoCountByConditionResponse> goodsInfoCountResponse = goodsInfoQueryProvider.countByCondition(goodsInfoCountByConditionRequest);
-            Long count = goodsInfoCountResponse.getContext().getCount();
-            log.info("============count==============:{}",count);
-            if (count > 0){
-                long pageCount = count % pageSize == 0 ? count / pageSize : count / pageSize + 1;
-                log.info("============pageCount==============:{}",pageCount);
-                for (int pageNum = 0; pageNum < pageCount; pageNum++) {
-                    try {
-                        GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                                .pageNum(pageNum)
-                                .pageSize(pageSize)
-                                .build();
-                        // 判断skuNo不为空 添加到实体
-                        if(!StringUtils.isEmpty(skuNo)){
-                            goodsInfoListByIdRequest.setGoodsInfoNo(skuNo);
-                        }
-
-                        BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncERPStock(goodsInfoListByIdRequest);
-                        Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
-
-
-                        //更新ES中的SPU和SKU库存数据
-                        if (!resultMap.isEmpty()){
-                            Map<String, Integer> skusMap = resultMap.get("skus");
-                            log.info("============Es更新sku的库存:{}==================",skusMap);
-/*                            skusMap.entrySet().stream().forEach(entity->{
-                                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skuId(entity.getKey()).stock(Long.valueOf(entity.getValue())).build();
-                                esGoodsStockProvider.resetStockBySkuId(esGoodsSkuStockSubRequest);
-                            });*/
+            BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo, lastSyncTime, "1", "20");
+            Map<String, Map<String, Integer>> context = baseResponse.getContext();
+            if(!baseResponse.getContext().isEmpty()){
+                Integer total = context.get("total").get("total");
+                if(total <= 0) log.info("同步ERP商品库存查询结果为空1");
+                int pageNum = 1;
+                for(int i = 0; i < total; i+=20){
+                    log.info("同步ERP商品库存,共{}条数据,当前第{}页", total, pageNum);
+                    if(pageNum > 1) baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo, lastSyncTime, pageNum + "", "20");
+                    //更新ES中的SPU和SKU库存数据
+                    if(baseResponse.getContext() != null){
+                        Map<String, Integer> skusMap = baseResponse.getContext().get("skus");
+                        if(!skusMap.isEmpty()){
+                            updateLastSyncTime = true;
                             EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
                             esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-                            Map<String, Integer> spusMap = resultMap.get("spus");
-                            log.info("============Es更新spu的库存:{}==================",spusMap);
-                 /*           spusMap.entrySet().stream().forEach(entity->{
-                                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest= EsGoodsSpuStockSubRequest.builder()
-                                        .spuId(entity.getKey())
-                                        .stock(Long.valueOf(entity.getValue())).build();
-                                esGoodsStockProvider.resetStockBySpuId(esGoodsSpuStockSubRequest);
-                            });*/
-                            EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest= EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+                        }
+                        Map<String, Integer> spusMap = baseResponse.getContext().get("spus");
+                        if(!spusMap.isEmpty()){
+                            updateLastSyncTime = true;
+                            EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
                             esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
                         }
-                    }catch (Exception e){
-                        //打印异常堆栈信息
-                        e.printStackTrace();
                     }
+                    pageNum++;
                 }
+            }else {
+                log.info("同步ERP商品库存查询结果为空2");
             }
-            log.info("全量同步ERP商品库存任务执行结束");
+            if(updateLastSyncTime && (StringUtils.isEmpty(param) || "initial".equals(param))) stringRedisTemplate.opsForValue().set(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentDate));
+            log.info("库存同步ERP任务执行结束,耗时:{}", System.currentTimeMillis() - startTime);
             return SUCCESS;
         } catch (RuntimeException e) {
-            log.error("同步ERP库存定时任务,参数错误", e);
+            log.error("同步ERP库存定时任务出错", e);
             throw new SbcRuntimeException(CommonErrorCode.FAILED);
-        }finally {
+        } finally {
             //释放锁
             lock.unlock();
         }

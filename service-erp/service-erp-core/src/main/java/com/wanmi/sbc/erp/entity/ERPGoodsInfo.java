@@ -46,4 +46,10 @@ public class ERPGoodsInfo implements Serializable {
      */
     @JsonProperty("cost_price")
     private BigDecimal costPrice;
+
+    /**
+     * 库存状态
+     */
+    @JsonProperty("stock_status_code")
+    private String stockStatusCode;
 }

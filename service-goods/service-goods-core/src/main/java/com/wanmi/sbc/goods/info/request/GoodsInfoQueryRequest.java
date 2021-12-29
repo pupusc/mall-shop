@@ -88,6 +88,8 @@ public class GoodsInfoQueryRequest extends BaseQueryRequest implements Serializa
      */
     private List<String> erpGoodsInfoNos;
 
+    private List<String> erpGoodsNos;
+
     /**
      * 模糊条件-SKU编码
      */
@@ -282,6 +284,10 @@ public class GoodsInfoQueryRequest extends BaseQueryRequest implements Serializa
             //ERP 批量SKU编号
             if(CollectionUtils.isNotEmpty(erpGoodsInfoNos)){
                 predicates.add(root.get("erpGoodsInfoNo").in(erpGoodsInfoNos));
+            }
+            //ERP 批量SPU编号
+            if(CollectionUtils.isNotEmpty(erpGoodsNos)){
+                predicates.add(root.get("erpGoodsNo").in(erpGoodsNos));
             }
             //批量SPU编号
             if(CollectionUtils.isNotEmpty(goodsIds)){

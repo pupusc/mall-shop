@@ -1,12 +1,16 @@
 package com.wanmi.sbc.erp.api.provider;
+import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
+import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.erp.api.request.*;
 import com.wanmi.sbc.erp.api.response.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @program: sbc-background
@@ -24,6 +28,21 @@ public interface GuanyierpProvider {
      */
     @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-stock")
     BaseResponse<SyncGoodsInfoResponse> syncGoodsStock(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
+
+    /**
+     * 获取商品库存
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/get-updated-stock")
+    BaseResponse<ErpStockVo> getUpdatedStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodInfoNo") String erpGoodInfoNo,
+                                             @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
+
+    /**
+     * 获取Goods信息
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/get-erp-goods")
+    BaseResponse<List<ERPGoodsInfoVO>> getErpGoodsInfoWithoutStock(@RequestParam("erpGoodsNum") String erpGoodsNum);
 
     /**
      * 同步商品信息

@@ -281,11 +281,11 @@ public class FreightTemplateGoodsService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void copyFreightTemplateGoods(Long freightTempId, Long storeId) {
-        //单品运费模板上限20
-        int count = freightTemplateGoodsRepository.countByStoreIdAndDelFlag(storeId, DeleteFlag.NO);
-        if (count >= Constants.FREIGHT_GOODS_MAX_SIZE) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-        }
+//        //单品运费模板上限20
+//        int count = freightTemplateGoodsRepository.countByStoreIdAndDelFlag(storeId, DeleteFlag.NO);
+//        if (count >= Constants.FREIGHT_GOODS_MAX_SIZE) {
+//            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//        }
         //查询要复制单品运费模板
         FreightTemplateGoods freightTemplateGoods = this.queryById(freightTempId);
         if (!Objects.equals(freightTemplateGoods.getStoreId(), storeId)) {

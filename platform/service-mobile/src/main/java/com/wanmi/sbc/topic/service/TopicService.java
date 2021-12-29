@@ -27,6 +27,7 @@ import com.wanmi.sbc.setting.bean.vo.TopicActivityVO;
 import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
+import com.wanmi.sbc.topic.response.TopicStoreyResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,9 @@ public class TopicService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
-    @Autowired
-    private AtmosphereService atmosphereService;
 
-    public BaseResponse<TopicResponse> detail(@RequestBody TopicQueryRequest request){
+
+    public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
         if(activityVO == null || activityVO.getContext() ==null){
             return BaseResponse.success(null);
@@ -67,7 +67,13 @@ public class TopicService {
         if(CollectionUtils.isEmpty(activityVO.getContext().getStoreyList())){
             return BaseResponse.success(response);
         }
-        activityVO.getContext().getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
+        if(!allLoad) {
+            int index = response.getStoreyList().size() > 1 ? 2 : 1;
+            for (int i= index ;i<response.getStoreyList().size();i++){
+                response.getStoreyList().get(i).setContents(null);
+            }
+        }
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
                 skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
             } });
@@ -108,38 +114,51 @@ public class TopicService {
         queryRequest.setVendibility(Constants.yes);
         //查询商品
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
-        List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
-        Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        List<GoodsInfoNestVO> goodsInfoVOList =  esGoodsVOS.stream().map(EsGoodsVO::getGoodsInfos)
-                .flatMap(Collection::stream).filter(p->goodsInfoIds.contains(p.getGoodsInfoId())).collect(Collectors.toList());
-        List<GoodsInfoVO> goodsInfoVOS = KsBeanUtil.convertList(goodsInfoVOList,GoodsInfoVO.class);
+        List<GoodsCustomResponse> result=  bookListModelAndGoodsService.listGoodsCustom(esGoodsVOS);
         for (EsGoodsVO goodsVo : esGoodsVOS) {
-            GoodsCustomResponse goodsCustom = bookListModelAndGoodsService
-                    .packageGoodsCustomResponse(spuId2GoodsVoMap.get(goodsVo.getId()), goodsVo, goodsInfoVOS);
-            goodsVo.getGoodsInfos().forEach(p->{
-                GoodsCustomResponse goods = KsBeanUtil.convert(goodsCustom,GoodsCustomResponse.class);
-                goods.setGoodsInfoId(p.getGoodsInfoId());
-                goods.setGoodsInfoNo(p.getGoodsInfoNo());
-                if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
-                    goods.setAtmosType(p.getAtmosType());
-                    goods.setImageUrl(p.getImageUrl());
-                    goods.setElementOne(p.getElementOne());
-                    goods.setElementTwo(p.getElementTwo());
-                    goods.setElementThree(p.getElementThree());
-                    goods.setElementFour(p.getElementFour());
-                }else{
-                    goods.setAtmosType(null);
-                    goods.setImageUrl(null);
-                    goods.setElementOne(null);
-                    goods.setElementTwo(null);
-                    goods.setElementThree(null);
-                    goods.setElementFour(null);
-                }
-                goodList.add(goods);
-            });
+            Optional<GoodsCustomResponse> goodsCustom = result.stream().filter(p->p.getGoodsId().equals(goodsVo.getId())).findFirst();
+            if(goodsCustom.isPresent()) {
+                goodsVo.getGoodsInfos().forEach(p -> {
+                    GoodsCustomResponse goods = new GoodsCustomResponse();
+                    goods.setGoodsId(goodsCustom.get().getGoodsId());
+                    goods.setGoodsNo(goodsCustom.get().getGoodsNo());
+                    goods.setGoodsInfoId(p.getGoodsInfoId());
+                    goods.setGoodsInfoNo(p.getGoodsInfoNo());
+                    goods.setGoodsName(goodsCustom.get().getGoodsName());
+                    goods.setGoodsSubName(goodsCustom.get().getGoodsSubName());
+                    goods.setGoodsCoverImg(goodsCustom.get().getGoodsCoverImg());
+                    goods.setGoodsUnBackImg(goodsCustom.get().getGoodsUnBackImg());
+                    goods.setCpsSpecial(goodsCustom.get().getCpsSpecial());
+                    goods.setShowPrice(goodsCustom.get().getShowPrice());
+                    goods.setLinePrice(goodsCustom.get().getLinePrice());
+                    goods.setMarketingPrice(goodsCustom.get().getMarketingPrice());
+                    goods.setCouponLabelList(goodsCustom.get().getCouponLabelList());
+                    goods.setGoodsLabelList(goodsCustom.get().getGoodsLabelList());
+                    goods.setGoodsScore(goodsCustom.get().getGoodsScore());
+                    goods.setStock(goodsCustom.get().getStock());
+                    goods.setGoodsExtProperties(goodsCustom.get().getGoodsExtProperties());
+                    if(p.getStartTime()!=null && p.getEndTime()!=null && p.getStartTime().compareTo(LocalDateTime.now()) <0 && p.getEndTime().compareTo(LocalDateTime.now()) > 0) {
+                        goods.setAtmosType(p.getAtmosType());
+                        goods.setImageUrl(p.getImageUrl());
+                        goods.setElementOne(p.getElementOne());
+                        goods.setElementTwo(p.getElementTwo());
+                        goods.setElementThree(p.getElementThree());
+                        goods.setElementFour(p.getElementFour());
+                    }else{
+                        goods.setAtmosType(null);
+                        goods.setImageUrl(null);
+                        goods.setElementOne(null);
+                        goods.setElementTwo(null);
+                        goods.setElementThree(null);
+                        goods.setElementFour(null);
+                    }
+                    goodList.add(goods);
+                });
+            }
 
         }
         return goodList;
+
     }
 
 }

@@ -63,44 +63,37 @@ public class MarketingScopeService {
         List<Marketing> invalidIds = new ArrayList<>();
         Map<Long, List<String>> skuGroup = request.getSkuGroup();
         marketingList.forEach(i -> {
-            // 积分兑换活动，购物车内只能有一件商品
-            if(i.getMarketingType().equals(MarketingType.POINT_BUY)){
-                if(skuGroup.size() > 0 && (skuGroup.size() > 1 || skuGroup.values().iterator().next().size() > 1)){
-                    invalidIds.add(i);
+            //校验营销活动
+            if (i.getIsPause() == BoolFlag.YES || i.getDelFlag() == DeleteFlag.YES || i.getBeginTime().isAfter(LocalDateTime.now())
+                    || i.getEndTime().isBefore(LocalDateTime.now())) {
+                invalidIds.add(i);
+            } else {
+                //校验关联商品是否匹配
+                List<String> scopeList = this.findByMarketingId(i.getMarketingId()).stream().map(
+                        MarketingScope::getScopeId).collect(Collectors.toList());
+                List<String> skuList = skuGroup.get(i.getMarketingId());
+                if (skuList.stream().anyMatch(s -> !scopeList.contains(s))) {
+                    //营销活动创建后不可更改，如果关联商品与后台设置不匹配，基本是安全问题造成
+                    throw new SbcRuntimeException(CommonErrorCode.FAILED);
                 }
-            }else {
-                //校验营销活动
-                if (i.getIsPause() == BoolFlag.YES || i.getDelFlag() == DeleteFlag.YES || i.getBeginTime().isAfter(LocalDateTime.now())
-                        || i.getEndTime().isBefore(LocalDateTime.now())) {
-                    invalidIds.add(i);
-                } else {
-                    //校验关联商品是否匹配
-                    List<String> scopeList = this.findByMarketingId(i.getMarketingId()).stream().map(
-                            MarketingScope::getScopeId).collect(Collectors.toList());
-                    List<String> skuList = skuGroup.get(i.getMarketingId());
-                    if (skuList.stream().anyMatch(s -> !scopeList.contains(s))) {
-                        //营销活动创建后不可更改，如果关联商品与后台设置不匹配，基本是安全问题造成
-                        throw new SbcRuntimeException(CommonErrorCode.FAILED);
-                    }
-                }
-                //校验用户级别
-                Long level = levelMap.get(i.getStoreId());
-                switch (i.getMarketingJoinLevel()) {
-                    case ALL_CUSTOMER:
-                        break;
-                    case ALL_LEVEL:
+            }
+            //校验用户级别
+            Long level = levelMap.get(i.getStoreId());
+            switch (i.getMarketingJoinLevel()) {
+                case ALL_CUSTOMER:
+                    break;
+                case ALL_LEVEL:
 //                    if (level == null) {
 //                        invalidIds.add(i);
 //                    }
-                        break;
-                    case LEVEL_LIST:
-                        if (!i.getJoinLevelList().contains(level)) {
-                            invalidIds.add(i);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                    break;
+                case LEVEL_LIST:
+                    if (!i.getJoinLevelList().contains(level)) {
+                        invalidIds.add(i);
+                    }
+                    break;
+                default:
+                    break;
             }
         });
         return invalidIds;

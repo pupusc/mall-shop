@@ -27,6 +27,11 @@ public class PaidCardCustomerRelQueryRequest extends BaseQueryRequest {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * 最大的临时id
+	 */
+	private Integer maxTmpId;
+
+	/**
 	 * 批量查询-主键List
 	 */
 	@ApiModelProperty(value = "批量查询-主键List")
@@ -55,6 +60,14 @@ public class PaidCardCustomerRelQueryRequest extends BaseQueryRequest {
 	 */
 	@ApiModelProperty(value = "付费会员类型ID")
 	private String paidCardId;
+
+
+	/**
+	 * 当前时间
+	 */
+	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+	private LocalDateTime currentTime;
 
 	/**
 	 * 搜索条件:开始时间开始

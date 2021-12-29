@@ -97,10 +97,7 @@ public class IndexImageController {
      */
     @GetMapping("/publish/{imageId}/{isOpen}")
     public BaseResponse publish(@PathVariable("imageId") Integer id, @PathVariable("isOpen") Boolean isOpen) {
-        ImageProviderRequest imageProviderRequest = new ImageProviderRequest();
-        imageProviderRequest.setId(id);
-        imageProviderRequest.setPublishState(isOpen ? UsingStateEnum.USING.getCode() : UsingStateEnum.UN_USING.getCode());
-        imageProvider.update(imageProviderRequest);
+        imageProvider.publish(id, isOpen);
         return BaseResponse.SUCCESSFUL();
     }
 

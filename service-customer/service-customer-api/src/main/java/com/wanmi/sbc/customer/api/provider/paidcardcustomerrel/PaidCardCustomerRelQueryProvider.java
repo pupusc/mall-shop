@@ -30,6 +30,17 @@ public interface PaidCardCustomerRelQueryProvider {
 	@PostMapping("/customer/${application.customer.version}/paidcardcustomerrel/page")
 	BaseResponse<PaidCardCustomerRelPageResponse> page(@RequestBody @Valid PaidCardCustomerRelPageRequest paidCardCustomerRelPageReq);
 
+
+	/**
+	 * 根据最大id分页获取付费会员API
+	 *
+	 * @author duanlsh
+	 * @return 付费会员分页列表信息 {@link PaidCardCustomerRelVO}
+	 */
+	@PostMapping("/customer/${application.customer.version}/paidcardcustomerrel/page-by-max-auto-id")
+	BaseResponse<List<PaidCardCustomerRelVO>> pageByMaxAutoId(@RequestBody @Valid PaidCardCustomerRelQueryRequest request);
+
+
 	/**
 	 * 列表查询付费会员API
 	 *

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -581,20 +582,22 @@ public class TradeItemService {
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
             if (i == size - 1) {
-                tradeItem.setKnowledgePrice(knowledgePriceTotal.subtract(splitPriceTotal));
+                BigDecimal subtract = knowledgePriceTotal.subtract(splitPriceTotal);
+                tradeItem.setKnowledgePrice(subtract);
                 tradeItem.setKnowledge(knowledgeTotal - splitKnowledgeTotal);
+                tradeItem.setPointsPrice(subtract);
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                tradeItem.setPointsPrice(
-                        splitPrice
-                                .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
-                                .multiply(knowledgePriceTotal)
-                                .setScale(2, BigDecimal.ROUND_HALF_UP));
+                tradeItem.setPointsPrice(splitPrice
+                        .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
+                        .multiply(knowledgePriceTotal)
+                        .setScale(2, BigDecimal.ROUND_HALF_UP));
                 splitPriceTotal = splitPriceTotal.add(tradeItem.getPointsPrice());
-
                 tradeItem.setKnowledge(tradeItem.getPointsPrice().multiply(knowledgeWorth).longValue());
+                tradeItem.setKnowledgePrice(tradeItem.getPointsPrice());
                 splitKnowledgeTotal = splitKnowledgeTotal + tradeItem.getKnowledge();
             }
+
         }
     }
 
@@ -610,6 +613,19 @@ public class TradeItemService {
         List<String> skuIds = request.getSkuIds();
         String customerId = request.getCustomerId();
         String inviteeId = request.getInviteeId();
+
+        // 积分换购活动只能一件商品
+        List<TradeMarketingDTO> tradeMarketingList1 = request.getTradeMarketingList();
+        Iterator<TradeMarketingDTO> it = tradeMarketingList1.iterator();
+        while (it.hasNext()) {
+            TradeMarketingDTO next = it.next();
+            if(next.getMarketingSubType() != null && next.getMarketingSubType() == 10){
+                if(request.getTradeItems().size() > 1 || request.getTradeItems().get(0).getNum() > 1){
+                    request.setTradeMarketingList(new ArrayList<>());
+                    break;
+                }
+            }
+        }
 
         //查询是否购买付费会员卡
         List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
@@ -736,6 +752,12 @@ public class TradeItemService {
          */
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
 
+        for (TradeItem tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if(priceByGoodsId.getContext() != null){
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+        }
         List<TradeItemDTO> tradeItemDTOs = KsBeanUtil.convert(tradeItems, TradeItemDTO.class);
         TradeItemSnapshotRequest snapshotRequest = TradeItemSnapshotRequest.builder().customerId(customerId).pointGoodsFlag(true)
                 .tradeItems(tradeItemDTOs)

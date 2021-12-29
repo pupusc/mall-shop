@@ -68,6 +68,7 @@ public class GuanyierpUtil {
      * @return
      */
     public String execute(String url,String data){
+        log.info("erpClient.execute_请求参数:{}", data);
         HttpPost post = new HttpPost(url);
         post.setHeader("User-Agent", USER_AGENT);
         StringEntity se = new StringEntity(data, UTF_8);
@@ -76,7 +77,6 @@ public class GuanyierpUtil {
         try (CloseableHttpResponse response = client.execute(post)) {
             int status = response.getStatusLine().getStatusCode();
             if (status == 200) {
-                log.debug("erpClient.execute_请求成功");
                 String strResult = EntityUtils.toString(response.getEntity(), UTF_8);
                 log.info("erpClient.execute_成功返回json::{}", strResult);
                 return strResult;

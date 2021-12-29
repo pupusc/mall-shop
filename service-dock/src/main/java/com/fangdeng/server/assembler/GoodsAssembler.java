@@ -5,6 +5,7 @@ import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
 import com.fangdeng.server.dto.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Service
 public class GoodsAssembler {
+
 
 
 
@@ -67,10 +69,10 @@ public class GoodsAssembler {
         return list;
     }
 
-    public static List<GoodsStockSyncDTO> convertStockList(List<BookuuStockQueryResponse.BookuuStock> stockList) {
+    public static List<GoodsStockSyncDTO> convertStockList(List<BookuuStockQueryResponse.BookuuStock> stockList,Long stockSyncSecond) {
         List<GoodsStockSyncDTO> list = new ArrayList<>(stockList.size());
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now().minusMinutes(5);
+        LocalDateTime now = LocalDateTime.now().minusSeconds(stockSyncSecond);
         stockList.forEach(p -> {
             if(LocalDateTime.parse(p.getZjtbkcsj(),df).compareTo(now) >0) {
                 list.add(GoodsStockSyncDTO.builder().goodsNo(p.getBookId()).stock(p.getStock()).stockChangeTime(LocalDateTime.parse(p.getZjtbkcsj(),df)).build());

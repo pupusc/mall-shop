@@ -51,6 +51,9 @@ public class GoodsService {
     @Value("${bookuu.providerId}")
     private  Long providerId;
 
+    @Value("${stock.sync.second:300}")
+    private Long stockSyncSecond;
+
 
     public void syncGoodsInfo(SyncGoodsQueryDTO queryDTO) {
         BookuuGoodsQueryRequest request = new BookuuGoodsQueryRequest();
@@ -266,7 +269,7 @@ public class GoodsService {
                 return;
             }
             //落表，根据最后更新时间过滤
-            List<GoodsStockSyncDTO> list = GoodsAssembler.convertStockList(response.getBookList());
+            List<GoodsStockSyncDTO> list = GoodsAssembler.convertStockList(response.getBookList(),stockSyncSecond);
             if(CollectionUtils.isNotEmpty(list)){
                 goodsStockSyncMapper.batchInsert(list);
             }

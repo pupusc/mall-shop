@@ -84,6 +84,7 @@ public class ShardingConfiguration implements EnvironmentAware {
         }
 
         return new DataSourceProxy(DataSourceUtil.getDataSource(dataSourceProps.get("type").toString(), dataSourceProps));
+//        return DataSourceUtil.getDataSource(dataSourceProps.get("type").toString(), dataSourceProps);
     }
 
     private DataSource getJndiDataSource(final String jndiName) throws NamingException {

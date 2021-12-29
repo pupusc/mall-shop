@@ -179,6 +179,9 @@ public class GoodsService {
 
     private static Logger log = LoggerFactory.getLogger(GoodsService.class);
 
+    @Value("${stock.threshold:5}")
+    private Integer stockThreshold;
+
     @Autowired
     GoodsAresService goodsAresService;
 
@@ -643,7 +646,8 @@ public class GoodsService {
         infoQueryRequest.setGoodsId(goods.getGoodsId());
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        goodsInfos.forEach(goodsInfo -> {
+        Long goodsStock = 0L;
+        for (GoodsInfo goodsInfo : goodsInfos) {
             if (goodsInfo.getEnterPriseAuditState() == EnterpriseAuditState.CHECKED) {
                 enterpriseGoodsInfoIds.add(goodsInfo.getGoodsInfoId());
                 buyCountMap.put(goodsInfo.getGoodsInfoId(), 1L);
@@ -652,8 +656,18 @@ public class GoodsService {
             goodsInfo.setPriceType(goods.getPriceType());
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
-            goodsInfo.setStock(goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId()));
-        });
+            Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
+            Long actualStock = goodsInfoStock;
+            if(goodsInfoStock <= 5){
+                actualStock = 0L;
+            }
+            goodsInfo.setStock(actualStock);
+            goodsStock += actualStock;
+        }
+        if(goodsStock <= 5) {
+            goodsStock = 0L;
+        }
+        goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
         List<Long> itemIds = goodsInfos.stream()
                 .filter(v -> ThirdPlatformType.LINKED_MALL.equals(v.getThirdPlatformType()))
@@ -754,7 +768,6 @@ public class GoodsService {
         return response;
     }
 
-
     /**
      * @param goodsId 商品ID
      * @return list
@@ -822,7 +835,8 @@ public class GoodsService {
         infoQueryRequest.setGoodsId(goods.getGoodsId());
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-        goodsInfos.forEach(goodsInfo -> {
+        Long goodsStock = 0L;
+        for (GoodsInfo goodsInfo : goodsInfos) {
             if (goodsInfo.getEnterPriseAuditState() == EnterpriseAuditState.CHECKED) {
                 enterpriseGoodsInfoIds.add(goodsInfo.getGoodsInfoId());
                 buyCountMap.put(goodsInfo.getGoodsInfoId(), 1L);
@@ -831,8 +845,18 @@ public class GoodsService {
             goodsInfo.setPriceType(goods.getPriceType());
             goodsInfo.setBrandId(goods.getBrandId());
             goodsInfo.setCateId(goods.getCateId());
-            goodsInfo.setStock(goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId()));
-        });
+            Long goodsInfoStock = goodsInfoStockService.checkStockCache(goodsInfo.getGoodsInfoId());
+            Long actualStock = goodsInfoStock;
+            if(goodsInfoStock <= stockThreshold){
+                actualStock = 0L;
+            }
+            goodsInfo.setStock(actualStock);
+            goodsStock += actualStock;
+        }
+        if(goodsStock <= stockThreshold) {
+            goodsStock = 0L;
+        }
+        goods.setStock(goodsStock);
         //如果是linkedmall商品，实时查库存
         List<Long> itemIds = goodsInfos.stream()
                 .filter(v -> ThirdPlatformType.LINKED_MALL.equals(v.getThirdPlatformType()))
@@ -1122,14 +1146,21 @@ public class GoodsService {
      * @author yangzhen
      * @date 2020/9/3 11:17
      */
-    public GoodsDetailResponse findGoodsDetail(String skuId) {
-        List<GoodsInfo> goodsInfo = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(skuId));
-        GoodsDetailResponse response = new GoodsDetailResponse();
-        if (CollectionUtils.isNotEmpty(goodsInfo)) {
-            String goodsDetail = goodsRepository.getGoodsDetail(goodsInfo.get(0).getGoodsId());
-            response.setGoodsDetail(goodsDetail);
-            response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goodsInfo.get(0).getGoodsId()));
+    public GoodsDetailResponse findGoodsDetail(String skuId, String spuId) {
+        String goodsId = spuId;
+        if (StringUtils.isEmpty(spuId)) {
+            List<GoodsInfo> goodsInfo = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(skuId));
+            if (CollectionUtils.isNotEmpty(goodsInfo)) {
+                goodsId = goodsInfo.get(0).getGoodsId();
+            }
         }
+        if(StringUtils.isEmpty(goodsId)){
+            return new GoodsDetailResponse();
+        }
+        GoodsDetailResponse response = new GoodsDetailResponse();
+        String goodsDetail = goodsRepository.getGoodsDetail(goodsId);
+        response.setGoodsDetail(goodsDetail);
+        response.setGoodsPropDetailRels(goodsPropDetailRelRepository.queryByGoodsId(goodsId));
         return response;
     }
     /**
