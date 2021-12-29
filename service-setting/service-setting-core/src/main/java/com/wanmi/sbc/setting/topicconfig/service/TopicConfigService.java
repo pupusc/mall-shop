@@ -85,6 +85,8 @@ public class TopicConfigService {
         BaseQueryRequest pageQuery = new BaseQueryRequest();
         pageQuery.setPageNum(request.getPageNum());
         pageQuery.setPageSize(request.getPageSize());
+        pageQuery.setSortColumn("createTime");
+        pageQuery.setSortRole("desc");
         Page<Topic> page = topicSettingRepository.findAll(getTopicWhereCriteria(request), pageQuery.getPageRequest());
         if(page == null){
             return new MicroServicePage<>();
@@ -185,8 +187,8 @@ public class TopicConfigService {
             List<TopicStoreyContentDTO> itemList = new ArrayList<>(items.size());
             if (Objects.equals(p.getStoreyType(), TopicStoreyType.HETERSCROLLIMAGE.getId())) {
                 //轮播类型根据时间过滤
-                itemList.addAll(items.stream().filter(i->i.getType().equals(1) && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
-                itemList.addAll(items.stream().filter(i->i.getType().equals(2)).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && (i.getStartTime() == null ||  i.getEndTime() == null)).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
             }else{
                 itemList = items;
             }
