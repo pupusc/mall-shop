@@ -73,6 +73,10 @@ public class CouponCacheQueryRequest {
     private CouponType couponType;
 
     /**
+     * 使用场景
+     */
+    private Integer couponScene;
+    /**
      * 构建平台优惠券+店铺优惠券的查询条件
      *
      * @return
@@ -120,6 +124,13 @@ public class CouponCacheQueryRequest {
         //优惠券类型查询
         if (couponType != null) {
             criteria.add(Criteria.where("couponInfo.couponType").is(couponType.toString()));
+        }
+        //使用场景
+        if(couponScene !=null){
+            criteria.add(new Criteria().orOperator(
+                    Criteria.where("couponActivity.activityScene").is(null),
+                    Criteria.where("couponActivity.joinLevel").is(couponScene.toString())
+            ));
         }
 
         //活动状态

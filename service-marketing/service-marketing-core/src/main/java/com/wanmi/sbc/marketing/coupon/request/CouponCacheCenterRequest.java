@@ -33,4 +33,9 @@ public class CouponCacheCenterRequest {
 
     private Long storeId;
 
+    /**
+     * 优惠券场景
+     */
+    private Integer couponScene;
+
 }
