@@ -53,4 +53,8 @@ public class TopicStorey {
     @Column(name = "water_fall_type")
     private Integer waterFallType;
 
+    @Column(name="background_image_url")
+    private String backgroundImageUrl;
+
+
 }
