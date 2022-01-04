@@ -74,4 +74,9 @@ public class MarketingPluginRequest {
      * 是否设置独立字段（付费会员价使用）
      */
     private Boolean isIndependent = Boolean.FALSE;
+
+    /**
+     * 使用场景
+     */
+    private Integer couponScene;
 }

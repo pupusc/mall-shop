@@ -104,6 +104,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
                             .couponActivityId(cache.getCouponActivityId())
                             .couponInfoId(cache.getCouponInfoId())
                             .couponDesc(getLabelMap(cache))
+                            .couponScene(cache.getCouponActivity().getActivityScene()!= null ? String.join(",",cache.getCouponActivity().getActivityScene()):null)
                             .build()
             ).collect(Collectors.toList());
             item.getCouponLabels().addAll(labelList);
