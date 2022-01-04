@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -26,10 +27,13 @@ import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferDeleteRequ
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderTransferByUserIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
+import com.wanmi.sbc.order.bean.vo.TradeStateVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import com.wanmi.sbc.setting.api.request.TradeConfigGetByTypeRequest;
@@ -147,21 +151,64 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> createRefund(@RequestBody @Valid ReturnOrderDTO returnOrder) {
-        verifyIsReturnable(returnOrder.getTid());
-//        String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
-        //验证用户
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (commonUtil.getOperatorId())).getContext();
-        if (!verifyTradeByCustomerId(returnOrder.getTid(), commonUtil.getOperatorId())) {
+        if (returnOrder.getDescription().length() > 100) {
+            throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
+        }
+
+        TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
+        tradeGetByIdRequest.setTid(returnOrder.getTid()); //orderId
+        BaseResponse<TradeGetByIdResponse> tradeGetByIdResponseBaseResponse = tradeQueryProvider.getById(tradeGetByIdRequest);
+        TradeGetByIdResponse context = tradeGetByIdResponseBaseResponse.getContext();
+        if (context == null || context.getTradeVO() == null || org.springframework.util.StringUtils.isEmpty(context.getTradeVO().getId()) || org.springframework.util.CollectionUtils.isEmpty(context.getProviderTradeVOs())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        TradeVO trade = tradeQueryProvider.getById(tradeGetByIdRequest).getContext().getTradeVO();
+        //查看订单信息和用户信息是否一致
+        if (!trade.getBuyer().getId().equals(commonUtil.getOperatorId())) {
             throw new SbcRuntimeException("K-050204");
         }
-        TradeVO trade =
-                tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
-        returnOrder.setCompany(CompanyDTO.builder().companyInfoId(trade.getSupplier().getSupplierId())
-                .companyCode(trade.getSupplier().getSupplierCode()).supplierName(trade.getSupplier().getSupplierName())
-                .storeId(trade.getSupplier().getStoreId()).storeName(trade.getSupplier().getStoreName())
-                .companyType(trade.getSupplier().getIsSelf() ? BoolFlag.NO : BoolFlag.YES)
-                .build());
+
+        //如果为部分发货，则提示联系客服，当前系统不支持部分发货退款退货
+        if (Objects.equals(trade.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED)) {
+            throw new SbcRuntimeException("K-050452");
+        }
+
+        //查看是否可以申请退款 1表示可以，0表示不可以申请
+        TradeConfigGetByTypeRequest request = new TradeConfigGetByTypeRequest();
+        request.setConfigType(ConfigType.ORDER_SETTING_APPLY_REFUND);
+        TradeConfigGetByTypeResponse config = auditQueryProvider.getTradeConfigByType(request).getContext();
+        if (config.getStatus() == 0) {
+            throw new SbcRuntimeException("K-050208");
+        }
+
+        JSONObject content = JSON.parseObject(config.getContext());
+        Integer day = content.getObject("day", Integer.class);
+
+        if (!trade.getCycleBuyFlag()) {
+            if (Objects.isNull(trade.getTradeState().getEndTime())) {
+                throw new SbcRuntimeException("K-050002");
+            }
+            if (trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < LocalDateTime.now().minusDays(day).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) {
+                throw new SbcRuntimeException("K-050208");
+            }
+        }
+
+        //获取商家信息
+        SupplierVO supplier = context.getTradeVO().getSupplier();
+        if (supplier == null) {
+            throw new SbcRuntimeException("K-110102");
+        }
+        CompanyDTO company = new CompanyDTO();
+        company.setCompanyInfoId(supplier.getSupplierId());
+        company.setSupplierName(supplier.getSupplierName());
+        company.setCompanyCode(supplier.getSupplierCode());
+        company.setAccountName("");
+        company.setStoreId(supplier.getStoreId());
+        company.setStoreName(supplier.getStoreName());
+        company.setCompanyType(supplier.getIsSelf() ? BoolFlag.NO : BoolFlag.YES);
+
+
         returnOrder.setChannelType(trade.getChannelType());
         returnOrder.setDistributorId(trade.getDistributorId());
         returnOrder.setInviteeId(trade.getInviteeId());
@@ -170,9 +217,12 @@ public class ReturnOrderController {
         returnOrder.setDistributeItems(trade.getDistributeItems());
         returnOrder.setTerminalSource(commonUtil.getTerminal());
 //        returnOrder.setFanDengUserNo(fanDengUserNo);
-        String rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder)
-                .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
-        return BaseResponse.success(rid);
+
+        ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
+        returnOrderAddRequest.setReturnOrder(returnOrder);
+        returnOrderAddRequest.setOperator(commonUtil.getOperator());
+        String returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
+        return BaseResponse.success(returnOrderId);
     }
 
     /**

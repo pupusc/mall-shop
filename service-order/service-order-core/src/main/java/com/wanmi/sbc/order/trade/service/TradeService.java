@@ -4006,10 +4006,10 @@ public class TradeService {
     /**
      * 查询订单
      *
-     * @param tid
+     * @param orderId
      */
-    public Trade detail(String tid) {
-        return tradeRepository.findById(tid).orElse(null);
+    public Trade detail(String orderId) {
+        return tradeRepository.findById(orderId).orElse(null);
     }
 
     /**

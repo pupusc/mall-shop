@@ -43,9 +43,12 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse<ReturnOrderAddResponse> add(@RequestBody @Valid ReturnOrderAddRequest request) {
-        String rid = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
+        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
                 request.getOperator());
-        return BaseResponse.success(ReturnOrderAddResponse.builder().returnOrderId(rid).build());
+
+        ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
+        returnOrderAddResponse.setReturnOrderId(returnOrderId);
+        return BaseResponse.success(returnOrderAddResponse);
     }
 
     /**
