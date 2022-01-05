@@ -126,7 +126,7 @@ public class RefundOrderService {
      */
     @Transactional
     public Optional<RefundOrder> generateRefundOrderByReturnOrderCode(String returnOrderId, String customerId,
-                                                                      BigDecimal price, PayType payType) {
+                                                                      BigDecimal returnOrderPrice, PayType payType) {
         ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderId).orElse(null);
         if (Objects.isNull(returnOrder)) {
             log.error("退单编号：{},查询不到退单信息", returnOrderId);
@@ -143,13 +143,21 @@ public class RefundOrderService {
         refundOrder.setCreateTime(LocalDateTime.now());
         refundOrder.setRefundCode(generatorService.generateRid());
         refundOrder.setRefundStatus(RefundStatus.TODO);
-        refundOrder.setReturnPrice(price);
-        refundOrder.setReturnPoints(Objects.nonNull(returnOrder.getReturnPoints()) ?
-                returnOrder.getReturnPoints().getApplyPoints() : null);
+        refundOrder.setReturnPrice(returnOrderPrice);
+
+        long actualPointsOrKnowledge = 0L;
+        if (Objects.nonNull(returnOrder.getReturnPoints())) {
+            actualPointsOrKnowledge = returnOrder.getReturnPoints().getApplyPoints();
+        }
+
+        if (actualPointsOrKnowledge <= 0 && Objects.nonNull(returnOrder.getReturnKnowledge())) {
+            actualPointsOrKnowledge = returnOrder.getReturnKnowledge().getApplyKnowledge();
+        }
+        refundOrder.setReturnPoints(actualPointsOrKnowledge);
         refundOrder.setDelFlag(DeleteFlag.NO);
         refundOrder.setPayType(payType);
         refundOrder.setSupplierId(returnOrder.getCompany().getCompanyInfoId());
-        return Optional.ofNullable(refundOrderRepository.saveAndFlush(refundOrder));
+        return Optional.of(refundOrderRepository.saveAndFlush(refundOrder));
     }
 
 

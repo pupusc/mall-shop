@@ -151,6 +151,9 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> createRefund(@RequestBody @Valid ReturnOrderDTO returnOrder) {
+        if (StringUtils.isBlank(returnOrder.getDescription())) {
+            throw new SbcRuntimeException("K-050454");
+        }
         if (returnOrder.getDescription().length() > 100) {
             throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
         }
