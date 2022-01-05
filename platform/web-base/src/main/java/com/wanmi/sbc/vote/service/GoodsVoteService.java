@@ -1,5 +1,7 @@
 package com.wanmi.sbc.vote.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -13,6 +15,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +25,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RefreshScope
 public class GoodsVoteService {
 
-    @Value("${vote.headimage}")
+    @Value("${vote.headimage:null}")
     private String headimage;
     @Value("${vote.goods.list:[]}")
     private String goodsIds;
@@ -43,7 +47,7 @@ public class GoodsVoteService {
 
     public List<GoodsVoteVo> voteGoodsList() {
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
-        List<String> goodsIdList = Arrays.asList(goodsIds);
+        List<String> goodsIdList = JSONArray.parseArray(goodsIds, String.class);
         queryRequest.setPageNum(0);
         queryRequest.setPageSize(goodsIdList.size());
         queryRequest.setGoodsIds(goodsIdList);

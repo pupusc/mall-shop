@@ -23,7 +23,7 @@ public class VoteController {
      * @param
      * @status done
      */
-    @GetMapping(value = "/image")
+    @PostMapping(value = "/image")
     public BaseResponse<String> images() {
         return BaseResponse.success(goodsVoteService.getImage());
     }
