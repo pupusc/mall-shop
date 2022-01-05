@@ -63,6 +63,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -1477,6 +1478,13 @@ public class TradePushERPService {
         if(Objects.equals(providerTrade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
             log.info("syncProviderTradeDeliveryStatus订单已是发货，不需再次操作，request：{}",request);
             return BaseResponse.SUCCESSFUL();
+        }
+        if(CollectionUtils.isEmpty(request.getDeliveryInfoList()) && !ObjectUtils.isEmpty(providerTrade.getTradeState())){
+            TradeState tradeState = providerTrade.getTradeState();
+            if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+            }
+            providerTradeService.updateProviderTrade(providerTrade);
         }
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
