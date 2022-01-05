@@ -1,34 +1,54 @@
 package com.wanmi.sbc.vote;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
+import com.wanmi.sbc.vote.service.GoodsVoteService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags = "VoteController", description = "投票服务")
 @RestController
 @RequestMapping("/vote")
 @Slf4j
 public class VoteController {
 
-    @Value("${vote.headimage}")
-    private String headimage;
+    @Autowired
+    private GoodsVoteService goodsVoteService;
+
     /**
      * @description 投票图片
      * @menu 投票
      * @param
-     * @status undone
+     * @status done
      */
-    @ApiOperation(value = "投票图片")
-    @GetMapping(value = "image")
+    @GetMapping(value = "/image")
     public BaseResponse<String> images() {
-        return BaseResponse.success(headimage);
+        return BaseResponse.success(goodsVoteService.getImage());
     }
 
+    /**
+     * @description 商品列表
+     * @menu 投票
+     * @param
+     * @status done
+     */
+    @PostMapping(value = "/goods")
+    public BaseResponse<List<GoodsVoteVo>> voteGoodsList(){
+        return BaseResponse.success(goodsVoteService.voteGoodsList());
+    }
+
+    /**
+     * @description 投票
+     * @menu 投票
+     * @param
+     * @status done
+     */
+    @PostMapping(value = "/up")
+    public BaseResponse vote(String goodsId){
+        goodsVoteService.vote(goodsId);
+        return BaseResponse.SUCCESSFUL();
+    }
 
 }
