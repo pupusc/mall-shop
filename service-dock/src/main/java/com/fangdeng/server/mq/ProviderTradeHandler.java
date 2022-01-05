@@ -136,6 +136,7 @@ public class ProviderTradeHandler {
             }
             if(!Arrays.asList(BookuuDeliveryStatus.DELIVERYED.getKey(),BookuuDeliveryStatus.SALED.getKey()).contains(response.getStatusDTOS().get(0).getOrderStatus())){
                 log.warn("order status is not delivery", body);
+                confirmDTO.setDeliveryInfoList(new ArrayList<>());
                 return confirmDTO;
             }
             List<DeliveryInfoDTO> deliveryList = new ArrayList<>();

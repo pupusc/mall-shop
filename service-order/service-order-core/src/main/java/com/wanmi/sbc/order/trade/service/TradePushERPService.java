@@ -1466,7 +1466,7 @@ public class TradePushERPService {
     }
 
     public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
-        if (request == null || StringUtils.isEmpty(request.getPlatformCode()) || CollectionUtils.isEmpty(request.getDeliveryInfoList())) {
+        if (request == null || StringUtils.isEmpty(request.getPlatformCode())) {
             return BaseResponse.SUCCESSFUL();
         }
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
