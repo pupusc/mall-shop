@@ -54,8 +54,8 @@ import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListRes
 import com.wanmi.sbc.setting.bean.enums.AddrLevel;
 import com.wanmi.sbc.setting.bean.vo.ErpLogisticsMappingVO;
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
-import io.seata.common.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -63,7 +63,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
