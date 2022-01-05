@@ -33,8 +33,6 @@ public class RedisService {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-    @Autowired
-    private RedisTemplate objectRedisTemplate;
 
     /**
      * 根据key删除缓存
@@ -323,7 +321,4 @@ public class RedisService {
         return null;
     }
 
-    public void hIncrBy(String key, String key2, Long value) {
-        objectRedisTemplate.opsForHash().increment(key, key2, value);
-    }
 }

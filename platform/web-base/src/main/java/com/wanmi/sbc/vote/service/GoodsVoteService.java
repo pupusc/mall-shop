@@ -13,6 +13,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -33,6 +34,8 @@ public class GoodsVoteService {
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     public String getImage(){
         return headimage;
@@ -67,6 +70,6 @@ public class GoodsVoteService {
     }
 
     public void vote(String goodsId) {
-        redisService.hIncrBy(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER, goodsId, 1L);
+        redisTemplate.opsForHash().increment(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER, goodsId, 1L);
     }
 }
