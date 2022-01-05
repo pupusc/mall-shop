@@ -125,20 +125,20 @@ public class RefundOrderService {
      * @return 退款单
      */
     @Transactional
-    public Optional<RefundOrder> generateRefundOrderByReturnOrderCode(String returnOrderCode, String customerId,
+    public Optional<RefundOrder> generateRefundOrderByReturnOrderCode(String returnOrderId, String customerId,
                                                                       BigDecimal price, PayType payType) {
-        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderCode).orElse(null);
+        ReturnOrder returnOrder = returnOrderRepository.findById(returnOrderId).orElse(null);
         if (Objects.isNull(returnOrder)) {
-            log.error("退单编号：{},查询不到退单信息", returnOrderCode);
+            log.error("退单编号：{},查询不到退单信息", returnOrderId);
             return Optional.empty();
         }
-        Optional<RefundOrder> returnOrderCodeAndDelFlag = refundOrderRepository.findAllByReturnOrderCodeAndDelFlag(returnOrderCode,DeleteFlag.NO);
+        Optional<RefundOrder> returnOrderCodeAndDelFlag = refundOrderRepository.findAllByReturnOrderCodeAndDelFlag(returnOrderId,DeleteFlag.NO);
         if(returnOrderCodeAndDelFlag.isPresent()){
             return returnOrderCodeAndDelFlag;
         }
         RefundOrder refundOrder = new RefundOrder();
         CustomerDetailVO customerDetail = customerCommonService.getCustomerDetailByCustomerId(customerId);
-        refundOrder.setReturnOrderCode(returnOrderCode);
+        refundOrder.setReturnOrderCode(returnOrderId);
         refundOrder.setCustomerDetailId(customerDetail.getCustomerDetailId());
         refundOrder.setCreateTime(LocalDateTime.now());
         refundOrder.setRefundCode(generatorService.generateRid());

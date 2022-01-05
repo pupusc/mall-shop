@@ -2004,33 +2004,35 @@ public class ReturnOrderService {
         return Arrays.asList(ReturnReason.values());
     }
 
+
     /**
      * 审核退单
      *
-     * @param rid
+     * @param returnOrderId
      * @param operator
      */
     @GlobalTransactional
     @Transactional
-    public void audit(String rid, Operator operator, String addressId) {
+    public void audit(String returnOrderId, Operator operator, String addressId) {
         //查询退单详情
-        ReturnOrder returnOrder = findById(rid);
+        ReturnOrder returnOrder = findById(returnOrderId);
         // 查询订单相关的所有退单
         List<ReturnOrder> returnAllOrders = returnOrderRepository.findByTid(returnOrder.getTid());
         // 筛选出已完成的退单
-        List<ReturnOrder> returnOrders = returnAllOrders.stream().filter(allOrder ->
+        List<ReturnOrder> returnCompleteOrders = returnAllOrders.stream().filter(allOrder ->
                 allOrder.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
+
         //计算所有已完成的退单总价格
         BigDecimal allOldPrice = new BigDecimal(0);
-        for (ReturnOrder order : returnOrders) {
-            BigDecimal p = order.getReturnPrice().getApplyStatus() ? order.getReturnPrice().getApplyPrice() : order
-                    .getReturnPrice().getTotalPrice();
+        for (ReturnOrder returnOrderParam : returnCompleteOrders) {
+            BigDecimal p = returnOrderParam.getReturnPrice().getApplyStatus() ? returnOrderParam.getReturnPrice().getApplyPrice()
+                    : returnOrderParam.getReturnPrice().getTotalPrice();
             allOldPrice = allOldPrice.add(p);
         }
         ReturnPrice returnPrice = returnOrder.getReturnPrice();
 
         BigDecimal price = returnPrice.getApplyStatus() ? returnPrice.getApplyPrice() : returnPrice.getTotalPrice();
-        Optional<PayOrder> payOrderOptional = payOrderService.findPayOrderByOrderCode(returnOrder.getTid());
+        Optional<PayOrder> payOrderOptional = payOrderService.findPayOrderByOrderCode(returnOrder.getTid()); //根据订单id获取支付订单
         if (payOrderOptional.isPresent()) {
             PayOrder payOrder = payOrderOptional.get();
             BigDecimal payOrderPrice = payOrder.getPayOrderPrice();
@@ -2079,7 +2081,7 @@ public class ReturnOrderService {
                 if (earnestPrice.compareTo(BigDecimal.ZERO) >= 0) {
                     returnPrice.setEarnestPrice(earnestPrice);
                     if (returnOrder.getReturnType() == ReturnType.REFUND) {
-                        refundOrderService.generateRefundOrderByReturnOrderCode(rid, returnOrder.getBuyer().getId(), earnestPrice,
+                        refundOrderService.generateRefundOrderByReturnOrderCode(returnOrderId, returnOrder.getBuyer().getId(), earnestPrice,
                                 returnOrder.getPayType());
                     }
                 }
@@ -2091,7 +2093,7 @@ public class ReturnOrderService {
                 }
                 returnOrderService.updateReturnOrder(returnOrder);
             } else if (returnOrder.getReturnType() == ReturnType.REFUND) {
-                refundOrderService.generateRefundOrderByReturnOrderCode(rid, returnOrder.getBuyer().getId(), price,
+                refundOrderService.generateRefundOrderByReturnOrderCode(returnOrderId, returnOrder.getBuyer().getId(), price,
                         returnOrder.getPayType());
             }
             ReturnAddress returnAddress = null;
@@ -2104,14 +2106,14 @@ public class ReturnOrderService {
             //修改退单状态
             ReturnStateRequest request = ReturnStateRequest
                     .builder()
-                    .rid(rid)
+                    .rid(returnOrderId)
                     .operator(operator)
                     .returnEvent(ReturnEvent.AUDIT)
                     .data(returnAddress)
                     .build();
             returnFSMService.changeState(request);
             //自动发货
-            autoDeliver(rid, operator);
+            autoDeliver(returnOrderId, operator);
 
             //售后审核通过发送MQ消息
             List<String> params;
