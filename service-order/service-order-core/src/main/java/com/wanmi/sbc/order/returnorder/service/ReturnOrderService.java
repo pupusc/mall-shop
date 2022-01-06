@@ -2767,10 +2767,10 @@ public class ReturnOrderService {
                                 Long actualReturnPoints, Long actualReturnKnowledge, Operator operator, String returnOrderNo) {
         RefundOrder refundOrder = null;
 
-        String key = "DRAWBACK_KEY_LOCK";
+        String key = "DRAWBACK_KEY_LOCK";  //前端不处理，此处改成后端去处理
         RLock lock = redissonClient.getLock(key);
         try {
-            lock.lock(1, TimeUnit.SECONDS);
+            lock.lock(3, TimeUnit.SECONDS);
             // 查询退款单
             refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(returnOrderNo);
             // 退款单状态不等于待退款 -- 参数错误
