@@ -3443,17 +3443,30 @@ public class GoodsService {
         return goodsCateSyncRepository.query();
     }
 
+    @Transactional
     public void syncGoodsVoteNumber(){
         Map<String, String> voteCacheMap = redisService.hgetAll(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER);
-        log.info("同步投票结果，数据量: {}", voteCacheMap.size());
-        List<GoodsVote> goodsVotes = new ArrayList<>();
-        voteCacheMap.forEach((k, v) -> {
-            GoodsVote goodsVote = new GoodsVote();
-            goodsVote.setGoodsId(k);
-            goodsVote.setVoteNumber(Long.parseLong(v));
-            goodsVotes.add(goodsVote);
-        });
-        goodsVoteRepository.saveAll(goodsVotes);
+        if(voteCacheMap != null) {
+            List<GoodsVote> voteAll = goodsVoteRepository.findAll();
+            Map<String, List<GoodsVote>> voteMap = voteAll.stream().collect(Collectors.groupingBy(GoodsVote::getGoodsId));
+            List<GoodsVote> goodsVotes = new ArrayList<>();
+            voteCacheMap.forEach((k, v) -> {
+                LocalDateTime now = LocalDateTime.now();
+                GoodsVote goodsVote;
+                if(voteMap != null && !voteMap.isEmpty() && voteMap.containsKey(k)){
+                    goodsVote = voteMap.get(k).get(0);
+                } else {
+                    goodsVote = new GoodsVote();
+                    goodsVote.setCreateTime(now);
+                    goodsVote.setGoodsId(k);
+                    goodsVote.setDelFlag(DeleteFlag.NO);
+                }
+                goodsVote.setVoteNumber(Long.parseLong(v));
+                goodsVote.setUpdateTime(now);
+                goodsVotes.add(goodsVote);
+            });
+            goodsVoteRepository.saveAll(goodsVotes);
+        }
     }
 
 }

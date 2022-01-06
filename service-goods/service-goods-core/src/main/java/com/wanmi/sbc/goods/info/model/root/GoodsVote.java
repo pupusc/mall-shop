@@ -9,11 +9,15 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "goods_vote")
+@Table(name = "t_goods_vote")
 public class GoodsVote {
 
-    //spu id
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    //spu id
     @Column(name = "goods_id")
     private String goodsId;
 

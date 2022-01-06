@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/vote")
@@ -46,8 +47,8 @@ public class VoteController {
      * @status done
      */
     @PostMapping(value = "/up")
-    public BaseResponse vote(String goodsId){
-        goodsVoteService.vote(goodsId);
+    public BaseResponse vote(@RequestBody Map<String, String> param){
+        goodsVoteService.vote(param.get("goodsId"));
         return BaseResponse.SUCCESSFUL();
     }
 
