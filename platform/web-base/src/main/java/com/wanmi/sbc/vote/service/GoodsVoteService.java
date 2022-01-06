@@ -66,7 +66,7 @@ public class GoodsVoteService {
             GoodsVoteVo goodsVoteVo = new GoodsVoteVo();
             goodsVoteVo.setGoodsId(goods.getId());
             goodsVoteVo.setGoodsName(goods.getGoodsName());
-            goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsInfos().get(0).getImageUrl());
+            goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsInfos().get(0).getGoodsInfoImg());
             if(voteCache == null) {
                 goodsVoteVo.setVoteNumber(0L);
             }else {
