@@ -283,7 +283,7 @@ public class StoreReturnOrderController {
 
 
     /**
-     * 商家操作退款校验erp订单是否发货
+     * 商家操作退款校验erp订单是否发货  duanlsh  当前管易云和博库对应的取消订单 作废，改成到
      * flag:true->检查订单中是否包含电子卡券或虚拟商品
      * flag:false->进行退款操作
      * @param rid
