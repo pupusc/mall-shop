@@ -67,7 +67,11 @@ public class GoodsVoteService {
             goodsVoteVo.setGoodsId(goods.getId());
             goodsVoteVo.setGoodsName(goods.getGoodsName());
             goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsInfos().get(0).getImageUrl());
-            goodsVoteVo.setVoteNumber(Long.parseLong(voteCache.getOrDefault(goods.getId(), "0")));
+            if(voteCache == null) {
+                goodsVoteVo.setVoteNumber(0L);
+            }else {
+                goodsVoteVo.setVoteNumber(Long.parseLong(voteCache.getOrDefault(goods.getId(), "0")));
+            }
             return goodsVoteVo;
         }).collect(Collectors.toList());
         return votes;
