@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * @Author: ZhangLingKe
  * @Description:
@@ -55,5 +57,11 @@ public class CouponCacheCenterPageRequest {
 
     @ApiModelProperty("优惠券使用场景")
     private Integer couponScene;
+
+    @ApiModelProperty("活动Id")
+    private List<String> activityIds;
+
+    @ApiModelProperty("优惠券ID")
+    private List<String> couponInfoIds;
 
 }

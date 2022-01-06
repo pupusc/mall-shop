@@ -180,6 +180,6 @@ public class CouponActivityVO implements Serializable {
     @ApiModelProperty(value = "参与成功通知描述")
     private String activityDesc;
 
-    @ApiModelProperty(value = "优惠券领券场景:1专题页2商详页3领券中心 多选，用,分隔")
+    @ApiModelProperty(value = "优惠券领券场景:1商详页2领券中心3专题页 多选，用,分隔")
     private String activityScene;
 }

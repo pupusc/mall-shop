@@ -139,6 +139,8 @@ public class CouponCacheService {
                 .couponType(queryRequest.getCouponType())
                 .couponCateId(queryRequest.getCouponCateId())
                 .couponScene(queryRequest.getCouponScene())
+                .couponActivityIds(queryRequest.getActivityIds())
+                .couponInfoIds(queryRequest.getCouponInfoIds())
                 .build();
         if(Objects.nonNull(queryRequest.getStoreId())) {
             request.setStoreIds(Arrays.asList(queryRequest.getStoreId()));

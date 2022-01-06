@@ -1,5 +1,7 @@
 package com.wanmi.sbc.setting.topicconfig.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -10,6 +12,7 @@ import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyCouponDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
@@ -23,6 +26,7 @@ import com.wanmi.sbc.setting.topicconfig.repository.TopicHeadImageRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyContentRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyRepository;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +36,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -185,12 +190,22 @@ public class TopicConfigService {
                 return;
             }
             List<TopicStoreyContentDTO> itemList = new ArrayList<>(items.size());
-            if (Objects.equals(p.getStoreyType(), TopicStoreyType.HETERSCROLLIMAGE.getId())) {
-                //轮播类型根据时间过滤
+            if (Arrays.asList(TopicStoreyType.HETERSCROLLIMAGE.getId(),TopicStoreyType.COUPON.getId()).contains(p.getStoreyType())) {
+                //轮播类型或优惠券根据时间过滤
                 itemList.addAll(items.stream().filter(i->i.getType().equals(2) && (i.getStartTime() == null ||  i.getEndTime() == null)).collect(Collectors.toList()));
                 itemList.addAll(items.stream().filter(i->i.getType().equals(2) && i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
             }else{
                 itemList = items;
+            }
+            if(Objects.equals(TopicStoreyType.COUPON.getId(),p.getStoreyType())){
+                itemList.forEach(item->{
+                    TopicStoreyCouponDTO couponDTO = JSONObject.parseObject(item.getAttributeInfo(),TopicStoreyCouponDTO.class);
+                    item.setActivityId(couponDTO.getActivityId());
+                    item.setCouponId(couponDTO.getCouponId());
+                    item.setReceiveImageUrl(couponDTO.getReceiveImageUrl());
+                    item.setUseImageUrl(couponDTO.getUseImageUrl());
+                    item.setDoneImageUrl(couponDTO.getDoneImageUrl());
+                });
             }
             //排序
             List<TopicStoreyContentDTO> sortContents = itemList.stream().sorted(Comparator.comparing(TopicStoreyContentDTO::getType).thenComparing(TopicStoreyContentDTO::getSorting)).collect(Collectors.toList());
@@ -217,6 +232,13 @@ public class TopicConfigService {
         //删除原数据
         contentRepository.deleteBySid(request.getStoreyId());
         List<TopicStoreyContent> contents = new ArrayList<>();
+        //设置属性
+        if(request.getStoreyType().equals(TopicStoreyType.COUPON.getId())){
+            request.getLinkContents().forEach(c->{
+                TopicStoreyCouponDTO couponDTO = (TopicStoreyCouponDTO)c;
+                c.setAttributeInfo(JSON.toJSONString(couponDTO));
+            });
+        }
         if(CollectionUtils.isNotEmpty(request.getGoodsContents())){
             contents.addAll(KsBeanUtil.convertList(request.getGoodsContents(),TopicStoreyContent.class));
         }

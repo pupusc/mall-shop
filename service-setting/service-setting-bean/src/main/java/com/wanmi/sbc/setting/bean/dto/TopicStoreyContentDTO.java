@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Data
 @ApiModel
-public class TopicStoreyContentDTO implements Serializable {
+public class TopicStoreyContentDTO extends TopicStoreyCouponDTO implements Serializable {
     private static final long serialVersionUID = 6469272901302359606L;
 
     @NotNull
@@ -50,4 +50,6 @@ public class TopicStoreyContentDTO implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    @ApiModelProperty(value = "属性",hidden = true)
+    private String attributeInfo;
 }

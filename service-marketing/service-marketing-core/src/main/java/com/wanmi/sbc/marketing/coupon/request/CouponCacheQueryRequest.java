@@ -76,6 +76,8 @@ public class CouponCacheQueryRequest {
      * 使用场景
      */
     private Integer couponScene;
+
+    private List<String> couponInfoIds;
     /**
      * 构建平台优惠券+店铺优惠券的查询条件
      *
@@ -114,6 +116,11 @@ public class CouponCacheQueryRequest {
         //限定优惠券活动Id
         if (CollectionUtils.isNotEmpty(couponActivityIds)) {
             criteria.add(Criteria.where("couponActivityId").in(couponActivityIds));
+        }
+
+        //优惠券Id
+        if (CollectionUtils.isNotEmpty(couponInfoIds)) {
+            criteria.add(Criteria.where("couponInfoId").in(couponInfoIds));
         }
 
         //优惠券分类查询
