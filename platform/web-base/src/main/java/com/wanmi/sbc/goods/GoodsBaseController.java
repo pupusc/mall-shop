@@ -235,7 +235,7 @@ public class GoodsBaseController {
     @Value("${search.unshow.goodsIds}")
     private String searchUnShowGoodsIds;
 
-    @Value("${search.unshow.goodsIds}")
+    @Value("${search.all.unshow.goodsIds}")
     private String searchAllUnShowGoodsIds;
 
     @Autowired
