@@ -257,5 +257,10 @@ public class TradeParams {
      */
     private String source;
 
+    /**
+     * 埋点
+     */
+    private String emallSessionId;
+
 
 }
