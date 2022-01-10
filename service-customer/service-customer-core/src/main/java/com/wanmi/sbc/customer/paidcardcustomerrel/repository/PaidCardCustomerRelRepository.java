@@ -85,6 +85,6 @@ public interface PaidCardCustomerRelRepository extends JpaRepository<PaidCardCus
      * @param tmpId
      * @return
      */
-    @Query("from PaidCardCustomerRel where delFlag = 0 and paidCardId in ?1 and beginTime >= ?2 and endTime < ?2 and tmpId > ?3 LIMIT ?4")
+    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and paid_card_id in ?1 and ?2 > begin_time  and end_time > ?2 and tmp_id > ?3 limit ?4", nativeQuery = true)
     List<PaidCardCustomerRel> pageByMaxAutoId(List<String> paidCardIdList, LocalDateTime currentTime, Integer tmpId, Integer pageSize);
 }
