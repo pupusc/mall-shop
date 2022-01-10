@@ -2,10 +2,7 @@ package com.wanmi.sbc.marketing.coupon.request;
 
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
-import com.wanmi.sbc.marketing.bean.enums.CouponActivityType;
-import com.wanmi.sbc.marketing.bean.enums.CouponType;
-import com.wanmi.sbc.marketing.bean.enums.MarketingJoinLevel;
-import com.wanmi.sbc.marketing.bean.enums.ScopeType;
+import com.wanmi.sbc.marketing.bean.enums.*;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -134,10 +131,14 @@ public class CouponCacheQueryRequest {
         }
         //使用场景
         if(couponScene !=null){
-            criteria.add(new Criteria().orOperator(
-                    Criteria.where("couponActivity.activityScene").is(null),
-                    Criteria.where("couponActivity.joinLevel").is(couponScene.toString())
-            ));
+            if(couponScene.equals(CouponSceneType.TOPIC.getType())){
+                criteria.add(Criteria.where("couponInfo.activityScene").is(couponScene.toString()));
+            }else {
+                criteria.add(new Criteria().orOperator(
+                        Criteria.where("couponActivity.activityScene").is(null),
+                        Criteria.where("couponActivity.activityScene").is(couponScene.toString())
+                ));
+            }
         }
 
         //活动状态

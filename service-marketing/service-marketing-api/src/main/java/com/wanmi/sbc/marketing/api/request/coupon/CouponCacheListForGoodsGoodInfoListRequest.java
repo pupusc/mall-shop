@@ -28,4 +28,7 @@ public class CouponCacheListForGoodsGoodInfoListRequest implements Serializable{
     @ApiModelProperty(value = "客户信息")
     private CustomerVO customer;
 
+    @ApiModelProperty(value = "优惠券使用场景1商详页2领券中心3购物车4专题页")
+    private Integer couponScene;
+
 }

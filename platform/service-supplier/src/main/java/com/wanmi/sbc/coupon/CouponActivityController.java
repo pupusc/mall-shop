@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,11 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @menu 后台优惠券活动
+ * @tag coupon-activity
+ * @status undone
+ */
 @Api(tags = "CouponActivityController", description = "优惠券活动 API")
 @RestController
 @RequestMapping("/coupon-activity")
@@ -59,11 +65,12 @@ public class CouponActivityController {
     @Autowired
     private EsCouponActivityProvider esCouponActivityProvider;
 
+
     /**
-     * 新增活动
-     *
+     * @description 新增活动
+     * @menu 后台优惠券活动
      * @param couponActivityAddRequest
-     * @return
+     * @status undone
      */
     @ApiOperation(value = "新增活动")
     @MultiSubmit
@@ -91,10 +98,10 @@ public class CouponActivityController {
     }
 
     /**
-     * 修改活动
-     *
+     * @description 修改活动
+     * @menu 后台优惠券活动
      * @param couponActivityModifyRequest
-     * @return
+     * @status undone
      */
     @ApiOperation(value = "修改活动")
     @MultiSubmit

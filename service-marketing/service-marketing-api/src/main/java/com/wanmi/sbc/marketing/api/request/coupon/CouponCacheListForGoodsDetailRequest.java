@@ -34,4 +34,7 @@ public class CouponCacheListForGoodsDetailRequest {
     @ApiModelProperty(value = "店铺Id")
     private Long storeId;
 
+    @ApiModelProperty(value = "优惠券使用场景1商详页2领券中心3购物车4专题页")
+    private Integer couponScene;
+
 }

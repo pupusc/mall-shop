@@ -59,7 +59,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     @Override
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsList(@RequestBody @Valid CouponCacheListForGoodsListRequest request) {
         CouponListResponse couponListResponse = couponCacheService.listCouponForGoodsList(request.getGoodsInfoIds(),
-                request.getCustomerId(), request.getStoreId());
+                request.getCustomerId(), request.getStoreId(),request.getCouponScene());
         return BaseResponse.success(CouponCacheListForGoodsListResponse.builder()
                 .couponViews(KsBeanUtil.copyListProperties(couponListResponse.getCouponViews(), CouponVO.class))
                 .storeMap(couponListResponse.getStoreMap()).build());
@@ -69,7 +69,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     public BaseResponse<CouponCacheListForGoodsDetailResponse> listCouponForGoodsList(@RequestBody @Valid CouponCacheListForGoodsGoodInfoListRequest request) {
 
         List<CouponCache> caches = couponCacheService.listCouponForGoodsList(request.getGoodsInfoList(),
-                request.getCustomer());
+                request.getCustomer(),request.getCouponScene());
 
         CouponCacheResponse response = CouponCacheResponse.builder().couponCacheVOList(caches).build();
 
@@ -84,7 +84,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     @Override
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsDetail(@RequestBody @Valid CouponCacheListForGoodsDetailRequest request) {
         CouponListResponse couponListResponse = couponCacheService.listCouponForGoodsDetail(request.getGoodsInfoId(),
-                request.getCustomerId(), request.getStoreId());
+                request.getCustomerId(), request.getStoreId(),request.getCouponScene());
         return BaseResponse.success(CouponCacheListForGoodsListResponse.builder()
                 .couponViews(KsBeanUtil.copyListProperties(couponListResponse.getCouponViews(), CouponVO.class))
                 .storeMap(couponListResponse.getStoreMap()).build());

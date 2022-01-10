@@ -55,7 +55,7 @@ public class CouponCacheCenterPageRequest {
     @ApiModelProperty(value = "店铺Id")
     private Long storeId;
 
-    @ApiModelProperty("优惠券使用场景")
+    @ApiModelProperty("优惠券领券场景:1商详页2领券中心3购物车4专题页")
     private Integer couponScene;
 
     @ApiModelProperty("活动Id")

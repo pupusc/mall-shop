@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeQueryRequest;
 import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.common.request.TradeItemInfo;
 import com.wanmi.sbc.marketing.common.request.TradeMarketingPluginRequest;
@@ -123,7 +124,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
         //把品牌从goods搬运到goodsInfo
         detailResponse.getGoodsInfo().setBrandId(detailResponse.getGoods().getBrandId());
         detailResponse.getGoodsInfo().setCateId(detailResponse.getGoods().getCateId());
-        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap());
+        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap(), CouponSceneType.GOODS_DETAIL.getType());
         List<CouponLabelVO> labelList = couponCacheList.stream().limit(3).map(cache ->
                 CouponLabelVO.builder()
                         .couponActivityId(cache.getCouponActivityId())

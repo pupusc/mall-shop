@@ -111,4 +111,7 @@ public class EsCouponActivityVO implements Serializable {
     @Enumerated
     private DefaultFlag joinLevelType;
 
+    @ApiModelProperty(value = "优惠券领券场景:1商详页2领券中心3专题页 多选，用,分隔")
+    private String activityScene;
+
 }
