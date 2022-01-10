@@ -235,6 +235,9 @@ public class GoodsBaseController {
     @Value("${search.unshow.goodsIds}")
     private String searchUnShowGoodsIds;
 
+    @Value("${search.all.unshow.goodsIds}")
+    private String searchAllUnShowGoodsIds;
+
     @Autowired
     private AtmosphereService atmosphereService;
     /**
@@ -427,14 +430,26 @@ public class GoodsBaseController {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }
 
-        if (queryRequest.getCpsSpecial() != null) {
-            queryRequest.setSortFlag(11); //添加排序
-        } else {
+        List<String> unGoodsIds = new ArrayList<>();
+        if (!StringUtils.isBlank(searchAllUnShowGoodsIds)) {
+            log.info("---->>> 全部都不搜索过滤的 goodsId is {}", searchAllUnShowGoodsIds);
+            String[] searchUnShowGoodsIdAttr = searchAllUnShowGoodsIds.split(",");
+            unGoodsIds.addAll(Arrays.asList(searchUnShowGoodsIdAttr));
+        }
+
+        //非知识顾问
+        if (queryRequest.getCpsSpecial() != null && queryRequest.getCpsSpecial() == 0 ) {
             if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
                 log.info("---->>> 搜索过滤的 goodsId is {}", searchUnShowGoodsIds);
                 String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
-                queryRequest.setUnGoodsIds(Arrays.asList(searchUnShowGoodsIdAttr));
+                unGoodsIds.addAll(Arrays.asList(searchUnShowGoodsIdAttr));
             }
+        } else {
+            queryRequest.setSortFlag(11); //添加排序
+        }
+
+        if (!CollectionUtils.isEmpty(unGoodsIds)) {
+            queryRequest.setUnGoodsIds(unGoodsIds);
         }
         if (Objects.nonNull(queryRequest.getMarketingId())) {
             MarketingGetByIdRequest marketingGetByIdRequest = new MarketingGetByIdRequest();
