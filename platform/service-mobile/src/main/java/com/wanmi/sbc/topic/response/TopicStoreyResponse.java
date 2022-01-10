@@ -19,7 +19,7 @@ public class TopicStoreyResponse implements Serializable {
     @ApiModelProperty("导航名称")
     private String navigationName;
 
-    @ApiModelProperty("楼层类型1：一行一个图片+商品，2：一行两个图片+商品3：一行两个商品4：一行三个图片 5：瀑布流 6 轮播")
+    @ApiModelProperty("楼层类型1：一行一个图片+商品，2：一行两个图片+商品3：一行两个商品4：一行三个图片 5：瀑布流 6 轮播 7异形轮播 8 导航 9优惠券")
     private Integer storeyType;
 
     @ApiModelProperty("图片地址")

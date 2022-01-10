@@ -13,5 +13,22 @@ public class TopicStoreyContentReponse extends TopicStoreyContentDTO {
     private GoodsAndAtmosphereResponse goods;
 
     @ApiModelProperty("优惠券信息")
-    private CouponVO couponInfo;
+    private CouponInfo couponInfo;
+
+    @Data
+    public static class CouponInfo{
+
+        @ApiModelProperty(value = "优惠券是否已领取")
+        private boolean hasFetched;
+
+
+        @ApiModelProperty(value = "优惠券是否有剩余")
+        private boolean leftFlag;
+
+        @ApiModelProperty(value = "优惠券Id",hidden = true)
+        private String couponId;
+
+        @ApiModelProperty(value = "优惠券活动Id",hidden = true)
+        private String activityId;
+    }
 }

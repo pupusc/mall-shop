@@ -136,19 +136,21 @@ public class TopicService {
         couponRequest.setCouponScene(3);
         couponRequest.setPageNum(0);
         couponRequest.setPageSize(100);
-        //couponRequest.setCustomerId(commonUtil.getOperatorId());
+        if(commonUtil.getOperator()!=null){
+            couponRequest.setCustomerId(commonUtil.getOperatorId());
+        }
         BaseResponse<CouponCacheCenterPageResponse> couponResponse =  couponCacheProvider.pageCouponStarted(couponRequest);
         if(couponResponse == null || couponResponse.getContext() == null || couponResponse.getContext().getCouponViews() == null || CollectionUtils.isEmpty(couponResponse.getContext().getCouponViews().getContent())){
             return;
         }
         List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
-
+        List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
         storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
             if(CollectionUtils.isEmpty(p.getContents())) {
                 return;
             }
             p.getContents().forEach(c->{
-                Optional<CouponVO> optionalCouponVO = couponVOS.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
+                Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
                 if(optionalCouponVO.isPresent()){
                     c.setCouponInfo(optionalCouponVO.get());
                 }
