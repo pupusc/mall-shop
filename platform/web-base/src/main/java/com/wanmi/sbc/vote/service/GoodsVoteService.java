@@ -1,7 +1,6 @@
 package com.wanmi.sbc.vote.service;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
@@ -19,7 +18,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,22 +61,28 @@ public class GoodsVoteService {
 
         Map<String, String> voteCache = redisService.hgetall(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER);
 
-        List<GoodsVoteVo> votes = esGoodsVOS.stream().map(goods -> {
+        Map<String, List<GoodsVoteVo>> collect = esGoodsVOS.stream().map(goods -> {
             GoodsVoteVo goodsVoteVo = new GoodsVoteVo();
             goodsVoteVo.setGoodsId(goods.getId());
             goodsVoteVo.setGoodsName(goods.getGoodsName());
             goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsInfos().get(0).getGoodsInfoImg());
-            if(voteCache == null) {
+            if (voteCache == null) {
                 goodsVoteVo.setVoteNumber(0L);
-            }else {
+            } else {
                 goodsVoteVo.setVoteNumber(Long.parseLong(voteCache.getOrDefault(goods.getId(), "0")));
             }
             return goodsVoteVo;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.groupingBy(GoodsVoteVo::getGoodsId));
+
+        List<GoodsVoteVo> votes = new ArrayList<>(64);
+        for (String s : goodsIdList) {
+            if(collect.get(s) != null) votes.add(collect.get(s).get(0));
+        }
         return votes;
     }
 
     public void vote(String goodsId) {
         redisTemplate.opsForHash().increment(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER, goodsId, 1L);
     }
+
 }
