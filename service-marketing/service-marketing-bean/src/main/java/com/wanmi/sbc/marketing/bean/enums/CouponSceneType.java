@@ -15,7 +15,7 @@ public enum CouponSceneType {
 
     TOPIC(4,"专题页");
 
-    private int type;
+    private Integer type;
 
     private String desc;
 
