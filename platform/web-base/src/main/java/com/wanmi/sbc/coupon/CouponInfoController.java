@@ -118,8 +118,6 @@ public class CouponInfoController {
     @RequestMapping(value = "/center", method = RequestMethod.POST)
     public BaseResponse<CouponCacheCenterPageResponse> getCouponStarted(@RequestBody CouponCacheCenterPageRequest queryRequest) {
         queryRequest.setCustomerId(commonUtil.getOperatorId());
-
-
         return couponCacheProvider.pageCouponStarted(queryRequest);
     }
 

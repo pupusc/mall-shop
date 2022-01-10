@@ -75,7 +75,7 @@ public class CouponCacheInitRequest {
         sb.append("      coupon_activity.terminals AS `couponActivity.terminals`, ");
         sb.append("      coupon_activity.store_id AS `couponActivity.storeId`, ");
         sb.append("      coupon_activity.platform_flag AS `couponActivity.platformFlag`, ");
-        sb.append("      coupon_activity.create_time AS `couponActivity.createTime` ");
+        sb.append("      coupon_activity.create_time AS `couponActivity.createTime` ,");
         sb.append("      coupon_activity.activity_scene AS `couponActivity.activityScene` ");
         sb.append("     FROM coupon_activity_config ");
         sb.append("      LEFT JOIN coupon_info ON coupon_info.coupon_id = coupon_activity_config.coupon_id ");

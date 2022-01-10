@@ -26,7 +26,7 @@ public enum CouponSceneType {
     }
 
     public Integer getType() {
-        return getType();
+        return type;
     }
 
     public String getValue() {

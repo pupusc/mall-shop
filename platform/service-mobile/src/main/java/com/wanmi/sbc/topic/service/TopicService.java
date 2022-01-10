@@ -22,6 +22,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
@@ -133,10 +134,10 @@ public class TopicService {
         CouponCacheCenterPageRequest couponRequest = new CouponCacheCenterPageRequest();
         couponRequest.setActivityIds(activityIds);
         couponRequest.setCouponInfoIds(couponIds);
-        couponRequest.setCouponScene(3);
+        couponRequest.setCouponScene(CouponSceneType.TOPIC.getType());
         couponRequest.setPageNum(0);
         couponRequest.setPageSize(100);
-        if(commonUtil.getOperator()!=null){
+        if(commonUtil.getOperator()!=null && commonUtil.getOperatorId() !=null){
             couponRequest.setCustomerId(commonUtil.getOperatorId());
         }
         BaseResponse<CouponCacheCenterPageResponse> couponResponse =  couponCacheProvider.pageCouponStarted(couponRequest);
