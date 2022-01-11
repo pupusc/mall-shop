@@ -55,11 +55,11 @@ public class SensorsDataService {
                     sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().toString());
                     if(trade.getSource() != null) sensorsMessageDto.addProperty("s_str", trade.getSource());
                     if(trade.getPromoteUserId() != null) sensorsMessageDto.addProperty("r_str", trade.getPromoteUserId());
+                    if(trade.getEmallSessionId() != null) sensorsMessageDto.addProperty("emall_session_id", trade.getEmallSessionId());
                     sensorsMessageDtos.add(sensorsMessageDto);
                 }
             }
             orderProducerService.sendSensorsMessage(sensorsMessageDtos);
         }
     }
-
 }

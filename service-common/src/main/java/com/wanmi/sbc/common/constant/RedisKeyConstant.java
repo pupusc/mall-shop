@@ -105,4 +105,7 @@ public final class RedisKeyConstant {
 
     public static final  String ACCESS_TOKEN_KEY="access:token";
 
+    // 商品投票
+    public static final String KEY_GOODS_VOTE_NUMBER = "KEY_GOODS_VOTE_NUMBER";
+
 }
