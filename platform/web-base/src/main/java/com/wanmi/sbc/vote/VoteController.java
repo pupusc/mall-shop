@@ -36,7 +36,7 @@ public class VoteController {
      * @status done
      */
     @PostMapping(value = "/goods")
-    public BaseResponse<List<GoodsVoteVo>> voteGoodsList(){
+    public BaseResponse<Map<String, List<GoodsVoteVo>>> voteGoodsList(){
         return BaseResponse.success(goodsVoteService.voteGoodsList());
     }
 

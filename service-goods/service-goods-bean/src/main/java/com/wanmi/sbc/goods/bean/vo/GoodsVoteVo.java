@@ -12,4 +12,6 @@ public class GoodsVoteVo {
     private Long voteNumber;
 
     private String image;
+
+    private Boolean detailPage = false;
 }
