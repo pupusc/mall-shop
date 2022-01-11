@@ -153,9 +153,9 @@ public class EsGoodsStockService {
                 i++;
             }
             UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
-            updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_INFO_TYPE)
+            updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_TYPE)
                     //查询要修改的结果集
-                    .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_INFO_TYPE).addIds(skuIds))
+                    .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_TYPE).addIds(skuIds))
                     //修改操作
                     .script(new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG,
                             "if(params[ctx._source.id] != null) ctx._source.stock = params[ctx._source.id]", spusMap));
