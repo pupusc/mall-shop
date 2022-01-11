@@ -120,11 +120,6 @@
             <version>${hibernate-validator.version}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.apache.skywalking</groupId>
-            <artifactId>apm-toolkit-logback-1.x</artifactId>
-            <version>6.5.0</version>
-        </dependency>
     </dependencies>
 
     <build>
