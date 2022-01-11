@@ -21,10 +21,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +45,7 @@ public class GoodsVoteService {
     }
 
     public Map<String, List<GoodsVoteVo>> voteGoodsList() {
-        Map<String, List<GoodsVoteVo>> result = new HashMap<>();
+        Map<String, List<GoodsVoteVo>> result = new LinkedHashMap<>();
         Map<String, VoteBean> voteGoodsMap = voteConfig.getGoods();
         Map<String, String> voteCache = redisService.hgetall(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER);
         voteGoodsMap.forEach((k, v) -> {
@@ -75,7 +72,7 @@ public class GoodsVoteService {
                         goodsVoteVo.setDetailPage(true);
                         goodsVoteVo.setGoodsId(goods.getId());
                         goodsVoteVo.setGoodsName(goods.getGoodsName());
-                        goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsInfos().get(0).getGoodsInfoImg());
+                        goodsVoteVo.setImage(goods.getGoodsInfos() == null ? "" : goods.getGoodsUnBackImg());
                         if (voteCache == null) {
                             goodsVoteVo.setVoteNumber(0L);
                         } else {
