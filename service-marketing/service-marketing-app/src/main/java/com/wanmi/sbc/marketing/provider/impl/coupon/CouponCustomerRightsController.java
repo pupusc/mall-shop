@@ -139,10 +139,10 @@ public class CouponCustomerRightsController implements CouponCustomerRightsProvi
             if (CollectionUtils.isNotEmpty(paidCardIdList)){
 
                 PaidCardCustomerRelQueryRequest paidCardCustomerRelQueryRequest = PaidCardCustomerRelQueryRequest.builder().paidCardIdList(paidCardIdList)
-                        .currentTime(LocalDateTime.now()).delFlag(DeleteFlag.NO).build();
+                        .currentTime(LocalDateTime.now()).build();
                 while (true){
                     long beginTime = System.currentTimeMillis();
-                    paidCardCustomerRelQueryRequest.setPageNum(0);
+//                    paidCardCustomerRelQueryRequest.setPageNum(0);
                     paidCardCustomerRelQueryRequest.setPageSize(pageSize);
                     paidCardCustomerRelQueryRequest.setMaxTmpId(maxTmpId);
                     BaseResponse<List<PaidCardCustomerRelVO>> listBaseResponse = paidCardCustomerRelQueryProvider.pageByMaxAutoId(paidCardCustomerRelQueryRequest);

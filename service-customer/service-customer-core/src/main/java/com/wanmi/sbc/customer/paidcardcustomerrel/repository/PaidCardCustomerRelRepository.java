@@ -1,6 +1,7 @@
 package com.wanmi.sbc.customer.paidcardcustomerrel.repository;
 
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelQueryRequest;
 import com.wanmi.sbc.customer.paidcardcustomerrel.model.root.PaidCardCustomerRel;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -78,4 +79,12 @@ public interface PaidCardCustomerRelRepository extends JpaRepository<PaidCardCus
     @Query("DELETE FROM PaidCardCustomerRel  where paidSource = ?1 and customerId = ?2")
     void deleteByCustomerId(Integer paidSource,String customerId);
 
+    /**
+     * 根据最大id获取对应的优惠券
+     * @param paidCardIdList
+     * @param tmpId
+     * @return
+     */
+    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and paid_card_id in ?1 and ?2 > begin_time  and end_time > ?2 and tmp_id > ?3 limit ?4", nativeQuery = true)
+    List<PaidCardCustomerRel> pageByMaxAutoId(List<String> paidCardIdList, LocalDateTime currentTime, Integer tmpId, Integer pageSize);
 }
