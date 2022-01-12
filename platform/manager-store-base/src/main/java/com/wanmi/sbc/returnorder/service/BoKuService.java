@@ -35,8 +35,8 @@ public class BoKuService extends AbstractCRMService{
 
 
     @Override
-    public BaseResponse interceptorErpDeliverStatus(String returnOrderId, Boolean flag){
-        ReturnOrderVO returnOrderVO = super.getReturnOrderVo(returnOrderId);
+    public BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag){
+//        ReturnOrderVO returnOrderVO = super.getReturnOrderVo(returnOrderId);
         //获取订单信息
         TradeGetByIdRequest tradeGetByIdRequest = TradeGetByIdRequest.builder().tid(returnOrderVO.getTid()).build();
         BaseResponse<TradeGetByIdResponse> tradeResponse = tradeQueryProvider.getById(tradeGetByIdRequest);

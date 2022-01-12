@@ -53,18 +53,18 @@ public class GuanYiYunService extends AbstractCRMService {
 
     /**
      * 拦截发货状态
-     * @param returnOrderId
+     * @param
      * @param flag
      * @return
      */
     @Override
-    public BaseResponse interceptorErpDeliverStatus(String returnOrderId, Boolean flag){
-        //获取退单信息
-        ReturnOrderVO returnOrderVO = super.getReturnOrderVo(returnOrderId);
-        if (returnOrderVO == null) {
-            //退单不存在
-            throw new SbcRuntimeException("K-050003");
-        }
+    public BaseResponse interceptorErpDeliverStatus(ReturnOrderVO returnOrderVO, Boolean flag){
+//        //获取退单信息
+//        ReturnOrderVO returnOrderVO = super.getReturnOrderVo(returnOrderId);
+//        if (returnOrderVO == null) {
+//            //退单不存在
+//            throw new SbcRuntimeException("K-050003");
+//        }
         TradeGetByIdResponse tradeAndProviderTrade = super.getTradeAndProviderTrade(returnOrderVO.getTid(), flag);
         TradeVO tradeVO = tradeAndProviderTrade.getTradeVO();
         //如果为周期购
