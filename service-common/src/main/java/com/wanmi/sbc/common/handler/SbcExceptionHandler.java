@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -41,10 +41,9 @@ public class SbcExceptionHandler {
     @ResponseBody
     public BaseResponse SbcRuntimeExceptionHandler(SbcRuntimeException ex) {
         //1、异常链的errorMessage
-        Throwable cause = ex.getCause();
         String msg = "";
-        if (cause != null) {
-            msg = cause.getMessage();
+        if (ex.getCause() != null) {
+            msg = ex.getCause().getMessage();
         }
 
         String errorCode = ex.getErrorCode();
@@ -61,11 +60,10 @@ public class SbcExceptionHandler {
             }
 
             if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
-                log.error(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), ex);
-                return BaseResponse.info(errorCode, ex.getResult(), ex.getData());
+                //log.error(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), ex);
+                log.info(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "--");
+                return BaseResponse.info(errorCode, ex.getResult());
             }
-            //2、如果有异常码，以异常码对应的提示信息为准
-//            msg = this.getMessage(errorCode, ex.getParams());
         } else if (StringUtils.isEmpty(msg)) {
             //3、异常码为空 & msg为空，提示系统异常
             msg = this.getMessage(CommonErrorCode.FAILED, ex.getParams());
@@ -83,7 +81,7 @@ public class SbcExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public BaseResponse validationExceptionHandle(MethodArgumentNotValidException ex) {
-        log.error(ex.getMessage());
+        log.warn(ex.getMessage());
         return new BaseResponse(CommonErrorCode.PARAMETER_ERROR);
     }
 
@@ -99,7 +97,7 @@ public class SbcExceptionHandler {
                         .append(i.getPropertyPath())
                         .append(i.getMessage()).append("\r\n")
         );
-        log.error("{}", sb);
+        log.warn("{}", sb);
         return new BaseResponse(CommonErrorCode.PARAMETER_ERROR);
     }
 

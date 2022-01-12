@@ -21,7 +21,7 @@ import java.util.Locale;
 /**
  * 异常统一处理
  */
-@ControllerAdvice
+//@ControllerAdvice
 @Slf4j
 public class SbcExceptionHandler {
 
