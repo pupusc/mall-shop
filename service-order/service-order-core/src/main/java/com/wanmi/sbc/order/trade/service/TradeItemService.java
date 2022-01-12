@@ -542,19 +542,22 @@ public class TradeItemService {
 
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
+            BigDecimal surplusPointsPrice = pointsPriceTotal.subtract(splitPriceTotal);
             if (i == size - 1) {
-                tradeItem.setPointsPrice(pointsPriceTotal.subtract(splitPriceTotal));
+                tradeItem.setPointsPrice(surplusPointsPrice);
                 tradeItem.setPoints(pointsTotal - splitPointsTotal);
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                tradeItem.setPointsPrice(
-                        splitPrice
-                                .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
-                                .multiply(pointsPriceTotal)
-                                .setScale(2, BigDecimal.ROUND_HALF_UP));
-                splitPriceTotal = splitPriceTotal.add(tradeItem.getPointsPrice());
-
-                tradeItem.setPoints(tradeItem.getPointsPrice().multiply(pointWorth).longValue());
+                BigDecimal pointsPrice = splitPrice.divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
+                        .multiply(pointsPriceTotal).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal points = pointsPrice.multiply(pointWorth);
+                if (surplusPointsPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    pointsPrice = BigDecimal.ZERO;
+                    points = BigDecimal.ZERO;
+                }
+                tradeItem.setPointsPrice(pointsPrice);
+                splitPriceTotal = splitPriceTotal.add(pointsPrice);
+                tradeItem.setPoints(points.longValue());
                 splitPointsTotal = splitPointsTotal + tradeItem.getPoints();
             }
         }
