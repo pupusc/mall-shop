@@ -13,6 +13,7 @@ import lombok.Data;
 import javax.persistence.Enumerated;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <p>优惠券活动表</p>
@@ -112,6 +113,6 @@ public class EsCouponActivityVO implements Serializable {
     private DefaultFlag joinLevelType;
 
     @ApiModelProperty(value = "优惠券领券场景:1商详页2领券中心3专题页 多选，用,分隔")
-    private String activityScene;
+    private List<String> activityScene;
 
 }

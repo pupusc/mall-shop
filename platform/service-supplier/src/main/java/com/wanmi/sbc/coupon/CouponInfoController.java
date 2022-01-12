@@ -12,9 +12,12 @@ import com.wanmi.sbc.elastic.api.request.coupon.EsCouponInfoAddRequest;
 import com.wanmi.sbc.elastic.api.request.coupon.EsCouponInfoPageRequest;
 import com.wanmi.sbc.elastic.api.response.coupon.EsCouponInfoPageResponse;
 import com.wanmi.sbc.elastic.bean.dto.coupon.EsCouponInfoDTO;
+import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoProvider;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoQueryProvider;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponInfoAddRequest;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoAddResponse;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.vo.CouponInfoVO;
@@ -55,6 +58,8 @@ public class CouponInfoController {
     @Autowired
     private EsCouponInfoQueryProvider esCouponInfoQueryProvider;
 
+    @Autowired
+    private CouponCacheProvider couponCacheProvider;
     /**
      * 获取优惠券列表
      *
@@ -91,6 +96,12 @@ public class CouponInfoController {
         EsCouponInfoDTO esCouponInfoDTO = KsBeanUtil.convert(couponInfoVO,EsCouponInfoDTO.class);
         esCouponInfoProvider.add(new EsCouponInfoAddRequest(esCouponInfoDTO));
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @ApiOperation(value = "分页查询关联活动优惠券")
+    @RequestMapping(value = "/center", method = RequestMethod.POST)
+    public BaseResponse<CouponCacheCenterPageResponse> getCouponStartedFront(@RequestBody CouponCacheCenterPageRequest queryRequest) {
+        return couponCacheProvider.pageCouponStarted(queryRequest);
     }
 
 }

@@ -24,10 +24,8 @@ public class TopicStoreyContentAddRequest implements Serializable {
     @ApiModelProperty("楼层类型")
     private Integer storeyType;
 
-    @ApiModelProperty("商品内容")
-    private List<TopicStoreyContentDTO> goodsContents;
+    @ApiModelProperty("楼层内容")
+    private List<TopicStoreyContentDTO> contents;
 
-    @ApiModelProperty("图片+链接内容")
-    private List<TopicStoreyContentDTO> linkContents;
 
 }

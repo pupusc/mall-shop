@@ -31,7 +31,7 @@ public class TopicStoreyContentDTO extends TopicStoreyCouponDTO implements Seria
     private String skuId;
     @ApiModelProperty("商品名称")
     private String goodsName;
-    @ApiModelProperty("类型1商品+图片2图片+链接")
+    @ApiModelProperty("类型1商品+图片2图片+链接3异行轮播4导航5优惠券")
     private Integer type;
     @ApiModelProperty("图片地址")
     private String imageUrl;
@@ -52,4 +52,7 @@ public class TopicStoreyContentDTO extends TopicStoreyCouponDTO implements Seria
 
     @ApiModelProperty(value = "属性",hidden = true)
     private String attributeInfo;
+
+    @ApiModelProperty("导航关联楼层Id")
+    private Integer relStoreyId;
 }

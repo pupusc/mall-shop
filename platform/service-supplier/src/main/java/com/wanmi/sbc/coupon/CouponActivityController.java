@@ -114,6 +114,8 @@ public class CouponActivityController {
         EsCouponActivityDTO esCouponActivityDTO = KsBeanUtil.convert(couponActivity, EsCouponActivityDTO.class);
         List<String> joinLevels = Splitter.on(",").trimResults().splitToList(couponActivity.getJoinLevel());
         esCouponActivityDTO.setJoinLevels(joinLevels);
+        List<String> scenes = Splitter.on(",").trimResults().splitToList(couponActivity.getActivityScene());
+        esCouponActivityDTO.setActivityScene(scenes);
         esCouponActivityProvider.add(new EsCouponActivityAddRequest(esCouponActivityDTO));
 
         operateLogMQUtil.convertAndSend("营销", "编辑优惠券活动", "优惠券活动：" + couponActivityModifyRequest.getActivityName());

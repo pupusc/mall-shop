@@ -197,16 +197,7 @@ public class TopicConfigService {
             }else{
                 itemList = items;
             }
-            if(Objects.equals(TopicStoreyType.COUPON.getId(),p.getStoreyType())){
-                itemList.forEach(item->{
-                    TopicStoreyCouponDTO couponDTO = JSONObject.parseObject(item.getAttributeInfo(),TopicStoreyCouponDTO.class);
-                    item.setActivityId(couponDTO.getActivityId());
-                    item.setCouponId(couponDTO.getCouponId());
-                    item.setReceiveImageUrl(couponDTO.getReceiveImageUrl());
-                    item.setUseImageUrl(couponDTO.getUseImageUrl());
-                    item.setDoneImageUrl(couponDTO.getDoneImageUrl());
-                });
-            }
+            initAttr(itemList,p.getStoreyType());
             //排序
             List<TopicStoreyContentDTO> sortContents = itemList.stream().sorted(Comparator.comparing(TopicStoreyContentDTO::getType).thenComparing(TopicStoreyContentDTO::getSorting)).collect(Collectors.toList());
             p.setContents(sortContents);
@@ -217,6 +208,24 @@ public class TopicConfigService {
         return topicVO;
     }
 
+    private void initAttr(List<TopicStoreyContentDTO> contents,Integer storeyType){
+        if(Objects.equals(TopicStoreyType.COUPON.getId(),storeyType)){
+            contents.forEach(item->{
+                TopicStoreyCouponDTO couponDTO = JSONObject.parseObject(item.getAttributeInfo(),TopicStoreyCouponDTO.class);
+                item.setActivityId(couponDTO.getActivityId());
+                item.setCouponId(couponDTO.getCouponId());
+                item.setReceiveImageUrl(couponDTO.getReceiveImageUrl());
+                item.setUseImageUrl(couponDTO.getUseImageUrl());
+                item.setDoneImageUrl(couponDTO.getDoneImageUrl());
+            });
+        }else if(Objects.equals(TopicStoreyType.NAVIGATION.getId(),storeyType)){
+            contents.forEach(item->{
+                JSONObject configJson = JSONObject.parseObject(item.getAttributeInfo());
+                item.setRelStoreyId(configJson.getInteger("relStoreyId"));
+            });
+        }
+
+    }
 
 
     @Transactional
@@ -226,25 +235,26 @@ public class TopicConfigService {
 
     @Transactional
     public void addStoreyContents(TopicStoreyContentAddRequest request){
-        if(request == null){
+        if(request == null || CollectionUtils.isEmpty(request.getContents())){
             throw  new  SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //删除原数据
         contentRepository.deleteBySid(request.getStoreyId());
-        List<TopicStoreyContent> contents = new ArrayList<>();
         //设置属性
-        if(request.getStoreyType().equals(TopicStoreyType.COUPON.getId())){
-            request.getLinkContents().forEach(c->{
+        if(Objects.equals(request.getStoreyType(),TopicStoreyType.COUPON.getId())){
+            request.getContents().forEach(c->{
                 TopicStoreyCouponDTO couponDTO = (TopicStoreyCouponDTO)c;
                 c.setAttributeInfo(JSON.toJSONString(couponDTO));
             });
+        }else if(Objects.equals(request.getStoreyType(),TopicStoreyType.NAVIGATION.getId())){
+            request.getContents().forEach(c->{
+                Map<String,Integer> map = new HashMap<>();
+                map.put("relStoreyId",c.getRelStoreyId());
+                c.setAttributeInfo(JSON.toJSONString(map));
+            });
         }
-        if(CollectionUtils.isNotEmpty(request.getGoodsContents())){
-            contents.addAll(KsBeanUtil.convertList(request.getGoodsContents(),TopicStoreyContent.class));
-        }
-        if(CollectionUtils.isNotEmpty(request.getLinkContents())){
-            contents.addAll(KsBeanUtil.convertList(request.getLinkContents(),TopicStoreyContent.class));
-        }
+        List<TopicStoreyContent> contents = KsBeanUtil.convertList(request.getContents(),TopicStoreyContent.class);
+
         contents.forEach(c->{
             c.setCreateTime(LocalDateTime.now());
             c.setUpdateTime(LocalDateTime.now());
@@ -270,14 +280,9 @@ public class TopicConfigService {
          if(CollectionUtils.isEmpty(list)){
             return response;
          }
-         List<TopicStoreyContent> goodsContents = list.stream().filter(p->p.getType() == 1).collect(Collectors.toList());
-         if(CollectionUtils.isNotEmpty(goodsContents)){
-             response.setGoodsContents(KsBeanUtil.convertList(goodsContents,TopicStoreyContentDTO.class));
-         }
-        List<TopicStoreyContent> linkContents = list.stream().filter(p->p.getType() == 2).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(linkContents)){
-            response.setLinkContents(KsBeanUtil.convertList(linkContents,TopicStoreyContentDTO.class));
-        }
+         response.setContents(KsBeanUtil.convertList(list,TopicStoreyContentDTO.class));
+        //设置属性
+        initAttr(response.getContents(),topicStorey.getStoreyType());
         return response;
     }
 
