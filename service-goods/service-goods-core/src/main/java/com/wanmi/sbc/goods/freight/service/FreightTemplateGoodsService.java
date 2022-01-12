@@ -1,5 +1,8 @@
 package com.wanmi.sbc.goods.freight.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.freight.model.root.*;
+import com.wanmi.sbc.goods.freight.repository.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -16,14 +19,6 @@ import com.wanmi.sbc.goods.bean.dto.FreightTemplateGoodsExpressSaveDTO;
 import com.wanmi.sbc.goods.bean.dto.FreightTemplateGoodsFreeSaveDTO;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.enums.ValuationType;
-import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
-import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoodsExpress;
-import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoodsFree;
-import com.wanmi.sbc.goods.freight.model.root.FreightTemplateStore;
-import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsExpressRepository;
-import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsFreeRepository;
-import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
-import com.wanmi.sbc.goods.freight.repository.FreightTemplateStoreRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +57,9 @@ public class FreightTemplateGoodsService {
     @Resource
 //    private StoreRepository storeRepository;
     private StoreQueryProvider storeQueryProvider;
+
+    @Resource
+    private ExpressNotSupportRepository expressNotSupportRepository;
 
 
     /**
@@ -220,6 +218,23 @@ public class FreightTemplateGoodsService {
                     info.getFreightTempId().equals(frees.getFreightTempId())).collect(Collectors.toList()));
         });
         return list;
+    }
+
+    /**
+     * 查询目标地区是否支持配送
+     */
+    public boolean queryIfnotSupportArea(Long provinceId, Long cityId) {
+        List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAll();
+        String province = provinceId.toString();
+        String city = cityId.toString();
+        for (ExpressNotSupport expressNotSupport : expressNotSupports) {
+            String notSupportArea = expressNotSupport.getNotSupportArea();
+            String[] split = notSupportArea.split(",");
+            for (String s : split) {
+                if(s.equals(province) || s.equals(city)) return false;
+            }
+        }
+        return true;
     }
 
     /**

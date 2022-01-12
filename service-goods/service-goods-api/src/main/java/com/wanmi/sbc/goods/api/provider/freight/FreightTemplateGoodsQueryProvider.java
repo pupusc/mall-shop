@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsListByStoreI
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -36,8 +37,13 @@ public interface FreightTemplateGoodsQueryProvider {
      * @return 单品运费模板列表 {@link FreightTemplateGoodsByIdsResponse}
      */
     @PostMapping("/goods/${application.goods.version}/freight/goods/list-by-ids")
-    BaseResponse<FreightTemplateGoodsByIdsResponse> listByIds(@RequestBody @Valid
-                                                                      FreightTemplateGoodsListByIdsRequest request);
+    BaseResponse<FreightTemplateGoodsByIdsResponse> listByIds(@RequestBody @Valid FreightTemplateGoodsListByIdsRequest request);
+
+    /**
+     * 查询目标地区是否支持配送
+     */
+    @PostMapping("/goods/${application.goods.version}/freight/query-if-not-support")
+    BaseResponse<Boolean> queryIfnotSupportArea(@RequestParam("provinceId") Long provinceId, @RequestParam("cityId") Long cityId);
 
     /**
      * 根据单品运费模板id查询单品运费模板
