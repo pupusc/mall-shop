@@ -94,6 +94,7 @@ public class RefundReturnAction extends ReturnAction {
         exceptionOfTradePoints.setHandleStatus(HandleStatus.PENDING);
         exceptionOfTradePoints.setErrorTime(3); //超过3次不再处理
         exceptionOfTradePoints.setDelFlag(DeleteFlag.NO);
+        exceptionOfTradePoints.setErrorCode("init");
         exceptionOfTradePoints.setCreateTime(LocalDateTime.now());
 
         if (points > 0) {
