@@ -64,4 +64,10 @@ public class CouponCacheCenterPageRequest {
     @ApiModelProperty("优惠券ID")
     private List<String> couponInfoIds;
 
+    @ApiModelProperty("活动名称")
+    private String activityName;
+
+    @ApiModelProperty("活动状态1生效中2生效中+待生效")
+    private Integer activityStatus = 1 ;
+
 }

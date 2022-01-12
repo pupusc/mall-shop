@@ -75,6 +75,13 @@ public class CouponCacheQueryRequest {
     private Integer couponScene;
 
     private List<String> couponInfoIds;
+
+    private String activityName;
+
+    /**
+     * 活动状态1进行中2进行中+未开始
+     */
+    private Integer activityStatus;
     /**
      * 构建平台优惠券+店铺优惠券的查询条件
      *
@@ -141,6 +148,9 @@ public class CouponCacheQueryRequest {
             }
         }
 
+        if(StringUtils.isNotEmpty(activityName)){
+            criteria.add(new Criteria().and("couponActivity.activityName").regex("^.*" +activityName+ ".*$"));
+        }
         //活动状态
         criteria.add(Criteria.where("couponActivity.pauseFlag").is(DefaultFlag.NO.toString()));
         return new Criteria().andOperator(criteria.toArray(new Criteria[criteria.size()]));
@@ -158,7 +168,9 @@ public class CouponCacheQueryRequest {
         storeCriteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         storeCriteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.NO.toString()));
         storeCriteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        storeCriteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        if(activityStatus == null || activityStatus == 1) {
+            storeCriteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        }
         return storeCriteriaList;
     }
 
@@ -173,7 +185,9 @@ public class CouponCacheQueryRequest {
         criteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         criteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.YES.toString()));
         criteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        criteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        if(activityStatus == null || activityStatus == 1) {
+            criteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        }
         return criteriaList;
     }
 

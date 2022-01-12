@@ -45,7 +45,10 @@ public class TopicStoreyDTO implements Serializable {
 
     @ApiModelProperty("背景图片")
     private String backgroundImageUrl;
-    
+
+    @ApiModelProperty("链接")
+    private String linkUrl;
+
     @ApiModelProperty("楼层内容")
     private List<TopicStoreyContentDTO> contents;
 }

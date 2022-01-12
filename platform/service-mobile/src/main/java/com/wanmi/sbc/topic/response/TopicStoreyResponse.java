@@ -42,4 +42,7 @@ public class TopicStoreyResponse implements Serializable {
 
     @ApiModelProperty("背景图片")
     private String backgroundImageUrl;
+
+    @ApiModelProperty("链接")
+    private String linkUrl;
 }

@@ -33,7 +33,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-
+/**
+ * @menu 后台优惠券
+ * @tag coupon-info
+ * @status undone
+ */
 @Api(tags = "CouponInfoController", description = "优惠券信息 API")
 @RestController
 @RequestMapping("/coupon-info")
@@ -98,9 +102,17 @@ public class CouponInfoController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    /**
+     * @description 分页查询关联活动优惠券
+     * @menu 后台优惠券
+     * @param queryRequest
+     * @status undone
+     */
     @ApiOperation(value = "分页查询关联活动优惠券")
     @RequestMapping(value = "/center", method = RequestMethod.POST)
     public BaseResponse<CouponCacheCenterPageResponse> getCouponStartedFront(@RequestBody CouponCacheCenterPageRequest queryRequest) {
+        queryRequest.setActivityStatus(2);
+        queryRequest.setStoreId(commonUtil.getStoreId());
         return couponCacheProvider.pageCouponStarted(queryRequest);
     }
 

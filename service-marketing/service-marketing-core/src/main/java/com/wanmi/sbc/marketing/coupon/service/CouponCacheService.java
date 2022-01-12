@@ -141,6 +141,8 @@ public class CouponCacheService {
                 .couponScene(queryRequest.getCouponScene())
                 .couponActivityIds(queryRequest.getActivityIds())
                 .couponInfoIds(queryRequest.getCouponInfoIds())
+                .activityName(queryRequest.getActivityName())
+                .activityStatus(queryRequest.getActivityStatus())
                 .build();
         if(Objects.nonNull(queryRequest.getStoreId())) {
             request.setStoreIds(Arrays.asList(queryRequest.getStoreId()));
@@ -192,7 +194,7 @@ public class CouponCacheService {
                     .cateMap(this.mapCateById(cateIds))
                     .brandMap(this.mapBrandById(brandIds))
                     .storeCateMap(this.mapStoreCateById(storeCateIds))
-                    .build();
+                     .build();
         } else {
             return CouponCenterPageResponse.builder().couponViews(new PageImpl<>(Collections.emptyList(), pageRequest
                     , 0)).build();
@@ -741,4 +743,6 @@ public class CouponCacheService {
                 goodsBrandQueryProvider.listByIds(new GoodsBrandByIdsRequest(brandIds)).getContext().getGoodsBrandVOList();
         return goodsCateList.stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, GoodsBrandVO::getBrandName));
     }
+
+
 }
