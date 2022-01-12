@@ -56,5 +56,6 @@ public class TopicStorey {
     @Column(name="background_image_url")
     private String backgroundImageUrl;
 
-
+    @Column(name="link_url")
+    private String linkUrl;
 }

@@ -44,5 +44,8 @@ public class TopicStoreyAddRequest implements Serializable {
     @ApiModelProperty("背景图片地址")
     private String backgroundImageUrl;
 
+    @ApiModelProperty("链接地址")
+    private String linkUrl;
+
 
 }
