@@ -14,15 +14,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * <p>Ares应用安装启动类</p>
  * Created by of628-wenzhi on 2017-09-18-上午11:18.
  */
 @SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class})
-@ComponentScan(basePackages = {"com.wanmi.sbc.message","com.wanmi.sbc.common.util"})
+@ComponentScan(basePackages = {"com.wanmi.sbc.message","com.wanmi.sbc.common.util","com.wanmi.sbc.common.handler.exc"})
 @EnableAsync
 @Slf4j
 @EnableDiscoveryClient

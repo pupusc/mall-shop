@@ -1,4 +1,4 @@
-package com.wanmi.sbc.common.handler;
+package com.wanmi.sbc.common.handler.exc;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
