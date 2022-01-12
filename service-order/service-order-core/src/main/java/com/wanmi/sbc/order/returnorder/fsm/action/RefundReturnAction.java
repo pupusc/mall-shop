@@ -104,7 +104,7 @@ public class RefundReturnAction extends ReturnAction {
                     .points(points)
                     .content(JSONObject.toJSONString(Collections.singletonMap("returnOrderNo", returnOrder.getId())))
                     .build());*/
-
+            log.info("RefundReturnAction log point begin returnOrderId:{}", returnOrder.getId());
             exceptionOfTradePoints.setType(3); //不影响原来的类型内容,只是做记录
             ExceptionOfTradePoints exceptionOfTradePointsModel = exceptionOfTradePointsService.add(exceptionOfTradePoints);
             try {
@@ -116,6 +116,7 @@ public class RefundReturnAction extends ReturnAction {
 
                 exceptionOfTradePointsModel.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
                 exceptionOfTradePointsService.modify(exceptionOfTradePointsModel);
+                log.info("RefundReturnAction log point end returnOrderId:{}", returnOrder.getId());
             } catch (Exception ex) {
                 String errorMsg = "RefundReturnAction 退单号:" + returnOrder.getId() +" 订单号:" + returnOrder.getTid() + " 退还积分执行异常";
                 log.error(errorMsg, ex);
@@ -124,6 +125,7 @@ public class RefundReturnAction extends ReturnAction {
         Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
         if (knowledge > 0) {
             try {
+                log.info("RefundReturnAction log knowledge begin returnOrderId:{}", returnOrder.getId());
                 exceptionOfTradePoints.setType(4); //不影响原来的类型内容,只是做记录
                 ExceptionOfTradePoints exceptionOfTradePointsModel = exceptionOfTradePointsService.add(exceptionOfTradePoints);
 
@@ -136,6 +138,7 @@ public class RefundReturnAction extends ReturnAction {
 
                 exceptionOfTradePointsModel.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
                 exceptionOfTradePointsService.modify(exceptionOfTradePointsModel);
+                log.info("RefundReturnAction log knowledge end returnOrderId:{}", returnOrder.getId());
             } catch (Exception ex) {
                 String errorMsg = "RefundReturnAction 退单号:" + returnOrder.getId() +" 订单号:" + returnOrder.getTid() + " 退还知豆执行异常";
                 log.error(errorMsg, ex);
