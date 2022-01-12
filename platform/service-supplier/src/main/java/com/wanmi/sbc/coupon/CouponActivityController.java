@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -86,8 +87,10 @@ public class CouponActivityController {
         EsCouponActivityDTO esCouponActivityDTO = KsBeanUtil.convert(couponActivity, EsCouponActivityDTO.class);
         List<String> joinLevels = Splitter.on(",").trimResults().splitToList(couponActivity.getJoinLevel());
         esCouponActivityDTO.setJoinLevels(joinLevels);
-        List<String> scenes = Splitter.on(",").trimResults().splitToList(couponActivity.getActivityScene());
-        esCouponActivityDTO.setActivityScene(scenes);
+        if(StringUtils.isNotEmpty(couponActivity.getActivityScene())) {
+            List<String> scenes = Splitter.on(",").trimResults().splitToList(couponActivity.getActivityScene());
+            esCouponActivityDTO.setActivityScene(scenes);
+        }
         esCouponActivityProvider.add(new EsCouponActivityAddRequest(esCouponActivityDTO));
         //记录操作日志
         if (ResultCode.SUCCESSFUL.equals(response.getCode())) {
@@ -114,8 +117,10 @@ public class CouponActivityController {
         EsCouponActivityDTO esCouponActivityDTO = KsBeanUtil.convert(couponActivity, EsCouponActivityDTO.class);
         List<String> joinLevels = Splitter.on(",").trimResults().splitToList(couponActivity.getJoinLevel());
         esCouponActivityDTO.setJoinLevels(joinLevels);
-        List<String> scenes = Splitter.on(",").trimResults().splitToList(couponActivity.getActivityScene());
-        esCouponActivityDTO.setActivityScene(scenes);
+        if(StringUtils.isNotEmpty(couponActivity.getActivityScene())) {
+            List<String> scenes = Splitter.on(",").trimResults().splitToList(couponActivity.getActivityScene());
+            esCouponActivityDTO.setActivityScene(scenes);
+        }
         esCouponActivityProvider.add(new EsCouponActivityAddRequest(esCouponActivityDTO));
 
         operateLogMQUtil.convertAndSend("营销", "编辑优惠券活动", "优惠券活动：" + couponActivityModifyRequest.getActivityName());
