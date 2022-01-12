@@ -584,20 +584,24 @@ public class TradeItemService {
 
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
+            BigDecimal subtract = knowledgePriceTotal.subtract(splitPriceTotal);
             if (i == size - 1) {
-                BigDecimal subtract = knowledgePriceTotal.subtract(splitPriceTotal);
                 tradeItem.setKnowledgePrice(subtract);
+                tradeItem.setPointsPrice(subtract); //TODO 这里考虑后续删除，
                 tradeItem.setKnowledge(knowledgeTotal - splitKnowledgeTotal);
-                tradeItem.setPointsPrice(subtract);
             } else {
                 BigDecimal splitPrice = tradeItem.getSplitPrice() != null ? tradeItem.getSplitPrice() : BigDecimal.ZERO;
-                tradeItem.setPointsPrice(splitPrice
-                        .divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
-                        .multiply(knowledgePriceTotal)
-                        .setScale(2, BigDecimal.ROUND_HALF_UP));
-                splitPriceTotal = splitPriceTotal.add(tradeItem.getPointsPrice());
-                tradeItem.setKnowledge(tradeItem.getPointsPrice().multiply(knowledgeWorth).longValue());
-                tradeItem.setKnowledgePrice(tradeItem.getPointsPrice());
+                BigDecimal knowLedgePrice = splitPrice.divide(totalPrice, 10, BigDecimal.ROUND_DOWN)
+                        .multiply(knowledgePriceTotal).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal knowLedge = knowLedgePrice.multiply(knowledgeWorth);
+                if (subtract.compareTo(BigDecimal.ZERO) <= 0) {
+                    knowLedgePrice = BigDecimal.ZERO;
+                    knowLedge = BigDecimal.ZERO;
+                }
+                tradeItem.setPointsPrice(knowLedgePrice);
+                tradeItem.setKnowledgePrice(knowLedgePrice);
+                splitPriceTotal = splitPriceTotal.add(knowLedgePrice);
+                tradeItem.setKnowledge(knowLedge.longValue());
                 splitKnowledgeTotal = splitKnowledgeTotal + tradeItem.getKnowledge();
             }
 
