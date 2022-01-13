@@ -23,4 +23,17 @@ public class TopicStoreyCouponDTO implements Serializable {
 
     @ApiModelProperty("领完图片")
     private String doneImageUrl;
+
+    @ApiModelProperty("活动名称")
+    private String activityName;
+
+    @ApiModelProperty(value = "购满多少钱")
+    private Double fullBuyPrice;
+
+    @ApiModelProperty(value = "购满类型0：无门槛，1：满N元可使用")
+    private Integer fullBuyType;
+
+    @ApiModelProperty(value = "优惠券面值")
+    private Double denomination;
+
 }
