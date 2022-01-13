@@ -1,9 +1,6 @@
 package com.wanmi.sbc.home.response;
 
-import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * Description:
@@ -13,17 +10,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class HomeGoodsListResponse {
-
-    /**
-     * 新上
-     */
-    private HomeGoodsListSubResponse newBookGoods;
-
-    /**
-     * 畅销
-     */
-    private HomeGoodsListSubResponse  sellWellGoods;
+public class HomeSpecialOfferAndUnSellWellGoodsListResponse {
 
     /**
      * 不畅销

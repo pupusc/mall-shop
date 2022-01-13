@@ -655,8 +655,8 @@ public class GoodsController implements GoodsProvider {
     }
 
     @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo){
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo);
+    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo, String lastSyncTime, String pageNum, String pageSize){
+        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo, lastSyncTime, pageNum, pageSize);
         return BaseResponse.success(resultMap);
     }
 

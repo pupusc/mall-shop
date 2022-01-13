@@ -1336,6 +1336,7 @@ public class TradeService {
                                     .commitFlag(true) //表示下单
                                     .marketingList(group.getTradeMarketingList())
                                     .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
                                     .couponCodeId(i.getCouponCodeId())
                                     .tradePrice(new TradePrice())
                                     .tradeItems(group.getTradeItems())
@@ -1721,6 +1722,7 @@ public class TradeService {
      * @return 待入库的订单对象
      */
     public Trade validateAndWrapperTrade(Trade trade, TradeParams tradeParams) {
+        trade.setEmallSessionId(tradeParams.getEmallSessionId());
         //判断是否为秒杀抢购商品订单
         if (Objects.nonNull(tradeParams.getIsFlashSaleGoods()) && tradeParams.getIsFlashSaleGoods()) {
             trade.setIsFlashSaleGoods(tradeParams.getIsFlashSaleGoods());
@@ -2022,7 +2024,6 @@ public class TradeService {
         } else {
             tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
         }
-
         return trade;
     }
 

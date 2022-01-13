@@ -102,24 +102,28 @@ public class TradeSettingService {
      * 订单代发货自动收货
      */
     public void orderAutoReceive() {
+        log.info("***********自动确认收货 定时任务开始执行 begin******************");
+        long beginTime = System.currentTimeMillis();
         //查询符合订单
         //批量扭转状态
 //        Config config = configRepository.findByConfigTypeAndDelFlag(ConfigType.ORDER_SETTING_AUTO_RECEIVE.toString(), DeleteFlag.NO);
         OrderAutoReceiveConfigGetResponse config =auditQueryProvider.getOrderAutoReceiveConfig().getContext();
 
-        val pageSize = 1000;
+        int pageSize = 1000;
         try {
             Integer day = Integer.valueOf(JSON.parseObject(config.getContext()).get("day").toString());
             LocalDateTime endDate = LocalDateTime.now().minusDays(day);
 
             long total = tradeService.countTradeByDate(endDate, FlowState.DELIVERED);
 
-            log.info("自动确认收货分页订单数: " + total);
+            log.info("自动确认收货 超过{} 天的数据 总数量为{} ", day, total);
             int pageNum = 0;
             boolean loopFlag = true;
             //超过1000条批量处理
             while(loopFlag && total > 0){
+
                 List<Trade> tradeList = tradeService.queryTradeByDate(endDate, FlowState.DELIVERED, pageNum, pageSize);
+                log.info("自动确认收货 第 {} 页 获取的数据量为 {}", (pageNum + 1), tradeList.size());
                 if(tradeList != null && !tradeList.isEmpty()){
                     //自动确认收货排除有赞商城老订单
                     tradeList.stream().filter(v -> Objects.isNull(v.getYzTid())).forEach(trade -> tradeService.confirmReceive(trade.getId(), Operator.builder().platform(Platform.PLATFORM)
@@ -136,10 +140,10 @@ public class TradeSettingService {
 
 
         } catch (Exception ex) {
-            log.error("orderAutoReceive schedule error");
-            ex.printStackTrace();
+            log.error("orderAutoReceive schedule error", ex);
             throw new SbcRuntimeException("K-050129");
         }
+        log.info("***********自动确认收货 定时任务开始执行 耗时:{} end******************", System.currentTimeMillis() - beginTime);
     }
 
     /**

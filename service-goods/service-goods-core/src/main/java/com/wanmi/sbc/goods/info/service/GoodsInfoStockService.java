@@ -153,20 +153,6 @@ public class GoodsInfoStockService {
         resultMap.put("skus", goodsInfoStockMap);
         resultMap.put("spus", goodsStockMap);
         return resultMap;
-//        data.forEach((k, v) -> {
-//            Long actualStock = getActualStock(Long.valueOf(v), k);
-//            resetGoodsById(Long.valueOf(v), k, actualStock);
-//        });
-
-
-
-//        data.forEach((k, v) -> goodsInfoRepository.resetStockById(Long.valueOf(v), k));
-//
-//        List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-//            data.forEach((k, v) -> redisConnection.set((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + k).getBytes(), v.toString().getBytes()));
-//            return null;
-//        });
-//        log.info("setStringPipeline result: {}", Arrays.toString(objects.toArray()));
     }
 
 //    @Transactional

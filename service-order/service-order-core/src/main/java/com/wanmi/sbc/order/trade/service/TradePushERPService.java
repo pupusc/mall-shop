@@ -54,8 +54,8 @@ import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListRes
 import com.wanmi.sbc.setting.bean.enums.AddrLevel;
 import com.wanmi.sbc.setting.bean.vo.ErpLogisticsMappingVO;
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
-import io.seata.common.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -1466,7 +1466,7 @@ public class TradePushERPService {
     }
 
     public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
-        if (request == null || StringUtils.isEmpty(request.getPlatformCode()) || CollectionUtils.isEmpty(request.getDeliveryInfoList())) {
+        if (request == null || StringUtils.isEmpty(request.getPlatformCode())) {
             return BaseResponse.SUCCESSFUL();
         }
         ProviderTrade providerTrade = providerTradeService.findbyId(request.getPlatformCode());
@@ -1476,6 +1476,14 @@ public class TradePushERPService {
         }
         if(Objects.equals(providerTrade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
             log.info("syncProviderTradeDeliveryStatus订单已是发货，不需再次操作，request：{}",request);
+            return BaseResponse.SUCCESSFUL();
+        }
+        if(CollectionUtils.isEmpty(request.getDeliveryInfoList()) && !ObjectUtils.isEmpty(providerTrade.getTradeState())){
+            TradeState tradeState = providerTrade.getTradeState();
+            if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
+                tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+            }
+            providerTradeService.updateProviderTrade(providerTrade);
             return BaseResponse.SUCCESSFUL();
         }
         try {

@@ -125,11 +125,12 @@ public class PaidCardCustomerRelService {
 	 * @author xuhai
 	 */
 	public List<PaidCardCustomerRel> pageByMaxAutoId(PaidCardCustomerRelQueryRequest request){
-		Sort sort = Sort.by(Sort.Order.asc("tmpId"));
-		Specification<PaidCardCustomerRel> build = PaidCardCustomerRelWhereCriteriaBuilder.build(request);
-		Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
-		Page<PaidCardCustomerRel> all = paidCardCustomerRelRepository.findAll(build, pageable);
-		return all.getContent();
+//		Sort sort = Sort.by(Sort.Order.asc("tmpId"));
+//		Specification<PaidCardCustomerRel> build = PaidCardCustomerRelWhereCriteriaBuilder.build(request);
+//		Pageable pageable = PageRequest.of(request.getPageNum(), request.getPageSize(), sort);
+//		Page<PaidCardCustomerRel> all = paidCardCustomerRelRepository.findAll(build, pageable);
+//		return all.getContent();
+		return paidCardCustomerRelRepository.pageByMaxAutoId(request.getPaidCardIdList(), request.getCurrentTime(), request.getMaxTmpId(), request.getPageSize());
 	}
 	
 	/** 

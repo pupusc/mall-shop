@@ -100,22 +100,21 @@ public class MarketingController {
         marketingGetByIdRequest.setMarketingId(marketingId);
         MarketingVO marketing = marketingQueryProvider.getById(marketingGetByIdRequest).getContext().getMarketingVO();
         if(marketing != null){
-            if(LocalDateTime.now().isBefore(marketing.getBeginTime())){
+//            if(LocalDateTime.now().isBefore(marketing.getBeginTime())){
                 MarketingDeleteByIdRequest marketingDeleteByIdRequest = new MarketingDeleteByIdRequest();
                 marketingDeleteByIdRequest.setMarketingId(marketingId);
                 marketingProvider.deleteById(marketingDeleteByIdRequest);
-                List<String> skuIds = marketing.getMarketingScopeList().stream().map(MarketingScopeVO::getScopeId).collect(Collectors.toList());
+//                List<String> skuIds = marketing.getMarketingScopeList().stream().map(MarketingScopeVO::getScopeId).collect(Collectors.toList());
                 // 更新es
-                if(CollectionUtils.isNotEmpty(skuIds)){
-                    esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().skuIds(skuIds).build());
-                }
-                String name = getMarketingName(marketingId);
-                operateLogMQUtil.convertAndSend("营销","删除促销活动","删除促销活动："+ name);
+//                if(CollectionUtils.isNotEmpty(skuIds)){
+//                    esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().skuIds(skuIds).build());
+//                }
+//                String name = getMarketingName(marketingId);
+//                operateLogMQUtil.convertAndSend("营销","删除促销活动","删除促销活动："+ name);
                 return BaseResponse.SUCCESSFUL();
-
-            }else{
-                throw new SbcRuntimeException(MarketingErrorCode.MARKETING_CANNOT_DELETE);
-            }
+//            }else{
+//                throw new SbcRuntimeException(MarketingErrorCode.MARKETING_CANNOT_DELETE);
+//            }
         }else{
             throw new SbcRuntimeException(MarketingErrorCode.NOT_EXIST);
         }

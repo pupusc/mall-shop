@@ -2,6 +2,7 @@ package com.fangdeng.server.mapper;
 
 import com.fangdeng.server.dto.GoodsSyncDTO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -59,4 +60,6 @@ public interface GoodsSyncMapper {
     int updateByPrimaryKey(GoodsSyncDTO record);
 
     int batchInsert(List<GoodsSyncDTO> list);
+
+    int updateStatus(@Param("goodsNo") String goodsNo);
 }

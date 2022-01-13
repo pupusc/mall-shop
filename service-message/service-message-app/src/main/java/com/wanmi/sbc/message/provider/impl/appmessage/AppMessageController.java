@@ -1,21 +1,24 @@
 package com.wanmi.sbc.message.provider.impl.appmessage;
 
-import com.wanmi.sbc.message.api.request.appmessage.*;
-import com.wanmi.sbc.message.bean.enums.ReadFlag;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.message.api.provider.appmessage.AppMessageProvider;
+import com.wanmi.sbc.message.api.request.appmessage.AppMessageAddRequest;
+import com.wanmi.sbc.message.api.request.appmessage.AppMessageDelByIdRequest;
+import com.wanmi.sbc.message.api.request.appmessage.AppMessageModifyRequest;
+import com.wanmi.sbc.message.api.request.appmessage.AppMessageSetReadRequest;
 import com.wanmi.sbc.message.api.response.appmessage.AppMessageAddResponse;
 import com.wanmi.sbc.message.api.response.appmessage.AppMessageModifyResponse;
-import com.wanmi.sbc.message.appmessage.service.AppMessageService;
 import com.wanmi.sbc.message.appmessage.model.root.AppMessage;
+import com.wanmi.sbc.message.appmessage.service.AppMessageService;
+import com.wanmi.sbc.message.bean.enums.ReadFlag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Objects;
 import javax.validation.Valid;
+import java.util.Objects;
 
 /**
  * <p>App站内信消息发送表保存服务接口实现</p>

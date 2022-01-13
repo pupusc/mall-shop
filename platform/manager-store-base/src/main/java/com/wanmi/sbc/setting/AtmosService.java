@@ -205,6 +205,8 @@ public class AtmosService {
     }
 
     public BaseResponse<MicroServicePage<AtmosphereDTO>> page(AtmosphereQueryRequest request){
+        request.setSortColumn("createTime");
+        request.setSortRole("desc");
         return atmosphereProvider.page(request);
     }
 

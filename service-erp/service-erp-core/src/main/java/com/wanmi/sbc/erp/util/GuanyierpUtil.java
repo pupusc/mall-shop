@@ -68,7 +68,7 @@ public class GuanyierpUtil {
      * @return
      */
     public String execute(String url,String data){
-        log.debug("erpClient.execute_请求参数:{}", data);
+        log.info("erpClient.execute_请求参数:{}", data);
         HttpPost post = new HttpPost(url);
         post.setHeader("User-Agent", USER_AGENT);
         StringEntity se = new StringEntity(data, UTF_8);

@@ -1,18 +1,15 @@
 package com.wanmi.sbc.home;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.home.request.HomeBookListModelRecommendRequest;
-import com.wanmi.sbc.home.request.HomeNewBookRequest;
-import com.wanmi.sbc.home.response.HomeGoodsListResponse;
+import com.wanmi.sbc.home.response.HomeNewBookAndSellWellGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeImageResponse;
 import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
+import com.wanmi.sbc.home.response.HomeSpecialOfferAndUnSellWellGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.home.service.HomePageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -86,18 +83,28 @@ public class HomePageController {
 
     /**
      *
-     * 首页 - 获取首页新书榜 畅销榜 不畅销书籍 特价书
+     * 首页 - 获取首页新书榜 畅销榜
      *
      * @menu 新版首页
      *
      * @return
      */
-    @GetMapping("/homeGoodsList")
-    public BaseResponse<HomeGoodsListResponse> homeGoodsList(){
+    @GetMapping("/homeWellGoodsList")
+    public BaseResponse<HomeNewBookAndSellWellGoodsListResponse> homeWellGoodsList(){
 
-        return BaseResponse.success(homePageService.homeGoodsList());
+        return BaseResponse.success(homePageService.homeNewBookAndSellWellGoodsList());
     }
 
+    /**
+     * 首页 特价 不畅销畅销
+     *
+     * @menu 新版首页
+     * @return
+     */
+    @GetMapping("/homeSpecialGoodsList")
+    public BaseResponse<HomeSpecialOfferAndUnSellWellGoodsListResponse> homeSpecialGoodsList() {
+        return BaseResponse.success(homePageService.homeSpecialOfferAndUnSellWellGoodsList());
+    }
 
 
 }

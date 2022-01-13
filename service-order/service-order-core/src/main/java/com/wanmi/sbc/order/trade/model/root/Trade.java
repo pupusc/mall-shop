@@ -445,6 +445,8 @@ public class Trade implements Serializable {
      */
     private String source;
 
+    private String emallSessionId;
+
     /**
      * 增加
      *

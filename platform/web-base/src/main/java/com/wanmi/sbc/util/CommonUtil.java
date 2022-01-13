@@ -372,8 +372,14 @@ public final class CommonUtil {
                 inviteCode = inviteCustomer.getInviteCode();
             }
         }
-
-
+        String fanDengUserNoEncrypt = "";
+        try {
+            if (!StringUtils.isBlank(customer.getFanDengUserNo())) {
+                fanDengUserNoEncrypt = IntegerEncryptTool.encrypt(Integer.parseInt(customer.getFanDengUserNo()));
+            }
+        } catch (Exception ex) {
+            log.error("CommonUtil FanDengUserNo Encrypt error", ex);
+        }
         return LoginResponse.builder()
                 .accountName(customer.getCustomerAccount())
                 .customerId(customer.getCustomerId())
@@ -385,6 +391,7 @@ public final class CommonUtil {
                 .enterpriseInfoVO(enterpriseInfoVO)
                 .inviteCode(inviteCode)
                 .fanDengUserNo(customer.getFanDengUserNo())
+                .fanDengUserNoEncryption(fanDengUserNoEncrypt)
                 .build();
     }
 
