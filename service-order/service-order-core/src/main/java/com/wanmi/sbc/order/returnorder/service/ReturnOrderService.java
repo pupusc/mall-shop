@@ -769,8 +769,7 @@ public class ReturnOrderService {
         } else {
             //如果未发货或者已经作废 则表示仅仅退款
             isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade
-                    .getTradeState().getDeliverStatus()
-                    == DeliverStatus.VOID;
+                    .getTradeState().getDeliverStatus()== DeliverStatus.VOID;
         }
 
 
@@ -795,6 +794,7 @@ public class ReturnOrderService {
         }
 
         if (CollectionUtils.isNotEmpty(goodsInfoVOList)) {
+            //skuId --> goodsInfoVO
             Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1,k2) -> k1));
             for (ReturnItem returnItemParam : returnItems) {
                 GoodsInfoVO vo = goodsInfoVOMap.get(returnItemParam.getSkuId());
@@ -812,17 +812,21 @@ public class ReturnOrderService {
         }
 
         //是否boss创建并且申请特价状态
-        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal realReturnPrice = BigDecimal.ZERO;
         Long points = 0L;
         Long knowledge = 0L;
-        //分销人员列表
+        //分销人员列表 这个不处理
         List<TradeDistributeItemVO> tradeDistributeItemVos = returnOrder.getDistributeItems();
         boolean isSpecial = returnPrice.getApplyStatus() && operator.getPlatform() == Platform.BOSS;
+        //未发货，全部退款
         if (isRefund) {
-
-            price = isSpecial ? returnPrice.getApplyPrice() : trade.getTradeItems().stream().map(t -> t.getSplitPrice())
-                            .reduce(BigDecimal::add).get().add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice
-                                    ()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+//            BigDecimal totalPrice = trade.getTradeItems().stream().map(TradeItem::getSplitPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+            //如果boss指定价格，按照指定价格，如果没有指定价格，则金额为 商品拆单价格 + 运费
+//            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : trade.getTradeItems().stream().map(t -> t.getSplitPrice())
+//                            .reduce(BigDecimal::add).get().add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice
+//                                    ()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+            BigDecimal deliveryPrice = Objects.nonNull(trade.getTradePrice().getDeliveryPrice()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO;
+            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : trade.getCanReturnPrice().add(deliveryPrice);
             points = trade.getCanReturnPoints();
             knowledge = trade.getCanReturnKnowledge();
             returnOrder.setDistributeItems(tradeDistributeItemVos);
@@ -872,7 +876,7 @@ public class ReturnOrderService {
                 }
             }
             //-------------------------end--------------------------
-            price = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
+            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
             // 计算积分
             if (Objects.nonNull(trade.getTradePrice().getPoints())) {
                 points = getPoints(returnOrder, trade, false);
@@ -925,8 +929,8 @@ public class ReturnOrderService {
             }
             //分销商品的数据处理结束
         }
-        returnOrder.getReturnPrice().setTotalPrice(price);
-        returnOrder.getReturnPrice().setApplyPrice(price);
+        returnOrder.getReturnPrice().setTotalPrice(realReturnPrice);
+        returnOrder.getReturnPrice().setApplyPrice(realReturnPrice);
         if (returnOrder.getReturnPoints() != null && returnOrder.getReturnKnowledge() != null) {
             throw new SbcRuntimeException("K-050412"); //知豆和积分不能同时存在
         }
@@ -3608,7 +3612,7 @@ public class ReturnOrderService {
 
 
         /*********************校验金额 begin************************/
-        // 总支付金额金额 TODO update by duanlsh
+        // 总支付金额金额 splitPrice 获取的是总的价格
         BigDecimal totalPrice = trade.getTradeItems().stream().map(TradeItem::getSplitPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 已退金额
