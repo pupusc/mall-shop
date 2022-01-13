@@ -203,4 +203,7 @@
       )
     </foreach>
   </insert>
+  <update id="updateStatus">
+     update risk_verify set status =2 where goods_no =#{goodsNo};
+  </update>
 </mapper>

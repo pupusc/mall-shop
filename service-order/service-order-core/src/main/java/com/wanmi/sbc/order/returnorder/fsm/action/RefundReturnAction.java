@@ -1,4 +1,6 @@
 package com.wanmi.sbc.order.returnorder.fsm.action;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.order.bean.enums.HandleStatus;
 
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
@@ -16,6 +18,8 @@ import com.wanmi.sbc.goods.api.request.storetobeevaluate.StoreTobeEvaluateListRe
 import com.wanmi.sbc.goods.bean.vo.GoodsTobeEvaluateVO;
 import com.wanmi.sbc.goods.bean.vo.StoreTobeEvaluateVO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
+import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.ReturnStateContext;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
@@ -24,6 +28,7 @@ import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnEventLog;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,6 +43,7 @@ import java.util.stream.Collectors;
  * Created by jinwei on 22/4/2017.
  */
 @Component
+@Slf4j
 public class RefundReturnAction extends ReturnAction {
     @Autowired
     private CustomerPointsDetailSaveProvider customerPointsDetailSaveProvider;
@@ -55,8 +61,10 @@ public class RefundReturnAction extends ReturnAction {
     private StoreTobeEvaluateQueryProvider storeTobeEvaluateQueryProvider;
 
     @Autowired
-    private ExternalProvider externalProvider;
+    private ExceptionOfTradePointsService exceptionOfTradePointsService;
 
+    @Autowired
+    private ExternalProvider externalProvider;
 
     @Autowired
     private TradeRepository tradeRepository;
@@ -76,8 +84,20 @@ public class RefundReturnAction extends ReturnAction {
         returnOrderService.updateReturnOrder(returnOrder);
         super.operationLogMq.convertAndSend(operator, ReturnEvent.REFUND.getDesc(), eventLog.getEventDetail());
 
-        Long points = Objects.nonNull(returnOrder.getReturnPoints()) ? returnOrder.getReturnPoints().getApplyPoints() : null;
-        if (points != null && points > 0) {
+
+
+        //此处为退换积分和知豆，如果没有返还用户会找过来,后续添加日志表
+        Long points = Objects.nonNull(returnOrder.getReturnPoints()) ? returnOrder.getReturnPoints().getApplyPoints() : 0L;
+        ExceptionOfTradePoints exceptionOfTradePoints = new ExceptionOfTradePoints();
+        exceptionOfTradePoints.setTradeId(returnOrder.getTid());
+        exceptionOfTradePoints.setPoints(points);
+        exceptionOfTradePoints.setHandleStatus(HandleStatus.PENDING);
+        exceptionOfTradePoints.setErrorTime(3); //超过3次不再处理
+        exceptionOfTradePoints.setDelFlag(DeleteFlag.NO);
+        exceptionOfTradePoints.setErrorCode("init");
+        exceptionOfTradePoints.setCreateTime(LocalDateTime.now());
+
+        if (points > 0) {
     /*        customerPointsDetailSaveProvider.returnPoints(CustomerPointsDetailAddRequest.builder()
                     .customerId(returnOrder.getBuyer().getId())
                     .type(OperateType.GROWTH)
@@ -85,19 +105,45 @@ public class RefundReturnAction extends ReturnAction {
                     .points(points)
                     .content(JSONObject.toJSONString(Collections.singletonMap("returnOrderNo", returnOrder.getId())))
                     .build());*/
-            FanDengPointRefundRequest refundRequest = FanDengPointRefundRequest.builder()
-                    .point(points).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId()).sourceType(1)
-                    .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
-            externalProvider.pointRefund(refundRequest);
+            log.info("RefundReturnAction log point begin returnOrderId:{}", returnOrder.getId());
+            exceptionOfTradePoints.setType(3); //不影响原来的类型内容,只是做记录
+            ExceptionOfTradePoints exceptionOfTradePointsModel = exceptionOfTradePointsService.add(exceptionOfTradePoints);
+            try {
+
+                FanDengPointRefundRequest refundRequest = FanDengPointRefundRequest.builder()
+                        .point(points).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId()).sourceType(1)
+                        .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
+                externalProvider.pointRefund(refundRequest);
+
+                exceptionOfTradePointsModel.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
+                exceptionOfTradePointsService.modify(exceptionOfTradePointsModel);
+                log.info("RefundReturnAction log point end returnOrderId:{}", returnOrder.getId());
+            } catch (Exception ex) {
+                String errorMsg = "RefundReturnAction 退单号:" + returnOrder.getId() +" 订单号:" + returnOrder.getTid() + " 退还积分执行异常";
+                log.error(errorMsg, ex);
+            }
         }
         Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
-        if (knowledge != null && knowledge > 0) {
-            Trade trade = tradeRepository.findById(returnOrder.getTid()).get();
-            FanDengKnowledgeRefundRequest refundRequest = FanDengKnowledgeRefundRequest.builder()
-                    .beans(knowledge).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId())
-                    .deductCode(trade.getDeductCode())
-                    .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
-            externalProvider.knowledgeRefund(refundRequest);
+        if (knowledge > 0) {
+            try {
+                log.info("RefundReturnAction log knowledge begin returnOrderId:{}", returnOrder.getId());
+                exceptionOfTradePoints.setType(4); //不影响原来的类型内容,只是做记录
+                ExceptionOfTradePoints exceptionOfTradePointsModel = exceptionOfTradePointsService.add(exceptionOfTradePoints);
+
+                Trade trade = tradeRepository.findById(returnOrder.getTid()).get();
+                FanDengKnowledgeRefundRequest refundRequest = FanDengKnowledgeRefundRequest.builder()
+                        .beans(knowledge).userNo(returnOrder.getFanDengUserNo()).sourceId(returnOrder.getId())
+                        .deductCode(trade.getDeductCode())
+                        .desc("退单返还(退单号:"+returnOrder.getId()+")").build();
+                externalProvider.knowledgeRefund(refundRequest);
+
+                exceptionOfTradePointsModel.setHandleStatus(HandleStatus.SUCCESSFULLY_PROCESSED);
+                exceptionOfTradePointsService.modify(exceptionOfTradePointsModel);
+                log.info("RefundReturnAction log knowledge end returnOrderId:{}", returnOrder.getId());
+            } catch (Exception ex) {
+                String errorMsg = "RefundReturnAction 退单号:" + returnOrder.getId() +" 订单号:" + returnOrder.getTid() + " 退还知豆执行异常";
+                log.error(errorMsg, ex);
+            }
         }
         delEvaluate(returnOrder);
     }

@@ -3,6 +3,7 @@ package com.fangdeng.server.mapper;
 import com.fangdeng.server.dto.GoodsSyncDTO;
 import com.fangdeng.server.dto.RiskVerify;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -58,4 +59,6 @@ public interface RiskVerifyMapper {
     int updateByPrimaryKey(RiskVerify record);
 
     int batchInsert(List<RiskVerify> list);
+
+    int updateStatus(@Param("goodsNo")String goodsNo);
 }
