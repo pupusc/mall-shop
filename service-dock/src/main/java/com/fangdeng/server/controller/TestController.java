@@ -9,6 +9,7 @@ import com.fangdeng.server.job.SyncGoodsStockJobHandler;
 import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
+import com.fangdeng.server.service.GoodsService;
 import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -50,6 +51,9 @@ public class TestController {
 
     @Autowired
     private RedisTemplate<Object,Object> redisTemplate;
+
+    @Autowired
+    private GoodsService goodsService;
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
@@ -167,5 +171,11 @@ public class TestController {
         }
         return parentCates;
     }
+
+    @GetMapping("/goods/audit")
+    public void audit(@RequestParam("goodsNo")String goodsNo){
+        goodsService.auditGoods(goodsNo);
+    }
+
 
 }

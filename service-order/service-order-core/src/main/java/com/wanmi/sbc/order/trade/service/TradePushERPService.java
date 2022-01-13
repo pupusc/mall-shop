@@ -1484,6 +1484,7 @@ public class TradePushERPService {
                 tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
             }
             providerTradeService.updateProviderTrade(providerTrade);
+            return BaseResponse.SUCCESSFUL();
         }
         try {
             List<DeliveryInfoVO> deliveryInfoVOListVo = new ArrayList<>();
