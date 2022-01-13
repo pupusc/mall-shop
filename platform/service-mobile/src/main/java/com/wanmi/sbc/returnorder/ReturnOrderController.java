@@ -162,11 +162,12 @@ public class ReturnOrderController {
         tradeGetByIdRequest.setTid(returnOrder.getTid()); //orderId
         BaseResponse<TradeGetByIdResponse> tradeGetByIdResponseBaseResponse = tradeQueryProvider.getById(tradeGetByIdRequest);
         TradeGetByIdResponse context = tradeGetByIdResponseBaseResponse.getContext();
+        //如果订单中的信息为空，则直接返回参数错误
         if (context == null || context.getTradeVO() == null || org.springframework.util.StringUtils.isEmpty(context.getTradeVO().getId()) || org.springframework.util.CollectionUtils.isEmpty(context.getProviderTradeVOs())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
 
-        TradeVO trade = tradeQueryProvider.getById(tradeGetByIdRequest).getContext().getTradeVO();
+        TradeVO trade = context.getTradeVO();
         //查看订单信息和用户信息是否一致
         if (!trade.getBuyer().getId().equals(commonUtil.getOperatorId())) {
             throw new SbcRuntimeException("K-050204");
@@ -189,6 +190,7 @@ public class ReturnOrderController {
         Integer day = content.getObject("day", Integer.class);
 
         if (!trade.getCycleBuyFlag()) {
+            //必须的有完成时间
             if (Objects.isNull(trade.getTradeState().getEndTime())) {
                 throw new SbcRuntimeException("K-050002");
             }

@@ -410,20 +410,20 @@ public class ReturnOrderService {
     }
 
 
-    /**
-     * 商家代客退单
-     *
-     * @param returnOrder
-     * @param operator
-     * @return
-     */
-    public String s2bCreate(ReturnOrder returnOrder, Operator operator) {
-        Trade trade = tradeService.detail(returnOrder.getTid());
-//        Customer customer = verifyService.verifyCustomer(trade.getBuyer().getId());
-        CustomerGetByIdResponse customer = verifyService.verifyCustomer(trade.getBuyer().getId());
-        verifyService.verifyCustomerWithSupplier(customer.getCustomerId(), returnOrder.getCompany().getCompanyInfoId());
-        return create(returnOrder, operator);
-    }
+//    /**
+//     * 商家代客退单
+//     *
+//     * @param returnOrder
+//     * @param operator
+//     * @return
+//     */
+//    public String s2bCreate(ReturnOrder returnOrder, Operator operator) {
+//        Trade trade = tradeService.detail(returnOrder.getTid());
+////        Customer customer = verifyService.verifyCustomer(trade.getBuyer().getId());
+//        CustomerGetByIdResponse customer = verifyService.verifyCustomer(trade.getBuyer().getId());
+//        verifyService.verifyCustomerWithSupplier(customer.getCustomerId(), returnOrder.getCompany().getCompanyInfoId());
+//        return create(returnOrder, operator);
+//    }
 
     private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders) {
         //订单详情集合
@@ -702,13 +702,14 @@ public class ReturnOrderService {
 //        if (returnOrder.getDescription().length() > 100) {
 //            throw new SbcRuntimeException("K-000009");
 //        }
-        //查看当前是否全部为虚拟商品
+        //查看当前是否全部为虚拟商品,
         long count = returnOrder.getReturnItems().stream()
                 .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType()) || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
         long giftsCount = returnOrder.getReturnGifts().stream()
                 .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType()) || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
         long returnVirtualTotalCount = count + giftsCount;
         long returnTotalCount = returnOrder.getReturnItems().size() + returnOrder.getReturnGifts().size();
+        //表示退款的数量为 虚拟商品的数量相同；
         if (returnVirtualTotalCount == returnTotalCount) {
             // 虚拟商品 只能直接退款
             returnOrder.setReturnWay(ReturnWay.OTHER);
@@ -728,13 +729,16 @@ public class ReturnOrderService {
                                     && item.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
                                     && item.getReturnFlowState() != ReturnFlowState.REFUNDED)
                     .collect(Collectors.toList());
+            //如果有退款中的订单，则直接抛出异常
             if (CollectionUtils.isNotEmpty(returnOrders)) {
                 throw new SbcRuntimeException("K-050120");
             }
 
+            //过滤出来所有完成退单的订单列表
             List<ReturnOrder> completedReturnOrderListTmp = returnOrderList.stream().filter(allOrder -> allOrder
                     .getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
 
+            //计算已经退款完成的订单总金额
             for (ReturnOrder returnOrderParam : completedReturnOrderListTmp) {
                 BigDecimal p = returnOrderParam.getReturnPrice().getApplyStatus() ? returnOrderParam.getReturnPrice().getApplyPrice() : returnOrderParam.getReturnPrice().getTotalPrice();
                 allReturnCompletePrice = allReturnCompletePrice.add(p);
