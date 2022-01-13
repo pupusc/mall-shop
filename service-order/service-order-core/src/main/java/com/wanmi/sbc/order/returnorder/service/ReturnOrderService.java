@@ -231,8 +231,6 @@ public class ReturnOrderService {
     @Autowired
     private StoreQueryProvider storeQueryProvider;
 
-    @Autowired
-    private ProviderTradeProvider providerTradeProvider;
 
     @Autowired
     private TradeService tradeService;
@@ -3512,35 +3510,23 @@ public class ReturnOrderService {
 
         //计算赠品可退数
         if (CollectionUtils.isNotEmpty(trade.getGifts())) {
-            Map<String, Integer> giftMap = findLeftGiftItems(trade);
-            trade.getGifts().forEach(
-                    item -> item.setCanReturnNum(giftMap.get(item.getSkuId()))
-            );
-        }
-
-        //填充赠品 providerID
-        Map<String, Integer> giftCanReturnNumMap = findLeftGiftItems(trade);
-        for (TradeItem tradeItemParam : trade.getGifts()) {
-            //赠品可退数量
-            Integer giftCanReturnNum = giftCanReturnNumMap.get(tradeItemParam.getSkuId());
-            if (giftCanReturnNum == null) {
-                throw new SbcRuntimeException("K-050411");
-            }
-//            赠品全部退回
-//            if (giftCanReturnNum > tradeItemParam.getNum()) {
-//                giftCanReturnNum = tradeItemParam.getNum().intValue();
-//            }
-            tradeItemParam.setCanReturnNum(giftCanReturnNum);
-
-            //如果订单中已经有供应商，则不再查询
-            if (tradeItemParam.getProviderId() != null && tradeItemParam.getProviderId() > 0) {
-                continue;
-            }
-            GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
-            goodsInfoByIdRequest.setGoodsInfoId(tradeItemParam.getSkuId());
-            GoodsInfoByIdResponse goodsInfoVo = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
-            if (goodsInfoVo != null) {
-                tradeItemParam.setProviderId(goodsInfoVo.getProviderId());
+            Map<String, Integer> giftCanReturnNumMap = findLeftGiftItems(trade);
+            for (TradeItem giftTradeItemParam : trade.getGifts()) {
+                Integer giftsItemCanReturnNum = giftCanReturnNumMap.get(giftTradeItemParam.getSkuId());
+                if (giftsItemCanReturnNum == null) {
+                    throw new SbcRuntimeException("K-050411");
+                }
+                giftTradeItemParam.setCanReturnNum(giftsItemCanReturnNum);
+                //如果订单中已经有供应商，则不再查询
+                if (giftTradeItemParam.getProviderId() != null && giftTradeItemParam.getProviderId() > 0) {
+                    continue;
+                }
+                GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
+                goodsInfoByIdRequest.setGoodsInfoId(giftTradeItemParam.getSkuId());
+                GoodsInfoByIdResponse goodsInfoVo = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+                if (goodsInfoVo != null) {
+                    giftTradeItemParam.setProviderId(goodsInfoVo.getProviderId());
+                }
             }
         }
         /*********************订单中填充供应商 end************************/
@@ -3572,31 +3558,43 @@ public class ReturnOrderService {
 //            }
 //        }
 
-        List<ReturnOrder> returnsNotVoid = findReturnsNotVoid(tid);
+
+
+        List<ReturnOrder> allReturnOrderList = findReturnsNotVoid(tid);
 
         /*********************校验积分和知豆 begin************************/
-        //获取退单中 已经退还的积分
-        Long retiredPoints = returnsNotVoid.stream()
-                .filter(o -> Objects.nonNull(o.getReturnPoints()) && Objects.nonNull(o.getReturnPoints().getActualPoints()))
-                .map(o -> o.getReturnPoints().getActualPoints())
-                .reduce((long) 0, Long::sum);
-        // 可退积分
-        Long points = trade.getTradePrice().getPoints() == null ? 0 : trade.getTradePrice().getPoints();
-        long canReturnPoints = points - retiredPoints;
+        // 下单支付的积分数量
+        Long totalPoints = trade.getTradePrice().getPoints() == null ? 0 : trade.getTradePrice().getPoints();
+        Long completeReturnPoints = 0L;
+        if (totalPoints > 0) {
+            //获取退单中 已经退还的积分
+            completeReturnPoints = allReturnOrderList.stream()
+                    .filter(o -> Objects.nonNull(o.getReturnPoints()) && Objects.nonNull(o.getReturnPoints().getActualPoints()))
+                    .map(o -> o.getReturnPoints().getActualPoints())
+                    .reduce((long) 0, Long::sum);
+        }
 
+        long canReturnPoints = totalPoints - completeReturnPoints;
 
-        // 已退知豆
-        Long retiredKnowledge = returnsNotVoid.stream()
-                .filter(o -> Objects.nonNull(o.getReturnKnowledge()) && Objects.nonNull(o.getReturnKnowledge().getActualKnowledge()))
-                .map(o -> o.getReturnKnowledge().getActualKnowledge())
-                .reduce((long) 0, Long::sum);
         // 可退知豆
-        Long knowledge = trade.getTradePrice().getKnowledge() == null ? 0 : trade.getTradePrice().getKnowledge();
-        long canReturnKnowLedge = knowledge - retiredKnowledge;
+        Long totalKnowledge = trade.getTradePrice().getKnowledge() == null ? 0 : trade.getTradePrice().getKnowledge();
+        // 已退知豆
+        Long completeReturnKnowledge = 0L;
+        if (totalKnowledge > 0) {
+            completeReturnKnowledge = allReturnOrderList.stream()
+                    .filter(o -> Objects.nonNull(o.getReturnKnowledge()) && Objects.nonNull(o.getReturnKnowledge().getActualKnowledge()))
+                    .map(o -> o.getReturnKnowledge().getActualKnowledge())
+                    .reduce((long) 0, Long::sum);
+        }
+        long canReturnKnowLedge = totalKnowledge - completeReturnKnowledge;
         log.info("ReturnOrderService queryCanReturnItemNumByTid orderId:{} canReturnPoints:{} canReturnKnowLedge:{}", trade.getId(), canReturnPoints, canReturnKnowLedge);
+        if (canReturnPoints > 0 && canReturnKnowLedge > 0) {
+            throw new SbcRuntimeException("K-050410"); //积分或知豆不能都使用 //TODO update by duanlsh
+        }
         if (canReturnPoints < 0 || canReturnKnowLedge < 0) {
             throw new SbcRuntimeException("K-050410"); //积分或知豆不能为负数
         }
+
         if (canReturnPoints > 0 || canReturnKnowLedge > 0) {
             if (canReturnKnowLedge > 0) {
                 trade.setCanReturnKnowledge(canReturnKnowLedge);
@@ -3610,17 +3608,18 @@ public class ReturnOrderService {
 
 
         /*********************校验金额 begin************************/
-        // 可退金额
+        // 总支付金额金额 TODO update by duanlsh
         BigDecimal totalPrice = trade.getTradeItems().stream().map(TradeItem::getSplitPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         // 已退金额
-        BigDecimal retiredPrice = returnsNotVoid.stream()
+        BigDecimal retiredPrice = allReturnOrderList.stream()
                 .filter(o -> Objects.nonNull(o.getReturnPrice().getActualReturnPrice()))
                 .map(o -> o.getReturnPrice().getActualReturnPrice())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal canReturnPrice = totalPrice.subtract(retiredPrice);
         log.info("ReturnOrderService queryCanReturnItemNumByTid orderId:{} canReturnPrice:{} ", trade.getId(), canReturnPrice);
         if (canReturnPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new SbcRuntimeException("K-050410"); //积分或知豆不能为负数
+            throw new SbcRuntimeException("K-050410"); //退款金额不能为负数
         }
         trade.setCanReturnPrice(canReturnPrice);
 
@@ -3781,55 +3780,62 @@ public class ReturnOrderService {
     }
 
     /**
-     * 订单中可退货的数量
+     * 订单中可退货的数量，
+     * 1、获取订单里面所有的商品以及购买的数量
+     * 2、获取所有申请的已经完成的退款订单列表 商品以及 已经退款的数量
+     * 3、可退数量就是 商品购买数量 - 已经退款的数量
      *
      * @param trade
      */
     private Map<String, Integer> findLeftItems(Trade trade) {
-        Map<String, Integer> canReturnNum = new HashMap<>();
+        final Map<String, Integer> canReturnNum = new HashMap<>();
+        //如果为周期购
         if (trade.getCycleBuyFlag()) {
+            //周期购只能 未发货、部分发货、全部发货，才可以创建退款单
             if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)
                     && !trade.getTradeState().getDeliverStatus().equals(DeliverStatus.PART_SHIPPED)
                     && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
                 throw new SbcRuntimeException("K-050002");
             }
+
             if (CollectionUtils.isNotEmpty(trade.getTradeItems())) {
-                TradeItem tradeItem = trade.getTradeItems().get(0);
-                canReturnNum.put(tradeItem.getSkuId(), tradeItem.getNum().intValue());
+                //周期购只能是单个商品，此处修改为多个商品 TODO update by duanlsh
+//                TradeItem tradeItem = trade.getTradeItems().get(0);
+//                canReturnNum.put(tradeItem.getSkuId(), tradeItem.getNum().intValue());
+                List<TradeItem> cycleBuyTradeItems = trade.getTradeItems();
+                for (TradeItem cycleBuyTradeItemParam : cycleBuyTradeItems) {
+                    canReturnNum.put(cycleBuyTradeItemParam.getSkuId(), cycleBuyTradeItemParam.getNum().intValue());
+                }
             }
 
         } else {
-            //表示未发货 或者已经完成 不可以操作
+            //普通商品
+            //表示除 未发货 或者已经完成 不可以操作
             if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
                 throw new SbcRuntimeException("K-050002");
             }
 
-            //已经发货的数量
+            //对所有商品发货的数量统计
             Map<String, Long> skuId2DeliverNum = trade.getTradeItems().stream().collect(Collectors.toMap(TradeItem::getSkuId,TradeItem::getDeliveredNum));
-            //对所有退单列表信息进行 累计新增到一个列表中
+
+            //对所有退单列表信息进行统计 不包含已作废状态以及拒绝收货的退货单与拒绝退款的退款单
             List<ReturnItem> allReturnItems = this.findReturnsNotVoid(trade.getId())
                     .stream().map(ReturnOrder::getReturnItems).reduce(new ArrayList<>(), (a, b) -> {
                             a.addAll(b);
                             return a;
                         });
-            //根据skuId分组 退单列表
-            Map<String, List<ReturnItem>> groupMap = IteratorUtils.groupBy(allReturnItems, ReturnItem::getSkuId);
+            //根据skuId分组 退单列表 skuId -> ReturnItem
 
-
-            canReturnNum = skuId2DeliverNum.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> {
-                                String key = entry.getKey();
-                                Integer total = skuId2DeliverNum.get(key).intValue();
-                                Integer returned = 0;
-                                if (groupMap.get(key) != null) {
-                                    returned = groupMap.get(key).stream().mapToInt(ReturnItem::getNum).sum();
-                                }
-                                return total - returned;
-                            }
-                    ));
-
+            Map<String, List<ReturnItem>> skuId2GroupMap = IteratorUtils.groupBy(allReturnItems, ReturnItem::getSkuId);
+            skuId2DeliverNum.forEach((K, V) -> {
+                List<ReturnItem> returnItems = skuId2GroupMap.get(K);
+                int completeReturnCount = 0;
+                if (returnItems != null) {
+                    completeReturnCount = returnItems.stream().mapToInt(ReturnItem::getNum).sum();
+                }
+                int surplusCount = V.intValue() - completeReturnCount;
+                canReturnNum.put(K, surplusCount);
+            });
         }
         return canReturnNum;
     }
@@ -3890,31 +3896,26 @@ public class ReturnOrderService {
      * @param trade
      */
     private Map<String, Integer> findLeftGiftItems(Trade trade) {
+        final Map<String, Integer> canReturnNum = new HashMap<>();
         if (CollectionUtils.isNotEmpty(trade.getGifts())) {
-            Map<String, Long> map = trade.getGifts().stream().collect(Collectors.toMap(TradeItem::getSkuId,
-                    TradeItem::getDeliveredNum));
+            Map<String, Long> skuId2DeliverNum = trade.getGifts().stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getDeliveredNum));
             List<ReturnItem> allReturnItems = this.findReturnsNotVoid(trade.getId()).stream()
-                    .map(ReturnOrder::getReturnGifts)
-                    .reduce(new ArrayList<>(), (a, b) -> {
+                    .map(ReturnOrder::getReturnGifts).reduce(new ArrayList<>(), (a, b) -> {
                         a.addAll(b);
                         return a;
                     });
-            Map<String, List<ReturnItem>> groupMap = IteratorUtils.groupBy(allReturnItems, ReturnItem::getSkuId);
-            return map.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> {
-                                String key = entry.getKey();
-                                Integer total = map.get(key).intValue();
-                                Integer returned = 0;
-                                if (groupMap.get(key) != null) {
-                                    returned = groupMap.get(key).stream().mapToInt(ReturnItem::getNum).sum();
-                                }
-                                return total - returned;
-                            }
-                    ));
+            Map<String, List<ReturnItem>> skuId2GroupMap = IteratorUtils.groupBy(allReturnItems, ReturnItem::getSkuId);
+            skuId2DeliverNum.forEach((K, V) -> {
+                List<ReturnItem> returnItems = skuId2GroupMap.get(K);
+                int completeReturnCount = 0;
+                if (returnItems != null) {
+                    completeReturnCount = returnItems.stream().mapToInt(ReturnItem::getNum).sum();
+                }
+                int surplusCount = V.intValue() - completeReturnCount;
+                canReturnNum.put(K, surplusCount);
+            });
         }
-        return new HashMap<>();
+        return canReturnNum;
     }
 
 
