@@ -268,13 +268,17 @@ public class StoreReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse onlineEditPrice(@PathVariable String rid, @RequestBody @Valid ReturnOfflineRefundRequest request) {
-        BigDecimal refundPrice = returnOrderQueryProvider.queryRefundPrice(ReturnOrderQueryRefundPriceRequest.builder()
-                .rid(rid).build()).getContext().getRefundPrice();
+//        BigDecimal refundPrice = returnOrderQueryProvider.queryRefundPrice(ReturnOrderQueryRefundPriceRequest.builder()
+//                .rid(rid).build()).getContext().getRefundPrice();
+//        if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
+//            throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});
+//        }
+        ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid)
+                .build()).getContext();
+        BigDecimal refundPrice = returnOrder.getReturnPrice().getTotalPrice();
         if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
             throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});
         }
-        ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid)
-                .build()).getContext();
 
         return returnOrderProvider.onlineModifyPrice(ReturnOrderOnlineModifyPriceRequest.builder()
                 .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
