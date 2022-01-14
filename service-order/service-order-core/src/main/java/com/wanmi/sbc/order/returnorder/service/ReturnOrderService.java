@@ -845,6 +845,7 @@ public class ReturnOrderService {
                 //查看订单中是否存在该商品
                 List<TradeItem> tradeItemListBySkuId = trade.getTradeItems().stream().filter(tradeItem ->
                         returnItem.getSkuId().equals(tradeItem.getSkuId())).collect(Collectors.toList());
+                //
                 if (CollectionUtils.isEmpty(tradeItemListBySkuId) || tradeItemListBySkuId.size() > 1) {
                     log.error("ReturnOrderService create returnItem skuId:{} tradeItemListBySkuId is empty or size greater than 1", returnItem.getSkuId());
                     throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
@@ -875,7 +876,10 @@ public class ReturnOrderService {
                     }
                 }
             }
+
+            
             //-------------------------end--------------------------
+            //这里表示的是用户的拆单价的累加
             realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
             // 计算积分
             if (Objects.nonNull(trade.getTradePrice().getPoints())) {
@@ -949,7 +953,7 @@ public class ReturnOrderService {
         }
         if (operator.getPlatform() == Platform.BOSS
                 && PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.ONLINE
-                && payOrderPrice.compareTo(price.add(allReturnCompletePrice)) == -1) {
+                && payOrderPrice.compareTo(realReturnPrice.add(allReturnCompletePrice)) == -1) {
             throw new SbcRuntimeException("K-050126");
         }
 
