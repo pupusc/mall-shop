@@ -386,8 +386,7 @@ public class TradeQueryController implements TradeQueryProvider {
             TradeFreightResponse freight = tradeService.getFreight(KsBeanUtil.convert(tradeParamsRequest, TradeParams.class));
             return BaseResponse.success(KsBeanUtil.convert(freight, TradeGetFreightResponse.class));
         }catch (NotSupportDeliveryException e) {
-            log.error("所选地址不支持配送", e);
-            return BaseResponse.FAILED();
+            return BaseResponse.success(null);
         }
     }
 

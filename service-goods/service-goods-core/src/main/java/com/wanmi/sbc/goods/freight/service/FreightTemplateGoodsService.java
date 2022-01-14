@@ -1,8 +1,14 @@
 package com.wanmi.sbc.goods.freight.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.request.freight.ExpressNotSupportCreateUpdateRequest;
+import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
 import com.wanmi.sbc.goods.freight.model.root.*;
 import com.wanmi.sbc.goods.freight.repository.*;
+import com.wanmi.sbc.goods.freight.util.CityAndCodeMapping;
+import com.wanmi.sbc.goods.supplier.model.SupplierModel;
+import com.wanmi.sbc.goods.supplier.repository.SupplierRepository;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -60,6 +66,9 @@ public class FreightTemplateGoodsService {
 
     @Resource
     private ExpressNotSupportRepository expressNotSupportRepository;
+
+    @Resource
+    private SupplierRepository supplierRepository;
 
 
     /**
@@ -128,6 +137,148 @@ public class FreightTemplateGoodsService {
         this.batchRenewalFreightTemplateGoodsExpress(rFreightTemplateGoods, request.getFreightTemplateGoodsExpressSaveRequests());
         //保存单品运费模板指定包邮条件
         this.batchRenewalFreightTemplateGoodsFree(rFreightTemplateGoods, request.getFreightTemplateGoodsFreeSaveRequests());
+    }
+
+    public void saveOrUpdateNotSupportArea(ExpressNotSupportCreateUpdateRequest request) {
+        if(request.getId() != null){
+            //更新
+            Optional<ExpressNotSupport> optional = expressNotSupportRepository.findById(request.getId());
+            if(optional.isPresent()){
+                ExpressNotSupport expressNotSupport = optional.get();
+                expressNotSupport.setProvinceId(Arrays.toString(request.getProvinceId()));
+                expressNotSupport.setProvinceName(Arrays.toString(request.getProvinceName()));
+                expressNotSupport.setCityId(Arrays.toString(request.getCityId()));
+                expressNotSupport.setCityName(Arrays.toString(request.getCityName()));
+                expressNotSupport.setUpdateTime(LocalDateTime.now());
+                expressNotSupportRepository.save(expressNotSupport);
+            }
+        }else {
+            ExpressNotSupport expressNotSupport = new ExpressNotSupport();
+            LocalDateTime now = LocalDateTime.now();
+            expressNotSupport.setProvinceId(Arrays.toString(request.getProvinceId()));
+            expressNotSupport.setProvinceName(Arrays.toString(request.getProvinceName()));
+            expressNotSupport.setCityId(Arrays.toString(request.getCityId()));
+            expressNotSupport.setCityName(Arrays.toString(request.getCityName()));
+            expressNotSupport.setUpdateTime(now);
+            expressNotSupport.setCreateTime(now);
+            expressNotSupport.setDelFlag(DeleteFlag.NO);
+            expressNotSupportRepository.save(expressNotSupport);
+        }
+    }
+
+    public String importNotSupportArea(String areaStr, Long supplierId) {
+        Map<String, List<String>> areas = JSONObject.parseObject(areaStr, Map.class);
+        StringBuilder provinceIdsb = new StringBuilder();
+        StringBuilder provinceNamesb = new StringBuilder();
+        StringBuilder cityIdsb = new StringBuilder();
+        StringBuilder cityNamesb = new StringBuilder();
+        StringBuilder errorName = new StringBuilder();
+        areas.forEach((k ,v) -> {
+            Integer cityCount = CityAndCodeMapping.getCityCount(k);
+            if(cityCount == null) {
+                errorName.append(k).append(",");
+            }else{
+                if(v.size() >= cityCount){
+                    String code = CityAndCodeMapping.getCode(k);
+                    if(code == null) {
+                        errorName.append(k).append(",");
+                    }else{
+                        provinceIdsb.append(code).append(",");
+                        provinceNamesb.append(k).append(",");
+                    }
+                }else {
+                    v.forEach(i -> {
+                        String code = CityAndCodeMapping.getCode(i);
+                        if(code == null) {
+                            errorName.append(i).append(",");
+                        }else{
+                            cityIdsb.append(code).append(",");
+                            cityNamesb.append(i).append(",");
+                        }
+                    });
+                }
+            }
+        });
+        if(errorName.length() > 0) return errorName.substring(0, errorName.length() - 1);
+        ExpressNotSupport expressNotSupport = expressNotSupportRepository.findBySupplierIdAndDelFlag(supplierId, DeleteFlag.NO);
+        if(expressNotSupport == null){
+            expressNotSupport = new ExpressNotSupport();
+            LocalDateTime now = LocalDateTime.now();
+            expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
+            expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+            expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
+            expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            expressNotSupport.setSupplierId(supplierId);
+            expressNotSupport.setUpdateTime(now);
+            expressNotSupport.setCreateTime(now);
+            expressNotSupport.setDelFlag(DeleteFlag.NO);
+            expressNotSupportRepository.save(expressNotSupport);
+        }else {
+            expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
+            expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+            expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
+            expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            expressNotSupport.setUpdateTime(LocalDateTime.now());
+            expressNotSupportRepository.save(expressNotSupport);
+        }
+        return "";
+    }
+
+    public void deleteNotSupportArea(Long id) {
+        Optional<ExpressNotSupport> optional = expressNotSupportRepository.findById(id);
+        if(optional.isPresent()){
+            ExpressNotSupport expressNotSupport = optional.get();
+            expressNotSupport.setDelFlag(DeleteFlag.YES);
+            expressNotSupportRepository.save(expressNotSupport);
+        }
+    }
+
+    public ExpressNotSupport findNotSupportArea(Long id) {
+        Optional<ExpressNotSupport> optional = expressNotSupportRepository.findById(id);
+        if(optional.isPresent()) {
+            ExpressNotSupport expressNotSupport = optional.get();
+            if(DeleteFlag.NO.equals(expressNotSupport.getDelFlag())) return expressNotSupport;
+        }
+        return null;
+    }
+
+    public void saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {
+        if(request.getId() != null){
+            //更新
+            Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
+            if(optional.isPresent()){
+                SupplierModel supplierModel = optional.get();
+                supplierModel.setName(request.getName());
+                supplierModel.setCode(request.getCode());
+                supplierModel.setUpdateTime(LocalDateTime.now());
+                supplierRepository.save(supplierModel);
+            }
+        }else {
+            SupplierModel supplierModel = new SupplierModel();
+            LocalDateTime now = LocalDateTime.now();
+            supplierModel.setName(request.getName());
+            supplierModel.setCode(request.getCode());
+            supplierModel.setUpdateTime(now);
+            supplierModel.setCreateTime(now);
+            supplierModel.setDelFlag(DeleteFlag.NO);
+            supplierRepository.save(supplierModel);
+        }
+    }
+
+    public List<SupplierModel> findSecondLevelSupplier() {
+        return supplierRepository.findAllByDelFlag(DeleteFlag.NO);
+    }
+
+    public void deleteSecondLevelSupplier(Long id) {
+        Optional<SupplierModel> optional = supplierRepository.findById(id);
+        if(optional.isPresent()){
+            SupplierModel supplierModel = optional.get();
+            supplierModel.setDelFlag(DeleteFlag.YES);
+            supplierRepository.save(supplierModel);
+            List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAllBySupplierId(id);
+            expressNotSupports.forEach(i -> i.setDelFlag(DeleteFlag.YES));
+            expressNotSupportRepository.saveAll(expressNotSupports);
+        }
     }
 
     /**
@@ -224,14 +375,19 @@ public class FreightTemplateGoodsService {
      * 查询目标地区是否支持配送
      */
     public boolean queryIfnotSupportArea(Long provinceId, Long cityId) {
-        List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAll();
+        List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAllByDelFlag(DeleteFlag.NO);
         String province = provinceId.toString();
         String city = cityId.toString();
         for (ExpressNotSupport expressNotSupport : expressNotSupports) {
-            String notSupportArea = expressNotSupport.getNotSupportArea();
-            String[] split = notSupportArea.split(",");
-            for (String s : split) {
-                if(s.equals(province) || s.equals(city)) return false;
+            String provinceIds = expressNotSupport.getProvinceId();
+            String cityIds = expressNotSupport.getCityId();
+            String[] provinces = provinceIds.split(",");
+            String[] citys = cityIds.split(",");
+            for (String s : provinces) {
+                if(s.equals(province)) return false;
+            }
+            for (String s : citys) {
+                if(s.equals(city)) return false;
             }
         }
         return true;

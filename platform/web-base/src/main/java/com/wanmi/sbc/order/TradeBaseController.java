@@ -2747,7 +2747,6 @@ public class TradeBaseController {
 
     /**
      * 根据参数查询某订单的运费
-     *
      * @param tradeParams
      * @return
      */
@@ -2757,8 +2756,8 @@ public class TradeBaseController {
         List<TradeGetFreightResponse> list = new ArrayList<>();
         for (TradeParamsRequest tradeParam : tradeParams) {
             BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParam);
-            if(!CommonErrorCode.SUCCESSFUL.equals(freight.getCode())) {
-                return BaseResponse.error(freight.getMessage());
+            if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
+                return BaseResponse.info(CommonErrorCode.FAILED, "所选地区不支持配送");
             }
             list.add(freight.getContext());
         }

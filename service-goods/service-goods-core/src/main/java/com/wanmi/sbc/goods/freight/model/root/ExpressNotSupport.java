@@ -22,8 +22,19 @@ public class ExpressNotSupport {
     private Long supplierId;
 
     //不支持配送地区
-    @Column(name = "not_support_area")
-    private String notSupportArea;
+    @Column(name = "province_id")
+    private String provinceId;
+
+    @Column(name = "province_name")
+    private String provinceName;
+
+    //不支持配送地区
+    @Column(name = "city_id")
+    private String cityId;
+
+    //不支持配送地区
+    @Column(name = "city_name")
+    private String cityName;
 
     //创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

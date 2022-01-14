@@ -1,15 +1,19 @@
 package com.wanmi.sbc.goods.api.provider.freight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsCopyByIdAndStoreIdRequest;
-import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsDeleteByIdAndStoreIdRequest;
-import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsInitByStoreIdRequest;
-import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsSaveRequest;
+import com.wanmi.sbc.goods.api.request.freight.*;
+import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
+import com.wanmi.sbc.goods.bean.vo.ExpressNotSupportVo;
+import com.wanmi.sbc.goods.bean.vo.SupplierSecondVo;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>对单品运费模板操作接口</p>
@@ -26,6 +30,48 @@ public interface FreightTemplateGoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/freight/goods/save")
     BaseResponse save(@RequestBody @Valid FreightTemplateGoodsSaveRequest request);
+
+    /**
+     * 保存或更新不支持配送地区
+     */
+    @PostMapping("/goods/${application.goods.version}/not-support-area/save-update")
+    BaseResponse saveOrUpdateNotSupportArea(@RequestBody ExpressNotSupportCreateUpdateRequest request);
+
+    /**
+     * 导入更新不支持配送地区
+     */
+    @PostMapping("/goods/${application.goods.version}/not-support-area/import")
+    BaseResponse<String> importNotSupportArea(@RequestParam("areas") String areas, @RequestParam("supplierId") Long supplierId);
+
+    /**
+     * 删除不支持配送地区
+     */
+    @PostMapping("/goods/${application.goods.version}/not-support-area/delete")
+    BaseResponse deleteNotSupportArea(@RequestParam("id") Long id);
+
+    /**
+     * 查询不支持配送地区
+     */
+    @PostMapping("/goods/${application.goods.version}/not-support-area/find")
+    BaseResponse<ExpressNotSupportVo> findNotSupportArea(@RequestParam("id") Long id);
+
+    /**
+     * 创建或更新二级供应商
+     */
+    @PostMapping("/goods/${application.goods.version}/second-level-supplier/save-update")
+    BaseResponse saveOrUpdateSecondLevelSupplier(@RequestBody SecondLevelSupplierCreateUpdateRequest request);
+
+    /**
+     * 查询二级供应商
+     */
+    @PostMapping("/goods/${application.goods.version}/second-level-supplier/find")
+    BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier();
+
+    /**
+     * 删除二级供应商
+     */
+    @PostMapping("/goods/${application.goods.version}/second-level-supplier/delete")
+    BaseResponse deleteSecondLevelSupplier(@RequestParam("id") Long id);
 
     /**
      * 根据单品运费模板id和店铺id删除单品运费模板
