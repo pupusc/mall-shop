@@ -819,26 +819,7 @@ public class ReturnOrderService {
         List<TradeDistributeItemVO> tradeDistributeItemVos = returnOrder.getDistributeItems();
         boolean isSpecial = returnPrice.getApplyStatus() && operator.getPlatform() == Platform.BOSS;
         //未发货，全部退款
-        if (isRefund) {
-//            BigDecimal totalPrice = trade.getTradeItems().stream().map(TradeItem::getSplitPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-            //如果boss指定价格，按照指定价格，如果没有指定价格，则金额为 商品拆单价格 + 运费
-//            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : trade.getTradeItems().stream().map(t -> t.getSplitPrice())
-//                            .reduce(BigDecimal::add).get().add(Objects.nonNull(trade.getTradePrice().getDeliveryPrice
-//                                    ()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
-            BigDecimal deliveryPrice = Objects.nonNull(trade.getTradePrice().getDeliveryPrice()) ? trade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO;
-            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : trade.getCanReturnPrice().add(deliveryPrice);
-            points = trade.getCanReturnPoints();
-            knowledge = trade.getCanReturnKnowledge();
-            returnOrder.setDistributeItems(tradeDistributeItemVos);
-            // 计算积分
-            if (Objects.nonNull(trade.getTradePrice().getPoints())) {
-                points = getPoints(returnOrder, trade, true);
-            }
-            // 计算知豆
-            if (Objects.nonNull(trade.getTradePrice().getKnowledge())) {
-                knowledge = getKnowledge(returnOrder, trade, true);
-            }
-        } else {
+        if (!isRefund) {
             //------------------start-------------------
 
             for (ReturnItem returnItem : returnItems) {
@@ -877,7 +858,7 @@ public class ReturnOrderService {
                 }
             }
 
-            
+
             //-------------------------end--------------------------
             //这里表示的是用户的拆单价的累加
             realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
@@ -1029,6 +1010,7 @@ public class ReturnOrderService {
                 auditFlag = false;
             }
 
+            //虚拟商品自动审核
             if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
                 audit(returnOrderId, operator, null);
             }
@@ -1813,7 +1795,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
         this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         //填充退货商品信息
-        Map<String, Integer> map = findLeftItems(trade);
+        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade);
         returnOrder.getReturnItems().forEach(item ->
                 {
                     item.setSkuName(trade.skuItemMap().get(item.getSkuId()).getSkuName());
@@ -1821,7 +1803,7 @@ public class ReturnOrderService {
                     item.setSkuNo(trade.skuItemMap().get(item.getSkuId()).getSkuNo());
                     item.setSpecDetails(trade.skuItemMap().get(item.getSkuId()).getSpecDetails());
                     item.setUnit(trade.skuItemMap().get(item.getSkuId()).getUnit());
-                    item.setCanReturnNum(map.get(item.getSkuId()));
+                    item.setCanReturnNum(itemsCanReturnMap.get(item.getSkuId()));
                     item.setBuyPoint(trade.skuItemMap().get(item.getSkuId()).getBuyPoint());
                     item.setBuyKnowledge(trade.skuItemMap().get(item.getSkuId()).getBuyKnowledge());
                     item.setGoodsSource(trade.skuItemMap().get(item.getSkuId()).getGoodsSource());
@@ -1842,20 +1824,20 @@ public class ReturnOrderService {
      */
     private void createRefund(ReturnOrder returnOrder, Operator operator, Trade trade) {
         //校验该订单关联的退款单状态
-        List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
-        if (!CollectionUtils.isEmpty(returnOrders)) {
-            Optional<ReturnOrder> optional = returnOrders.stream().filter(item -> item.getReturnType() == ReturnType
-                    .REFUND).filter(item ->
-                    !(item.getReturnFlowState() == ReturnFlowState.VOID
+        List<ReturnOrder> allReturnOrders = returnOrderRepository.findByTid(trade.getId());
+        if (!CollectionUtils.isEmpty(allReturnOrders)) {
+            Optional<ReturnOrder> optional = allReturnOrders.stream().filter(item -> item.getReturnType() == ReturnType.REFUND)
+                    .filter(item -> !(item.getReturnFlowState() == ReturnFlowState.VOID
                             || item.getReturnFlowState() == ReturnFlowState.REJECT_REFUND
-                            || item.getReturnFlowState() == ReturnFlowState.COMPLETED))
-                    .findFirst();
+                            || item.getReturnFlowState() == ReturnFlowState.COMPLETED)).findFirst();
             if (optional.isPresent()) {
                 throw new SbcRuntimeException("K-050115");
             }
         }
         //本次的退单商品去除已完成的退单商品，赠品同理
-        this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
+        //此处订单对应的商品去除；
+        //在退单中显示对应的订单信息
+        this.filterCompletedReturnItem(allReturnOrders, returnOrder, trade);
         // 新增订单日志
         tradeService.returnOrder(returnOrder.getTid(), operator);
         returnOrder.setReturnType(ReturnType.REFUND);
@@ -1869,7 +1851,7 @@ public class ReturnOrderService {
             goodsInfoVOMap.putAll(goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, c -> c)));
         }
 
-        //设置退货商品
+        //设置退货商品信息
         returnOrder.getReturnItems().forEach(item ->
                 {
                     GoodsInfoVO vo = goodsInfoVOMap.get(item.getSkuId());
@@ -2413,7 +2395,7 @@ public class ReturnOrderService {
                 .build();
         returnFSMService.changeState(request);
 
-
+        //退单的供应商
         if (isProviderFull(returnOrder)) {
             // 更新子单状态
             updateProviderTrade(returnOrder);
