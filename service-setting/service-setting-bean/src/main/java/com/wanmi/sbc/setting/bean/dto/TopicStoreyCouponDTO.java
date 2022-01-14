@@ -36,4 +36,7 @@ public class TopicStoreyCouponDTO implements Serializable {
     @ApiModelProperty(value = "优惠券面值")
     private Double denomination;
 
+    @ApiModelProperty(value = "优惠券Id")
+    private String activityConfigId;
+
 }

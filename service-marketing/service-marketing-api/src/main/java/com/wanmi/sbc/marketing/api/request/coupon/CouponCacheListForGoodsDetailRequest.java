@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * @Author: ZhangLingKe
  * @Description:
@@ -35,6 +37,6 @@ public class CouponCacheListForGoodsDetailRequest {
     private Long storeId;
 
     @ApiModelProperty(value = "优惠券使用场景1商详页2领券中心3购物车4专题页")
-    private Integer couponScene;
+    private List<String> couponScene;
 
 }

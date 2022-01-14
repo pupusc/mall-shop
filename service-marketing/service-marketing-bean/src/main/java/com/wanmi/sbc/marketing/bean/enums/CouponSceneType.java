@@ -11,7 +11,7 @@ public enum CouponSceneType {
 
     COUPON_CENTER(2,"领券中心"),
 
-    CART(4,"购物车"),
+    CART(3,"购物车"),
 
     TOPIC(4,"专题页");
 

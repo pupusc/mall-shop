@@ -217,6 +217,12 @@ public class TopicConfigService {
                 item.setReceiveImageUrl(couponDTO.getReceiveImageUrl());
                 item.setUseImageUrl(couponDTO.getUseImageUrl());
                 item.setDoneImageUrl(couponDTO.getDoneImageUrl());
+                item.setActivityName(couponDTO.getActivityName());
+                item.setDenomination(couponDTO.getDenomination());
+                item.setFullBuyType(couponDTO.getFullBuyType());
+                item.setFullBuyPrice(couponDTO.getFullBuyPrice());
+                item.setActivityConfigId(couponDTO.getActivityConfigId());
+
             });
         }else if(Objects.equals(TopicStoreyType.NAVIGATION.getId(),storeyType)){
             contents.forEach(item->{

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.api.request.coupon;
 
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -8,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -56,7 +59,7 @@ public class CouponCacheCenterPageRequest {
     private Long storeId;
 
     @ApiModelProperty("优惠券领券场景:1商详页2领券中心3购物车4专题页")
-    private Integer couponScene;
+    private List<String> couponScene = Arrays.asList(CouponSceneType.CART.getType().toString(),CouponSceneType.COUPON_CENTER.getType().toString(),CouponSceneType.GOODS_DETAIL.getType().toString());
 
     @ApiModelProperty("活动Id")
     private List<String> activityIds;

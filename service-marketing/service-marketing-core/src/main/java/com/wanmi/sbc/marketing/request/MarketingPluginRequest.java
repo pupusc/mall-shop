@@ -76,7 +76,7 @@ public class MarketingPluginRequest {
     private Boolean isIndependent = Boolean.FALSE;
 
     /**
-     * 使用场景
+     * 优惠券使用场景1商详页2领券中心3购物车4专题页
      */
-    private Integer couponScene;
+    private List<String> couponScene;
 }

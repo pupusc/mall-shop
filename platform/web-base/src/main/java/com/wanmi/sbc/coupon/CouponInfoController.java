@@ -193,7 +193,6 @@ public class CouponInfoController {
 
         CouponCacheListForGoodsDetailRequest request = new CouponCacheListForGoodsDetailRequest();
         request.setGoodsInfoId(goodsInfoId);
-        request.setCouponScene(CouponSceneType.GOODS_DETAIL.getType());
         CouponCacheListForGoodsListResponse goodsDetailResponse =
                 couponCacheProvider.listCouponForGoodsDetail(request).getContext();
 
@@ -211,7 +210,6 @@ public class CouponInfoController {
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsDetail(@PathVariable String goodsInfoId) {
         CouponCacheListForGoodsDetailRequest request = new CouponCacheListForGoodsDetailRequest();
         request.setGoodsInfoId(goodsInfoId);
-        request.setCouponScene(CouponSceneType.GOODS_DETAIL.getType());
         request.setCustomerId(commonUtil.getOperatorId());
         return couponCacheProvider.listCouponForGoodsDetail(request);
     }

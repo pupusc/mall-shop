@@ -39,7 +39,7 @@ public class CouponCacheCenterRequest {
     /**
      * 优惠券场景
      */
-    private Integer couponScene;
+    private List<String> couponScene;
 
     @ApiModelProperty("活动Id")
     private List<String> activityIds;

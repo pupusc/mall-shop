@@ -209,7 +209,7 @@ public class CouponCacheService {
      * @param customerId
      * @return
      */
-    public CouponListResponse listCouponForGoodsList(List<String> goodsInfoIds, String customerId, Long storeId,Integer couponScene) {
+    public CouponListResponse listCouponForGoodsList(List<String> goodsInfoIds, String customerId, Long storeId,List<String> couponScene) {
         GoodsInfoListByIdsRequest goodsInfoListByIdsRequest = new GoodsInfoListByIdsRequest();
         goodsInfoListByIdsRequest.setGoodsInfoIds(goodsInfoIds);
         if (Objects.nonNull(storeId)) {
@@ -256,7 +256,7 @@ public class CouponCacheService {
      * @return
      */
 //    public List<CouponCache> listCouponForGoodsList(List<GoodsInfo> goodsInfoList, Customer customer){
-    public List<CouponCache> listCouponForGoodsList(List<GoodsInfoVO> goodsInfoList, CustomerVO customer,Integer couponScene) {
+    public List<CouponCache> listCouponForGoodsList(List<GoodsInfoVO> goodsInfoList, CustomerVO customer,List<String> couponScene) {
         //组装等级数据
 //        Map<Long, CustomerLevel> levelMap = marketingPluginService.getCustomerLevels(goodsInfoList, customer);
         Map<Long, CommonLevelVO> levelMap = marketingPluginService.getCustomerLevels(goodsInfoList, customer);
@@ -311,7 +311,7 @@ public class CouponCacheService {
      * @param customerId
      * @return
      */
-    public CouponListResponse listCouponForGoodsDetail(String goodsInfoId, String customerId, Long storeId,Integer couponScene) {
+    public CouponListResponse listCouponForGoodsDetail(String goodsInfoId, String customerId, Long storeId,List<String> couponScene) {
         GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
         goodsInfoByIdRequest.setGoodsInfoId(goodsInfoId);
         if (Objects.nonNull(storeId)) {
@@ -383,7 +383,7 @@ public class CouponCacheService {
      * @param levelMap
      * @return
      */
-    public List<CouponCache> listCouponForGoodsInfo(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,Integer couponScene) {
+    public List<CouponCache> listCouponForGoodsInfo(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<String> couponScene) {
         //组装店铺分类
         List<Long> storeCateIds = new ArrayList<>();
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsInfo.getGoodsId())).getContext();
@@ -417,7 +417,7 @@ public class CouponCacheService {
     }
 
 
-    public List<CouponCache> listCouponForGoodsInfos(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<Long> storeCateIds) {
+    public List<CouponCache> listCouponForGoodsInfos(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<Long> storeCateIds,List<String> couponScene) {
         CouponCacheQueryRequest request = CouponCacheQueryRequest.builder()
                 .brandIds(goodsInfo.getBrandId() != null ? Collections.singletonList(goodsInfo.getBrandId()) : null)
                 .cateIds(goodsInfo.getCateId() != null ? Collections.singletonList(goodsInfo.getCateId()) : null)
@@ -426,6 +426,7 @@ public class CouponCacheService {
                         Collections.singletonList(goodsInfo.getGoodsInfoId()) : null)
                 .levelMap(levelMap)
                 .storeIds(Collections.singletonList(goodsInfo.getStoreId()))
+                .couponScene(couponScene)
                 .build();
         /**
          * 通用券＞店铺券

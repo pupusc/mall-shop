@@ -134,7 +134,7 @@ public class TopicService {
         CouponCacheCenterPageRequest couponRequest = new CouponCacheCenterPageRequest();
         couponRequest.setActivityIds(activityIds);
         couponRequest.setCouponInfoIds(couponIds);
-        couponRequest.setCouponScene(CouponSceneType.TOPIC.getType());
+        couponRequest.setCouponScene(Arrays.asList(CouponSceneType.TOPIC.getType().toString()));
         couponRequest.setPageNum(0);
         couponRequest.setPageSize(100);
         if(commonUtil.getOperator()!=null && commonUtil.getOperatorId() !=null){

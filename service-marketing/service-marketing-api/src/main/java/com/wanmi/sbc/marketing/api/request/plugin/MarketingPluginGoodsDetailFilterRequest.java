@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * <p>商品详情处理请求结构</p>
@@ -24,4 +25,7 @@ public class MarketingPluginGoodsDetailFilterRequest extends MarketingPluginDTO 
     @ApiModelProperty(value = "商品详情")
     @NotNull
     private GoodsInfoDetailByGoodsInfoDTO goodsInfoDetailByGoodsInfoDTO;
+
+    private List<String> couponScene;
+
 }

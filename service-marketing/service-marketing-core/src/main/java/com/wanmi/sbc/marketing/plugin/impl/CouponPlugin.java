@@ -99,7 +99,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
             if(classifyIds != null){
                 classifyIdLong = classifyIds.stream().map(Integer::longValue).collect(Collectors.toList());
             }
-            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),classifyIdLong);
+            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),classifyIdLong,request.getCouponScene());
             List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
                     CouponLabelVO.builder()
                             .couponActivityId(cache.getCouponActivityId())
@@ -124,7 +124,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
         //把品牌从goods搬运到goodsInfo
         detailResponse.getGoodsInfo().setBrandId(detailResponse.getGoods().getBrandId());
         detailResponse.getGoodsInfo().setCateId(detailResponse.getGoods().getCateId());
-        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap(), CouponSceneType.GOODS_DETAIL.getType());
+        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap(), request.getCouponScene());
         List<CouponLabelVO> labelList = couponCacheList.stream().limit(3).map(cache ->
                 CouponLabelVO.builder()
                         .couponActivityId(cache.getCouponActivityId())

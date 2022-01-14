@@ -72,7 +72,7 @@ public class CouponCacheQueryRequest {
     /**
      * 使用场景
      */
-    private Integer couponScene;
+    private List<String> couponScene;
 
     private List<String> couponInfoIds;
 
@@ -137,13 +137,13 @@ public class CouponCacheQueryRequest {
             criteria.add(Criteria.where("couponInfo.couponType").is(couponType.toString()));
         }
         //使用场景
-        if(couponScene !=null){
-            if(couponScene.equals(CouponSceneType.TOPIC.getType())){
-                criteria.add(Criteria.where("couponInfo.activityScene").is(couponScene.toString()));
+        if(CollectionUtils.isNotEmpty(couponScene)){
+            if(couponScene.contains(CouponSceneType.TOPIC.getType())){
+                criteria.add(Criteria.where("couponInfo.activityScene").is(CouponSceneType.TOPIC.getType()));
             }else {
                 criteria.add(new Criteria().orOperator(
                         Criteria.where("couponActivity.activityScene").is(null),
-                        Criteria.where("couponActivity.activityScene").is(couponScene.toString())
+                        Criteria.where("couponActivity.activityScene").in(couponScene)
                 ));
             }
         }
@@ -167,10 +167,10 @@ public class CouponCacheQueryRequest {
         List<Criteria> storeCriteriaList = new ArrayList<>();
         storeCriteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         storeCriteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.NO.toString()));
-        storeCriteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        if(activityStatus == null || activityStatus == 1) {
-            storeCriteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        if(activityStatus == null ||  activityStatus == 1) {
+            storeCriteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
         }
+        storeCriteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
         return storeCriteriaList;
     }
 
@@ -184,10 +184,10 @@ public class CouponCacheQueryRequest {
         List<Criteria> criteriaList = new ArrayList<>();
         criteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         criteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.YES.toString()));
-        criteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        if(activityStatus == null || activityStatus == 1) {
-            criteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
+        if(activityStatus == null ||  activityStatus == 1) {
+            criteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
         }
+        criteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
         return criteriaList;
     }
 

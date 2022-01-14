@@ -84,6 +84,7 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsDetailFilt
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.marketing.bean.dto.GoodsInfoDetailByGoodsInfoDTO;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingScopeVO;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
