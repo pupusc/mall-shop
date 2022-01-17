@@ -1,12 +1,10 @@
 package com.wanmi.sbc.goods.freight.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.freight.ExpressNotSupportCreateUpdateRequest;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
 import com.wanmi.sbc.goods.freight.model.root.*;
 import com.wanmi.sbc.goods.freight.repository.*;
-import com.wanmi.sbc.goods.freight.util.CityAndCodeMapping;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
 import com.wanmi.sbc.goods.supplier.repository.SupplierRepository;
 import io.seata.spring.annotation.GlobalTransactional;
@@ -234,12 +232,7 @@ public class FreightTemplateGoodsService {
     }
 
     public ExpressNotSupport findNotSupportArea(Long id) {
-        Optional<ExpressNotSupport> optional = expressNotSupportRepository.findById(id);
-        if(optional.isPresent()) {
-            ExpressNotSupport expressNotSupport = optional.get();
-            if(DeleteFlag.NO.equals(expressNotSupport.getDelFlag())) return expressNotSupport;
-        }
-        return null;
+        return expressNotSupportRepository.findBySupplierIdAndDelFlag(id, DeleteFlag.NO);
     }
 
     public void saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {

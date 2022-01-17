@@ -157,7 +157,7 @@ public class FreightTemplateController {
     /**
      * @description 查询不支持配送地区
      * @menu 不支持配送地区
-     * @param
+     * @param id 供应商id
      * @status done
      */
     @RequestMapping(value = "/notSupportArea/find/{id}", method = RequestMethod.POST)
@@ -173,7 +173,7 @@ public class FreightTemplateController {
      * @status done
      */
     @RequestMapping(value = "/notSupportArea/import", method = RequestMethod.POST)
-    public BaseResponse importNotSupportArea(@RequestParam("file") MultipartFile multipartFile, Long supplierId) throws IOException, InvalidFormatException {
+    public BaseResponse importNotSupportArea(@RequestParam("uploadFile") MultipartFile multipartFile, Long supplierId) throws IOException, InvalidFormatException {
         Workbook sheets = WorkbookFactory.create(multipartFile.getInputStream());
         Sheet sheet = sheets.getSheetAt(0);
         int i = 0;
