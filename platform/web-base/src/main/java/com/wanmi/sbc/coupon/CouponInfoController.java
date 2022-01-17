@@ -129,7 +129,7 @@ public class CouponInfoController {
      */
     @ApiOperation(value = "未登录时，通过商品id列表，查询与商品相关优惠券")
     @RequestMapping(value = "/front/goods-list", method = RequestMethod.POST)
-    public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsListFront(@RequestBody List<String> goodsInfoIds,@RequestParam("couponScene")Integer couponScene) {
+    public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsListFront(@RequestBody List<String> goodsInfoIds) {
         CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
         request.setGoodsInfoIds(goodsInfoIds);
         return couponCacheProvider.listCouponForGoodsList(request);
