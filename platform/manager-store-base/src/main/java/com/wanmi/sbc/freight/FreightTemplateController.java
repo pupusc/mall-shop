@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.freight.dto.NotSupportAreaImportExcelRequest;
 import com.wanmi.sbc.goods.api.provider.freight.*;
 import com.wanmi.sbc.goods.api.request.freight.*;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
@@ -167,13 +168,13 @@ public class FreightTemplateController {
     }
 
     /**
-     * @description 导入不支持配送地区
+     * @description 解析不配送地区excel
      * @menu 不支持配送地区
      * @param
      * @status done
      */
-    @RequestMapping(value = "/notSupportArea/import", method = RequestMethod.POST)
-    public BaseResponse importNotSupportArea(@RequestParam("uploadFile") MultipartFile multipartFile, Long supplierId) throws IOException, InvalidFormatException {
+    @RequestMapping(value = "/notSupportArea/import/parse", method = RequestMethod.POST)
+    public BaseResponse<Map<String, List<String>>> parseNotSupportArea(@RequestParam("uploadFile") MultipartFile multipartFile) throws IOException, InvalidFormatException {
         Workbook sheets = WorkbookFactory.create(multipartFile.getInputStream());
         Sheet sheet = sheets.getSheetAt(0);
         int i = 0;
@@ -193,7 +194,18 @@ public class FreightTemplateController {
                 return value;
             }));
         });
-        BaseResponse<String> baseResponse = freightTemplateGoodsProvider.importNotSupportArea(JSONObject.toJSONString(areas), supplierId);
+        return BaseResponse.success(areas);
+    }
+
+    /**
+     * @description 导入不支持配送地区
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/import", method = RequestMethod.POST)
+    public BaseResponse importNotSupportArea(NotSupportAreaImportExcelRequest notSupportAreaImportExcelRequest) {
+        BaseResponse<String> baseResponse = freightTemplateGoodsProvider.importNotSupportArea(JSONObject.toJSONString(notSupportAreaImportExcelRequest.getAreas()), notSupportAreaImportExcelRequest.getSupplierId());
         if(CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode()) && baseResponse.getContext().length() > 0){
             String message = baseResponse.getContext();
             return BaseResponse.info(CommonErrorCode.FAILED, "以下城市名称有误,请检查:" + message);
