@@ -9,9 +9,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Author: ZhangLingKe
@@ -23,8 +26,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CouponCacheCenterPageRequest {
+public class CouponCacheCenterPageRequest implements Serializable {
 
+    private static final long serialVersionUID = 928232649462063730L;
     /**
      * 优惠券分类id
      */
@@ -59,7 +63,7 @@ public class CouponCacheCenterPageRequest {
     private Long storeId;
 
     @ApiModelProperty("优惠券领券场景:1商详页2领券中心3购物车4专题页")
-    private List<String> couponScene = Arrays.asList(CouponSceneType.CART.getType().toString(),CouponSceneType.COUPON_CENTER.getType().toString(),CouponSceneType.GOODS_DETAIL.getType().toString());
+    private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
 
     @ApiModelProperty("活动Id")
     private List<String> activityIds;
