@@ -192,8 +192,8 @@ public class TopicConfigService {
             List<TopicStoreyContentDTO> itemList = new ArrayList<>(items.size());
             if (Arrays.asList(TopicStoreyType.HETERSCROLLIMAGE.getId(),TopicStoreyType.COUPON.getId()).contains(p.getStoreyType())) {
                 //轮播类型或优惠券根据时间过滤
-                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && (i.getStartTime() == null ||  i.getEndTime() == null)).collect(Collectors.toList()));
-                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getStartTime() == null ||  i.getEndTime() == null).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
             }else{
                 itemList = items;
             }
