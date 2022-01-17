@@ -261,9 +261,10 @@ public class ReturnOrderController {
     })
     @RequestMapping(value = {"/audit/{rid}", "/audit/{rid}/{addressId}"}, method = RequestMethod.POST)
     @GlobalTransactional
-    public BaseResponse audit(@PathVariable String rid, @PathVariable(value = "addressId", required = false) String addressId) {
-        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(
-                ReturnOrderByConditionRequest.builder().rids(new String[]{rid}).build()).getContext().getReturnOrderList();
+    public BaseResponse audit(@PathVariable("rid") String returnOrderId, @PathVariable(value = "addressId", required = false) String addressId) {
+        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
+        returnOrderByConditionRequest.setRid(returnOrderId);
+        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest).getContext().getReturnOrderList();
         if (CollectionUtils.isEmpty(returnOrderVOList)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
@@ -288,8 +289,11 @@ public class ReturnOrderController {
                 }
             }
         }
-
-        return returnOrderProvider.audit(ReturnOrderAuditRequest.builder().rid(rid).addressId(addressId).operator(commonUtil.getOperator()).build());
+        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+        returnOrderAuditRequest.setRid(returnOrderId);
+        returnOrderAuditRequest.setAddressId(addressId);
+        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+        return returnOrderProvider.audit(returnOrderAuditRequest);
     }
 
     /**
@@ -329,13 +333,14 @@ public class ReturnOrderController {
             if (tradeStatus == TradeStatus.PROCESSING) {
                 throw new SbcRuntimeException("K-100105");
             } else if (tradeStatus == TradeStatus.SUCCEED) {
-                RefundOrderByReturnCodeResponse refundOrder =
-                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(rid)).getContext();
-                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
-                        .account("system").platform(Platform.BOSS).build();
-                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
-                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
-                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
+                //TODO update by duanlsh
+//                RefundOrderByReturnCodeResponse refundOrder =
+//                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(rid)).getContext();
+//                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
+//                        .account("system").platform(Platform.BOSS).build();
+//                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
+//                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
+//                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
                 throw new SbcRuntimeException("K-100104");
             }
         }

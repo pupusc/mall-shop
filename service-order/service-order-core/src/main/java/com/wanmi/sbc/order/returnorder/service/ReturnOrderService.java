@@ -2025,25 +2025,28 @@ public class ReturnOrderService {
     public void audit(String returnOrderId, Operator operator, String addressId) {
         //查询退单详情
         ReturnOrder returnOrder = findById(returnOrderId);
+
         // 查询订单相关的所有退单
         List<ReturnOrder> returnOrderAllList = returnOrderRepository.findByTid(returnOrder.getTid());
+
         // 筛选出已完成的退单
-        List<ReturnOrder> returnCompleteOrderList = returnOrderAllList.stream().filter(allOrder ->
-                allOrder.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
+        List<ReturnOrder> returnCompleteOrderList = returnOrderAllList.stream()
+                .filter(allReturnOrder -> allReturnOrder.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
 
         //计算所有已完成的退单总价格
-        BigDecimal returnOrderCompletePrice = new BigDecimal(0);
+        BigDecimal returnOrderCompletePrice = BigDecimal.ZERO;
         for (ReturnOrder returnOrderCompleteParam : returnCompleteOrderList) {
             //总退款价格
-            BigDecimal p = returnOrderCompleteParam.getReturnPrice().getApplyStatus()
-                    ? returnOrderCompleteParam.getReturnPrice().getApplyPrice()
-                    : returnOrderCompleteParam.getReturnPrice().getTotalPrice();
+            ReturnPrice returnPrice = returnOrderCompleteParam.getReturnPrice();
+            BigDecimal p = returnPrice.getApplyStatus() ? returnPrice.getApplyPrice() : returnPrice.getTotalPrice();
             returnOrderCompletePrice = returnOrderCompletePrice.add(p);
         }
-        ReturnPrice returnPrice = returnOrder.getReturnPrice();
 
+        //订单申请的价格
+        ReturnPrice returnPrice = returnOrder.getReturnPrice();
         //真实退款价格
         BigDecimal currentReturnOrderPrice = returnPrice.getApplyStatus() ? returnPrice.getApplyPrice() : returnPrice.getTotalPrice();
+
         //根据订单id获取支付订单
         Optional<PayOrder> payOrderOptional = payOrderService.findPayOrderByOrderCode(returnOrder.getTid());
         if (payOrderOptional.isPresent()) {
@@ -2805,14 +2808,18 @@ public class ReturnOrderService {
             returnOrder.getReturnPrice().setApplyStatus(true);
             returnOrder.getReturnPrice().setApplyPrice(returnPrice.getEarnestPrice().add(returnPrice.getTailPrice()));
         }
-        returnOrder.getReturnPoints().setApplyPoints(0L);
-        returnOrder.setReturnKnowledge(ReturnKnowledge.builder().actualKnowledge(0L).build());
+
+
         if (actualReturnPoints != null && actualReturnPoints > 0) {
             returnOrder.getReturnPoints().setActualPoints(actualReturnPoints);
         } else {
-            if (returnOrder.getReturnKnowledge() != null && actualReturnKnowledge > 0) {
-                returnOrder.getReturnKnowledge().setApplyKnowledge(actualReturnKnowledge);
-            }
+            returnOrder.getReturnPoints().setApplyPoints(0L);
+        }
+
+        if (returnOrder.getReturnKnowledge() != null && actualReturnKnowledge > 0) {
+            returnOrder.getReturnKnowledge().setApplyKnowledge(actualReturnKnowledge);
+        } else {
+            returnOrder.setReturnKnowledge(ReturnKnowledge.builder().actualKnowledge(0L).build());
         }
 
         refundOrderRepository.saveAndFlush(refundOrder);
