@@ -3,6 +3,7 @@ package com.wanmi.sbc.marketing.request;
 
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.vo.GrouponVO;
 import com.wanmi.sbc.marketing.common.response.MarketingResponse;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
@@ -11,8 +12,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 插件公共Request
@@ -22,8 +26,9 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MarketingPluginRequest {
+public class MarketingPluginRequest implements Serializable {
 
+    private static final long serialVersionUID = 3011079095798197792L;
     /**
      * 当前客户
      */
@@ -78,5 +83,5 @@ public class MarketingPluginRequest {
     /**
      * 优惠券使用场景1商详页2领券中心3购物车4专题页
      */
-    private List<String> couponScene = ;
+     private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
 }
