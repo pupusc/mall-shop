@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ApiModel
 @Data
@@ -31,7 +33,7 @@ public class CouponCacheListForGoodsGoodInfoListRequest implements Serializable{
     private CustomerVO customer;
 
     @ApiModelProperty(value = "优惠券使用场景1商详页2领券中心3购物车4专题页")
-    private List<String> couponScene = Arrays.asList(CouponSceneType.CART.getType().toString(),CouponSceneType.COUPON_CENTER.getType().toString(),CouponSceneType.GOODS_DETAIL.getType().toString());
+    private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
 
 
 }

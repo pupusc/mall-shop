@@ -78,5 +78,5 @@ public class MarketingPluginRequest {
     /**
      * 优惠券使用场景1商详页2领券中心3购物车4专题页
      */
-    private List<String> couponScene;
+    private List<String> couponScene = ;
 }

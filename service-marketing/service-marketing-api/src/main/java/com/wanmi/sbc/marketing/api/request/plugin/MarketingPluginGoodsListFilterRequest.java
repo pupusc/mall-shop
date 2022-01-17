@@ -8,6 +8,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>插件公共Request</p>
@@ -47,6 +49,6 @@ public class MarketingPluginGoodsListFilterRequest extends MarketingPluginDTO {
     private Boolean isIndependent = Boolean.FALSE;
 
     @ApiModelProperty("优惠券使用场景1商详页2领券中心3购物车4专题页")
-    private List<String> couponScene;
+    private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
 
 }

@@ -2,6 +2,7 @@ package com.wanmi.sbc.marketing.api.request.plugin;
 
 import com.wanmi.sbc.marketing.bean.dto.GoodsInfoDetailByGoodsInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.MarketingPluginDTO;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -9,6 +10,8 @@ import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>商品详情处理请求结构</p>
@@ -26,6 +29,6 @@ public class MarketingPluginGoodsDetailFilterRequest extends MarketingPluginDTO 
     @NotNull
     private GoodsInfoDetailByGoodsInfoDTO goodsInfoDetailByGoodsInfoDTO;
 
-    private List<String> couponScene;
+    private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
 
 }
