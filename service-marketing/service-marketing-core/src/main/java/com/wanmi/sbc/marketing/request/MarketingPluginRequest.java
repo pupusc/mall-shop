@@ -7,6 +7,7 @@ import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.vo.GrouponVO;
 import com.wanmi.sbc.marketing.common.response.MarketingResponse;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -80,8 +81,7 @@ public class MarketingPluginRequest implements Serializable {
      */
     private Boolean isIndependent = Boolean.FALSE;
 
-    /**
-     * 优惠券使用场景1商详页2领券中心3购物车4专题页
-     */
-     private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
+    @ApiModelProperty(value = "优惠券使用场景1商详页+领券中心+购物车2专题页")
+    private List<String> couponScene = Stream.of(CouponSceneType.DETAIL_CART_CENTER.getType().toString()).collect(Collectors.toList());
 }
+

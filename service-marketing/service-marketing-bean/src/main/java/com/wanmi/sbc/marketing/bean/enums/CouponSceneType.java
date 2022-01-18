@@ -7,13 +7,9 @@ public enum CouponSceneType {
 
 
 
-    GOODS_DETAIL(1,"商详页"),
+    DETAIL_CART_CENTER(1,"商详页、购物车、领券中心"),
 
-    COUPON_CENTER(2,"领券中心"),
-
-    CART(3,"购物车"),
-
-    TOPIC(4,"专题页");
+    TOPIC(2,"专题页");
 
     private Integer type;
 

@@ -62,8 +62,8 @@ public class CouponCacheCenterPageRequest implements Serializable {
     @ApiModelProperty(value = "店铺Id")
     private Long storeId;
 
-    @ApiModelProperty("优惠券领券场景:1商详页2领券中心3购物车4专题页")
-    private List<String> couponScene = Stream.of(CouponSceneType.CART.getType().toString(), CouponSceneType.COUPON_CENTER.getType().toString(), CouponSceneType.GOODS_DETAIL.getType().toString()).collect(Collectors.toList());
+    @ApiModelProperty(value = "优惠券使用场景1商详页+领券中心+购物车2专题页")
+    private List<String> couponScene = Stream.of(CouponSceneType.DETAIL_CART_CENTER.getType().toString()).collect(Collectors.toList());
 
     @ApiModelProperty("活动Id")
     private List<String> activityIds;
