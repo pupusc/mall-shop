@@ -23,7 +23,7 @@ public class Invoice implements Serializable {
     private String orderInvoiceId;
 
     /**
-     * 类型 0：普通发票 1：增值税发票 -1：无
+     * 类型 0：普通发票 1：增值税发票 -1：无 2:电子发票
      */
     private Integer type;
 
