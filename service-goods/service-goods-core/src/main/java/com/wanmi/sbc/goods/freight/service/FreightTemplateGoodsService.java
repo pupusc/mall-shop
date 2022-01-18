@@ -205,10 +205,16 @@ public class FreightTemplateGoodsService {
             if(provinceIdsb.length() > 0){
                 expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
                 expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+            }else{
+                expressNotSupport.setProvinceId("");
+                expressNotSupport.setProvinceName("");
             }
             if(cityIdsb.length() > 0){
                 expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
                 expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            }else{
+                expressNotSupport.setCityId("");
+                expressNotSupport.setCityName("");
             }
             expressNotSupport.setSupplierId(supplierId);
             expressNotSupport.setUpdateTime(now);
@@ -219,10 +225,16 @@ public class FreightTemplateGoodsService {
             if(provinceIdsb.length() > 0){
                 expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
                 expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+            }else{
+                expressNotSupport.setProvinceId("");
+                expressNotSupport.setProvinceName("");
             }
             if(cityIdsb.length() > 0){
                 expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
                 expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            }else{
+                expressNotSupport.setCityId("");
+                expressNotSupport.setCityName("");
             }
             expressNotSupport.setUpdateTime(LocalDateTime.now());
             expressNotSupportRepository.save(expressNotSupport);
