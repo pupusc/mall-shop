@@ -149,6 +149,12 @@ public class OrderInvoice implements Serializable{
     private String invoiceAddress;
 
     /**
+     * 电子邮箱
+     */
+    @Column(name = "invoice_email")
+    private String invoiceEmail;
+
+    /**
      * 商家id
      */
     @Column(name = "company_info_id")
