@@ -423,6 +423,8 @@ public class OrderInvoiceController {
                             InvoiceType invoiceType = ((OrderInvoiceResponse) object).getInvoiceType();
                             if (InvoiceType.SPECIAL.equals(invoiceType)) {
                                 cell.setCellValue("增值税专用发票");
+                            }else if(InvoiceType.ELECTRONIC.equals(invoiceType)){
+                                cell.setCellValue("电子发票");
                             } else {
                                 cell.setCellValue("普通发票");
                             }

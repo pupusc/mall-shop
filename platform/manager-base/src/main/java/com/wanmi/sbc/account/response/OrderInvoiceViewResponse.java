@@ -111,6 +111,8 @@ public class OrderInvoiceViewResponse implements Serializable {
     @ApiModelProperty(value = "发票寄送地址")
     private String invoiceAddress;
 
+    private String email;
+
     /**
      * 开票项目
      */
