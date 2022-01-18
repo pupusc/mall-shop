@@ -5690,7 +5690,9 @@ public class TradeService {
         request.setInvoiceTitle(isGeneral ? invoice.getGeneralInvoice().getFlag() == 0 ? null :
                 invoice.getGeneralInvoice().getTitle()
                 : invoice.getSpecialInvoice().getCompanyName());
-
+        if(invoice.getType() == 2 && StringUtils.isNotEmpty(invoice.getGeneralInvoice().getTitle())){
+            request.setInvoiceTitle(invoice.getGeneralInvoice().getTitle());
+        }
         request.setInvoiceType(InvoiceType.NORMAL.fromValue(invoice.getType()));
         request.setOrderNo(trade.getId());
         request.setProjectId(invoice.getProjectId());
