@@ -177,7 +177,7 @@ public class FreightTemplateController {
     public BaseResponse<Map<String, List<String>>> parseNotSupportArea(@RequestParam("uploadFile") MultipartFile multipartFile) throws IOException, InvalidFormatException {
         Workbook sheets = WorkbookFactory.create(multipartFile.getInputStream());
         Sheet sheet = sheets.getSheetAt(0);
-        int i = 0;
+        int i = 1;
         List<String[]> list = new ArrayList<>();
         while (sheet.getRow(i) != null) {
             Row row = sheet.getRow(i);
