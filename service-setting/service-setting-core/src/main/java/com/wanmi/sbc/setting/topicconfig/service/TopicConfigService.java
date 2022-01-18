@@ -323,4 +323,9 @@ public class TopicConfigService {
     }
 
 
+    @Transactional
+    public void deleteStorey(Integer storeyId){
+        storeyRepository.delete(storeyId);
+        contentRepository.deleteBySid(storeyId);
+    }
 }
