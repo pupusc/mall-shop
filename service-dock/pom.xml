@@ -73,6 +73,20 @@
 
 
         <dependencies>
+<!--            <dependency>-->
+<!--                <groupId>com.soybean.mall</groupId>-->
+<!--                <artifactId>mall-common-log</artifactId>-->
+<!--                <version>0.0.1-SNAPSHOT</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+
+<!--            <dependency>-->
+<!--                <groupId>com.wanmi.sbc</groupId>-->
+<!--                <artifactId>service-common</artifactId>-->
+<!--                <version>fandeng-4.1.7-release</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-data-redis</artifactId>

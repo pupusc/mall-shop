@@ -8,6 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>mall-common-log</module>
+        <module>mall-common-dependency</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mall-common</artifactId>
+        <groupId>com.soybean.mall</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mall-common-dependency</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <mall.common.log.version>0.0.1-SNAPSHOT</mall.common.log.version>
+        <service.common.version>fandeng-4.1.7-release</service.common.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-log</artifactId>
+                <version>${mall.common.log.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-common</artifactId>
+                <version>${service.common.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
