@@ -11,4 +11,6 @@ import java.util.List;
 public interface SupplierRepository extends JpaRepository<SupplierModel, Long> {
 
     List<SupplierModel> findAllByDelFlag(DeleteFlag flag);
+
+    SupplierModel findByCodeAndDelFlag(String code, DeleteFlag delFlag);
 }

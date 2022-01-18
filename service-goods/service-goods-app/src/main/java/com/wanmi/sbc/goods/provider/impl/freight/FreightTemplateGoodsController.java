@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.provider.impl.freight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsProvider;
 import com.wanmi.sbc.goods.api.request.freight.*;
@@ -108,7 +109,10 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
 
     @Override
     public BaseResponse saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request){
-        freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
+        int errorCode = freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
+        if(errorCode == 1){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "编码重复");
+        }
         return BaseResponse.SUCCESSFUL();
     }
 

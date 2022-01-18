@@ -255,7 +255,7 @@ public class FreightTemplateGoodsService {
         return expressNotSupportRepository.findBySupplierIdAndDelFlag(id, DeleteFlag.NO);
     }
 
-    public void saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {
+    public int saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {
         if(request.getId() != null){
             //更新
             Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
@@ -267,6 +267,8 @@ public class FreightTemplateGoodsService {
                 supplierRepository.save(supplierModel);
             }
         }else {
+            SupplierModel supplier = supplierRepository.findByCodeAndDelFlag(request.getCode(), DeleteFlag.NO);
+            if(supplier != null) return 1;
             SupplierModel supplierModel = new SupplierModel();
             LocalDateTime now = LocalDateTime.now();
             supplierModel.setName(request.getName());
@@ -276,6 +278,7 @@ public class FreightTemplateGoodsService {
             supplierModel.setDelFlag(DeleteFlag.NO);
             supplierRepository.save(supplierModel);
         }
+        return 0;
     }
 
     public List<SupplierModel> findSecondLevelSupplier() {
