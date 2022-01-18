@@ -42,6 +42,8 @@ public class Invoice implements Serializable {
      */
     private String addressId;
 
+    private String email;
+
     /**
      * 是否单独的收货地址
      */

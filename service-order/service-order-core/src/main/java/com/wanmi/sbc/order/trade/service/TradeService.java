@@ -1313,6 +1313,7 @@ public class TradeService {
                             .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
                             .address(i.getInvoiceAddressDetail())
                             .addressId(i.getInvoiceAddressId())
+                            .email(i.getInvoiceEmail())
                             .projectId(i.getInvoiceProjectId())
                             .projectName(i.getInvoiceProjectName())
                             .projectUpdateTime(i.getInvoiceProjectUpdateTime())
@@ -5676,6 +5677,9 @@ public class TradeService {
         boolean isGeneral = invoice.getType() == 0;
         OrderInvoiceSaveRequest request = new OrderInvoiceSaveRequest();
         request.setCustomerId(trade.getBuyer().getId());
+        if(invoice.getEmail() != null){
+            request.setInvoiceEmail(invoice.getEmail());
+        }
         if (Objects.nonNull(invoice.getAddress())) {
             request.setInvoiceAddress(trade.getInvoice().getContacts() + " " + trade.getInvoice().getPhone() + " " +
                     invoice.getAddress());
