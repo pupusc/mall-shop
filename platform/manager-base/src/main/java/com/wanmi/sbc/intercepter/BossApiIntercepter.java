@@ -81,8 +81,6 @@ public class BossApiIntercepter implements HandlerInterceptor {
             return true;
         } else if (excludedUrlFilter(this.apiExcludedRestUrlsMap, uri, requestType)) {
             return true;
-        } else if(uri.startsWith("/freightTemplate")){
-            return true;
         }
         Claims claims;
 

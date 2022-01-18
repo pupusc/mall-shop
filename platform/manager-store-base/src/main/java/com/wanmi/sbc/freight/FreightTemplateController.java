@@ -162,7 +162,7 @@ public class FreightTemplateController {
      * @status done
      */
     @RequestMapping(value = "/notSupportArea/find/{id}", method = RequestMethod.POST)
-    public BaseResponse findNotSupportArea(@PathVariable("id") Long id) {
+    public BaseResponse<ExpressNotSupportVo> findNotSupportArea(@PathVariable("id") Long id) {
         BaseResponse<ExpressNotSupportVo> notSupportArea = freightTemplateGoodsProvider.findNotSupportArea(id);
         return BaseResponse.success(notSupportArea.getContext());
     }
@@ -181,7 +181,7 @@ public class FreightTemplateController {
         List<String[]> list = new ArrayList<>();
         while (sheet.getRow(i) != null) {
             Row row = sheet.getRow(i);
-            list.add(new String[]{row.getCell(0).getStringCellValue(), row.getCell(1).getStringCellValue()});
+            list.add(new String[]{row.getCell(0).getStringCellValue().trim(), row.getCell(1).getStringCellValue().trim()});
             i++;
         }
         Map<String, List<String>> areas = new HashMap<>();
@@ -204,7 +204,7 @@ public class FreightTemplateController {
      * @status done
      */
     @RequestMapping(value = "/notSupportArea/import", method = RequestMethod.POST)
-    public BaseResponse importNotSupportArea(NotSupportAreaImportExcelRequest notSupportAreaImportExcelRequest) {
+    public BaseResponse importNotSupportArea(@RequestBody NotSupportAreaImportExcelRequest notSupportAreaImportExcelRequest) {
         BaseResponse<String> baseResponse = freightTemplateGoodsProvider.importNotSupportArea(JSONObject.toJSONString(notSupportAreaImportExcelRequest.getAreas()), notSupportAreaImportExcelRequest.getSupplierId());
         if(CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode()) && baseResponse.getContext().length() > 0){
             String message = baseResponse.getContext();

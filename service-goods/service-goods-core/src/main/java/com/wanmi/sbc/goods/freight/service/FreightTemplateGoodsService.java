@@ -202,10 +202,14 @@ public class FreightTemplateGoodsService {
         if(expressNotSupport == null){
             expressNotSupport = new ExpressNotSupport();
             LocalDateTime now = LocalDateTime.now();
-            expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
-            expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
-            expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
-            expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            if(provinceIdsb.length() > 0){
+                expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
+                expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+            }
+            if(cityIdsb.length() > 0){
+                expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
+                expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+            }
             expressNotSupport.setSupplierId(supplierId);
             expressNotSupport.setUpdateTime(now);
             expressNotSupport.setCreateTime(now);

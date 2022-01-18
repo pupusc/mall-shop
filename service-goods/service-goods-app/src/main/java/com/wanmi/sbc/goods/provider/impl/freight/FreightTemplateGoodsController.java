@@ -8,8 +8,10 @@ import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateR
 import com.wanmi.sbc.goods.bean.vo.ExpressNotSupportVo;
 import com.wanmi.sbc.goods.bean.vo.SupplierSecondVo;
 import com.wanmi.sbc.goods.freight.model.root.ExpressNotSupport;
+import com.wanmi.sbc.goods.freight.service.CityAndCodeMapping;
 import com.wanmi.sbc.goods.freight.service.FreightTemplateGoodsService;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -17,9 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +66,43 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
     @Override
     public BaseResponse<ExpressNotSupportVo> findNotSupportArea(Long id){
         ExpressNotSupport notSupportArea = freightTemplateGoodsService.findNotSupportArea(id);
+        if(notSupportArea == null) return BaseResponse.success(null);
         ExpressNotSupportVo expressNotSupportVo = new ExpressNotSupportVo();
         BeanUtils.copyProperties(notSupportArea, expressNotSupportVo);
+        String provinceName = notSupportArea.getProvinceName();
+        Map<String, List<String>> areas = new HashMap<>();
+        if(StringUtils.isNotEmpty(provinceName)) {
+            String[] split = provinceName.split(",");
+            for (String s : split) {
+                List<CityAndCodeMapping.AreaAndCode> citys = CityAndCodeMapping.getCitys(s);
+                List<String> cityNames = new ArrayList<>();
+                if(citys != null) {
+                    for (CityAndCodeMapping.AreaAndCode city : citys) {
+                        cityNames.add(city.getName());
+                    }
+                    areas.put(s, cityNames);
+                }
+            }
+        }
+        String cityNames = notSupportArea.getCityName();
+        if(StringUtils.isNotEmpty(cityNames)) {
+            String[] split = cityNames.split(",");
+            for (String city : split) {
+                String province = CityAndCodeMapping.getProvince(city);
+                if(province != null) {
+                    areas.compute(province, (k, v) -> {
+                        if(v == null) {
+                            v = new ArrayList<>();
+                            v.add(city);
+                        }else if(!v.contains(city)){
+                            v.add(city);
+                        }
+                        return v;
+                    });
+                }
+            }
+        }
+        expressNotSupportVo.setAreas(areas);
         return BaseResponse.success(expressNotSupportVo);
     }
 
