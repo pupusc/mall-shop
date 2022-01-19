@@ -224,6 +224,10 @@ public class TradeCacheService {
         ).getContext().getFreightTemplateGoodsVOList();
     }
 
+    public boolean queryIfnotSupportArea(Long provinceId, Long cityId) {
+        return freightTemplateGoodsQueryProvider.queryIfnotSupportArea(provinceId, cityId).getContext();
+    }
+
     @Cacheable(value = WmCacheConfig.ORDER,keyGenerator = WmCacheConfig.DEFAULT_KEY_GENERATOR)
     public ConfigVO getTradeConfigByType(ConfigType configType) {
         TradeConfigGetByTypeRequest request = new TradeConfigGetByTypeRequest();

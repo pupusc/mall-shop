@@ -1,29 +1,41 @@
 package com.wanmi.sbc.freight;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.freight.dto.NotSupportAreaImportExcelRequest;
 import com.wanmi.sbc.goods.api.provider.freight.*;
 import com.wanmi.sbc.goods.api.request.freight.*;
+import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
 import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsByIdResponse;
 import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsExpressByIdResponse;
 import com.wanmi.sbc.goods.api.response.freight.FreightTemplateStoreByIdResponse;
+import com.wanmi.sbc.goods.bean.vo.ExpressNotSupportVo;
 import com.wanmi.sbc.goods.bean.vo.FreightTemplateGoodsVO;
 import com.wanmi.sbc.goods.bean.vo.FreightTemplateStoreVO;
+import com.wanmi.sbc.goods.bean.vo.SupplierSecondVo;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.OperateLogMQUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 
@@ -117,7 +129,124 @@ public class FreightTemplateController {
                     "编辑单品运费模板：" + freightTemplateGoodsSaveRequest.getFreightTempName());
         }
         return freightTemplateGoodsProvider.save(freightTemplateGoodsSaveRequest);
+    }
 
+    /**
+     * @description 不支持配送地区新增或修改
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/createUpdate", method = RequestMethod.POST)
+    public BaseResponse createOrUpdateNotSupportArea(@RequestBody ExpressNotSupportCreateUpdateRequest expressNotSupportCreateUpdateRequest) {
+        freightTemplateGoodsProvider.saveOrUpdateNotSupportArea(expressNotSupportCreateUpdateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 删除不支持配送地区
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/delete/{id}", method = RequestMethod.POST)
+    public BaseResponse deleteNotSupportArea(@PathVariable("id") Long id) {
+        freightTemplateGoodsProvider.deleteNotSupportArea(id);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 查询不支持配送地区
+     * @menu 不支持配送地区
+     * @param id 供应商id
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/find/{id}", method = RequestMethod.POST)
+    public BaseResponse<ExpressNotSupportVo> findNotSupportArea(@PathVariable("id") Long id) {
+        BaseResponse<ExpressNotSupportVo> notSupportArea = freightTemplateGoodsProvider.findNotSupportArea(id);
+        return BaseResponse.success(notSupportArea.getContext());
+    }
+
+    /**
+     * @description 解析不配送地区excel
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/import/parse", method = RequestMethod.POST)
+    public BaseResponse<Map<String, List<String>>> parseNotSupportArea(@RequestParam("uploadFile") MultipartFile multipartFile) throws IOException, InvalidFormatException {
+        Workbook sheets = WorkbookFactory.create(multipartFile.getInputStream());
+        Sheet sheet = sheets.getSheetAt(0);
+        int i = 1;
+        List<String[]> list = new ArrayList<>();
+        while (sheet.getRow(i) != null) {
+            Row row = sheet.getRow(i);
+            list.add(new String[]{row.getCell(0).getStringCellValue().trim(), row.getCell(1).getStringCellValue().trim()});
+            i++;
+        }
+        Map<String, List<String>> areas = new HashMap<>();
+        list.stream().collect(Collectors.groupingBy(a -> a[0])).forEach((k, v) -> {
+            v.forEach(array -> areas.compute(k, (key ,value) -> {
+                if(value == null) {
+                    value = new ArrayList<>();
+                    value.add(array[1]);
+                } else value.add(array[1]);
+                return value;
+            }));
+        });
+        return BaseResponse.success(areas);
+    }
+
+    /**
+     * @description 导入不支持配送地区
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/notSupportArea/import", method = RequestMethod.POST)
+    public BaseResponse importNotSupportArea(@RequestBody NotSupportAreaImportExcelRequest notSupportAreaImportExcelRequest) {
+        BaseResponse<String> baseResponse = freightTemplateGoodsProvider.importNotSupportArea(JSONObject.toJSONString(notSupportAreaImportExcelRequest.getAreas()), notSupportAreaImportExcelRequest.getSupplierId());
+        if(CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode()) && baseResponse.getContext().length() > 0){
+            String message = baseResponse.getContext();
+            return BaseResponse.info(CommonErrorCode.FAILED, "以下城市名称有误,请检查:" + message);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 创建二级供应商
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/secondLevelSupplier/createUpdate", method = RequestMethod.POST)
+    public BaseResponse createOrUpdateSecondLevelSupplier(@RequestBody SecondLevelSupplierCreateUpdateRequest secondLevelSupplierCreateUpdateRequest) {
+        freightTemplateGoodsProvider.saveOrUpdateSecondLevelSupplier(secondLevelSupplierCreateUpdateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * @description 查询二级供应商
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/secondLevelSupplier/find", method = RequestMethod.POST)
+    public BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier() {
+        BaseResponse<List<SupplierSecondVo>> secondLevelSupplier = freightTemplateGoodsProvider.findSecondLevelSupplier();
+        return BaseResponse.success(secondLevelSupplier.getContext());
+    }
+
+    /**
+     * @description 删除二级供应商
+     * @menu 不支持配送地区
+     * @param
+     * @status done
+     */
+    @RequestMapping(value = "/secondLevelSupplier/delete/{id}", method = RequestMethod.POST)
+    public BaseResponse deleteSecondLevelSupplier(@PathVariable("id") Long id) {
+        freightTemplateGoodsProvider.deleteSecondLevelSupplier(id);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

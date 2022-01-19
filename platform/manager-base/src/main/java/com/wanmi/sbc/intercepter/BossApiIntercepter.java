@@ -69,11 +69,6 @@ public class BossApiIntercepter implements HandlerInterceptor {
     private static AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     /**
-     * 有些一次性的接口，没必要搞权限
-     */
-    private static List<String> SECURE_PATH = Arrays.asList("/goods/setExtProp");
-
-    /**
      * 权限的统一拦截入口
      */
     @Override
@@ -144,9 +139,6 @@ public class BossApiIntercepter implements HandlerInterceptor {
 
         if (authorityList.stream().noneMatch(authority -> antPathMatcher.match(authority.getAuthorityUrl(), uri)
                 && authority.getRequestType().equals(requestType))) {
-            if(SECURE_PATH.contains(uri)){
-                return true;
-            }
             notAllowed(request, response);
             return false;
         }

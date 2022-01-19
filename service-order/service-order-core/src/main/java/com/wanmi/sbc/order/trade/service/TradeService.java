@@ -42,6 +42,7 @@ import com.wanmi.sbc.common.enums.PointsOrderType;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.enums.node.DistributionType;
 import com.wanmi.sbc.common.enums.node.OrderProcessType;
+import com.wanmi.sbc.common.exception.NotSupportDeliveryException;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
@@ -1312,6 +1313,7 @@ public class TradeService {
                             .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
                             .address(i.getInvoiceAddressDetail())
                             .addressId(i.getInvoiceAddressId())
+                            .email(i.getInvoiceEmail())
                             .projectId(i.getInvoiceProjectId())
                             .projectName(i.getInvoiceProjectName())
                             .projectUpdateTime(i.getInvoiceProjectUpdateTime())
@@ -2321,11 +2323,9 @@ public class TradeService {
      */
     public BigDecimal calcTradeFreight(Consignee consignee, Supplier supplier, DeliverWay deliverWay, BigDecimal
             totalPrice, List<TradeItem> goodsList, List<TradeItem> giftList) {
+        if(!tradeCacheService.queryIfnotSupportArea(consignee.getProvinceId(), consignee.getCityId()))
+            throw new NotSupportDeliveryException("not support area,province:" + consignee.getProvinceId() + ", or city: " + consignee.getCityId());
         BigDecimal freight = BigDecimal.ZERO;
-        //商家商品数量
-        // TODO  定制分支 商品全是供应商商品
-       /*long supplierGoodsCount = goodsList.stream().filter(tradeItem -> tradeItem.getProviderId() == null).count();
-       long supplierGiftsCount = giftList.stream().filter(tradeItem -> tradeItem.getProviderId() == null).count();*/
         //周期购商品
         Boolean cycleBuyFlag = goodsList.stream().filter(item -> GoodsType.CYCLE_BUY.equals(item.getGoodsType())).count() > 0 ? Boolean.TRUE : Boolean.FALSE;
         if (DefaultFlag.NO.equals(supplier.getFreightTemplateType())) {
@@ -5677,6 +5677,9 @@ public class TradeService {
         boolean isGeneral = invoice.getType() == 0;
         OrderInvoiceSaveRequest request = new OrderInvoiceSaveRequest();
         request.setCustomerId(trade.getBuyer().getId());
+        if(invoice.getEmail() != null){
+            request.setInvoiceEmail(invoice.getEmail());
+        }
         if (Objects.nonNull(invoice.getAddress())) {
             request.setInvoiceAddress(trade.getInvoice().getContacts() + " " + trade.getInvoice().getPhone() + " " +
                     invoice.getAddress());
@@ -5687,7 +5690,9 @@ public class TradeService {
         request.setInvoiceTitle(isGeneral ? invoice.getGeneralInvoice().getFlag() == 0 ? null :
                 invoice.getGeneralInvoice().getTitle()
                 : invoice.getSpecialInvoice().getCompanyName());
-
+        if(invoice.getType() == 2 && StringUtils.isNotEmpty(invoice.getGeneralInvoice().getTitle())){
+            request.setInvoiceTitle(invoice.getGeneralInvoice().getTitle());
+        }
         request.setInvoiceType(InvoiceType.NORMAL.fromValue(invoice.getType()));
         request.setOrderNo(trade.getId());
         request.setProjectId(invoice.getProjectId());

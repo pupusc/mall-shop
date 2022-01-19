@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.OrderType;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.exception.NotSupportDeliveryException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
@@ -381,9 +382,12 @@ public class TradeQueryController implements TradeQueryProvider {
      */
     @Override
     public BaseResponse<TradeGetFreightResponse> getFreight(@RequestBody @Valid TradeParamsRequest tradeParamsRequest) {
-        TradeFreightResponse freight = tradeService.getFreight(KsBeanUtil.convert(tradeParamsRequest,
-                TradeParams.class));
-        return BaseResponse.success(KsBeanUtil.convert(freight, TradeGetFreightResponse.class));
+        try {
+            TradeFreightResponse freight = tradeService.getFreight(KsBeanUtil.convert(tradeParamsRequest, TradeParams.class));
+            return BaseResponse.success(KsBeanUtil.convert(freight, TradeGetFreightResponse.class));
+        }catch (NotSupportDeliveryException e) {
+            return BaseResponse.success(null);
+        }
     }
 
     /**
