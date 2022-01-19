@@ -137,6 +137,8 @@ public class OrderInvoiceVO implements Serializable {
     @ApiModelProperty(value = "发票地址")
     private String invoiceAddress;
 
+    private String invoiceEmail;
+
     /**
      * 商家id
      */

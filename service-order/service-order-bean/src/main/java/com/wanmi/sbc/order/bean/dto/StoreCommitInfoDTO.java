@@ -92,6 +92,11 @@ public class StoreCommitInfoDTO extends BaseRequest {
     private String invoiceAddressId;
 
     /**
+     * 电子发票邮箱
+     */
+    private String invoiceEmail;
+
+    /**
      * 发票收货地址修改时间，可空
      */
     @ApiModelProperty(value = "发票收货地址修改时间")
