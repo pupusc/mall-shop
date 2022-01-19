@@ -53,7 +53,7 @@ public class SensorsDataService {
                     sensorsMessageDto.addProperty("click_type", "付款成功");
                     sensorsMessageDto.addProperty("var_id", tradeItem.getSkuId());
                     sensorsMessageDto.addProperty("goods_name", tradeItem.getSkuName());
-                    sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().setScale(2, BigDecimal.ROUND_HALF_DOWN).floatValue());
+                    sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().floatValue());
                     if(trade.getSource() != null) sensorsMessageDto.addProperty("s_str", trade.getSource());
                     if(trade.getPromoteUserId() != null) sensorsMessageDto.addProperty("r_str", trade.getPromoteUserId());
                     if(trade.getEmallSessionId() != null) sensorsMessageDto.addProperty("emall_session_id", trade.getEmallSessionId());
