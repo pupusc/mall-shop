@@ -746,8 +746,7 @@ public class CouponCacheService {
         return goodsCateList.stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, GoodsBrandVO::getBrandName));
     }
 
-    public CouponCenterPageResponse getCouponList(CouponCacheCenterRequest queryRequest) {
-        CouponQueryRequest request = CouponQueryRequest.builder().activityName(queryRequest.getActivityName()).build();
+    public CouponCenterPageResponse getCouponList(CouponQueryRequest request) {
         Page<CouponCache> pageCache = couponActivityConfigService.queryCouponStartedAndUnStart(request);
         if (pageCache!= null && CollectionUtils.isNotEmpty(pageCache.getContent())) {
             return CouponCenterPageResponse.builder()
@@ -757,7 +756,7 @@ public class CouponCacheService {
                                     //券库存
                                     , couponCodeService.mapLeftCount(pageCache.getContent())
                                     //领用状态
-                                    , couponCodeService.mapFetchStatus(pageCache.getContent(), queryRequest.getCustomerId()))
+                                    , couponCodeService.mapFetchStatus(pageCache.getContent(), null))
                                     , request.getPageable(), pageCache.getTotalElements()))
                     .build();
         } else {

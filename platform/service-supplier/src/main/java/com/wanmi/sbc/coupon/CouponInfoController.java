@@ -17,6 +17,7 @@ import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoProvider;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoQueryProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponInfoAddRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponPageQueryRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoAddResponse;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
@@ -110,10 +111,8 @@ public class CouponInfoController {
      */
     @ApiOperation(value = "分页查询关联活动优惠券")
     @RequestMapping(value = "/center", method = RequestMethod.POST)
-    public BaseResponse<CouponCacheCenterPageResponse> getCouponStartedFront(@RequestBody CouponCacheCenterPageRequest queryRequest) {
-        queryRequest.setActivityStatus(2);
-        queryRequest.setStoreId(commonUtil.getStoreId());
-        return couponCacheProvider.pageCouponStarted(queryRequest);
+    public BaseResponse<CouponCacheCenterPageResponse> getCouponStartedFront(@RequestBody CouponPageQueryRequest queryRequest) {
+        return couponCacheProvider.pageCoupon(queryRequest);
     }
 
 }

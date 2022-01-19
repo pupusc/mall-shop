@@ -67,6 +67,6 @@ public interface CouponCacheProvider {
      * @return
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/page")
-    BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@RequestBody @Valid CouponCacheCenterPageRequest request);
+    BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@RequestBody @Valid CouponPageQueryRequest request);
 
 }

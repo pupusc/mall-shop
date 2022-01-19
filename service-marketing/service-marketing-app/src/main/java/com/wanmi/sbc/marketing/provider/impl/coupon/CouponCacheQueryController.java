@@ -12,6 +12,7 @@ import com.wanmi.sbc.marketing.api.response.coupon.CouponGoodsListResponse;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheCenterRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponQueryRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCacheResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponCenterPageResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponGoodsQueryResponse;
@@ -103,9 +104,9 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     }
 
     @Override
-    public BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@Valid CouponCacheCenterPageRequest request) {
-        CouponCenterPageResponse couponStarted = couponCacheService.getCouponList(KsBeanUtil.convert(request,
-                CouponCacheCenterRequest.class));
+    public BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@Valid CouponPageQueryRequest request) {
+
+        CouponCenterPageResponse couponStarted = couponCacheService.getCouponList(KsBeanUtil.convert(request,CouponQueryRequest.class));
         MicroServicePage<CouponVO> page = KsBeanUtil.convertPage(couponStarted.getCouponViews(), CouponVO.class);
         CouponCacheCenterPageResponse response = KsBeanUtil.convert(couponStarted, CouponCacheCenterPageResponse.class);
         response.setCouponViews(page);
