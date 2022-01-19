@@ -28,12 +28,17 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +52,9 @@ import static java.util.Objects.isNull;
 @RestController
 @RequestMapping("/freightTemplate")
 public class FreightTemplateController {
+
+    @Value("classpath:not_deliver_area.xlsx")
+    private org.springframework.core.io.Resource templateFile;
 
     @Autowired
     private FreightTemplateGoodsQueryProvider freightTemplateGoodsQueryProvider;
@@ -153,6 +161,22 @@ public class FreightTemplateController {
     public BaseResponse deleteNotSupportArea(@PathVariable("id") Long id) {
         freightTemplateGoodsProvider.deleteNotSupportArea(id);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @GetMapping(value = "/notSupportArea/template/down/{encrypted}")
+    public void notSupportAreaTemplateDown(HttpServletResponse response, @PathVariable("encrypted") String encrypted) throws IOException {
+//        InputStream in = this.getClass().getResourceAsStream("/not_deliver_area.xlsx");
+        InputStream in = templateFile.getInputStream();
+        byte[] buffer = new byte[in.available()];
+        in.read(buffer);
+        in.close();
+        response.addHeader("Content-Disposition", "attachment;filename=not_delivery_area.xlsx");
+//        response.addHeader("Content-Length", "" + in.available());
+        OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+//        response.setContentType("application/octet-stream");
+        toClient.write(buffer);
+        toClient.flush();
+        toClient.close();
     }
 
     /**

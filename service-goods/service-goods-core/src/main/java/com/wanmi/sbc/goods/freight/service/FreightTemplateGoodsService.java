@@ -258,6 +258,10 @@ public class FreightTemplateGoodsService {
     public int saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {
         if(request.getId() != null){
             //更新
+            Long id = request.getId();
+            if(id.equals(1L)){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认区域不允许更改");
+            }
             Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
             if(optional.isPresent()){
                 SupplierModel supplierModel = optional.get();
@@ -286,6 +290,9 @@ public class FreightTemplateGoodsService {
     }
 
     public void deleteSecondLevelSupplier(Long id) {
+        if(id.equals(1L)){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认区域不允许修改");
+        }
         Optional<SupplierModel> optional = supplierRepository.findById(id);
         if(optional.isPresent()){
             SupplierModel supplierModel = optional.get();
