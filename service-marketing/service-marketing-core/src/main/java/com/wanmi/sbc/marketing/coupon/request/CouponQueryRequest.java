@@ -8,8 +8,10 @@ import com.wanmi.sbc.marketing.bean.enums.*;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponActivityCache;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponInfoCache;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
@@ -22,7 +24,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Data
-@Builder
 public class CouponQueryRequest  extends BaseQueryRequest {
     /**
      * 活动名称
