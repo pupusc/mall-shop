@@ -49,7 +49,5 @@ public class CouponCacheCenterRequest {
 
     private String activityName;
 
-    @ApiModelProperty("活动状态1进行中2进行中+待生效")
-    private Integer activityStatus;
 
 }

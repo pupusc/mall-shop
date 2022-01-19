@@ -44,12 +44,14 @@ import com.wanmi.sbc.marketing.coupon.mongorepository.CouponCacheRepository;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheCenterRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheInitRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheQueryRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponQueryRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCenterPageResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponGoodsQueryResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponListResponse;
 import com.wanmi.sbc.marketing.redis.RedisService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -142,7 +144,6 @@ public class CouponCacheService {
                 .couponActivityIds(queryRequest.getActivityIds())
                 .couponInfoIds(queryRequest.getCouponInfoIds())
                 .activityName(queryRequest.getActivityName())
-                .activityStatus(queryRequest.getActivityStatus())
                 .build();
         if(Objects.nonNull(queryRequest.getStoreId())) {
             request.setStoreIds(Arrays.asList(queryRequest.getStoreId()));
@@ -743,6 +744,26 @@ public class CouponCacheService {
         List<GoodsBrandVO> goodsCateList =
                 goodsBrandQueryProvider.listByIds(new GoodsBrandByIdsRequest(brandIds)).getContext().getGoodsBrandVOList();
         return goodsCateList.stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, GoodsBrandVO::getBrandName));
+    }
+
+    public CouponCenterPageResponse getCouponList(CouponCacheCenterRequest queryRequest) {
+        CouponQueryRequest request = CouponQueryRequest.builder().activityName(queryRequest.getActivityName()).build();
+        Page<CouponCache> pageCache = couponActivityConfigService.queryCouponStartedAndUnStart(request);
+        if (pageCache!= null && CollectionUtils.isNotEmpty(pageCache.getContent())) {
+            return CouponCenterPageResponse.builder()
+                    //券详情
+                    .couponViews(
+                            new PageImpl<>(CouponView.converter(pageCache.getContent()
+                                    //券库存
+                                    , couponCodeService.mapLeftCount(pageCache.getContent())
+                                    //领用状态
+                                    , couponCodeService.mapFetchStatus(pageCache.getContent(), queryRequest.getCustomerId()))
+                                    , request.getPageable(), pageCache.getTotalElements()))
+                    .build();
+        } else {
+            return CouponCenterPageResponse.builder().couponViews(new PageImpl<>(Collections.emptyList(), request.getPageable()
+                    , 0)).build();
+        }
     }
 
 

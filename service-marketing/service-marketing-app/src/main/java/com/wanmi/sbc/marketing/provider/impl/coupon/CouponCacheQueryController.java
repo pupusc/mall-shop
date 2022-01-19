@@ -101,4 +101,14 @@ public class CouponCacheQueryController implements CouponCacheProvider {
                         request.getCustomerId(), request.getStoreId());
         return BaseResponse.success(KsBeanUtil.convert(couponGoodsQueryResponse, CouponGoodsListResponse.class));
     }
+
+    @Override
+    public BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@Valid CouponCacheCenterPageRequest request) {
+        CouponCenterPageResponse couponStarted = couponCacheService.getCouponList(KsBeanUtil.convert(request,
+                CouponCacheCenterRequest.class));
+        MicroServicePage<CouponVO> page = KsBeanUtil.convertPage(couponStarted.getCouponViews(), CouponVO.class);
+        CouponCacheCenterPageResponse response = KsBeanUtil.convert(couponStarted, CouponCacheCenterPageResponse.class);
+        response.setCouponViews(page);
+        return BaseResponse.success(response);
+    }
 }

@@ -79,10 +79,6 @@ public class CouponCacheQueryRequest {
     private String activityName;
 
     /**
-     * 活动状态1进行中2进行中+未开始
-     */
-    private Integer activityStatus;
-    /**
      * 构建平台优惠券+店铺优惠券的查询条件
      *
      * @return
@@ -167,9 +163,7 @@ public class CouponCacheQueryRequest {
         List<Criteria> storeCriteriaList = new ArrayList<>();
         storeCriteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         storeCriteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.NO.toString()));
-        if(activityStatus == null ||  activityStatus == 1) {
-            storeCriteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        }
+        storeCriteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
         storeCriteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
         return storeCriteriaList;
     }
@@ -184,9 +178,7 @@ public class CouponCacheQueryRequest {
         List<Criteria> criteriaList = new ArrayList<>();
         criteriaList.add(Criteria.where("couponActivity.couponActivityType").is(CouponActivityType.ALL_COUPONS.toString()));
         criteriaList.add(Criteria.where("couponActivity.platformFlag").is(DefaultFlag.YES.toString()));
-        if(activityStatus == null ||  activityStatus == 1) {
-            criteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
-        }
+        criteriaList.add(Criteria.where("couponActivity.startTime").lt(LocalDateTime.now()));
         criteriaList.add(Criteria.where("couponActivity.endTime").gt(LocalDateTime.now()));
         return criteriaList;
     }

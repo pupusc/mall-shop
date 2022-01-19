@@ -74,7 +74,5 @@ public class CouponCacheCenterPageRequest implements Serializable {
     @ApiModelProperty("活动名称")
     private String activityName;
 
-    @ApiModelProperty("活动状态1生效中2生效中+待生效")
-    private Integer activityStatus = 1 ;
 
 }
