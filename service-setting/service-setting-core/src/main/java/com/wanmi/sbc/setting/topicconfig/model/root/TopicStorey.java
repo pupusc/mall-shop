@@ -1,5 +1,6 @@
 package com.wanmi.sbc.setting.topicconfig.model.root;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -58,4 +59,7 @@ public class TopicStorey {
 
     @Column(name="link_url")
     private String linkUrl;
+
+    @Column(name="color")
+    private String color;
 }

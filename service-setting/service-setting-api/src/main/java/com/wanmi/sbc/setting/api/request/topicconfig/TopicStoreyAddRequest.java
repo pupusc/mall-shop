@@ -47,5 +47,8 @@ public class TopicStoreyAddRequest implements Serializable {
     @ApiModelProperty("链接地址")
     private String linkUrl;
 
+    @ApiModelProperty("颜色，导航对应导航文字颜色")
+    private String color;
+
 
 }
