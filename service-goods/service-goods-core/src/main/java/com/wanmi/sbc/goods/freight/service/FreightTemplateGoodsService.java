@@ -1,8 +1,10 @@
 package com.wanmi.sbc.goods.freight.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.goods.api.request.freight.ExpressNotSupportCreateUpdateRequest;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.freight.model.root.*;
 import com.wanmi.sbc.goods.freight.repository.*;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
@@ -27,10 +29,15 @@ import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -282,7 +289,7 @@ public class FreightTemplateGoodsService {
             Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
             if(optional.isPresent()){
                 SupplierModel supplierModel = optional.get();
-                if(supplierModel.getSystem()  != null && supplierModel.getSystem() == 1)
+                if(supplierModel.getSystemDefault()  != null && supplierModel.getSystemDefault() == 1)
                     throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
                 supplierModel.setName(request.getName());
                 supplierModel.setUpdateTime(LocalDateTime.now());
@@ -302,15 +309,17 @@ public class FreightTemplateGoodsService {
         return 0;
     }
 
-    public List<SupplierModel> findSecondLevelSupplier() {
-        return supplierRepository.findAllByDelFlag(DeleteFlag.NO);
+    public Page<SupplierModel> findSecondLevelSupplier(PageRequestParam pageRequestParam) {
+        Specification<SupplierModel> supplierModelSpecification = supplierRepository.buildQueryCondition();
+        return supplierRepository.findAll(supplierModelSpecification, PageRequest.of(pageRequestParam.getPageNum(),
+                pageRequestParam.getPageSize()));
     }
 
     public void deleteSecondLevelSupplier(Long id) {
         Optional<SupplierModel> optional = supplierRepository.findById(id);
         if(optional.isPresent()){
             SupplierModel supplierModel = optional.get();
-            if(supplierModel.getSystem()  != null && supplierModel.getSystem() == 1)
+            if(supplierModel.getSystemDefault()  != null && supplierModel.getSystemDefault() == 1)
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
             supplierModel.setDelFlag(DeleteFlag.YES);
             supplierRepository.save(supplierModel);
@@ -700,4 +709,5 @@ public class FreightTemplateGoodsService {
         }).collect(Collectors.toList());
         return strLists.size() != set.size();
     }
+
 }

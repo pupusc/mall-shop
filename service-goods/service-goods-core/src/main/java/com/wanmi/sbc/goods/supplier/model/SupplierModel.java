@@ -41,6 +41,6 @@ public class SupplierModel {
     private DeleteFlag delFlag;
 
     //是否系统默认
-    @Column(name = "system")
-    private Byte system;
+    @Column(name = "system_default")
+    private Byte systemDefault;
 }

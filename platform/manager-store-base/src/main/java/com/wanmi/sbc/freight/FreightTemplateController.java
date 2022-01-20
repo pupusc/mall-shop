@@ -3,6 +3,7 @@ package com.wanmi.sbc.freight;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.freight.dto.NotSupportAreaImportExcelRequest;
@@ -253,8 +254,8 @@ public class FreightTemplateController {
      * @status done
      */
     @RequestMapping(value = "/secondLevelSupplier/find", method = RequestMethod.POST)
-    public BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier() {
-        BaseResponse<List<SupplierSecondVo>> secondLevelSupplier = freightTemplateGoodsProvider.findSecondLevelSupplier();
+    public BaseResponse<MicroServicePage<SupplierSecondVo>> findSecondLevelSupplier(@RequestBody PageRequestParam pageRequestParam) {
+        BaseResponse<MicroServicePage<SupplierSecondVo>> secondLevelSupplier = freightTemplateGoodsProvider.findSecondLevelSupplier(pageRequestParam);
         return BaseResponse.success(secondLevelSupplier.getContext());
     }
 

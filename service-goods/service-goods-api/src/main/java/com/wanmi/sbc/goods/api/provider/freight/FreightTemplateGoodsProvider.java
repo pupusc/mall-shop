@@ -1,6 +1,8 @@
 package com.wanmi.sbc.goods.api.provider.freight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.goods.api.request.freight.*;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
 import com.wanmi.sbc.goods.bean.vo.ExpressNotSupportVo;
@@ -65,7 +67,7 @@ public interface FreightTemplateGoodsProvider {
      * 查询二级供应商
      */
     @PostMapping("/goods/${application.goods.version}/second-level-supplier/find")
-    BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier();
+    BaseResponse<MicroServicePage<SupplierSecondVo>> findSecondLevelSupplier(@RequestBody PageRequestParam pageRequestParam);
 
     /**
      * 删除二级供应商
