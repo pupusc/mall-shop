@@ -165,15 +165,12 @@ public class FreightTemplateController {
 
     @GetMapping(value = "/notSupportArea/template/down/{encrypted}")
     public void notSupportAreaTemplateDown(HttpServletResponse response, @PathVariable("encrypted") String encrypted) throws IOException {
-//        InputStream in = this.getClass().getResourceAsStream("/not_deliver_area.xlsx");
         InputStream in = templateFile.getInputStream();
         byte[] buffer = new byte[in.available()];
         in.read(buffer);
         in.close();
         response.addHeader("Content-Disposition", "attachment;filename=not_delivery_area.xlsx");
-//        response.addHeader("Content-Length", "" + in.available());
         OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
-//        response.setContentType("application/octet-stream");
         toClient.write(buffer);
         toClient.flush();
         toClient.close();

@@ -164,6 +164,7 @@ public class FreightTemplateGoodsService {
         }
     }
 
+    @Transactional
     public String importNotSupportArea(String areaStr, Long supplierId) {
         Map<String, List<String>> areas = JSONObject.parseObject(areaStr, Map.class);
         StringBuilder provinceIdsb = new StringBuilder();
@@ -220,24 +221,43 @@ public class FreightTemplateGoodsService {
             expressNotSupport.setUpdateTime(now);
             expressNotSupport.setCreateTime(now);
             expressNotSupport.setDelFlag(DeleteFlag.NO);
+            expressNotSupport.setCode(1);
             expressNotSupportRepository.save(expressNotSupport);
+            Optional<SupplierModel> supplierModelOptional = supplierRepository.findById(supplierId);
+            SupplierModel supplierModel = supplierModelOptional.get();
+            supplierModel.setCode(1);
+            supplierRepository.save(supplierModel);
         }else {
+            expressNotSupport.setDelFlag(DeleteFlag.YES);
+            expressNotSupportRepository.save(expressNotSupport);
+
+            ExpressNotSupport expressNotSupport2 = new ExpressNotSupport();
+            LocalDateTime now = LocalDateTime.now();
             if(provinceIdsb.length() > 0){
-                expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
-                expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+                expressNotSupport2.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
+                expressNotSupport2.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
             }else{
-                expressNotSupport.setProvinceId("");
-                expressNotSupport.setProvinceName("");
+                expressNotSupport2.setProvinceId("");
+                expressNotSupport2.setProvinceName("");
             }
             if(cityIdsb.length() > 0){
-                expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
-                expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+                expressNotSupport2.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
+                expressNotSupport2.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
             }else{
-                expressNotSupport.setCityId("");
-                expressNotSupport.setCityName("");
+                expressNotSupport2.setCityId("");
+                expressNotSupport2.setCityName("");
             }
-            expressNotSupport.setUpdateTime(LocalDateTime.now());
-            expressNotSupportRepository.save(expressNotSupport);
+            expressNotSupport2.setSupplierId(supplierId);
+            expressNotSupport2.setUpdateTime(now);
+            expressNotSupport2.setCreateTime(now);
+            expressNotSupport2.setDelFlag(DeleteFlag.NO);
+            Optional<SupplierModel> supplierModelOptional = supplierRepository.findById(supplierId);
+            SupplierModel supplierModel = supplierModelOptional.get();
+            Integer code = supplierModel.getCode();
+            supplierModel.setCode(code + 1);
+            expressNotSupport2.setCode(code + 1);
+            expressNotSupportRepository.save(expressNotSupport2);
+            supplierRepository.save(supplierModel);
         }
         return "";
     }
@@ -259,14 +279,12 @@ public class FreightTemplateGoodsService {
         if(request.getId() != null){
             //更新
             Long id = request.getId();
-            if(id.equals(1L)){
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认区域不允许更改");
-            }
             Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
             if(optional.isPresent()){
                 SupplierModel supplierModel = optional.get();
+                if(supplierModel.getSystem()  != null && supplierModel.getSystem() == 1)
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
                 supplierModel.setName(request.getName());
-                supplierModel.setCode(request.getCode());
                 supplierModel.setUpdateTime(LocalDateTime.now());
                 supplierRepository.save(supplierModel);
             }
@@ -276,7 +294,6 @@ public class FreightTemplateGoodsService {
             SupplierModel supplierModel = new SupplierModel();
             LocalDateTime now = LocalDateTime.now();
             supplierModel.setName(request.getName());
-            supplierModel.setCode(request.getCode());
             supplierModel.setUpdateTime(now);
             supplierModel.setCreateTime(now);
             supplierModel.setDelFlag(DeleteFlag.NO);
@@ -290,12 +307,11 @@ public class FreightTemplateGoodsService {
     }
 
     public void deleteSecondLevelSupplier(Long id) {
-        if(id.equals(1L)){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认区域不允许修改");
-        }
         Optional<SupplierModel> optional = supplierRepository.findById(id);
         if(optional.isPresent()){
             SupplierModel supplierModel = optional.get();
+            if(supplierModel.getSystem()  != null && supplierModel.getSystem() == 1)
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
             supplierModel.setDelFlag(DeleteFlag.YES);
             supplierRepository.save(supplierModel);
             List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAllBySupplierId(id);
