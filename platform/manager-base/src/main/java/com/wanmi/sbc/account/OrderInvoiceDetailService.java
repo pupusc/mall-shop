@@ -403,6 +403,25 @@ public class OrderInvoiceDetailService {
                         .taxNo( trade.getInvoice() != null? trade.getInvoice().getGeneralInvoice().getIdentification() : null)
                         .tradeState(trade.getTradeState())
                         .build();
+            }else if(orderInvoice.getInvoiceType() == InvoiceType.ELECTRONIC){
+                CustomerDetailVO customerDetail = customerDetailQueryProvider.getCustomerDetailByCustomerId(
+                        CustomerDetailByCustomerIdRequest.builder()
+                                .customerId(orderInvoice.getCustomerId()).build()).getContext();
+                return OrderInvoiceViewResponse.builder()
+                        .invoiceType(orderInvoice.getInvoiceType())
+                        .invoiceTime(orderInvoice.getInvoiceTime())
+                        .invoiceTitle(orderInvoice.getInvoiceTitle())
+                        .email(orderInvoice.getInvoiceEmail())
+                        .orderNo(orderInvoice.getOrderNo())
+                        .orderPrice(trade.getTradePrice().getTotalPrice())
+                        .customerName(customerDetail.getCustomerName())
+                        .payOrderStatus(payOrderResponse.getPayOrderStatus())
+                        .projectName(invoiceProjectByIdResponse.getProjectName())
+                        .invoiceState(orderInvoice.getInvoiceState())
+                        .supplierName( trade.getSupplier() != null? trade.getSupplier().getSupplierName() : null)
+                        .taxNo( trade.getInvoice() != null? trade.getInvoice().getGeneralInvoice().getIdentification() : null)
+                        .tradeState(trade.getTradeState())
+                        .build();
             }
 
             // 增值税发票
