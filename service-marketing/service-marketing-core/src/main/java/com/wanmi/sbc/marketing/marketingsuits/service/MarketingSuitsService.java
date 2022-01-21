@@ -142,6 +142,7 @@ public class MarketingSuitsService {
 		entity.setMarketingId(marketing.getMarketingId());
 		entity.setMainImage(marketingSuitsSaveRequest.getSuitsPictureUrl());
 		entity.setSuitsPrice(suitPrice);
+		entity.setSuitScene(marketingSuitsSaveRequest.getSuitScene());
 		MarketingSuits marketingSuits = marketingSuitsRepository.save(entity);
 
 		//组合活动商品关联数据
@@ -193,6 +194,7 @@ public class MarketingSuitsService {
 		entity.setMarketingId(marketing.getMarketingId());
 		entity.setMainImage(marketingSuitsSaveRequest.getSuitsPictureUrl());
 		entity.setSuitsPrice(suitPrice);
+		entity.setSuitScene(marketingSuitsSaveRequest.getSuitScene());
 		//删除原有数据
         deleteByMarketingId(marketing.getMarketingId());
         MarketingSuits marketingSuits = marketingSuitsRepository.save(entity);
@@ -497,6 +499,7 @@ public class MarketingSuitsService {
 						.marketingName(marketing.getMarketingName())
 						.mainImage(marketingSuits.getMainImage())
 						.suitsPrice(marketingSuits.getSuitsPrice())
+						.suitScene(marketingSuits.getSuitScene())
 						.build();
 				response.setMarketingSuitsGoodsInfoDetailVO(goodsInfoDetailVO);
 			});

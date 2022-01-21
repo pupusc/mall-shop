@@ -40,4 +40,7 @@ public class MarketingSuitsVO implements Serializable {
 	@ApiModelProperty(value = "套餐价格")
 	private BigDecimal suitsPrice;
 
+	@ApiModelProperty("场景1商详页组合优惠2商详页书单组合优惠")
+	private Integer suitScene;
+
 }

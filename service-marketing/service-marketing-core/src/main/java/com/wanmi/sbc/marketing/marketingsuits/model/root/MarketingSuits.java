@@ -42,4 +42,10 @@ public class MarketingSuits {
 	@Column(name = "suits_price")
 	private BigDecimal suitsPrice;
 
+	/**
+	 * 场景1商详页组合优惠2商详页书单组合优惠
+	 */
+	@Column(name = "suit_scene")
+	private Integer suitScene;
+
 }
