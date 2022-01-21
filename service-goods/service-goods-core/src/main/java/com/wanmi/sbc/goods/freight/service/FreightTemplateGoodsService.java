@@ -296,8 +296,6 @@ public class FreightTemplateGoodsService {
                 supplierRepository.save(supplierModel);
             }
         }else {
-            SupplierModel supplier = supplierRepository.findByCodeAndDelFlag(request.getCode(), DeleteFlag.NO);
-            if(supplier != null) return 1;
             SupplierModel supplierModel = new SupplierModel();
             LocalDateTime now = LocalDateTime.now();
             supplierModel.setName(request.getName());

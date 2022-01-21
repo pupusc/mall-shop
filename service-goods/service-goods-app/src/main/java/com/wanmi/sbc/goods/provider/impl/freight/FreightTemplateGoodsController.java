@@ -114,10 +114,7 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
 
     @Override
     public BaseResponse saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request){
-        int errorCode = freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
-        if(errorCode == 1){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "编码重复");
-        }
+        freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
         return BaseResponse.SUCCESSFUL();
     }
 
