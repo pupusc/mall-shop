@@ -23,6 +23,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -170,7 +171,7 @@ public class FreightTemplateController {
         byte[] buffer = new byte[in.available()];
         in.read(buffer);
         in.close();
-        response.addHeader("Content-Disposition", "attachment;filename=not_delivery_area.xlsx");
+        response.addHeader("Content-Disposition", "attachment;filename=商城不配送地区模板.xlsx");
         OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
         toClient.write(buffer);
         toClient.flush();
@@ -203,7 +204,11 @@ public class FreightTemplateController {
         List<String[]> list = new ArrayList<>();
         while (sheet.getRow(i) != null) {
             Row row = sheet.getRow(i);
-            list.add(new String[]{row.getCell(0).getStringCellValue().trim(), row.getCell(1).getStringCellValue().trim()});
+            String p = row.getCell(0).getStringCellValue().trim();
+            String c = row.getCell(1).getStringCellValue().trim();
+            if(StringUtils.isNotEmpty(p) && StringUtils.isNotEmpty(c)){
+                list.add(new String[]{p, c});
+            }
             i++;
         }
         Map<String, List<String>> areas = new HashMap<>();
