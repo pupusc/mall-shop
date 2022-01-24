@@ -112,6 +112,7 @@ public class CouponInfoController {
     @ApiOperation(value = "分页查询关联活动优惠券")
     @RequestMapping(value = "/center", method = RequestMethod.POST)
     public BaseResponse<CouponCacheCenterPageResponse> getCouponStartedFront(@RequestBody CouponPageQueryRequest queryRequest) {
+        queryRequest.setStoreId(commonUtil.getStoreId());
         return couponCacheProvider.pageCoupon(queryRequest);
     }
 

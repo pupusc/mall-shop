@@ -35,6 +35,7 @@ public class CouponQueryRequest  extends BaseQueryRequest {
      */
     private String couponScene;
 
+    private Long storeId;
     /**
      * request构建查询对象
      *
@@ -79,12 +80,17 @@ public class CouponQueryRequest  extends BaseQueryRequest {
         sb.append("      LEFT JOIN coupon_activity ON coupon_activity.activity_id = coupon_activity_config.activity_id");
         sb.append("     WHERE 1=1  AND coupon_info.del_flag = 0 AND coupon_activity.del_flag = 0");
         sb.append("     AND coupon_activity.activity_type = 0");
+        sb.append("     AND coupon_activity.platform_flag = 0");
+        sb.append("     AND coupon_activity.pause_flag = 0");
         sb.append("     AND now() < coupon_activity.end_time");
         if(StringUtils.isNotEmpty(this.activityName)){
             sb.append("     AND coupon_activity.activity_name like '" + activityName +"%'");
         }
         if(StringUtils.isNotEmpty(couponScene)){
             sb.append("     AND coupon_activity.activity_scene like '%" + couponScene +"%'");
+        }
+        if(storeId != null){
+            sb.append("     AND coupon_activity.store_id = " + storeId);
         }
         //排序
         sb.append("  ORDER BY coupon_activity.start_time ASC,coupon_info.coupon_type ASC,coupon_info.create_time ASC");
