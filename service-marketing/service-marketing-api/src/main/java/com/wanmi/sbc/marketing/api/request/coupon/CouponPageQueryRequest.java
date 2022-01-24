@@ -17,4 +17,6 @@ public class CouponPageQueryRequest extends BaseQueryRequest {
     private String activityName;
 
     private String couponScene;
+
+    private Long storeId;
 }
