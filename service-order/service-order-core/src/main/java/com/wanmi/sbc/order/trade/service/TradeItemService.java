@@ -201,9 +201,9 @@ public class TradeItemService {
 
             if (StringUtils.isNotBlank(request.getSnapshotType())) {
                 itemGroups.add(new TradeItemGroup(items, supplier, marketings, request.getStoreBagsFlag(), request
-                        .getSnapshotType(), grouponForm, request.getSuitMarketingFlag(), request.getCycleBuyInfoDTO()));
+                        .getSnapshotType(), grouponForm, request.getSuitMarketingFlag(), request.getCycleBuyInfoDTO(),request.getSuitScene()));
             } else {
-                itemGroups.add(new TradeItemGroup(items, supplier, marketings, request.getStoreBagsFlag(), null, grouponForm, request.getSuitMarketingFlag(), request.getCycleBuyInfoDTO()));
+                itemGroups.add(new TradeItemGroup(items, supplier, marketings, request.getStoreBagsFlag(), null, grouponForm, request.getSuitMarketingFlag(), request.getCycleBuyInfoDTO(),request.getSuitScene()));
             }
         });
 

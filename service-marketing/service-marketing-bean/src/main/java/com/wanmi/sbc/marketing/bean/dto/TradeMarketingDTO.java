@@ -67,9 +67,5 @@ public class TradeMarketingDTO implements Serializable {
      */
     private Integer pointNeed;
 
-    /**
-     * 组合购使用场景
-     */
-    @ApiModelProperty(value = "组合购使用场景")
-    private Integer suitScene;
+
 }
