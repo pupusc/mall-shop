@@ -52,6 +52,12 @@ public class TradeItemSnapshotRequest implements Serializable {
     private Boolean suitMarketingFlag;
 
     /**
+     * 组合购场景
+     */
+    @ApiModelProperty(value = "组合购场景")
+    private Boolean suitScene;
+
+    /**
      * 是否开团购买(true:开团 false:参团 null:非拼团购买)
      */
     @ApiModelProperty(value = "是否开团购买")

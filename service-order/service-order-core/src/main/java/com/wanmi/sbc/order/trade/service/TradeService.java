@@ -1374,6 +1374,7 @@ public class TradeService {
                                             ? null : tradeCommitRequest.getShareUserId())
                                     .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
                                     .suitMarketingFlag(group.getSuitMarketingFlag())
+                                    .suitScene(CollectionUtils.isNotEmpty(group.getTradeMarketingList())?group.getTradeMarketingList().get(0).getSuitScene():null)
                                     .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
                                     .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)

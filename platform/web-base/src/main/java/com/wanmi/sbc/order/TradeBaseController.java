@@ -1006,6 +1006,7 @@ public class TradeBaseController {
                         .tradeItems(tradeItems)
                         .tradeMarketingList(tradeMarketingList)
                         .suitMarketingFlag(Boolean.TRUE)
+                        .suitScene(marketingRespons.getMarketingSuitsVO().getSuitScene())
                         .purchaseBuy(Boolean.FALSE)
                         .skuList(KsBeanUtil.convertList(response.getGoodsInfos(), GoodsInfoDTO.class)).build());
 

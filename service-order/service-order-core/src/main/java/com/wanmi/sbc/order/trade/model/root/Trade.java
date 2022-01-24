@@ -448,6 +448,11 @@ public class Trade implements Serializable {
     private String emallSessionId;
 
     /**
+     * 组合购场景
+     */
+    private Integer suitScene;
+
+    /**
      * 增加
      *
      * @param log
