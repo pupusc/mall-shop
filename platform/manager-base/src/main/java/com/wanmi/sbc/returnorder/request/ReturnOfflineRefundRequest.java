@@ -99,5 +99,5 @@ public class ReturnOfflineRefundRequest extends BaseRequest {
     /**
      * 默认调用管易云拦截
      */
-    private boolean hasInvokeGuanYiYun = true;
+    private Boolean hasInvokeGuanYiYun = true;
 }

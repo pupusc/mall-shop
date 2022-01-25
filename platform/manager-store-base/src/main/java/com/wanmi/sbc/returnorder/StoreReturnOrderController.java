@@ -62,6 +62,7 @@ import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.DeliverCalendarVO;
 import com.wanmi.sbc.order.bean.vo.ReturnItemVO;
@@ -262,41 +263,6 @@ public class StoreReturnOrderController {
     }
 
     /**
-     * 订单自动审核
-     * @param returnOrderId
-     * @param addressId
-     * @return
-     */
-    private BaseResponse audit(String returnOrderId, String addressId){
-//        ReturnOrderVO returnOrderVO = returnOrderVOList.get(0);
-//        //linkedMall订单，且未支付失败 删除这种信息，update by duanlsh
-//        if ((!Boolean.TRUE.equals(returnOrderVO.getThirdPlatformPayErrorFlag()))
-//                && ThirdPlatformType.LINKED_MALL.equals(returnOrderVO.getThirdPlatformType())
-//                && CollectionUtils.isNotEmpty(returnOrderVO.getReturnItems())) {
-//            String subLmOrderId = returnOrderVO.getReturnItems().get(0).getThirdPlatformSubOrderId();
-//            if (StringUtils.isNotBlank(subLmOrderId)) {
-//                SbcQueryRefundApplicationDetailRequest detailRequest = new SbcQueryRefundApplicationDetailRequest();
-//                detailRequest.setBizUid(returnOrderVO.getBuyer().getId());
-//                detailRequest.setSubLmOrderId(subLmOrderId);
-//                QueryRefundApplicationDetailResponse.RefundApplicationDetail detail =
-//                        linkedMallReturnOrderQueryProvider.queryRefundApplicationDetail(detailRequest).getContext().getDetail();
-//                if (detail != null) {
-//                    if (!(Integer.valueOf(2).equals(detail.getDisputeStatus())
-//                            || Integer.valueOf(3).equals(detail.getDisputeStatus())
-//                            || Integer.valueOf(5).equals(detail.getDisputeStatus()))) {
-//                        throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"linkedMall商家没有同意退款"});
-//                    }
-//                }
-//            }
-//        }
-        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
-        returnOrderAuditRequest.setRid(returnOrderId);
-        returnOrderAuditRequest.setAddressId(addressId);
-        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
-        return returnOrderProvider.audit(returnOrderAuditRequest);
-    }
-
-    /**
      *
      * 审核退款接口
      *
@@ -316,25 +282,33 @@ public class StoreReturnOrderController {
         //验证一下
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(returnOrderId)
                 .build()).getContext();
-
-        //1、走审核流程，
-        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
-        returnOrderAuditRequest.setRid(returnOrderId);
-        returnOrderAuditRequest.setAddressId(null); // TODO
-        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
-        returnOrderProvider.audit(returnOrderAuditRequest);
-        //2、管易云拦截
-        if (request.get) {
-
-        }
-
-
-        //3、退款
         BigDecimal refundPrice = returnOrder.getReturnPrice().getTotalPrice();
         if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
             throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});
         }
+        //只有不是审核状态，则会进入审核流程
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
+            //1、走审核流程，
+            ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+            returnOrderAuditRequest.setRid(returnOrderId);
+            returnOrderAuditRequest.setAddressId(null); // TODO
+            returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+            returnOrderProvider.audit(returnOrderAuditRequest);
+        }
 
+        //2、管易云拦截
+        if (request.getHasInvokeGuanYiYun()) {
+            boolean flag = true;
+            //管易云
+            if (Objects.equals(returnOrder.getProviderId(),String.valueOf(defaultProviderId))) {
+                abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrder, flag);
+            } else {
+                //博库
+                abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrder, flag);
+            }
+        }
+
+        //3、退款
         return returnOrderProvider.onlineModifyPrice(ReturnOrderOnlineModifyPriceRequest.builder()
                 .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
                 .refundComment(request.getRefundComment())
@@ -345,32 +319,32 @@ public class StoreReturnOrderController {
     }
 
 
-    /**
-     * 商家操作退款校验erp订单是否发货  duanlsh  当前管易云和博库对应的取消订单 作废，改成到
-     * flag:true->检查订单中是否包含电子卡券或虚拟商品
-     * flag:false->进行退款操作
-     * @param rid
-     * @return
-     */
-    @ApiOperation(value = "商家操作退款校验erp订单是否发货")
-    @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
-    @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
-    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
-        //获取退单信息
-        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
-        if (returnOrderVO == null) {
-            //退单不存在
-            throw new SbcRuntimeException("K-050003");
-        }
-        //管易云
-        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
-            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        } else {
-            //博库
-            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
-        }
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 商家操作退款校验erp订单是否发货  duanlsh  当前管易云和博库对应的取消订单 作废，改成到
+//     * flag:true->检查订单中是否包含电子卡券或虚拟商品
+//     * flag:false->进行退款操作
+//     * @param rid
+//     * @return
+//     */
+//    @ApiOperation(value = "商家操作退款校验erp订单是否发货")
+//    @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
+//    @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
+//    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
+//        //获取退单信息
+//        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
+//        if (returnOrderVO == null) {
+//            //退单不存在
+//            throw new SbcRuntimeException("K-050003");
+//        }
+//        //管易云
+//        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
+//            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        } else {
+//            //博库
+//            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
+//        }
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
     /**
      * 是否可创建退单
