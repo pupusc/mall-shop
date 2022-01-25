@@ -13,4 +13,6 @@ public class SupplierSecondVo {
     //编号
     private String code;
 
+    private Byte systemDefault;
+
 }

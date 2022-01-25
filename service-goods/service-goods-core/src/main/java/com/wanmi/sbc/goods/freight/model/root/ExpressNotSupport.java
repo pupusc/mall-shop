@@ -50,4 +50,8 @@ public class ExpressNotSupport {
     @Column(name = "del_flag")
     @Enumerated
     private DeleteFlag delFlag;
+
+    //编号
+    @Column(name = "code")
+    private Integer code;
 }

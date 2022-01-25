@@ -1,20 +1,25 @@
 package com.wanmi.sbc.goods.provider.impl.freight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsProvider;
 import com.wanmi.sbc.goods.api.request.freight.*;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.bean.vo.ExpressNotSupportVo;
 import com.wanmi.sbc.goods.bean.vo.SupplierSecondVo;
 import com.wanmi.sbc.goods.freight.model.root.ExpressNotSupport;
 import com.wanmi.sbc.goods.freight.service.CityAndCodeMapping;
 import com.wanmi.sbc.goods.freight.service.FreightTemplateGoodsService;
+import com.wanmi.sbc.goods.index.model.IndexFeature;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -109,22 +114,23 @@ public class FreightTemplateGoodsController implements FreightTemplateGoodsProvi
 
     @Override
     public BaseResponse saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request){
-        int errorCode = freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
-        if(errorCode == 1){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "编码重复");
-        }
+        freightTemplateGoodsService.saveOrUpdateSecondLevelSupplier(request);
         return BaseResponse.SUCCESSFUL();
     }
 
     @Override
-    public BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier(){
-        List<SupplierModel> secondLevelSupplier = freightTemplateGoodsService.findSecondLevelSupplier();
+    public BaseResponse<MicroServicePage<SupplierSecondVo>> findSecondLevelSupplier(PageRequestParam pageRequestParam){
+        Page<SupplierModel> page = freightTemplateGoodsService.findSecondLevelSupplier(pageRequestParam);
+        List<SupplierModel> secondLevelSupplier = page.getContent();
         List<SupplierSecondVo> collect = secondLevelSupplier.stream().map(supplierModel -> {
             SupplierSecondVo supplierSecondVo = new SupplierSecondVo();
             BeanUtils.copyProperties(supplierModel, supplierSecondVo);
             return supplierSecondVo;
         }).collect(Collectors.toList());
-        return BaseResponse.success(collect);
+        MicroServicePage<SupplierSecondVo> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(page.getTotalElements());
+        microServicePage.setContent(collect);
+        return BaseResponse.success(microServicePage);
     }
 
     @Override

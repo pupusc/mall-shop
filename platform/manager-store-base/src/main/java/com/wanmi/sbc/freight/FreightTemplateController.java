@@ -3,6 +3,7 @@ package com.wanmi.sbc.freight;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.freight.dto.NotSupportAreaImportExcelRequest;
@@ -22,18 +23,24 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +54,9 @@ import static java.util.Objects.isNull;
 @RestController
 @RequestMapping("/freightTemplate")
 public class FreightTemplateController {
+
+    @Value("classpath:not_deliver_area.xlsx")
+    private org.springframework.core.io.Resource templateFile;
 
     @Autowired
     private FreightTemplateGoodsQueryProvider freightTemplateGoodsQueryProvider;
@@ -155,6 +165,19 @@ public class FreightTemplateController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    @GetMapping(value = "/notSupportArea/template/down/{encrypted}")
+    public void notSupportAreaTemplateDown(HttpServletResponse response, @PathVariable("encrypted") String encrypted) throws IOException {
+        InputStream in = templateFile.getInputStream();
+        byte[] buffer = new byte[in.available()];
+        in.read(buffer);
+        in.close();
+        response.addHeader("Content-Disposition", "attachment;filename=商城不配送地区模板.xlsx");
+        OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+        toClient.write(buffer);
+        toClient.flush();
+        toClient.close();
+    }
+
     /**
      * @description 查询不支持配送地区
      * @menu 不支持配送地区
@@ -181,7 +204,11 @@ public class FreightTemplateController {
         List<String[]> list = new ArrayList<>();
         while (sheet.getRow(i) != null) {
             Row row = sheet.getRow(i);
-            list.add(new String[]{row.getCell(0).getStringCellValue().trim(), row.getCell(1).getStringCellValue().trim()});
+            String p = row.getCell(0).getStringCellValue().trim();
+            String c = row.getCell(1).getStringCellValue().trim();
+            if(StringUtils.isNotEmpty(p) && StringUtils.isNotEmpty(c)){
+                list.add(new String[]{p, c});
+            }
             i++;
         }
         Map<String, List<String>> areas = new HashMap<>();
@@ -232,8 +259,8 @@ public class FreightTemplateController {
      * @status done
      */
     @RequestMapping(value = "/secondLevelSupplier/find", method = RequestMethod.POST)
-    public BaseResponse<List<SupplierSecondVo>> findSecondLevelSupplier() {
-        BaseResponse<List<SupplierSecondVo>> secondLevelSupplier = freightTemplateGoodsProvider.findSecondLevelSupplier();
+    public BaseResponse<MicroServicePage<SupplierSecondVo>> findSecondLevelSupplier(@RequestBody PageRequestParam pageRequestParam) {
+        BaseResponse<MicroServicePage<SupplierSecondVo>> secondLevelSupplier = freightTemplateGoodsProvider.findSecondLevelSupplier(pageRequestParam);
         return BaseResponse.success(secondLevelSupplier.getContext());
     }
 

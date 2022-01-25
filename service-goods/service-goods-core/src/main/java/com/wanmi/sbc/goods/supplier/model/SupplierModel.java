@@ -23,7 +23,7 @@ public class SupplierModel {
 
     //编号
     @Column(name = "code")
-    private String code;
+    private Integer code;
 
     //创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -39,4 +39,8 @@ public class SupplierModel {
     @Column(name = "del_flag")
     @Enumerated
     private DeleteFlag delFlag;
+
+    //是否系统默认
+    @Column(name = "system_default")
+    private Byte systemDefault;
 }

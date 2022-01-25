@@ -1,8 +1,10 @@
 package com.wanmi.sbc.goods.freight.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.common.base.PageRequestParam;
 import com.wanmi.sbc.goods.api.request.freight.ExpressNotSupportCreateUpdateRequest;
 import com.wanmi.sbc.goods.api.request.supplier.SecondLevelSupplierCreateUpdateRequest;
+import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.freight.model.root.*;
 import com.wanmi.sbc.goods.freight.repository.*;
 import com.wanmi.sbc.goods.supplier.model.SupplierModel;
@@ -27,10 +29,15 @@ import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -164,6 +171,7 @@ public class FreightTemplateGoodsService {
         }
     }
 
+    @Transactional
     public String importNotSupportArea(String areaStr, Long supplierId) {
         Map<String, List<String>> areas = JSONObject.parseObject(areaStr, Map.class);
         StringBuilder provinceIdsb = new StringBuilder();
@@ -220,24 +228,43 @@ public class FreightTemplateGoodsService {
             expressNotSupport.setUpdateTime(now);
             expressNotSupport.setCreateTime(now);
             expressNotSupport.setDelFlag(DeleteFlag.NO);
+            expressNotSupport.setCode(1);
             expressNotSupportRepository.save(expressNotSupport);
+            Optional<SupplierModel> supplierModelOptional = supplierRepository.findById(supplierId);
+            SupplierModel supplierModel = supplierModelOptional.get();
+            supplierModel.setCode(1);
+            supplierRepository.save(supplierModel);
         }else {
+            expressNotSupport.setDelFlag(DeleteFlag.YES);
+            expressNotSupportRepository.save(expressNotSupport);
+
+            ExpressNotSupport expressNotSupport2 = new ExpressNotSupport();
+            LocalDateTime now = LocalDateTime.now();
             if(provinceIdsb.length() > 0){
-                expressNotSupport.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
-                expressNotSupport.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
+                expressNotSupport2.setProvinceId(provinceIdsb.substring(0, provinceIdsb.length() - 1));
+                expressNotSupport2.setProvinceName(provinceNamesb.substring(0, provinceNamesb.length() - 1));
             }else{
-                expressNotSupport.setProvinceId("");
-                expressNotSupport.setProvinceName("");
+                expressNotSupport2.setProvinceId("");
+                expressNotSupport2.setProvinceName("");
             }
             if(cityIdsb.length() > 0){
-                expressNotSupport.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
-                expressNotSupport.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
+                expressNotSupport2.setCityId(cityIdsb.substring(0, cityIdsb.length() - 1));
+                expressNotSupport2.setCityName(cityNamesb.substring(0, cityNamesb.length() - 1));
             }else{
-                expressNotSupport.setCityId("");
-                expressNotSupport.setCityName("");
+                expressNotSupport2.setCityId("");
+                expressNotSupport2.setCityName("");
             }
-            expressNotSupport.setUpdateTime(LocalDateTime.now());
-            expressNotSupportRepository.save(expressNotSupport);
+            expressNotSupport2.setSupplierId(supplierId);
+            expressNotSupport2.setUpdateTime(now);
+            expressNotSupport2.setCreateTime(now);
+            expressNotSupport2.setDelFlag(DeleteFlag.NO);
+            Optional<SupplierModel> supplierModelOptional = supplierRepository.findById(supplierId);
+            SupplierModel supplierModel = supplierModelOptional.get();
+            Integer code = supplierModel.getCode();
+            supplierModel.setCode(code + 1);
+            expressNotSupport2.setCode(code + 1);
+            expressNotSupportRepository.save(expressNotSupport2);
+            supplierRepository.save(supplierModel);
         }
         return "";
     }
@@ -258,21 +285,20 @@ public class FreightTemplateGoodsService {
     public int saveOrUpdateSecondLevelSupplier(SecondLevelSupplierCreateUpdateRequest request) {
         if(request.getId() != null){
             //更新
+            Long id = request.getId();
             Optional<SupplierModel> optional = supplierRepository.findById(request.getId());
             if(optional.isPresent()){
                 SupplierModel supplierModel = optional.get();
+                if(supplierModel.getSystemDefault()  != null && supplierModel.getSystemDefault() == 1)
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
                 supplierModel.setName(request.getName());
-                supplierModel.setCode(request.getCode());
                 supplierModel.setUpdateTime(LocalDateTime.now());
                 supplierRepository.save(supplierModel);
             }
         }else {
-            SupplierModel supplier = supplierRepository.findByCodeAndDelFlag(request.getCode(), DeleteFlag.NO);
-            if(supplier != null) return 1;
             SupplierModel supplierModel = new SupplierModel();
             LocalDateTime now = LocalDateTime.now();
             supplierModel.setName(request.getName());
-            supplierModel.setCode(request.getCode());
             supplierModel.setUpdateTime(now);
             supplierModel.setCreateTime(now);
             supplierModel.setDelFlag(DeleteFlag.NO);
@@ -281,14 +307,18 @@ public class FreightTemplateGoodsService {
         return 0;
     }
 
-    public List<SupplierModel> findSecondLevelSupplier() {
-        return supplierRepository.findAllByDelFlag(DeleteFlag.NO);
+    public Page<SupplierModel> findSecondLevelSupplier(PageRequestParam pageRequestParam) {
+        Specification<SupplierModel> supplierModelSpecification = supplierRepository.buildQueryCondition();
+        return supplierRepository.findAll(supplierModelSpecification, PageRequest.of(pageRequestParam.getPageNum(),
+                pageRequestParam.getPageSize()));
     }
 
     public void deleteSecondLevelSupplier(Long id) {
         Optional<SupplierModel> optional = supplierRepository.findById(id);
         if(optional.isPresent()){
             SupplierModel supplierModel = optional.get();
+            if(supplierModel.getSystemDefault()  != null && supplierModel.getSystemDefault() == 1)
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "默认供应商不允许修改");
             supplierModel.setDelFlag(DeleteFlag.YES);
             supplierRepository.save(supplierModel);
             List<ExpressNotSupport> expressNotSupports = expressNotSupportRepository.findAllBySupplierId(id);
@@ -677,4 +707,5 @@ public class FreightTemplateGoodsService {
         }).collect(Collectors.toList());
         return strLists.size() != set.size();
     }
+
 }
