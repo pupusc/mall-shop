@@ -2,6 +2,7 @@ package com.wanmi.sbc.returnorder;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.linkedmall.model.v20180116.QueryRefundApplicationDetailResponse;
 import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.aop.EmployeeCheck;
@@ -12,7 +13,9 @@ import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.constant.ErrorCodeConstant;
 import com.wanmi.sbc.common.enums.TerminalSource;
+import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.DateUtil;
@@ -31,6 +34,7 @@ import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
 import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
 import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.linkedmall.api.request.returnorder.SbcQueryRefundApplicationDetailRequest;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
@@ -39,6 +43,8 @@ import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderNoRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAuditRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByIdRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderOfflineRefundForSupplierRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderOnlineModifyPriceRequest;
@@ -256,25 +262,74 @@ public class StoreReturnOrderController {
     }
 
     /**
+     * 订单自动审核
+     * @param returnOrderId
+     * @param addressId
+     * @return
+     */
+    private BaseResponse audit(String returnOrderId, String addressId){
+//        ReturnOrderVO returnOrderVO = returnOrderVOList.get(0);
+//        //linkedMall订单，且未支付失败 删除这种信息，update by duanlsh
+//        if ((!Boolean.TRUE.equals(returnOrderVO.getThirdPlatformPayErrorFlag()))
+//                && ThirdPlatformType.LINKED_MALL.equals(returnOrderVO.getThirdPlatformType())
+//                && CollectionUtils.isNotEmpty(returnOrderVO.getReturnItems())) {
+//            String subLmOrderId = returnOrderVO.getReturnItems().get(0).getThirdPlatformSubOrderId();
+//            if (StringUtils.isNotBlank(subLmOrderId)) {
+//                SbcQueryRefundApplicationDetailRequest detailRequest = new SbcQueryRefundApplicationDetailRequest();
+//                detailRequest.setBizUid(returnOrderVO.getBuyer().getId());
+//                detailRequest.setSubLmOrderId(subLmOrderId);
+//                QueryRefundApplicationDetailResponse.RefundApplicationDetail detail =
+//                        linkedMallReturnOrderQueryProvider.queryRefundApplicationDetail(detailRequest).getContext().getDetail();
+//                if (detail != null) {
+//                    if (!(Integer.valueOf(2).equals(detail.getDisputeStatus())
+//                            || Integer.valueOf(3).equals(detail.getDisputeStatus())
+//                            || Integer.valueOf(5).equals(detail.getDisputeStatus()))) {
+//                        throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"linkedMall商家没有同意退款"});
+//                    }
+//                }
+//            }
+//        }
+        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+        returnOrderAuditRequest.setRid(returnOrderId);
+        returnOrderAuditRequest.setAddressId(addressId);
+        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+        return returnOrderProvider.audit(returnOrderAuditRequest);
+    }
+
+    /**
+     *
+     * 审核退款接口
+     *
      * 商家退款申请(修改退单价格新增流水)
      *
-     * @param rid
+     * @param returnOrderId
      * @param request
      * @return
      */
     @ApiOperation(value = "商家退款申请(修改退单价格新增流水)")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
-    @RequestMapping(value = "/edit/price/{rid}", method = RequestMethod.POST)
+    @RequestMapping(value = "/edit/price/{returnOrderId}", method = RequestMethod.POST)
     @GlobalTransactional
     @MultiSubmit
-    public BaseResponse onlineEditPrice(@PathVariable String rid, @RequestBody @Valid ReturnOfflineRefundRequest request) {
-//        BigDecimal refundPrice = returnOrderQueryProvider.queryRefundPrice(ReturnOrderQueryRefundPriceRequest.builder()
-//                .rid(rid).build()).getContext().getRefundPrice();
-//        if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
-//            throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});
-//        }
-        ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid)
+    public BaseResponse onlineEditPrice(@PathVariable("returnOrderId") String returnOrderId, @RequestBody @Valid ReturnOfflineRefundRequest request) {
+
+        //验证一下
+        ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(returnOrderId)
                 .build()).getContext();
+
+        //1、走审核流程，
+        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+        returnOrderAuditRequest.setRid(returnOrderId);
+        returnOrderAuditRequest.setAddressId(null); // TODO
+        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+        returnOrderProvider.audit(returnOrderAuditRequest);
+        //2、管易云拦截
+        if (request.get) {
+
+        }
+
+
+        //3、退款
         BigDecimal refundPrice = returnOrder.getReturnPrice().getTotalPrice();
         if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
             throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});

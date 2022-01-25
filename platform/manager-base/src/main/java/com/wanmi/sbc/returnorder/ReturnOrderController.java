@@ -248,66 +248,66 @@ public class ReturnOrderController {
         return linkedMallReturnOrderQueryProvider.initApplyRefund(sbcInitApplyRefundRequest);
     }
 
-    /**
-     * 后台审核订单 update by duanlsh
-     *
-     * @param rid
-     * @return
-     */
-    @ApiOperation(value = "审核")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true),
-            @ApiImplicitParam(paramType = "path", dataType = "String", name = "addressId", value = "退货收货地址Id", required = false)
-    })
-    @RequestMapping(value = {"/audit/{rid}", "/audit/{rid}/{addressId}"}, method = RequestMethod.POST)
-    @GlobalTransactional
-    public BaseResponse audit(@PathVariable("rid") String returnOrderId, @PathVariable(value = "addressId", required = false) String addressId) {
-        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
-        returnOrderByConditionRequest.setRid(returnOrderId);
-        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest).getContext().getReturnOrderList();
-        if (CollectionUtils.isEmpty(returnOrderVOList)) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-        }
-        ReturnOrderVO returnOrderVO = returnOrderVOList.get(0);
-        //linkedMall订单，且未支付失败
-        if ((!Boolean.TRUE.equals(returnOrderVO.getThirdPlatformPayErrorFlag()))
-                && ThirdPlatformType.LINKED_MALL.equals(returnOrderVO.getThirdPlatformType())
-                && CollectionUtils.isNotEmpty(returnOrderVO.getReturnItems())) {
-            String subLmOrderId = returnOrderVO.getReturnItems().get(0).getThirdPlatformSubOrderId();
-            if (StringUtils.isNotBlank(subLmOrderId)) {
-                SbcQueryRefundApplicationDetailRequest detailRequest = new SbcQueryRefundApplicationDetailRequest();
-                detailRequest.setBizUid(returnOrderVO.getBuyer().getId());
-                detailRequest.setSubLmOrderId(subLmOrderId);
-                QueryRefundApplicationDetailResponse.RefundApplicationDetail detail =
-                        linkedMallReturnOrderQueryProvider.queryRefundApplicationDetail(detailRequest).getContext().getDetail();
-                if (detail != null) {
-                    if (!(Integer.valueOf(2).equals(detail.getDisputeStatus())
-                            || Integer.valueOf(3).equals(detail.getDisputeStatus())
-                            || Integer.valueOf(5).equals(detail.getDisputeStatus()))) {
-                        throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"linkedMall商家没有同意退款"});
-                    }
-                }
-            }
-        }
-        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
-        returnOrderAuditRequest.setRid(returnOrderId);
-        returnOrderAuditRequest.setAddressId(addressId);
-        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
-        return returnOrderProvider.audit(returnOrderAuditRequest);
-    }
+//    /**
+//     * 后台审核订单 update by duanlsh
+//     *
+//     * @param
+//     * @return
+//     */
+//    @ApiOperation(value = "审核")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true),
+//            @ApiImplicitParam(paramType = "path", dataType = "String", name = "addressId", value = "退货收货地址Id", required = false)
+//    })
+//    @RequestMapping(value = {"/audit/{rid}", "/audit/{rid}/{addressId}"}, method = RequestMethod.POST)
+//    @GlobalTransactional
+//    public BaseResponse audit(@PathVariable("rid") String returnOrderId, @PathVariable(value = "addressId", required = false) String addressId) {
+//        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
+//        returnOrderByConditionRequest.setRid(returnOrderId);
+//        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest).getContext().getReturnOrderList();
+//        if (CollectionUtils.isEmpty(returnOrderVOList)) {
+//            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//        }
+//        ReturnOrderVO returnOrderVO = returnOrderVOList.get(0);
+//        //linkedMall订单，且未支付失败
+//        if ((!Boolean.TRUE.equals(returnOrderVO.getThirdPlatformPayErrorFlag()))
+//                && ThirdPlatformType.LINKED_MALL.equals(returnOrderVO.getThirdPlatformType())
+//                && CollectionUtils.isNotEmpty(returnOrderVO.getReturnItems())) {
+//            String subLmOrderId = returnOrderVO.getReturnItems().get(0).getThirdPlatformSubOrderId();
+//            if (StringUtils.isNotBlank(subLmOrderId)) {
+//                SbcQueryRefundApplicationDetailRequest detailRequest = new SbcQueryRefundApplicationDetailRequest();
+//                detailRequest.setBizUid(returnOrderVO.getBuyer().getId());
+//                detailRequest.setSubLmOrderId(subLmOrderId);
+//                QueryRefundApplicationDetailResponse.RefundApplicationDetail detail =
+//                        linkedMallReturnOrderQueryProvider.queryRefundApplicationDetail(detailRequest).getContext().getDetail();
+//                if (detail != null) {
+//                    if (!(Integer.valueOf(2).equals(detail.getDisputeStatus())
+//                            || Integer.valueOf(3).equals(detail.getDisputeStatus())
+//                            || Integer.valueOf(5).equals(detail.getDisputeStatus()))) {
+//                        throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"linkedMall商家没有同意退款"});
+//                    }
+//                }
+//            }
+//        }
+//        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+//        returnOrderAuditRequest.setRid(returnOrderId);
+//        returnOrderAuditRequest.setAddressId(addressId);
+//        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+//        return returnOrderProvider.audit(returnOrderAuditRequest);
+//    }
 
-    /**
-     * 批量审核
-     *
-     * @param returnRequest
-     * @return
-     */
-    @ApiOperation(value = "批量审核")
-    @RequestMapping(value = "/audit", method = RequestMethod.POST)
-    public ResponseEntity<BaseResponse> batchAudit(@RequestBody ReturnRequest returnRequest) {
-        returnRequest.getRids().forEach(rid -> audit(rid, null));
-        return ResponseEntity.ok(BaseResponse.SUCCESSFUL());
-    }
+//    /**
+//     * 批量审核
+//     *
+//     * @param returnRequest
+//     * @return
+//     */
+//    @ApiOperation(value = "批量审核")
+//    @RequestMapping(value = "/audit", method = RequestMethod.POST)
+//    public ResponseEntity<BaseResponse> batchAudit(@RequestBody ReturnRequest returnRequest) {
+//        returnRequest.getRids().forEach(rid -> audit(rid, null));
+//        return ResponseEntity.ok(BaseResponse.SUCCESSFUL());
+//    }
 
     /**
      * 校验退单退款状态

@@ -341,18 +341,18 @@ public class Trade implements Serializable {
     private PayWay payWay;
 
     /**
-     * 可退积分
+     * 可退积分 TODO 确定什么时候使用
      */
     private Long canReturnPoints;
 
     /**
-     * 可退知豆
+     * 可退知豆 TODO 确定什么时候使用
      */
     @ApiModelProperty(value = "可退知豆")
     private Long canReturnKnowledge;
 
     /**
-     * 已退金额
+     * 可退金额  TODO 确定什么时候使用
      */
     private BigDecimal canReturnPrice;
 
