@@ -41,6 +41,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,7 +172,7 @@ public class FreightTemplateController {
         byte[] buffer = new byte[in.available()];
         in.read(buffer);
         in.close();
-        response.addHeader("Content-Disposition", "attachment;filename=商城不配送地区模板.xlsx");
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("商城不配送地区模板.xlsx", "UTF-8"));
         OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
         toClient.write(buffer);
         toClient.flush();
