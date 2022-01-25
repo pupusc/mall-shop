@@ -84,4 +84,7 @@ public class MarketingSuitsSaveRequest extends BaseRequest {
     @NotBlank
     private String joinLevel;
 
+    @ApiModelProperty("场景1商详页组合优惠2商详页书单组合优惠")
+    private Integer suitScene;
+
 }

@@ -1006,6 +1006,7 @@ public class TradeBaseController {
                         .tradeItems(tradeItems)
                         .tradeMarketingList(tradeMarketingList)
                         .suitMarketingFlag(Boolean.TRUE)
+                        .suitScene(marketingRespons.getMarketingSuitsVO().getSuitScene())
                         .purchaseBuy(Boolean.FALSE)
                         .skuList(KsBeanUtil.convertList(response.getGoodsInfos(), GoodsInfoDTO.class)).build());
 
@@ -1718,9 +1719,14 @@ public class TradeBaseController {
         // 组合购标记
         boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE,
                 s.getSuitMarketingFlag()));
+        Integer suitScene = null;
+        if(suitMarketingFlag && tradeItemGroups.stream().anyMatch(s -> s.getSuitScene()!=null)){
+            suitScene = tradeItemGroups.stream().filter(s -> s.getSuitScene()!=null).findFirst().get().getSuitScene();
+        }
         //拼团标记
         boolean grouponFlag = tradeItemGroups.stream().anyMatch(s -> s.getGrouponForm() != null && s.getGrouponForm().getOpenGroupon() != null);
         confirmResponse.setSuitMarketingFlag(suitMarketingFlag);
+        confirmResponse.setSuitScene(suitScene);
         // 如果为PC商城下单or组合购商品，将分销商品变为普通商品
         if (ChannelType.PC_MALL.equals(commonUtil.getDistributeChannel().getChannelType()) || suitMarketingFlag || grouponFlag) {
             tradeItemGroups.forEach(tradeItemGroup ->

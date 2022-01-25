@@ -103,7 +103,7 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
      */
     @Query(value = "SELECT * from marketing m left join marketing_suits_sku s on m.marketing_id = s.marketing_id " +
             "where m.del_flag = 0 and m.is_pause = 0 and m.marketing_type = 6 and m.begin_time <= now() and m.end_time >= now() " +
-            "and s.sku_id = :skuId", nativeQuery = true)
+            "and s.sku_id = :skuId order by m.create_time asc", nativeQuery = true)
     List<Marketing> getMarketingBySuitsSkuId(@Param("skuId")String skuId);
 
     /**

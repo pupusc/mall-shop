@@ -41,6 +41,7 @@ import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
+import com.wanmi.sbc.order.constant.OrderErrorCode;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
@@ -166,6 +167,12 @@ public class TradeOptimizeService {
         }
         // 组合购标记
         boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE, s.getSuitMarketingFlag()));
+
+
+        //组合购不可使用优惠券
+        if(suitMarketingFlag &&  tradeItemGroups.stream().anyMatch(s -> Objects.equals(2, s.getSuitScene())) && StringUtils.isNotEmpty(tradeCommitRequest.getCommonCodeId())){
+            throw new SbcRuntimeException(OrderErrorCode.COUPON_SUIT_NOT_ALLOWED);
+        }
         //开店礼包
         Boolean storeBagsFlag = tradeItemGroups.stream().anyMatch(s -> DefaultFlag.YES.equals(s.getStoreBagsFlag()));
 

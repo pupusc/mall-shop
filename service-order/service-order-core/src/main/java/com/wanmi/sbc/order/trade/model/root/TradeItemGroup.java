@@ -65,4 +65,10 @@ public class TradeItemGroup {
     @ApiModelProperty(value = "周期购信息")
     private CycleBuyInfoDTO cycleBuyInfo;
 
+    /**
+     * 组合购使用场景
+     */
+    @ApiModelProperty(value = "组合购使用场景")
+    private Integer suitScene;
+
 }

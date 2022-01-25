@@ -1374,6 +1374,7 @@ public class TradeService {
                                             ? null : tradeCommitRequest.getShareUserId())
                                     .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
                                     .suitMarketingFlag(group.getSuitMarketingFlag())
+                                    .suitScene(group.getSuitScene())
                                     .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
                                     .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
@@ -2059,6 +2060,7 @@ public class TradeService {
      */
     private void dealSuitOrder(Trade trade, TradeParams tradeParams) {
         trade.setSuitMarketingFlag(tradeParams.getSuitMarketingFlag());
+        trade.setSuitScene(tradeParams.getSuitScene());
         // 组合购标记
         if (Objects.equals(trade.getSuitMarketingFlag(), Boolean.TRUE) && CollectionUtils.isNotEmpty(tradeParams.getMarketingList())) {
             // 获取并校验组合购活动信息
