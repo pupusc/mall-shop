@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Data
 @ApiModel
-public class TopicStoreyContentDTO implements Serializable {
+public class TopicStoreyContentDTO extends TopicStoreyCouponDTO implements Serializable {
     private static final long serialVersionUID = 6469272901302359606L;
 
     @NotNull
@@ -31,7 +31,7 @@ public class TopicStoreyContentDTO implements Serializable {
     private String skuId;
     @ApiModelProperty("商品名称")
     private String goodsName;
-    @ApiModelProperty("类型1商品+图片2图片+链接")
+    @ApiModelProperty("类型1商品+图片2图片+链接3异行轮播4导航5优惠券")
     private Integer type;
     @ApiModelProperty("图片地址")
     private String imageUrl;
@@ -50,4 +50,9 @@ public class TopicStoreyContentDTO implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    @ApiModelProperty(value = "属性",hidden = true)
+    private String attributeInfo;
+
+    @ApiModelProperty("导航关联楼层Id")
+    private Integer relStoreyId;
 }

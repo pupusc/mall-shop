@@ -61,4 +61,12 @@ public interface CouponCacheProvider {
     @PostMapping("/marketing/${application.marketing.version}/coupon/list-goods-by-coupon-id")
     BaseResponse<CouponGoodsListResponse> listGoodsByCouponId(@RequestBody @Valid CouponGoodsListRequest request);
 
+    /**
+     * 查询生效中和未生效的优惠券
+     * @param request 分页请求参数 {@link CouponCacheCenterPageRequest}
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/page")
+    BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@RequestBody @Valid CouponPageQueryRequest request);
+
 }

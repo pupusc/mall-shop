@@ -36,6 +36,7 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilter
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponGoodsListResponse;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseProvider;
 import com.wanmi.sbc.order.api.request.purchase.PurchaseFillBuyCountRequest;
 import com.wanmi.sbc.system.service.SystemPointsConfigService;
@@ -56,7 +57,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Created by CHENLI on 2018/9/25.
+ * @menu Mobile优惠券
+ * @tag coupon-info
+ * @status undone
  */
 @RestController
 @RequestMapping("/coupon-info")
@@ -90,10 +93,12 @@ public class CouponInfoController {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
+
     /**
-     * 未登录时，领券中心列表
-     *
-     * @return
+     * @description 未登录时，领券中心列表
+     * @menu Mobile优惠券
+     * @param queryRequest
+     * @status undone
      */
     @ApiOperation(value = "未登录时，领券中心列表")
     @RequestMapping(value = "/front/center", method = RequestMethod.POST)
@@ -102,17 +107,17 @@ public class CouponInfoController {
         return couponCacheProvider.pageCouponStarted(queryRequest);
     }
 
+
     /**
-     * 领券中心列表
-     *
-     * @return
+     * @description 登录时，领券中心列表
+     * @menu Mobile优惠券
+     * @param queryRequest
+     * @status undone
      */
     @ApiOperation(value = "登录后，领券中心列表")
     @RequestMapping(value = "/center", method = RequestMethod.POST)
     public BaseResponse<CouponCacheCenterPageResponse> getCouponStarted(@RequestBody CouponCacheCenterPageRequest queryRequest) {
         queryRequest.setCustomerId(commonUtil.getOperatorId());
-
-
         return couponCacheProvider.pageCouponStarted(queryRequest);
     }
 
@@ -130,6 +135,8 @@ public class CouponInfoController {
         return couponCacheProvider.listCouponForGoodsList(request);
     }
 
+
+
     /**
      * 通过商品id列表，查询与商品相关优惠券
      * 购物车 - 优惠券列表
@@ -141,6 +148,35 @@ public class CouponInfoController {
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsList(@RequestBody List<String> goodsInfoIds) {
         CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
         request.setGoodsInfoIds(goodsInfoIds);
+        request.setCustomerId(commonUtil.getOperatorId());
+        return couponCacheProvider.listCouponForGoodsList(request);
+    }
+
+
+
+    /**
+     * @description 新-未登录时,通过商品id列表，查询与商品相关优惠
+     * @menu Mobile优惠券
+     * @param request
+     * @status undone
+     */
+    @ApiOperation(value = "未登录时，通过商品id列表，查询与商品相关优惠券")
+    @RequestMapping(value = "/front/goodslist", method = RequestMethod.POST)
+    public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsListFrontNew(@RequestBody CouponCacheListForGoodsListRequest request) {
+        return couponCacheProvider.listCouponForGoodsList(request);
+    }
+
+
+
+    /**
+     * @description 新-登录时,通过商品id列表，查询与商品相关优惠-新
+     * @menu Mobile优惠券
+     * @param request
+     * @status undone
+     */
+    @ApiOperation(value = "登录后，通过商品id列表，查询与商品相关优惠券")
+    @RequestMapping(value = "/goodslist", method = RequestMethod.POST)
+    public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsListNew(@RequestBody CouponCacheListForGoodsListRequest request) {
         request.setCustomerId(commonUtil.getOperatorId());
         return couponCacheProvider.listCouponForGoodsList(request);
     }

@@ -6,7 +6,6 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -67,4 +66,7 @@ public class TopicStoreyContent {
 
     @Column(name = "end_time")
     private LocalDateTime endTime;
+
+    @Column(name = "attribute_info")
+    private String attributeInfo;
 }

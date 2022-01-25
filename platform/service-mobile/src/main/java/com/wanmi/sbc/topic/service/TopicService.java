@@ -19,6 +19,11 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
+import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
@@ -29,6 +34,7 @@ import com.wanmi.sbc.topic.response.GoodsAndAtmosphereResponse;
 import com.wanmi.sbc.topic.response.TopicResponse;
 import com.wanmi.sbc.topic.response.TopicStoreyContentReponse;
 import com.wanmi.sbc.topic.response.TopicStoreyResponse;
+import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +61,11 @@ public class TopicService {
     @Autowired
     private BookListModelAndGoodsService bookListModelAndGoodsService;
 
+    @Autowired
+    private CouponCacheProvider couponCacheProvider;
 
+    @Autowired
+    private CommonUtil commonUtil;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -77,7 +87,8 @@ public class TopicService {
                 }
             }
         }
-        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(3)).forEach(p->{
+        //商品属性
+        response.getStoreyList().stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.TWOGOODS.getId())).forEach(p->{
             if(CollectionUtils.isNotEmpty(p.getContents())) {
                 skuIds.addAll(p.getContents().stream().filter(c -> c.getType() != null && c.getType().equals(1)).map(TopicStoreyContentDTO::getSkuId).collect(Collectors.toList()));
             } });
@@ -100,9 +111,54 @@ public class TopicService {
             });
 
         }
+        initCoupon(response.getStoreyList());
         return BaseResponse.success(response);
     }
 
+    /**
+     * 初始化优惠券信息
+     */
+    private void initCoupon(List<TopicStoreyResponse> storeyList){
+        if(!storeyList.stream().anyMatch(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId()))){
+            return;
+        }
+        //优惠券
+        List<String> activityIds = new ArrayList<>();
+        List<String> couponIds = new ArrayList<>();
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
+            if(CollectionUtils.isNotEmpty(p.getContents())) {
+                activityIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getActivityId).collect(Collectors.toList()));
+                couponIds.addAll(p.getContents().stream().map(TopicStoreyContentDTO::getCouponId).collect(Collectors.toList()));
+            }
+        });
+        CouponCacheCenterPageRequest couponRequest = new CouponCacheCenterPageRequest();
+        couponRequest.setActivityIds(activityIds);
+        couponRequest.setCouponInfoIds(couponIds);
+        couponRequest.setCouponScene(Arrays.asList(CouponSceneType.TOPIC.getType().toString()));
+        couponRequest.setPageNum(0);
+        couponRequest.setPageSize(100);
+        if(commonUtil.getOperator()!=null && commonUtil.getOperatorId() !=null){
+            couponRequest.setCustomerId(commonUtil.getOperatorId());
+        }
+        BaseResponse<CouponCacheCenterPageResponse> couponResponse =  couponCacheProvider.pageCouponStarted(couponRequest);
+        if(couponResponse == null || couponResponse.getContext() == null || couponResponse.getContext().getCouponViews() == null || CollectionUtils.isEmpty(couponResponse.getContext().getCouponViews().getContent())){
+            return;
+        }
+        List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
+        List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
+        storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
+            if(CollectionUtils.isEmpty(p.getContents())) {
+                return;
+            }
+            p.getContents().forEach(c->{
+                Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
+                if(optionalCouponVO.isPresent()){
+                    c.setCouponInfo(optionalCouponVO.get());
+                }
+            });
+        });
+
+   }
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息

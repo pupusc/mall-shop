@@ -11,6 +11,7 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsDetailFilt
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.marketing.api.response.plugin.MarketingPluginGoodsDetailFilterResponse;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.request.MarketingPluginRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -40,7 +41,7 @@ public class MarketingPluginController implements MarketingPluginProvider {
     public BaseResponse<GoodsInfoListByGoodsInfoResponse> goodsListFilter(@RequestBody @Valid MarketingPluginGoodsListFilterRequest request) {
         GoodsInfoListByGoodsInfoResponse goodsInfoListByGoodsInfoResponse = marketingPluginService.goodsListFilter(KsBeanUtil.convertList(request.getGoodsInfos(), GoodsInfoVO.class),
                 MarketingPluginRequest.builder().customer(KsBeanUtil.convert(request.getCustomerDTO(), CustomerVO.class)).moFangFlag(request.getMoFangFlag())
-                        .isFlashSaleMarketing(request.getIsFlashSaleMarketing()).commitFlag(request.getCommitFlag()).isIndependent(request.getIsIndependent()).build());
+                        .isFlashSaleMarketing(request.getIsFlashSaleMarketing()).commitFlag(request.getCommitFlag()).isIndependent(request.getIsIndependent()).couponScene(request.getCouponScene()).build());
         return BaseResponse.success(goodsInfoListByGoodsInfoResponse);
     }
 
@@ -51,7 +52,7 @@ public class MarketingPluginController implements MarketingPluginProvider {
     @Override
     public BaseResponse<MarketingPluginGoodsDetailFilterResponse> goodsDetailFilter(@RequestBody @Valid MarketingPluginGoodsDetailFilterRequest request) {
         GoodsInfoDetailByGoodsInfoResponse goodsInfoDetailByGoodsInfoResponse = marketingPluginService.goodsDetailFilter(KsBeanUtil.convert(request.getGoodsInfoDetailByGoodsInfoDTO(), GoodsInfoDetailByGoodsInfoResponse.class),
-                MarketingPluginRequest.builder().customer(KsBeanUtil.convert(request.getCustomerDTO(), CustomerVO.class)).build());
+                MarketingPluginRequest.builder().customer(KsBeanUtil.convert(request.getCustomerDTO(), CustomerVO.class)).couponScene(request.getCouponScene()).build());
         return BaseResponse.success(KsBeanUtil.convert(goodsInfoDetailByGoodsInfoResponse, MarketingPluginGoodsDetailFilterResponse.class));
     }
 
@@ -59,7 +60,7 @@ public class MarketingPluginController implements MarketingPluginProvider {
     public BaseResponse<GoodsInfoListByGoodsInfoResponse> distributionGoodsListFilter(@RequestBody @Valid MarketingPluginGoodsListFilterRequest request) {
         GoodsInfoListByGoodsInfoResponse goodsInfoListByGoodsInfoResponse = marketingPluginService.distributionGoodsListFilter(KsBeanUtil.convertList(request.getGoodsInfos(), GoodsInfoVO.class),
                 MarketingPluginRequest.builder().customer(KsBeanUtil.convert(request.getCustomerDTO(), CustomerVO.class)).moFangFlag(request.getMoFangFlag())
-                        .isFlashSaleMarketing(request.getIsFlashSaleMarketing()).commitFlag(request.getCommitFlag()).build());
+                        .isFlashSaleMarketing(request.getIsFlashSaleMarketing()).commitFlag(request.getCommitFlag()).couponScene(request.getCouponScene()).build());
         return BaseResponse.success(goodsInfoListByGoodsInfoResponse);
     }
 

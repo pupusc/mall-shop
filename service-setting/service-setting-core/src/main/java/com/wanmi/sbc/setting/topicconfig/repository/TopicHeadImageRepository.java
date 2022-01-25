@@ -18,7 +18,7 @@ public interface TopicHeadImageRepository extends JpaRepository<TopicHeadImage, 
 
 
 
-    @Query(value = "from TopicHeadImage w  where w.topicId = ?1 and w.deleted = 0")
+    @Query(value = "from TopicHeadImage w  where w.topicId = ?1 and w.deleted = 0 order by w.sorting asc")
     List<TopicHeadImage> getByTopicId(Integer topicId);
 
     @Modifying

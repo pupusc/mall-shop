@@ -44,12 +44,14 @@ import com.wanmi.sbc.marketing.coupon.mongorepository.CouponCacheRepository;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheCenterRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheInitRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheQueryRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponQueryRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCenterPageResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponGoodsQueryResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponListResponse;
 import com.wanmi.sbc.marketing.redis.RedisService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -138,6 +140,10 @@ public class CouponCacheService {
         CouponCacheQueryRequest request = CouponCacheQueryRequest.builder()
                 .couponType(queryRequest.getCouponType())
                 .couponCateId(queryRequest.getCouponCateId())
+                .couponScene(queryRequest.getCouponScene())
+                .couponActivityIds(queryRequest.getActivityIds())
+                .couponInfoIds(queryRequest.getCouponInfoIds())
+                .activityName(queryRequest.getActivityName())
                 .build();
         if(Objects.nonNull(queryRequest.getStoreId())) {
             request.setStoreIds(Arrays.asList(queryRequest.getStoreId()));
@@ -189,7 +195,7 @@ public class CouponCacheService {
                     .cateMap(this.mapCateById(cateIds))
                     .brandMap(this.mapBrandById(brandIds))
                     .storeCateMap(this.mapStoreCateById(storeCateIds))
-                    .build();
+                     .build();
         } else {
             return CouponCenterPageResponse.builder().couponViews(new PageImpl<>(Collections.emptyList(), pageRequest
                     , 0)).build();
@@ -204,7 +210,7 @@ public class CouponCacheService {
      * @param customerId
      * @return
      */
-    public CouponListResponse listCouponForGoodsList(List<String> goodsInfoIds, String customerId, Long storeId) {
+    public CouponListResponse listCouponForGoodsList(List<String> goodsInfoIds, String customerId, Long storeId,List<String> couponScene) {
         GoodsInfoListByIdsRequest goodsInfoListByIdsRequest = new GoodsInfoListByIdsRequest();
         goodsInfoListByIdsRequest.setGoodsInfoIds(goodsInfoIds);
         if (Objects.nonNull(storeId)) {
@@ -224,7 +230,7 @@ public class CouponCacheService {
 //            throw new SbcRuntimeException(CouponErrorCode.CUSTOMER_NOT_EXIST);
 //        }
         }
-        List<CouponCache> couponCacheList = this.listCouponForGoodsList(goodsInfoList, customer);
+        List<CouponCache> couponCacheList = this.listCouponForGoodsList(goodsInfoList, customer,couponScene);
 
         // 获取店铺ids，排除平台优惠券
         List<Long> storeIds =
@@ -251,7 +257,7 @@ public class CouponCacheService {
      * @return
      */
 //    public List<CouponCache> listCouponForGoodsList(List<GoodsInfo> goodsInfoList, Customer customer){
-    public List<CouponCache> listCouponForGoodsList(List<GoodsInfoVO> goodsInfoList, CustomerVO customer) {
+    public List<CouponCache> listCouponForGoodsList(List<GoodsInfoVO> goodsInfoList, CustomerVO customer,List<String> couponScene) {
         //组装等级数据
 //        Map<Long, CustomerLevel> levelMap = marketingPluginService.getCustomerLevels(goodsInfoList, customer);
         Map<Long, CommonLevelVO> levelMap = marketingPluginService.getCustomerLevels(goodsInfoList, customer);
@@ -285,6 +291,7 @@ public class CouponCacheService {
                 .storeCateIds(storeCateIds)
                 .goodsInfoIds(goodsInfoList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList()))
                 .storeIds(goodsInfoList.stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()))
+                .couponScene(couponScene)
                 .levelMap(levelMap).build();
         /**
          * 通用券＞店铺券
@@ -305,7 +312,7 @@ public class CouponCacheService {
      * @param customerId
      * @return
      */
-    public CouponListResponse listCouponForGoodsDetail(String goodsInfoId, String customerId, Long storeId) {
+    public CouponListResponse listCouponForGoodsDetail(String goodsInfoId, String customerId, Long storeId,List<String> couponScene) {
         GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
         goodsInfoByIdRequest.setGoodsInfoId(goodsInfoId);
         if (Objects.nonNull(storeId)) {
@@ -336,7 +343,7 @@ public class CouponCacheService {
         goodsInfo.setCateId(goods.getCateId());
         //组装品牌
         goodsInfo.setBrandId(goods.getBrandId());
-        List<CouponCache> couponCacheList = listCouponForGoodsInfo(goodsInfo, levelMap);
+        List<CouponCache> couponCacheList = listCouponForGoodsInfo(goodsInfo, levelMap,couponScene);
 //        List<Long> storeIds = couponCacheList.stream().map(item -> item.getCouponInfo().getStoreId()).distinct()
 //        .collect(Collectors.toList());
         return CouponListResponse.builder()
@@ -377,7 +384,7 @@ public class CouponCacheService {
      * @param levelMap
      * @return
      */
-    public List<CouponCache> listCouponForGoodsInfo(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap) {
+    public List<CouponCache> listCouponForGoodsInfo(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<String> couponScene) {
         //组装店铺分类
         List<Long> storeCateIds = new ArrayList<>();
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(Collections.singletonList(goodsInfo.getGoodsId())).getContext();
@@ -396,6 +403,7 @@ public class CouponCacheService {
                         Collections.singletonList(goodsInfo.getGoodsInfoId()) : null)
                 .levelMap(levelMap)
                 .storeIds(Collections.singletonList(goodsInfo.getStoreId()))
+                .couponScene(couponScene)
                 .build();
         /**
          * 通用券＞店铺券
@@ -410,7 +418,7 @@ public class CouponCacheService {
     }
 
 
-    public List<CouponCache> listCouponForGoodsInfos(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<Long> storeCateIds) {
+    public List<CouponCache> listCouponForGoodsInfos(GoodsInfoVO goodsInfo, Map<Long, CommonLevelVO> levelMap,List<Long> storeCateIds,List<String> couponScene) {
         CouponCacheQueryRequest request = CouponCacheQueryRequest.builder()
                 .brandIds(goodsInfo.getBrandId() != null ? Collections.singletonList(goodsInfo.getBrandId()) : null)
                 .cateIds(goodsInfo.getCateId() != null ? Collections.singletonList(goodsInfo.getCateId()) : null)
@@ -419,6 +427,7 @@ public class CouponCacheService {
                         Collections.singletonList(goodsInfo.getGoodsInfoId()) : null)
                 .levelMap(levelMap)
                 .storeIds(Collections.singletonList(goodsInfo.getStoreId()))
+                .couponScene(couponScene)
                 .build();
         /**
          * 通用券＞店铺券
@@ -736,4 +745,25 @@ public class CouponCacheService {
                 goodsBrandQueryProvider.listByIds(new GoodsBrandByIdsRequest(brandIds)).getContext().getGoodsBrandVOList();
         return goodsCateList.stream().collect(Collectors.toMap(GoodsBrandVO::getBrandId, GoodsBrandVO::getBrandName));
     }
+
+    public CouponCenterPageResponse getCouponList(CouponQueryRequest request) {
+        Page<CouponCache> pageCache = couponActivityConfigService.queryCouponStartedAndUnStart(request);
+        if (pageCache!= null && CollectionUtils.isNotEmpty(pageCache.getContent())) {
+            return CouponCenterPageResponse.builder()
+                    //券详情
+                    .couponViews(
+                            new PageImpl<>(CouponView.converter(pageCache.getContent()
+                                    //券库存
+                                    , couponCodeService.mapLeftCount(pageCache.getContent())
+                                    //领用状态
+                                    , couponCodeService.mapFetchStatus(pageCache.getContent(), null))
+                                    , request.getPageable(), pageCache.getTotalElements()))
+                    .build();
+        } else {
+            return CouponCenterPageResponse.builder().couponViews(new PageImpl<>(Collections.emptyList(), request.getPageable()
+                    , 0)).build();
+        }
+    }
+
+
 }

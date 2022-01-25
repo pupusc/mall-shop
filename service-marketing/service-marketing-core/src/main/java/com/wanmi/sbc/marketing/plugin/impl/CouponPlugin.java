@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeQueryRequest;
 import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.common.request.TradeItemInfo;
 import com.wanmi.sbc.marketing.common.request.TradeMarketingPluginRequest;
@@ -98,12 +99,13 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
             if(classifyIds != null){
                 classifyIdLong = classifyIds.stream().map(Integer::longValue).collect(Collectors.toList());
             }
-            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),classifyIdLong);
+            List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfos(item, request.getLevelMap(),classifyIdLong,request.getCouponScene());
             List<CouponLabelVO> labelList = couponCacheList.stream().limit(6).map(cache ->
                     CouponLabelVO.builder()
                             .couponActivityId(cache.getCouponActivityId())
                             .couponInfoId(cache.getCouponInfoId())
                             .couponDesc(getLabelMap(cache))
+                            .couponScene(cache.getCouponActivity().getActivityScene()!= null ? String.join(",",cache.getCouponActivity().getActivityScene()):null)
                             .build()
             ).collect(Collectors.toList());
             item.getCouponLabels().addAll(labelList);
@@ -122,7 +124,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
         //把品牌从goods搬运到goodsInfo
         detailResponse.getGoodsInfo().setBrandId(detailResponse.getGoods().getBrandId());
         detailResponse.getGoodsInfo().setCateId(detailResponse.getGoods().getCateId());
-        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap());
+        List<CouponCache> couponCacheList = couponCacheService.listCouponForGoodsInfo(detailResponse.getGoodsInfo(), request.getLevelMap(), request.getCouponScene());
         List<CouponLabelVO> labelList = couponCacheList.stream().limit(3).map(cache ->
                 CouponLabelVO.builder()
                         .couponActivityId(cache.getCouponActivityId())

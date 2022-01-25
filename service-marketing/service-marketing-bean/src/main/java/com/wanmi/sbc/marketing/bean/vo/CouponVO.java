@@ -168,6 +168,36 @@ public class CouponVO implements Serializable {
     @ApiModelProperty(value = "优化券活动倒计时")
     private Long activityCountDown;
 
+    /**
+     * 活动名称
+     */
+    @ApiModelProperty(value = "活动名称")
+    private String activityName;
+
+    /**
+     * 优惠券名称
+     */
+    @ApiModelProperty(value = "优惠券名称")
+    private String couponName;
+
+    /**
+     * 活动开始时间
+     */
+    @ApiModelProperty(value = "活动开始时间")
+    private String activityStartTime;
+
+    /**
+     * 活动结束时间
+     */
+    @ApiModelProperty(value = "活动结束时间")
+    private String activityEndTime;
+
+    /**
+     * 总数量
+     */
+    @ApiModelProperty(value = "总数量")
+    private Long totalCount;
+
 
 }
 

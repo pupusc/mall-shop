@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.coupon.request;
 
+import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
@@ -7,38 +8,34 @@ import com.wanmi.sbc.marketing.bean.enums.*;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponActivityCache;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponInfoCache;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 
+import javax.persistence.Query;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * 正在进行的优惠券活动查询
- */
 @Data
-@Builder
-public class CouponCacheInitRequest {
+public class CouponQueryRequest  extends BaseQueryRequest {
+    /**
+     * 活动名称
+     */
+    private String activityName;
 
     /**
-     * 优惠券活动Id集合
+     * 使用场景
      */
-    private List<String> couponActivityIds;
+    private String couponScene;
 
-    /**
-     * 查询该时间段内开始的活动
-     */
-    private LocalDateTime queryStartTime;
-
-    /**
-     * 查询该时间段内开始的活动
-     */
-    private LocalDateTime queryEndTime;
-
+    private Long storeId;
     /**
      * request构建查询对象
      *
@@ -83,18 +80,46 @@ public class CouponCacheInitRequest {
         sb.append("      LEFT JOIN coupon_activity ON coupon_activity.activity_id = coupon_activity_config.activity_id");
         sb.append("     WHERE 1=1  AND coupon_info.del_flag = 0 AND coupon_activity.del_flag = 0");
         sb.append("     AND coupon_activity.activity_type = 0");
-        sb.append("     AND coupon_activity.start_time < now() < coupon_activity.end_time");
-        if (CollectionUtils.isNotEmpty(couponActivityIds)) {
-            sb.append("     AND coupon_activity_config.activity_id in (:couponActivityIds) ");
+        sb.append("     AND coupon_activity.platform_flag = 0");
+        sb.append("     AND coupon_activity.pause_flag = 0");
+        sb.append("     AND now() < coupon_activity.end_time");
+        if(StringUtils.isNotEmpty(this.activityName)){
+            sb.append("     AND coupon_activity.activity_name like '" + activityName +"%'");
         }
-        if (this.queryStartTime != null) {
-            sb.append("     AND :queryStartTime <= coupon_activity.start_time");
+        if(StringUtils.isNotEmpty(couponScene)){
+            sb.append("     AND coupon_activity.activity_scene like '%" + couponScene +"%'");
         }
-        if (this.queryEndTime != null) {
-            sb.append("     AND :queryEndTime >= coupon_activity.start_time");
+        if(storeId != null){
+            sb.append("     AND coupon_activity.store_id = " + storeId);
+        }
+        //排序
+        sb.append("  ORDER BY coupon_activity.start_time ASC,coupon_info.coupon_type ASC,coupon_info.create_time ASC");
+        return sb.toString();
+    }
+
+    public String getQueryTotalCountSql(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT count(1) AS `totalCount` ");
+        sb.append("     FROM coupon_activity_config ");
+        sb.append("      LEFT JOIN coupon_info ON coupon_info.coupon_id = coupon_activity_config.coupon_id ");
+        sb.append("      LEFT JOIN coupon_activity ON coupon_activity.activity_id = coupon_activity_config.activity_id");
+        sb.append("     WHERE 1=1  AND coupon_info.del_flag = 0 AND coupon_activity.del_flag = 0");
+        sb.append("     AND coupon_activity.activity_type = 0");
+        sb.append("     AND coupon_activity.platform_flag = 0");
+        sb.append("     AND coupon_activity.pause_flag = 0");
+        sb.append("     AND now() < coupon_activity.end_time");
+        if(StringUtils.isNotEmpty(this.activityName)){
+            sb.append("     AND coupon_activity.activity_name like '" + activityName +"%'");
+        }
+        if(StringUtils.isNotEmpty(this.couponScene)){
+            sb.append("     AND coupon_activity.activity_scene like '%" + couponScene +"%'");
+        }
+        if(storeId != null){
+            sb.append("     AND coupon_activity.store_id = " + storeId);
         }
         return sb.toString();
     }
+
 
     /**
      * 原生sql查询出二维数组，该方法帮助转换为List<bean>

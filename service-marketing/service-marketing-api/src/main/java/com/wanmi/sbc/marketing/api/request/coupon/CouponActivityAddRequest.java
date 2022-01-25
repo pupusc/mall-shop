@@ -145,6 +145,9 @@ public class CouponActivityAddRequest extends BaseRequest {
     @ApiModelProperty(value = "参与成功通知描述")
     private String activityDesc;
 
+    @ApiModelProperty(value = "优惠券领券场景:1商详页2领券中心3购物车4专题页 多选 用,分隔")
+    private String activityScene;
+
     @Override
     public void checkParam() {
         if (this.receiveType == DefaultFlag.YES && (this.receiveCount == null || this.receiveCount == 0)) {

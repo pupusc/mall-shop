@@ -45,6 +45,7 @@ import com.wanmi.sbc.goods.bean.vo.StoreCateResponseVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import com.wanmi.sbc.setting.api.provider.storeresource.StoreResourceQueryProvider;
 import com.wanmi.sbc.setting.api.provider.storeresourcecate.StoreResourceCateQueryProvider;
 import com.wanmi.sbc.setting.api.provider.systemresource.SystemResourceQueryProvider;
