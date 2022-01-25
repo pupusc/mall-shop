@@ -95,6 +95,11 @@ public class TradeConfirmResponse {
     private Boolean suitMarketingFlag;
 
     /**
+     * 组合购促销场景
+     */
+    private Integer suitScene;
+
+    /**
      * 是否开团购买(true:开团 false:参团 null:非拼团购买)
      */
     @ApiModelProperty(value = "是否开团购买")
