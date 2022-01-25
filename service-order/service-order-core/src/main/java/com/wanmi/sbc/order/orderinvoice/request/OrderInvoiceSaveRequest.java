@@ -49,6 +49,11 @@ public class OrderInvoiceSaveRequest implements Serializable{
     private String invoiceAddress;
 
     /**
+     * 电子发票邮箱
+     */
+    private String invoiceEmail;
+
+    /**
      * 开票时间
      */
     private String invoiceTime;

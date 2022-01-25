@@ -197,14 +197,13 @@ public class TopicConfigService {
             }else{
                 itemList = items;
             }
+
             initAttr(itemList,p.getStoreyType());
             //排序
             List<TopicStoreyContentDTO> sortContents = itemList.stream().sorted(Comparator.comparing(TopicStoreyContentDTO::getType).thenComparing(TopicStoreyContentDTO::getSorting)).collect(Collectors.toList());
             p.setContents(sortContents);
 
         });
-
-
         return topicVO;
     }
 

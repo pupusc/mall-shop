@@ -67,8 +67,8 @@ public class GuanyierpController implements GuanyierpProvider {
      * 获取商品库存
      */
     @Override
-    public BaseResponse<List<ERPGoodsInfoVO>> getUpdatedStock(String startTime, String erpGoodInfoNo) {
-        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo));
+    public BaseResponse<ErpStockVo> getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
+        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo, pageNum, pageSize));
     }
 
     /**

@@ -120,7 +120,6 @@
             <version>${hibernate-validator.version}</version>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
 
     <build>

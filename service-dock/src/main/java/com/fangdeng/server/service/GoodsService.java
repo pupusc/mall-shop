@@ -277,4 +277,9 @@ public class GoodsService {
         }
     }
 
+    public void auditGoods(String goodsNo){
+        goodsSyncMapper.updateStatus(goodsNo);
+        riskVerifyMapper.updateStatus(goodsNo);
+    }
+
 }

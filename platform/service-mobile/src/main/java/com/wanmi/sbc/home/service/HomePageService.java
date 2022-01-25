@@ -7,7 +7,6 @@ import com.wanmi.sbc.booklistmodel.response.BookListModelAndGoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -28,13 +27,11 @@ import com.wanmi.sbc.goods.api.provider.notice.NoticeProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.request.index.CmsSpecialTopicSearchRequest;
 import com.wanmi.sbc.goods.api.request.notice.NoticePageProviderRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistgoodspublish.CountBookListModelGroupProviderResponse;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListMixProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
@@ -42,10 +39,11 @@ import com.wanmi.sbc.goods.api.response.index.IndexModuleVo;
 import com.wanmi.sbc.goods.api.response.notice.NoticeProviderResponse;
 import com.wanmi.sbc.goods.bean.enums.PublishState;
 import com.wanmi.sbc.home.response.HomeBookListRecommendSubResponse;
-import com.wanmi.sbc.home.response.HomeGoodsListResponse;
+import com.wanmi.sbc.home.response.HomeNewBookAndSellWellGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeGoodsListSubResponse;
 import com.wanmi.sbc.home.response.HomeImageResponse;
 import com.wanmi.sbc.home.response.HomeBookListRecommendResponse;
+import com.wanmi.sbc.home.response.HomeSpecialOfferAndUnSellWellGoodsListResponse;
 import com.wanmi.sbc.home.response.HomeSpecialTopicResponse;
 import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.home.response.ImageResponse;
@@ -281,14 +279,14 @@ public class HomePageService {
      * 获取首页 商品列表对应信息
      * @return
      */
-    public HomeGoodsListResponse homeGoodsList() {
+    public HomeNewBookAndSellWellGoodsListResponse homeNewBookAndSellWellGoodsList() {
         int pageSize = 20;
-        HomeGoodsListResponse homeGoodsListResponse = new HomeGoodsListResponse();
+        HomeNewBookAndSellWellGoodsListResponse homeGoodsListResponse = new HomeNewBookAndSellWellGoodsListResponse();
 
         //获取要排除的商品和分类
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(
-                Arrays.asList(GoodsBlackListCategoryEnum.NEW_BOOKS.getCode(), GoodsBlackListCategoryEnum.SELL_WELL_BOOKS.getCode(), GoodsBlackListCategoryEnum.SPECIAL_OFFER_BOOKS.getCode()));
+                Arrays.asList(GoodsBlackListCategoryEnum.NEW_BOOKS.getCode(), GoodsBlackListCategoryEnum.SELL_WELL_BOOKS.getCode()));
         BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
         GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
         //新上
@@ -316,48 +314,60 @@ public class HomePageService {
             log.error("homeGoodsList sellWellBooks exception", ex);
         }
 
-       try {
-           //特价
-           HomeTopicResponse specialOfferBooks = homeTopicMap.get(IndexModuleEnum.SPECIAL_OFFER_BOOKS.getCode());
-           if (specialOfferBooks != null) {
-               HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize, context);
-               specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
-               homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
-           }
-       } catch (Exception ex) {
-           log.error("homeGoodsList specialOfferBooks exception", ex);
-       }
-
-
-       try {
-           //非畅销
-           HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
-           if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
-               unSellWellBooks.setTitle(unSellWellBooks.getTitle());
-               unSellWellBooks.setSubTitle(unSellWellBooks.getSubTitle());
-               BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
-                       bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, null);
-               List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
-               List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
-               for (GoodsCustomResponse goodsCustomParam : content) {
-                   BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
-                   param.setGoodsCustomVo(goodsCustomParam);
-                   bookListModelAndGoodsCustomResponseList.add(param);
-               }
-
-               HomeGoodsListSubResponse unSellWellBooksResponse = new HomeGoodsListSubResponse();
-               unSellWellBooksResponse.setHomeTopicResponse(unSellWellBooks);
-               unSellWellBooksResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomResponseList);
-               homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
-           }
-       } catch (Exception ex) {
-           log.error("homeGoodsList unSellWellBooks exception", ex);
-       }
-
 
         return homeGoodsListResponse;
     }
 
+
+    public HomeSpecialOfferAndUnSellWellGoodsListResponse homeSpecialOfferAndUnSellWellGoodsList() {
+        int pageSize = 20;
+        HomeSpecialOfferAndUnSellWellGoodsListResponse homeGoodsListResponse = new HomeSpecialOfferAndUnSellWellGoodsListResponse();
+        //获取要排除的商品和分类
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Collections.singletonList(GoodsBlackListCategoryEnum.SPECIAL_OFFER_BOOKS.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        Map<String, HomeTopicResponse> homeTopicMap = this.getHomeTopic();
+        try {
+            //特价
+            HomeTopicResponse specialOfferBooks = homeTopicMap.get(IndexModuleEnum.SPECIAL_OFFER_BOOKS.getCode());
+            if (specialOfferBooks != null) {
+                HomeGoodsListSubResponse specialOfferBooksResponse = this.specialOfferBookList(pageSize, context);
+                specialOfferBooksResponse.setHomeTopicResponse(specialOfferBooks);
+                homeGoodsListResponse.setSpecialOfferBook(specialOfferBooksResponse);
+            }
+        } catch (Exception ex) {
+            log.error("homeGoodsList specialOfferBooks exception", ex);
+        }
+
+
+        try {
+            //非畅销
+            HomeTopicResponse unSellWellBooks = homeTopicMap.get(IndexModuleEnum.UN_SELL_WELL_BOOKS.getCode());
+            if (unSellWellBooks != null && unSellWellBooks.getBookListModelId() != null) {
+                unSellWellBooks.setTitle(unSellWellBooks.getTitle());
+                unSellWellBooks.setSubTitle(unSellWellBooks.getSubTitle());
+                BaseResponse<MicroServicePage<GoodsCustomResponse>> microServicePageBaseResponse =
+                        bookListModelAndGoodsService.listGoodsByBookListModelId(unSellWellBooks.getBookListModelId(), 0, 20, null);
+                List<GoodsCustomResponse> content = microServicePageBaseResponse.getContext().getContent();
+                List<BookListModelAndGoodsCustomResponse> bookListModelAndGoodsCustomResponseList = new ArrayList<>();
+                for (GoodsCustomResponse goodsCustomParam : content) {
+                    BookListModelAndGoodsCustomResponse param = new BookListModelAndGoodsCustomResponse();
+                    param.setGoodsCustomVo(goodsCustomParam);
+                    bookListModelAndGoodsCustomResponseList.add(param);
+                }
+
+                HomeGoodsListSubResponse unSellWellBooksResponse = new HomeGoodsListSubResponse();
+                unSellWellBooksResponse.setHomeTopicResponse(unSellWellBooks);
+                unSellWellBooksResponse.setBookListModelAndGoodsCustom(bookListModelAndGoodsCustomResponseList);
+                homeGoodsListResponse.setUnSellWellGoods(unSellWellBooksResponse);
+            }
+        } catch (Exception ex) {
+            log.error("homeGoodsList unSellWellBooks exception", ex);
+        }
+        return homeGoodsListResponse;
+    }
 
     /**
      * 新上书籍

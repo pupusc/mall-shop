@@ -51,6 +51,8 @@ public class InvoiceVO implements Serializable {
     @ApiModelProperty(value = "收货地址ID")
     private String addressId;
 
+    private String email;
+
     /**
      * 是否单独的收货地址
      */

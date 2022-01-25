@@ -14,6 +14,7 @@ import com.wanmi.sbc.goods.freight.service.FreightTemplateGoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -59,6 +60,11 @@ public class FreightTemplateGoodsQueryController implements FreightTemplateGoods
         List<FreightTemplateGoodsVO> voList = FreightTemplateGoodsConvert.convertFreightTemplateGoodsListToVoList(templateGoods);
         return BaseResponse.success(FreightTemplateGoodsByIdsResponse.builder()
                 .freightTemplateGoodsVOList(voList).build());
+    }
+
+    @Override
+    public BaseResponse<Boolean> queryIfnotSupportArea(Long provinceId, Long cityId) {
+        return BaseResponse.success(freightTemplateGoodsService.queryIfnotSupportArea(provinceId, cityId));
     }
 
     /**

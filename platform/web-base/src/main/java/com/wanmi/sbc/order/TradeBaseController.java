@@ -2747,15 +2747,21 @@ public class TradeBaseController {
 
     /**
      * 根据参数查询某订单的运费
-     *
      * @param tradeParams
      * @return
      */
     @ApiOperation(value = "根据参数查询某订单的运费")
     @RequestMapping(value = "/getFreight", method = RequestMethod.POST)
     public BaseResponse<List<TradeGetFreightResponse>> getFreight(@RequestBody List<TradeParamsRequest> tradeParams) {
-        return BaseResponse.success(tradeParams.stream().map(params -> tradeQueryProvider.getFreight(params)
-                .getContext()).collect(Collectors.toList()));
+        List<TradeGetFreightResponse> list = new ArrayList<>();
+        for (TradeParamsRequest tradeParam : tradeParams) {
+            BaseResponse<TradeGetFreightResponse> freight = tradeQueryProvider.getFreight(tradeParam);
+            if(CommonErrorCode.SUCCESSFUL.equals(freight.getCode()) && freight.getContext() == null) {
+                return BaseResponse.info(CommonErrorCode.FAILED, "所选地区不支持配送");
+            }
+            list.add(freight.getContext());
+        }
+        return BaseResponse.success(list);
     }
 
     /**

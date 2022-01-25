@@ -16,7 +16,10 @@ public enum InvoiceType {
     NORMAL,
 
     @ApiEnumProperty("增值税专用发票")
-    SPECIAL;
+    SPECIAL,
+
+    @ApiEnumProperty("电子发票")
+    ELECTRONIC;
 
     @JsonCreator
     public InvoiceType fromValue(int value) {
