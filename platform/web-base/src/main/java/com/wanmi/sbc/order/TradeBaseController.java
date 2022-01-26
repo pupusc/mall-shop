@@ -3203,7 +3203,7 @@ public class TradeBaseController {
     }
 
     /**
-     * 确认收货
+     * 确认收获 update duanlsh TODO
      *
      * @param tid 订单号
      */

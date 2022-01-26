@@ -397,23 +397,23 @@ public class StoreReturnOrderController {
             }
         }
     }
-
-    public void refundTrade(RefundTradeRequest refundTradeRequest){
-        if(!Objects.equals(refundTradeRequest.getProviderId(),defaultProviderId)) {
-            CancelOrderRequest request = new CancelOrderRequest();
-            request.setPid(refundTradeRequest.getTid());
-            bizSupplierClient.cancelOrder(request);
-            return;
-        }
-        guanyierpProvider.RefundTrade(refundTradeRequest);
-    }
-
-    private BaseResponse<DeliveryStatusResponse> getDeliveryStatus(DeliveryQueryRequest deliveryQueryRequest){
-        if(!Objects.equals(deliveryQueryRequest.getProviderId(),defaultProviderId)) {
-             return bizSupplierClient.getDeliveryStatus(deliveryQueryRequest.getTid());
-        }
-        return guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
-    }
+//
+//    public void refundTrade(RefundTradeRequest refundTradeRequest){
+//        if(!Objects.equals(refundTradeRequest.getProviderId(),defaultProviderId)) {
+//            CancelOrderRequest request = new CancelOrderRequest();
+//            request.setPid(refundTradeRequest.getTid());
+//            bizSupplierClient.cancelOrder(request);
+//            return;
+//        }
+//        guanyierpProvider.RefundTrade(refundTradeRequest);
+//    }
+//
+//    private BaseResponse<DeliveryStatusResponse> getDeliveryStatus(DeliveryQueryRequest deliveryQueryRequest){
+//        if(!Objects.equals(deliveryQueryRequest.getProviderId(),defaultProviderId)) {
+//             return bizSupplierClient.getDeliveryStatus(deliveryQueryRequest.getTid());
+//        }
+//        return guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
+//    }
 
 
 }

@@ -77,6 +77,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -334,13 +335,13 @@ public class ReturnOrderController {
                 throw new SbcRuntimeException("K-100105");
             } else if (tradeStatus == TradeStatus.SUCCEED) {
                 //TODO update by duanlsh
-//                RefundOrderByReturnCodeResponse refundOrder =
-//                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(rid)).getContext();
-//                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
-//                        .account("system").platform(Platform.BOSS).build();
-//                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
-//                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
-//                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
+                RefundOrderByReturnCodeResponse refundOrder =
+                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(rid)).getContext();
+                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
+                        .account("system").platform(Platform.BOSS).build();
+                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
+                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
+                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
                 throw new SbcRuntimeException("K-100104");
             }
         }
@@ -578,18 +579,56 @@ public class ReturnOrderController {
     }
 
     /**
-     * 拒绝收款
+     * 拒绝收款 update duanlsh
      *
-     * @param rid
+     * @param returnOrderId
      * @return
      */
-    @ApiOperation(value = "拒绝收款")
+    @ApiOperation(value = "审核拒绝")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
-    @RequestMapping(value = "/refund/{rid}/reject", method = RequestMethod.POST)
+    @RequestMapping(value = "/refund/{returnOrderId}/reject", method = RequestMethod.POST)
     @GlobalTransactional
-    public BaseResponse refundReject(@PathVariable String rid, @RequestBody RejectRequest request) {
+    public BaseResponse refundReject(@PathVariable String returnOrderId, @RequestBody RejectRequest request) {
+        //1、校验订单状态
+        ReturnOrderVO returnOrder;
+        if(commonUtil.getOperator().getPlatform().equals(Platform.PLATFORM)) {
+            returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(returnOrderId)
+                    .build()).getContext();
+        }else{
+            returnOrder = checkOperatorByReturnOrder(returnOrderId);
+        }
+
+        // 2、审核订单
+        //只有不是审核状态，则会进入审核流程
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
+            //1、走审核流程，
+            ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+            returnOrderAuditRequest.setRid(returnOrderId);
+            returnOrderAuditRequest.setAddressId(null); // TODO
+            returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+            returnOrderProvider.audit(returnOrderAuditRequest);
+        }
+
+        TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
+                (returnOrder.getTid(), returnOrderId)).getContext().getTradeStatus();
+        if (tradeStatus != null) {
+            if (tradeStatus == TradeStatus.PROCESSING) {
+                throw new SbcRuntimeException("K-100105");
+            } else if (tradeStatus == TradeStatus.SUCCEED) {
+                //TODO update by duanlsh
+                RefundOrderByReturnCodeResponse refundOrder =
+                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrderId)).getContext();
+                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
+                        .account("system").platform(Platform.BOSS).build();
+                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
+                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
+                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
+                throw new SbcRuntimeException("K-100104");
+            }
+        }
+        // 3、拒绝退款
         return returnOrderProvider.rejectRefund(ReturnOrderRejectRefundRequest.builder().operator(commonUtil.getOperator())
-                .rid(rid).reason(request.getReason()).build());
+                .rid(returnOrderId).reason(request.getReason()).build());
     }
 
     /**
