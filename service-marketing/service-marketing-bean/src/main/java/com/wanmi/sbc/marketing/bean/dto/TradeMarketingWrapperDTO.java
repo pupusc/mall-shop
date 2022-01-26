@@ -53,4 +53,6 @@ public class TradeMarketingWrapperDTO implements Serializable {
      */
     @ApiModelProperty(value = "是否强制提交（忽略失效营销）")
     private boolean forceCommit;
+
+
 }

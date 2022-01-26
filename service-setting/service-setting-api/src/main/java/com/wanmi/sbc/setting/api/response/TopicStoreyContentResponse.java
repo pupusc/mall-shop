@@ -21,8 +21,6 @@ public class TopicStoreyContentResponse implements Serializable {
     private Integer storeyType;
 
     @ApiModelProperty("商品内容")
-    private List<TopicStoreyContentDTO> goodsContents;
+    private List<TopicStoreyContentDTO> contents;
 
-    @ApiModelProperty("图片+链接内容")
-    private List<TopicStoreyContentDTO> linkContents;
 }

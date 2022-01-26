@@ -66,4 +66,6 @@ public class TradeMarketingDTO implements Serializable {
      * 所需积分
      */
     private Integer pointNeed;
+
+
 }

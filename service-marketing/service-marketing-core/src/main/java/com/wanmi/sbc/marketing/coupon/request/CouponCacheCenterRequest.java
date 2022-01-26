@@ -1,7 +1,10 @@
 package com.wanmi.sbc.marketing.coupon.request;
 
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class CouponCacheCenterRequest {
@@ -32,5 +35,19 @@ public class CouponCacheCenterRequest {
     private int pageSize;
 
     private Long storeId;
+
+    /**
+     * 优惠券场景
+     */
+    private List<String> couponScene;
+
+    @ApiModelProperty("活动Id")
+    private List<String> activityIds;
+
+    @ApiModelProperty("优惠券ID")
+    private List<String> couponInfoIds;
+
+    private String activityName;
+
 
 }

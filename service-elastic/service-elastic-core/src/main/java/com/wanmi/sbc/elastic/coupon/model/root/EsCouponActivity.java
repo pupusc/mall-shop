@@ -134,4 +134,10 @@ public class EsCouponActivity {
         return CollectionUtils.isNotEmpty(joinLevels) ? Joiner.on(",").skipNulls().join(joinLevels) : "";
     }
 
+    /**
+     * 场景
+     */
+    @Field(type = FieldType.Keyword)
+    private List<String> activityScene;
+
 }

@@ -139,7 +139,30 @@ public class CouponView {
      */
     private Long activityCountDown;
 
+    /**
+     * 活动名称
+     */
+    private String activityName;
 
+    /**
+     * 优惠券名称
+     */
+    private String couponName;
+
+    /**
+     * 活动开始时间
+     */
+    private String activityStartTime;
+
+    /**
+     * 活动结束时间
+     */
+    private String activityEndTime;
+
+    /**
+     * 总数量
+     */
+    private Long totalCount;
     /**
      * @param list
      * @param leftMap
@@ -212,6 +235,11 @@ public class CouponView {
                     .leftFlag(leftFlag)
                     .fetchPercent(fetchPercent)
                     .couponWillEnd(couponWillEnd)
+                    .activityName(item.getCouponActivity().getActivityName())
+                    .couponName(item.getCouponInfo().getCouponName())
+                    .activityStartTime(Objects.isNull(item.getCouponActivity().getStartTime())?null:DateUtil.format(item.getCouponActivity().getStartTime(), DateUtil.FMT_TIME_1))
+                    .activityEndTime(Objects.isNull(item.getCouponActivity().getEndTime())?null:DateUtil.format(item.getCouponActivity().getEndTime(), DateUtil.FMT_TIME_1))
+                    .totalCount(item.getTotalCount())
                     .scopeIds(item.getScopes() != null ? item.getScopes().stream().sorted(
                             (o1, o2) -> {
                                 if(Objects.equals(ScopeType.SKU, o1.getScopeType())){

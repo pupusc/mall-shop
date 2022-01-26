@@ -108,4 +108,10 @@ public class TopicConfigController implements TopicConfigProvider {
         topicConfigService.modifyHeadImage(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse deleteStorey(Integer storeyId) {
+        topicConfigService.deleteStorey(storeyId);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

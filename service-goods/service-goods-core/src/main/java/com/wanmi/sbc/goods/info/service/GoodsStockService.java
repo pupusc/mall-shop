@@ -299,7 +299,7 @@ public class GoodsStockService {
                             stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
                         }
                         // 代发商品没有库存状态、不停用就认为有货
-                        if(StringUtils.isEmpty(stockStatus)) {
+                        if(StringUtils.isEmpty(stockStatus) || Objects.equals(stockStatus,"2")) {
                             salableQty = 99;
                         }else {
                             salableQty = 0;

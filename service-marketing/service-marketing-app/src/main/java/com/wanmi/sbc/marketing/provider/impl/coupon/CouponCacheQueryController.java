@@ -12,6 +12,7 @@ import com.wanmi.sbc.marketing.api.response.coupon.CouponGoodsListResponse;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponCache;
 import com.wanmi.sbc.marketing.coupon.request.CouponCacheCenterRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponQueryRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCacheResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponCenterPageResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponGoodsQueryResponse;
@@ -59,7 +60,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     @Override
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsList(@RequestBody @Valid CouponCacheListForGoodsListRequest request) {
         CouponListResponse couponListResponse = couponCacheService.listCouponForGoodsList(request.getGoodsInfoIds(),
-                request.getCustomerId(), request.getStoreId());
+                request.getCustomerId(), request.getStoreId(),request.getCouponScene());
         return BaseResponse.success(CouponCacheListForGoodsListResponse.builder()
                 .couponViews(KsBeanUtil.copyListProperties(couponListResponse.getCouponViews(), CouponVO.class))
                 .storeMap(couponListResponse.getStoreMap()).build());
@@ -69,7 +70,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     public BaseResponse<CouponCacheListForGoodsDetailResponse> listCouponForGoodsList(@RequestBody @Valid CouponCacheListForGoodsGoodInfoListRequest request) {
 
         List<CouponCache> caches = couponCacheService.listCouponForGoodsList(request.getGoodsInfoList(),
-                request.getCustomer());
+                request.getCustomer(),request.getCouponScene());
 
         CouponCacheResponse response = CouponCacheResponse.builder().couponCacheVOList(caches).build();
 
@@ -84,7 +85,7 @@ public class CouponCacheQueryController implements CouponCacheProvider {
     @Override
     public BaseResponse<CouponCacheListForGoodsListResponse> listCouponForGoodsDetail(@RequestBody @Valid CouponCacheListForGoodsDetailRequest request) {
         CouponListResponse couponListResponse = couponCacheService.listCouponForGoodsDetail(request.getGoodsInfoId(),
-                request.getCustomerId(), request.getStoreId());
+                request.getCustomerId(), request.getStoreId(),request.getCouponScene());
         return BaseResponse.success(CouponCacheListForGoodsListResponse.builder()
                 .couponViews(KsBeanUtil.copyListProperties(couponListResponse.getCouponViews(), CouponVO.class))
                 .storeMap(couponListResponse.getStoreMap()).build());
@@ -100,5 +101,15 @@ public class CouponCacheQueryController implements CouponCacheProvider {
                 couponCacheService.listGoodsByCouponId(request.getCouponId(), request.getActivityId(),
                         request.getCustomerId(), request.getStoreId());
         return BaseResponse.success(KsBeanUtil.convert(couponGoodsQueryResponse, CouponGoodsListResponse.class));
+    }
+
+    @Override
+    public BaseResponse<CouponCacheCenterPageResponse> pageCoupon(@Valid CouponPageQueryRequest request) {
+
+        CouponCenterPageResponse couponStarted = couponCacheService.getCouponList(KsBeanUtil.convert(request,CouponQueryRequest.class));
+        MicroServicePage<CouponVO> page = KsBeanUtil.convertPage(couponStarted.getCouponViews(), CouponVO.class);
+        CouponCacheCenterPageResponse response = KsBeanUtil.convert(couponStarted, CouponCacheCenterPageResponse.class);
+        response.setCouponViews(page);
+        return BaseResponse.success(response);
     }
 }

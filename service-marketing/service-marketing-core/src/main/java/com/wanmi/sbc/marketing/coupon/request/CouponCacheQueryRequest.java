@@ -2,10 +2,7 @@ package com.wanmi.sbc.marketing.coupon.request;
 
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
-import com.wanmi.sbc.marketing.bean.enums.CouponActivityType;
-import com.wanmi.sbc.marketing.bean.enums.CouponType;
-import com.wanmi.sbc.marketing.bean.enums.MarketingJoinLevel;
-import com.wanmi.sbc.marketing.bean.enums.ScopeType;
+import com.wanmi.sbc.marketing.bean.enums.*;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,6 +70,15 @@ public class CouponCacheQueryRequest {
     private CouponType couponType;
 
     /**
+     * 使用场景
+     */
+    private List<String> couponScene;
+
+    private List<String> couponInfoIds;
+
+    private String activityName;
+
+    /**
      * 构建平台优惠券+店铺优惠券的查询条件
      *
      * @return
@@ -112,6 +118,11 @@ public class CouponCacheQueryRequest {
             criteria.add(Criteria.where("couponActivityId").in(couponActivityIds));
         }
 
+        //优惠券Id
+        if (CollectionUtils.isNotEmpty(couponInfoIds)) {
+            criteria.add(Criteria.where("couponInfoId").in(couponInfoIds));
+        }
+
         //优惠券分类查询
         if (StringUtils.isNotBlank(couponCateId)) {
             criteria.add(Criteria.where("couponCateIds").is(couponCateId));
@@ -121,7 +132,21 @@ public class CouponCacheQueryRequest {
         if (couponType != null) {
             criteria.add(Criteria.where("couponInfo.couponType").is(couponType.toString()));
         }
+        //使用场景
+        if(CollectionUtils.isNotEmpty(couponScene)){
+            if(couponScene.contains(CouponSceneType.TOPIC.getType())){
+                criteria.add(Criteria.where("couponInfo.activityScene").is(CouponSceneType.TOPIC.getType()));
+            }else {
+                criteria.add(new Criteria().orOperator(
+                        Criteria.where("couponActivity.activityScene").is(null),
+                        Criteria.where("couponActivity.activityScene").in(couponScene)
+                ));
+            }
+        }
 
+        if(StringUtils.isNotEmpty(activityName)){
+            criteria.add(new Criteria().and("couponActivity.activityName").regex("^.*" +activityName+ ".*$"));
+        }
         //活动状态
         criteria.add(Criteria.where("couponActivity.pauseFlag").is(DefaultFlag.NO.toString()));
         return new Criteria().andOperator(criteria.toArray(new Criteria[criteria.size()]));

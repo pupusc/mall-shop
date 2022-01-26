@@ -28,6 +28,11 @@ import org.springframework.web.bind.annotation.*;
 
 import static java.util.Objects.nonNull;
 
+/**
+ * @menu 后台优惠券活动
+ * @tag coupon-activity
+ * @status undone
+ */
 @RestController
 @Api(tags = "CouponActivityBaseController", description = "S2B 管理端公用-优惠券活动管理API")
 @RequestMapping("/coupon-activity")
@@ -130,11 +135,12 @@ public class CouponActivityBaseController {
         return BaseResponse.SUCCESSFUL();
     }
 
+
     /**
-     * 获取活动详情
-     *
+     * @description 获取活动详情
+     * @menu 后台优惠券活动
      * @param id
-     * @return
+     * @status undone
      */
     @ApiOperation(value = "获取活动详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "id", value = "优惠券活动Id", required = true)
@@ -148,11 +154,12 @@ public class CouponActivityBaseController {
         return BaseResponse.success(response);
     }
 
+
     /**
-     * 活动列表分页
-     *
+     * @description 活动列表分页
+     * @menu 后台优惠券活动
      * @param request
-     * @return
+     * @status undone
      */
     @ApiOperation(value = "优惠券活动列表分页")
     @RequestMapping(value = "/page", method = RequestMethod.POST)

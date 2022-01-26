@@ -49,6 +49,12 @@ public class TradeItemGroupVO implements Serializable {
     private Boolean suitMarketingFlag;
 
     /**
+     * 组合购场景
+     */
+    @ApiModelProperty(value = "组合购场景")
+    private Integer suitScene;
+
+    /**
      * 开店礼包
      */
     @ApiModelProperty(value = "开店礼包")

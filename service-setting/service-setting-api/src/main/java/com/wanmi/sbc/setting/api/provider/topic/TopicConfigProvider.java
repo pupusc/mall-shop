@@ -73,4 +73,6 @@ public interface TopicConfigProvider {
     BaseResponse modifyHeadImage(@RequestBody TopicHeadImageModifyRequest request);
 
 
+    @PostMapping("/setting/${application.setting.version}/topic/delete/storey")
+    BaseResponse deleteStorey(@RequestParam("storeyId") Integer storeyId);
 }

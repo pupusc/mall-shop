@@ -36,4 +36,7 @@ public class CouponLabelVO {
     @ApiModelProperty(value = "促销描述")
     private String couponDesc;
 
+    @ApiModelProperty(value = "使用场景，1专题2商详3领券中心，可多选，用，分隔")
+    private String couponScene;
+
 }

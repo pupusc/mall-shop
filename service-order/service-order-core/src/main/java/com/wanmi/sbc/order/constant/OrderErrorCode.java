@@ -53,5 +53,7 @@ public final class OrderErrorCode {
      */
     public final static String MARKETING_CHANGE = "K-050451";
 
+    public final static String COUPON_SUIT_NOT_ALLOWED ="K-050410";
+
 
 }
