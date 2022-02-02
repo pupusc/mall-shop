@@ -21,6 +21,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--内部jar包管理-->
             <dependency>
                 <groupId>com.soybean.mall</groupId>
                 <artifactId>mall-common-log</artifactId>
@@ -31,6 +32,8 @@
                 <artifactId>service-common</artifactId>
                 <version>${service.common.version}</version>
             </dependency>
+
+            <!--三分jar包管理-->
         </dependencies>
     </dependencyManagement>
 </project>

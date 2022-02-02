@@ -35,6 +35,7 @@
         <xstream.version>1.4.11.1</xstream.version>
         <classmate.version>1.3.4</classmate.version>
         <log4j.version>2.17.0</log4j.version>
+        <mall.common.dependency.version>0.0.1-SNAPSHOT</mall.common.dependency.version>
     </properties>
 
     <build>
@@ -89,6 +90,13 @@
 <!--  </scm>-->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-dependency</artifactId>
+                <version>${mall.common.dependency.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>com.wanmi.sbc</groupId>
                 <artifactId>micro-service</artifactId>

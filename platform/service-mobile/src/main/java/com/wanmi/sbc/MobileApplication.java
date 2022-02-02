@@ -23,7 +23,7 @@ import java.net.UnknownHostException;
  * Created by of628-wenzhi on 2017-07-04-下午4:00.
  */
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
 @EnableWithStateMachine
 @EnableAsync
 @EnableDiscoveryClient
