@@ -1,4 +1,4 @@
-package com.fandeng.server.client.request.bookuu;
+package com.fangdeng.server.client.request.bookuu;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

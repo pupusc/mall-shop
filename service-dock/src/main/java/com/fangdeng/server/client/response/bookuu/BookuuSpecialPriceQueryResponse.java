@@ -1,7 +1,6 @@
-package com.fandeng.server.client.response.bookuu;
+package com.fangdeng.server.client.response.bookuu;
 
 import lombok.Data;
-
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -38,3 +37,4 @@ public class BookuuSpecialPriceQueryResponse implements Serializable {
 
 
 }
+

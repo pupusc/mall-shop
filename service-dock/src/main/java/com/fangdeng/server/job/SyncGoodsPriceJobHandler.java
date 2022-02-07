@@ -43,6 +43,7 @@ public class SyncGoodsPriceJobHandler extends IJobHandler {
 //            queryDTO.setEtime(eTime);
 //        }
         goodsService.syncGoodsPrice();
+        goodsService.syncSpecialPrice();
         log.info("=====同步博库价格end======");
         return SUCCESS;
     }
