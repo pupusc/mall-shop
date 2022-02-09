@@ -295,4 +295,14 @@ public interface GoodsProvider {
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
 
 
+    /**
+     * 同步sku成本价价格
+     * @param goodsPriceSyncRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-price")
+    BaseResponse syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+
+
+
 }

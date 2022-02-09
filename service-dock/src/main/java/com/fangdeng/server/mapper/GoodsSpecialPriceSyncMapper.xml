@@ -187,4 +187,12 @@
       )
     </foreach>
   </insert>
+  <update id="updateStatus">
+    update goods_special_price_sync
+    set status = 0
+    where goods_no in
+    <foreach collection="goodsNos" separator="," item="item" index="index" close=")" open="(">
+       #{item}
+    </foreach>
+  </update>
 </mapper>

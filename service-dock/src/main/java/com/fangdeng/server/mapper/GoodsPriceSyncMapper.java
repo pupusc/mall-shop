@@ -57,4 +57,5 @@ public interface  GoodsPriceSyncMapper {
     int updateByPrimaryKey(GoodsPriceSync record);
 
     int batchInsert(@Param("list") List<GoodsPriceSync> list);
+
 }

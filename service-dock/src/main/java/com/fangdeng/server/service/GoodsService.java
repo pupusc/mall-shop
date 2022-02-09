@@ -316,6 +316,7 @@ public class GoodsService {
             }
             //商城上架的商品才需要同步价格
             List<BookuuSpecialPriceQueryResponse.BookuuSpecialPrice> priceList = specialPrices.stream().filter(p->bookNos.contains(p.getBookId())).collect(Collectors.toList());
+            goodsSpecialPriceSyncMapper.updateStatus(priceList.stream().map(BookuuSpecialPriceQueryResponse.BookuuSpecialPrice::getBookId).collect(Collectors.toList()));
             goodsSpecialPriceSyncMapper.batchInsert(GoodsAssembler.convertSpecialPriceList(priceList));
 
         }

@@ -2,12 +2,16 @@ package com.wanmi.sbc.goods.info.model.entity;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class GoodsStockInfo {
-    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo) {
+    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo,BigDecimal costPrice,Integer costPriceSyncFlag) {
         this.goodsInfoId = goodsInfoId;
         this.goodsId = goodsId;
         this.goodsNo = goodsNo;
+        this.costPrice = costPrice;
+        this.costPriceSyncFlag =costPriceSyncFlag;
     }
 
     /**
@@ -22,4 +26,8 @@ public class GoodsStockInfo {
 
 
     private String goodsNo;
+
+    private BigDecimal costPrice;
+
+    private Integer costPriceSyncFlag;
 }

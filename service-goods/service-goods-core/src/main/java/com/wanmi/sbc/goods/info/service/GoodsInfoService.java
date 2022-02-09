@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.info.service;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
+import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -27,6 +28,7 @@ import com.wanmi.sbc.customer.bean.enums.CheckState;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.*;
 import com.wanmi.sbc.goods.api.request.goods.ProviderGoodsNotSellRequest;
@@ -60,14 +62,12 @@ import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsPriceSync;
+import com.wanmi.sbc.goods.info.model.root.GoodsSpecialPriceSync;
 import com.wanmi.sbc.goods.info.reponse.DistributionGoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.EnterPriseGoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsInfoEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsInfoResponse;
-import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.info.repository.*;
 import com.wanmi.sbc.goods.info.request.*;
 import com.wanmi.sbc.goods.marketing.service.GoodsMarketingService;
 import com.wanmi.sbc.goods.price.model.root.GoodsCustomerPrice;
@@ -101,6 +101,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -216,6 +217,12 @@ public class GoodsInfoService {
 
     @Autowired
     private GoodsInfoService goodsInfoService;
+
+    @Autowired
+    private GoodsSpecialPriceSyncRepository goodsSpecialPriceSyncRepository;
+
+    @Autowired
+    private GuanyierpProvider guanyierpProvider;
     /**
      * SKU分页
      *
@@ -2699,32 +2706,81 @@ public class GoodsInfoService {
         // 3 遍历商品列表并更新价格
         Map<String,String> result = new HashMap<>();
         //根据goodsno查询sku列表
-        List<GoodsStockInfo> goodsInfoList = goodsInfoRepository.findGoodsInfoByGoodsNos(goodsPriceList.stream().map(GoodsPriceSync::getGoodsNo).distinct().collect(Collectors.toList()));
+        List<String> goodsNos = goodsPriceList.stream().map(GoodsPriceSync::getGoodsNo).distinct().collect(Collectors.toList());
+        List<GoodsStockInfo> goodsInfoList = goodsInfoRepository.findGoodsInfoByGoodsNos(goodsNos);
         if(CollectionUtils.isEmpty(goodsInfoList)){
             log.info("there is no goods info list,price:{}",goodsPriceList);
             goodsPriceSyncRepository.updateStatusByIds(goodsPriceList.stream().map(GoodsPriceSync::getId).collect(Collectors.toList()));
             return result;
         }
+        //查询促销价
+        List<GoodsSpecialPriceSync> specialPrice = goodsSpecialPriceSyncRepository.findByGoodsNo(goodsNos);
         goodsPriceList.forEach(price -> {
-            goodsInfoService.updateGoodsPriceSingle(price,result,goodsInfoList);
+            goodsInfoService.updateGoodsPriceSingle(price,result,goodsInfoList,specialPrice);
         });
         return result;
     }
 
     @Transactional
-    public void updateGoodsPriceSingle(GoodsPriceSync price,Map<String,String> result,List<GoodsStockInfo> goodsInfoList){
+    public void updateGoodsPriceSingle(GoodsPriceSync price,Map<String,String> result,List<GoodsStockInfo> goodsInfoList,List<GoodsSpecialPriceSync> specialPrice){
         //查询sku信息
-        if (CollectionUtils.isEmpty(goodsInfoList) || !goodsInfoList.stream().anyMatch(p->p.getGoodsNo().equals(price.getGoodsNo()))) {
+        Optional<GoodsStockInfo> goodsInfoOptional = goodsInfoList.stream().filter(p->p.getGoodsNo().equals(price.getGoodsNo())).findFirst();
+        if (!goodsInfoOptional.isPresent() || goodsInfoOptional.get().getCostPriceSyncFlag().equals(0)) {
             goodsPriceSyncRepository.updateStatus(price.getId());
-            log.info("there is no sku,stock:{}", price);
+            log.info("updateGoodsPriceSingle there is no sku or costPriceSyncFlag is 0,goods:{},goodsInfo flag:{}", price,goodsInfoOptional.isPresent());
             return;
         }
-        GoodsStockInfo goodsInfo = goodsInfoList.stream().filter(p->p.getGoodsNo().equals(price.getGoodsNo())).findFirst().get();
-        goodsInfoRepository.updateGoodsPriceById(goodsInfo.getGoodsInfoId(),price.getPrice(),price.getSellPrice());
+        GoodsStockInfo goodsInfo = goodsInfoOptional.get();
+        BigDecimal costPrice = price.getPrice();
+        LocalDateTime startTime = null;
+        LocalDateTime endTime =null;
+        Optional<GoodsSpecialPriceSync> priceOptional = specialPrice.stream().filter(p->p.getGoodsNo().equals(goodsInfo.getGoodsNo()) && p.getStartTime().compareTo(LocalDateTime.now()) <=0 && p.getEndTime().compareTo(LocalDateTime.now()) >=0).findFirst();
+        if(priceOptional.isPresent()){
+            //有促销价，则成本价=促销价
+            costPrice = priceOptional.get().getSpecialprice();
+            startTime = priceOptional.get().getStartTime();
+            endTime = priceOptional.get().getEndTime();
+        }
+        //现有成本价与数据库成本价比较，不一致则更新
+        if(costPrice.compareTo(goodsInfo.getCostPrice()) == 0){
+            goodsPriceSyncRepository.updateStatus(price.getId());
+            log.info("there is no cost price change,goods:{}",price);
+            return;
+        }
+        goodsInfoRepository.updateGoodsPriceById(goodsInfo.getGoodsInfoId(),costPrice,startTime,endTime);
         //更新spu价格
-        goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),price.getPrice(),price.getSellPrice());
+        goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),costPrice);
+        //todo 发消息
         result.put(goodsInfo.getGoodsId(),goodsInfo.getGoodsInfoId());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());
+    }
+
+    /**
+     * 同步管易成本价
+     */
+    public void syncGoodsCostPrice(GoodsCostPriceChangeQueryRequest request){
+        Page<GoodsInfo> goodsInfoPage = goodsInfoRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
+        if(goodsInfoPage == null || CollectionUtils.isEmpty(goodsInfoPage.getContent())){
+            return;
+        }
+        goodsInfoPage.getContent().forEach(g->{
+            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(g.getErpGoodsNo());
+            if(erpGoodsInfoWithoutStock == null || CollectionUtils.isNotEmpty(erpGoodsInfoWithoutStock.getContext())){
+                return;
+            }
+            Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p->p.getItemCode().equals(g.getErpGoodsNo())).findFirst();
+            if(!erpGoodsInfoVO.isPresent()){
+                return;
+            }
+            if(erpGoodsInfoVO.get().getCostPrice().compareTo(g.getCostPrice()) ==0){
+                return;
+            }
+            //成本不一致
+            goodsInfoRepository.updateCosetPriceById(g.getGoodsInfoId(),erpGoodsInfoVO.get().getCostPrice());
+            //todo 发消息
+
+        });
+
     }
 }

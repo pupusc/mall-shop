@@ -78,8 +78,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
                 esGoodsInfoElasticProvider.adjustPrice(esGoodsInfoAdjustPriceRequest);
                 //更新redis商品基本数据
                 for(String key:result.keySet()){
-                    String goodsDetailInfo =
-                            redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+                    String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
                     if (StringUtils.isNotBlank(goodsDetailInfo)) {
                         redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
                     }
@@ -95,4 +94,12 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             lock.unlock();
         }
     }
+
+    /**
+     * 同步管易成本价
+     */
+    private void syncErpGoodsPrice(){
+
+    }
+
 }

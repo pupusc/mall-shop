@@ -415,6 +415,6 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     List<Goods> findBooks();
 
     @Modifying
-    @Query("update Goods w set w.costPrice = ?2 ,w.marketPrice = ?3 where w.goodsId = ?1")
-    void resetGoodsPriceById(String goodsId, BigDecimal costPrice,BigDecimal marketPrice);
+    @Query("update Goods w set w.costPrice = ?2 where w.goodsId = ?1")
+    void resetGoodsPriceById(String goodsId, BigDecimal costPrice);
 }

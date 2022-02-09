@@ -27,4 +27,6 @@ public interface GoodsSpecialPriceSyncMapper {
     int updateByPrimaryKey(GoodsSpecialPriceSync record);
 
     int batchInsert(@Param("list") List<GoodsSpecialPriceSync> list);
+
+    int updateStatus(@Param("goodsNos") List<String> goodsNos);
 }

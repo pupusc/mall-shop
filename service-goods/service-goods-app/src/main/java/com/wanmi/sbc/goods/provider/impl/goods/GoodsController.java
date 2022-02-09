@@ -33,6 +33,7 @@ import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.request.GoodsCostPriceChangeQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
 import com.wanmi.sbc.goods.info.service.*;
@@ -695,5 +696,10 @@ public class GoodsController implements GoodsProvider {
                 goodsInfoListByIdRequest.getPageSize());
         return BaseResponse.success(resultMap);
 
+    }
+
+    @Override
+    public BaseResponse syncGoodsInfoCostPrice(@Valid GoodsPriceSyncRequest goodsPriceSyncRequest) {
+        goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class));
     }
 }
