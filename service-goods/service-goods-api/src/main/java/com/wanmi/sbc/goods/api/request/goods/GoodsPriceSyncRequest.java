@@ -14,6 +14,7 @@ public class GoodsPriceSyncRequest  extends BaseQueryRequest implements Serializ
      * 商品编码
      */
     private List<String> goodsInfoIds;
+
     private Long providerId;
 
 }

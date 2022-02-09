@@ -41,6 +41,7 @@ import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.bean.dto.BatchEnterPrisePriceDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.enums.*;
 import com.wanmi.sbc.goods.bean.vo.GoodsCustomerPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -104,6 +105,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -114,6 +116,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
@@ -2685,44 +2688,43 @@ public class GoodsInfoService {
 
     /**
      * 更新商品价格
-     * @param pageNum
-     * @param pageSize
+     * @param priceSyncQueryRequest
      * @return
      */
-    public Map<String,String> syncGoodsPrice(int pageNum, int pageSize) {
-        GoodsPriceSyncQueryRequest priceSyncQueryRequest = new GoodsPriceSyncQueryRequest();
-        priceSyncQueryRequest.setStatus(0);
-        priceSyncQueryRequest.setDeleted(0);
-        if (pageNum >= 0) {
-            priceSyncQueryRequest.setPageNum(pageNum);
-        }
-        priceSyncQueryRequest.setPageSize(pageSize);
+    public MicroServicePage<GoodsInfoPriceChangeDTO> syncGoodsPrice(GoodsPriceSyncQueryRequest priceSyncQueryRequest) {
         Page<GoodsPriceSync> pricePage = goodsPriceSyncRepository.findAll(priceSyncQueryRequest.getWhereCriteria(),
                 priceSyncQueryRequest.getPageRequest());
+        MicroServicePage page = new MicroServicePage<>(
+                Collections.emptyList(),
+                PageRequest.of(priceSyncQueryRequest.getPageNum(), priceSyncQueryRequest.getPageSize(), null),
+                0
+        );
         if(pricePage == null || CollectionUtils.isEmpty(pricePage.getContent())){
-            return null;
+             return page;
         }
+        page.setTotal(pricePage.getTotalElements());
         List<GoodsPriceSync> goodsPriceList = pricePage.getContent();
         // 3 遍历商品列表并更新价格
-        Map<String,String> result = new HashMap<>();
+        List<GoodsInfoPriceChangeDTO> result = new ArrayList<>(priceSyncQueryRequest.getPageSize());
         //根据goodsno查询sku列表
         List<String> goodsNos = goodsPriceList.stream().map(GoodsPriceSync::getGoodsNo).distinct().collect(Collectors.toList());
         List<GoodsStockInfo> goodsInfoList = goodsInfoRepository.findGoodsInfoByGoodsNos(goodsNos);
         if(CollectionUtils.isEmpty(goodsInfoList)){
             log.info("there is no goods info list,price:{}",goodsPriceList);
             goodsPriceSyncRepository.updateStatusByIds(goodsPriceList.stream().map(GoodsPriceSync::getId).collect(Collectors.toList()));
-            return result;
+            return page;
         }
         //查询促销价
         List<GoodsSpecialPriceSync> specialPrice = goodsSpecialPriceSyncRepository.findByGoodsNo(goodsNos);
         goodsPriceList.forEach(price -> {
             goodsInfoService.updateGoodsPriceSingle(price,result,goodsInfoList,specialPrice);
         });
-        return result;
+        page.setContent(result);
+        return page;
     }
 
     @Transactional
-    public void updateGoodsPriceSingle(GoodsPriceSync price,Map<String,String> result,List<GoodsStockInfo> goodsInfoList,List<GoodsSpecialPriceSync> specialPrice){
+    public void updateGoodsPriceSingle(GoodsPriceSync price,List<GoodsInfoPriceChangeDTO> result,List<GoodsStockInfo> goodsInfoList,List<GoodsSpecialPriceSync> specialPrice){
         //查询sku信息
         Optional<GoodsStockInfo> goodsInfoOptional = goodsInfoList.stream().filter(p->p.getGoodsNo().equals(price.getGoodsNo())).findFirst();
         if (!goodsInfoOptional.isPresent() || goodsInfoOptional.get().getCostPriceSyncFlag().equals(0)) {
@@ -2734,6 +2736,7 @@ public class GoodsInfoService {
         BigDecimal costPrice = price.getPrice();
         LocalDateTime startTime = null;
         LocalDateTime endTime =null;
+        BigDecimal originalPrice = goodsInfo.getCostPrice();
         Optional<GoodsSpecialPriceSync> priceOptional = specialPrice.stream().filter(p->p.getGoodsNo().equals(goodsInfo.getGoodsNo()) && p.getStartTime().compareTo(LocalDateTime.now()) <=0 && p.getEndTime().compareTo(LocalDateTime.now()) >=0).findFirst();
         if(priceOptional.isPresent()){
             //有促销价，则成本价=促销价
@@ -2750,8 +2753,13 @@ public class GoodsInfoService {
         goodsInfoRepository.updateGoodsPriceById(goodsInfo.getGoodsInfoId(),costPrice,startTime,endTime);
         //更新spu价格
         goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),costPrice);
-        //todo 发消息
-        result.put(goodsInfo.getGoodsId(),goodsInfo.getGoodsInfoId());
+        result.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(goodsInfo.getGoodsInfoId())
+                .goodsId(goodsInfo.getGoodsId())
+                .changeTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))
+                .originalPrice(originalPrice)
+                .price(costPrice)
+                .goodsName(goodsInfo.getGoodsInfoName())
+                .goodsInfoId(goodsInfo.getGoodsInfoId()).build());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());
     }
@@ -2759,11 +2767,18 @@ public class GoodsInfoService {
     /**
      * 同步管易成本价
      */
-    public void syncGoodsCostPrice(GoodsCostPriceChangeQueryRequest request){
+    public MicroServicePage<GoodsInfoPriceChangeDTO> syncGoodsCostPrice(GoodsCostPriceChangeQueryRequest request){
         Page<GoodsInfo> goodsInfoPage = goodsInfoRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
+        MicroServicePage page = new MicroServicePage<>(
+                Collections.emptyList(),
+                PageRequest.of(request.getPageNum(), request.getPageSize(), null),
+                0
+        );
         if(goodsInfoPage == null || CollectionUtils.isEmpty(goodsInfoPage.getContent())){
-            return;
+            return page;
         }
+        page.setTotal(goodsInfoPage.getTotalElements());
+        List<GoodsInfoPriceChangeDTO> list = new ArrayList<>(request.getPageSize());
         goodsInfoPage.getContent().forEach(g->{
             BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(g.getErpGoodsNo());
             if(erpGoodsInfoWithoutStock == null || CollectionUtils.isNotEmpty(erpGoodsInfoWithoutStock.getContext())){
@@ -2778,9 +2793,15 @@ public class GoodsInfoService {
             }
             //成本不一致
             goodsInfoRepository.updateCosetPriceById(g.getGoodsInfoId(),erpGoodsInfoVO.get().getCostPrice());
-            //todo 发消息
-
+            list.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(g.getGoodsInfoId())
+                    .goodsId(g.getGoodsId())
+                    .changeTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))
+                    .originalPrice(g.getCostPrice())
+                    .price(erpGoodsInfoVO.get().getCostPrice())
+                    .goodsName(g.getGoodsInfoName())
+                    .goodsInfoId(g.getGoodsInfoId()).build());
         });
-
+        page.setContent(list);
+        return page;
     }
 }

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.api.provider.goods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
@@ -10,6 +11,7 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -285,11 +287,11 @@ public interface GoodsProvider {
 
     /**
      * 同步商品价格
-     * @param goodsInfoListByIdRequest
+     * @param goodsPriceSyncRequest
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
-    BaseResponse<Map<String,String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
 
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
@@ -300,8 +302,8 @@ public interface GoodsProvider {
      * @param goodsPriceSyncRequest
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/sync-goods-price")
-    BaseResponse syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
+    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
 
 
 
