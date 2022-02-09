@@ -11,6 +11,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-log</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.ares</groupId>
             <artifactId>ares-api</artifactId>
             <version>${wm.micro.service.version}</version>

@@ -130,3 +130,10 @@ yun.file.path.env.profile=dev186
 
 
 default.providerId=123458038
+
+redisson.url=172.16.72.228:6379
+redisson.database=0
+redisson.password=
+redisson.injection=true
+
+spring.cloud.nacos.discovery.server-addr=172.16.72.228:8848

@@ -48,11 +48,18 @@
         <commons-pool2.version>2.7.0</commons-pool2.version>
         <discovery.version>6.3.3</discovery.version>
         <micro-service-autoconfigure.version>4.0.2-RELEASE</micro-service-autoconfigure.version>
-
+        <mall.common.dependency.version>0.0.1-SNAPSHOT</mall.common.dependency.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-dependency</artifactId>
+                <version>${mall.common.dependency.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -73,19 +80,16 @@
 
 
         <dependencies>
-<!--            <dependency>-->
-<!--                <groupId>com.soybean.mall</groupId>-->
-<!--                <artifactId>mall-common-log</artifactId>-->
-<!--                <version>0.0.1-SNAPSHOT</version>-->
-<!--                <scope>provided</scope>-->
-<!--            </dependency>-->
-
-<!--            <dependency>-->
-<!--                <groupId>com.wanmi.sbc</groupId>-->
-<!--                <artifactId>service-common</artifactId>-->
-<!--                <version>fandeng-4.1.7-release</version>-->
-<!--                <scope>provided</scope>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-log</artifactId>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.wanmi.sbc</groupId>
+                <artifactId>service-common</artifactId>
+                <scope>provided</scope>
+            </dependency>
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
