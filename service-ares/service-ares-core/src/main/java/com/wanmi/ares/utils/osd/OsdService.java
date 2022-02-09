@@ -7,6 +7,7 @@ import com.wanmi.osd.ExceptionHandle.OSDException;
 import com.wanmi.osd.OsdClient;
 import com.wanmi.osd.bean.OsdClientParam;
 import com.wanmi.osd.bean.OsdResource;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.setting.api.provider.yunservice.YunServiceProvider;
 import com.wanmi.sbc.setting.api.response.yunservice.YunAvailableConfigResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -52,9 +53,11 @@ public class OsdService {
                     .build());
         } catch (OSDException osd) {
             log.error("上传文件-OSD服务器端错误->错误码:{},描述:{}", osd.getErrorCode(), osd.getMessage());
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         } catch (IOException io) {
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         } finally {
             if(bais != null){
                 try {
@@ -79,9 +82,11 @@ public class OsdService {
             OsdClient.instance().deleteObject(osdClientParam, files);
         } catch (OSDException osd) {
             log.error("删除文件-OSD服务器端错误->错误码:{},描述:{}", osd.getErrorCode(), osd.getMessage());
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         } catch (IOException io) {
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         }
     }
 
@@ -98,9 +103,11 @@ public class OsdService {
             return OsdClient.instance().doesObjectExist(osdClientParam, file);
         } catch (OSDException osd) {
             log.error("删除文件-OSD服务器端错误->错误码:{},描述:{}", osd.getErrorCode(), osd.getMessage());
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         } catch (IOException io) {
-            throw new AresRuntimeException("R-000102");
+            //throw new AresRuntimeException("R-000102");
+            throw new SbcRuntimeException("R-000102");
         }
     }
 

@@ -19,6 +19,7 @@ import com.wanmi.ares.utils.Constants;
 import com.wanmi.ares.utils.DateUtil;
 import com.wanmi.ares.view.customer.CustomerOrderPageView;
 import com.wanmi.ares.view.customer.CustomerOrderView;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +102,8 @@ public class CustomerReportThriftService implements CustomerReportQueryService.I
         }
 
 
-        throw new AresRuntimeException("查询会员报表参数错误");
+        //throw new AresRuntimeException("查询会员报表参数错误");
+        throw new SbcRuntimeException("查询会员报表参数错误");
     }
 
 
@@ -140,7 +142,8 @@ public class CustomerReportThriftService implements CustomerReportQueryService.I
         }
 
         if (StringUtils.isEmpty(tableName)) {
-            throw new AresRuntimeException("时间参数有错误");
+            //throw new AresRuntimeException("时间参数有错误");
+            throw new SbcRuntimeException("时间参数有错误");
         }
         PageRequest pageRequest = new PageRequest();
         pageRequest.setPageSize(request.getPageSize());
@@ -219,7 +222,8 @@ public class CustomerReportThriftService implements CustomerReportQueryService.I
         }
 
         if (StringUtils.isEmpty(tableName)) {
-            throw new AresRuntimeException("时间参数有错误");
+            //throw new AresRuntimeException("时间参数有错误");
+            throw new SbcRuntimeException("时间参数有错误");
         }
         PageRequest pageRequest = new PageRequest();
         pageRequest.setPageSize(request.getPageSize());
@@ -295,7 +299,8 @@ public class CustomerReportThriftService implements CustomerReportQueryService.I
         }
 
         if (StringUtils.isEmpty(tableName)) {
-            throw new AresRuntimeException("时间参数有错误");
+            //throw new AresRuntimeException("时间参数有错误");
+            throw new SbcRuntimeException("时间参数有错误");
         }
         PageRequest pageRequest = new PageRequest();
         pageRequest.setPageSize(request.getPageSize());
