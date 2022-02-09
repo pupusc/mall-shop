@@ -46,6 +46,7 @@ public class GoodsCostPriceChangeQueryRequest  extends BaseQueryRequest implemen
             if (providerId != null) {
                 predicates.add(cbuild.equal(root.get("providerId"), providerId));
             }
+            predicates.add(cbuild.isNotNull(root.get("erpGoodsNo")));
             predicates.add(cbuild.equal(root.get("costPriceSyncFlag"), 1));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

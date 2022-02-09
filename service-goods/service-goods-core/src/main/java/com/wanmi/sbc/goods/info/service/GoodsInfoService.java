@@ -2696,9 +2696,10 @@ public class GoodsInfoService {
                 priceSyncQueryRequest.getPageRequest());
         MicroServicePage page = new MicroServicePage<>(
                 Collections.emptyList(),
-                PageRequest.of(priceSyncQueryRequest.getPageNum(), priceSyncQueryRequest.getPageSize(), null),
+                PageRequest.of(priceSyncQueryRequest.getPageNum(), priceSyncQueryRequest.getPageSize(), priceSyncQueryRequest.getSort()),
                 0
         );
+
         if(pricePage == null || CollectionUtils.isEmpty(pricePage.getContent())){
              return page;
         }
@@ -2771,7 +2772,7 @@ public class GoodsInfoService {
         Page<GoodsInfo> goodsInfoPage = goodsInfoRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
         MicroServicePage page = new MicroServicePage<>(
                 Collections.emptyList(),
-                PageRequest.of(request.getPageNum(), request.getPageSize(), null),
+                PageRequest.of(request.getPageNum(), request.getPageSize(), request.getSort()),
                 0
         );
         if(goodsInfoPage == null || CollectionUtils.isEmpty(goodsInfoPage.getContent())){
@@ -2781,7 +2782,7 @@ public class GoodsInfoService {
         List<GoodsInfoPriceChangeDTO> list = new ArrayList<>(request.getPageSize());
         goodsInfoPage.getContent().forEach(g->{
             BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(g.getErpGoodsNo());
-            if(erpGoodsInfoWithoutStock == null || CollectionUtils.isNotEmpty(erpGoodsInfoWithoutStock.getContext())){
+            if(erpGoodsInfoWithoutStock == null || CollectionUtils.isEmpty(erpGoodsInfoWithoutStock.getContext())){
                 return;
             }
             Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p->p.getItemCode().equals(g.getErpGoodsNo())).findFirst();
@@ -2792,7 +2793,7 @@ public class GoodsInfoService {
                 return;
             }
             //成本不一致
-            goodsInfoRepository.updateCosetPriceById(g.getGoodsInfoId(),erpGoodsInfoVO.get().getCostPrice());
+            goodsInfoRepository.updateCostPriceById(g.getGoodsInfoId(),erpGoodsInfoVO.get().getCostPrice());
             list.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(g.getGoodsInfoId())
                     .goodsId(g.getGoodsId())
                     .changeTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))

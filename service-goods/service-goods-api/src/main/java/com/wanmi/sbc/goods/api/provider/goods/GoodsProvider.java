@@ -291,7 +291,7 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
-    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody  GoodsPriceSyncRequest goodsPriceSyncRequest);
 
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);

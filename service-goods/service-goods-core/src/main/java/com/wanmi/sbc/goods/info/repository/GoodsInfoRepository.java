@@ -534,7 +534,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     @Modifying
     @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ,gi.promotionStartTime = :promotionStartTime, gi.promotionEndTime =:promotionEndTime," +
-            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId and gi.delFlag = 0")
+            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
     int updateGoodsPriceById(@Param("goodsInfoId") String goodsInfoId,
                              @Param("costPrice") BigDecimal costPrice,
                              @Param("promotionStartTime") LocalDateTime promotionStartTime,
@@ -542,9 +542,10 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     );
 
     @Modifying
+    @Transactional
     @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ," +
-            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId and gi.delFlag = 0")
-    int updateCosetPriceById(@Param("goodsInfoId") String goodsInfoId,
+            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
+    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,
                              @Param("costPrice") BigDecimal costPrice
     );
 }
