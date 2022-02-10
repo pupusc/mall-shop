@@ -182,8 +182,8 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             post.setHeader("Accept", "application/json");
             post.setHeader("token",noticeSendMsgToken);
             post.setHeader("tenantId",noticeSendMsgTenantId);
-            post.setEntity(new StringEntity(noticeSendMsgUrl, Charset.forName("UTF-8")));
-            post.set
+
+            
             HttpResponse res = httpClient.execute(post);
             if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String result = EntityUtils.toString(res.getEntity());

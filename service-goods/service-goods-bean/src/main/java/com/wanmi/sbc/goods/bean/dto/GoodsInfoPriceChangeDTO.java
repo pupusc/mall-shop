@@ -12,10 +12,30 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GoodsInfoPriceChangeDTO {
+    /**
+     * 商品ID
+     */
     private String goodsId;
+    /**
+     * skuNo
+     */
+    private String skuNo;
+
     private String goodsInfoId;
-    private String goodsName;
-    private String changeTime;
-    private BigDecimal originalPrice;
-    private BigDecimal price;
+    /**
+     * 商品名称
+     */
+    private String name;
+    /**
+     * 更新时间
+     */
+    private String time;
+    /**
+     * 原价格
+     */
+    private BigDecimal oldPrice;
+    /**
+     * 新价格
+     */
+    private BigDecimal newPrice;
 }

@@ -2756,10 +2756,10 @@ public class GoodsInfoService {
         goodsRepository.resetGoodsPriceById(goodsInfo.getGoodsId(),costPrice);
         result.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(goodsInfo.getGoodsInfoId())
                 .goodsId(goodsInfo.getGoodsId())
-                .changeTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))
-                .originalPrice(originalPrice)
-                .price(costPrice)
-                .goodsName(goodsInfo.getGoodsInfoName())
+                .time(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()))
+                .oldPrice(originalPrice)
+                .newPrice(costPrice)
+                .name(goodsInfo.getGoodsInfoName())
                 .goodsInfoId(goodsInfo.getGoodsInfoId()).build());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());

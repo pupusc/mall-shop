@@ -6,13 +6,15 @@ import java.math.BigDecimal;
 
 @Data
 public class GoodsStockInfo {
-    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo,BigDecimal costPrice,Integer costPriceSyncFlag,String goodsInfoName) {
+    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo,BigDecimal costPrice,Integer costPriceSyncFlag,String goodsInfoName,String goodsInfoNo,BigDecimal marketPrice) {
         this.goodsInfoId = goodsInfoId;
         this.goodsId = goodsId;
         this.goodsNo = goodsNo;
         this.costPrice = costPrice;
         this.costPriceSyncFlag =costPriceSyncFlag;
         this.goodsInfoName = goodsInfoName;
+        this.goodsInfoNo = goodsInfoNo;
+        this.marketPrice = marketPrice;
     }
 
     /**
@@ -33,4 +35,8 @@ public class GoodsStockInfo {
     private Integer costPriceSyncFlag;
 
     private String goodsInfoName;
+
+    private String goodsInfoNo;
+
+    private BigDecimal marketPrice;
 }
