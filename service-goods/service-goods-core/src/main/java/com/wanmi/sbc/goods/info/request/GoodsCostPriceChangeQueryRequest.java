@@ -31,6 +31,8 @@ public class GoodsCostPriceChangeQueryRequest  extends BaseQueryRequest implemen
 
     private Long providerId;
 
+    private List<String> goodsInfoNos;
+
     /**
      * 封装公共条件
      *
@@ -42,6 +44,9 @@ public class GoodsCostPriceChangeQueryRequest  extends BaseQueryRequest implemen
             //批量SKU编号
             if (CollectionUtils.isNotEmpty(goodsInfoIds)) {
                 predicates.add(root.get("goodsInfoId").in(goodsInfoIds));
+            }
+            if (CollectionUtils.isNotEmpty(goodsInfoNos)) {
+                predicates.add(root.get("goodsInfoNo").in(goodsInfoNos));
             }
             if (providerId != null) {
                 predicates.add(cbuild.equal(root.get("providerId"), providerId));

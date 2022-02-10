@@ -58,7 +58,7 @@ public interface GoodsSyncRelationMapper {
      */
     int updateByPrimaryKey(GoodsSyncRelation record);
 
-    List<GoodsSyncRelation> list(@Param("id") Long id);
+    List<GoodsSyncRelation> list(@Param("id") Long id,@Param("goodsIds")List<String> goodsIds);
 
     List<String> listByGoodsNos(@Param("goodsNos") List<String> goodsNos);
 }

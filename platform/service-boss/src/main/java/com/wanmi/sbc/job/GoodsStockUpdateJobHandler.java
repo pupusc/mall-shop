@@ -1,6 +1,7 @@
 package com.wanmi.sbc.job;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -37,13 +38,13 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
     private GoodsProvider goodsProvider;
 
     @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
-
-    @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
 
     @Autowired
     private RedissonClient redissonClient;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     @Autowired
     private RedisService redisService;
@@ -60,33 +61,43 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
         }
         lock.lock();
         log.info("全量同步商品库存任务执行开始");
-        int pageSize = 100;
+        int pageSize = 20;
         try {
-            GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                    .pageNum(0)
-                    .pageSize(pageSize)
-                    .build();
-            BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncGoodsStock(goodsInfoListByIdRequest);
-            Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
-
-            //更新ES中的SPU和SKU库存数据
-            if (!resultMap.isEmpty()) {
-                Map<String, Integer> skusMap = resultMap.get("skus");
-                log.info("============Es更新sku的库存:{}==================", skusMap);
-                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
-                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-                Map<String, Integer> spusMap = resultMap.get("spus");
-                log.info("============Es更新spu的库存:{}==================", spusMap);
-                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
-                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-                log.info("============Es更新spu中的goodsInfo的库存:{}==================", spusMap);
-                esGoodsStockProvider.batchResetGoodsInfoStockBySpuId(esGoodsSpuStockSubRequest);
-                //更新redis商品基本数据
-                if(!skusMap.isEmpty()){
-                    for(String key:spusMap.keySet()){
-                        String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
-                        if (StringUtils.isNotBlank(goodsDetailInfo)) {
-                            redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+            //查询数量
+            BaseResponse<Integer> countResponse = goodsQueryProvider.countGoodsStockSync();
+            if (countResponse == null || countResponse.getContext() == null || countResponse.getContext() < 1) {
+                log.info("全量同步商品库存数量为0");
+                return SUCCESS;
+            }
+            int pageNum = 0;
+            for (int i = 0; i < countResponse.getContext(); i += 20) {
+                log.info("同步商品库存,共{}条数据,当前第{}页", countResponse.getContext(), pageNum);
+                GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
+                        .pageNum(pageNum)
+                        .pageSize(pageSize)
+                        .build();
+                BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncGoodsStock(goodsInfoListByIdRequest);
+                Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
+                ++pageNum;
+                //更新ES中的SPU和SKU库存数据
+                if (!resultMap.isEmpty()) {
+                    Map<String, Integer> skusMap = resultMap.get("skus");
+                    log.info("============Es更新sku的库存:{}==================", skusMap);
+                    EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
+                    esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
+                    Map<String, Integer> spusMap = resultMap.get("spus");
+                    log.info("============Es更新spu的库存:{}==================", spusMap);
+                    EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+                    esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
+                    log.info("============Es更新spu中的goodsInfo的库存:{}==================", spusMap);
+                    esGoodsStockProvider.batchResetGoodsInfoStockBySpuId(esGoodsSpuStockSubRequest);
+                    //更新redis商品基本数据
+                    if (!skusMap.isEmpty()) {
+                        for (String key : spusMap.keySet()) {
+                            String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+                            if (StringUtils.isNotBlank(goodsDetailInfo)) {
+                                redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
+                            }
                         }
                     }
                 }

@@ -11,9 +11,11 @@ import java.util.List;
 public class GoodsPriceSyncRequest  extends BaseQueryRequest implements Serializable{
     private static final long serialVersionUID = -7384238941913223358L;
     /**
-     * 商品编码
+     * 商品id
      */
     private List<String> goodsInfoIds;
+
+    private List<String> goodsInfoNos;
 
     private Long providerId;
 

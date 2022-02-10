@@ -2,6 +2,7 @@ package com.wanmi.sbc.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -18,6 +19,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsPriceSyncRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
+import com.wanmi.sbc.job.model.entity.GoodsPriceSync;
 import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -71,6 +73,9 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Value("${notice.send.message.url}")
     private String noticeSendMsgUrl;
 
@@ -98,8 +103,9 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
         lock.lock();
         log.info("同步商品成本价任务执行开始");
         try {
-            syncBookuuPrice();
-            syncCostPrice();
+            GoodsPriceSync param = objectMapper.readValue(params, GoodsPriceSync.class);
+            syncBookuuPrice(param);
+            syncCostPrice(param);
             return SUCCESS;
         } catch (RuntimeException e) {
             log.error("同步库存定时任务,参数错误", e);
@@ -113,7 +119,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
     /**
      * 同步博库成本价
      */
-    private void syncBookuuPrice() {
+    private void syncBookuuPrice(GoodsPriceSync param) {
         GoodsPriceSyncRequest goodsInfoListByIdRequest = new GoodsPriceSyncRequest();
         goodsInfoListByIdRequest.setPageNum(0);
         goodsInfoListByIdRequest.setPageSize(20);
@@ -140,10 +146,11 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
     /**
      * 同步管易成本价
      */
-    private void syncCostPrice() {
+    private void syncCostPrice(GoodsPriceSync param) {
         GoodsPriceSyncRequest goodsInfoListByIdRequest = new GoodsPriceSyncRequest();
         goodsInfoListByIdRequest.setPageNum(0);
         goodsInfoListByIdRequest.setPageSize(20);
+        goodsInfoListByIdRequest.setGoodsInfoNos(param.getGoodsInfoNo());
 
         BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> baseResponse = goodsProvider.syncGoodsInfoCostPrice(goodsInfoListByIdRequest);
         MicroServicePage<GoodsInfoPriceChangeDTO> result = baseResponse.getContext();

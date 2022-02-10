@@ -166,7 +166,7 @@ public class GoodsService {
      * 更新商品价格
      *
      */
-    public void syncGoodsPrice() {
+    public void syncGoodsPrice(List<String> goodsIds) {
 //        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
 //        if (maxPage < 1) {
 //            log.info("max page is 0");
@@ -184,7 +184,7 @@ public class GoodsService {
         //plan b 根据发布商品同步价格
         Long startId = 0L;
         while (true){
-            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId);
+            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,goodsIds);
             if(CollectionUtils.isEmpty(goodsNo)){
                 break;
             }
@@ -258,7 +258,7 @@ public class GoodsService {
         //plan b
         Long startId = 0L;
         while (true){
-            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId);
+            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,null);
             if(CollectionUtils.isEmpty(goodsNo)){
                 break;
             }
