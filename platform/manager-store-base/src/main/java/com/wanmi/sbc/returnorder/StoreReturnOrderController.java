@@ -319,32 +319,32 @@ public class StoreReturnOrderController {
     }
 
 
-//    /**
-//     * 商家操作退款校验erp订单是否发货  duanlsh  当前管易云和博库对应的取消订单 作废，改成到
-//     * flag:true->检查订单中是否包含电子卡券或虚拟商品
-//     * flag:false->进行退款操作
-//     * @param rid
-//     * @return
-//     */
-//    @ApiOperation(value = "商家操作退款校验erp订单是否发货")
-//    @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
-//    @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
-//    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
-//        //获取退单信息
-//        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
-//        if (returnOrderVO == null) {
-//            //退单不存在
-//            throw new SbcRuntimeException("K-050003");
-//        }
-//        //管易云
-//        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
-//            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
-//        } else {
-//            //博库
-//            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
-//        }
-//        return BaseResponse.SUCCESSFUL();
-//    }
+    /**
+     * 商家操作退款校验erp订单是否发货  duanlsh  当前管易云和博库对应的取消订单 作废，改成到
+     * flag:true->检查订单中是否包含电子卡券或虚拟商品
+     * flag:false->进行退款操作
+     * @param rid
+     * @return
+     */
+    @ApiOperation(value = "商家操作退款校验erp订单是否发货")
+    @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
+    @RequestMapping(value = "/checkErpDeliverStatus/{rid}/{flag}", method = RequestMethod.GET)
+    public BaseResponse checkErpDeliverStatus(@PathVariable String rid,@PathVariable Boolean flag){
+        //获取退单信息
+        ReturnOrderVO returnOrderVO = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid).build()).getContext();
+        if (returnOrderVO == null) {
+            //退单不存在
+            throw new SbcRuntimeException("K-050003");
+        }
+        //管易云
+        if (Objects.equals(returnOrderVO.getProviderId(),String.valueOf(defaultProviderId))) {
+            abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrderVO, flag);
+        } else {
+            //博库
+            abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrderVO, flag);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
 
     /**
      * 是否可创建退单
