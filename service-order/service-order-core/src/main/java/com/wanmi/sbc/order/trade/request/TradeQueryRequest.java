@@ -847,8 +847,9 @@ public class TradeQueryRequest extends BaseQueryRequest {
         }
 
 
-        //周期购订单查询部分发货的订单
-        Criteria criteria2=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.PART_SHIPPED.getStatusId()),Criteria.where("cycleBuyFlag").is(true));
+
+        //部分发货仍然可以发起售后
+        Criteria criteria2=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.PART_SHIPPED.getStatusId()));
 
         //其他订单未发货
         Criteria criteria3=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
