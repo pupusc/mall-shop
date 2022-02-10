@@ -62,10 +62,18 @@ public class BoKuService extends AbstractCRMService{
             //这里获取的实际上是子单
             List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
             for (TradeVO providerTradeParam : providerTradeVoList) {
-                BaseResponse<DeliveryStatusResponse> deliveryStatus = bizSupplierClient.getDeliveryStatus(providerTradeParam.getId());
-                if (deliverStatus.getStatusId().equals("3")) {
-
+                BaseResponse<DeliveryStatusResponse> deliveryStatusResponse = bizSupplierClient.getDeliveryStatus(providerTradeParam.getId());
+                //表示调用第三方接口异常
+                if (deliveryStatusResponse == null || deliveryStatusResponse.getContext() == null) {
+                    log.error("BoKuService bizSupplierClient getDeliveryStatus tradeId:{} pid: {} result content is null 获取订单信息的时候异常", tradeVO.getId(), providerTradeParam.getId());
+                    throw new SbcRuntimeException("K-050143", new Object[]{"获取订单网络异常，请稍后重试"});
                 }
+
+                if (deliveryStatusResponse.getContext() != null && CollectionUtils.isEmpty(deliveryStatusResponse.getContext().getDeliveryInfoVOList())) {
+                    log.info("BoKuService bizSupplierClient tradeId:{} pid: {} 博库申请退款 博库第三方不存在该商品，直接取消该商品；", tradeVO.getId(), providerTradeParam.getId());
+                    return BaseResponse.SUCCESSFUL();
+                }
+
                 BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeParam.getDeliveryOrderId()).pid(providerTradeParam.getId()).build());
                 if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
                     throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
@@ -74,13 +82,13 @@ public class BoKuService extends AbstractCRMService{
         }
 
         if (returnOrderVO.getReturnType().equals(ReturnType.RETURN)) {
-            log.info("博库退货退款请走博库平台");
+            log.info("BoKuService bizSupplierClient tradeId:{} 博库退货退款请走博库平台 ", tradeVO.getId());
         }
 //            if(!Objects.equals(defaultProviderId,returnOrderVO.getProviderId())){
 //                log.info("博库退货退款请走博库平台");
 //                return BaseResponse.SUCCESSFUL();
 //            }
-
+        log.info("************* BoKuService bizSupplierClient tradeId: {} 博库申请退款或退货退款 完成 *************", tradeVO.getId());
         return BaseResponse.SUCCESSFUL();
     }
 
