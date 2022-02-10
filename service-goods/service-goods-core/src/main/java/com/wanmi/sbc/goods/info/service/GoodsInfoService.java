@@ -2760,7 +2760,8 @@ public class GoodsInfoService {
                 .oldPrice(originalPrice)
                 .newPrice(costPrice)
                 .name(goodsInfo.getGoodsInfoName())
-                .goodsInfoId(goodsInfo.getGoodsInfoId()).build());
+                .skuNo(goodsInfo.getGoodsInfoNo())
+                .marketPrice(goodsInfo.getMarketPrice()).build());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());
     }

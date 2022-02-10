@@ -1,5 +1,6 @@
 package com.wanmi.sbc.job;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -75,6 +77,9 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
     @Value("${notice.send.message.tenantId}")
     private String noticeSendMsgTenantId;
+
+    @Value("${notice.send.message.noticeId}")
+    private Integer noticeSendMsgNoticeId;
 
     //分布式锁名称
     private static final String BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS = "BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS";
@@ -116,12 +121,14 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             return;
         }
         syncEsPrice(result.getContent());
+        sendMessage(baseResponse.getContext().getContent());
 
         for (int pageNum = 1; pageNum < result.getTotalPages(); ++pageNum) {
             log.info("同步博库成本价,共{}条数据,当前第{}页", result.getTotal(), pageNum);
             goodsInfoListByIdRequest.setPageNum(pageNum);
             baseResponse = goodsProvider.syncGoodsPrice(goodsInfoListByIdRequest);
             syncEsPrice(baseResponse.getContext().getContent());
+            sendMessage(baseResponse.getContext().getContent());
         }
 
     }
@@ -141,12 +148,13 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             return;
         }
         syncEsPrice(result.getContent());
-
+        sendMessage(baseResponse.getContext().getContent());
         for (int pageNum = 1; pageNum < result.getTotalPages(); ++pageNum) {
             log.info("同步管易成本价,共{}条数据,当前第{}页", result.getTotal(), pageNum);
             goodsInfoListByIdRequest.setPageNum(pageNum);
             baseResponse = goodsProvider.syncGoodsPrice(goodsInfoListByIdRequest);
             syncEsPrice(baseResponse.getContext().getContent());
+            sendMessage(baseResponse.getContext().getContent());
         }
     }
 
@@ -182,8 +190,12 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             post.setHeader("Accept", "application/json");
             post.setHeader("token",noticeSendMsgToken);
             post.setHeader("tenantId",noticeSendMsgTenantId);
-
-            
+            String params = JSON.toJSONString(change);
+            Map<String,Object> map = new HashMap<>();
+            map.put("replaceParams",params);
+            map.put("noticeId",noticeSendMsgNoticeId);
+            StringEntity entity = new StringEntity(JSON.toJSONString(map),"UTF-8");
+            post.setEntity(entity);
             HttpResponse res = httpClient.execute(post);
             if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String result = EntityUtils.toString(res.getEntity());

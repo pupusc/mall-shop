@@ -2,11 +2,14 @@ package com.wanmi.sbc.goods.info.model.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class GoodsStockInfo {
-    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo,BigDecimal costPrice,Integer costPriceSyncFlag,String goodsInfoName,String goodsInfoNo,BigDecimal marketPrice) {
+public class GoodsStockInfo implements Serializable {
+    private static final long serialVersionUID = 2046269360192727492L;
+
+    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo, BigDecimal costPrice, Integer costPriceSyncFlag, String goodsInfoName, String goodsInfoNo, BigDecimal marketPrice) {
         this.goodsInfoId = goodsInfoId;
         this.goodsId = goodsId;
         this.goodsNo = goodsNo;

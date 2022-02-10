@@ -38,4 +38,6 @@ public class GoodsInfoPriceChangeDTO {
      * 新价格
      */
     private BigDecimal newPrice;
+
+    private BigDecimal marketPrice;
 }
