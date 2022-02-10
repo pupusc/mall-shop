@@ -3161,7 +3161,6 @@ public class ReturnOrderService {
                 itemCanReturnNum = tradeItemParam.getNum().intValue();
             }
             tradeItemParam.setCanReturnNum(itemCanReturnNum);
-
             //如果订单中已经有供应商，则不再查询
             if (tradeItemParam.getProviderId() != null && tradeItemParam.getProviderId() > 0) {
                 continue;

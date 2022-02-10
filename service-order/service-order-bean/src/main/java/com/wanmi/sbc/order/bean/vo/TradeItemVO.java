@@ -269,6 +269,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Integer canReturnNum;
 
     /**
+     * 真实可退数量
+     */
+    private Integer canReturnNumHis;
+
+    /**
      * 规格描述信息
      */
     @ApiModelProperty(value = "规格描述信息")
