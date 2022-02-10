@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GoodsInfoPriceChangeDTO {
+public class GoodsInfoPriceChangeDTO implements Serializable {
+    private static final long serialVersionUID = -6685775991990256123L;
     /**
      * 商品ID
      */

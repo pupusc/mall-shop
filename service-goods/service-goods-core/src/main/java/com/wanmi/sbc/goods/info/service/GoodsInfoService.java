@@ -2797,11 +2797,12 @@ public class GoodsInfoService {
             goodsInfoRepository.updateCostPriceById(g.getGoodsInfoId(),erpGoodsInfoVO.get().getCostPrice());
             list.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(g.getGoodsInfoId())
                     .goodsId(g.getGoodsId())
-                    .changeTime(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))
-                    .originalPrice(g.getCostPrice())
-                    .price(erpGoodsInfoVO.get().getCostPrice())
-                    .goodsName(g.getGoodsInfoName())
-                    .goodsInfoId(g.getGoodsInfoId()).build());
+                    .time(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now()))
+                    .oldPrice(g.getCostPrice())
+                    .newPrice(erpGoodsInfoVO.get().getCostPrice())
+                    .name(g.getGoodsInfoName())
+                    .skuNo(g.getGoodsInfoNo())
+                    .marketPrice(g.getMarketPrice()).build());
         });
         page.setContent(list);
         return page;

@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoAdjustPriceRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +40,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.Charset;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +61,6 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
     @Autowired
     private GoodsProvider goodsProvider;
-
-    @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
 
     @Autowired
     private RedissonClient redissonClient;
@@ -80,6 +82,8 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
     @Value("${notice.send.message.noticeId}")
     private Integer noticeSendMsgNoticeId;
+
+    private String NOTICE_SEND_MESSAGE ="{0} {1}当前售价{2}，于{3}成本价由{4}调整为{5}，原毛利率{6}%变为{7}%";
 
     //分布式锁名称
     private static final String BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS = "BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS";
@@ -160,6 +164,9 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
     private void syncEsPrice(List<GoodsInfoPriceChangeDTO> list) {
         log.info("============Es更新的价格:{}==================", list);
+        if(CollectionUtils.isEmpty(list)){
+            return;
+        }
         EsGoodsInfoAdjustPriceRequest esGoodsInfoAdjustPriceRequest = EsGoodsInfoAdjustPriceRequest.builder().goodsInfoIds(list.stream().map(GoodsInfoPriceChangeDTO::getGoodsInfoId).collect(Collectors.toList())).type(PriceAdjustmentType.MARKET).build();
         esGoodsInfoElasticProvider.adjustPrice(esGoodsInfoAdjustPriceRequest);
         //更新redis商品基本数据
@@ -190,9 +197,17 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             post.setHeader("Accept", "application/json");
             post.setHeader("token",noticeSendMsgToken);
             post.setHeader("tenantId",noticeSendMsgTenantId);
-            String params = JSON.toJSONString(change);
+            Map<String,Object> content = new HashMap<>();
+            //毛利率计算
+            BigDecimal oldRate = new BigDecimal(0);
+            BigDecimal newRate = new BigDecimal(0);
+            if(change.getMarketPrice() != null && change.getMarketPrice().compareTo(new BigDecimal(0)) != 0){
+                oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+                newRate = (change.getMarketPrice().subtract(change.getNewPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+            }
+            content.put("content", MessageFormat.format(NOTICE_SEND_MESSAGE,change.getSkuNo(),change.getName(),change.getMarketPrice(),change.getTime(),change.getOldPrice(),change.getNewPrice(),oldRate,newRate));
             Map<String,Object> map = new HashMap<>();
-            map.put("replaceParams",params);
+            map.put("replaceParams",content);
             map.put("noticeId",noticeSendMsgNoticeId);
             StringEntity entity = new StringEntity(JSON.toJSONString(map),"UTF-8");
             post.setEntity(entity);
