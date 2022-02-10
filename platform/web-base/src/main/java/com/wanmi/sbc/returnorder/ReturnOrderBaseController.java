@@ -217,9 +217,9 @@ public class ReturnOrderBaseController {
     @ApiOperation(value = "查看退货订单详情和可退商品数")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单Id", required = true)
     @RequestMapping(value = "/trade/{tid}", method = RequestMethod.GET)
-    public BaseResponse<TradeVO> tradeDetails(@PathVariable String tid) {
+    public BaseResponse<TradeVO> tradeDetails(@PathVariable String tid, @RequestParam("replace") Integer replace) {
         TradeVO trade = returnOrderQueryProvider.queryCanReturnItemNumByTid(CanReturnItemNumByTidRequest.builder()
-                .tid(tid).build()).getContext();
+                .tid(tid).replace(replace).build()).getContext();
         if (!trade.getBuyer().getId().equals(commonUtil.getOperatorId())) {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
         }

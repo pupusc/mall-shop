@@ -316,7 +316,7 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
     public BaseResponse<CanReturnItemNumByTidResponse> queryCanReturnItemNumByTid(@RequestBody @Valid
                                                                                           CanReturnItemNumByTidRequest
                                                                                           request) {
-        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid()),
+        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid(), request.getReplace()),
                 CanReturnItemNumByTidResponse.class));
     }
 

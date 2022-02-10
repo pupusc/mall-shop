@@ -746,7 +746,7 @@ public class ReturnOrderService {
 
 
         //此处变更 订单的金额、积分、知豆等信息
-        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid());
+        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), null);
 
         //设置退单调用樊登参数
         CustomerDetailVO customerDetailVO = customerCommonService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
@@ -1465,7 +1465,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
         this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         //填充退货商品信息
-        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade);
+        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade, null);
         returnOrder.getReturnItems().forEach(item ->
                 {
                     item.setSkuName(trade.skuItemMap().get(item.getSkuId()).getSkuName());
@@ -3128,9 +3128,10 @@ public class ReturnOrderService {
      * 查询订单详情,如已发货则带出可退商品数
      *
      * @param tid
+     * @param replace 是否代客退单
      * @return
      */
-    public Trade queryCanReturnItemNumByTid(String tid) {
+    public Trade queryCanReturnItemNumByTid(String tid, Integer replace) {
         Trade trade = tradeService.detail(tid);
         if (Objects.isNull(trade)) {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
@@ -3149,7 +3150,7 @@ public class ReturnOrderService {
         // 填充订单商品providerID  这里似乎不需要填充，tradeItem中已存放了providerId
         /*********************订单中填充供应商 和可退数量 begin************************/
         //计算商品可退数 SKUID -> canReturnNum
-        Map<String, Integer> itemCanReturnNumMap = findLeftItems(trade);
+        Map<String, Integer> itemCanReturnNumMap = findLeftItems(trade, replace);
         //当前订单的商品列表
         for (TradeItem tradeItemParam : trade.getTradeItems()) {
             //可退数量
@@ -3369,7 +3370,7 @@ public class ReturnOrderService {
         if (trade.getTradeState().getDeliverStatus() != DeliverStatus.NOT_YET_SHIPPED && trade.getTradeState()
                 .getDeliverStatus() != DeliverStatus.VOID) {
             //计算商品可退数
-            Map<String, Integer> map = findLeftItems(trade);
+            Map<String, Integer> map = findLeftItems(trade, null);
             returnOrder.getReturnItems().forEach(item -> item.setCanReturnNum(map.get(item.getSkuId())));
         }
         return returnOrder;
@@ -3425,7 +3426,7 @@ public class ReturnOrderService {
      *
      * @param trade
      */
-    private Map<String, Integer> findLeftItems(Trade trade) {
+    private Map<String, Integer> findLeftItems(Trade trade, Integer replace) {
         final Map<String, Integer> canReturnNum = new HashMap<>();
         //如果为周期购
         if (trade.getCycleBuyFlag()) {
@@ -3449,8 +3450,17 @@ public class ReturnOrderService {
         } else {
             //普通商品
             //表示除 未发货 或者已经完成 不可以操作
-            if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
-                throw new SbcRuntimeException("K-050002");
+            //表示代客退单
+            if (replace != null && replace == 1) {
+                if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)
+                        && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)
+                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED_PART)) {
+                    throw new SbcRuntimeException("K-050002");
+                }
+            } else {
+                if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
+                    throw new SbcRuntimeException("K-050002");
+                }
             }
 
             //对所有商品发货的数量统计
@@ -3558,7 +3568,7 @@ public class ReturnOrderService {
 
 
     private void verifyNum(Trade trade, List<ReturnItem> returnItems) {
-        Map<String, Integer> map = this.findLeftItems(trade);
+        Map<String, Integer> map = this.findLeftItems(trade, null);
         returnItems.stream().forEach(
                 t -> {
                     //周期购订单部分发货状态下是可以退货退款
