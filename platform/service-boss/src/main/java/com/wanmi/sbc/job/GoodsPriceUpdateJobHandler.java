@@ -62,7 +62,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
         }
         lock.lock();
         log.info("同步商品价格任务执行开始");
-        int pageSize = 20;
+        int pageSize = 100;
         try {
             GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
                     .pageNum(0)
