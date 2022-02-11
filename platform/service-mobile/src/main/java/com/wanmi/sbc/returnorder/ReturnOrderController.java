@@ -32,6 +32,7 @@ import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
@@ -178,7 +179,7 @@ public class ReturnOrderController {
         BaseResponse<TradeGetByIdResponse> tradeGetByIdResponseBaseResponse = tradeQueryProvider.getById(tradeGetByIdRequest);
         TradeGetByIdResponse context = tradeGetByIdResponseBaseResponse.getContext();
         //如果订单中的信息为空，则直接返回参数错误
-        if (context == null || context.getTradeVO() == null || org.springframework.util.StringUtils.isEmpty(context.getTradeVO().getId()) || org.springframework.util.CollectionUtils.isEmpty(context.getProviderTradeVOs())) {
+        if (context == null || context.getTradeVO() == null || org.springframework.util.StringUtils.isEmpty(context.getTradeVO().getId())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
 
@@ -219,16 +220,17 @@ public class ReturnOrderController {
             throw new SbcRuntimeException("K-050208");
         }
 
-        JSONObject content = JSON.parseObject(config.getContext());
-        Integer day = content.getObject("day", Integer.class);
-
         if (!trade.getCycleBuyFlag()) {
-            //必须的有完成时间
-            if (Objects.isNull(trade.getTradeState().getEndTime())) {
-                throw new SbcRuntimeException("K-050002");
-            }
-            if (trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < LocalDateTime.now().minusDays(day).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) {
-                throw new SbcRuntimeException("K-050208");
+            if (trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
+                JSONObject content = JSON.parseObject(config.getContext());
+                Integer day = content.getObject("day", Integer.class);
+                //必须的有完成时间
+                if (Objects.isNull(trade.getTradeState().getEndTime())) {
+                    throw new SbcRuntimeException("K-050002");
+                }
+                if (trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < LocalDateTime.now().minusDays(day).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) {
+                    throw new SbcRuntimeException("K-050208");
+                }
             }
         }
 
@@ -245,7 +247,7 @@ public class ReturnOrderController {
         company.setStoreId(supplier.getStoreId());
         company.setStoreName(supplier.getStoreName());
         company.setCompanyType(supplier.getIsSelf() ? BoolFlag.NO : BoolFlag.YES);
-
+        returnOrder.setCompany(company);
 
         returnOrder.setChannelType(trade.getChannelType());
         returnOrder.setDistributorId(trade.getDistributorId());
