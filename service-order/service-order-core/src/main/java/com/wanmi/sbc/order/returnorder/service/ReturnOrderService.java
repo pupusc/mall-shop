@@ -136,6 +136,7 @@ import com.wanmi.sbc.order.returnorder.mq.ReturnOrderProducerService;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderTransferRepository;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
+import com.wanmi.sbc.order.thirdplatformtrade.model.root.ThirdPlatformTrade;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
 import com.wanmi.sbc.order.trade.fsm.TradeFSMService;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
@@ -2242,27 +2243,122 @@ public class ReturnOrderService {
                 .data(price)
                 .build();
         returnFSMService.changeState(request);
-        trade.setRefundFlag(true);
-        tradeService.updateTrade(trade);
 
-        String businessId = trade.getPayInfo().isMergePay() ? trade.getParentId() : trade.getId();
 
+<<<<<<< Updated upstream
         if (returnOrder.getReturnType() == ReturnType.REFUND) {
             // 作废子订单
             updateProviderTrade(returnOrder);
             //仅退款退单在退款完成后释放商品库存
+=======
+        Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
+        //当前退单申请中的 商品数量
+        Map<String, Integer> returnItemSkuIdNumMap = new HashMap<>();
+        for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
+            returnItemSkuIdNumMap.put(returnItemParam.getSkuId(), returnItemParam.getNum());
+        }
+        //获取所有子单
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(returnOrder.getTid());
+        for (ProviderTrade providerTradeParam : providerTradeList) {
+            if (!providerTradeParam.getId().equals(returnOrder.getPtid())) {
+                continue;
+            }
+            for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
+                Integer skuIdNum = returnItemSkuIdNumMap.get(tradeItemParam.getSkuId());
+                skuIdNum = skuIdNum == null ? 0 : skuIdNum;
+                TradeReturn tradeReturn = tradeItemParam.getTradeReturn();
+                if (tradeReturn == null) {
+                    tradeReturn = new TradeReturn();
+                    tradeItemParam.setTradeReturn(tradeReturn);
+                }
+                if (tradeReturn.getCreateTime() == null) {
+                    tradeReturn.setCreateTime(LocalDateTime.now());
+                }
+                tradeReturn.setModifyTime(LocalDateTime.now());
+                //商品完成退单的数量
+                Integer returnCompleteNum = tradeReturn.getReturnCompleteNum() == null ? 0 : tradeReturn.getReturnCompleteNum();
+                returnCompleteNum += skuIdNum;
+                //商品下单数量
+                Integer tradeItemNum = tradeItemParam.getNum() == null ? 0 : tradeItemParam.getNum().intValue();
+                if (returnCompleteNum > tradeItemNum) {
+                    log.error("ReturnOrderService tid:{} pid:{} 退款完成以后订单统计数量 skuId:{} skuName:{} 下单数量为:{} 完成的数量为:{} 有误，需要核验",
+                            returnOrder.getTid(), returnOrder.getPtid(), tradeItemParam.getSkuId(), tradeItemParam.getSkuName(), tradeItemNum, returnCompleteNum);
+                    returnCompleteNum = tradeItemNum;
+                }
+                tradeReturn.setReturnCompleteNum(returnCompleteNum);
+                skuIdTradeReturnMap.put(tradeItemParam.getSkuId(), tradeReturn);
+            }
+            providerTradeService.updateProviderTrade(providerTradeParam);
+        }
+
+        trade.setRefundFlag(true);
+        //更新主订单的退单数量
+        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+            TradeReturn tradeReturn = skuIdTradeReturnMap.get(tradeItemParam.getSkuId());
+            if (tradeReturn == null) {
+                continue;
+            }
+            tradeItemParam.setTradeReturn(tradeReturn);
+        }
+        tradeService.updateTrade(trade);
+        //更新主单的退款数量
+
+
+        //退款，如果全部退款啦，则订单作废
+        if (returnOrder.getReturnType() == ReturnType.REFUND) {
+            //判断当前是否是全部退款，如果是则作废主单，
+            boolean isTradeVoid = true;
+            for (ProviderTrade providerTradeParam : providerTradeList) {
+                if (!providerTradeParam.getId().equals(returnOrder.getPtid())) {
+                    continue;
+                }
+                boolean isReturnOrderAllComplete = true;
+                for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
+                    if (tradeItemParam.getTradeReturn().getReturnCompleteNum() != tradeItemParam.getNum().intValue()) {
+                        isReturnOrderAllComplete = false;
+                    }
+                }
+                if (isReturnOrderAllComplete) {
+                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
+                    providerTradeService.updateProviderTrade(providerTradeParam);
+                    //TODO 这里不确定是否要删除 duanlsh
+                    mongoTemplate.updateMulti(new Query(Criteria.where("parentId").is(providerTradeParam.getId())), new Update().set("tradeState.flowState", FlowState.VOID), ThirdPlatformTrade.class);
+                } else {
+                    isTradeVoid = false;
+                }
+
+            }
+            //释放库存
             freeStock(returnOrder, trade);
             if (providerTradeAllVoid(returnOrder)) {
                 //作废主订单
                 tradeService.voidTrade(returnOrder.getTid(), operator);
                 trade.getTradeState().setEndTime(LocalDateTime.now());
-            }else if(providerTradeAllEnd(returnOrder)){
+            } /*else if(providerTradeAllEnd(returnOrder)){
                 //zi订单或作废或已经全部发货，修改主订单为待收货
                 trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                 trade.getTradeState().setFlowState(FlowState.DELIVERED);
                 tradeService.updateTrade(trade);
-            }
+            }*/
         }
+
+//            // 作废子订单 TODO 售后 update
+//            updateProviderTrade(returnOrder);
+//            //仅退款退单在退款完成后释放商品库存
+//            freeStock(returnOrder, trade);
+//            if (providerTradeAllVoid(returnOrder)) {
+//                //作废主订单
+//                tradeService.voidTrade(returnOrder.getTid(), operator);
+//                trade.getTradeState().setEndTime(LocalDateTime.now());
+//            }else if(providerTradeAllEnd(returnOrder)){
+//                //zi订单或作废或已经全部发货，修改主订单为待收货
+//                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//                trade.getTradeState().setFlowState(FlowState.DELIVERED);
+//                tradeService.updateTrade(trade);
+//            }
+        }
+        String businessId = trade.getPayInfo().isMergePay() ? trade.getParentId() : trade.getId();
+>>>>>>> Stashed changes
         if (returnOrder.getPayType() == PayType.OFFLINE) {
             saveReconciliation(returnOrder, "", businessId, "", returnOrder.getReturnPrice().getApplyStatus() ?
                     returnOrder.getReturnPrice().getApplyPrice() : returnOrder.getReturnPrice().getTotalPrice(), "");

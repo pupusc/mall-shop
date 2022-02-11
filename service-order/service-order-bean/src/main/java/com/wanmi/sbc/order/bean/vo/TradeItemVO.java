@@ -495,6 +495,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Boolean combinedCommodity;
 
     /**
+     * 退款信息
+     */
+    private TradeReturnVO tradeReturn;
+
+    /**
      * 营销优惠商品结算Bean
      */
     @Data

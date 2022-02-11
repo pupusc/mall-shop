@@ -29,10 +29,14 @@ import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderTransferByUserIdResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
+import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeReturnVO;
 import com.wanmi.sbc.order.bean.vo.TradeStateVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
@@ -51,7 +55,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @menu 退单相关
@@ -175,7 +182,25 @@ public class ReturnOrderController {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
 
+
         TradeVO trade = context.getTradeVO();
+        //判断申请中是否存在 已经全部退款的商品
+        Map<String, ReturnItemDTO> applyReturnOrderMap =
+                returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItemDTO::getSkuId, Function.identity()));
+
+        for (TradeItemVO tradeItemParam : trade.getTradeItems()) {
+            if (tradeItemParam.getTradeReturn() == null){
+                continue;
+            }
+            TradeReturnVO tradeReturn = tradeItemParam.getTradeReturn();
+            if (tradeReturn.getReturnCompleteNum() == tradeItemParam.getNum().intValue()) {
+                ReturnItemDTO returnItemDTO = applyReturnOrderMap.get(tradeItemParam.getSkuId());
+                if (returnItemDTO != null) {
+                    throw new SbcRuntimeException("K-050211");
+                }
+            }
+        }
+
         //查看订单信息和用户信息是否一致
         if (!trade.getBuyer().getId().equals(commonUtil.getOperatorId())) {
             throw new SbcRuntimeException("K-050204");
