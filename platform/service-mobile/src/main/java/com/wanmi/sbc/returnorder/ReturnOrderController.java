@@ -158,6 +158,14 @@ public class ReturnOrderController {
             throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
         }
 
+        //验证订单必须的是支付完成
+        BaseResponse<FindPayOrderResponse> response =
+                payOrderQueryProvider.findPayOrder(FindPayOrderRequest.builder().value(returnOrder.getTid()).build());
+        FindPayOrderResponse payOrderResponse = response.getContext();
+        if (Objects.isNull(payOrderResponse) || Objects.isNull(payOrderResponse.getPayOrderStatus()) || payOrderResponse.getPayOrderStatus() != PayOrderStatus.PAYED) {
+            throw new SbcRuntimeException("K-050103");
+        }
+
         TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
         tradeGetByIdRequest.setTid(returnOrder.getTid()); //orderId
         BaseResponse<TradeGetByIdResponse> tradeGetByIdResponseBaseResponse = tradeQueryProvider.getById(tradeGetByIdRequest);

@@ -685,6 +685,36 @@ public class ReturnOrderService {
         returnOrder.getReturnPoints().setApplyPoints(points);
     }
 
+    /**
+     * 是否存在退单
+     * @param returnOrder  申请售后商品
+     * @param returnOrderList 已经申请的售后商品
+     */
+    private void verifyIsExistsItemReturnOrder(ReturnOrder returnOrder, List<ReturnOrder> returnOrderList) {
+        //获取申请售后的商品列表 TODO 没有做赠品的处理
+        Map<String, String> applyReturnMap = new HashMap<>();
+        for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+            applyReturnMap.put(returnItem.getSkuId(), returnItem.getSkuName());
+        }
+        //过滤处理中的退单
+        List<ReturnOrder> returnOrderListFilter = returnOrderList.stream().filter(item ->
+                        item.getReturnFlowState() != ReturnFlowState.COMPLETED
+                                && item.getReturnFlowState() != ReturnFlowState.VOID
+                                && item.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
+                                && item.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
+                                && item.getReturnFlowState() != ReturnFlowState.REFUNDED)
+                .collect(Collectors.toList());
+        //如果有退款中的商品，则直接抛出来异常
+        for (ReturnOrder returnOrderParam : returnOrderListFilter) {
+            List<String> returnOrderSkuIdFilter = returnOrderParam.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList());
+            for (String skuIdParam : returnOrderSkuIdFilter) {
+                String skuName = applyReturnMap.get(skuIdParam);
+                if (StringUtils.isNotBlank(skuName)) {
+                    throw new SbcRuntimeException("K-050120", new Object[]{skuName});
+                }
+            }
+        }
+    }
 
 
 
@@ -719,31 +749,8 @@ public class ReturnOrderService {
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
         if (CollectionUtils.isNotEmpty(returnOrderList)) {
-            //获取申请售后的商品列表 TODO 没有做赠品的处理
-            Map<String, String> applyReturnMap = new HashMap<>();
-            for (ReturnItem returnItem : returnOrder.getReturnItems()) {
-                applyReturnMap.put(returnItem.getSkuId(), returnItem.getSkuName());
-            }
-            //过滤处理中的退单
-            List<ReturnOrder> returnOrderListFilter = returnOrderList.stream().filter(item ->
-                            item.getReturnFlowState() != ReturnFlowState.COMPLETED
-                                    && item.getReturnFlowState() != ReturnFlowState.VOID
-                                    && item.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
-                                    && item.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
-                                    && item.getReturnFlowState() != ReturnFlowState.REFUNDED)
-                    .collect(Collectors.toList());
-            //如果有退款中的商品，则直接抛出来异常
-            for (ReturnOrder returnOrderParam : returnOrderListFilter) {
-                List<String> returnOrderSkuIdFilter = returnOrderParam.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList());
-                for (String skuIdParam : returnOrderSkuIdFilter) {
-                    String skuName = applyReturnMap.get(skuIdParam);
-                    if (StringUtils.isNotBlank(skuName)) {
-                        throw new SbcRuntimeException("K-050120", new Object[]{skuName});
-                    }
-                }
-            }
-
-
+            //校验是否有没有完成的商品行退单
+            this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
 //            //如果有退款中的订单，则直接抛出异常
 //            if (CollectionUtils.isNotEmpty(returnOrders)) {
 //                throw new SbcRuntimeException("K-050120");
@@ -1211,17 +1218,7 @@ public class ReturnOrderService {
         Trade trade = tradeService.detail(returnOrder.getTid());
         //查询该订单所有退单
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(trade.getId());
-        //过滤处理中的退单
-        List<ReturnOrder> returnOrders = returnOrderList.stream().filter(item -> item.getReturnFlowState() !=
-                ReturnFlowState.COMPLETED
-                && item.getReturnFlowState() != ReturnFlowState.VOID
-                && item.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
-                && item.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
-                && item.getReturnFlowState() != ReturnFlowState.REFUNDED)
-                .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(returnOrders)) {
-            throw new SbcRuntimeException("K-050120");
-        }
+        this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
 
         this.verifyNum(trade, returnOrder.getReturnItems());
         returnOrder.setReturnType(ReturnType.RETURN);
