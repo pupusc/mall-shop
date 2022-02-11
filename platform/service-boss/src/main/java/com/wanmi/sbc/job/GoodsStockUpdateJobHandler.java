@@ -60,7 +60,7 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
         }
         lock.lock();
         log.info("全量同步商品库存任务执行开始");
-        int pageSize = 20;
+        int pageSize = 100;
         try {
             GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
                     .pageNum(0)
