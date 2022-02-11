@@ -474,6 +474,9 @@ public class TradePushERPService {
                                     .refund(0)
                                     .oid(tradeItem.getOid())
                                     .build();
+                            if(goodsInfoVO.getCombinedType().equals(1)){
+                                erpTradeItemDTO.setSkuCode(null);
+                            }
                             items.add(erpTradeItemDTO);
                         }
                     }
