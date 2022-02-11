@@ -365,6 +365,7 @@ public class StoreReturnOrderController {
         if (Objects.isNull(payOrder) || Objects.isNull(payOrder.getPayOrderStatus()) || payOrder.getPayOrderStatus() != PayOrderStatus.PAYED) {
             throw new SbcRuntimeException("K-050105");
         }
+        //根据订单id获取
         verifyIsReturnable(tid, isRefund);
         return BaseResponse.SUCCESSFUL();
     }
@@ -384,6 +385,10 @@ public class StoreReturnOrderController {
         if (!isRefund) {
             if (config.getStatus() == 0) {
                 throw new SbcRuntimeException("K-050208");
+            }
+            log.info("verifyIsReturnable tradeId:{} 当前发货状态是:{} 如果为全部发货则需要校验时间信息，如果非全部发货则不需要校验", tid, trade.getTradeState().getDeliverStatus());
+            if (trade.getTradeState().getDeliverStatus() != DeliverStatus.SHIPPED) {
+                return;
             }
             JSONObject content = JSON.parseObject(config.getContext());
             Integer day = content.getObject("day", Integer.class);
