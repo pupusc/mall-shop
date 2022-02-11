@@ -361,6 +361,11 @@ public class TradeItem implements Serializable, Cloneable {
      */
     private Integer cycleNum;
 
+    /**
+     * 退款信息
+     */
+    private TradeReturn tradeReturn;
+
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();

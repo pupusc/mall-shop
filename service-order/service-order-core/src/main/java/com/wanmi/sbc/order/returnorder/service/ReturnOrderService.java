@@ -143,6 +143,7 @@ import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
 import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
@@ -2245,12 +2246,6 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
 
 
-<<<<<<< Updated upstream
-        if (returnOrder.getReturnType() == ReturnType.REFUND) {
-            // 作废子订单
-            updateProviderTrade(returnOrder);
-            //仅退款退单在退款完成后释放商品库存
-=======
         Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
         //当前退单申请中的 商品数量
         Map<String, Integer> returnItemSkuIdNumMap = new HashMap<>();
@@ -2301,7 +2296,6 @@ public class ReturnOrderService {
             tradeItemParam.setTradeReturn(tradeReturn);
         }
         tradeService.updateTrade(trade);
-        //更新主单的退款数量
 
 
         //退款，如果全部退款啦，则订单作废
@@ -2326,11 +2320,11 @@ public class ReturnOrderService {
                 } else {
                     isTradeVoid = false;
                 }
-
             }
             //释放库存
             freeStock(returnOrder, trade);
-            if (providerTradeAllVoid(returnOrder)) {
+
+            if (isTradeVoid) {
                 //作废主订单
                 tradeService.voidTrade(returnOrder.getTid(), operator);
                 trade.getTradeState().setEndTime(LocalDateTime.now());
@@ -2340,7 +2334,6 @@ public class ReturnOrderService {
                 trade.getTradeState().setFlowState(FlowState.DELIVERED);
                 tradeService.updateTrade(trade);
             }*/
-        }
 
 //            // 作废子订单 TODO 售后 update
 //            updateProviderTrade(returnOrder);
@@ -2357,8 +2350,8 @@ public class ReturnOrderService {
 //                tradeService.updateTrade(trade);
 //            }
         }
+        
         String businessId = trade.getPayInfo().isMergePay() ? trade.getParentId() : trade.getId();
->>>>>>> Stashed changes
         if (returnOrder.getPayType() == PayType.OFFLINE) {
             saveReconciliation(returnOrder, "", businessId, "", returnOrder.getReturnPrice().getApplyStatus() ?
                     returnOrder.getReturnPrice().getApplyPrice() : returnOrder.getReturnPrice().getTotalPrice(), "");
