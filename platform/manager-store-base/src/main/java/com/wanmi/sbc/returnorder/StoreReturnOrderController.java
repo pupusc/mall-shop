@@ -286,27 +286,27 @@ public class StoreReturnOrderController {
         if (refundPrice.compareTo(request.getActualReturnPrice()) == -1) {
             throw new SbcRuntimeException("K-050132", new Object[]{refundPrice});
         }
-        //只有不是审核状态，则会进入审核流程
-        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
-            //1、走审核流程，
-            ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
-            returnOrderAuditRequest.setRid(returnOrderId);
-            returnOrderAuditRequest.setAddressId(null); // TODO
-            returnOrderAuditRequest.setOperator(commonUtil.getOperator());
-            returnOrderProvider.audit(returnOrderAuditRequest);
-        }
+//        //只有不是审核状态，则会进入审核流程
+//        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
+//            //1、走审核流程，
+//            ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+//            returnOrderAuditRequest.setRid(returnOrderId);
+//            returnOrderAuditRequest.setAddressId(null); // TODO
+//            returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+//            returnOrderProvider.audit(returnOrderAuditRequest);
+//        }
 
-        //2、管易云拦截
-        if (request.getHasInvokeGuanYiYun()) {
-            boolean flag = true;
-            //管易云
-            if (Objects.equals(returnOrder.getProviderId(),String.valueOf(defaultProviderId))) {
-                abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrder, flag);
-            } else {
-                //博库
-                abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrder, flag);
-            }
-        }
+//        //2、管易云拦截
+//        if (request.getHasInvokeGuanYiYun()) {
+//            boolean flag = true;
+//            //管易云
+//            if (Objects.equals(returnOrder.getProviderId(),String.valueOf(defaultProviderId))) {
+//                abstractCRMServiceMap.get("guanYiYunService").interceptorErpDeliverStatus(returnOrder, flag);
+//            } else {
+//                //博库
+//                abstractCRMServiceMap.get("boKuService").interceptorErpDeliverStatus(returnOrder, flag);
+//            }
+//        }
 
         //3、退款
         return returnOrderProvider.onlineModifyPrice(ReturnOrderOnlineModifyPriceRequest.builder()
