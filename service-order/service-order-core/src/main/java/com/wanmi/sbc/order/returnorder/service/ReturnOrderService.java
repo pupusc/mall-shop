@@ -719,18 +719,35 @@ public class ReturnOrderService {
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
         if (CollectionUtils.isNotEmpty(returnOrderList)) {
+            //获取申请售后的商品列表 TODO 没有做赠品的处理
+            Map<String, String> applyReturnMap = new HashMap<>();
+            for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+                applyReturnMap.put(returnItem.getSkuId(), returnItem.getSkuName());
+            }
             //过滤处理中的退单
-            List<ReturnOrder> returnOrders = returnOrderList.stream().filter(item ->
+            List<ReturnOrder> returnOrderListFilter = returnOrderList.stream().filter(item ->
                             item.getReturnFlowState() != ReturnFlowState.COMPLETED
                                     && item.getReturnFlowState() != ReturnFlowState.VOID
                                     && item.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
                                     && item.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
                                     && item.getReturnFlowState() != ReturnFlowState.REFUNDED)
                     .collect(Collectors.toList());
-            //如果有退款中的订单，则直接抛出异常
-            if (CollectionUtils.isNotEmpty(returnOrders)) {
-                throw new SbcRuntimeException("K-050120");
+            //如果有退款中的商品，则直接抛出来异常
+            for (ReturnOrder returnOrderParam : returnOrderListFilter) {
+                List<String> returnOrderSkuIdFilter = returnOrderParam.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList());
+                for (String skuIdParam : returnOrderSkuIdFilter) {
+                    String skuName = applyReturnMap.get(skuIdParam);
+                    if (StringUtils.isNotBlank(skuName)) {
+                        throw new SbcRuntimeException("K-050120", new Object[]{skuName});
+                    }
+                }
             }
+
+
+//            //如果有退款中的订单，则直接抛出异常
+//            if (CollectionUtils.isNotEmpty(returnOrders)) {
+//                throw new SbcRuntimeException("K-050120");
+//            }
 
             //过滤出来所有完成退单的订单列表
             List<ReturnOrder> completedReturnOrderListTmp = returnOrderList.stream().filter(allOrder -> allOrder
@@ -1495,15 +1512,15 @@ public class ReturnOrderService {
     private void createRefund(ReturnOrder returnOrder, Operator operator, Trade trade) {
         //校验该订单关联的退款单状态
         List<ReturnOrder> allReturnOrders = returnOrderRepository.findByTid(trade.getId());
-        if (!CollectionUtils.isEmpty(allReturnOrders)) {
-            Optional<ReturnOrder> optional = allReturnOrders.stream().filter(item -> item.getReturnType() == ReturnType.REFUND)
-                    .filter(item -> !(item.getReturnFlowState() == ReturnFlowState.VOID
-                            || item.getReturnFlowState() == ReturnFlowState.REJECT_REFUND
-                            || item.getReturnFlowState() == ReturnFlowState.COMPLETED)).findFirst();
-            if (optional.isPresent()) {
-                throw new SbcRuntimeException("K-050115");
-            }
-        }
+//        if (!CollectionUtils.isEmpty(allReturnOrders)) {
+//            Optional<ReturnOrder> optional = allReturnOrders.stream().filter(item -> item.getReturnType() == ReturnType.REFUND)
+//                    .filter(item -> !(item.getReturnFlowState() == ReturnFlowState.VOID
+//                            || item.getReturnFlowState() == ReturnFlowState.REJECT_REFUND
+//                            || item.getReturnFlowState() == ReturnFlowState.COMPLETED)).findFirst();
+//            if (optional.isPresent()) {
+//                throw new SbcRuntimeException("K-050115");
+//            }
+//        }
         //本次的退单商品去除已完成的退单商品，赠品同理
         //此处订单对应的商品去除；
         //在退单中显示对应的订单信息
