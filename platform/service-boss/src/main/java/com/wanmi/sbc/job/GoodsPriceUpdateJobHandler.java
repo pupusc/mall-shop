@@ -90,6 +90,8 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
     private String NOTICE_SEND_MESSAGE ="{0} {1}当前售价{2}，于{3}成本价由{4}调整为{5}，原毛利率{6}%变为{7}%";
 
+
+    private String PRICE_SYNC_KEY="price.sync.page";
     //分布式锁名称
     private static final String BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS = "BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS";
 

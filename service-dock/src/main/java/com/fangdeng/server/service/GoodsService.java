@@ -296,8 +296,8 @@ public class GoodsService {
         BookuuSpecialPriceQueryRequest specialPriceQueryRequest = new BookuuSpecialPriceQueryRequest();
         specialPriceQueryRequest.setPage(1);
         String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
-        specialPriceQueryRequest.setStime("2021-10-29");
-        specialPriceQueryRequest.setEtime("2021-10-29");
+        specialPriceQueryRequest.setStime(sTime);
+        specialPriceQueryRequest.setEtime(sTime);
         while (specialPriceQueryRequest.getPage() < maxPage){
             BookuuSpecialPriceQueryResponse priceQueryResponse = bookuuClient.querySpecialPrice(specialPriceQueryRequest);
             specialPriceQueryRequest.setPage(specialPriceQueryRequest.getPage() +1);
