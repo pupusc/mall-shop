@@ -166,7 +166,7 @@ public class GoodsService {
      * 更新商品价格
      *
      */
-    public void syncGoodsPrice(List<String> goodsIds) {
+    public void syncGoodsPrice(SyncGoodsQueryDTO queryDTO) {
 //        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
 //        if (maxPage < 1) {
 //            log.info("max page is 0");
@@ -184,7 +184,7 @@ public class GoodsService {
         //plan b 根据发布商品同步价格
         Long startId = 0L;
         while (true){
-            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,goodsIds);
+            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,queryDTO.getGoodsNos());
             if(CollectionUtils.isEmpty(goodsNo)){
                 break;
             }
@@ -290,14 +290,16 @@ public class GoodsService {
      * T-1无促销价，若T-2有促销价且在有效期内，更新促销价
      * T-1无促销价，若T-2无促销价或不在有效期内，则无促销价
      */
-    public void syncSpecialPrice(){
+    public void syncSpecialPrice(SyncGoodsQueryDTO queryDTO){
         //促销成本价格
         Integer maxPage = Integer.MAX_VALUE;
         BookuuSpecialPriceQueryRequest specialPriceQueryRequest = new BookuuSpecialPriceQueryRequest();
         specialPriceQueryRequest.setPage(1);
-        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1));
+        String startTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1));
+        String  sTime = StringUtils.isNotEmpty(queryDTO.getStime()) ? queryDTO.getStime() :startTime;
+        String eTime = StringUtils.isNotEmpty(queryDTO.getEtime()) ? queryDTO.getEtime() : startTime;
         specialPriceQueryRequest.setStime(sTime);
-        specialPriceQueryRequest.setEtime(sTime);
+        specialPriceQueryRequest.setEtime(eTime);
         while (specialPriceQueryRequest.getPage() < maxPage){
             BookuuSpecialPriceQueryResponse priceQueryResponse = bookuuClient.querySpecialPrice(specialPriceQueryRequest);
             specialPriceQueryRequest.setPage(specialPriceQueryRequest.getPage() +1);

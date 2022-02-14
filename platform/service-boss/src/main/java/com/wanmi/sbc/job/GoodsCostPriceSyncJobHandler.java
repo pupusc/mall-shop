@@ -81,6 +81,10 @@ public class GoodsCostPriceSyncJobHandler extends IJobHandler {
     @Value("${notice.send.message.noticeId}")
     private Integer noticeSendMsgNoticeId;
 
+    @Value("${default.providerId}")
+    private Long defaultProviderId;
+
+
     private String NOTICE_SEND_MESSAGE ="{0} {1}当前售价{2}，于{3}成本价由{4}调整为{5}，原毛利率{6}%变为{7}%";
 
 
@@ -120,6 +124,7 @@ public class GoodsCostPriceSyncJobHandler extends IJobHandler {
         GoodsPriceSyncRequest goodsInfoListByIdRequest = new GoodsPriceSyncRequest();
         goodsInfoListByIdRequest.setPageNum(StringUtils.isEmpty(page) ? 0:Integer.valueOf(page));
         goodsInfoListByIdRequest.setPageSize(80);
+        goodsInfoListByIdRequest.setProviderId(defaultProviderId);
         goodsInfoListByIdRequest.setGoodsInfoNos(param.getGoodsInfoNo());
 
         BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> baseResponse = goodsProvider.syncGoodsInfoCostPrice(goodsInfoListByIdRequest);

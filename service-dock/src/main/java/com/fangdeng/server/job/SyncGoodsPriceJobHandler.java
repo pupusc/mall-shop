@@ -45,12 +45,15 @@ public class SyncGoodsPriceJobHandler extends IJobHandler {
 //        if(StringUtils.isEmpty(queryDTO.getEtime())) {
 //            queryDTO.setEtime(eTime);
 //        }
-        List<String> goodsInfoIds = new ArrayList<>();
-        if(StringUtils.isNotEmpty(params)){
-            goodsInfoIds = Arrays.asList(params.split(","));
+        SyncGoodsQueryDTO queryDTO = new SyncGoodsQueryDTO();
+        try{
+            queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
         }
-        goodsService.syncGoodsPrice(goodsInfoIds);
-        goodsService.syncSpecialPrice();
+        catch (Exception e){
+            log.warn("syncGoodsPriceJobHandler参数解析失败",e);
+        }
+        goodsService.syncGoodsPrice(queryDTO);
+        goodsService.syncSpecialPrice(queryDTO);
         log.info("=====同步博库价格end======");
         return SUCCESS;
     }
