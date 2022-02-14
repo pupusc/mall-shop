@@ -215,18 +215,19 @@ public class TradePushERPService {
             return BaseResponse.success("推送mq消息成功");
         }
         if (parentTrade.getCycleBuyFlag()) {
-            log.info("=======周期购订单已发货接口========",providerTrade);
+            log.info("=======周期购订单已发货接口======== providerTrade:{}",JSON.toJSONString(providerTrade));
             baseResponse = guanyierpProvider.autoPushTradeDelivered(request);
         }else {
             //普通订单如果没有实物商品调用已发货接口
             if (size==0) {
-                log.info("=======已发货接口========",providerTrade);
+                log.info("=======已发货接口 ======== providerTrade:{}",JSON.toJSONString(providerTrade));
                 baseResponse = guanyierpProvider.autoPushTradeDelivered(request);
             } else {
-                log.info("=======待发货接口========",providerTrade);
+                log.info("=======待发货接口======== providerTrade:{}",JSON.toJSONString(providerTrade));
                 baseResponse = guanyierpProvider.autoPushTrade(request);
             }
         }
+
         return baseResponse;
     }
 

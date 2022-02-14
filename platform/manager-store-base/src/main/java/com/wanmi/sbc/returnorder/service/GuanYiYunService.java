@@ -131,7 +131,7 @@ public class GuanYiYunService extends AbstractCRMService {
                         continue;
                     }
                     //tid表示的是 子单id  Oid表示的是管易云上的订单号
-                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(tradeItemParam.getOid()).build();
+                    RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(tradeItemParam.getOid()).refundState(2).build();
                     BaseResponse baseResponse = guanyierpProvider.refundTradeItem(refundTradeRequest);
                     if (CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode())) {
                         //此处更新订单商品为作废状态 TODO duanlsh
