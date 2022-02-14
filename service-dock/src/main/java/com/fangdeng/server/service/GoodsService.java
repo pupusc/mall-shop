@@ -295,7 +295,7 @@ public class GoodsService {
         Integer maxPage = Integer.MAX_VALUE;
         BookuuSpecialPriceQueryRequest specialPriceQueryRequest = new BookuuSpecialPriceQueryRequest();
         specialPriceQueryRequest.setPage(1);
-        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
+        String sTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1));
         specialPriceQueryRequest.setStime(sTime);
         specialPriceQueryRequest.setEtime(sTime);
         while (specialPriceQueryRequest.getPage() < maxPage){
