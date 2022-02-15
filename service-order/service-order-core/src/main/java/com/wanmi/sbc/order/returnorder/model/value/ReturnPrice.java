@@ -14,7 +14,9 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 @Builder
 public class ReturnPrice {
 
+    private Map<String, String> applyDeliverPrice = new HashMap<>();
     /**
      * 申请金额状态，是否启用
      */

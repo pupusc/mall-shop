@@ -106,7 +106,7 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> create(@RequestBody @Valid ReturnOrderDTO returnOrder) {
-        verifyIsReturnable(returnOrder.getTid());
+//        verifyIsReturnable(returnOrder.getTid());
         //验证用户
         String userId = commonUtil.getOperatorId();
 //        customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();

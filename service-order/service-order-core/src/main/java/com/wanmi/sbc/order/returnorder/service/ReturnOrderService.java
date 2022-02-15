@@ -346,9 +346,6 @@ public class ReturnOrderService {
     private FlashSaleGoodsSaveProvider flashSaleGoodsSaveProvider;
 
     @Autowired
-    private FlashSaleGoodsQueryProvider flashSaleGoodsQueryProvider;
-
-    @Autowired
     private StoreReturnAddressQueryProvider returnAddressQueryProvider;
 
     @Autowired
@@ -614,6 +611,15 @@ public class ReturnOrderService {
                         }
                     }
                 }
+
+                //针对退运费的强制
+                if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
+                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    providerTotalPrice = BigDecimal.ZERO;
+                    points = 0L;
+                    knowledge = 0L;
+                    returnItemDTOList = new ArrayList<>();
+                }
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);
                 returnOrder.getReturnPrice().setApplyPrice(price);
@@ -651,6 +657,13 @@ public class ReturnOrderService {
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
                     price = price.add(Objects.nonNull(providerTrade.getTradePrice().getDeliveryPrice()) ?
                             providerTrade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+                }
+                //针对退运费的强制
+                if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
+                    price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    points = 0L;
+                    knowledge = 0L;
+                    returnItemDTOList = new ArrayList<>();
                 }
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setApplyPrice(price);
@@ -988,8 +1001,6 @@ public class ReturnOrderService {
             newReturnOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
             newReturnOrder.setPlatform(operator.getPlatform());
             newReturnOrder.setId(returnOrderId);
-            newReturnOrder.setReplace(returnOrder.getReplace());
-            newReturnOrder.setReturnOrderType(returnOrder.getReturnOrderType());
 
             //记录日志
             newReturnOrder.appendReturnEventLog(new ReturnEventLog(operator, "创建退单", "创建退单", "", LocalDateTime.now()));
@@ -1445,8 +1456,7 @@ public class ReturnOrderService {
      */
     public ReturnOrder findTransfer(String userId) {
         ReturnOrder returnOrder = null;
-        ReturnOrderTransfer returnOrderTransfer = returnOrderTransferRepository.findReturnOrderTransferByBuyerId
-                (userId);
+        ReturnOrderTransfer returnOrderTransfer = returnOrderTransferRepository.findReturnOrderTransferByBuyerId(userId);
         if (returnOrderTransfer != null) {
             returnOrder = new ReturnOrder();
             KsBeanUtil.copyProperties(returnOrderTransfer, returnOrder);
@@ -1612,8 +1622,7 @@ public class ReturnOrderService {
                 Optional<RefundOrder> refundOrderOptional = refundOrders.stream().filter(refundOrder -> refundOrder
                         .getReturnOrderCode().equals(returnOrder.getId())).findFirst();
 
-                refundOrderOptional.ifPresent(refundOrder -> returnOrder.setRefundStatus(refundOrder.getRefundStatus
-                        ()));
+                refundOrderOptional.ifPresent(refundOrder -> returnOrder.setRefundStatus(refundOrder.getRefundStatus()));
             });
         }
         return new PageImpl<>(returnOrderList, request.getPageable(), total);
@@ -1670,7 +1679,7 @@ public class ReturnOrderService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("ReturnOrderService error", e);
         }
 
     }
@@ -2292,6 +2301,7 @@ public class ReturnOrderService {
                     log.error("ReturnOrderService tid:{} pid:{} 退款完成以后订单统计数量 skuId:{} skuName:{} 下单数量为:{} 完成的数量为:{} 有误，需要核验",
                             returnOrder.getTid(), returnOrder.getPtid(), tradeItemParam.getSkuId(), tradeItemParam.getSkuName(), tradeItemNum, returnCompleteNum);
                     returnCompleteNum = tradeItemNum;
+                    tradeItemParam.setDeliverStatus(DeliverStatus.VOID);
                 }
                 tradeReturn.setReturnCompleteNum(returnCompleteNum);
                 skuIdTradeReturnMap.put(tradeItemParam.getSkuId(), tradeReturn);

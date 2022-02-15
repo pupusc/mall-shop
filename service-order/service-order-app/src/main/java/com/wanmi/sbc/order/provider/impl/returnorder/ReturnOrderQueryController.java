@@ -121,7 +121,6 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
 
         MicroServicePage<ReturnOrderVO> returnOrderVOS = KsBeanUtil.convertPage(orderPage, ReturnOrderVO.class);
         List<ReturnOrderVO> list=returnOrderVOS.getContent();
-        System.out.println("************"+list);
         list.forEach(returnOrderVO -> {
             tradeList.forEach(trade -> {
                 if (Objects.equals(returnOrderVO.getTid(),trade.getId()) && trade.getCycleBuyFlag()) {

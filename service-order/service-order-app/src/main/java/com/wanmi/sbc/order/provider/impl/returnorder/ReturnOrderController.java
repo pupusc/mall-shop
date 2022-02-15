@@ -43,6 +43,10 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse<ReturnOrderAddResponse> add(@RequestBody @Valid ReturnOrderAddRequest request) {
+        if (request.getReturnOrder() == null || request.getReturnOrder().getReturnReason() == null) {
+
+            return BaseResponse.FAILED();
+        }
         String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
                 request.getOperator());
 
@@ -50,6 +54,22 @@ public class ReturnOrderController implements ReturnOrderProvider {
         returnOrderAddResponse.setReturnOrderId(returnOrderId);
         return BaseResponse.success(returnOrderAddResponse);
     }
+
+//
+//    /**
+//     * 退单运费订单
+//     *
+//     * @param request 退单创建请求结构 {@link ReturnOrderAddRequest}
+//     * @return 退单id {@link ReturnOrderAddResponse}
+//     */
+//    public BaseResponse<ReturnOrderAddResponse> addDeliver(@RequestBody @Valid ReturnOrderAddRequest request) {
+//        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
+//                request.getOperator());
+//
+//        ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
+//        returnOrderAddResponse.setReturnOrderId(returnOrderId);
+//        return BaseResponse.success(returnOrderAddResponse);
+//    }
 
     /**
      * 退单快照创建
