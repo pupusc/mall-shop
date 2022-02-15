@@ -19,16 +19,14 @@ import java.util.Map;
 @ApiEnum
 public enum ReturnReason {
 
-    @ApiEnumProperty("0: 我不想要了")
     WRONGGOODS(0, "我不想要了"),
-    @ApiEnumProperty("1: 收货信息填写错误")
     NOTDISCRIPTION(1, "收货信息填写错误"),
-    @ApiEnumProperty("2: 商品拍错")
     ERRORGOODS(2, "商品拍错"),
-    @ApiEnumProperty("3: 没用优惠券")
     BADGOODS(3, "没用优惠券"),
-    @ApiEnumProperty("4: 其他")
-    OTHER(4, "其他");
+    OTHER(4, "其他"),
+
+    PRICE_DIFF(5, "退差价"),
+    PRICE_DELIVERY(6, "退运费");
 
     private Integer type;
 
