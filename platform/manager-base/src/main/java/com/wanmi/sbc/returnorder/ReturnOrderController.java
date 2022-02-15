@@ -239,7 +239,7 @@ public class ReturnOrderController {
     @ApiOperation(value = "退单原因查询")
     @RequestMapping(value = "/reasons", method = RequestMethod.GET)
     public BaseResponse<List<ReturnReason>> findReturnReason() {
-        return BaseResponse.success(returnOrderQueryProvider.listReturnReason().getContext().getReturnReasonList());
+        return BaseResponse.success(returnOrderQueryProvider.listReturnReason(null).getContext().getReturnReasonList());
     }
 
 

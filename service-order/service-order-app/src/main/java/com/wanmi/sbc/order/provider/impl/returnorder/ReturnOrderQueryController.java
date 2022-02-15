@@ -287,9 +287,9 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
      * @return 退货原因列表 {@link ReturnReasonListResponse}
      */
     @Override
-    public BaseResponse<ReturnReasonListResponse> listReturnReason() {
+    public BaseResponse<ReturnReasonListResponse> listReturnReason(Integer replace) {
         return BaseResponse.success(ReturnReasonListResponse.builder()
-                .returnReasonList(returnOrderService.findReturnReason()).build());
+                .returnReasonList(returnOrderService.findReturnReason(replace)).build());
     }
 
     /**

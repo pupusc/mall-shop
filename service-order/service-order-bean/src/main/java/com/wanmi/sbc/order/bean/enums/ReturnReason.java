@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.wanmi.sbc.common.annotation.ApiEnum;
 import com.wanmi.sbc.common.annotation.ApiEnumProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,26 +18,24 @@ import java.util.Map;
  * 樊登定制 修改--  0： 我不想要了 1: 收货信息填写错误 2: 商品拍错   3: 没用优惠券 4: 其他
  * Created by jinwei on 20/4/2017.
  */
-@ApiEnum
+@AllArgsConstructor
+@Getter
 public enum ReturnReason {
 
-    WRONGGOODS(0, "我不想要了"),
-    NOTDISCRIPTION(1, "收货信息填写错误"),
-    ERRORGOODS(2, "商品拍错"),
-    BADGOODS(3, "没用优惠券"),
-    OTHER(4, "其他"),
+    WRONGGOODS(0, "我不想要了", 0),
+    NOTDISCRIPTION(1, "收货信息填写错误", 0),
+    ERRORGOODS(2, "商品拍错", 0),
+    BADGOODS(3, "没用优惠券", 0),
+    OTHER(4, "其他", 0),
 
-    PRICE_DIFF(5, "退差价"),
-    PRICE_DELIVERY(6, "退运费");
+    PRICE_DIFF(5, "退差价", 1),
+    PRICE_DELIVERY(6, "退运费", 1);
 
     private Integer type;
 
     private String desc;
 
-    ReturnReason(Integer type, String desc) {
-        this.type = type;
-        this.desc = desc;
-    }
+    private Integer replace;
 
     public static Map<String, ReturnReason> map = new HashMap<>();
 
@@ -56,14 +56,6 @@ public enum ReturnReason {
         result.put(this.getType().toString(), this.getDesc());
         return result;
 
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public String getDesc() {
-        return desc;
     }
 
     public static Map<String, ReturnReason> getMap() {

@@ -1697,8 +1697,19 @@ public class ReturnOrderService {
      *
      * @return
      */
-    public List<ReturnReason> findReturnReason() {
-        return Arrays.asList(ReturnReason.values());
+    public List<ReturnReason> findReturnReason(Integer replace) {
+        ReturnReason[] values = ReturnReason.values();
+        List<ReturnReason> result = new ArrayList<>();
+        for (ReturnReason returnReason :values){
+            if (replace != null && replace == 0) {
+                if (replace.equals(returnReason.getReplace())) {
+                    result.add(returnReason);
+                }
+            } else {
+                result.add(returnReason);
+            }
+        }
+        return result;
     }
 
 
