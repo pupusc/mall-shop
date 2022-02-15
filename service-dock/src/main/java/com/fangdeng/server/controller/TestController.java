@@ -52,6 +52,7 @@ public class TestController {
     @Autowired
     private GoodsService goodsService;
 
+
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
             List<String> keys =new ArrayList<>();
@@ -172,6 +173,12 @@ public class TestController {
     @GetMapping("/goods/audit")
     public void audit(@RequestParam("goodsNo")String goodsNo){
         goodsService.auditGoods(goodsNo);
+    }
+
+
+    @GetMapping("/delete/rediskey")
+    public void deleteRedisKey(@RequestParam("key")String key) {
+        redisTemplate.delete(key);
     }
 
 
