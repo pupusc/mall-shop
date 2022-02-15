@@ -216,7 +216,7 @@ public class GuanyierpController implements GuanyierpProvider {
         ERPRefundUpdateRequest refundUpdateRequest = new ERPRefundUpdateRequest();
         refundUpdateRequest.setTid(request.getTid());
         refundUpdateRequest.setOid(request.getOid());
-        refundUpdateRequest.setRefundState(request.getRefundState());
+        refundUpdateRequest.setRefundState(1);
         Optional<ERPRefundUpdateResponse> refundUpdateReponseOptional = guanyierpService.refundOrderUpdate(refundUpdateRequest);
         if (refundUpdateReponseOptional.isPresent()){
             return BaseResponse.SUCCESSFUL();

@@ -348,4 +348,15 @@ public class ReturnOrderDTO implements Serializable {
      */
     @ApiModelProperty(value = "退货地址")
     private ReturnAddressDTO returnAddress;
+
+
+    /**
+     * 退单类型 1表示 代客退单 其他表示正常退单
+     */
+    private Integer replace;
+
+    /**
+     * 售后类型  null和0表示 售后申请 1表示 补偿申请
+     */
+    private Integer returnOrderType;
 }

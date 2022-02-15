@@ -109,8 +109,7 @@ public class ReturnOrderController {
         verifyIsReturnable(returnOrder.getTid());
         //验证用户
         String userId = commonUtil.getOperatorId();
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (userId)).getContext();
+//        customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
         if (!verifyTradeByCustomerId(returnOrder.getTid(), userId)) {
             throw new SbcRuntimeException("K-050204");
         }
@@ -127,8 +126,7 @@ public class ReturnOrderController {
         oldReturnOrder.setReturnLogistics(returnOrder.getReturnLogistics());
         oldReturnOrder.setReturnWay(returnOrder.getReturnWay());
         oldReturnOrder.setReturnPrice(returnOrder.getReturnPrice());
-        TradeVO trade =
-                tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
+        TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
         oldReturnOrder.setCompany(CompanyDTO.builder().companyInfoId(trade.getSupplier().getSupplierId())
                 .companyCode(trade.getSupplier().getSupplierCode()).supplierName(trade.getSupplier().getSupplierName())
                 .storeId(trade.getSupplier().getStoreId()).storeName(trade.getSupplier().getStoreName()).companyType(trade.getSupplier().getIsSelf() ? BoolFlag.NO : BoolFlag.YES).build());
@@ -141,6 +139,7 @@ public class ReturnOrderController {
         oldReturnOrder.setDistributeItems(trade.getDistributeItems());
         oldReturnOrder.setReturnGift(returnOrder.getReturnGift());
         oldReturnOrder.setTerminalSource(commonUtil.getTerminal());
+        oldReturnOrder.setReplace(1); //表示代客退单
         String rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
                 .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
         returnOrderProvider.deleteTransfer(ReturnOrderTransferDeleteRequest.builder().userId(userId).build());

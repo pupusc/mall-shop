@@ -349,6 +349,17 @@ public class ReturnOrder implements Serializable {
     private LocalDateTime updateTime;
 
     /**
+     * 退单类型 1表示 代客退单 其他表示正常退单
+     */
+    private Integer replace;
+
+
+    /**
+     * 售后类型  null和0表示 售后申请 1表示 补偿申请
+     */
+    private Integer returnOrderType;
+
+    /**
      * 增加操作日志
      *
      * @param log
