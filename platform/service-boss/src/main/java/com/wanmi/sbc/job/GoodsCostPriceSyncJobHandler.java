@@ -188,6 +188,7 @@ public class GoodsCostPriceSyncJobHandler extends IJobHandler {
             StringEntity entity = new StringEntity(JSON.toJSONString(map),"UTF-8");
             post.setEntity(entity);
             HttpResponse res = httpClient.execute(post);
+            log.info("send message request:{},response:{}",post.toString(),res);
             if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String result = EntityUtils.toString(res.getEntity());
                 response = JSONObject.parseObject(result);
