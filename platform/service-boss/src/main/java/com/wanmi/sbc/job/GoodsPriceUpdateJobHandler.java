@@ -183,8 +183,8 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             BigDecimal oldRate = new BigDecimal(0);
             BigDecimal newRate = new BigDecimal(0);
             if(change.getMarketPrice() != null && change.getMarketPrice().compareTo(new BigDecimal(0)) != 0){
-                oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
-                newRate = (change.getMarketPrice().subtract(change.getNewPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+                oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
+                newRate = (change.getMarketPrice().subtract(change.getNewPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
             }
             content.put("content", MessageFormat.format(NOTICE_SEND_MESSAGE,change.getSkuNo(),change.getName(),change.getMarketPrice(),change.getTime(),change.getOldPrice(),change.getNewPrice(),oldRate,newRate));
             Map<String,Object> map = new HashMap<>();
