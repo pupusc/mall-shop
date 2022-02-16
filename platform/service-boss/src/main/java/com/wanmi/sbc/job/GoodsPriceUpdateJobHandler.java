@@ -134,7 +134,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
         for (int pageNum = 1; pageNum < result.getTotalPages(); ++pageNum) {
             log.info("同步博库成本价,共{}条数据,当前第{}页", result.getTotal(), pageNum);
-            goodsInfoListByIdRequest.setPageNum(pageNum);
+            goodsInfoListByIdRequest.setPageNum(0);
             baseResponse = goodsProvider.syncGoodsPrice(goodsInfoListByIdRequest);
             syncEsPrice(baseResponse.getContext().getContent());
             sendMessage(baseResponse.getContext().getContent());
