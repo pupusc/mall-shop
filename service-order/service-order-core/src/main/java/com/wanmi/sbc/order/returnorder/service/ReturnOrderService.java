@@ -710,7 +710,10 @@ public class ReturnOrderService {
         //如果当前退单为退运费，则查看当前退单是否有运费订单，如果有运费直接抛出异常
         if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
             //查看当前所有的供应商，如果为退还运费，则只能一个供应商
-            Set<Long> providerIdSet = returnOrder.getReturnItems().stream().map(ReturnItem::getProviderId).collect(Collectors.toSet());
+            Map<Long, ReturnItem> providerIdMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getProviderId, Function.identity(), (k1, k2) -> k1));
+            if (providerIdMap.size() != 1) {
+                throw new SbcRuntimeException("K-050413");
+            }
 
             //退运费的时候，对应的退单的商品列表为空
             List<ReturnOrder> deliveryReturnOrderList = returnOrderList.stream().filter(returnOrderParam ->
@@ -719,8 +722,11 @@ public class ReturnOrderService {
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
             ).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(deliveryReturnOrderList)) {
-//                returnOrder.getProviderId()
+
+            for (ReturnOrder returnOrderParam : deliveryReturnOrderList) {
+                if (providerIdMap.get(Long.valueOf(returnOrderParam.getProviderId())) != null) {
+                    throw new SbcRuntimeException("K-050414");
+                }
             }
         }
         //获取申请售后的商品列表 TODO 没有做赠品的处理
