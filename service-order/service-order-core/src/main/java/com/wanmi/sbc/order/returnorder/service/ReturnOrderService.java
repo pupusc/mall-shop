@@ -203,6 +203,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -706,6 +707,22 @@ public class ReturnOrderService {
      * @param returnOrderList 已经申请的售后商品
      */
     private void verifyIsExistsItemReturnOrder(ReturnOrder returnOrder, List<ReturnOrder> returnOrderList) {
+        //如果当前退单为退运费，则查看当前退单是否有运费订单，如果有运费直接抛出异常
+        if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
+            //查看当前所有的供应商，如果为退还运费，则只能一个供应商
+            Set<Long> providerIdSet = returnOrder.getReturnItems().stream().map(ReturnItem::getProviderId).collect(Collectors.toSet());
+
+            //退运费的时候，对应的退单的商品列表为空
+            List<ReturnOrder> deliveryReturnOrderList = returnOrderList.stream().filter(returnOrderParam ->
+                        ReturnReason.PRICE_DELIVERY.getType().equals(returnOrderParam.getReturnReason().getType())
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE
+            ).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(deliveryReturnOrderList)) {
+//                returnOrder.getProviderId()
+            }
+        }
         //获取申请售后的商品列表 TODO 没有做赠品的处理
         Map<String, String> applyReturnMap = new HashMap<>();
         for (ReturnItem returnItem : returnOrder.getReturnItems()) {
@@ -1049,14 +1066,17 @@ public class ReturnOrderService {
                 auditFlag = false;
             }
 
-            //虚拟商品自动审核
-            if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
-                audit(returnOrderId, operator, null);
-            }
+            //判断是否要有商品
+            if (returnOrder.getReturnReason() == null || !returnOrder.getReturnReason().getType().equals(ReturnReason.PRICE_DELIVERY.getType())) {
+                //虚拟商品自动审核
+                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
+                    audit(returnOrderId, operator, null);
+                }
 
-            // 虚拟自动收货
-            if (virtualFlag) {
-                receive(returnOrderId, operator);
+                // 虚拟自动收货
+                if (virtualFlag) {
+                    receive(returnOrderId, operator);
+                }
             }
             ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                     .addFlag(Boolean.TRUE)
@@ -1067,6 +1087,7 @@ public class ReturnOrderService {
             returnOrderProducerService.returnOrderFlow(sendMQRequest);
 
             //售后单提交成功发送MQ消息
+            log.info("ReturnOrderService create 创建退单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(newReturnOrder.getReturnItems())
                     || CollectionUtils.isNotEmpty(newReturnOrder.getReturnGifts())) {
                 List<String> params;
@@ -1843,16 +1864,27 @@ public class ReturnOrderService {
             //自动发货
             autoDeliver(returnOrderId, operator);
 
-            //售后审核通过发送MQ消息
-            List<String> skuNameList;
-            String picUrl;
-            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
-                skuNameList = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName());
-                picUrl = returnOrder.getReturnItems().get(0).getPic();
-            } else {
-                skuNameList = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName());
-                picUrl = returnOrder.getReturnGifts().get(0).getPic();
-            }
+            log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                    || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+               //售后审核通过发送MQ消息
+               List<String> skuNameList;
+               String picUrl;
+               if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                   skuNameList = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName());
+                   picUrl = returnOrder.getReturnItems().get(0).getPic();
+               } else {
+                   skuNameList = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName());
+                   picUrl = returnOrder.getReturnGifts().get(0).getPic();
+               }
+               this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                       ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
+                       skuNameList,
+                       returnOrder.getId(),
+                       returnOrder.getBuyer().getId(),
+                       picUrl,
+                       returnOrder.getBuyer().getAccount());
+           }
 
             /**
              * 1.判断订单是否已完成发货
@@ -2008,14 +2040,6 @@ public class ReturnOrderService {
              guanyierpProvider.createReturnOrder(returnTradeCreateRequst);
              }
              }*/
-
-            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
-                    ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
-                    skuNameList,
-                    returnOrder.getId(),
-                    returnOrder.getBuyer().getId(),
-                    picUrl,
-                    returnOrder.getBuyer().getAccount());
         }
     }
 
@@ -2218,24 +2242,27 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
-
+        log.info("ReturnOrderService rejectReceive 拒绝收货 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
         //退货物品拒收通知发送MQ消息
-        List<String> params;
-        String pic;
-        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
-            params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
-            pic = returnOrder.getReturnItems().get(0).getPic();
-        } else {
-            params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
-            pic = returnOrder.getReturnGifts().get(0).getPic();
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.RETURN_ORDER_GOODS_REJECT,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
         }
-        this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
-                ReturnOrderProcessType.RETURN_ORDER_GOODS_REJECT,
-                params,
-                returnOrder.getId(),
-                returnOrder.getBuyer().getId(),
-                pic,
-                returnOrder.getBuyer().getAccount());
 
     }
 
@@ -2631,16 +2658,7 @@ public class ReturnOrderService {
         returnOrderService.updateReturnOrder(returnOrder);
         this.operationLogMq.convertAndSend(operator, ReturnEvent.REFUND.getDesc(), detail);
 
-        //退款审核通过发送MQ消息
-        List<String> params;
-        String pic;
-        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
-            params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName());
-            pic = returnOrder.getReturnItems().get(0).getPic();
-        } else {
-            params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName());
-            pic = returnOrder.getReturnGifts().get(0).getPic();
-        }
+
 
 
         /**
@@ -2813,13 +2831,27 @@ public class ReturnOrderService {
             }
 
         }
-        this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
-                ReturnOrderProcessType.REFUND_CHECK_PASS,
-                params,
-                returnOrder.getId(),
-                returnOrder.getBuyer().getId(),
-                pic,
-                returnOrder.getBuyer().getAccount());
+        log.info("ReturnOrderService onlineEditPrice tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+        //退款审核通过发送MQ消息
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName());
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName());
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.REFUND_CHECK_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
+        }
 
     }
 
@@ -3122,22 +3154,26 @@ public class ReturnOrderService {
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
 
         //退款审核未通过发送MQ消息
-        List<String> params;
-        String pic;
-        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
-            params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
-            pic = returnOrder.getReturnItems().get(0).getPic();
-        } else {
-            params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
-            pic = returnOrder.getReturnGifts().get(0).getPic();
+        log.info("ReturnOrderService refundReject 拒绝退款 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.REFUND_CHECK_NOT_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
         }
-        this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
-                ReturnOrderProcessType.REFUND_CHECK_NOT_PASS,
-                params,
-                returnOrder.getId(),
-                returnOrder.getBuyer().getId(),
-                pic,
-                returnOrder.getBuyer().getAccount());
     }
 
     /**
@@ -3229,22 +3265,26 @@ public class ReturnOrderService {
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
 
         //售后审核未通过发送MQ消息
-        List<String> params;
-        String pic;
-        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
-            params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), remark);
-            pic = returnOrder.getReturnItems().get(0).getPic();
-        } else {
-            params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), remark);
-            pic = returnOrder.getReturnGifts().get(0).getPic();
+        log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), remark);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), remark);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_NOT_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
         }
-        this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
-                ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_NOT_PASS,
-                params,
-                returnOrder.getId(),
-                returnOrder.getBuyer().getId(),
-                pic,
-                returnOrder.getBuyer().getAccount());
 
     }
 
