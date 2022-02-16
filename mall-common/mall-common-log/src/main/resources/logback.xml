@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!-- <property name="pattern" value="%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) %green([%thread]) %highlight(%level) %tid %class %method#%line - %cyan(%message%n)" /> -->
+    <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %tid %class %method#%line - %message%n" />
+    <include optional="true" resource="logback-logger.xml"/>
+
+    <!-- 控制台输出 -->
+    <appender name="APPENDER_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
+                <pattern>${pattern}</pattern>
+            </layout>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <if condition='isDefined("logpath")'>
+        <then>
+            <appender name="APPENDER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>${logpath}</file>
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                    <FileNamePattern>${logpath}-%d{yyyy-MM-dd}-%i</FileNamePattern>
+                    <MaxHistory>30</MaxHistory>
+                    <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                        <MaxFileSize>512MB</MaxFileSize>
+                    </TimeBasedFileNamingAndTriggeringPolicy>
+                </rollingPolicy>
+                <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                    <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
+                        <pattern>${pattern}</pattern>
+                    </layout>
+                    <charset>UTF-8</charset>
+                </encoder>
+            </appender>
+        </then>
+    </if>
+
+    <if condition='isNull("logpath")'>
+        <then>
+            <logger name="org.springframework" additivity="true" level="info"/>
+            <logger name="org.apache" additivity="true" level="info"/>
+            <logger name="springfox.documentation" additivity="true" level="info"/>
+            <logger name="org.hibernate" additivity="true" level="info"/>
+            <root level="debug">
+                <appender-ref ref="APPENDER_CONSOLE"/>
+            </root>
+        </then>
+        <else>
+            <root level="info">
+                <appender-ref ref="APPENDER_FILE"/>
+            </root>
+        </else>
+    </if>
+</configuration>

@@ -192,4 +192,9 @@ public class TradeCommitRequest extends BaseRequest {
      * 0-否 1-是
      */
     private Integer joinPointMarketing;
+
+    /**
+     * 埋点
+     */
+    private String emallSessionId;
 }

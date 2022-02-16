@@ -9,7 +9,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,7 +20,8 @@ import java.util.Locale;
 /**
  * 异常统一处理
  */
-@ControllerAdvice
+//@ControllerAdvice
+@Deprecated
 @Slf4j
 public class SbcExceptionHandler {
 

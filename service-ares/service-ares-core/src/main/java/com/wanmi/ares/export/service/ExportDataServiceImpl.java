@@ -12,6 +12,7 @@ import com.wanmi.ares.utils.DateUtil;
 import com.wanmi.ares.utils.osd.OsdService;
 import com.wanmi.ares.view.export.ExportDataResponse;
 import com.wanmi.ares.view.export.ExportDataView;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,14 +58,16 @@ public class ExportDataServiceImpl implements ExportDataService.Iface{
     public ExportDataView sendExportDataRequest(ExportDataRequest expRequest) {
         if(expRequest.getTypeCd()==null || expRequest.getBeginDate()==null || expRequest.getEndDate()==null){
             //验证参数非空
-            throw new AresRuntimeException("R-000002");
+            //throw new AresRuntimeException("R-000002");
+            throw new SbcRuntimeException("R-000002");
         }
         try {
             //验证日期参数格式
             DateUtil.parse2Date(expRequest.getBeginDate(), DateUtil.FMT_DATE_1);
             DateUtil.parse2Date(expRequest.getEndDate(), DateUtil.FMT_DATE_1);
         }catch (Exception e){
-            throw new AresRuntimeException("R-000002");
+            //throw new AresRuntimeException("R-000002");
+            throw new SbcRuntimeException("R-000002");
         }
 
         ExportDataEntity entity = new ExportDataEntity().convertEntityFromRequest(expRequest);//转换实体

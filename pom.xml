@@ -222,6 +222,7 @@
         <module>service-order</module>
         <module>platform</module>
         <module>service-dock</module>
+        <module>mall-common</module>
 
     </modules>
 
