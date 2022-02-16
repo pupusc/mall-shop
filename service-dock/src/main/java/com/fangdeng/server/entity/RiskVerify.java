@@ -1,4 +1,4 @@
-package com.fangdeng.server.dto;
+package com.fangdeng.server.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

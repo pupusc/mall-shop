@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
+import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -16,6 +17,7 @@ import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsCateErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
@@ -123,6 +125,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -321,6 +324,7 @@ public class GoodsService {
 
     @Autowired
     private GoodsVoteRepository goodsVoteRepository;
+
 
     /**
      * 供应商商品删除
@@ -3468,5 +3472,6 @@ public class GoodsService {
             goodsVoteRepository.saveAll(goodsVotes);
         }
     }
+
 
 }

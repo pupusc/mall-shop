@@ -1,7 +1,6 @@
 package com.fangdeng.server.mapper;
 
-import com.fangdeng.server.dto.GoodsSyncDTO;
-import com.fangdeng.server.dto.RiskVerify;
+import com.fangdeng.server.entity.RiskVerify;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

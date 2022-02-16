@@ -390,9 +390,9 @@ public class GoodsStockService {
     public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
         //查询sku信息
         GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
-        if (goodsInfo ==null) {
+        if (goodsInfo ==null || Objects.equals(goodsInfo.getStockSyncFlag(),0)) {
             goodsStockSyncRepository.updateStatus(stock.getId());
-            log.info("there is no sku,stock:{}", stock);
+            log.info("updateGoodsStockSingle there is no sku or stock,stockSyncFlag is false, goods:{},goodsInfo:{}", stock,goodsInfo);
             return;
         }
         Long actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());
