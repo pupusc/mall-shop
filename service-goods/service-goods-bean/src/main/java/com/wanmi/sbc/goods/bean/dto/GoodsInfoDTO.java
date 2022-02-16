@@ -600,4 +600,31 @@ public class GoodsInfoDTO implements Serializable {
     @ApiModelProperty(name = "企业购 最高价格")
     private BigDecimal enterpriseMaxPrice;
 
+    /**
+     * 库存同步标记,0:否 1:是
+     */
+    @ApiModelProperty(value = "库存同步标记")
+    private Integer stockSyncFlag;
+
+    /**
+     * 成本价同步标记,0:否 1:是
+     */
+    @ApiModelProperty(value = "成本价同步标记")
+    private Integer costPriceSyncFlag;
+
+    /**
+     * 促销价格开始时间
+     */
+    @ApiModelProperty(value = "有效期开始时间")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime promotionStartTime;
+
+    /**
+     * 促销价格结束时间
+     */
+    @ApiModelProperty(value = "促销价格结束时间")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime promotionEndTime;
 }

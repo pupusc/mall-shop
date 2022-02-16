@@ -105,6 +105,9 @@ public class GoodsInfoStockService {
         Map<String, Integer> goodsInfoStockMap = new HashMap<>();
         if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
             for (GoodsInfo goodsInfo : goodsInfos) {
+                if (Objects.equals(goodsInfo.getStockSyncFlag(),0)){
+                    continue;
+                }
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
                 int actualStock;
                 if(goodsInfo.getErpGoodsInfoNo() != null && goodsInfo.getErpGoodsInfoNo().startsWith("DF")){

@@ -203,7 +203,7 @@ public class GoodsController {
         //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
         List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
         goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
+            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
                 List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
                 if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
                     List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
@@ -389,7 +389,7 @@ public class GoodsController {
             //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
             List<GoodsInfoVO> goodsInfoVOS = request.getGoodsInfos();
             goodsInfoVOS.forEach(goodsInfoVO -> {
-                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo())) {
+                if (StringUtils.isNotBlank(goodsInfoVO.getErpGoodsInfoNo()) && !goodsInfoVO.getCombinedCommodity()) {
                     List<ERPGoodsInfoVO> erpGoodsInfoVOList = guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoVO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
                     if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
                         List<String> skuCodes = erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
