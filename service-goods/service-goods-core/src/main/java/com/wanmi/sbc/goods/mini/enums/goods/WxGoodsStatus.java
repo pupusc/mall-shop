@@ -5,9 +5,13 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum WxGoodsStatus {
 
-    WAIT_UPLOAD,
+    //上传中
+    ON_UPLOAD,
+    //已上传未上架
     UPLOAD,
+    //上架
     ON_SHELF,
+    //下架
     OFF_SHELF;
 
     @JsonCreator

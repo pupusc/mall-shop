@@ -37,7 +37,7 @@ public class WxGoodsService {
         wxGoodsModel.setGoodsInfoId(createRequest.getGoodsId());
         wxGoodsModel.setGoodsInfoId(createRequest.getGoodsInfoId());
         wxGoodsModel.setWxCategory(createRequest.getWxCategory());
-        wxGoodsModel.setStatus(WxGoodsStatus.WAIT_UPLOAD);
+        wxGoodsModel.setStatus(WxGoodsStatus.ON_UPLOAD);
         wxGoodsModel.setEditStatus(WxGoodsEditStatus.WAIT_CHECK);
         LocalDateTime now = LocalDateTime.now();
         wxGoodsModel.setCreateTime(now);

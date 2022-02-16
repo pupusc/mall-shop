@@ -16,11 +16,6 @@ public class WxReviewLogModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    //提审时间
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @Column(name = "upload_time")
-    private LocalDateTime uploadTime;
-
     //审核结束时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "reviewed_time")
