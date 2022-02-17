@@ -24,7 +24,7 @@ public class ProductAuditCallbackHandler implements CallbackHandler {
 
     @Override
     public boolean support(String eventType) {
-        return false;
+        return "open_product_spu_audit".equals(eventType);
     }
 
     @Override
