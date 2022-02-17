@@ -3777,8 +3777,9 @@ public class ReturnOrderService {
      */
     public List<ReturnOrder> filterFinishedReturnOrder(List<ReturnOrder> returnOrders) {
         return returnOrders.stream().filter(t -> !t.getReturnFlowState().equals(ReturnFlowState.VOID)
-                && !t.getReturnFlowState().equals(ReturnFlowState.REJECT_RECEIVE) &&
-                !(t.getReturnType() == ReturnType.REFUND && t.getReturnFlowState() == ReturnFlowState.REJECT_REFUND))
+                && !t.getReturnFlowState().equals(ReturnFlowState.REJECT_RECEIVE)
+                && !(t.getReturnType() == ReturnType.REFUND && t.getReturnFlowState() == ReturnFlowState.REJECT_REFUND)
+                && !(t.getReturnReason() != null && ReturnReason.PRICE_DELIVERY.getType().equals(t.getReturnReason().getType())))
                 .collect(Collectors.toList());
     }
 
