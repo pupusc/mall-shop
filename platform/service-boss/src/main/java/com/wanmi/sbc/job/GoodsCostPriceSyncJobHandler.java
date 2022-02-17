@@ -8,15 +8,10 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoAdjustPriceRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsPriceSyncRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
 import com.wanmi.sbc.job.model.entity.GoodsPriceSync;
@@ -24,7 +19,6 @@ import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,9 +38,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,12 +47,12 @@ import java.util.stream.Collectors;
 
 
 /**
- * 查询goodsPriceSync表 更新商品价格和es
+ * 管易更新成本价
  **/
-@JobHandler(value = "goodsPriceUpdateJobHandler")
+@JobHandler(value = "goodsCostPriceSyncJobHandler")
 @Component
 @Slf4j
-public class GoodsPriceUpdateJobHandler extends IJobHandler {
+public class GoodsCostPriceSyncJobHandler extends IJobHandler {
 
     @Autowired
     private GoodsProvider goodsProvider;
@@ -88,26 +81,32 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
     @Value("${notice.send.message.noticeId}")
     private Integer noticeSendMsgNoticeId;
 
+    @Value("${default.providerId}")
+    private Long defaultProviderId;
+
+
     private String NOTICE_SEND_MESSAGE ="{0} {1}当前售价{2}，于{3}成本价由{4}调整为{5}，原毛利率{6}%变为{7}%";
 
 
+    private String PRICE_SYNC_KEY="price.sync.page";
     //分布式锁名称
-    private static final String BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS = "BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS";
+    private static final String BATCH_GET_GOODS_COST_PRICE_AND_SYNC_LOCKS = "BATCH_GET_GOODS_COST_PRICE_AND_SYNC_LOCKS";
 
     @Override
     public ReturnT<String> execute(String params) throws Exception {
-        RLock lock = redissonClient.getLock(BATCH_GET_GOODS_PRICE_AND_SYNC_LOCKS);
+        RLock lock = redissonClient.getLock(BATCH_GET_GOODS_COST_PRICE_AND_SYNC_LOCKS);
         if (lock.isLocked()) {
             log.error("定时任务在执行中,下次执行.");
             return null;
         }
         lock.lock();
-        log.info("同步商品价格任务执行开始");
+        log.info("同步管易商品成本价任务执行开始");
         try {
-            syncBookuuPrice();
+            GoodsPriceSync param = objectMapper.readValue(params, GoodsPriceSync.class);
+            syncCostPrice(param);
             return SUCCESS;
         } catch (RuntimeException e) {
-            log.error("同步库存定时任务,参数错误", e);
+            log.error("同步管易商品成本价定时任务,参数错误", e);
             throw new SbcRuntimeException(CommonErrorCode.FAILED);
         } finally {
             //释放锁
@@ -115,33 +114,29 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
         }
     }
 
-    /**
-     * 同步博库成本价
-     */
-    private void syncBookuuPrice() {
-        GoodsPriceSyncRequest goodsInfoListByIdRequest = new GoodsPriceSyncRequest();
-        goodsInfoListByIdRequest.setPageNum(0);
-        goodsInfoListByIdRequest.setPageSize(20);
 
-        BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> baseResponse = goodsProvider.syncGoodsPrice(goodsInfoListByIdRequest);
+
+    /**
+     * 同步管易成本价
+     */
+    private void syncCostPrice(GoodsPriceSync param) {
+        String page = redisService.getString(PRICE_SYNC_KEY+ LocalDate.now());
+        GoodsPriceSyncRequest goodsInfoListByIdRequest = new GoodsPriceSyncRequest();
+        goodsInfoListByIdRequest.setPageNum(StringUtils.isEmpty(page) ? 0:Integer.valueOf(page));
+        goodsInfoListByIdRequest.setPageSize(80);
+        goodsInfoListByIdRequest.setProviderId(defaultProviderId);
+        goodsInfoListByIdRequest.setGoodsInfoNos(param.getGoodsInfoNo());
+
+        BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> baseResponse = goodsProvider.syncGoodsInfoCostPrice(goodsInfoListByIdRequest);
         MicroServicePage<GoodsInfoPriceChangeDTO> result = baseResponse.getContext();
+        redisService.setString(PRICE_SYNC_KEY+ LocalDate.now(),(goodsInfoListByIdRequest.getPageNum() +1)+"",86400);
         if (result.getTotal() == 0) {
-            log.info("同步博库成本价数量为空");
+            log.info("同步管易成本价数量为空");
             return;
         }
         syncEsPrice(result.getContent());
         sendMessage(baseResponse.getContext().getContent());
-
-        for (int pageNum = 1; pageNum < result.getTotalPages(); ++pageNum) {
-            log.info("同步博库成本价,共{}条数据,当前第{}页", result.getTotal(), pageNum);
-            goodsInfoListByIdRequest.setPageNum(0);
-            baseResponse = goodsProvider.syncGoodsPrice(goodsInfoListByIdRequest);
-            syncEsPrice(baseResponse.getContext().getContent());
-            sendMessage(baseResponse.getContext().getContent());
-        }
-
     }
-
 
     private void syncEsPrice(List<GoodsInfoPriceChangeDTO> list) {
         log.info("============Es更新的价格:{}==================", list);
@@ -183,8 +178,8 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             BigDecimal oldRate = new BigDecimal(0);
             BigDecimal newRate = new BigDecimal(0);
             if(change.getMarketPrice() != null && change.getMarketPrice().compareTo(new BigDecimal(0)) != 0){
-                oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
-                newRate = (change.getMarketPrice().subtract(change.getNewPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
+                oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+                newRate = (change.getMarketPrice().subtract(change.getNewPrice())).divide(change.getMarketPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
             }
             content.put("content", MessageFormat.format(NOTICE_SEND_MESSAGE,change.getSkuNo(),change.getName(),change.getMarketPrice(),change.getTime(),change.getOldPrice(),change.getNewPrice(),oldRate,newRate));
             Map<String,Object> map = new HashMap<>();
@@ -193,6 +188,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             StringEntity entity = new StringEntity(JSON.toJSONString(map),"UTF-8");
             post.setEntity(entity);
             HttpResponse res = httpClient.execute(post);
+            log.info("send message request:{},response:{}",post.toString(),res);
             if (res.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String result = EntityUtils.toString(res.getEntity());
                 response = JSONObject.parseObject(result);
@@ -211,3 +207,4 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
 
 
 }
+

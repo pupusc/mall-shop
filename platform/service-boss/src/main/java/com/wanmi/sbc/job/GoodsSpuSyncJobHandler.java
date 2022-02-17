@@ -209,6 +209,8 @@ public class GoodsSpuSyncJobHandler extends IJobHandler {
         goodsInfoDTO.setIsbnNo(goods.getIsbn());
         goodsInfoDTO.setRetailPrice(goods.getSalePrice());
         goodsInfoDTO.setCostPrice(goods.getBasePrice());
+        goodsInfoDTO.setCostPriceSyncFlag(1);
+        goodsInfoDTO.setStockSyncFlag(1);
         //1. 定价规则：市场价=合作伙伴成本价/0.9 > 建议销售价【数字不填写，人工处理】
         //合作伙伴成本价/0.9<= 建议销售价 <= 合作伙伴成本价/0.8【使用，建议销售价】
         //合作伙伴成本价/0.8<= 建议销售价【使用，合作伙伴成本价/0.8】
