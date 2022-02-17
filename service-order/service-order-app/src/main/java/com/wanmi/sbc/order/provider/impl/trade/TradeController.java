@@ -802,4 +802,16 @@ public class TradeController implements TradeProvider {
     public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
         return tradePushERPService.syncProviderTradeDeliveryStatus(request);
     }
+
+    /**
+     * C端提交订单-新,不用快照，无优惠信息
+     * @param tradeCommitRequest 提交订单请求对象
+     * @return 提交订单结果
+     */
+    @Override
+    public BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+        List<TradeCommitResult> results = tradeOptimizeService.commitTrade(tradeCommitRequest);
+        return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
+    }
+
 }

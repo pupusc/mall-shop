@@ -451,4 +451,7 @@ public interface TradeProvider {
      */
     @GetMapping("/order/${application.order.version}/trade/add-fix-pay-order/{oid}")
     BaseResponse<String> addFixPayOrder(@PathVariable("oid") String oid);
+
+    @PostMapping("/order/${application.order.version}/trade/commit-new")
+    BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 }

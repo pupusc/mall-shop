@@ -4,44 +4,53 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.BoolFlag;
-import com.wanmi.sbc.common.enums.ChannelType;
-import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
-import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
-import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
-import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyVO;
-import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
+import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
+import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleMergeInProgressRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleMergeInProcessResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
+import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionSimplifyRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeItemSnapshotRequest;
+import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
 import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.TradeBatchDeliverDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
+import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.constant.OrderErrorCode;
+import com.wanmi.sbc.order.purchase.Purchase;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
@@ -125,6 +134,12 @@ public class TradeOptimizeService {
 
     @Autowired
     private MarketingQueryProvider marketingQueryProvider;
+
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
+    @Autowired
+    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
     /**
      * C端下单
      */
@@ -534,5 +549,245 @@ public class TradeOptimizeService {
             }
             verifyService.verifyCycleBuy(optional.get().getGoodsId(), cycleBuyInfo.getCycleBuyGifts(), null, null, null,forceCommit);
         }
+    }
+
+
+    /**
+     * 提交订单，不用快照,只是正常商品下单，注释的是第一期不做的
+     * @param tradeCommitRequest
+     * @return
+     */
+    @Transactional
+    @GlobalTransactional
+    public List<TradeCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
+        // 验证用户
+        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
+        tradeCommitRequest.setCustomer(customer);
+        Operator operator = tradeCommitRequest.getOperator();
+
+        //商品明细传参
+        if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
+            throw new SbcRuntimeException(SiteResultCode.ERROR_050201);
+        }
+        List<TradeItem> tradeItems = getTradeItemList(tradeCommitRequest);
+        TradeItemGroup tradeItemGroup = new TradeItemGroup();
+        tradeItemGroup.setTradeItems(tradeItems);
+        tradeItemGroup.setTradeMarketingList(tradeCommitRequest.getTradeMarketingList());
+        List<TradeItemGroup> tradeItemGroups = new ArrayList<>() ;
+        tradeItemGroups.add(tradeItemGroup);
+        List<TradeMarketingDTO> tradeMarketingList = tradeCommitRequest.getTradeMarketingList();
+        tradeItems.forEach(tradeItem -> {
+                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
+                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
+        });
+        List<GoodsRestrictedValidateVO> goodsRestrictedValidateVOS = Lists.newArrayList();
+        CustomerSimplifyVO customerSimplifyVO = new CustomerSimplifyVO();
+        //校验商品限售信息
+        tradeGoodsService.validateRestrictedGoods(tradeItemGroup, customer);
+
+        List<String> allSkuIds =  tradeItems.stream().filter(i -> Objects.isNull(i.getBuyPoint()) || i.getBuyPoint() == 0)
+                    .map(TradeItem::getSkuId).collect(Collectors.toList());
+        List<String> bookingSaleGoodsInfoIds = Lists.newArrayList();
+        Map<String, Long> skuIdAndBookSaleIdMap = Maps.newHashMap();
+        //商品信息
+        List<String> skuIds = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+        GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = tradeCacheService.getGoodsInfoViewByIds(skuIds);
+        List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
+
+        // 1.查询快照中的购物清单
+        // list转map,方便获取
+        Map<Long, TradeItemGroup> tradeItemGroupsMap = new HashMap<>();
+        tradeItemGroupsMap.put(tradeItems.get(0).getStoreId(),tradeItemGroup);
+
+        List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
+
+        Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
+                new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
+        // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
+        verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
+        //校验周期购
+        verifyCycleBuy(tradeItemGroups, goodsInfoVOList,tradeCommitRequest.isForceCommit());
+        // 处理加价购加购商品
+        tradeService.wrapperMarkup(tradeItemGroups,goodsInfoVOList,tradeCommitRequest.isForceCommit());
+        // 校验组合购活动信息
+        // 2.按店铺包装多个订单信息、订单组信息
+        TradeWrapperListRequest tradeWrapperListRequest = new TradeWrapperListRequest();
+        tradeWrapperListRequest.setStoreLevelMap(storeLevelMap);
+        tradeWrapperListRequest.setStoreVOList(storeVOList);
+        tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
+        tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
+        List<Trade> trades = tradeService.wrapperTradeList(tradeWrapperListRequest);
+
+        // 3.批量提交订单
+        List<TradeCommitResult> successResults;
+        try {
+            // 处理积分抵扣
+            tradeService.dealPoints(trades, tradeCommitRequest);
+            // 处理知豆抵扣
+            //tradeService.dealKnowledge(trades, tradeCommitRequest);
+            // 预售补充尾款价格
+            //tradeService.dealTailPrice(trades, tradeCommitRequest);
+             successResults = tradeService.createBatch(trades, null, operator);
+        }catch (Exception e){
+            log.error("提交订单异常：{}",e);
+            for (Trade trade : trades) {
+                if (StringUtils.isNotBlank(trade.getDeductCode())) {
+                    log.error("提交订单异常补偿取消订单积分对象：{}", trade);
+                    if (tradeCommitRequest.getPoints() != null && tradeCommitRequest.getPoints() > 0) {
+                        //释放积分接口
+                        externalProvider.pointCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
+                                .desc("订单提交异常返还(退单号:" + trade.getId() + ")").build());
+                    }
+                }
+
+                log.info("************* 提交订单异常 订单 {} 作废 begin *************:", trade.getId());
+
+                //异常订单，主单和子单全部标记作废
+                if (trade.getTradeState() != null) {
+                    trade.getTradeState().setFlowState(FlowState.VOID); //此处只是做标记，不做其他任何处理
+                    trade.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+                    tradeService.addTrade(trade);
+                }
+                log.info("提交订单异常 订单：{} Trade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId());
+                //获取子单列表
+                List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(trade.getId());
+                for (ProviderTrade providerTradeParam : providerTradeList) {
+                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
+                    providerTradeParam.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+                    providerTradeService.addProviderTrade(providerTradeParam);
+                    log.info("提交订单异常 订单：{} 子单：{} ProviderTrade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId(), providerTradeParam.getId());
+                }
+
+                log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
+            }
+
+            throw  new SbcRuntimeException("K-000001");
+        }
+        try {
+            // 4.订单提交成功，且为购物车购买，删除关联的采购单商品
+//            if (Boolean.TRUE.equals(tradeItemSnapshot.getPurchaseBuy())) {
+//                trades.forEach(
+//                        trade -> {
+//                            List<String> tradeSkuIds =
+//                                    trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+//                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
+//                                    tradeCommitRequest.getDistributeChannel());
+//                        }
+//                );
+//            }
+            // 6.订单提交成功，增加限售记录
+            tradeService.insertRestrictedRecord(trades);
+        } catch (Exception e) {
+            log.error("Delete the trade sku list snapshot or the purchase order exception," +
+                            "trades={}," +
+                            "customer={}",
+                    JSONObject.toJSONString(trades),
+                    customer,
+                    e
+            );
+        }
+        return successResults;
+    }
+
+    private List<TradeItem> getTradeItemList(TradeCommitRequest request) {
+        List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+        String customerId = request.getCustomer().getCustomerId();
+
+        //查询是否购买付费会员卡
+        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+                        .customerId(customerId)
+                        .delFlag(DeleteFlag.NO)
+                        .endTimeFlag(LocalDateTime.now())
+                        .build())
+                .getContext();
+        PaidCardVO paidCardVO = new PaidCardVO();
+        if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+            paidCardVO = paidCardCustomerRelVOList.stream()
+                    .map(PaidCardCustomerRelVO::getPaidCardVO)
+                    .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+        }
+
+        GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
+        List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
+        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null)
+                .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
+                .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+
+
+        List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
+        //获取付费会员价
+        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+            for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
+                goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
+            }
+            if (CollectionUtils.isNotEmpty(tradeItems)) {
+                for (TradeItem tradeItem : tradeItems) {
+                    if (Objects.nonNull(tradeItem.getPrice())) {
+                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
+                    }
+                }
+            }
+        }
+        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, false, null);
+        verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
+        Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+        tradeItems.stream().forEach(tradeItem -> {
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
+            tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
+            tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
+            tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
+            tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
+        });
+        List<TradeMarketingDTO> tradeMarketingList = request.getTradeMarketingList();
+        verifyService.verifyTradeMarketing(request.getTradeMarketingList(), Collections.emptyList(), tradeItems, customerId, false);
+        tradeItems.stream().forEach(tradeItem -> {
+            tradeMarketingList.stream().forEach(tradeMarketingDTO -> {
+                        if (tradeMarketingDTO.getSkuIds().contains(tradeItem.getSkuId())) {
+                            tradeItem.getMarketingIds().add(tradeMarketingDTO.getMarketingId());
+                            tradeItem.getMarketingLevelIds().add(tradeMarketingDTO.getMarketingLevelId());
+                        }
+                    }
+            );
+        });
+
+        // 校验商品限售信息
+        TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();
+        tradeItemGroupVOS.setTradeItems(tradeItems);
+        tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
+
+        //普通商品不能参与预售预约活动
+        List<String> skuIdList = tradeItems.stream()
+                .filter(i ->
+                        (!Boolean.TRUE.equals(i.getIsBookingSaleGoods()))
+                                && (!Boolean.TRUE.equals(i.getIsAppointmentSaleGoods()))
+                                && (Objects.isNull(i.getBuyPoint()) || i.getBuyPoint() == 0))
+                .map(TradeItem::getSkuId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(skuIdList)) {
+            appointmentSaleQueryProvider.containAppointmentSaleAndBookingSale(AppointmentSaleInProgressRequest.builder().goodsInfoIdList(skuIdList).build());
+        }
+
+        // 预约活动校验是否有资格
+        List<TradeItem> excludeBuyPointList = tradeItems.stream()
+                .filter(tradeItem -> (Objects.isNull(tradeItem.getBuyPoint()) || tradeItem.getBuyPoint() == 0)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(excludeBuyPointList)) {
+            tradeItemGroupVOS.setTradeItems(excludeBuyPointList);
+            tradeGoodsService.validateAppointmentQualification(Collections.singletonList(tradeItemGroupVOS), customerId);
+        }
+
+
+        /**
+         *  校验预售活动资格，初始化价格
+         */
+        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
+
+        for (TradeItem tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if (priceByGoodsId.getContext() != null) {
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+        }
+        return tradeItems;
     }
 }
