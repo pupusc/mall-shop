@@ -1099,7 +1099,6 @@ public class TradePushERPService {
      * @param deliveryInfoVOList
      */
     public void fillERPTradeDelivers(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList,Integer allDelivery) {
-        List<TradeDeliverVO> tradeDeliverVOs = new ArrayList<>();
         List<TradeDeliverVO> tradeDeliverVOList = new ArrayList<>();
         TradeVO tradeVO = KsBeanUtil.convert(tradeService.detail(providerTrade.getParentId()), TradeVO.class);
 
@@ -1327,13 +1326,11 @@ public class TradePushERPService {
                     TradeQueryRequest tradeQueryRequest = TradeQueryRequest.builder().tid(providerTrade.getId()).flag(0).build();
                     BaseResponse<QueryTradeResponse> tradeInfoResponse= guanyierpProvider.getTradeInfo(tradeQueryRequest);
                     //默认7天内的订单，如果没有加过就再查询历史订单
+                    boolean isShipped = false;
                     if (!StringUtils.isEmpty(tradeInfoResponse.getContext().getPlatformCode())){
                         //如果已经全部发货，修改订单的其他信息为全部发货
                         if (DeliveryStatus.DELIVERY_COMPLETE.equals(tradeInfoResponse.getContext().getDeliveryState())) {
-                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+                            isShipped = true;
                         }
                     } else {
                         //查询历史订单
@@ -1341,14 +1338,22 @@ public class TradePushERPService {
                         BaseResponse<QueryTradeResponse> historyTradeResponse = guanyierpProvider.getTradeInfo(tradeQueryRequest);
                         //如果已经全部发货，修改订单的其他信息为全部发货
                         if (DeliveryStatus.DELIVERY_COMPLETE.equals(historyTradeResponse.getContext().getDeliveryState())) {
-                            providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                            providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
-                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
+                            isShipped = true;
+                        }
+                    }
+
+                    if (isShipped) {
+                        providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                        providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+                        //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
+                        if (CollectionUtils.isNotEmpty(providerTrades) && providerTrades.stream().anyMatch(p -> !Objects.equals(p.getId(), providerTrade.getId()) && (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED) || (Objects.equals(p.getTradeState().getDeliverStatus(), DeliverStatus.NOT_YET_SHIPPED) && !Objects.equals(p.getTradeState().getFlowState(), FlowState.VOID))))) {
+                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                            tradeVO.getTradeState().setDeliverTime(null);
                         }
                     }
                 } else {
-
+                    log.info("博库不会走这里的，博库部分发货变成全部发货走的是 allDelivery == 1 的情况");
                 }
             }
 

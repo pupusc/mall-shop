@@ -708,7 +708,7 @@ public class ReturnOrderService {
      */
     private void verifyIsExistsItemReturnOrder(ReturnOrder returnOrder, List<ReturnOrder> returnOrderList) {
         //如果当前退单为退运费，则查看当前退单是否有运费订单，如果有运费直接抛出异常
-        if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
+        if (returnOrder.getReturnReason() != null && ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
             //查看当前所有的供应商，如果为退还运费，则只能一个供应商
             Map<Long, ReturnItem> providerIdMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getProviderId, Function.identity(), (k1, k2) -> k1));
             if (providerIdMap.size() != 1) {

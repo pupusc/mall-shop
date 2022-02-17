@@ -11,6 +11,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
+import com.wanmi.sbc.order.bean.vo.ReturnItemVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -20,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -74,10 +77,27 @@ public class BoKuService extends AbstractCRMService{
                     return BaseResponse.SUCCESSFUL();
                 }
 
-                BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(CancelOrderRequest.builder().orderId(providerTradeParam.getDeliveryOrderId()).pid(providerTradeParam.getId()).build());
-                if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
-                    throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
+                Map<String, TradeItemVO> skuId2TradeItemMap =
+                        providerTradeParam.getTradeItems().stream().collect(Collectors.toMap(TradeItemVO::getSkuId, Function.identity(), (k1, k2) -> k2));
+
+                List<ReturnItemVO> returnItems = returnOrderVO.getReturnItems();
+                for (ReturnItemVO returnItemParam : returnItems) {
+                    TradeItemVO tradeItemVO = skuId2TradeItemMap.get(returnItemParam.getSkuId());
+                    if (tradeItemVO == null) {
+                        throw new SbcRuntimeException("K-000009");
+                    }
+                    CancelOrderRequest cancelOrderRequest = new CancelOrderRequest();
+                    cancelOrderRequest.setOrderId(providerTradeParam.getDeliveryOrderId());
+                    cancelOrderRequest.setPid(providerTradeParam.getId());
+                    cancelOrderRequest.setType(1); //单品
+                    cancelOrderRequest.setErpGoodsInfoNo(tradeItemVO.getErpSkuNo());
+                    BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(cancelOrderRequest);
+                    if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
+                        throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
+                    }
                 }
+
+
             }
         }
 
