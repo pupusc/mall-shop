@@ -39,6 +39,11 @@ public class WxGoodsModel {
     @Column(name = "wx_category")
     private Integer wxCategory;
 
+    //提审时间
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @Column(name = "upload_time")
+    private LocalDateTime uploadTime;
+
     //创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "create_time")

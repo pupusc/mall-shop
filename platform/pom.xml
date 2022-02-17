@@ -204,6 +204,7 @@
         <module>service-mobile</module>
         <module>service-supplier</module>
         <module>service-boss</module>
+        <module>service-mini-app</module>
     </modules>
 
 </project>

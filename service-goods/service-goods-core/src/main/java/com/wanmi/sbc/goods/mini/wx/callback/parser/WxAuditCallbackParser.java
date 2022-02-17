@@ -3,6 +3,8 @@ package com.wanmi.sbc.goods.mini.wx.callback.parser;
 import com.wanmi.sbc.common.util.SpringContextHolder;
 import com.wanmi.sbc.goods.mini.wx.callback.handler.CallbackHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.xmlbeans.impl.common.IOUtil;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -10,22 +12,10 @@ import org.dom4j.io.SAXReader;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.*;
-
-
-/*<ToUserName>gh_abcdefg</ToUserName>
-<FromUserName>oABCD</FromUserName>
-<CreateTime>12344555555</CreateTime>
-<MsgType>event</MsgType>
-<Event>open_product_spu_audit</Event>
-<OpenProductSpuAudit>
-<out_product_id>spu_123</out_product_id>
-<product_id>38249023</product_id>
-<status>3</status>
-<reject_reason>xxx原因</reject_reason>
-</OpenProductSpuAudit>*/
 
 @Slf4j
 @Component
@@ -45,7 +35,12 @@ public class WxAuditCallbackParser {
                 }
             }
         }catch (Exception e){
-            log.error("解析微信审核回调失败:");
+            try {
+                String s = IOUtils.toString(inputStream);
+                log.error("解析微信审核回调失败:" + s, e);
+            } catch (IOException ioException) {
+                log.error("解析微信审核回调失败!", e);
+            }
         }
     }
 
