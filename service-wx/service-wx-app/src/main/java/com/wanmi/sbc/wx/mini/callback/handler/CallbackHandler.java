@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.mini.wx.callback.handler;
+package com.wanmi.sbc.wx.mini.callback.handler;
 
 import java.util.Map;
 

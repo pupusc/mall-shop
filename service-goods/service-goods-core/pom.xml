@@ -18,6 +18,11 @@
 
     <dependencies>
         <dependency>
+            <artifactId>service-wx-api</artifactId>
+            <groupId>com.wanmi.sbc</groupId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.wanmi.ares</groupId>
             <artifactId>ares-api</artifactId>
             <version>${wm.micro.service.version}</version>

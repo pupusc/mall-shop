@@ -13,6 +13,12 @@
 
     <dependencies>
         <dependency>
+            <artifactId>service-wx-api</artifactId>
+            <groupId>com.wanmi.sbc</groupId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <version>${wm.micro.service.version}</version>
             <artifactId>service-order-api</artifactId>

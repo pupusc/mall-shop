@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.mini.wx.bean.response;
+package com.wanmi.sbc.wx.mini.bean.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

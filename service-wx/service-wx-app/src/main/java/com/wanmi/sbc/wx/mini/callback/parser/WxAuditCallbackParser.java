@@ -1,10 +1,9 @@
-package com.wanmi.sbc.goods.mini.wx.callback.parser;
+package com.wanmi.sbc.wx.mini.callback.parser;
 
 import com.wanmi.sbc.common.util.SpringContextHolder;
-import com.wanmi.sbc.goods.mini.wx.callback.handler.CallbackHandler;
+import com.wanmi.sbc.wx.mini.callback.handler.CallbackHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.xmlbeans.impl.common.IOUtil;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;

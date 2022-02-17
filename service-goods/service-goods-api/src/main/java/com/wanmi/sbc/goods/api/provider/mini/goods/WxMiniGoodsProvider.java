@@ -8,9 +8,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(value = "${application.goods.name}", contextId = "MiniGoodsProvider")
-public interface MiniGoodsProvider {
+import java.util.Map;
 
-    @PostMapping("/goods/${application.goods.version}/wx/goods/add")
+@FeignClient(value = "${application.goods.name}", contextId = "MiniGoodsProvider")
+public interface WxMiniGoodsProvider {
+
+    @PostMapping("/goods/${application.goods.version}/wx/add")
     BaseResponse add(@Validated(NoticeProviderRequest.Add.class) @RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
+
+    @PostMapping("/goods/${application.goods.version}/wx/audit/callback")
+    BaseResponse auditCallback(@Validated(NoticeProviderRequest.Add.class) @RequestBody Map<String, Object> paramMap);
 }

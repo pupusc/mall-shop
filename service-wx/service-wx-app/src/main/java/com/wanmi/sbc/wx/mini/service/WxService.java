@@ -1,15 +1,10 @@
-package com.wanmi.sbc.goods.mini.wx.service;
+package com.wanmi.sbc.wx.mini.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
-import com.wanmi.sbc.goods.info.service.GoodsInfoService;
-import com.wanmi.sbc.goods.info.service.GoodsService;
-import com.wanmi.sbc.goods.mini.wx.bean.request.WxAddProductRequest;
-import com.wanmi.sbc.goods.mini.wx.bean.response.WxAccessTokenResponse;
-import com.wanmi.sbc.goods.mini.wx.bean.response.WxAddProductResponse;
-import com.wanmi.sbc.goods.mini.wx.bean.response.WxResponseBase;
+import com.wanmi.sbc.wx.mini.bean.request.WxAddProductRequest;
+import com.wanmi.sbc.wx.mini.bean.response.WxAccessTokenResponse;
+import com.wanmi.sbc.wx.mini.bean.response.WxAddProductResponse;
+import com.wanmi.sbc.wx.mini.bean.response.WxResponseBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,17 +34,11 @@ public class WxService {
     private RestTemplate restTemplate;
     @Autowired
     private RedisTemplate redisTemplate;
-    @Autowired
-    private GoodsService goodsService;
-    @Autowired
-    private GoodsInfoService goodsInfoService;
 
-    public boolean uploadGoodsToWx(String goodsId, Integer thirdCatId){
+    public boolean uploadGoodsToWx(WxAddProductRequest addProductRequest){
+
         String accessToken = getAccessToken();
         String url = ADD_PRODUCT_URL.concat("?access_token=").concat(accessToken);
-        Goods goods = goodsService.findByGoodsId(goodsId);
-        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(goodsId).build());
-        WxAddProductRequest addProductRequest = WxAddProductRequest.createByGoods(goods, goodsInfos, thirdCatId);
 
         String reqJsonStr = JSONObject.toJSONString(addProductRequest);
         HttpHeaders headers = new HttpHeaders();
