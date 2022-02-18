@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alipay.api.domain.GoodsInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -8,14 +9,13 @@ import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.GeneratorService;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.SiteResultCode;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
@@ -57,6 +57,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeGrouponCommitForm;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.*;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
@@ -140,6 +141,9 @@ public class TradeOptimizeService {
 
     @Autowired
     private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
+
+    @Autowired
+    private StoreQueryProvider storeQueryProvider;
     /**
      * C端下单
      */
@@ -564,41 +568,22 @@ public class TradeOptimizeService {
         CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
         Operator operator = tradeCommitRequest.getOperator();
-
         //商品明细传参
         if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
-            throw new SbcRuntimeException(SiteResultCode.ERROR_050201);
+            throw new SbcRuntimeException("K-050214");
         }
-        List<TradeItem> tradeItems = getTradeItemList(tradeCommitRequest);
-        TradeItemGroup tradeItemGroup = new TradeItemGroup();
-        tradeItemGroup.setTradeItems(tradeItems);
-        tradeItemGroup.setTradeMarketingList(tradeCommitRequest.getTradeMarketingList());
-        List<TradeItemGroup> tradeItemGroups = new ArrayList<>() ;
-        tradeItemGroups.add(tradeItemGroup);
-        List<TradeMarketingDTO> tradeMarketingList = tradeCommitRequest.getTradeMarketingList();
-        tradeItems.forEach(tradeItem -> {
-                tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-                tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
-        });
-        List<GoodsRestrictedValidateVO> goodsRestrictedValidateVOS = Lists.newArrayList();
-        CustomerSimplifyVO customerSimplifyVO = new CustomerSimplifyVO();
-        //校验商品限售信息
-        tradeGoodsService.validateRestrictedGoods(tradeItemGroup, customer);
 
-        List<String> allSkuIds =  tradeItems.stream().filter(i -> Objects.isNull(i.getBuyPoint()) || i.getBuyPoint() == 0)
-                    .map(TradeItem::getSkuId).collect(Collectors.toList());
-        List<String> bookingSaleGoodsInfoIds = Lists.newArrayList();
-        Map<String, Long> skuIdAndBookSaleIdMap = Maps.newHashMap();
+        List<TradeItemGroup> tradeItemGroups = getTradeItemList(tradeCommitRequest);
+        List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
+
         //商品信息
         List<String> skuIds = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
         GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = tradeCacheService.getGoodsInfoViewByIds(skuIds);
         List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
 
-        // 1.查询快照中的购物清单
-        // list转map,方便获取
-        Map<Long, TradeItemGroup> tradeItemGroupsMap = new HashMap<>();
-        tradeItemGroupsMap.put(tradeItems.get(0).getStoreId(),tradeItemGroup);
-
+        // 1.查询快照中的购物清单 list转map,方便获取
+        Map<Long, TradeItemGroup> tradeItemGroupsMap = tradeItemGroups.stream().collect(
+                Collectors.toMap(g -> g.getSupplier().getStoreId(), Function.identity()));
         List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
 
         Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
@@ -608,8 +593,7 @@ public class TradeOptimizeService {
         //校验周期购
         verifyCycleBuy(tradeItemGroups, goodsInfoVOList,tradeCommitRequest.isForceCommit());
         // 处理加价购加购商品
-        tradeService.wrapperMarkup(tradeItemGroups,goodsInfoVOList,tradeCommitRequest.isForceCommit());
-        // 校验组合购活动信息
+        //tradeService.wrapperMarkup(tradeItemGroups,goodsInfoVOList,tradeCommitRequest.isForceCommit());
         // 2.按店铺包装多个订单信息、订单组信息
         TradeWrapperListRequest tradeWrapperListRequest = new TradeWrapperListRequest();
         tradeWrapperListRequest.setStoreLevelMap(storeLevelMap);
@@ -664,17 +648,6 @@ public class TradeOptimizeService {
             throw  new SbcRuntimeException("K-000001");
         }
         try {
-            // 4.订单提交成功，且为购物车购买，删除关联的采购单商品
-//            if (Boolean.TRUE.equals(tradeItemSnapshot.getPurchaseBuy())) {
-//                trades.forEach(
-//                        trade -> {
-//                            List<String> tradeSkuIds =
-//                                    trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
-//                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
-//                                    tradeCommitRequest.getDistributeChannel());
-//                        }
-//                );
-//            }
             // 6.订单提交成功，增加限售记录
             tradeService.insertRestrictedRecord(trades);
         } catch (Exception e) {
@@ -689,7 +662,7 @@ public class TradeOptimizeService {
         return successResults;
     }
 
-    private List<TradeItem> getTradeItemList(TradeCommitRequest request) {
+    private List<TradeItemGroup> getTradeItemList(TradeCommitRequest request) {
         List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
         String customerId = request.getCustomer().getCustomerId();
 
@@ -715,7 +688,6 @@ public class TradeOptimizeService {
         Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
                 .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
 
-
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
         //获取付费会员价
         if (Objects.nonNull(paidCardVO.getDiscountRate())) {
@@ -739,17 +711,6 @@ public class TradeOptimizeService {
             tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
             tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
             tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
-        });
-        List<TradeMarketingDTO> tradeMarketingList = request.getTradeMarketingList();
-        verifyService.verifyTradeMarketing(request.getTradeMarketingList(), Collections.emptyList(), tradeItems, customerId, false);
-        tradeItems.stream().forEach(tradeItem -> {
-            tradeMarketingList.stream().forEach(tradeMarketingDTO -> {
-                        if (tradeMarketingDTO.getSkuIds().contains(tradeItem.getSkuId())) {
-                            tradeItem.getMarketingIds().add(tradeMarketingDTO.getMarketingId());
-                            tradeItem.getMarketingLevelIds().add(tradeMarketingDTO.getMarketingLevelId());
-                        }
-                    }
-            );
         });
 
         // 校验商品限售信息
@@ -776,18 +737,40 @@ public class TradeOptimizeService {
             tradeGoodsService.validateAppointmentQualification(Collections.singletonList(tradeItemGroupVOS), customerId);
         }
 
-
-        /**
-         *  校验预售活动资格，初始化价格
-         */
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
-
         for (TradeItem tradeItem : tradeItems) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if (priceByGoodsId.getContext() != null) {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
         }
-        return tradeItems;
+
+
+
+        //商品按店铺分组
+        Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
+        List<TradeItemGroup> itemGroups = new ArrayList<>();
+        map.forEach((key,value)->{
+            StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
+                    .build())
+                    .getContext().getStoreVO();
+            //周期购商品使用单品运费
+            DefaultFlag freightTemplateType =  store.getFreightTemplateType();
+            Supplier supplier = Supplier.builder()
+                    .storeId(store.getStoreId())
+                    .storeName(store.getStoreName())
+                    .isSelf(store.getCompanyType() == BoolFlag.NO)
+                    .supplierCode(store.getCompanyInfo().getCompanyCode())
+                    .supplierId(store.getCompanyInfo().getCompanyInfoId())
+                    .supplierName(store.getCompanyInfo().getSupplierName())
+                    .freightTemplateType(freightTemplateType)
+                    .build();
+            TradeItemGroup tradeItemGroup = new TradeItemGroup();
+            tradeItemGroup.setTradeItems(value);
+            tradeItemGroup.setSupplier(supplier);
+            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+            itemGroups.add(tradeItemGroup);
+        });
+        return itemGroups;
     }
 }
