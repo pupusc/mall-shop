@@ -1,7 +1,7 @@
-package com.soybean.mall.wx.mini.callback.parser;
+package com.soybean.mall.wx.callback.parser;
 
+import com.soybean.mall.wx.callback.handler.CallbackHandler;
 import com.wanmi.sbc.common.util.SpringContextHolder;
-import com.soybean.mall.wx.mini.callback.handler.CallbackHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.dom4j.Document;

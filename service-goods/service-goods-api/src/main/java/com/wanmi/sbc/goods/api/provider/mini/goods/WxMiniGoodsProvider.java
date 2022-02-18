@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.api.provider.mini.goods;
 
+import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
@@ -14,8 +15,11 @@ import java.util.Map;
 public interface WxMiniGoodsProvider {
 
     @PostMapping("/goods/${application.goods.version}/wx/add")
-    BaseResponse add(@Validated(NoticeProviderRequest.Add.class) @RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
+    BaseResponse add(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
 
-    @PostMapping("/goods/${application.goods.version}/wx/audit/callback")
+    @PostMapping("/goods/${application.goods.version}/wx/delete")
+    BaseResponse delete(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
+
+    @PostMapping("/${application.goods.version}/wx/audit/callback")
     BaseResponse auditCallback(@Validated(NoticeProviderRequest.Add.class) @RequestBody Map<String, Object> paramMap);
 }

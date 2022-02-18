@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.controller;
 
 import com.soybean.mall.wx.mini.bean.request.WxAddProductRequest;
+import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,10 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 public interface WxMiniApiController {
 
     @PostMapping("/goods/add")
-    BaseResponse addGoods(@RequestBody WxAddProductRequest wxAddProductRequest);
+    BaseResponse<Boolean> addGoods(@RequestBody WxAddProductRequest wxAddProductRequest);
 
-    @PostMapping("/goods/audit/callback")
-    BaseResponse auditCallback(HttpServletRequest httpServletRequest);
+    @PostMapping("/goods/delete")
+    BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
 
     @PostMapping("/goods/verify/callback")
     BaseResponse verifyCallback(HttpServletRequest request);

@@ -1,16 +1,16 @@
 package com.soybean.mall.wx.mini.controller;
 
 import com.soybean.mall.wx.mini.bean.request.WxAddProductRequest;
-import com.soybean.mall.wx.mini.callback.parser.WxAuditCallbackParser;
+import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.ShaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,25 +21,16 @@ public class WxMiniApiControllerImpl implements WxMiniApiController {
 
     @Autowired
     private WxService wxService;
-    @Autowired
-    private WxAuditCallbackParser wxAuditCallbackParser;
 
     @Override
-    public BaseResponse addGoods(WxAddProductRequest wxAddProductRequest) {
-        wxService.uploadGoodsToWx(wxAddProductRequest);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<Boolean> addGoods(WxAddProductRequest wxAddProductRequest) {
+        boolean b = wxService.uploadGoodsToWx(wxAddProductRequest);
+        return BaseResponse.success(b);
     }
 
-    //审核事件回调
     @Override
-    public BaseResponse auditCallback(HttpServletRequest request) {
-//        wxAuditCallbackParser.dealCallback(new ByteArrayInputStream(callbackStr.getBytes()));
-        try {
-            wxAuditCallbackParser.dealCallback(request.getInputStream());
-        } catch (IOException e) {
-            log.info("微信商品审核回调失败", e);
-        }
-        return null;
+    public BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest){
+        return BaseResponse.success(wxService.deleteGoods(wxDeleteProductRequest));
     }
 
     //接入回调验证

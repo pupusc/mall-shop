@@ -9,7 +9,6 @@
 
     <artifactId>service-goods-app</artifactId>
 
-
     <properties>
         <main-class>com.wanmi.sbc.goods.GoodsServiceApplication</main-class>
     </properties>

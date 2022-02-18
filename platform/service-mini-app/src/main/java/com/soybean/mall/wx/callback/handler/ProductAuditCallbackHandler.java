@@ -1,8 +1,9 @@
-package com.soybean.mall.wx.mini.callback.handler;
+package com.soybean.mall.wx.callback.handler;
 
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.Map;
 
 @Component

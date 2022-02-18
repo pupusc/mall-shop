@@ -1,10 +1,12 @@
 package com.wanmi.sbc.goods.mini.service.goods;
 
+import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
+import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsDeleteRequest;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
@@ -57,10 +59,22 @@ public class WxGoodsService {
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-        BaseResponse baseResponse = wxMiniApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-
-        if(!CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode())){
+        BaseResponse<Boolean> baseResponse = wxMiniApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
+        if(!baseResponse.getContext()){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "上传微信商品失败");
+        }
+    }
+
+    @Transactional
+    public void deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
+        Goods goods = goodsService.findByGoodsId(wxDeleteProductRequest.getOutProductId());
+        if(goods != null){
+            goods.setDelFlag(DeleteFlag.NO);
+            goodsService.save(goods);
+        }
+        BaseResponse<Boolean> response = wxMiniApiController.deleteGoods(wxDeleteProductRequest);
+        if(!response.getContext()){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
         }
     }
 

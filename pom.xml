@@ -31,8 +31,6 @@
         <module>service-dock</module>
         <module>mall-common</module>
         <module>service-wx</module>
-        <module>service-wx/service-wx-app</module>
-        <module>service-wx/service-wx-api</module>
 
     </modules>
 

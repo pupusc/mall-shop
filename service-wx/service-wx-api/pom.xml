@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>service-wx</artifactId>
-        <groupId>com.wanmi.sbc</groupId>
+        <groupId>com.soybean.mall</groupId>
         <version>fandeng-4.1.7-release</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -12,11 +12,6 @@
     <artifactId>service-wx-api</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.wanmi.sbc</groupId>
-            <artifactId>service-goods-api</artifactId>
-            <version>fandeng-4.1.7-release</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
