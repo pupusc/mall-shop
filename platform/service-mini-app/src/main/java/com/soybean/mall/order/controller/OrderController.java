@@ -1,4 +1,4 @@
-package com.wanmi.sbc.order.controller;
+package com.soybean.mall.order.controller;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -25,6 +25,7 @@ import com.wanmi.sbc.goods.bean.vo.FlashSaleGoodsVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.markup.MarkupListRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
@@ -68,10 +69,11 @@ public class OrderController {
     @Autowired
     private CommonUtil commonUtil;
 
-    @Autowired
+    Autowired
     private CustomerQueryProvider customerQueryProvider;
 
-    private marketingLevelPluginProvider marketingLevelPluginProvider
+    @Autowired
+    private MarketingLevelPluginProvider marketingLevelPluginProvider;
 
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
