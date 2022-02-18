@@ -14,6 +14,7 @@ import com.fangdeng.server.mq.ProviderTradeHandler;
 import com.fangdeng.server.service.GoodsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -181,5 +182,11 @@ public class TestController {
         redisTemplate.delete(key);
     }
 
-
+    @GetMapping("/sync/special/price")
+    public void syncSepcialPrice(@Param("startTime")String startTime, @Param("endTime")String endTime){
+        SyncGoodsQueryDTO queryDTO = new SyncGoodsQueryDTO();
+        queryDTO.setStime(startTime);
+        queryDTO.setEtime(endTime);
+        goodsService.syncSpecialPrice(queryDTO);
+    }
 }
