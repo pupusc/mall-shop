@@ -32,17 +32,6 @@
         <mall.common.dependency.version>0.0.1-SNAPSHOT</mall.common.dependency.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.soybean.mall</groupId>
-                <artifactId>mall-common-dependency</artifactId>
-                <version>${mall.common.dependency.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
@@ -60,6 +49,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-dependency</artifactId>
+                <version>${mall.common.dependency.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-openfeign</artifactId>
