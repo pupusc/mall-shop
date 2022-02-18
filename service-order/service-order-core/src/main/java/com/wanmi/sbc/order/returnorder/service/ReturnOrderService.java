@@ -44,7 +44,6 @@ import com.wanmi.sbc.customer.api.request.storereturnaddress.StoreReturnAddressB
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountAddResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountByCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountOptionalResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.storereturnaddress.StoreReturnAddressByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerAccountAddOrModifyDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
@@ -87,11 +86,11 @@ import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.order.api.constant.RefundReasonConstants;
-import com.wanmi.sbc.order.api.provider.trade.ProviderTradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
 import com.wanmi.sbc.order.api.request.distribution.ReturnOrderSendMQRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
@@ -104,7 +103,9 @@ import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.bean.vo.TradeDistributeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemSimpleVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.common.GoodsStockService;
 import com.wanmi.sbc.order.common.OperationLogMq;
@@ -356,8 +357,6 @@ public class ReturnOrderService {
     @Autowired
     private PlatformAddressQueryProvider platformAddressQueryProvider;
 
-    @Autowired
-    private TradeFSMService tradeFSMService;
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
@@ -4445,5 +4444,103 @@ public class ReturnOrderService {
                 .returnId(returnOrder.getId())
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
+    }
+
+
+    /**
+     * 获取子单的退单列表
+     * @param request
+     * @return
+     */
+    public List<ProviderTradeSimpleVO> listReturnProviderTrade(ReturnOrderProviderTradeRequest request) {
+        //根据住单获取子订单
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(request.getTid());
+        //订单不存在
+        if (CollectionUtils.isEmpty(providerTradeList)) {
+            throw new SbcRuntimeException("K-050100", new Object[]{request.getTid()});
+        }
+        Map<String, BigDecimal> returnDeliveryCompleteMap = new HashMap<>();
+        Map<String, BigDecimal> returnDeliveryIngMap = new HashMap<>();
+        Map<String, Integer> returnSkuIdNumCompleteMap = new HashMap<>();
+        Map<String, Integer> returnSkuIdNumIngMap = new HashMap<>();
+        Map<String, BigDecimal> returnSkuIdPriceCompleteMap = new HashMap<>();
+        Map<String, BigDecimal> returnSkuIdPriceIngMap = new HashMap<>();
+        //获取对单列表
+        List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(request.getTid());
+        for (ReturnOrder returnOrderParam : returnOrderList) {
+            if (returnOrderParam.getReturnFlowState() == ReturnFlowState.VOID) {
+                continue;
+            }
+            if (returnOrderParam.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
+                continue;
+            }
+            if (returnOrderParam.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
+                continue;
+            }
+            if (returnOrderParam.getReturnType() != ReturnType.REFUND && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
+                continue;
+            }
+            if (returnOrderParam.getReturnReason() != null && returnOrderParam.getReturnReason() == ReturnReason.PRICE_DELIVERY) {
+                if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
+                    returnDeliveryCompleteMap.put(returnOrderParam.getProviderId(), returnOrderParam.getReturnPrice().getApplyPrice());
+                } else {
+                    returnDeliveryIngMap.put(returnOrderParam.getProviderId(), returnOrderParam.getReturnPrice().getApplyPrice());
+                }
+                continue;
+            }
+
+            for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
+                if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
+                    //完成数量
+                    Integer returnItemNum = returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemNum += returnItemParam.getNum();
+                    returnSkuIdNumCompleteMap.put(returnItemParam.getSkuId(), returnItemNum);
+
+                    //完成的金额
+                    BigDecimal returnItemPriceSum = returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
+                    returnSkuIdPriceCompleteMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
+                } else {
+                    //退款中的数量
+                    Integer returnItemNum = returnSkuIdNumIngMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumIngMap.get(returnItemParam.getSkuId());
+                    returnItemNum += returnItemParam.getNum();
+                    returnSkuIdNumIngMap.put(returnItemParam.getSkuId(), returnItemNum);
+                    //退款中的金额
+                    BigDecimal returnItemPriceSum = returnSkuIdPriceIngMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceIngMap.get(returnItemParam.getSkuId());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
+                    returnSkuIdPriceIngMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
+                }
+            }
+        }
+
+        List<ProviderTradeSimpleVO> result = new ArrayList<>();
+        for (ProviderTrade providerTradeParam : providerTradeList) {
+            ProviderTradeSimpleVO providerTradeSimpleVO = new ProviderTradeSimpleVO();
+            providerTradeSimpleVO.setTid(providerTradeParam.getParentId());
+            providerTradeSimpleVO.setPid(providerTradeParam.getId());
+            Long providerId = providerTradeParam.getSupplier().getStoreId();
+            BigDecimal deliverCompletePrice = returnDeliveryCompleteMap.get(providerId.toString());
+            BigDecimal deliverIngPrice = returnDeliveryIngMap.get(providerId.toString());
+
+            providerTradeSimpleVO.setDeliveryCompletePrice(deliverCompletePrice == null ? BigDecimal.ZERO.toString() : deliverCompletePrice.toString());
+            providerTradeSimpleVO.setDeliveryIngPrice(deliverIngPrice == null ? BigDecimal.ZERO.toString() : deliverIngPrice.toString());
+            providerTradeSimpleVO.setDeliveryPrice(providerTradeParam.getTradePrice().getDeliveryPrice().toString());
+
+            for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
+                TradeItemSimpleVO tradeItemSimpleVO = KsBeanUtil.convert(tradeItemParam, TradeItemSimpleVO.class);
+                tradeItemSimpleVO.setReturnCompleteNum(
+                        returnSkuIdNumCompleteMap.get(tradeItemParam.getSkuId()) == null ? 0 : returnSkuIdNumCompleteMap.get(tradeItemParam.getSkuId()));
+                tradeItemSimpleVO.setReturnIngNum(
+                        returnSkuIdNumIngMap.get(tradeItemParam.getSkuId()) == null ? 0 : returnSkuIdNumIngMap.get(tradeItemParam.getSkuId()));
+                tradeItemSimpleVO.setReturnCompletePrice(
+                        returnSkuIdPriceCompleteMap.get(tradeItemParam.getSkuId()) == null ? BigDecimal.ZERO.toString() : returnSkuIdPriceCompleteMap.get(tradeItemParam.getSkuId()).toString());
+                tradeItemSimpleVO.setReturnIngPrice(
+                        returnSkuIdPriceIngMap.get(tradeItemParam.getSkuId()) == null ? BigDecimal.ZERO.toString() : returnSkuIdPriceIngMap.get(tradeItemParam.getSkuId()).toString());
+            }
+            List<TradeItemSimpleVO> tradeItemSimpleVOList = KsBeanUtil.convert(providerTradeParam.getTradeItems(), TradeItemSimpleVO.class);
+            providerTradeSimpleVO.setTradeItems(tradeItemSimpleVOList);
+            result.add(providerTradeSimpleVO);
+        }
+        return result;
     }
 }

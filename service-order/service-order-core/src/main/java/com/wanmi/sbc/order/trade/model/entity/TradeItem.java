@@ -246,10 +246,10 @@ public class TradeItem implements Serializable, Cloneable {
      */
     private Integer canReturnNum;
 
-    /**
-     * 历史可退数量 根据这个字段可以判断当前商品是否发货
-     */
-    private Integer canReturnNumHis;
+//    /**
+//     * 历史可退数量 根据这个字段可以判断当前商品是否发货
+//     */
+//    private Integer canReturnNumHis;
 
     /**
      * 规格描述信息

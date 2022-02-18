@@ -355,8 +355,4 @@ public class ReturnOrderDTO implements Serializable {
      */
     private Integer replace;
 
-    /**
-     * 售后类型  null和0表示 售后申请 1表示 补偿申请
-     */
-    private Integer returnOrderType;
 }

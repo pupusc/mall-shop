@@ -49,6 +49,7 @@ import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByIdRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderOfflineRefundForSupplierRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderOnlineModifyPriceRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderPageRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderQueryRefundPriceRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
@@ -63,8 +64,10 @@ import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.DeliverCalendarVO;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.bean.vo.ReturnItemVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeCycleBuyInfoVO;
@@ -82,6 +85,7 @@ import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -90,6 +94,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -181,7 +186,7 @@ public class StoreReturnOrderController {
     }
 
     /**
-     * 创建退单
+     * 创建退单 服务端退单 duanlsh
      *
      * @param returnOrder
      * @return
@@ -201,6 +206,14 @@ public class StoreReturnOrderController {
         StoreVO store = storeQueryProvider.getNoDeleteStoreById(new NoDeleteStoreByIdRequest(commonUtil.getStoreId())
         ).getContext().getStoreVO();
         if (Objects.isNull(store)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        //如果商品数量不能为空
+        if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        //商品数量不能有为空的
+        if (returnOrder.getReturnItems().stream().anyMatch(tt -> tt.getNum() == null || tt.getNum() <= 0)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         returnOrder.setCompany(CompanyDTO.builder().companyInfoId(companyInfo.getCompanyInfoId())
@@ -420,5 +433,10 @@ public class StoreReturnOrderController {
 //        return guanyierpProvider.getDeliveryStatus(deliveryQueryRequest);
 //    }
 
+
+    @PostMapping("/list-return-provider-trade")
+    public BaseResponse findReturnOrderInfo(@RequestBody @Validated ReturnOrderProviderTradeRequest request) {
+        return returnOrderProvider.listReturnProviderTrade(request);
+    }
 
 }

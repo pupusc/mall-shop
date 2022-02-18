@@ -3,11 +3,13 @@ package com.wanmi.sbc.order.api.provider.returnorder;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * <p>退单服务操作接口</p>
@@ -221,4 +223,12 @@ public interface ReturnOrderProvider {
      */
     @PostMapping("/order/${application.order.version}/return/refund-online-by-tid")
     BaseResponse<Object> refundOnlineByTid(@RequestBody @Valid ReturnOrderOnlineRefundByTidRequest request);
+
+    /**
+     * 获取子单（包含退单信息）列表
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/return/list-return-provider-trade")
+    BaseResponse<List<ProviderTradeSimpleVO>> listReturnProviderTrade(@RequestBody @Valid ReturnOrderProviderTradeRequest request);
 }
