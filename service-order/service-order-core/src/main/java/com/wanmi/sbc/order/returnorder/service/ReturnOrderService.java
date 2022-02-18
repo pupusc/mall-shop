@@ -449,7 +449,7 @@ public class ReturnOrderService {
             returnProviderIds = returnProviderIds.stream().distinct().collect(Collectors.toList());
         }
 
-        //供应商商品，赠品退单
+        //供应商商品
         if (CollectionUtils.isNotEmpty(returnProviderIds)) {
             Map<Long, StoreVO> storeVOMap = tradeCacheService.queryStoreList(returnProviderIds).stream().collect(Collectors.toMap(StoreVO::getStoreId, s -> s));
             //根据供应商id拆单
@@ -814,25 +814,7 @@ public class ReturnOrderService {
         CustomerDetailVO customerDetailVO = customerCommonService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
         returnOrder.setFanDengUserNo(customerDetailVO.getCustomerVO().getFanDengUserNo());
 
-        //是否仅退款
-        boolean isRefund = false;
-        if (trade.getCycleBuyFlag()) {
-            //判断订单里面里面的赠品是否有虚拟或者电子卡券
-            List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
-            //判断里面是否有已经发货日历
-            List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
-            //是否仅退款
-            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
 
-            if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
-                isRefund = false;
-            }
-
-        } else {
-            //如果未发货或者已经作废 则表示仅仅退款
-            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade
-                    .getTradeState().getDeliverStatus()== DeliverStatus.VOID;
-        }
 
 
         //退单申请金额
@@ -879,6 +861,26 @@ public class ReturnOrderService {
         Long points = 0L ,knowledge = 0L;
         boolean isSpecial = returnPrice.getApplyStatus() && operator.getPlatform() == Platform.BOSS;
         //未发货，全部退款
+        //是否仅退款
+        boolean isRefund = false;
+        if (trade.getCycleBuyFlag()) {
+            //判断订单里面里面的赠品是否有虚拟或者电子卡券
+            List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
+            //判断里面是否有已经发货日历
+            List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
+            //是否仅退款
+            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+
+            if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
+                isRefund = false;
+            }
+
+        } else {
+            //如果未发货或者已经作废 则表示仅仅退款
+            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED
+                    || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID
+                    || returnOrder.getReturnReason() !=  null && ReturnReason.PRICE_DELIVERY == returnOrder.getReturnReason();
+        }
         if (!isRefund) {
             //------------------start-------------------
             //分销人员列表 这个不处理
@@ -3531,7 +3533,7 @@ public class ReturnOrderService {
 //    }
 
     /**
-     * 查询退单详情,如已发货则带出可退商品数
+     * 查询退单详情,可退商品数
      *
      * @param rid
      * @return
