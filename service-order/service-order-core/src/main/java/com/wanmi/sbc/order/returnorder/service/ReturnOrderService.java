@@ -4465,6 +4465,10 @@ public class ReturnOrderService {
         Map<String, Integer> returnSkuIdNumIngMap = new HashMap<>();
         Map<String, BigDecimal> returnSkuIdPriceCompleteMap = new HashMap<>();
         Map<String, BigDecimal> returnSkuIdPriceIngMap = new HashMap<>();
+        Map<String, Long> returnSkuIdPointCompleteMap = new HashMap<>();
+        Map<String, Long> returnSkuIdPointIngMap = new HashMap<>();
+        Map<String, Long> returnSkuIdKnowledgeCompleteMap = new HashMap<>();
+        Map<String, Long> returnSkuIdKnowledgeIngMap = new HashMap<>();
         //获取对单列表
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(request.getTid());
         for (ReturnOrder returnOrderParam : returnOrderList) {
@@ -4500,15 +4504,36 @@ public class ReturnOrderService {
                     BigDecimal returnItemPriceSum = returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId());
                     returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
                     returnSkuIdPriceCompleteMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
+
+                    //完成的积分
+                    Long returnItemPoint = returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemPoint += returnItemParam.getSplitPoint();
+                    returnSkuIdPointCompleteMap.put(returnItemParam.getSkuId(), returnItemPoint);
+
+                    //完成的知豆
+                    Long returnItemKnowledge = returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemKnowledge += returnItemParam.getSplitKnowledge();
+                    returnSkuIdPointCompleteMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 } else {
                     //退款中的数量
                     Integer returnItemNum = returnSkuIdNumIngMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumIngMap.get(returnItemParam.getSkuId());
                     returnItemNum += returnItemParam.getNum();
                     returnSkuIdNumIngMap.put(returnItemParam.getSkuId(), returnItemNum);
+
                     //退款中的金额
                     BigDecimal returnItemPriceSum = returnSkuIdPriceIngMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceIngMap.get(returnItemParam.getSkuId());
                     returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
                     returnSkuIdPriceIngMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
+
+                    //退款中的积分
+                    Long returnItemPoint = returnSkuIdPointIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointIngMap.get(returnItemParam.getSkuId());
+                    returnItemPoint += returnItemParam.getSplitPoint();
+                    returnSkuIdPointIngMap.put(returnItemParam.getSkuId(), returnItemPoint);
+
+                    //退款中的知豆
+                    Long returnItemKnowledge = returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId());
+                    returnItemKnowledge += returnItemParam.getSplitKnowledge();
+                    returnSkuIdKnowledgeIngMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 }
             }
         }
@@ -4526,6 +4551,7 @@ public class ReturnOrderService {
             providerTradeSimpleVO.setDeliveryIngPrice(deliverIngPrice == null ? BigDecimal.ZERO.toString() : deliverIngPrice.toString());
             providerTradeSimpleVO.setDeliveryPrice(providerTradeParam.getTradePrice().getDeliveryPrice().toString());
 
+            List<TradeItemSimpleVO> tradeItemSimpleVOList = new ArrayList<>();
             for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
                 TradeItemSimpleVO tradeItemSimpleVO = KsBeanUtil.convert(tradeItemParam, TradeItemSimpleVO.class);
                 tradeItemSimpleVO.setReturnCompleteNum(
@@ -4536,8 +4562,18 @@ public class ReturnOrderService {
                         returnSkuIdPriceCompleteMap.get(tradeItemParam.getSkuId()) == null ? BigDecimal.ZERO.toString() : returnSkuIdPriceCompleteMap.get(tradeItemParam.getSkuId()).toString());
                 tradeItemSimpleVO.setReturnIngPrice(
                         returnSkuIdPriceIngMap.get(tradeItemParam.getSkuId()) == null ? BigDecimal.ZERO.toString() : returnSkuIdPriceIngMap.get(tradeItemParam.getSkuId()).toString());
+
+                tradeItemSimpleVO.setReturnCompletePoint(
+                        returnSkuIdPointCompleteMap.get(tradeItemParam.getSkuId()) == null ? 0L : returnSkuIdPointCompleteMap.get(tradeItemParam.getSkuId()));
+                tradeItemSimpleVO.setReturnIngPoint(
+                        returnSkuIdPointIngMap.get(tradeItemParam.getSkuId()) == null ? 0L : returnSkuIdPointIngMap.get(tradeItemParam.getSkuId()));
+
+                tradeItemSimpleVO.setReturnCompleteKnowledge(
+                        returnSkuIdKnowledgeCompleteMap.get(tradeItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeCompleteMap.get(tradeItemParam.getSkuId()));
+                tradeItemSimpleVO.setReturnIngKnowledge(
+                        returnSkuIdKnowledgeIngMap.get(tradeItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeIngMap.get(tradeItemParam.getSkuId()));
+                tradeItemSimpleVOList.add(tradeItemSimpleVO);
             }
-            List<TradeItemSimpleVO> tradeItemSimpleVOList = KsBeanUtil.convert(providerTradeParam.getTradeItems(), TradeItemSimpleVO.class);
             providerTradeSimpleVO.setTradeItems(tradeItemSimpleVOList);
             result.add(providerTradeSimpleVO);
         }

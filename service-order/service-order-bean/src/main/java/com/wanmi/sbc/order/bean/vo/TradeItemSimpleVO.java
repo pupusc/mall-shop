@@ -52,11 +52,6 @@ public class TradeItemSimpleVO implements Serializable {
     private Long deliveredNum = 0L;
 
     /**
-     *  真实发货数量
-     */
-    private Long deliveredNumHis = 0L;
-
-    /**
      * 商品发货数量
      */
     private DeliverStatus deliverStatus;
@@ -263,6 +258,16 @@ public class TradeItemSimpleVO implements Serializable {
     private String returnCompletePrice;
 
     /**
+     * 退款完成积分
+     */
+    private Long returnCompletePoint;
+
+    /**
+     * 退款完成知豆
+     */
+    private Long returnCompleteKnowledge;
+
+    /**
      * 退款中数量
      */
     private Integer returnIngNum;
@@ -271,4 +276,14 @@ public class TradeItemSimpleVO implements Serializable {
      * 退款中金额
      */
     private String returnIngPrice;
+
+    /**
+     * 退款中积分
+     */
+    private Long returnIngPoint;
+
+    /**
+     * 退款中知豆
+     */
+    private Long returnIngKnowledge;
 }
