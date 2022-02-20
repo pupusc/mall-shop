@@ -4481,9 +4481,9 @@ public class ReturnOrderService {
             if (returnOrderParam.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
                 continue;
             }
-            if (returnOrderParam.getReturnType() != ReturnType.REFUND && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
-                continue;
-            }
+//            if (returnOrderParam.getReturnType() != ReturnType.REFUND && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
+//                continue;
+//            }
             if (returnOrderParam.getReturnReason() != null && returnOrderParam.getReturnReason() == ReturnReason.PRICE_DELIVERY) {
                 if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
                     returnDeliveryCompleteMap.put(returnOrderParam.getProviderId(), returnOrderParam.getReturnPrice().getApplyPrice());
@@ -4496,43 +4496,43 @@ public class ReturnOrderService {
             for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
                 if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
                     //完成数量
-                    Integer returnItemNum = returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemNum += returnItemParam.getNum();
+                    int returnItemNum = returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemNum += (returnItemParam.getNum() == null ? 0 :  returnItemParam.getNum());
                     returnSkuIdNumCompleteMap.put(returnItemParam.getSkuId(), returnItemNum);
 
                     //完成的金额
                     BigDecimal returnItemPriceSum = returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice() == null ? BigDecimal.ZERO : returnItemParam.getSplitPrice());
                     returnSkuIdPriceCompleteMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
 
                     //完成的积分
-                    Long returnItemPoint = returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemPoint += returnItemParam.getSplitPoint();
+                    long returnItemPoint = returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemPoint += (returnItemParam.getSplitPoint() == null ? 0L : returnItemParam.getSplitPoint());
                     returnSkuIdPointCompleteMap.put(returnItemParam.getSkuId(), returnItemPoint);
 
                     //完成的知豆
-                    Long returnItemKnowledge = returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemKnowledge += returnItemParam.getSplitKnowledge();
-                    returnSkuIdPointCompleteMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
+                    long returnItemKnowledge = returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId());
+                    returnItemKnowledge += returnItemParam.getSplitKnowledge() == null ? 0L : returnItemParam.getSplitKnowledge();
+                    returnSkuIdKnowledgeCompleteMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 } else {
                     //退款中的数量
-                    Integer returnItemNum = returnSkuIdNumIngMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumIngMap.get(returnItemParam.getSkuId());
-                    returnItemNum += returnItemParam.getNum();
+                    int returnItemNum = returnSkuIdNumIngMap.get(returnItemParam.getSkuId()) == null ? 0 : returnSkuIdNumIngMap.get(returnItemParam.getSkuId());
+                    returnItemNum += returnItemParam.getNum() == null ? 0 : returnItemParam.getNum();
                     returnSkuIdNumIngMap.put(returnItemParam.getSkuId(), returnItemNum);
 
                     //退款中的金额
                     BigDecimal returnItemPriceSum = returnSkuIdPriceIngMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceIngMap.get(returnItemParam.getSkuId());
-                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice() == null ? BigDecimal.ZERO : returnItemParam.getSplitPrice());
                     returnSkuIdPriceIngMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
 
                     //退款中的积分
-                    Long returnItemPoint = returnSkuIdPointIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointIngMap.get(returnItemParam.getSkuId());
-                    returnItemPoint += returnItemParam.getSplitPoint();
+                    long returnItemPoint = returnSkuIdPointIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointIngMap.get(returnItemParam.getSkuId());
+                    returnItemPoint += returnItemParam.getSplitPoint() == null ? 0L : returnItemParam.getSplitPoint();
                     returnSkuIdPointIngMap.put(returnItemParam.getSkuId(), returnItemPoint);
 
                     //退款中的知豆
-                    Long returnItemKnowledge = returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId());
-                    returnItemKnowledge += returnItemParam.getSplitKnowledge();
+                    long returnItemKnowledge = returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId());
+                    returnItemKnowledge += returnItemParam.getSplitKnowledge() == null ? 0L : returnItemParam.getSplitKnowledge();
                     returnSkuIdKnowledgeIngMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 }
             }
