@@ -133,4 +133,9 @@ public interface JmsDestinationConstants {
      * 神策埋点消息
      */
     String Q_SENSORS_MESSAGE_PRODUCER = "sensorsMessageProducer";
+
+    /**
+     * 订单发货后，发送订单发货MQ消息
+     */
+    String Q_ORDER_SERVICE_ORDER_DELIVERED = "q.order.service.order.delivered";
 }

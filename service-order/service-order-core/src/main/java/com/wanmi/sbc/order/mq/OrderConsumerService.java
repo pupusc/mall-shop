@@ -4,11 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.request.employee.EmployeeHandoverRequest;
 import com.wanmi.sbc.goods.api.provider.restrictedrecord.RestrictedRecordSaveProvider;
-import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyStatisticsNumRequest;
 import com.wanmi.sbc.goods.api.request.restrictedrecord.RestrictedRecordBatchAddRequest;
 import com.wanmi.sbc.goods.bean.vo.RestrictedRecordSimpVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
-import com.wanmi.sbc.order.api.request.exceptionoftradepoints.ExceptionOfTradePointsAddRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeBackRestrictedRequest;
 import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
 import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
@@ -18,6 +16,7 @@ import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
 import com.wanmi.sbc.order.returnorder.service.ThirdPlatformReturnOrderService;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
+import com.wanmi.sbc.order.open.TradeDeliverService;
 import com.wanmi.sbc.order.trade.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +48,9 @@ public class OrderConsumerService {
 
     @Autowired
     private ExceptionOfTradePointsService exceptionOfTradePointsService;
+
+    @Autowired
+    private TradeDeliverService tradeDeliverService;
 
     @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_MODIFY_EMPLOYEE_DATA)
     public void modifyEmployeeData(EmployeeHandoverRequest request){
@@ -158,5 +160,13 @@ public class OrderConsumerService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 订单发货消息通知
+     */
+    @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_ORDER_DELIVERED)
+    public void onMessageForOrderDelivered(Trade trade){
+        tradeDeliverService.delivered(trade);
     }
 }

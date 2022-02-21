@@ -7,5 +7,6 @@ import lombok.Data;
  * @date 2022-02-16 10:03:00
  */
 @Data
-public class OrderInfoResVO {
+public class OrderDeliverInfoReqVO {
+    private String orderNo;
 }

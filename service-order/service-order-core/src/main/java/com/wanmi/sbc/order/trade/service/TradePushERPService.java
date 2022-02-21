@@ -14,7 +14,11 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.GeneratorService;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.erp.api.request.PushTradeRequest;
@@ -27,13 +31,19 @@ import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
-import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
+import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.ScanCount;
+import com.wanmi.sbc.order.bean.enums.ShipperType;
 import com.wanmi.sbc.order.bean.vo.LogisticsVO;
 import com.wanmi.sbc.order.bean.vo.ShippingItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeDeliverVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.logistics.model.root.LogisticsLog;
 import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
+import com.wanmi.sbc.order.mq.OrderProducerService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
@@ -42,7 +52,13 @@ import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
-import com.wanmi.sbc.order.trade.model.entity.value.*;
+import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
@@ -67,12 +83,16 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,6 +158,10 @@ public class TradePushERPService {
 
     @Autowired
     private ProviderTradeOrderService providerTradeOrderService;
+
+    @Autowired
+    public OrderProducerService orderProducerService;
+
     /**
      * 查询订单
      *
@@ -1374,6 +1398,8 @@ public class TradePushERPService {
             trade.appendTradeEventLog(tradeEventLog);
             tradeService.updateTrade(trade);
 
+            //发送消息通知
+            sendMQForOrderDelivered(trade);
 
             //同步变更订单开票的订单状态，排除不开票的订单
             if (!Objects.equals(trade.getInvoice().getType(),-1)) {
@@ -1395,6 +1421,10 @@ public class TradePushERPService {
 
 
         }
+    }
+
+    private void sendMQForOrderDelivered(Trade trade) {
+        orderProducerService.sendMQForOrderDelivered(trade);
     }
 
     /**
