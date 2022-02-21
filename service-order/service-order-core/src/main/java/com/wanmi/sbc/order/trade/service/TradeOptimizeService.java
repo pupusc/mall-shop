@@ -74,6 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -687,6 +688,15 @@ public class TradeOptimizeService {
                 .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
                 .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+
+        // 优化-异步调用。zc_2021/03/25
+        CompletableFuture<CycleBuyInfoDTO> cycleBuyInfoDTOCompletableFuture = CompletableFuture.supplyAsync(() -> {
+            //周期购
+            TradeItemRequest tradeItemRequest = confirmRequest.getTradeItemRequests().get(NumberUtils.INTEGER_ZERO);
+            GoodsInfoVO goodsInfoVO = goodsInfoVOList.get(NumberUtils.INTEGER_ZERO);
+            return this.fillCycleBuyInfoToSnapshot(goodsInfoVO, tradeItemRequest.getDeliveryCycle(),
+                    tradeItemRequest.getSendDateRule(), tradeItemRequest.getDeliveryPlan());
+        });
 
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
         //获取付费会员价
