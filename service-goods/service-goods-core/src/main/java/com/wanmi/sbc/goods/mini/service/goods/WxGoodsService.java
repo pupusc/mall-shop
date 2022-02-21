@@ -1,12 +1,13 @@
 package com.wanmi.sbc.goods.mini.service.goods;
 
-import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
-import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsDeleteRequest;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
@@ -19,8 +20,6 @@ import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
 import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
-import com.soybean.mall.wx.mini.bean.request.WxAddProductRequest;
-import com.soybean.mall.wx.mini.controller.WxMiniApiController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,7 @@ public class WxGoodsService {
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
     @Autowired
-    private WxMiniApiController wxMiniApiController;
+    private WxGoodsApiController wxGoodsApiController;
     @Autowired
     private GoodsService goodsService;
     @Autowired
@@ -59,7 +58,7 @@ public class WxGoodsService {
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-        BaseResponse<Boolean> baseResponse = wxMiniApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
+        BaseResponse<Boolean> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
         if(!baseResponse.getContext()){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "上传微信商品失败");
         }
@@ -72,7 +71,7 @@ public class WxGoodsService {
             goods.setDelFlag(DeleteFlag.NO);
             goodsService.save(goods);
         }
-        BaseResponse<Boolean> response = wxMiniApiController.deleteGoods(wxDeleteProductRequest);
+        BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
         if(!response.getContext()){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
         }
@@ -97,7 +96,7 @@ public class WxGoodsService {
 
             Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
             List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-            BaseResponse baseResponse = wxMiniApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
+            BaseResponse baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
 
             if(!CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode())){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "上传微信商品失败");

@@ -1,6 +1,6 @@
 package com.wanmi.sbc.goods.api.provider.mini.goods;
 
-import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.notice.NoticeProviderRequest;
 import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
