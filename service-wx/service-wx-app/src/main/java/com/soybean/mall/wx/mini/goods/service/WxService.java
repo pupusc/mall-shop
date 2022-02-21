@@ -1,9 +1,9 @@
-package com.soybean.mall.wx.mini.service;
+package com.soybean.mall.wx.mini.goods.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.soybean.mall.wx.mini.bean.request.WxAddProductRequest;
-import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
-import com.soybean.mall.wx.mini.bean.response.*;
+import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,26 +90,26 @@ public class WxService {
     }
 
     public String getAccessToken(){
-
         Object token = redisTemplate.opsForValue().get(ACCESS_TOKEN_REDIS_KEY);
         if(token != null) return (String) token;
 
         String requestUrl = ACCESS_TOKEN_URL.concat("?grant_type=client_credential").concat("&appid=").concat(wxAppid)
                 .concat("&secret=").concat(wxAppsecret);
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 30L, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 15L, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
     }
 
-    private <T> T sendRequest(String url, HttpMethod method, HttpEntity httpEntity, Class<T> clazz){
-        log.info("请求地址:{},参数:{}", url, httpEntity == null?"": JSONObject.toJSON(httpEntity.getBody()));
-        ResponseEntity<WxResponseBase> exchange = restTemplate.exchange(url, method, httpEntity, WxResponseBase.class);
-        WxResponseBase response = exchange.getBody();
-        log.info("响应:{}", JSONObject.toJSON(response));
-        if(!response.isSuccess()){
-            log.error("微信api请求失败:{}", response.getErrmsg());
+    private <T extends WxResponseBase> T sendRequest(String url, HttpMethod method, HttpEntity httpEntity, Class<T> clazz){
+        log.info("请求地址:{},参数:{}", url, httpEntity == null?"" : JSONObject.toJSON(httpEntity.getBody()));
+        ResponseEntity<String> exchange = restTemplate.exchange(url, method, httpEntity, String.class);
+        String response = exchange.getBody();
+        log.info("响应:{}", response);
+        T t = JSONObject.parseObject(response, clazz);
+        if(!t.isSuccess()){
+            log.error("微信api请求失败:{}", t.getErrmsg());
             return null;
         }
-        return (T) clazz;
+        return t;
     }
 }

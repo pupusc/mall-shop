@@ -1,32 +1,9 @@
 package com.wanmi.sbc.customer.api.provider.fandeng;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengAuthLoginRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengLoginRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyAccountFanDengRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerLoginTimeRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyPaidCustomerRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPrepositionRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengSendCodeRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengVerifyRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.MaterialCheckRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.*;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengLockResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengPointResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengPrepositionResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengSengCodeResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengVerifyResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.MaterialCheckResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,6 +32,14 @@ public interface ExternalProvider {
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/auth-login")
     BaseResponse<FanDengLoginResponse> authLogin(@RequestBody @Valid FanDengAuthLoginRequest request);
+
+    /**
+     * 微信授权登录
+     * @param request
+     * @return
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/wx-auth-login")
+    BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLogin(FanDengWxAuthLoginRequest request);
 
     /**
      * 调用樊登发送验证码前置接口
