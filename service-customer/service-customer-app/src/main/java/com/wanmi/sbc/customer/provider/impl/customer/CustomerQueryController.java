@@ -284,8 +284,7 @@ public class CustomerQueryController implements CustomerQueryProvider {
         if (Objects.isNull(customer)) {
             return BaseResponse.SUCCESSFUL();
         }
-        NoDeleteCustomerGetByAccountResponse response =
-                KsBeanUtil.convert(customer, NoDeleteCustomerGetByAccountResponse.class);
+        NoDeleteCustomerGetByAccountResponse response = KsBeanUtil.convert(customer, NoDeleteCustomerGetByAccountResponse.class);
         return BaseResponse.success(response);
     }
 

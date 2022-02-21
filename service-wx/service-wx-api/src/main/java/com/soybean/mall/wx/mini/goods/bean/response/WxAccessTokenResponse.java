@@ -1,4 +1,4 @@
-package com.soybean.mall.wx.mini.bean.response;
+package com.soybean.mall.wx.mini.goods.bean.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

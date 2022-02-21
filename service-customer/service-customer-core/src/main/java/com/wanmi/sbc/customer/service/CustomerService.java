@@ -745,6 +745,11 @@ public class CustomerService {
         return customerRepository.updateLoginTimeAndFanDengUserNo(customerId,LocalDateTime.now(),loginIp,fanDengId);
     }
 
+    @Transactional
+    public Integer updateOpenIdAndUnionId(String customerId, String openId, String unionId) {
+        return customerRepository.updateOpenIdAndUnionId(customerId, openId, unionId);
+    }
+
     /**
      * 检查账户是否禁用
      *

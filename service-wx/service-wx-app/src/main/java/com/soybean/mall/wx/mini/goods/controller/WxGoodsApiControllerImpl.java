@@ -1,8 +1,8 @@
-package com.soybean.mall.wx.mini.controller;
+package com.soybean.mall.wx.mini.goods.controller;
 
-import com.soybean.mall.wx.mini.bean.request.WxAddProductRequest;
-import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
-import com.soybean.mall.wx.mini.service.WxService;
+import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.ShaUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class WxMiniApiControllerImpl implements WxMiniApiController {
+public class WxGoodsApiControllerImpl implements WxGoodsApiController {
 
     @Autowired
     private WxService wxService;

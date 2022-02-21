@@ -131,6 +131,12 @@ public class CustomerController implements CustomerProvider {
         return BaseResponse.success(new CustomerAccountModifyResponse(count));
     }
 
+    @Override
+    public BaseResponse modifyCustomerOpenIdAndUnionId(@RequestParam("customerId") String customerId, @RequestParam("openId") String openId, @RequestParam("unionId") String unionId) {
+        customerService.updateOpenIdAndUnionId(customerId, openId, unionId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
     /**
      * 修改已有的业务员
      *

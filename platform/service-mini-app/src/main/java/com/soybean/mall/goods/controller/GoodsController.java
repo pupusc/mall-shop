@@ -1,11 +1,11 @@
 package com.soybean.mall.goods.controller;
 
 import com.soybean.mall.wx.callback.parser.WxAuditCallbackParser;
-import com.soybean.mall.wx.mini.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
-import com.soybean.mall.wx.mini.controller.WxMiniApiController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,7 @@ public class GoodsController {
     @Autowired
     private WxMiniGoodsProvider miniGoodsProvider;
     @Autowired
-    private WxMiniApiController wxMiniApiController;
+    private WxGoodsApiController wxGoodsApiController;
     @Autowired
     private WxAuditCallbackParser wxAuditCallbackParser;
 
@@ -37,7 +37,7 @@ public class GoodsController {
     @RequestMapping(value = "/callback", method = {RequestMethod.GET, RequestMethod.POST})
     public String goodsAuditCallback(HttpServletRequest request){
         if(request.getMethod().equals("GET")){
-            BaseResponse baseResponse = wxMiniApiController.verifyCallback(request);
+            BaseResponse baseResponse = wxGoodsApiController.verifyCallback(request);
             return (String) baseResponse.getContext();
         }else{
             log.info("微信回调start");

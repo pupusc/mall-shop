@@ -14,31 +14,8 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.SecurityUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengAuthLoginRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeLockRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRefundRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengLoginRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyAccountFanDengRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerLoginTimeRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyCustomerRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengModifyPaidCustomerRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointDeductRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRefundRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPrepositionRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengSendCodeRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengVerifyRequest;
-import com.wanmi.sbc.customer.api.request.fandeng.MaterialCheckRequest;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengLockResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengPointResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengPrepositionResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengSengCodeResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengVerifyResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.MaterialCheckResponse;
+import com.wanmi.sbc.customer.api.request.fandeng.*;
+import com.wanmi.sbc.customer.api.response.fandeng.*;
 import com.wanmi.sbc.customer.ares.CustomerAresService;
 import com.wanmi.sbc.customer.bean.enums.CheckState;
 import com.wanmi.sbc.customer.bean.enums.CustomerStatus;
@@ -100,6 +77,8 @@ public class ExternalService {
 
     @Value("${fandeng.host}")
     private String host;
+    @Value("${fandeng.host.new}")
+    private String hostNew;
     @Value("${fandeng.appid}")
     private String appid;
     @Value("${fandeng.appsecret}")
@@ -159,6 +138,11 @@ public class ExternalService {
      * web商城登陆及注册
      */
     public static final String MEMBER_AUTH_LOGIN_URL = "/member/auth/login";
+
+    /**
+     * 微信授权登录
+     */
+    public static final String WX_AUTH_LOGIN_URL = "/member/wechat/login";
 
     /**
      * 通过用户编号查询用户积分余额
@@ -243,7 +227,6 @@ public class ExternalService {
      * @param request
      * @return
      */
-
     public BaseResponse<FanDengLoginResponse> authLogin(@Valid FanDengAuthLoginRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(MEMBER_AUTH_LOGIN_URL + PARAMETER, body),
@@ -262,6 +245,17 @@ public class ExternalService {
 //        customer = extractLogin(customer, response);
 
         return BaseResponse.success(response);
+    }
+
+    public BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLogin(FanDengWxAuthLoginRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrlNew(jointUrl(WX_AUTH_LOGIN_URL + PARAMETER, body), body);
+        log.info("wx authLogin param: {}", result);
+        FanDengWxAuthLoginResponse response = JSONObject.parseObject(result, FanDengWxAuthLoginResponse.class);
+        if(!"0000".equals(response.getStatus())){
+            throw new SbcRuntimeException("K-120801", response.getMsg());
+        }
+        return BaseResponse.success(response.getData());
     }
 
 /*    *//**
@@ -701,6 +695,29 @@ public class ExternalService {
             }
             log.info("ExternalService getUrl 返回结果：{}", httpResponse);
 
+            if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
+//                log.info("请求接口：{},请求参数：{}", host + url, body);
+                String entity = EntityUtils.toString(httpResponse.getEntity());
+                log.info("樊登请求接口：{},请求参数{},返回状态：{}", url, body, entity);
+                return entity;
+            }
+        } catch (Exception e) {
+            log.error("樊登接口调用异常：{}", e);
+        }
+        throw new SbcRuntimeException("K-120801", "樊登接口异常");
+    }
+
+    private String getUrlNew(String url, String body) {
+        try {
+            log.info("ExternalService getUrl appId: {} url:{}", appid, url);
+            log.info("ExternalService getUrl：{}, param{}", url, body);
+            HttpResponse httpResponse = HttpUtils.doPost(hostNew, url, getMap(), null, body);
+            if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
+                redisService.delete(appid);
+                httpResponse = HttpUtils.doPost(host,
+                        url, getMap(), null, body);
+            }
+            log.info("ExternalService getUrl 返回结果：{}", httpResponse);
 
             if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
 //                log.info("请求接口：{},请求参数：{}", host + url, body);
