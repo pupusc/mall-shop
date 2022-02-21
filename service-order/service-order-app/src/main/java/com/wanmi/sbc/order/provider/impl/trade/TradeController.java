@@ -1,6 +1,6 @@
 package com.wanmi.sbc.order.provider.impl.trade;
 import com.wanmi.sbc.common.util.UUIDUtil;
-import com.wanmi.sbc.order.bean.vo.TradeStateVO;
+import com.wanmi.sbc.order.bean.vo.*;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -14,9 +14,6 @@ import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.PayCallBackType;
-import com.wanmi.sbc.order.bean.vo.PointsTradeCommitResultVO;
-import com.wanmi.sbc.order.bean.vo.TradeCommitResultVO;
-import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
 import com.wanmi.sbc.order.trade.model.entity.*;
@@ -25,6 +22,7 @@ import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeGroup;
+import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
 import com.wanmi.sbc.order.trade.service.*;
@@ -812,6 +810,12 @@ public class TradeController implements TradeProvider {
     public BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         List<TradeCommitResult> results = tradeOptimizeService.commitTrade(tradeCommitRequest);
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
+    }
+
+    @Override
+    public BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+        List<TradeItemGroup> results = tradeOptimizeService.getTradeItemList(tradeCommitRequest);
+        return BaseResponse.success(KsBeanUtil.convertList(results,TradeItemGroupVO.class));
     }
 
 }

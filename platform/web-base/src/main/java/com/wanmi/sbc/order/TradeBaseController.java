@@ -1085,6 +1085,11 @@ public class TradeBaseController {
                 });
         StoreVO storeVO = storeQueryProvider.getById(StoreByIdRequest.builder().storeId(storeId).build()).getContext().getStoreVO();
 
+        TradeItemRequest tradeItemRequest1 = confirmRequest.getTradeItemRequests().get(NumberUtils.INTEGER_ZERO);
+        GoodsInfoVO goodsInfoVO1 = goodsInfos.get(NumberUtils.INTEGER_ZERO);
+        CycleBuyInfoDTO vo = fillCycleBuyInfoToSnapshot(goodsInfoVO1, tradeItemRequest1.getDeliveryCycle(),
+                tradeItemRequest1.getSendDateRule(), tradeItemRequest1.getDeliveryPlan());
+
         // 优化-异步调用。zc_2021/03/25
         CompletableFuture<CycleBuyInfoDTO> cycleBuyInfoDTOCompletableFuture = CompletableFuture.supplyAsync(() -> {
             //周期购
