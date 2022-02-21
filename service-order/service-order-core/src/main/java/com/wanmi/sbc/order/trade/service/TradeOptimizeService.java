@@ -718,25 +718,6 @@ public class TradeOptimizeService {
         tradeItemGroupVOS.setTradeItems(tradeItems);
         tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
 
-        //普通商品不能参与预售预约活动
-        List<String> skuIdList = tradeItems.stream()
-                .filter(i ->
-                        (!Boolean.TRUE.equals(i.getIsBookingSaleGoods()))
-                                && (!Boolean.TRUE.equals(i.getIsAppointmentSaleGoods()))
-                                && (Objects.isNull(i.getBuyPoint()) || i.getBuyPoint() == 0))
-                .map(TradeItem::getSkuId).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(skuIdList)) {
-            appointmentSaleQueryProvider.containAppointmentSaleAndBookingSale(AppointmentSaleInProgressRequest.builder().goodsInfoIdList(skuIdList).build());
-        }
-
-        // 预约活动校验是否有资格
-        List<TradeItem> excludeBuyPointList = tradeItems.stream()
-                .filter(tradeItem -> (Objects.isNull(tradeItem.getBuyPoint()) || tradeItem.getBuyPoint() == 0)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(excludeBuyPointList)) {
-            tradeItemGroupVOS.setTradeItems(excludeBuyPointList);
-            tradeGoodsService.validateAppointmentQualification(Collections.singletonList(tradeItemGroupVOS), customerId);
-        }
-
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
         for (TradeItem tradeItem : tradeItems) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
@@ -744,8 +725,6 @@ public class TradeOptimizeService {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
         }
-
-
 
         //商品按店铺分组
         Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
