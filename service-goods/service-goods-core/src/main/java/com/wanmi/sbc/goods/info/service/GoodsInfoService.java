@@ -2792,7 +2792,7 @@ public class GoodsInfoService {
                 }
                 List<GoodsInfo> items = goodsInfoPage.getContent().stream().filter(p -> p.getErpGoodsNo().equals(g)).collect(Collectors.toList());
                 items.forEach(goodsInfo -> {
-                    Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p -> p.getItemCode().equals(goodsInfo.getErpGoodsNo())).findFirst();
+                    Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p -> p.getSkuCode().equals(goodsInfo.getErpGoodsInfoNo())).findFirst();
                     if (!erpGoodsInfoVO.isPresent()) {
                         return;
                     }
