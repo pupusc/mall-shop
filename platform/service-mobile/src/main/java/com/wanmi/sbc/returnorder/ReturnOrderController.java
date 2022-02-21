@@ -33,6 +33,7 @@ import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -164,6 +166,14 @@ public class ReturnOrderController {
         }
         if (returnOrder.getDescription().length() > 100) {
             throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
+        }
+
+        if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY) {
+            List<ReturnItemDTO> returnItemDTOList =
+                    returnOrder.getReturnItems().stream().filter(item -> item.getNum() <= 0).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(returnItemDTOList)) {
+                throw new SbcRuntimeException("K-000009"); //参数错误
+            }
         }
 
         //验证订单必须的是支付完成
