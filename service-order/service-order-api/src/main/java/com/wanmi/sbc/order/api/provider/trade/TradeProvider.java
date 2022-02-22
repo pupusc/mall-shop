@@ -458,5 +458,5 @@ public interface TradeProvider {
     BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
     @PostMapping("/order/${application.order.version}/trade/get-item-info")
-    BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
+    BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradePurchaseRequest tradePurchaseRequest);
 }
