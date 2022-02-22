@@ -1,53 +1,30 @@
 package com.soybean.mall.order.controller;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerByCustomerIdRequest;
-import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
+import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
-import com.wanmi.sbc.customer.bean.vo.DistributionCustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
-import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
-import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
-import com.wanmi.sbc.goods.bean.vo.FlashSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
-import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
-import com.wanmi.sbc.marketing.api.request.markup.MarkupListRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
-import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
-import com.wanmi.sbc.marketing.bean.enums.MarketingType;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
-import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
-import com.wanmi.sbc.order.api.request.trade.*;
-import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
-import com.wanmi.sbc.order.bean.dto.TradeGoodsListDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemGroupDTO;
-import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.request.TradeItemConfirmRequest;
 import com.wanmi.sbc.order.response.TradeConfirmResponse;
@@ -55,9 +32,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,12 +61,6 @@ public class OrderController {
     private StoreQueryProvider storeQueryProvider;
 
     @Autowired
-    private TradeQueryProvider tradeQueryProvider;
-
-    @Autowired
-    private VerifyQueryProvider verifyQueryProvider;
-
-    @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
@@ -114,13 +83,12 @@ public class OrderController {
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
         List<TradeConfirmItemVO> items= new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
-        Map<Long, StoreVO> storeMap = storeQueryProvider.listNoDeleteStoreByIds(new ListNoDeleteStoreByIdsRequest
-                (skuResp.getGoodsInfos().stream().map(g -> g.getStoreId()).collect(Collectors.toList()))).getContext().getStoreVOList().stream().
-                        collect(Collectors.toMap(StoreVO::getStoreId, s -> s));
+        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(tradeItems.get(0).getStoreId())
+                .build())
+                .getContext().getStoreVO();
 
         TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
         List<TradeItemVO> tradeItemVOS = new ArrayList<>();
-        TradePriceVO tradePrice = new TradePriceVO();
         //填充商品信息和价格
         tradeItems.forEach(tradeItemDTO -> {
             Optional<GoodsInfoVO> optionalGoodsInfoVO = skuResp.getGoodsInfos().stream().filter(p->p.getGoodsInfoId().equals(tradeItemDTO.getSkuId())).findFirst();
@@ -131,10 +99,19 @@ public class OrderController {
             }
         });
         tradeConfirmItemVO.setTradeItems(tradeItemVOS);
+        tradeConfirmItemVO.setTradePrice(calPrice(tradeItemVOS));
 
-        //设置购买总积分
-        confirmResponse.setTotalBuyPoint(items.stream().flatMap(i -> i.getTradeItems().stream())
-                .filter(i -> Objects.isNull(i.getIsMarkupGoods()) || !i.getIsMarkupGoods()).mapToLong(v -> Objects.isNull(v.getBuyPoint()) ? 0 : v.getBuyPoint() * v.getNum()).sum());
+        DefaultFlag freightTemplateType = store.getFreightTemplateType();
+        SupplierVO supplier = SupplierVO.builder()
+                .storeId(store.getStoreId())
+                .storeName(store.getStoreName())
+                .isSelf(store.getCompanyType() == BoolFlag.NO)
+                .supplierCode(store.getCompanyInfo().getCompanyCode())
+                .supplierId(store.getCompanyInfo().getCompanyInfoId())
+                .supplierName(store.getCompanyInfo().getSupplierName())
+                .freightTemplateType(freightTemplateType)
+                .build();
+        tradeConfirmItemVO.setSupplier(supplier);
         confirmResponse.setTradeConfirmItems(items);
         return BaseResponse.success(confirmResponse);
     }
@@ -164,53 +141,36 @@ public class OrderController {
                 .build();
     }
 
-//    public TradePriceVO getTradePrice(List<TradeItemVO> tradeItemVOS) {
-//        TradePriceVO price = new TradePriceVO();
-//        item.setTradeItems(g.getTradeItems());
-//        item.setSupplier(g.getSupplier());
-//        //计算商品总价
-//        handlePrice(g.getTradeItems(), price);
-//        //验证并计算各营销活动的优惠金额,实付金额,赠品List
-//        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(), g.getTradeMarketingList());
-//        List<Discounts> discountsList = new ArrayList<>();
-//        //每个订单的多个优惠信息(满折优惠了xx,满减优惠了yy)
-//        item.setDiscountsPrice(discountsList);
-//
-//
-//        List<TradeMarketingVO> tempList = tradeMarketings.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT
-//                && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
-//        tempList.forEach(i -> {
-//            Discounts discounts = Discounts.builder()
-//                    .amount(i.getDiscountsAmount())
-//                    .type(i.getMarketingType())
-//                    .build();
-//            discountsList.add(discounts);
-//            //设置营销商品优惠后的均摊价 (用于计算运费)
-//            List<TradeItem> items = item.getTradeItems().stream().filter(t -> i.getSkuIds().contains(t.getSkuId()))
-//                    .collect(Collectors.toList());
-//            tradeItemService.clacSplitPrice(items, i.getRealPayAmount());
-//        });
-//
-//        //应付金额 = 商品总金额 - 优惠总金额
-//        if (!price.isSpecial()) {
-//            BigDecimal discountsPrice = tempList.stream().map(TradeMarketingVO::getDiscountsAmount).reduce(BigDecimal
-//                    .ZERO, BigDecimal::add);
-//            price.setTotalPrice(price.getTotalPrice().subtract(discountsPrice));
-//        }
-//
-//        // 加价购商品
-//        if (CollectionUtils.isNotEmpty(markupList)) {
-//            BigDecimal markupPrice = markupList.stream().map(TradeItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-//            price.setMarkupPrice(markupPrice);
-//            price.setTotalPrice(price.getTotalPrice().add(markupPrice));
-//            price.setGoodsPrice(price.getGoodsPrice().add(markupPrice));
-//        }
-//        item.setTradePrice(price);
-//        //赠品信息
-//        item.setGifts(wrapperGifts(g.getTradeMarketingList(), tradeMarketings, gifts));
-//        item.setGifts(giftNumCheck(item.getGifts()));
-//        item.getTradeItems().addAll(markupList);
-//        return item;
-//    }
+
+
+    /**
+     * 计算商品价格
+     *
+     * @param tradeItems 多个订单项(商品)
+     */
+    private TradePriceVO calPrice(List<TradeItemVO> tradeItems) {
+        TradePriceVO tradePrice = new TradePriceVO();
+        tradePrice.setGoodsPrice(BigDecimal.ZERO);
+        tradePrice.setOriginPrice(BigDecimal.ZERO);
+        tradePrice.setTotalPrice(BigDecimal.ZERO);
+        tradePrice.setBuyPoints(null);
+        tradeItems.forEach(t -> {
+            BigDecimal buyItemPrice = t.getPrice().multiply(BigDecimal.valueOf(t.getNum()));
+            BigDecimal originalPrice = t.getOriginalPrice().multiply(BigDecimal.valueOf(t.getNum()));
+            //总价，有定价=定价*数量，否则=原价
+            BigDecimal totalPrice = t.getPropPrice() != null ? (new BigDecimal(t.getPropPrice()).multiply(BigDecimal.valueOf(t.getNum()))):originalPrice;
+            // 订单商品总价
+            tradePrice.setGoodsPrice(tradePrice.getGoodsPrice().add(buyItemPrice));
+            // 订单总金额
+            tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(totalPrice));
+            // 订单原始总金额
+            tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(originalPrice));
+            //优惠金额=定价-原价
+            tradePrice.setDiscountsPrice(totalPrice.subtract(originalPrice));
+            //会员优惠
+            tradePrice.setVipDiscountPrice(originalPrice.subtract(buyItemPrice));
+        });
+        return tradePrice;
+    }
 
 }
