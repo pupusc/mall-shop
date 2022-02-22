@@ -8,13 +8,12 @@ import com.wanmi.sbc.goods.bean.wx.request.WxGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.WxGoodsVo;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
 
-@FeignClient(value = "${application.goods.name}", contextId = "MiniGoodsProvider")
+@FeignClient(value = "${application.goods.name}", contextId = "WxMiniGoodsProvider")
 public interface WxMiniGoodsProvider {
 
     @PostMapping("/goods/${application.goods.version}/wx/add")
@@ -27,5 +26,5 @@ public interface WxMiniGoodsProvider {
     BaseResponse delete(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
 
     @PostMapping("/${application.goods.version}/wx/audit/callback")
-    BaseResponse auditCallback(@Validated(NoticeProviderRequest.Add.class) @RequestBody Map<String, Object> paramMap);
+    BaseResponse auditCallback(@RequestBody Map<String, Object> paramMap);
 }

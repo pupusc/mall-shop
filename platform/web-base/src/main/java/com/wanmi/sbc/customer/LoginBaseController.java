@@ -59,6 +59,7 @@ import com.wanmi.sbc.customer.service.DistributionInviteNewService;
 import com.wanmi.sbc.customer.service.LoginBaseService;
 import com.wanmi.sbc.customer.validGroups.*;
 import com.wanmi.sbc.distribute.DistributionCacheService;
+import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponActivityProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.GetCouponGroupRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.GetRegisterOrStoreCouponResponse;
@@ -126,6 +127,7 @@ public class LoginBaseController {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
     @Autowired
     private CustomerProvider customerProvider;
 
@@ -185,8 +187,10 @@ public class LoginBaseController {
     private TradeQueryProvider tradeQueryProvider;
     @Autowired
     private DistributionCustomerSaveProvider distributionCustomerSaveProvider;
+//    @Autowired
+//    private WxUserApiController wxUserApiController;
     @Autowired
-    private WxUserApiController wxUserApiController;
+    private WxMiniGoodsProvider wxMiniGoodsProvider;
 
     /**
      * 注册用户
@@ -1534,40 +1538,40 @@ public class LoginBaseController {
      * 微信小程序授权登录
      * @param wxGetUserPhoneAndOpenIdRequest
      */
-    @ApiOperation(value = "微信授权登陆接口")
-    @RequestMapping(value = "/wxAuthLogin", method = RequestMethod.POST)
-    @MultiSubmit
-    @GlobalTransactional
-    public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest) {
-        String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
-        wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
-        BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
-
-        NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
-        accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
-        NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
-
-        String unionId;
-        String openId;
-        if(newCustomerVO == null){
-            //如果是新用户，就调微信接口获取opeid
-            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
-            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
-            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
-            unionId = phoneAndOpenid2.getContext().getUnionId();
-            openId = phoneAndOpenid2.getContext().getOpenId();
-        }else {
-            unionId = newCustomerVO.getWxMiniUnionId();
-            openId = newCustomerVO.getWxMiniOpenId();
-        }
-
-        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("miniApp")
-                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
-        BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
-
-        LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
-        return BaseResponse.success(loginResponse);
-    }
+//    @ApiOperation(value = "微信授权登陆接口")
+//    @RequestMapping(value = "/wxAuthLogin", method = RequestMethod.POST)
+//    @MultiSubmit
+//    @GlobalTransactional
+//    public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest) {
+//        String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
+//        wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
+//        BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+//
+//        NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
+//        accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
+//        NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
+//
+//        String unionId;
+//        String openId;
+//        if(newCustomerVO == null){
+//            //如果是新用户，就调微信接口获取opeid
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
+//            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
+//            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+//            unionId = phoneAndOpenid2.getContext().getUnionId();
+//            openId = phoneAndOpenid2.getContext().getOpenId();
+//        }else {
+//            unionId = newCustomerVO.getWxMiniUnionId();
+//            openId = newCustomerVO.getWxMiniOpenId();
+//        }
+//
+//        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("miniApp")
+//                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
+//        BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
+//
+//        LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
+//        return BaseResponse.success(loginResponse);
+//    }
 
     /**
      * 调用樊登发送验证码前置接口

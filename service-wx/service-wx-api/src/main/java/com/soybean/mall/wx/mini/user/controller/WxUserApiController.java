@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/wx/mini")
 @FeignClient(value = "${spring.application.name}", contextId = "WxUserApiController")
 public interface WxUserApiController {
 
-    @PostMapping("/user/getPhoneAndOpenid")
+    @PostMapping("/wx/mini/user/getPhoneAndOpenid")
     BaseResponse<WxGetUserPhoneAndOpenIdResponse> getPhoneAndOpenid(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest);
 }

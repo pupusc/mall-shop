@@ -8,6 +8,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -18,11 +20,11 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class WxAuditCallbackParser {
+public class WxAuditCallbackParser implements ApplicationListener<ContextStartedEvent> {
 
     private static final byte[] rootPrefix = "<root>".getBytes();
     private static final byte[] rootSuffix = "</root>".getBytes();
-    private static final Collection<CallbackHandler> handlers = SpringContextHolder.getApplicationContext().getBeansOfType(CallbackHandler.class).values();
+    private static Collection<CallbackHandler> handlers;
 
     public void dealCallback(InputStream inputStream) {
         try {
@@ -68,5 +70,10 @@ public class WxAuditCallbackParser {
             }
         }
         return paramMap;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextStartedEvent contextStartedEvent) {
+         handlers = SpringContextHolder.getApplicationContext().getBeansOfType(CallbackHandler.class).values();
     }
 }
