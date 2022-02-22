@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisCallback;
@@ -99,18 +100,20 @@ public class GoodsInfoStockService {
     }
 
     @Transactional
-    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap){
+    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap,Map<String, String> stockStatusMap){
         Map<String, Map<String, Integer>> resultMap = new HashMap<>();
         Map<String, Integer> goodsStockMap = new HashMap<>();
         Map<String, Integer> goodsInfoStockMap = new HashMap<>();
-        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
+        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos) && !stockStatusMap.isEmpty()){
             for (GoodsInfo goodsInfo : goodsInfos) {
                 if (Objects.equals(goodsInfo.getStockSyncFlag(),0)){
                     continue;
                 }
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+                String erpStockStatus = stockStatusMap.get(goodsInfo.getErpGoodsInfoNo());
                 int actualStock;
-                if(goodsInfo.getErpGoodsInfoNo() != null && goodsInfo.getErpGoodsInfoNo().startsWith("DF")){
+                //虚拟、代发无所库：99逻辑，当库存＜10，自动库存变为99
+                if(StringUtils.isNotEmpty(erpStockStatus) && Arrays.asList("0","2").contains(erpStockStatus)){
                     if(erpGoodsInfoStock == null) {
                         Long stock = goodsInfo.getStock();
                         if(stock == null) {
