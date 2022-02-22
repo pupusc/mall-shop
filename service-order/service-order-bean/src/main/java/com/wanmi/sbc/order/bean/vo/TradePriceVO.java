@@ -211,4 +211,7 @@ public class TradePriceVO implements Serializable {
      */
     @ApiModelProperty(value = "活动优惠总额")
     private BigDecimal marketingDiscountPrice;
+
+    @ApiModelProperty(value = "会员优惠")
+    private BigDecimal vipDiscountPrice;
 }
