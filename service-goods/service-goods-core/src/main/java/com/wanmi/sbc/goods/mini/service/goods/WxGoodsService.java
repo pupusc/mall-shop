@@ -7,7 +7,8 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.goods.bean.request.wx.goods.WxGoodsCreateRequest;
+import com.wanmi.sbc.goods.bean.wx.request.WxGoodsCreateRequest;
+import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
@@ -21,6 +22,9 @@ import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +46,12 @@ public class WxGoodsService {
     private WxReviewLogRepository wxReviewLogRepository;
 
     @Transactional
+    public Page<WxGoodsModel> listGoods(WxGoodsSearchRequest wxGoodsSearchRequest){
+        Specification<WxGoodsModel> specification = wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest);
+        return wxGoodsRepository.findAll(specification, PageRequest.of(wxGoodsSearchRequest.getPageNum(), wxGoodsSearchRequest.getPageSize()));
+    }
+
+    @Transactional
     public void addGoods(WxGoodsCreateRequest createRequest){
         if(goodsExist(createRequest)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品已上架");
         WxGoodsModel wxGoodsModel = new WxGoodsModel();
@@ -49,7 +59,8 @@ public class WxGoodsService {
         wxGoodsModel.setGoodsInfoId(createRequest.getGoodsInfoId());
         wxGoodsModel.setWxCategory(createRequest.getWxCategory());
         wxGoodsModel.setStatus(WxGoodsStatus.ON_UPLOAD);
-        wxGoodsModel.setEditStatus(WxGoodsEditStatus.WAIT_CHECK);
+        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
+        wxGoodsModel.setAuditTimes(0);
         LocalDateTime now = LocalDateTime.now();
         wxGoodsModel.setCreateTime(now);
         wxGoodsModel.setUpdateTime(now);
@@ -89,7 +100,7 @@ public class WxGoodsService {
             }
             if(updated){
                 wxGoodsModel.setUpdateTime(LocalDateTime.now());
-                wxGoodsModel.setEditStatus(WxGoodsEditStatus.WAIT_CHECK);
+                wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
 //                wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
                 wxGoodsRepository.save(wxGoodsModel);
             }
@@ -104,10 +115,6 @@ public class WxGoodsService {
         }
     }
 
-    public void updateGoodsWithoutReaudit(WxGoodsCreateRequest createRequest){
-
-    }
-
     public void auditCallback(Map<String, Object> paramMap){
         Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
         String wxStatus = auditResult.get("status");
@@ -116,7 +123,8 @@ public class WxGoodsService {
             //成功
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
-            wxGoodsModel.setEditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
+            wxGoodsModel.setAuditTimes(wxGoodsModel.getAuditTimes() + 1);
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -138,7 +146,7 @@ public class WxGoodsService {
             String rejectReason = auditResult.get("reject_reason");
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
-            wxGoodsModel.setEditStatus(WxGoodsEditStatus.CHECK_FAILED);
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -147,7 +155,6 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewReason(rejectReason);
             wxReviewLogModel.setReviewResult(WxReviewResult.FAILED);
             wxReviewLogRepository.save(wxReviewLogModel);
-
         }
     }
 
@@ -179,7 +186,7 @@ public class WxGoodsService {
             }
             addProductRequest.setDescInfo(WxAddProductRequest.DescInfo.builder().imgs(detailImgs).desc("").build());
         }
-        //todo
+        //todo 改成变量
         addProductRequest.setThirdCatId(378031);
         addProductRequest.setBrandId(2100000000);
         addProductRequest.setInfoVersion("1");

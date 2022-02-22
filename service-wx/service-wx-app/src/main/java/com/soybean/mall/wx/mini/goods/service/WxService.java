@@ -3,6 +3,7 @@ package com.soybean.mall.wx.mini.goods.service;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,12 @@ public class WxService {
     private static final String GET_PHONE_NUMBER_URL = "https://api.weixin.qq.com/wxa/business/getuserphonenumber";
     private static final String GET_OPEN_ID_URL = "https://api.weixin.qq.com/sns/jscode2session";
 
+    private static final HttpHeaders defaultHeader;
+    static {
+        defaultHeader = new HttpHeaders();
+        defaultHeader.setContentType(MediaType.APPLICATION_JSON);
+    }
+
     @Value("${wx.mini.appid}")
     private String wxAppid;
     @Value("${wx.mini.appsecret}")
@@ -38,9 +45,7 @@ public class WxService {
 
     public String getPhoneNumber(String code){
         String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", headers);
+        HttpEntity<String> entity = new HttpEntity<>("{\"code\":\"" + code + "\"}", defaultHeader);
         WxGetPhoneNumberResponse wxGetPhoneNumberResponse = sendRequest(url, HttpMethod.POST, entity, WxGetPhoneNumberResponse.class);
         if(wxGetPhoneNumberResponse.isSuccess()){
             return wxGetPhoneNumberResponse.getPhoneInfo().getPurePhoneNumber();
@@ -63,9 +68,7 @@ public class WxService {
         String url = ADD_PRODUCT_URL.concat("?access_token=").concat(accessToken);
 
         String reqJsonStr = JSONObject.toJSONString(addProductRequest);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, headers);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         WxAddProductResponse wxAddProductResponse = sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
 
         if(!wxAddProductResponse.isSuccess()){
@@ -77,15 +80,18 @@ public class WxService {
     public boolean deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
         String url = DELETE_PRODUCT_URL.concat("?access_token=").concat(getAccessToken());
         String reqJsonStr = JSONObject.toJSONString(wxDeleteProductRequest);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, headers);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         WxResponseBase wxResponseBase = sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
         if(wxResponseBase.isSuccess()) return true;
         return false;
     }
 
-    public boolean updateGoodsWithoutAudit(){
+    public boolean updateGoodsWithoutAudit(WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
+        String url = UPDATE_PRODUCT_WITHOUT_AUDIT_URL.concat("access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(wxUpdateProductWithoutAuditRequest);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        WxUpdateProductWithoutAuditRequest response = sendRequest(url, HttpMethod.POST, entity, WxUpdateProductWithoutAuditRequest.class);
+        if(response.isSuccess()) return true;
         return false;
     }
 
