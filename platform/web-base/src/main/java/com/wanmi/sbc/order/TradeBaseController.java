@@ -1083,7 +1083,7 @@ public class TradeBaseController {
                 (c, d) -> {
                     d.setBuyPoint(c.getBuyPoint());
                 });
-        StoreVO storeVO = storeQueryProvider.getById(StoreByIdRequest.builder().storeId(storeId).build()).getContext().getStoreVO();
+        StoreVO storeVO = storeQueryProvider.getById(StoreByIdRequest.builder().storeId(storeId).build()).getContext().getStoreVO()
 
         // 优化-异步调用。zc_2021/03/25
         CompletableFuture<CycleBuyInfoDTO> cycleBuyInfoDTOCompletableFuture = CompletableFuture.supplyAsync(() -> {

@@ -18,19 +18,18 @@ import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRe
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
+import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleMergeInProgressRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
+import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuySendDateRuleRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleMergeInProcessResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.enums.*;
+import com.wanmi.sbc.goods.bean.vo.*;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
@@ -39,11 +38,9 @@ import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionSimplifyReq
 import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemSnapshotRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyCycleBuyRequest;
 import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
-import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
-import com.wanmi.sbc.order.bean.dto.TradeBatchDeliverDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
+import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
@@ -74,6 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -144,6 +142,9 @@ public class TradeOptimizeService {
 
     @Autowired
     private StoreQueryProvider storeQueryProvider;
+
+    @Autowired
+    private CycleBuyQueryProvider cycleBuyQueryProvider;
     /**
      * C端下单
      */
@@ -662,7 +663,12 @@ public class TradeOptimizeService {
         return successResults;
     }
 
-    private List<TradeItemGroup> getTradeItemList(TradeCommitRequest request) {
+    /**
+     * 周期购只能单sku购买
+     * @param request
+     * @return
+     */
+    public List<TradeItemGroup> getTradeItemList(TradeCommitRequest request) {
         List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
         String customerId = request.getCustomer().getCustomerId();
 
@@ -687,6 +693,8 @@ public class TradeOptimizeService {
                 .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
                 .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+        //周期购
+        CycleBuyInfoDTO cycleBuyInfoDTO = fillCycleBuyInfoToSnapshot(goodsInfoVOList.get(0));
 
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
         //获取付费会员价
@@ -718,25 +726,6 @@ public class TradeOptimizeService {
         tradeItemGroupVOS.setTradeItems(tradeItems);
         tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
 
-        //普通商品不能参与预售预约活动
-        List<String> skuIdList = tradeItems.stream()
-                .filter(i ->
-                        (!Boolean.TRUE.equals(i.getIsBookingSaleGoods()))
-                                && (!Boolean.TRUE.equals(i.getIsAppointmentSaleGoods()))
-                                && (Objects.isNull(i.getBuyPoint()) || i.getBuyPoint() == 0))
-                .map(TradeItem::getSkuId).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(skuIdList)) {
-            appointmentSaleQueryProvider.containAppointmentSaleAndBookingSale(AppointmentSaleInProgressRequest.builder().goodsInfoIdList(skuIdList).build());
-        }
-
-        // 预约活动校验是否有资格
-        List<TradeItem> excludeBuyPointList = tradeItems.stream()
-                .filter(tradeItem -> (Objects.isNull(tradeItem.getBuyPoint()) || tradeItem.getBuyPoint() == 0)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(excludeBuyPointList)) {
-            tradeItemGroupVOS.setTradeItems(excludeBuyPointList);
-            tradeGoodsService.validateAppointmentQualification(Collections.singletonList(tradeItemGroupVOS), customerId);
-        }
-
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
         for (TradeItem tradeItem : tradeItems) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
@@ -744,8 +733,6 @@ public class TradeOptimizeService {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
         }
-
-
 
         //商品按店铺分组
         Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
@@ -769,8 +756,53 @@ public class TradeOptimizeService {
             tradeItemGroup.setTradeItems(value);
             tradeItemGroup.setSupplier(supplier);
             tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+            tradeItemGroup.setCycleBuyInfo(cycleBuyInfoDTO);
             itemGroups.add(tradeItemGroup);
         });
         return itemGroups;
+    }
+
+
+
+    private CycleBuyInfoDTO fillCycleBuyInfoToSnapshot(GoodsInfoVO goodsInfoVO) {
+        CycleBuyInfoDTO cycleBuyInfoDTO = new CycleBuyInfoDTO();
+        if (Objects.nonNull(goodsInfoVO.getGoodsType()) && GoodsType.CYCLE_BUY.ordinal() == goodsInfoVO.getGoodsType()) {
+            //验证周期购
+            DeliveryPlan deliveryPlan = DeliveryPlan.BUSINESS;
+            verifyService.verifyCycleBuy(goodsInfoVO.getGoodsId(), null,null, null, deliveryPlan,false);
+
+            CycleBuyVO cycleBuyVO = cycleBuyQueryProvider
+                    .getByGoodsId(CycleBuyByGoodsIdRequest.builder().goodsId(goodsInfoVO.getGoodsId()).build())
+                    .getContext().getCycleBuyVO();
+
+            if (Objects.nonNull(cycleBuyVO)) {
+                List<String> ids = cycleBuyVO.getCycleBuyGiftVOList().stream().map(CycleBuyGiftVO::getGoodsInfoId).collect(Collectors.toList());
+                //赠送方式为可选一种时，默认选择第一件赠品
+                if (GiftGiveMethod.CHOICE.equals(cycleBuyVO.getGiftGiveMethod()) && CollectionUtils.isNotEmpty(ids)) {
+                    cycleBuyInfoDTO.setCycleBuyGifts(Lists.newArrayList(ids.get(NumberUtils.INTEGER_ZERO)));
+                } else {
+                    cycleBuyInfoDTO.setCycleBuyGifts(ids);
+                }
+            }
+
+            //商家主导配送取后台配置数据
+//            if (DeliveryPlan.BUSINESS.equals(deliveryPlan)) {
+//                sendDateRule = cycleBuyVO.getSendDateRule().get(NumberUtils.INTEGER_ZERO);
+//                deliveryCycle = cycleBuyVO.getDeliveryCycle();
+//            }
+//            //查询发货日期规则描述
+//            CycleBuySendDateRuleRequest ruleRequest = CycleBuySendDateRuleRequest.builder()
+//                    .deliveryCycle(deliveryCycle)
+//                    .rules(Lists.newArrayList(sendDateRule)).build();
+//            CycleBuySendDateRuleVO ruleVO = cycleBuyQueryProvider.getSendDateRuleList(ruleRequest).getContext()
+//                    .getCycleBuySendDateRuleVOList().get(NumberUtils.INTEGER_ZERO);
+//            cycleBuyInfoDTO.setDeliveryCycle(deliveryCycle);
+            cycleBuyInfoDTO.setCycleNum(goodsInfoVO.getCycleNum());
+            //cycleBuyInfoDTO.setCycleBuySendDateRule(KsBeanUtil.convert(ruleVO, CycleBuySendDateRuleDTO.class));
+            cycleBuyInfoDTO.setDeliveryPlan(deliveryPlan);
+            return cycleBuyInfoDTO;
+        }
+
+        return null;
     }
 }
