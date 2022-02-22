@@ -28,7 +28,7 @@ import java.net.InetAddress;
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @EnableJpaAuditing
 @EnableCaching

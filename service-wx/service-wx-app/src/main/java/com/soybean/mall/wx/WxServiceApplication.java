@@ -1,12 +1,13 @@
 package com.soybean.mall.wx;
 
-import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication
-@PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
+@SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"})
+@EnableDiscoveryClient
+@ComponentScan(basePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 public class WxServiceApplication {
 
     public static void main(String[] args) {
