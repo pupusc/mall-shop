@@ -31,9 +31,13 @@ public class WxGoodsModel {
     private WxGoodsStatus status;
 
     //审核状态
-    @Column(name = "edit_status", columnDefinition = "tinyint")
+    @Column(name = "audit_status", columnDefinition = "tinyint")
     @Enumerated
-    private WxGoodsEditStatus editStatus;
+    private WxGoodsEditStatus auditStatus;
+
+    //审核通过次数
+    @Column(name = "audit_times")
+    private Integer auditTimes;
 
     //微信类目id
     @Column(name = "wx_category")

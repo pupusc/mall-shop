@@ -2,6 +2,7 @@ package com.soybean.mall.wx.mini.goods.controller;
 
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.ShaUtil;
@@ -31,6 +32,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     @Override
     public BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest){
         return BaseResponse.success(wxService.deleteGoods(wxDeleteProductRequest));
+    }
+
+    @Override
+    public BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
+        return BaseResponse.success(wxService.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest));
     }
 
     //接入回调验证

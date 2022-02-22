@@ -79,6 +79,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     @ApiModelProperty(value = "模糊条件-商品名称")
     private String likeGoodsName;
 
+    private String matchGoodsName;
 
     /**
      * 上下架状态
@@ -401,6 +402,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder
                     //.should(matchQuery(queryName.concat(".goodsInfoName"),likeGoodsName))
                     .must(matchPhraseQuery("lowGoodsName", likeGoodsName));
+        }
+
+        if (StringUtils.isNotBlank(matchGoodsName)) {
+            boolQueryBuilder.must(matchQuery("lowGoodsName", matchGoodsName));
         }
 
         String labelVisibleField = "goodsLabelList.labelVisible";
