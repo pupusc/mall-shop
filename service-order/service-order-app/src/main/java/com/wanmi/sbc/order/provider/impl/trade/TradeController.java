@@ -813,8 +813,8 @@ public class TradeController implements TradeProvider {
     }
 
     @Override
-    public BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
-        List<TradeItemGroup> results = tradeOptimizeService.getTradeItemList(tradeCommitRequest);
+    public BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradePurchaseRequest request) {
+        List<TradeItemGroup> results = tradeOptimizeService.getTradeItemList(request);
         return BaseResponse.success(KsBeanUtil.convertList(results,TradeItemGroupVO.class));
     }
 

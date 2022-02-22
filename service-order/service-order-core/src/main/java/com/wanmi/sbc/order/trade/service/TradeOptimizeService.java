@@ -16,6 +16,7 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
+import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
@@ -35,10 +36,7 @@ import com.wanmi.sbc.marketing.bean.dto.MarketingPointBuyLevelDto;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.order.api.request.purchase.Purchase4DistributionSimplifyRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeItemSnapshotRequest;
-import com.wanmi.sbc.order.api.request.trade.VerifyCycleBuyRequest;
+import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.purchase.Purchase4DistributionResponse;
 import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -574,7 +572,7 @@ public class TradeOptimizeService {
             throw new SbcRuntimeException("K-050214");
         }
 
-        List<TradeItemGroup> tradeItemGroups = getTradeItemList(tradeCommitRequest);
+        List<TradeItemGroup> tradeItemGroups = getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(tradeCommitRequest.getTradeItems()).build());
         List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
 
         //商品信息
@@ -664,11 +662,11 @@ public class TradeOptimizeService {
     }
 
     /**
-     * 周期购只能单sku购买
+     *
      * @param request
      * @return
      */
-    public List<TradeItemGroup> getTradeItemList(TradeCommitRequest request) {
+    public List<TradeItemGroup> getTradeItemList(TradePurchaseRequest request) {
         List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
         String customerId = request.getCustomer().getCustomerId();
 
@@ -693,9 +691,6 @@ public class TradeOptimizeService {
                 .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
                 .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
-        //周期购
-        CycleBuyInfoDTO cycleBuyInfoDTO = fillCycleBuyInfoToSnapshot(goodsInfoVOList.get(0));
-
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
         //获取付费会员价
         if (Objects.nonNull(paidCardVO.getDiscountRate())) {
@@ -741,8 +736,7 @@ public class TradeOptimizeService {
             StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
                     .build())
                     .getContext().getStoreVO();
-            //周期购商品使用单品运费
-            DefaultFlag freightTemplateType =  store.getFreightTemplateType();
+            DefaultFlag freightTemplateType = store.getFreightTemplateType();
             Supplier supplier = Supplier.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
@@ -756,53 +750,8 @@ public class TradeOptimizeService {
             tradeItemGroup.setTradeItems(value);
             tradeItemGroup.setSupplier(supplier);
             tradeItemGroup.setTradeMarketingList(new ArrayList<>());
-            tradeItemGroup.setCycleBuyInfo(cycleBuyInfoDTO);
             itemGroups.add(tradeItemGroup);
         });
         return itemGroups;
-    }
-
-
-
-    private CycleBuyInfoDTO fillCycleBuyInfoToSnapshot(GoodsInfoVO goodsInfoVO) {
-        CycleBuyInfoDTO cycleBuyInfoDTO = new CycleBuyInfoDTO();
-        if (Objects.nonNull(goodsInfoVO.getGoodsType()) && GoodsType.CYCLE_BUY.ordinal() == goodsInfoVO.getGoodsType()) {
-            //验证周期购
-            DeliveryPlan deliveryPlan = DeliveryPlan.BUSINESS;
-            verifyService.verifyCycleBuy(goodsInfoVO.getGoodsId(), null,null, null, deliveryPlan,false);
-
-            CycleBuyVO cycleBuyVO = cycleBuyQueryProvider
-                    .getByGoodsId(CycleBuyByGoodsIdRequest.builder().goodsId(goodsInfoVO.getGoodsId()).build())
-                    .getContext().getCycleBuyVO();
-
-            if (Objects.nonNull(cycleBuyVO)) {
-                List<String> ids = cycleBuyVO.getCycleBuyGiftVOList().stream().map(CycleBuyGiftVO::getGoodsInfoId).collect(Collectors.toList());
-                //赠送方式为可选一种时，默认选择第一件赠品
-                if (GiftGiveMethod.CHOICE.equals(cycleBuyVO.getGiftGiveMethod()) && CollectionUtils.isNotEmpty(ids)) {
-                    cycleBuyInfoDTO.setCycleBuyGifts(Lists.newArrayList(ids.get(NumberUtils.INTEGER_ZERO)));
-                } else {
-                    cycleBuyInfoDTO.setCycleBuyGifts(ids);
-                }
-            }
-
-            //商家主导配送取后台配置数据
-//            if (DeliveryPlan.BUSINESS.equals(deliveryPlan)) {
-//                sendDateRule = cycleBuyVO.getSendDateRule().get(NumberUtils.INTEGER_ZERO);
-//                deliveryCycle = cycleBuyVO.getDeliveryCycle();
-//            }
-//            //查询发货日期规则描述
-//            CycleBuySendDateRuleRequest ruleRequest = CycleBuySendDateRuleRequest.builder()
-//                    .deliveryCycle(deliveryCycle)
-//                    .rules(Lists.newArrayList(sendDateRule)).build();
-//            CycleBuySendDateRuleVO ruleVO = cycleBuyQueryProvider.getSendDateRuleList(ruleRequest).getContext()
-//                    .getCycleBuySendDateRuleVOList().get(NumberUtils.INTEGER_ZERO);
-//            cycleBuyInfoDTO.setDeliveryCycle(deliveryCycle);
-            cycleBuyInfoDTO.setCycleNum(goodsInfoVO.getCycleNum());
-            //cycleBuyInfoDTO.setCycleBuySendDateRule(KsBeanUtil.convert(ruleVO, CycleBuySendDateRuleDTO.class));
-            cycleBuyInfoDTO.setDeliveryPlan(deliveryPlan);
-            return cycleBuyInfoDTO;
-        }
-
-        return null;
     }
 }
