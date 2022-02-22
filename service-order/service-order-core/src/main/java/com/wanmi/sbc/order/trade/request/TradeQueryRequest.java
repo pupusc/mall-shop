@@ -836,15 +836,15 @@ public class TradeQueryRequest extends BaseQueryRequest {
         // 开店礼包不支持退单
         criteria.add(Criteria.where("storeBagsFlag").ne(DefaultFlag.YES));
 
-        //已完成订单允许申请退单时间
-        if (Objects.nonNull(day) && day > 0) {
-            dayCriteria.andOperator(
-                    Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()),
-                    Criteria.where("tradeState.endTime").gte(LocalDateTime.now().minusDays(day))
-            );
-        } else {
-            dayCriteria.andOperator(Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()));
-        }
+//        //已完成订单允许申请退单时间
+//        if (Objects.nonNull(day) && day > 0) {
+//            dayCriteria.andOperator(
+//                    Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()),
+//                    Criteria.where("tradeState.endTime").gte(LocalDateTime.now().minusDays(day))
+//            );
+//        } else {
+//            dayCriteria.andOperator(Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()));
+//        }
 
 
 
