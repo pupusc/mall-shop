@@ -130,7 +130,7 @@ public class WxPayService {
             addTradeRecord(payTradeRecordRequest);
             response = wxPayUnifiedOrder(xStream.toXML(baseRequest), WxPayForMWebResponse.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("wxPayForWeb error", e);
         }
         return response;
     }
