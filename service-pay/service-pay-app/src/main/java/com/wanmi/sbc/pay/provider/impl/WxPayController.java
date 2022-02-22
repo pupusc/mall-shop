@@ -100,7 +100,7 @@ public class WxPayController implements WxPayProvider {
             String sign = WXPayUtil.generateSignature(mwebMap,payGatewayConfig.getApiKey());
             mWebRequest.setSign(sign);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("wxPayForMWeb exception", e);
         }
         //调用统一下单接口
         WxPayForMWebResponse response = wxPayService.wxPayForMWeb(mWebRequest);
