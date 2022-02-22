@@ -1,17 +1,9 @@
 package com.soybean.mall.user.controller;
 
-import com.wanmi.sbc.common.base.BaseResponse;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-    @PostMapping("/login")
-    public BaseResponse login(){
-
-        return null;
-    }
 }

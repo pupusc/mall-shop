@@ -229,13 +229,13 @@ public class GoodsBaseController {
 
     @Autowired
     private CustomerProvider customerProvider;
-    @Value("${know.ordinary.good.ids}")
+    @Value("${know.ordinary.good.ids:}")
     private String goodIds;
 
-    @Value("${search.unshow.goodsIds}")
+    @Value("${search.unshow.goodsIds:}")
     private String searchUnShowGoodsIds;
 
-    @Value("${search.all.unshow.goodsIds}")
+    @Value("${search.all.unshow.goodsIds:}")
     private String searchAllUnShowGoodsIds;
 
     @Autowired

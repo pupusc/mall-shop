@@ -164,53 +164,53 @@ public class OrderController {
                 .build();
     }
 
-    public TradePriceVO getTradePrice(List<TradeItemVO> tradeItemVOS) {
-        TradePriceVO price = new TradePriceVO();
-        item.setTradeItems(g.getTradeItems());
-        item.setSupplier(g.getSupplier());
-        //计算商品总价
-        handlePrice(g.getTradeItems(), price);
-        //验证并计算各营销活动的优惠金额,实付金额,赠品List
-        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(), g.getTradeMarketingList());
-        List<Discounts> discountsList = new ArrayList<>();
-        //每个订单的多个优惠信息(满折优惠了xx,满减优惠了yy)
-        item.setDiscountsPrice(discountsList);
-
-
-        List<TradeMarketingVO> tempList = tradeMarketings.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT
-                && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
-        tempList.forEach(i -> {
-            Discounts discounts = Discounts.builder()
-                    .amount(i.getDiscountsAmount())
-                    .type(i.getMarketingType())
-                    .build();
-            discountsList.add(discounts);
-            //设置营销商品优惠后的均摊价 (用于计算运费)
-            List<TradeItem> items = item.getTradeItems().stream().filter(t -> i.getSkuIds().contains(t.getSkuId()))
-                    .collect(Collectors.toList());
-            tradeItemService.clacSplitPrice(items, i.getRealPayAmount());
-        });
-
-        //应付金额 = 商品总金额 - 优惠总金额
-        if (!price.isSpecial()) {
-            BigDecimal discountsPrice = tempList.stream().map(TradeMarketingVO::getDiscountsAmount).reduce(BigDecimal
-                    .ZERO, BigDecimal::add);
-            price.setTotalPrice(price.getTotalPrice().subtract(discountsPrice));
-        }
-
-        // 加价购商品
-        if (CollectionUtils.isNotEmpty(markupList)) {
-            BigDecimal markupPrice = markupList.stream().map(TradeItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-            price.setMarkupPrice(markupPrice);
-            price.setTotalPrice(price.getTotalPrice().add(markupPrice));
-            price.setGoodsPrice(price.getGoodsPrice().add(markupPrice));
-        }
-        item.setTradePrice(price);
-        //赠品信息
-        item.setGifts(wrapperGifts(g.getTradeMarketingList(), tradeMarketings, gifts));
-        item.setGifts(giftNumCheck(item.getGifts()));
-        item.getTradeItems().addAll(markupList);
-        return item;
-    }
+//    public TradePriceVO getTradePrice(List<TradeItemVO> tradeItemVOS) {
+//        TradePriceVO price = new TradePriceVO();
+//        item.setTradeItems(g.getTradeItems());
+//        item.setSupplier(g.getSupplier());
+//        //计算商品总价
+//        handlePrice(g.getTradeItems(), price);
+//        //验证并计算各营销活动的优惠金额,实付金额,赠品List
+//        List<TradeMarketingVO> tradeMarketings = wrapperMarketingForConfirm(g.getTradeItems(), g.getTradeMarketingList());
+//        List<Discounts> discountsList = new ArrayList<>();
+//        //每个订单的多个优惠信息(满折优惠了xx,满减优惠了yy)
+//        item.setDiscountsPrice(discountsList);
+//
+//
+//        List<TradeMarketingVO> tempList = tradeMarketings.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT
+//                && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
+//        tempList.forEach(i -> {
+//            Discounts discounts = Discounts.builder()
+//                    .amount(i.getDiscountsAmount())
+//                    .type(i.getMarketingType())
+//                    .build();
+//            discountsList.add(discounts);
+//            //设置营销商品优惠后的均摊价 (用于计算运费)
+//            List<TradeItem> items = item.getTradeItems().stream().filter(t -> i.getSkuIds().contains(t.getSkuId()))
+//                    .collect(Collectors.toList());
+//            tradeItemService.clacSplitPrice(items, i.getRealPayAmount());
+//        });
+//
+//        //应付金额 = 商品总金额 - 优惠总金额
+//        if (!price.isSpecial()) {
+//            BigDecimal discountsPrice = tempList.stream().map(TradeMarketingVO::getDiscountsAmount).reduce(BigDecimal
+//                    .ZERO, BigDecimal::add);
+//            price.setTotalPrice(price.getTotalPrice().subtract(discountsPrice));
+//        }
+//
+//        // 加价购商品
+//        if (CollectionUtils.isNotEmpty(markupList)) {
+//            BigDecimal markupPrice = markupList.stream().map(TradeItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+//            price.setMarkupPrice(markupPrice);
+//            price.setTotalPrice(price.getTotalPrice().add(markupPrice));
+//            price.setGoodsPrice(price.getGoodsPrice().add(markupPrice));
+//        }
+//        item.setTradePrice(price);
+//        //赠品信息
+//        item.setGifts(wrapperGifts(g.getTradeMarketingList(), tradeMarketings, gifts));
+//        item.setGifts(giftNumCheck(item.getGifts()));
+//        item.getTradeItems().addAll(markupList);
+//        return item;
+//    }
 
 }

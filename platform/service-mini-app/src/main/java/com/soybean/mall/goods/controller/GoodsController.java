@@ -9,7 +9,6 @@ import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -20,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
