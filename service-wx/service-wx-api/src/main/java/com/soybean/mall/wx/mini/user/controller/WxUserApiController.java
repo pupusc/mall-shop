@@ -6,9 +6,8 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 
-@FeignClient(value = "${spring.application.name}", contextId = "WxUserApiController")
+@FeignClient(value = "${application.wx.name}", contextId = "WxUserApiController")
 public interface WxUserApiController {
 
     @PostMapping("/wx/mini/user/getPhoneAndOpenid")

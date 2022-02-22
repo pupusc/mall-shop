@@ -13,6 +13,7 @@ public class WxResponseBase {
     private String errmsg;
 
     public boolean isSuccess(){
+        if(errcode == null) return true;
         return errcode.equals(0);
     }
 }

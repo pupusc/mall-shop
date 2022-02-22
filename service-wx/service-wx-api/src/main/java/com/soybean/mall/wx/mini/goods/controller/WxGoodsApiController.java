@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 
 @RequestMapping("/wx/mini")
-@FeignClient(value = "${spring.application.name}", contextId = "WxMiniApiController")
+@FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
 public interface WxGoodsApiController {
 
     @PostMapping("/goods/add")

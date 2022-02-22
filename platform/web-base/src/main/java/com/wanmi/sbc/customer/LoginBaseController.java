@@ -1538,8 +1538,8 @@ public class LoginBaseController {
      */
     @ApiOperation(value = "微信授权登陆接口")
     @RequestMapping(value = "/wxAuthLogin", method = RequestMethod.POST)
-    @MultiSubmit
-    @GlobalTransactional
+//    @MultiSubmit
+//    @GlobalTransactional
     public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest) {
         String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
         wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
