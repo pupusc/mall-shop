@@ -4543,7 +4543,9 @@ public class ReturnOrderService {
             ProviderTradeSimpleVO providerTradeSimpleVO = new ProviderTradeSimpleVO();
             providerTradeSimpleVO.setTid(providerTradeParam.getParentId());
             providerTradeSimpleVO.setPid(providerTradeParam.getId());
+
             Long providerId = providerTradeParam.getSupplier().getStoreId();
+            providerTradeSimpleVO.setProviderId(providerId.toString());
             BigDecimal deliverCompletePrice = returnDeliveryCompleteMap.get(providerId.toString());
             BigDecimal deliverIngPrice = returnDeliveryIngMap.get(providerId.toString());
 

@@ -27,6 +27,11 @@ public class ProviderTradeSimpleVO implements Serializable {
     private String pid;
 
     /**
+     * 供应商id
+     */
+    private String providerId;
+
+    /**
      * 完成运费价格
      */
     private String deliveryCompletePrice;

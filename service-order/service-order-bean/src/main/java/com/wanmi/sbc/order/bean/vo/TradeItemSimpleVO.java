@@ -44,7 +44,7 @@ public class TradeItemSimpleVO implements Serializable {
     /**
      * 商品购买数量
      */
-    private Long buyNum;
+    private Long num;
 
     /**
      * 商品已经发货数量(用于判断退款)
