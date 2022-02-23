@@ -3,7 +3,10 @@ package com.wanmi.ms.jwt;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.ms.util.Utils;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
@@ -109,15 +112,14 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/topic/headTopic")
                     || requestURI.startsWith("/vote")
                     || requestURI.startsWith("/error")
-                    || requestURI.startsWith("/")
             ) {
                 if (StringUtils.isBlank(token)) {
-                    log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);
+                    log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问'] [{}]", requestURI, request.getRemoteUser());
                     return;
                 }
             } else {
                 if (StringUtils.isBlank(token)) {
-                    log.info("JwtInterceptor preHandle out ['{} Missing jwtToken']", requestURI);
+                    log.info("JwtInterceptor preHandle out ['{} Missing jwtToken'] [{}]", requestURI, request.getRemoteUser());
                     throw new SignatureException("Missing jwtToken.");
                 }
             }
