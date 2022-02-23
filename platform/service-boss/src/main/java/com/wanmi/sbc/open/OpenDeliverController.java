@@ -31,8 +31,11 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.sku.EsSkuQueryProvider;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -73,19 +76,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -117,6 +115,8 @@ public class OpenDeliverController extends OpenBaseController {
     private ExternalProvider externalProvider;
     @Autowired
     private OpenDeliverProvider openDeliverProvider;
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     // TODO: 2022/2/16 增加赠品标记
     // TODO: 2022/2/23 确定商家id，店铺id
@@ -183,16 +183,23 @@ public class OpenDeliverController extends OpenBaseController {
     public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody @Validated OrderCreateReqVO params) {
         checkSign();
 
+        Optional<TradeItemReqVO> first = params.getTradeItems().stream().findFirst();
+        if (first.isPresent()) {
+            return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
+        }
+        BaseResponse<GoodsByIdResponse> goodsResponse = goodsQueryProvider.getById(new GoodsByIdRequest(first.get().getSkuId()));
+        if (Objects.isNull(goodsResponse.getContext())) {
+            return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+
         //商家id
-        Long companyId = 0L;
+        Long companyId = goodsResponse.getContext().getCompanyInfoId();
         //店铺id
-        Long storeId = 0L;
+        Long storeId = goodsResponse.getContext().getStoreId();
 
         log.info("第三方开始代客下单......");
         Operator operator = commonUtil.getOperator();
-        CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(
-                CompanyInfoByIdRequest.builder().companyInfoId(companyId).build()
-        ).getContext();
+        CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(new CompanyInfoByIdRequest(companyId)).getContext();
         StoreInfoResponse storeInfoResponse = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeId)).getContext();
 
         //1.校验与包装订单信息-与业务员app代客下单公用
