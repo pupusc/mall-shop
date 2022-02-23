@@ -5,6 +5,8 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.*;
+import com.soybean.mall.wx.mini.order.bean.request.CreateOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.response.CreateOrderResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ public class WxService {
     private static final String UPDATE_PRODUCT_WITHOUT_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/update_without_audit";
     private static final String GET_PHONE_NUMBER_URL = "https://api.weixin.qq.com/wxa/business/getuserphonenumber";
     private static final String GET_OPEN_ID_URL = "https://api.weixin.qq.com/sns/jscode2session";
+    private static final String CREATE_ORDER_URL="https://api.weixin.qq.com/shop/order/add";
 
     private static final HttpHeaders defaultHeader;
     static {
@@ -117,5 +120,19 @@ public class WxService {
             return null;
         }
         return t;
+    }
+
+    /**
+     * 生成订单并获取ticket
+     * @param createOrderRequest
+     * @return
+     */
+    public CreateOrderResponse createOrder(CreateOrderRequest createOrderRequest){
+        String accessToken = getAccessToken();
+        String url = CREATE_ORDER_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(createOrderRequest);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, CreateOrderResponse.class);
     }
 }
