@@ -423,7 +423,7 @@ public class ReturnOrderService {
 //        return create(returnOrder, operator);
 //    }
 
-    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders) {
+    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, ReturnOrder> deliveryReturnOrderMap) {
         //订单详情集合
         List<TradeItem> tradeItemList = trade.getTradeItems();
         List<ReturnItem> returnItemList = returnOrder.getReturnItems();
@@ -463,7 +463,7 @@ public class ReturnOrderService {
                 List<TradeItem> providerGiftItems = trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
                 //退款时赠品拆分
                 this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
-                buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade);
+                buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade, deliveryReturnOrderMap);
                 StoreVO storeVO = storeVOMap.get(providerId);
                 //判断是否linkedmall,拆分LM店铺子订单
                 if (storeVO != null && CompanySourceType.LINKED_MALL.equals(storeVO.getCompanySourceType())) {
@@ -477,7 +477,7 @@ public class ReturnOrderService {
             }
         }
 
-        //商家商品,赠品退单
+        //商家商品,退单
         List<ReturnItem> returnStoreItemList =
                 returnItemList.stream().filter(returnItem -> Objects.isNull(returnItem.getProviderId())).collect(Collectors.toList());
         List<TradeItem> giftItemList =
@@ -495,7 +495,7 @@ public class ReturnOrderService {
                 if (CollectionUtils.isNotEmpty(storeItemList) || CollectionUtils.isNotEmpty(giftItemList)) {
                     //对应的子单
                     returnOrder.setPtid(providerTrade.getId());
-                    buildReturnOrder(returnOrder, trade, StoreType.SUPPLIER, null, storeItemList, providerTrade);
+                    buildReturnOrder(returnOrder, trade, StoreType.SUPPLIER, null, storeItemList, providerTrade, deliveryReturnOrderMap);
                     returnOrders.add(returnOrder);
                 }
             }
@@ -543,7 +543,7 @@ public class ReturnOrderService {
         }
     }
 
-    private void buildReturnOrder(ReturnOrder returnOrder, Trade trade, StoreType storeType, Long providerId, List<TradeItem> storeItemList, ProviderTrade providerTrade) {
+    private void buildReturnOrder(ReturnOrder returnOrder, Trade trade, StoreType storeType, Long providerId, List<TradeItem> storeItemList, ProviderTrade providerTrade, Map<String, ReturnOrder> deliveryReturnOrderMap) {
 
         if (StoreType.PROVIDER.equals(storeType)) {
             StoreVO storeVO =
@@ -604,7 +604,8 @@ public class ReturnOrderService {
                     }
                 }
 
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
+                //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费
+                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (deliveryReturnOrderMap == null || deliveryReturnOrderMap.get(providerId.toString()) == null)) {
                     //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
@@ -795,15 +796,20 @@ public class ReturnOrderService {
         //根据订单id获取退单列表
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(returnOrder.getTid());
 
+
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
+        Map<String, ReturnOrder> deliveryReturnOrderMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(returnOrderList)) {
             //校验是否有没有完成的商品行退单
             this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
-//            //如果有退款中的订单，则直接抛出异常
-//            if (CollectionUtils.isNotEmpty(returnOrders)) {
-//                throw new SbcRuntimeException("K-050120");
-//            }
+
+            //判断当前是否有退运费的订单
+            deliveryReturnOrderMap = returnOrderList.stream().filter(
+                    returnOrderParam -> returnOrderParam.getReturnReason().equals(ReturnReason.PRICE_DELIVERY)
+                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
+                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
+                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE).collect(Collectors.toMap(ReturnOrder::getProviderId, Function.identity(), (k1, k2) -> k1));
 
             //过滤出来所有完成退单的订单列表
             List<ReturnOrder> completedReturnOrderListTmp = returnOrderList.stream().filter(allOrder -> allOrder
@@ -1026,7 +1032,7 @@ public class ReturnOrderService {
 
         List<ReturnOrder> returnOrders = new ArrayList<>();
         //退单拆分
-        splitReturnTrade(returnOrder, trade, returnOrders);
+        splitReturnTrade(returnOrder, trade, returnOrders, deliveryReturnOrderMap);
         String returnOrderId = StringUtils.EMPTY;
 
         for (ReturnOrder newReturnOrder : returnOrders) {
@@ -2401,27 +2407,16 @@ public class ReturnOrderService {
                 //作废主订单
                 tradeService.voidTrade(returnOrder.getTid(), operator);
                 trade.getTradeState().setEndTime(LocalDateTime.now());
-            } /*else if(providerTradeAllEnd(returnOrder)){
+            }  else if(providerTradeAllEnd(returnOrder)){
                 //zi订单或作废或已经全部发货，修改主订单为待收货
                 trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                 trade.getTradeState().setFlowState(FlowState.DELIVERED);
                 tradeService.updateTrade(trade);
-            }*/
+            }
+        }
 
-//            // 作废子订单 TODO 售后 update
-//            updateProviderTrade(returnOrder);
-//            //仅退款退单在退款完成后释放商品库存
-//            freeStock(returnOrder, trade);
-//            if (providerTradeAllVoid(returnOrder)) {
-//                //作废主订单
-//                tradeService.voidTrade(returnOrder.getTid(), operator);
-//                trade.getTradeState().setEndTime(LocalDateTime.now());
-//            }else if(providerTradeAllEnd(returnOrder)){
-//                //zi订单或作废或已经全部发货，修改主订单为待收货
-//                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-//                trade.getTradeState().setFlowState(FlowState.DELIVERED);
-//                tradeService.updateTrade(trade);
-//            }
+        if (returnOrder.getReturnType() == ReturnType.RETURN) {
+
         }
         
         String businessId = trade.getPayInfo().isMergePay() ? trade.getParentId() : trade.getId();
