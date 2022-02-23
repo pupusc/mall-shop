@@ -107,6 +107,7 @@ public class GoodsInfoStockService {
         if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos) && !stockStatusMap.isEmpty()){
             for (GoodsInfo goodsInfo : goodsInfos) {
                 if (Objects.equals(goodsInfo.getStockSyncFlag(),0)){
+                    log.info("{}同步库存关闭",goodsInfo.getErpGoodsInfoNo());
                     continue;
                 }
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
@@ -114,6 +115,7 @@ public class GoodsInfoStockService {
                 int actualStock;
                 //虚拟、代发无所库：99逻辑，当库存＜10，自动库存变为99
                 if(StringUtils.isNotEmpty(erpStockStatus) && Arrays.asList("0","2").contains(erpStockStatus)){
+                    log.info("{}同步库存，99逻辑",goodsInfo.getErpGoodsInfoNo());
                     if(erpGoodsInfoStock == null) {
                         Long stock = goodsInfo.getStock();
                         if(stock == null) {
@@ -135,7 +137,9 @@ public class GoodsInfoStockService {
                             }
                         }
                     }
+                    log.info("{}同步库存，99逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
                 }else {
+                    log.info("{}同步库存，正常同步逻辑",goodsInfo.getErpGoodsInfoNo());
                     if(erpGoodsInfoStock == null) {
                         Long stock = goodsInfo.getStock();
                         if(stock == null) {
@@ -147,6 +151,7 @@ public class GoodsInfoStockService {
                         actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId()).intValue();
                         resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), (long) actualStock);
                     }
+                    log.info("{}同步库存，正常同步逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
                 }
                 goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
                     if(v == null) return actualStock;
@@ -172,6 +177,7 @@ public class GoodsInfoStockService {
         try {
             Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
             Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+            log.info("{}redis数据,stock:{},lastStock:{},nowStock:{}",goodsInfoId,stock,lastStock,nowStock);
             if (lastStock != null && nowStock != null) {
                 if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
                     actualStock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));
