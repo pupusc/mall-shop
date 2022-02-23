@@ -1,9 +1,9 @@
-package com.wanmi.sbc.open.vo;
+package com.wanmi.sbc.order.api.response.open;
 
 import lombok.Data;
 
 @Data
-public class DeliverItemResDTO {
+public class DeliverItemResBO {
     /**
      * 清单编号
      */

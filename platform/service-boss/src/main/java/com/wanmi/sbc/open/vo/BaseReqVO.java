@@ -6,10 +6,13 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * @author Liang Jun
- * @date 2022-02-16 10:03:00
+ * @date 2022-02-22 20:21:00
  */
 @Data
-public class OrderDeliverInfoReqVO extends BaseReqVO {
+public class BaseReqVO {
+    /**
+     * 数据签名
+     */
     @NotBlank
-    private String orderNo;
+    private String sign;
 }

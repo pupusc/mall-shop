@@ -38,7 +38,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -498,4 +498,12 @@ public class Trade implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
+    /**
+     * 外部交易编号
+     */
+    private String outTradeNo;
+    /**
+     * 外部交易平台：FDDS:樊登读书
+     */
+    private String outTradePlat;
 }

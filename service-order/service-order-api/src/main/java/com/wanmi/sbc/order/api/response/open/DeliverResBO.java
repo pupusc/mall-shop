@@ -1,4 +1,4 @@
-package com.wanmi.sbc.open.vo;
+package com.wanmi.sbc.order.api.response.open;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * @date 2022-02-17 15:07:00
  */
 @Data
-public class DeliverResVO {
+public class DeliverResBO {
     /**
      * 发货单号
      */
@@ -25,15 +25,15 @@ public class DeliverResVO {
     /**
      * 收货人信息
      */
-    private ConsigneeResVO consignee;
+    private ConsigneeResBO consignee;
 
     /**
      * 物流信息
      */
-    private LogisticsResVO logistics;
+    private LogisticsResBO logistics;
 
     /**
      * 发货清单
      */
-    private List<DeliverItemResVO> deliverItems = new ArrayList<>();
+    private List<DeliverItemResBO> deliverItems = new ArrayList<>();
 }

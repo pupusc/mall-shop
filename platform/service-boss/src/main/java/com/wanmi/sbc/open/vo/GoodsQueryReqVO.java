@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
  * @date 2022-02-15 14:14:00
  */
 @Data
-public class GoodsListReqVO {
+public class GoodsQueryReqVO extends BaseReqVO {
     private String skuNo;
     private String goodsName;
     @NotNull

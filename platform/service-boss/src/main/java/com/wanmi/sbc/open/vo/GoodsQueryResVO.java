@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * @date 2022-02-15 14:14:00
  */
 @Data
-public class GoodsListResVO {
+public class GoodsQueryResVO {
     /**
      * 商品id
      */

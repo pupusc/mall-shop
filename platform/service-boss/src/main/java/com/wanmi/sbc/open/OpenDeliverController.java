@@ -40,44 +40,51 @@ import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
 import com.wanmi.sbc.open.vo.ConsigneeResVO;
 import com.wanmi.sbc.open.vo.DeliverItemResVO;
 import com.wanmi.sbc.open.vo.DeliverResVO;
-import com.wanmi.sbc.open.vo.GoodsListReqVO;
-import com.wanmi.sbc.open.vo.GoodsListResVO;
+import com.wanmi.sbc.open.vo.GoodsQueryReqVO;
+import com.wanmi.sbc.open.vo.GoodsQueryResVO;
 import com.wanmi.sbc.open.vo.LogisticsResVO;
 import com.wanmi.sbc.open.vo.OrderCreateReqVO;
 import com.wanmi.sbc.open.vo.OrderCreateResVO;
 import com.wanmi.sbc.open.vo.OrderDeliverInfoReqVO;
 import com.wanmi.sbc.open.vo.OrderDeliverInfoResVO;
 import com.wanmi.sbc.open.vo.TradeItemReqVO;
+import com.wanmi.sbc.order.api.provider.open.OpenDeliverProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
+import com.wanmi.sbc.order.api.request.open.OrderDeliverInfoReqBO;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
-import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
+import com.wanmi.sbc.order.api.response.open.DeliverResBO;
+import com.wanmi.sbc.order.api.response.open.OrderDeliverInfoResBO;
 import com.wanmi.sbc.order.bean.dto.ConsigneeDTO;
 import com.wanmi.sbc.order.bean.dto.InvoiceDTO;
 import com.wanmi.sbc.order.bean.dto.TradeAddDTO;
 import com.wanmi.sbc.order.bean.dto.TradeCreateDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
-import com.wanmi.sbc.order.bean.vo.ConsigneeVO;
-import com.wanmi.sbc.order.bean.vo.LogisticsVO;
-import com.wanmi.sbc.order.bean.vo.ShippingItemVO;
+import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -88,8 +95,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-@RequestMapping("open/substance")
-public class OpenSubstanceController {
+@RequestMapping("open/deliver")
+public class OpenDeliverController extends OpenBaseController {
     @Autowired
     private CommonUtil commonUtil;
     @Autowired
@@ -108,31 +115,21 @@ public class OpenSubstanceController {
     private GoodsRestrictedSaleQueryProvider goodsRestrictedSaleQueryProvider;
     @Autowired
     private ExternalProvider externalProvider;
+    @Autowired
+    private OpenDeliverProvider openDeliverProvider;
 
-    // TODO: 2022/2/16 增加参数签名，防止恶意下单
     // TODO: 2022/2/16 增加赠品标记
-
-    // TODO: 2022/2/19 更新发货状态发送MQ
-    // TODO: 2022/2/19 监听MQ回调通知
-
-    // TODO: 2022/2/20 外部订单号记录
-    // TODO: 2022/2/21 入参统一添加sign属性 
-    // TODO: 2022/2/21 下单添加outTradeNo参数
-
-    // TODO: 2022/2/21 添加订单来源类型
-    // TODO: 2022/2/21 查询订单过滤FDDS来源
-
-//    out_trade_type;
-//    out_trade_no;
+    // TODO: 2022/2/23 确定商家id，店铺id
 
     /**
-     * 商品查询
+     * @description: 实物商品查询
+     * @menu 履约中台
+     * @tag  v101
+     * @status done
      */
-    @PostMapping(value = "/goods/list")
-    public BusinessResponse<List<GoodsListResVO>> goodsList(@RequestBody GoodsListReqVO param) {
-//        if (!OpenSubstanceSign.verify(param)) { // TODO: 2022/2/16
-//            return BusinessResponse.error("签名错误");
-//        }
+    @PostMapping(value = "/goods/query")
+    public BusinessResponse<List<GoodsQueryResVO>> goodsQuery(@RequestBody @Validated GoodsQueryReqVO param) {
+        checkSign();
 
         Integer pageNo = Objects.nonNull(param.getPage()) && Objects.nonNull(param.getPage().getPageNo()) ? param.getPage().getPageNo() : 1;
         Integer pageSize = Objects.nonNull(param.getPage()) && Objects.nonNull(param.getPage().getPageSize()) ? param.getPage().getPageSize() : 20;
@@ -162,8 +159,8 @@ public class OpenSubstanceController {
             return BusinessResponse.success(Lists.newArrayList(), retPage);
         }
 
-        List<GoodsListResVO> result = goodsInfoVOList.stream().map(item -> {
-            GoodsListResVO vo = new GoodsListResVO();
+        List<GoodsQueryResVO> result = goodsInfoVOList.stream().map(item -> {
+            GoodsQueryResVO vo = new GoodsQueryResVO();
             vo.setSkuId(item.getGoodsInfoId());
             vo.setSkuNo(item.getGoodsInfoNo());
             vo.setSkuName(item.getGoodsInfoName());
@@ -177,14 +174,14 @@ public class OpenSubstanceController {
     }
 
     /**
-     * 订单创建
+     * @description: 商品发货下单
+     * @menu 履约中台
+     * @tag  v101
+     * @status done
      */
     @PostMapping(value = "/order/create")
-    public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody OrderCreateReqVO params) {
-
-//        if (!OpenSubstanceSign.verify(param)) { // TODO: 2022/2/16
-//            return BusinessResponse.error("签名错误");
-//        }
+    public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody @Validated OrderCreateReqVO params) {
+        checkSign();
 
         //商家id
         Long companyId = 0L;
@@ -249,8 +246,12 @@ public class OpenSubstanceController {
         ).getContext().getTradeVO();
 
         //2.订单入库(转换成list,传入批量创建订单的service方法,同一套逻辑,能够回滚)
+        TradeAddDTO tradeAddDTO = KsBeanUtil.convert(trade, TradeAddDTO.class, SerializerFeature.DisableCircularReferenceDetect);
+        tradeAddDTO.setOutTradeNo(params.getOutTradeNo());
+        tradeAddDTO.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
+
         TradeAddBatchRequest tradeAddBatchRequest = TradeAddBatchRequest.builder()
-                .tradeDTOList(Collections.singletonList(KsBeanUtil.convert(trade, TradeAddDTO.class, SerializerFeature.DisableCircularReferenceDetect)))
+                .tradeDTOList(Collections.singletonList(tradeAddDTO))
                 .operator(operator)
                 .build();
 
@@ -262,6 +263,60 @@ public class OpenSubstanceController {
         return BusinessResponse.success();
     }
 
+    /**
+     * @description: 订单发货信息
+     * @menu 履约中台
+     * @tag  v101
+     * @status done
+     */
+    @PostMapping(value = "/order/deliverInfo")
+    public BusinessResponse<OrderDeliverInfoResVO> deliverInfo(@RequestBody @Validated OrderDeliverInfoReqVO param) {
+        checkSign();
+
+        OrderDeliverInfoReqBO reqBO = new OrderDeliverInfoReqBO();
+        reqBO.setOrderNo(param.getOrderNo());
+        BusinessResponse<OrderDeliverInfoResBO> resResponse = openDeliverProvider.deliverInfo(reqBO);
+
+        if (!CommonErrorCode.SUCCESSFUL.equals(resResponse.getCode())) {
+            return BusinessResponse.error(resResponse.getCode(), resResponse.getMessage());
+        }
+        if (Objects.isNull(resResponse.getContext())) {
+            return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+
+        OrderDeliverInfoResBO deliverBO = resResponse.getContext();
+        OrderDeliverInfoResVO resultVO = new OrderDeliverInfoResVO();
+        resultVO.setTradeNo(deliverBO.getTradeNo());
+        resultVO.setOutTradeNo(deliverBO.getOutTradeNo());
+        resultVO.setOrderStatus(deliverBO.getOrderStatus());
+        resultVO.setDeliverStatus(deliverBO.getDeliverStatus());
+        resultVO.setDelivers(new ArrayList<>());
+
+        if (!CollectionUtils.isEmpty(deliverBO.getDelivers())) {
+            resultVO.setDelivers(deliverBO.getDelivers().stream().map(item -> buildDeliverResVO(item)).collect(Collectors.toList()));
+        }
+        return BusinessResponse.success(resultVO);
+    }
+
+    private DeliverResVO buildDeliverResVO(DeliverResBO item) {
+        DeliverResVO resVO = new DeliverResVO();
+        resVO.setDeliverId(item.getDeliverId());
+        resVO.setDeliverTime(item.getDeliverTime());
+        if (Objects.nonNull(item.getConsignee())) {
+            resVO.setConsignee(KsBeanUtil.convert(item.getConsignee(), ConsigneeResVO.class));
+        }
+        if (Objects.nonNull(item.getLogistics())) {
+            resVO.setLogistics(KsBeanUtil.convert(item.getLogistics(), LogisticsResVO.class));
+        }
+        if (Objects.nonNull(item.getDeliverItems())) {
+            resVO.setDeliverItems(KsBeanUtil.convert(item.getDeliverItems(), DeliverItemResVO.class));
+        }
+        return resVO;
+    }
+
+    /**
+     * 根据樊登读书用户获取商城用户信息
+     */
     private CustomerVO getCustomByFddsUser(String fddsUserId, String name, String phone) {
         NoDeleteCustomerGetByFanDengRequest fddsId = new NoDeleteCustomerGetByFanDengRequest();
         fddsId.setFanDengId(fddsUserId);
@@ -300,105 +355,5 @@ public class OpenSubstanceController {
                         .openGroupon(false)
                         .build()
         );
-    }
-
-    /**
-     * 订单信息
-     */
-    @PostMapping(value = "/order/deliverInfo")
-    public BusinessResponse<OrderDeliverInfoResVO> deliverInfo(@RequestBody OrderDeliverInfoReqVO param) {
-//        if (!OpenSubstanceSign.verify(param)) { // TODO: 2022/2/16
-//            return BusinessResponse.error("签名错误");
-//        }
-
-        TradeGetByIdResponse tradeGetByIdResponse = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(param.getOrderNo()).needLmOrder(Boolean.TRUE).build()).getContext();
-        if (Objects.isNull(tradeGetByIdResponse) || Objects.isNull(tradeGetByIdResponse.getTradeVO())) {
-            log.info("指定的订单信息不存在：orderNo = {}", param.getOrderNo());
-            return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS, "订单不存在");
-        }
-
-        TradeVO tradeVO = tradeGetByIdResponse.getTradeVO();
-        OrderDeliverInfoResVO resultVO = new OrderDeliverInfoResVO();
-        resultVO.setTradeNo(tradeVO.getId());
-        resultVO.setOutTradeNo(!CollectionUtils.isEmpty(tradeVO.getOutOrderIds()) ? tradeVO.getOutOrderIds().get(0) : null);
-        resultVO.setOrderStatus(Objects.nonNull(tradeVO.getTradeState()) && Objects.nonNull(tradeVO.getTradeState().getFlowState())
-                ? tradeVO.getTradeState().getFlowState().getStateId() : "UNKNOW");
-        resultVO.setDeliverStatus(Objects.nonNull(tradeVO.getTradeState()) && Objects.nonNull(tradeVO.getTradeState().getDeliverStatus())
-                ? tradeVO.getTradeState().getDeliverStatus().getStatusId() : "UNKNOW");
-        //发货单
-        if (!CollectionUtils.isEmpty(tradeVO.getTradeDelivers())) {
-            List<DeliverResVO> deliverResVOs = tradeVO.getTradeDelivers().stream().map(item -> {
-                DeliverResVO deliverResVO = new DeliverResVO();
-                deliverResVO.setDeliverId(item.getDeliverId());
-                //收货人信息
-                fillConsinee(deliverResVO, item.getConsignee());
-                //物流信息
-                fillLogistics(deliverResVO, item.getLogistics());
-                //发货清单
-                fillDeliverItems(deliverResVO, item.getShippingItems());
-                return deliverResVO;
-            }).collect(Collectors.toList());
-            resultVO.setDelivers(deliverResVOs);
-        }
-        return BusinessResponse.success(resultVO);
-    }
-
-    private void fillConsinee(DeliverResVO deliverResVO, ConsigneeVO consignee) {
-        if (Objects.isNull(deliverResVO) || Objects.isNull(consignee)) {
-            return;
-        }
-        ConsigneeResVO consigneeResVO = new ConsigneeResVO();
-        consigneeResVO.setProvinceId(consignee.getProvinceId());
-        consigneeResVO.setProvinceName(consigneeResVO.getProvinceName());
-        consigneeResVO.setCityId(consignee.getCityId());
-        consigneeResVO.setCityName(consignee.getCityName());
-        consigneeResVO.setAreaId(consignee.getAreaId());
-        consigneeResVO.setAreaName(consignee.getAreaName());
-        consigneeResVO.setAddress(consignee.getAddress());
-        consigneeResVO.setDetailAddress(consignee.getDetailAddress());
-        consigneeResVO.setName(consignee.getName());
-        consigneeResVO.setPhone(consignee.getPhone());
-        consigneeResVO.setExpectTime(consignee.getExpectTime());
-        consigneeResVO.setUpdateTime(consignee.getUpdateTime());
-        deliverResVO.setConsignee(consigneeResVO);
-    }
-
-    private void fillLogistics(DeliverResVO deliverResVO, LogisticsVO logistics) {
-        if (Objects.isNull(deliverResVO) || Objects.isNull(logistics)) {
-            return;
-        }
-        LogisticsResVO logisticsResVO = new LogisticsResVO();
-        logisticsResVO.setShipMethodId(logistics.getShipMethodId());
-        logisticsResVO.setShipMethodName(logistics.getShipMethodName());
-        logisticsResVO.setLogisticNo(logistics.getLogisticNo());
-        logisticsResVO.setLogisticFee(logistics.getLogisticFee());
-        logisticsResVO.setLogisticCompanyId(logistics.getLogisticCompanyId());
-        logisticsResVO.setLogisticCompanyName(logistics.getLogisticCompanyName());
-        logisticsResVO.setLogisticStandardCode(logistics.getLogisticStandardCode());
-        logisticsResVO.setBuyerId(logistics.getBuyerId());
-        deliverResVO.setLogistics(logisticsResVO);
-    }
-
-    private void fillDeliverItems(DeliverResVO deliverResVO, List<ShippingItemVO> shippingItems) {
-        if (Objects.isNull(deliverResVO) || Objects.isNull(shippingItems)) {
-            return;
-        }
-
-        List<DeliverItemResVO> deliverItems = shippingItems.stream().map(item -> {
-            DeliverItemResVO deliverItem = new DeliverItemResVO();
-            deliverItem.setListNo(item.getListNo());
-            deliverItem.setItemName(item.getItemName());
-            deliverItem.setItemNum(item.getItemNum());
-            deliverItem.setSkuId(item.getSkuId());
-            deliverItem.setSkuNo(item.getSkuNo());
-            deliverItem.setPic(item.getPic());
-            deliverItem.setSpecDetails(item.getSpecDetails());
-            deliverItem.setUnit(item.getUnit());
-            deliverItem.setPrice(item.getPrice());
-            deliverItem.setBuyPoint(item.getBuyPoint());
-            return deliverItem;
-        }).collect(Collectors.toList());
-
-        deliverResVO.setDeliverItems(deliverItems);
     }
 }

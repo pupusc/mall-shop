@@ -17,7 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Id;
-import java.io.Serializable;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,4 +240,13 @@ public class TradeAddDTO implements Serializable {
      */
     @ApiModelProperty(value = "虚拟商品直冲手机号")
     private String directChargeMobile;
+
+    /**
+     * 外部交易编号
+     */
+    private String outTradeNo;
+    /**
+     * 外部交易平台：FDDS:樊登读书
+     */
+    private String outTradePlat;
 }

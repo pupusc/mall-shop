@@ -10,13 +10,13 @@ import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.request.trade.TradeBackRestrictedRequest;
 import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
 import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
+import com.wanmi.sbc.order.open.TradeDeliverService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
 import com.wanmi.sbc.order.returnorder.service.ThirdPlatformReturnOrderService;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
-import com.wanmi.sbc.order.open.TradeDeliverService;
 import com.wanmi.sbc.order.trade.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -166,7 +166,8 @@ public class OrderConsumerService {
      * 订单发货消息通知
      */
     @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_ORDER_DELIVERED)
-    public void onMessageForOrderDelivered(Trade trade){
-        tradeDeliverService.delivered(trade);
+    public void onMessageForOrderDelivered(Trade trade) {
+        log.info("收到发货消息通知：tradeNo = {}, outTradeNo = {}", trade.getId(), trade.getOutTradeNo());
+        tradeDeliverService.onDeliveredForOutPlat(trade.getId());
     }
 }
