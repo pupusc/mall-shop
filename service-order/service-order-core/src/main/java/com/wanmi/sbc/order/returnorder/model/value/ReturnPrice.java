@@ -47,6 +47,11 @@ public class ReturnPrice {
     private BigDecimal totalPrice;
 
     /**
+     * 运费金额
+     */
+    private BigDecimal deliverPrice;
+
+    /**
      * 实退金额，从退款流水中取的
      */
     private BigDecimal actualReturnPrice;

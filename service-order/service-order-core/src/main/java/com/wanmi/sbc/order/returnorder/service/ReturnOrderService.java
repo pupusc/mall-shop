@@ -147,6 +147,7 @@ import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
 import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.GrouponInstance;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
@@ -563,6 +564,7 @@ public class ReturnOrderService {
                 //组装退单商品详情
                 BigDecimal providerTotalPrice = BigDecimal.ZERO;
                 BigDecimal price = BigDecimal.ZERO;
+                BigDecimal deliverPrice = BigDecimal.ZERO;
                 Long points = 0L;
                 Long knowledge = 0L;
                 for (TradeItem tradeItemVO : providerTradeItems) {
@@ -603,8 +605,10 @@ public class ReturnOrderService {
                 }
 
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
+                    //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
+                        deliverPrice = deliverPrice.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
                     }else {
                         if(trade.getTradePrice() != null && trade.getTradePrice().getDeliveryPrice() != null){
                             price = price.add(trade.getTradePrice().getDeliveryPrice());
@@ -615,6 +619,7 @@ public class ReturnOrderService {
                 //针对退运费的强制
                 if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
                     price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    deliverPrice = price;
                     providerTotalPrice = BigDecimal.ZERO;
                     points = 0L;
                     knowledge = 0L;
@@ -624,6 +629,7 @@ public class ReturnOrderService {
                 returnOrder.getReturnPrice().setProviderTotalPrice(providerTotalPrice);
                 returnOrder.getReturnPrice().setApplyPrice(price);
                 returnOrder.getReturnPrice().setTotalPrice(price);
+                returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
                 returnOrder.getReturnPoints().setApplyPoints(points);
                 returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
@@ -631,6 +637,7 @@ public class ReturnOrderService {
             if (storeItemList != null) {
                 List<ReturnItem> returnItemDTOList = new ArrayList<>();
                 BigDecimal price = BigDecimal.ZERO;
+                BigDecimal deliverPrice = BigDecimal.ZERO;
                 Long points = 0L;
                 Long knowledge = 0L;
                 //组装退单详情
@@ -668,6 +675,7 @@ public class ReturnOrderService {
                 returnOrder.setReturnItems(returnItemDTOList);
                 returnOrder.getReturnPrice().setApplyPrice(price);
                 returnOrder.getReturnPrice().setTotalPrice(price);
+                returnOrder.getReturnPrice().setDeliverPrice(deliverPrice);
                 returnOrder.getReturnPoints().setApplyPoints(points);
                 returnOrder.getReturnKnowledge().setApplyKnowledge(knowledge);
             }
@@ -724,6 +732,10 @@ public class ReturnOrderService {
 
             for (ReturnOrder returnOrderParam : deliveryReturnOrderList) {
                 if (providerIdMap.get(Long.valueOf(returnOrderParam.getProviderId())) != null) {
+                    throw new SbcRuntimeException("K-050414");
+                }
+
+                if (returnOrderParam.getReturnPrice().getDeliverPrice() != null && returnOrderParam.getReturnPrice().getDeliverPrice().compareTo(BigDecimal.ZERO) > 0) {
                     throw new SbcRuntimeException("K-050414");
                 }
             }
@@ -2361,6 +2373,10 @@ public class ReturnOrderService {
             boolean isTradeVoid = true;
             for (ProviderTrade providerTradeParam : providerTradeList) {
                 if (!providerTradeParam.getId().equals(returnOrder.getPtid())) {
+                    //判断当前子单子如果没有完成，则主订单不进行作废
+                    if (!FlowState.VOID.equals(providerTradeParam.getTradeState().getFlowState())) {
+                        isTradeVoid = false;
+                    }
                     continue;
                 }
                 boolean isReturnOrderAllComplete = true;
@@ -4544,10 +4560,12 @@ public class ReturnOrderService {
             providerTradeSimpleVO.setTid(providerTradeParam.getParentId());
             providerTradeSimpleVO.setPid(providerTradeParam.getId());
 
-            Long providerId = providerTradeParam.getSupplier().getStoreId();
-            providerTradeSimpleVO.setProviderId(providerId.toString());
-            BigDecimal deliverCompletePrice = returnDeliveryCompleteMap.get(providerId.toString());
-            BigDecimal deliverIngPrice = returnDeliveryIngMap.get(providerId.toString());
+            Supplier supplier = providerTradeParam.getSupplier();
+            String providerId = supplier == null ? "" : supplier.getStoreId().toString();
+            providerTradeSimpleVO.setProviderId(providerId);
+            providerTradeSimpleVO.setProviderName(supplier == null ? "" : supplier.getStoreName());
+            BigDecimal deliverCompletePrice = returnDeliveryCompleteMap.get(providerId);
+            BigDecimal deliverIngPrice = returnDeliveryIngMap.get(providerId);
 
             providerTradeSimpleVO.setDeliveryCompletePrice(deliverCompletePrice == null ? BigDecimal.ZERO.toString() : deliverCompletePrice.toString());
             providerTradeSimpleVO.setDeliveryIngPrice(deliverIngPrice == null ? BigDecimal.ZERO.toString() : deliverIngPrice.toString());

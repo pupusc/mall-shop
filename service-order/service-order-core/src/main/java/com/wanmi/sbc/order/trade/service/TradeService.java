@@ -1306,6 +1306,7 @@ public class TradeService {
                         if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
                             item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
                         }
+                        item.setProviderName(group.getSupplier().getStoreName());
                     });
                     // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
                     Invoice invoice = Invoice.builder()
