@@ -69,8 +69,6 @@ public class TradeController implements TradeProvider {
     @Autowired
     private TradePushERPService tradePushERPService;
 
-    @Autowired
-    private OrderService orderService;
 
     /**
      * 新增交易单
@@ -812,7 +810,7 @@ public class TradeController implements TradeProvider {
      */
     @Override
     public BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
-        List<TradeCommitResult> results = orderService.commitTrade(tradeCommitRequest);
+        List<TradeCommitResult> results = tradeOptimizeService.commitTrade(tradeCommitRequest);
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
 
