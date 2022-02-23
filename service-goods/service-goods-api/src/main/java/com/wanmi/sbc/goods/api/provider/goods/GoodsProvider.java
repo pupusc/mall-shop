@@ -13,12 +13,14 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -304,6 +306,15 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
     BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+
+
+    /**
+     * 根据erpGoodsno 更新成新的 erpGoodsNoOld
+     * @param erpGoodsColl
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/update-goods-erp-goods-no")
+    BaseResponse updateGoodsErpGoodsNo(@RequestBody Collection<GoodsUpdateProviderRequest> erpGoodsColl);
 
 
 

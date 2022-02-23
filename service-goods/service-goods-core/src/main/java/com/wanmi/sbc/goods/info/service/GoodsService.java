@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.info.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
@@ -21,12 +22,14 @@ import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsCateErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyEvaluateNumRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifySalesNumRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsQueryNeedSynRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.ProviderGoodsNotSellRequest;
 import com.wanmi.sbc.goods.api.request.goods.ThirdGoodsVendibilityRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsQueryRequest;
@@ -50,6 +53,8 @@ import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
+import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
@@ -152,6 +157,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -162,6 +168,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -3474,4 +3481,85 @@ public class GoodsService {
     }
 
 
+    /**
+     * 更新erpGoodsNo
+     * @param erpGoodsColl
+     * @return
+     */
+    @Transactional
+    public List<String> updateGoodsErpGoodsNo(Collection<GoodsUpdateProviderRequest> erpGoodsColl) {
+        List<String> result = new ArrayList<>();
+        if (CollectionUtils.isEmpty(erpGoodsColl)) {
+            log.info("update goods erpGoodsNoColl is empty");
+            return result;
+        }
+
+        long beginTime = System.currentTimeMillis();
+        log.info("update goods beginTime: {}", beginTime);
+        List<String> goodsIdList = erpGoodsColl.stream().map(GoodsUpdateProviderRequest::getGoodsId).collect(Collectors.toList());
+
+
+        if (!CollectionUtils.isEmpty(goodsIdList)) {
+            List<Goods> goodsList = goodsRepository.findAll(this.packageWhere(goodsIdList));
+            if (CollectionUtils.isEmpty(goodsList)) {
+                log.info("update goods goodsList is empty");
+                return goodsIdList;
+            }
+
+
+            Map<String, Goods> goodsId2Map = goodsList.stream().collect(Collectors.toMap(Goods::getGoodsId, Function.identity(), (k1, k2) -> k1));
+            int goodsCount = 0;
+            for (GoodsUpdateProviderRequest goodsUpdateProviderRequest : erpGoodsColl) {
+                Goods goodsParam = goodsId2Map.get(goodsUpdateProviderRequest.getGoodsId());
+                if (goodsParam == null) {
+                    log.info("update goods request body: {} 没有查询到商品信息", JSON.toJSONString(goodsUpdateProviderRequest));
+                    continue;
+                }
+                goodsParam.setErpGoodsNo(goodsUpdateProviderRequest.getErpGoodsNoNew());
+                goodsRepository.save(goodsParam);
+                goodsCount++;
+                goodsIdList.add(goodsParam.getGoodsId());
+                log.info("update goods goodsId:{} requestBody: {} complete {} times", goodsParam.getGoodsId(), JSON.toJSONString(goodsUpdateProviderRequest), goodsCount);
+            }
+        }
+
+        //goodsInfo
+        List<String> goodsInfoIdList = erpGoodsColl.stream().map(GoodsUpdateProviderRequest::getGoodsInfoId).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(goodsInfoIdList)) {
+            List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsInfoIds(goodsInfoIdList);
+            Map<String, GoodsInfo> goodsInfoId2Map = goodsInfoList.stream().collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+            int goodsInfoCount = 0;
+            for (GoodsUpdateProviderRequest goodsUpdateProviderRequest : erpGoodsColl) {
+                GoodsInfo goodsInfoParam = goodsInfoId2Map.get(goodsUpdateProviderRequest.getGoodsInfoId());
+                if (goodsInfoParam == null) {
+                    log.info("update goodsInfo request body: {} 没有查询到商品信息", JSON.toJSONString(goodsUpdateProviderRequest));
+                    continue;
+                }
+                goodsInfoParam.setErpGoodsNo(goodsUpdateProviderRequest.getErpGoodsNoNew());
+                goodsInfoParam.setErpGoodsInfoNo(goodsUpdateProviderRequest.getErpGoodsInfoNoNew());
+                goodsInfoRepository.save(goodsInfoParam);
+                goodsInfoCount++;
+                log.info("update goodsInfo goodsId:{} requestBody: {} complete {} times", goodsInfoParam.getGoodsInfoId(), JSON.toJSONString(goodsUpdateProviderRequest), goodsInfoCount);
+            }
+        }
+
+        log.info("update goods end total : {} ms", System.currentTimeMillis() - beginTime);
+        return goodsIdList;
+    }
+
+
+    private Specification<Goods> packageWhere(Collection<String> goodsIdColl) {
+        return new Specification<Goods>() {
+            @Override
+            public Predicate toPredicate(Root<Goods> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                final List<Predicate> conditionList = new ArrayList<>();
+
+                //只是获取有效的
+                if (CollectionUtils.isNotEmpty(goodsIdColl)) {
+                    conditionList.add(root.get("goodsId").in(goodsIdColl));
+                }
+                return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
+            }
+        };
+    }
 }
