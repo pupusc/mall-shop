@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.GenericJDBCException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,8 @@ import java.util.Objects;
 @ControllerAdvice
 @Slf4j
 public class SbcExceptionHandler {
+    @Value("${open.error.stack.trace:false}")
+    private String openErrorStackTrace;
 
     @Autowired
     private MessageSource messageSource;
@@ -60,8 +63,7 @@ public class SbcExceptionHandler {
             }
 
             if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
-                //log.error(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), ex);
-                log.info(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "--");
+                log.info(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "true".equalsIgnoreCase(openErrorStackTrace) ? ex : "--");
                 return BaseResponse.info(errorCode, ex.getResult());
             }
         } else if (StringUtils.isEmpty(msg)) {
