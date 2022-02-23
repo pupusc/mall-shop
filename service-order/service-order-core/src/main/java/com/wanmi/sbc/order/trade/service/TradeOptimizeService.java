@@ -554,12 +554,6 @@ public class TradeOptimizeService {
         }
     }
 
-
-    /**
-     * 提交订单，不用快照,只是正常商品下单，注释的是第一期不做的
-     * @param tradeCommitRequest
-     * @return
-     */
     @Transactional
     @GlobalTransactional
     public List<TradeCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
@@ -610,7 +604,7 @@ public class TradeOptimizeService {
             //tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
-             successResults = tradeService.createBatch(trades, null, operator);
+            successResults = tradeService.createBatch(trades, null, operator);
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {
@@ -754,4 +748,7 @@ public class TradeOptimizeService {
         });
         return itemGroups;
     }
+
+
+
 }

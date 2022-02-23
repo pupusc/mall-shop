@@ -7033,7 +7033,7 @@ public class TradeService {
      *
      * @param trades todo 入限售记录
      */
-    protected void insertRestrictedRecord(List<Trade> trades) {
+    public void insertRestrictedRecord(List<Trade> trades) {
         if (CollectionUtils.isEmpty(trades)) {
             return;
         }

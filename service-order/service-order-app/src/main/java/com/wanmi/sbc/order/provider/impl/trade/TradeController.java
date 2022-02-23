@@ -1,4 +1,5 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+import com.soybean.mall.order.trade.service.OrderService;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.order.bean.vo.*;
 
@@ -67,6 +68,7 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private TradePushERPService tradePushERPService;
+
 
     /**
      * 新增交易单
@@ -812,10 +814,5 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, TradeCommitResultVO.class)));
     }
 
-    @Override
-    public BaseResponse<List<TradeItemGroupVO>> getItemInfo(@RequestBody @Valid TradePurchaseRequest request) {
-        List<TradeItemGroup> results = tradeOptimizeService.getTradeItemList(request);
-        return BaseResponse.success(KsBeanUtil.convertList(results,TradeItemGroupVO.class));
-    }
 
 }
