@@ -15,6 +15,7 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-goods-core</artifactId>
@@ -136,7 +137,7 @@
                                 service-linkedmall-api,service-linkedmall-bean,
                                 service-customer-api,service-customer-bean,ares-api,
                                 service-setting-api,service-setting-bean,service-common,service-erp-api,
-                                service-erp-bean
+                                service-erp-bean,service-wx-api
                             </excludeArtifactIds>
                             <outputDirectory>
                                 ${project.build.directory}/3rd-lib/
@@ -225,6 +226,10 @@
                             <groupId>${project.groupId}</groupId>
                             <artifactId>service-erp-bean</artifactId>
                         </include>
+                        <include>
+                            <groupId>com.soybean.mall</groupId>
+                            <artifactId>service-wx-api</artifactId>
+                        </include>
                     </includes>
                     <mainClass>${main-class}</mainClass>
                     <layout>ZIP</layout>
@@ -240,7 +245,6 @@
                     </execution>
                 </executions>
             </plugin>
-
 
         </plugins>
     </build>

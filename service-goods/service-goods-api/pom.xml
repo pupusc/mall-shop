@@ -44,12 +44,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.wanmi.sbc</groupId>
-            <artifactId>service-goods-bean</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
             <optional>true</optional>
