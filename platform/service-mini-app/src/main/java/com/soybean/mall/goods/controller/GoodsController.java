@@ -41,7 +41,7 @@ public class GoodsController {
     private GoodsQueryProvider goodsQueryProvider;
 
     @PostMapping("/list")
-    public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(WxGoodsSearchRequest wxGoodsSearchRequest){
+    public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
         if(wxGoodsSearchRequest.getGoodsName() != null){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
@@ -61,12 +61,12 @@ public class GoodsController {
     }
 
     @PostMapping("/add")
-    public BaseResponse addGoods(WxGoodsCreateRequest wxGoodsCreateRequest){
+    public BaseResponse addGoods(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
         return wxMiniGoodsProvider.add(wxGoodsCreateRequest);
     }
 
     @PostMapping("/delete")
-    public BaseResponse deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
+    public BaseResponse deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest){
         return wxMiniGoodsProvider.delete(wxDeleteProductRequest);
     }
 

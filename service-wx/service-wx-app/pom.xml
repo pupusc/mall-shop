@@ -11,6 +11,10 @@
 
     <artifactId>service-wx-app</artifactId>
 
+    <properties>
+        <main-class>com.soybean.mall.wx.WxServiceApplication</main-class>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dom4j</groupId>
@@ -86,4 +90,27 @@
             <version>2.8.0</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>${main-class}</mainClass>
+                    <layout>ZIP</layout>
+                    <fork>true</fork>
+                    <addResources>true</addResources>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
