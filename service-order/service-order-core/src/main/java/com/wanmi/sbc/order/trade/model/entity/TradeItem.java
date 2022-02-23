@@ -575,4 +575,6 @@ public class TradeItem implements Serializable, Cloneable {
     @ApiModelProperty("成本价")
     private BigDecimal costPrice;
 
+    private Long stock;
+
 }

@@ -1,25 +1,49 @@
 package com.soybean.mall.goods.controller;
 
+import com.soybean.mall.goods.response.GoodsDetailResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.WxGoodsVo;
+import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,6 +55,9 @@ public class GoodsController {
     private WxMiniGoodsProvider wxMiniGoodsProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(WxGoodsSearchRequest wxGoodsSearchRequest){
@@ -61,6 +88,24 @@ public class GoodsController {
     public BaseResponse deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
         return wxMiniGoodsProvider.delete(wxDeleteProductRequest);
     }
+
+    /**
+     * 商品详情
+     * @param spuId
+     * @return
+     */
+    @GetMapping("/detail")
+    public BaseResponse<GoodsDetailResponse> detail(@RequestParam("spuId")String spuId){
+        GoodsViewByIdRequest request = new GoodsViewByIdRequest();
+        request.setGoodsId(spuId);
+        request.setShowLabelFlag(true);
+        GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
+        return BaseResponse.success(KsBeanUtil.convert(response,GoodsDetailResponse.class));
+        
+
+    }
+
+
 
 
 
