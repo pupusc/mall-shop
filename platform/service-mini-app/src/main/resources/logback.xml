@@ -1,20 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <contextName>mini-app</contextName>
-    <!-- 控制台日志输出，供本机联调使用 -->
-<!--    <include resource="org/springframework/boot/logging/logback/base.xml"/>-->
-
-    <!-- name的值是变量的名称，value的值时变量定义的值。通过定义的值会被插入到logger上下文中。定义变量后，可以使“${}”来使用变量。 -->
-    <!-- 彩色日志 -->
-    <!-- 彩色日志依赖的渲染类 -->
-    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
-    <conversionRule conversionWord="wex"
-                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
-    <conversionRule conversionWord="wEx"
-                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
-    <!-- 彩色日志格式 -->
-    <!-- <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>-->
-    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){cyan} %clr(%-40.40logger{39}){magenta} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
 
     <!--输出到控制台-->
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
@@ -23,8 +9,7 @@
             <level>info</level>
         </filter>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-<!--            <pattern>%d %thread %level %logger{35} %X{reqId} - %msg%n</pattern>-->
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss} %-5level %thread %cyan(%logger{32}): %msg%n</pattern>
             <!--设置编码-->
             <charset>UTF-8</charset>
         </encoder>
