@@ -1,5 +1,6 @@
 package com.soybean.mall.order.controller;
 
+import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
@@ -19,6 +20,8 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
+import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
@@ -62,15 +65,18 @@ public class OrderController {
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Autowired
+    private VerifyQueryProvider verifyQueryProvider;
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
-//    @GlobalTransactional
-    public BaseResponse<TradeConfirmResponse> getPurchaseItems(@RequestBody TradeItemConfirmRequest request) {
+    //@GlobalTransactional
+    public BaseResponse<OrderConfirmResponse> getPurchaseItems(@RequestBody TradeItemConfirmRequest request) {
 
-        TradeConfirmResponse confirmResponse = new TradeConfirmResponse();
+        OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
         String customerId = commonUtil.getOperatorId();
         //验证用户
         CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
@@ -83,23 +89,18 @@ public class OrderController {
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
         List<TradeConfirmItemVO> items= new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
-        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(tradeItems.get(0).getStoreId())
+        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(skuResp.getGoodsInfos().get(0).getStoreId())
                 .build())
                 .getContext().getStoreVO();
 
         TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
-        List<TradeItemVO> tradeItemVOS = new ArrayList<>();
-        //填充商品信息和价格
-        tradeItems.forEach(tradeItemDTO -> {
-            Optional<GoodsInfoVO> optionalGoodsInfoVO = skuResp.getGoodsInfos().stream().filter(p->p.getGoodsInfoId().equals(tradeItemDTO.getSkuId())).findFirst();
-            if(optionalGoodsInfoVO.isPresent()){
-                TradeItemVO tradeItemVO = KsBeanUtil.convert(optionalGoodsInfoVO.get(),TradeItemVO.class);
-                tradeItemVO.setNum(tradeItemDTO.getNum());
-                tradeItemVOS.add(tradeItemVO);
-            }
-        });
-        tradeConfirmItemVO.setTradeItems(tradeItemVOS);
-        tradeConfirmItemVO.setTradePrice(calPrice(tradeItemVOS));
+        //商品验证并填充商品价格
+        List<TradeItemVO> tradeItemVOList =
+                verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
+                        KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
+                        store.getStoreId(), true)).getContext().getTradeItems();
+        tradeConfirmItemVO.setTradeItems(tradeItemVOList);
+        tradeConfirmItemVO.setTradePrice(calPrice(tradeItemVOList));
 
         DefaultFlag freightTemplateType = store.getFreightTemplateType();
         SupplierVO supplier = SupplierVO.builder()
@@ -112,6 +113,7 @@ public class OrderController {
                 .freightTemplateType(freightTemplateType)
                 .build();
         tradeConfirmItemVO.setSupplier(supplier);
+        items.add(tradeConfirmItemVO);
         confirmResponse.setTradeConfirmItems(items);
         return BaseResponse.success(confirmResponse);
     }
@@ -120,7 +122,6 @@ public class OrderController {
      * 获取订单商品详情,会员价
      */
     private GoodsInfoResponse getGoodsResponse(List<String> skuIds, CustomerVO customer) {
-        //性能优化，原来从order服务绕道，现在直接从goods服务直行
         GoodsInfoViewByIdsRequest goodsInfoRequest = GoodsInfoViewByIdsRequest.builder()
                 .goodsInfoIds(skuIds)
                 .isHavSpecText(Constants.yes)

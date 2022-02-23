@@ -244,6 +244,7 @@ public class VerifyService {
                         if (tradeItem.getNum() > (providerGoodsInfo.getStock() + oldNum)) {
                             throw new SbcRuntimeException("K-050116");
                         }
+                        tradeItem.setStock(providerGoodsInfo.getStock());
                     }
                     //如果是linkedmall商品，实时查库存,根据区域码查库存
                     if (ThirdPlatformType.LINKED_MALL.equals(goodsInfo.getThirdPlatformType())) {

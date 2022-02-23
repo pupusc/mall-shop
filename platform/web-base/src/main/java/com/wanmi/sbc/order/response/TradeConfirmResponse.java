@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -22,8 +23,9 @@ import java.util.List;
  */
 @ApiModel
 @Data
-public class TradeConfirmResponse {
+public class TradeConfirmResponse implements Serializable {
 
+    private static final long serialVersionUID = -6582897817334171647L;
     /**
      * 是否为分销员
      */
