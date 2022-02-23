@@ -29,7 +29,6 @@ public class WxAuditCallbackParser implements ApplicationListener<ContextStarted
     public void dealCallback(InputStream inputStream) {
         try {
             Map<String, Object> paramMap = parseXML(inputStream);
-
             for (CallbackHandler handler : handlers) {
                 if(handler.support((String) paramMap.get("Event"))){
                     handler.handle(paramMap);

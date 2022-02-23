@@ -39,7 +39,7 @@ public interface ExternalProvider {
      * @return
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/wx-auth-login")
-    BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLogin(FanDengWxAuthLoginRequest request);
+    BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLogin(@RequestBody FanDengWxAuthLoginRequest request);
 
     /**
      * 调用樊登发送验证码前置接口

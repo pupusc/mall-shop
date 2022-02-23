@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -41,11 +42,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
 
     //接入回调验证
     @Override
-    public BaseResponse verifyCallback(HttpServletRequest request) {
-        String signature = request.getParameter("signature");
-        String timestamp = request.getParameter("timestamp");
-        String nonce = request.getParameter("nonce");
-        String echostr = request.getParameter("echostr");
+    public BaseResponse verifyCallback(Map<String, String[]> parameterMap) {
+        String signature = parameterMap.get("signature")[0];
+        String timestamp = parameterMap.get("timestamp")[0];
+        String nonce = parameterMap.get("nonce")[0];
+        String echostr = parameterMap.get("echostr")[0];
         String token = wxService.getAccessToken();
         log.info("微信回调接入，参数:{},{},{},{},{}", signature, timestamp, nonce, echostr, token);
         List<String> arrays = Arrays.asList(token, timestamp, nonce);

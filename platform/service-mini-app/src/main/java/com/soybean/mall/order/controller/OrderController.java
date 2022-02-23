@@ -67,7 +67,7 @@ public class OrderController {
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
-    @GlobalTransactional
+//    @GlobalTransactional
     public BaseResponse<TradeConfirmResponse> getPurchaseItems(@RequestBody TradeItemConfirmRequest request) {
 
         TradeConfirmResponse confirmResponse = new TradeConfirmResponse();

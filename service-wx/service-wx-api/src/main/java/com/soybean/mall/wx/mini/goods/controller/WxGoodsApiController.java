@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @RequestMapping("/wx/mini")
 @FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
@@ -25,5 +26,5 @@ public interface WxGoodsApiController {
     BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest);
 
     @PostMapping("/goods/verify/callback")
-    BaseResponse verifyCallback(HttpServletRequest request);
+    BaseResponse verifyCallback(@RequestBody Map<String, String[]> parameterMap);
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -34,7 +35,8 @@ public class WxCallbackController {
     @GetMapping("/callback")
     public String verifyCallback(HttpServletRequest request) {
         log.info("微信回调验证");
-        BaseResponse baseResponse = wxGoodsApiController.verifyCallback(request);
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        BaseResponse baseResponse = wxGoodsApiController.verifyCallback(parameterMap);
         return (String) baseResponse.getContext();
     }
 }
