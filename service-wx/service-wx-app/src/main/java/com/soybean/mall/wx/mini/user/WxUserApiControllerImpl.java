@@ -1,7 +1,7 @@
 package com.soybean.mall.wx.mini.user;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxGetOPenIdResponse;
-import com.soybean.mall.wx.mini.goods.service.WxService;
+import com.soybean.mall.wx.mini.service.WxService;
 import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest;
 import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
 import com.soybean.mall.wx.mini.user.controller.WxUserApiController;

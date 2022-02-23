@@ -1,4 +1,4 @@
-package com.soybean.mall.wx.mini.goods.service;
+package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
