@@ -55,9 +55,11 @@ import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.RefundBillDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnCustomerAccountDTO;
+import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.returnorder.request.ReturnOfflineRefundRequest;
 import com.wanmi.sbc.returnorder.service.AbstractCRMService;
@@ -91,6 +93,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 退货
@@ -201,6 +205,19 @@ public class StoreReturnOrderController {
                 .companyCode(companyInfo.getCompanyCode()).supplierName(companyInfo.getSupplierName())
                 .storeId(commonUtil.getStoreId()).storeName(store.getStoreName()).companyType(store.getCompanyType()).build());
         TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
+        //判断当前申请的退单中包含退单
+        Map<String, ReturnItemDTO> returnItemDTOMap =
+                returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItemDTO::getSkuId, Function.identity(), (k1, k2) -> k1));
+        for (TradeItemVO tradeItemParam : trade.getTradeItems()) {
+            ReturnItemDTO returnItemParam = returnItemDTOMap.get(tradeItemParam.getSkuId());
+            if (returnItemParam == null) {
+                continue;
+            }
+            if (DeliverStatus.PART_SHIPPED == tradeItemParam.getDeliverStatus()) {
+                throw new SbcRuntimeException("K-050411");
+            }
+        }
+
         returnOrder.setChannelType(trade.getChannelType());
         returnOrder.setDistributorId(trade.getDistributorId());
         returnOrder.setInviteeId(trade.getInviteeId());
