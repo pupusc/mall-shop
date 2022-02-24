@@ -4655,17 +4655,17 @@ public class ReturnOrderService {
 
                     //完成的金额
                     BigDecimal returnItemPriceSum = returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice() == null ? BigDecimal.ZERO : returnItemParam.getSplitPrice());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getApplyRealPrice() == null ? BigDecimal.ZERO : returnItemParam.getApplyRealPrice());
                     returnSkuIdPriceCompleteMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
 
                     //完成的积分
                     long returnItemPoint = returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemPoint += (returnItemParam.getSplitPoint() == null ? 0L : returnItemParam.getSplitPoint());
+                    returnItemPoint += (returnItemParam.getApplyPoint() == null ? 0L : returnItemParam.getApplyPoint());
                     returnSkuIdPointCompleteMap.put(returnItemParam.getSkuId(), returnItemPoint);
 
                     //完成的知豆
                     long returnItemKnowledge = returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeCompleteMap.get(returnItemParam.getSkuId());
-                    returnItemKnowledge += returnItemParam.getSplitKnowledge() == null ? 0L : returnItemParam.getSplitKnowledge();
+                    returnItemKnowledge += returnItemParam.getApplyKnowledge() == null ? 0L : returnItemParam.getApplyKnowledge();
                     returnSkuIdKnowledgeCompleteMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 } else {
                     //退款中的数量
@@ -4675,17 +4675,17 @@ public class ReturnOrderService {
 
                     //退款中的金额
                     BigDecimal returnItemPriceSum = returnSkuIdPriceIngMap.get(returnItemParam.getSkuId()) == null ? BigDecimal.ZERO : returnSkuIdPriceIngMap.get(returnItemParam.getSkuId());
-                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getSplitPrice() == null ? BigDecimal.ZERO : returnItemParam.getSplitPrice());
+                    returnItemPriceSum = returnItemPriceSum.add(returnItemParam.getApplyRealPrice() == null ? BigDecimal.ZERO : returnItemParam.getApplyRealPrice());
                     returnSkuIdPriceIngMap.put(returnItemParam.getSkuId(), returnItemPriceSum);
 
                     //退款中的积分
                     long returnItemPoint = returnSkuIdPointIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdPointIngMap.get(returnItemParam.getSkuId());
-                    returnItemPoint += returnItemParam.getSplitPoint() == null ? 0L : returnItemParam.getSplitPoint();
+                    returnItemPoint += returnItemParam.getApplyPoint() == null ? 0L : returnItemParam.getApplyPoint();
                     returnSkuIdPointIngMap.put(returnItemParam.getSkuId(), returnItemPoint);
 
                     //退款中的知豆
                     long returnItemKnowledge = returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId()) == null ? 0L : returnSkuIdKnowledgeIngMap.get(returnItemParam.getSkuId());
-                    returnItemKnowledge += returnItemParam.getSplitKnowledge() == null ? 0L : returnItemParam.getSplitKnowledge();
+                    returnItemKnowledge += returnItemParam.getApplyKnowledge() == null ? 0L : returnItemParam.getApplyKnowledge();
                     returnSkuIdKnowledgeIngMap.put(returnItemParam.getSkuId(), returnItemKnowledge);
                 }
             }
