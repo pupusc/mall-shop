@@ -106,6 +106,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>service-wx-api</artifactId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-goods-api</artifactId>
             <version>${wm.micro.service.version}</version>

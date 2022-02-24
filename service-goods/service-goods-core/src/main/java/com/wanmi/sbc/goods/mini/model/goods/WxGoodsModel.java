@@ -22,8 +22,8 @@ public class WxGoodsModel {
     @Column(name = "goods_id")
     private String goodsId;
 
-    @Column(name = "goods_info_id")
-    private String goodsInfoId;
+    @Column(name = "platform_product_id")
+    private Long platformProductId;
 
     //状态
     @Column(name = "status", columnDefinition = "tinyint")
@@ -34,10 +34,6 @@ public class WxGoodsModel {
     @Column(name = "audit_status", columnDefinition = "tinyint")
     @Enumerated
     private WxGoodsEditStatus auditStatus;
-
-    //审核通过次数
-    @Column(name = "audit_times")
-    private Integer auditTimes;
 
     //微信类目id
     @Column(name = "wx_category")

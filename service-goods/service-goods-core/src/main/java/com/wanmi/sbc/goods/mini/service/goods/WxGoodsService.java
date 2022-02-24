@@ -23,6 +23,7 @@ import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -58,11 +61,9 @@ public class WxGoodsService {
     public void addGoods(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = new WxGoodsModel();
         wxGoodsModel.setGoodsId(createRequest.getGoodsId());
-        wxGoodsModel.setGoodsInfoId(createRequest.getGoodsInfoId());
         wxGoodsModel.setWxCategory(createRequest.getWxCategory());
         wxGoodsModel.setStatus(WxGoodsStatus.ON_UPLOAD);
         wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
-        wxGoodsModel.setAuditTimes(0);
         LocalDateTime now = LocalDateTime.now();
         wxGoodsModel.setUploadTime(now);
         wxGoodsModel.setCreateTime(now);
@@ -81,14 +82,18 @@ public class WxGoodsService {
 
     @Transactional
     public void deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
-        Goods goods = goodsService.findByGoodsId(wxDeleteProductRequest.getOutProductId());
-        if(goods != null){
-            goods.setDelFlag(DeleteFlag.NO);
-            goodsService.save(goods);
-        }
-        BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
-        if(!response.getContext()){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(wxDeleteProductRequest.getOutProductId(), DeleteFlag.NO);
+        if(wxGoodsModel != null){
+            Long platformProductId = wxGoodsModel.getPlatformProductId();
+            wxGoodsModel.setDelFlag(DeleteFlag.YES);
+            wxGoodsRepository.save(wxGoodsModel);
+
+            if(platformProductId != null){
+                BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
+                if(!response.getContext()){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
+                }
+            }
         }
     }
 
@@ -120,15 +125,16 @@ public class WxGoodsService {
     }
 
     public void auditCallback(Map<String, Object> paramMap){
-        Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
-        String wxStatus = auditResult.get("status");
-        String goodsId = auditResult.get("out_product_id");
-        if("4".equals(wxStatus)){
+        Map<String, Object> auditResult = (Map<String, Object>) paramMap.get("OpenProductSpuAudit");
+        int wxStatus = (int) auditResult.get("status");
+        String goodsId = (String) auditResult.get("out_product_id");
+        long productId = (long) auditResult.get("product_id");
+        if(wxStatus == 4){
             //成功
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
-            wxGoodsModel.setAuditTimes(wxGoodsModel.getAuditTimes() + 1);
+            wxGoodsModel.setPlatformProductId(productId);
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -145,9 +151,9 @@ public class WxGoodsService {
             }else if(wxGoodsStatus.equals(WxGoodsStatus.UPLOAD) && editStatus.equals(WxGoodsEditStatus.ON_CHECK)){
 
             }*/
-        }else if("3".equals(wxStatus)){
+        }else if(wxStatus == 3){
             //失败
-            String rejectReason = auditResult.get("reject_reason");
+            String rejectReason = (String) auditResult.get("reject_reason");
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
