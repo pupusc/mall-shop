@@ -1,6 +1,8 @@
 package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
@@ -9,14 +11,14 @@ import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.wanmi.sbc.common.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import sun.security.provider.MD5;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -39,6 +41,7 @@ public class WxService {
     private static final String DELIVERY_SEND_URL="https://api.weixin.qq.com/shop/delivery/send";
     private static final String DELIVERY_RECEIVE_URL="https://api.weixin.qq.com/shop/delivery/recieve";
     private static final String AFTER_SALE_URL="https://api.weixin.qq.com/shop/aftersale/add";
+    private static final String UPLOAD_IMG_URL="https://api.weixin.qq.com/shop/img/upload";
 
     private static final HttpHeaders defaultHeader;
     static {
@@ -75,18 +78,13 @@ public class WxService {
         return null;
     }
 
-    public boolean uploadGoodsToWx(WxAddProductRequest addProductRequest){
+    public WxAddProductResponse uploadGoodsToWx(WxAddProductRequest addProductRequest){
         String accessToken = getAccessToken();
         String url = ADD_PRODUCT_URL.concat("?access_token=").concat(accessToken);
 
         String reqJsonStr = JSONObject.toJSONString(addProductRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        WxAddProductResponse wxAddProductResponse = sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
-
-        if(!wxAddProductResponse.isSuccess()){
-            return false;
-        }
-        return true;
+        return sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
     }
 
     public boolean deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
@@ -114,21 +112,32 @@ public class WxService {
         String requestUrl = ACCESS_TOKEN_URL.concat("?grant_type=client_credential").concat("&appid=").concat(wxAppid)
                 .concat("&secret=").concat(wxAppsecret);
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 15L, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 600L, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
     }
 
     private <T extends WxResponseBase> T sendRequest(String url, HttpMethod method, HttpEntity httpEntity, Class<T> clazz){
-        log.info("请求地址:{},参数:{}", url, httpEntity == null?"" : JSONObject.toJSON(httpEntity.getBody()));
+        log.info("请求地址:{},参数:{}", url, httpEntity == null?"" : JSONObject.toJSONString(httpEntity.getBody()));
         ResponseEntity<String> exchange = restTemplate.exchange(url, method, httpEntity, String.class);
         String response = exchange.getBody();
         log.info("响应:{}", response);
         T t = JSONObject.parseObject(response, clazz);
         if(!t.isSuccess()){
             log.error("微信api请求失败:{}", t.getErrmsg());
-            return null;
         }
         return t;
+    }
+
+    public WxUploadImageResponse uploadImg(WxUploadImageRequest wxUploadImageRequest){
+        String url = UPLOAD_IMG_URL.concat("access_token=").concat(getAccessToken());
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, Object> params= new LinkedMultiValueMap<>();
+        params.add("resp_type", 1);
+        params.add("upload_type", 1);
+        params.add("img_url", wxUploadImageRequest.getImgUrl());
+        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(params, header);
+        return sendRequest(url, HttpMethod.POST, entity, WxUploadImageResponse.class);
     }
 
     /**

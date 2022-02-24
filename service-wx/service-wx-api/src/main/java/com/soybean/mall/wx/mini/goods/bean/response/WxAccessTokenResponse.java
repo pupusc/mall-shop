@@ -1,15 +1,15 @@
 package com.soybean.mall.wx.mini.goods.bean.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 @Data
 public class WxAccessTokenResponse extends WxResponseBase {
 
-    @JsonProperty("access_token")
+    @JSONField(name = "access_token")
     private String accessToken;
 
-    @JsonProperty("expires_in")
+    @JSONField(name = "expires_in")
     private Long expiresIn;
 
 }

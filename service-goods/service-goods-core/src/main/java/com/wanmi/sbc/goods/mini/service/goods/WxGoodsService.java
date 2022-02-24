@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.mini.service.goods;
 
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
 import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 public class WxGoodsService {
 
     @Autowired
@@ -53,7 +56,6 @@ public class WxGoodsService {
 
     @Transactional
     public void addGoods(WxGoodsCreateRequest createRequest){
-        if(goodsExist(createRequest)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品已上架");
         WxGoodsModel wxGoodsModel = new WxGoodsModel();
         wxGoodsModel.setGoodsId(createRequest.getGoodsId());
         wxGoodsModel.setGoodsInfoId(createRequest.getGoodsInfoId());
@@ -70,10 +72,11 @@ public class WxGoodsService {
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-        BaseResponse<Boolean> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-        if(!baseResponse.getContext()){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "上传微信商品失败");
+        BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
+        if(baseResponse.getContext().getErrmsg() != null){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
         }
+        //todo
     }
 
     @Transactional
@@ -169,7 +172,7 @@ public class WxGoodsService {
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsSubtitle());
         addProductRequest.setPath("http://www.baidu.com");
-        addProductRequest.setHeadImg(Collections.singletonList("https://mmecimage.cn/p/wx77e672d6d34a4bed/HNTiaPWTllJ5R2pq9Jv9jRD5bZOWmq2svUUzJcZbcg"));
+        addProductRequest.setHeadImg(Collections.singletonList("https://mmecimage.cn/p/wxfec78ba019558f6a/HBqO_18RlygXXwLnM2SzOGRG9c-JGIQ3Tk1P0qh71w"));
 //        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));
 //        addProductRequest.setQualificationics(Collections.singletonList(goods.getGoodsImg()));
         //商品详情截取图片
@@ -181,7 +184,8 @@ public class WxGoodsService {
                 String[] split1 = s1.split("src=\"");
                 for (String s2 : split1) {
                     if(s2.contains("http")){
-                        detailImgs.add(s2.substring(0, s2.indexOf("\"")));
+                        detailImgs.add("https://mmecimage.cn/p/wxfec78ba019558f6a/HBqO_18RlygXXwLnM2SzOGRG9c-JGIQ3Tk1P0qh71w");
+//                        detailImgs.add(s2.substring(0, s2.indexOf("\"")));
                     }
                 }
             }

@@ -1,6 +1,6 @@
 package com.soybean.mall.wx.mini.goods.bean.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import lombok.Data;
 
@@ -10,23 +10,23 @@ import java.util.List;
 @Data
 public class WxUpdateProductWithoutAuditRequest extends WxResponseBase {
 
-    @JsonProperty("out_product_id")
+    @JSONField(name = "out_product_id")
     private String outProductId;
-    @JsonProperty("product_id")
+    @JSONField(name = "product_id")
     private Long productId;
-    @JsonProperty("skus")
+    @JSONField(name = "skus")
     private List<Sku> skus;
 
     @Data
     public static class Sku{
 
-        @JsonProperty("out_sku_id")
+        @JSONField(name = "out_sku_id")
         private String outSkuId;
-        @JsonProperty("sale_price")
+        @JSONField(name = "sale_price")
         private BigDecimal salePrice;
-        @JsonProperty("market_price")
+        @JSONField(name = "market_price")
         private BigDecimal marketPrice;
-        @JsonProperty("stock_num")
+        @JSONField(name = "stock_num")
         private Integer stockNum;
     }
 }
