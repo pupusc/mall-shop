@@ -38,7 +38,7 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
                 conditionList.add(criteriaBuilder.equal(root.get("auditStatus").as(Integer.class), wxGoodsSearchRequest.getAuditStatus()));
             }
             if (wxGoodsSearchRequest.getSaleStatus() != null) {
-                Predicate and = criteriaBuilder.and(criteriaBuilder.greaterThan(root.get("auditTimes"), 0), criteriaBuilder.equal(root.get("status"), WxGoodsStatus.ON_SHELF));
+                Predicate and = criteriaBuilder.and(criteriaBuilder.isNotNull(root.get("platformProductId")), criteriaBuilder.equal(root.get("status"), WxGoodsStatus.ON_SHELF));
                 conditionList.add(and);
             }
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));

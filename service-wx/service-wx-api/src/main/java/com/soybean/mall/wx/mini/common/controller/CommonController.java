@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("/wx/mini")
-@FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
+@FeignClient(value = "${application.wx.name}", contextId = "CommonController")
 public interface CommonController {
 
     @PostMapping("/common/uploadImg")
