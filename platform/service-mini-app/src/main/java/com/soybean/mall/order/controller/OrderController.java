@@ -109,7 +109,7 @@ public class OrderController {
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
-    @GlobalTransactional
+    //@GlobalTransactional
     public BaseResponse<WxOrderCommitResultVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         //校验是否需要完善地址信息
         CustomerDeliveryAddressByIdResponse address = null;
