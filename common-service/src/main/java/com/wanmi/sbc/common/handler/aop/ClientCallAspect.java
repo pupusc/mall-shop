@@ -9,7 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -64,7 +68,7 @@ public class ClientCallAspect {
         String errMsg = ((BaseResponse) res).getMessage();
         Object context = ((BaseResponse) res).getErrorData();
         if (!CommonErrorCode.SUCCESSFUL.equals(errCode)) {
-            log.error(str + "出现异常！请求的接口信息：{}，接口返回信息：{}", requestInfo, res);
+            log.warn(str + "出现异常！请求的接口信息：{}，接口返回信息：{}", requestInfo, res);
             if (context != null) {
                 if (StringUtils.isEmpty(errMsg)){
                     throw new SbcRuntimeException(context, errCode);

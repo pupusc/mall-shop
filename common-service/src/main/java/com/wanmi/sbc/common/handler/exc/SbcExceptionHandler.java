@@ -29,9 +29,9 @@ import java.util.Objects;
 /**
  * 异常统一处理
  */
+@Slf4j
 @RefreshScope
 @ControllerAdvice
-@Slf4j
 public class SbcExceptionHandler {
     @Value("${open.error.stack.trace:false}")
     private String openErrorStackTrace;
@@ -65,7 +65,7 @@ public class SbcExceptionHandler {
             }
 
             if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
-                log.info(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "true".equalsIgnoreCase(openErrorStackTrace) ? ex : "--");
+                log.warn(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "true".equalsIgnoreCase(openErrorStackTrace) ? ex : "--");
                 return BaseResponse.info(errorCode, ex.getResult());
             }
         } else if (StringUtils.isEmpty(msg)) {
