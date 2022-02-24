@@ -423,7 +423,7 @@ public class ReturnOrderService {
 //        return create(returnOrder, operator);
 //    }
 
-    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, ReturnOrder> deliveryReturnOrderMap) {
+    private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, Boolean> providerDeliveryMap) {
         //订单详情集合
         List<TradeItem> tradeItemList = trade.getTradeItems();
         //退单的商品列表
@@ -463,7 +463,7 @@ public class ReturnOrderService {
 //                List<TradeItem> providerGiftItems = trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
                 //退款时赠品拆分
 //                this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
-                buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade, deliveryReturnOrderMap);
+                buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade, providerDeliveryMap);
                 StoreVO storeVO = storeVOMap.get(providerId);
                 //判断是否linkedmall,拆分LM店铺子订单
                 if (storeVO != null && CompanySourceType.LINKED_MALL.equals(storeVO.getCompanySourceType())) {
@@ -494,7 +494,7 @@ public class ReturnOrderService {
                 if (CollectionUtils.isNotEmpty(storeItemList)/* || CollectionUtils.isNotEmpty(giftItemList)*/) {
                     //对应的子单
                     returnOrder.setPtid(providerTrade.getId());
-                    buildReturnOrder(returnOrder, trade, StoreType.SUPPLIER, null, storeItemList, providerTrade, deliveryReturnOrderMap);
+                    buildReturnOrder(returnOrder, trade, StoreType.SUPPLIER, null, storeItemList, providerTrade, providerDeliveryMap);
                     returnOrders.add(returnOrder);
                 }
             }
@@ -542,7 +542,7 @@ public class ReturnOrderService {
         }
     }
 
-    private void buildReturnOrder(ReturnOrder returnOrder, Trade trade, StoreType storeType, Long providerId, List<TradeItem> storeItemList, ProviderTrade providerTrade, Map<String, ReturnOrder> deliveryReturnOrderMap) {
+    private void buildReturnOrder(ReturnOrder returnOrder, Trade trade, StoreType storeType, Long providerId, List<TradeItem> storeItemList, ProviderTrade providerTrade, Map<String, Boolean> providerDeliveryMap) {
 
         if (StoreType.PROVIDER.equals(storeType)) {
             StoreVO storeVO =
@@ -620,7 +620,7 @@ public class ReturnOrderService {
 //                }
 
                 //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (deliveryReturnOrderMap == null || deliveryReturnOrderMap.get(providerId.toString()) == null)) {
+                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap == null || providerDeliveryMap.get(providerId.toString()) == null)) {
                     //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
@@ -660,27 +660,52 @@ public class ReturnOrderService {
                 for (TradeItem tradeItemVO : storeItemList) {
                     for (ReturnItem returnItemDTO : returnOrder.getReturnItems()) {
                         if (tradeItemVO.getSkuId().equals(returnItemDTO.getSkuId())) {
-                            BigDecimal splitPrice = Objects.nonNull(tradeItemVO.getSplitPrice()) ?
-                                    tradeItemVO.getSplitPrice() : BigDecimal.ZERO;
-                            price = price.add(returnItemDTO.getSplitPrice());
-                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getPoints() != null) {
-                                points += tradeItemVO.getPoints();
-                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
-                                points += returnItemDTO.getSplitPoint();
+                            if (returnItemDTO.getApplyRealPrice() == null) {
+                                price = price.add(returnItemDTO.getSplitPrice());
+                            } else {
+                                price = price.add(returnItemDTO.getApplyRealPrice());
                             }
-                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
-                                knowledge += tradeItemVO.getKnowledge();
-                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
-                                knowledge += returnItemDTO.getSplitKnowledge();
+
+                            if (returnItemDTO.getApplyRealPrice() == null) {
+                                if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getPoints() != null) {
+                                    points += tradeItemVO.getPoints();
+                                } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
+                                    points += returnItemDTO.getSplitPoint();
+                                }
+                            } else {
+                                points += returnItemDTO.getApplyPoint();
                             }
+
+                            if (returnItemDTO.getApplyKnowledge() == null) {
+                                if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
+                                    knowledge += tradeItemVO.getKnowledge();
+                                } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
+                                    knowledge += returnItemDTO.getSplitKnowledge();
+                                }
+                            } else {
+                                knowledge = returnItemDTO.getApplyKnowledge();
+                            }
+
+//                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getPoints() != null) {
+//                                points += tradeItemVO.getPoints();
+//                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
+//                                points += returnItemDTO.getSplitPoint();
+//                            }
+//                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
+//                                knowledge += tradeItemVO.getKnowledge();
+//                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
+//                                knowledge += returnItemDTO.getSplitKnowledge();
+//                            }
                             returnItemDTOList.add(returnItemDTO);
                         }
                     }
                 }
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
-                    price = price.add(Objects.nonNull(providerTrade.getTradePrice().getDeliveryPrice()) ?
-                            providerTrade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
-                }
+
+                //退货的情况不需要退运费
+//                if (ReturnType.REFUND.equals(returnOrder.getReturnType())) {
+//                    price = price.add(Objects.nonNull(providerTrade.getTradePrice().getDeliveryPrice()) ?
+//                            providerTrade.getTradePrice().getDeliveryPrice() : BigDecimal.ZERO);
+//                }
                 //针对退运费的强制
                 if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
                     price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
@@ -813,9 +838,9 @@ public class ReturnOrderService {
 
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
-        Map<String, ReturnOrder> deliveryReturnOrderMap = new HashMap<>();
+        Map<String, Boolean> providerDeliveryMap = new HashMap<>();
 
-        Map<String, List<ReturnItem>> allReturnItemMap = new HashMap<>();
+        Map<String, Integer> allReturnSkuIdNumMap = new HashMap<>();
 
         if (CollectionUtils.isNotEmpty(returnOrderList)) {
             //校验是否有没有完成的商品行退单
@@ -833,13 +858,17 @@ public class ReturnOrderService {
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
-                    deliveryReturnOrderMap.put(returnOrderParam.getProviderId(), returnOrderParam);
+                    providerDeliveryMap.put(returnOrderParam.getProviderId(), false);
                 }
 
                 if (returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
                         && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
-                    allReturnTradeItem.addAll(returnOrderParam.getReturnItems());
+                    for (ReturnItem returnItem : returnOrderParam.getReturnItems()) {
+                        Integer skuIdNum = allReturnSkuIdNumMap.get(returnItem.getSkuId()) == null ? 0 : allReturnSkuIdNumMap.get(returnItem.getSkuId());
+                        skuIdNum += returnItem.getNum();
+                        allReturnSkuIdNumMap.put(returnItem.getSkuId(), skuIdNum);
+                    }
                 }
             }
 
@@ -851,16 +880,37 @@ public class ReturnOrderService {
         }
 
 
-
         //此处变更 订单的金额、积分、知豆等信息
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), null);
+        //查看是否需要退还运费
+        if (providerDeliveryMap.isEmpty()) {
+            Map<String, List<TradeItem>> tradeItemMap = new HashMap<>();
+            for (TradeItem tradeItemParam : trade.getTradeItems()) {
+                //商品按照管易云和博库分类
+                List<TradeItem> tradeItemList = tradeItemMap.get(tradeItemParam.getProviderId().toString());
+                if (CollectionUtils.isEmpty(tradeItemList)) {
+                    tradeItemList = new ArrayList<>();
+                    tradeItemMap.put(tradeItemParam.getProviderId().toString(), tradeItemList);
+                }
+                tradeItemList.add(tradeItemParam);
+            }
+
+            //按照供应商提供运费
+            for (Map.Entry<String, List<TradeItem>> entry : tradeItemMap.entrySet()) {
+                for (TradeItem tradeItemParam : entry.getValue()) {
+                    Integer returnSkuIdNum =
+                            allReturnSkuIdNumMap.get(tradeItemParam.getSkuId()) == null ? 0 : allReturnSkuIdNumMap.get(tradeItemParam.getSkuId());
+                    if (tradeItemParam.getNum().intValue() != returnSkuIdNum) {
+                        providerDeliveryMap.put(entry.getKey(), false);
+                        break;
+                    }
+                }
+            }
+        }
 
         //设置退单调用樊登参数
         CustomerDetailVO customerDetailVO = customerCommonService.getCustomerDetailByCustomerId(trade.getBuyer().getId());
         returnOrder.setFanDengUserNo(customerDetailVO.getCustomerVO().getFanDengUserNo());
-
-
-
 
         //退单申请金额
         ReturnPrice returnPrice = returnOrder.getReturnPrice();
@@ -1108,7 +1158,7 @@ public class ReturnOrderService {
 
         List<ReturnOrder> returnOrders = new ArrayList<>();
         //退单拆分
-        splitReturnTrade(returnOrder, trade, returnOrders, deliveryReturnOrderMap);
+        splitReturnTrade(returnOrder, trade, returnOrders, providerDeliveryMap);
         String returnOrderId = StringUtils.EMPTY;
 
         for (ReturnOrder newReturnOrder : returnOrders) {
