@@ -42,6 +42,7 @@ import com.wanmi.sbc.customer.util.HttpUtils;
 import com.wanmi.sbc.customer.util.SHAUtils;
 import com.wanmi.sbc.customer.util.SafeLevelUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -709,18 +710,14 @@ public class ExternalService {
 
     private String getUrlNew(String url, String body) {
         try {
-            log.info("ExternalService getUrl appId: {} url:{}", appid, url);
-            log.info("ExternalService getUrl：{}, param{}", url, body);
+            log.info("ExternalService getUrl appId: {} , url:{} , param: {}", appid, url, body);
             HttpResponse httpResponse = HttpUtils.doPost(hostNew, url, getMap(), null, body);
             if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
                 redisService.delete(appid);
-                httpResponse = HttpUtils.doPost(host,
-                        url, getMap(), null, body);
+                httpResponse = HttpUtils.doPost(host, url, getMap(), null, body);
             }
-            log.info("ExternalService getUrl 返回结果：{}", httpResponse);
-
+            log.info("ExternalService getUrl 返回结果：{}", IOUtils.toString(httpResponse.getEntity().getContent()));
             if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
-//                log.info("请求接口：{},请求参数：{}", host + url, body);
                 String entity = EntityUtils.toString(httpResponse.getEntity());
                 log.info("樊登请求接口：{},请求参数{},返回状态：{}", url, body, entity);
                 return entity;
@@ -737,7 +734,6 @@ public class ExternalService {
      * @return
      */
     private String getAccessToken() {
-        log.info("ExternalService getAccessToken appId: {} begining", appid);
         String accessToken = redisService.getString(appid);
         log.info("ExternalService getAccessToken appId: {} accessToken:{}", appid, accessToken);
 //        String accessToken = "";
@@ -745,9 +741,8 @@ public class ExternalService {
             String url = String.format(OAUTH_TOKEN_URL, appid, appsecret);
             try {
                 log.info("ExternalService getAccessToken appId: {} url:{}", appid, url);
-                HttpResponse httpResponse = HttpUtils.doPost(host,
-                        url, getMap(), null, null);
-                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, httpResponse.getStatusLine().getStatusCode());
+                HttpResponse httpResponse = HttpUtils.doPost(host, url, getMap(), null, null);
+                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, IOUtils.toString(httpResponse.getEntity().getContent()));
                 if (200 == httpResponse.getStatusLine().getStatusCode()) {
                     String entity = EntityUtils.toString(httpResponse.getEntity());
                     JSONObject object = JSONObject.parseObject(entity);

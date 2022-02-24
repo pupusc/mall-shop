@@ -111,4 +111,6 @@ public class LoginResponse implements Serializable{
      * 用户状态（0：未入会 1：体验中 2：体验过期 3：正式会员 4：会员过期 5：停用 ）
      */
     private Integer fanDengUserStates;
+
+    private String openId;
 }
