@@ -55,13 +55,14 @@ public class WxGoodsService {
     public void addGoods(WxGoodsCreateRequest createRequest){
         if(goodsExist(createRequest)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品已上架");
         WxGoodsModel wxGoodsModel = new WxGoodsModel();
-        wxGoodsModel.setGoodsInfoId(createRequest.getGoodsId());
+        wxGoodsModel.setGoodsId(createRequest.getGoodsId());
         wxGoodsModel.setGoodsInfoId(createRequest.getGoodsInfoId());
         wxGoodsModel.setWxCategory(createRequest.getWxCategory());
         wxGoodsModel.setStatus(WxGoodsStatus.ON_UPLOAD);
         wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
         wxGoodsModel.setAuditTimes(0);
         LocalDateTime now = LocalDateTime.now();
+        wxGoodsModel.setUploadTime(now);
         wxGoodsModel.setCreateTime(now);
         wxGoodsModel.setUpdateTime(now);
         wxGoodsModel.setDelFlag(DeleteFlag.NO);
@@ -184,7 +185,7 @@ public class WxGoodsService {
                     }
                 }
             }
-            addProductRequest.setDescInfo(WxAddProductRequest.DescInfo.builder().imgs(detailImgs).desc("").build());
+            addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
         }
         //todo 改成变量
         addProductRequest.setThirdCatId(378031);
