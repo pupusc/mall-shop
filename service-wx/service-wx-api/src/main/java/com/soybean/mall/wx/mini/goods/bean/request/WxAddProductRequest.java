@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.goods.bean.request;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
@@ -10,27 +11,34 @@ import java.util.List;
 @Data
 public class WxAddProductRequest {
 
-    @JsonProperty("out_product_id")
+    @JSONField(name = "out_product_id")
     private String outProductId;
     private String title;
     private String path;
-    @JsonProperty("head_img")
+    @JSONField(name = "head_img")
     private List<String> headImg;
-    @JsonProperty("qualification_pics")
+    @JSONField(name = "qualification_pics")
     private List<String> qualificationics;
-    @JsonProperty("desc_info")
+    @JSONField(name = "desc_info")
     private DescInfo descInfo;
-    @JsonProperty("third_cat_id")
+    @JSONField(name = "third_cat_id")
     private Integer thirdCatId;
-    @JsonProperty("brand_id")
+    @JSONField(name = "brand_id")
     private Integer brandId;
-    @JsonProperty("info_version")
+    @JSONField(name = "info_version")
     private String infoVersion;
     private List<Sku> skus;
 
     @Data
-    @Builder
     public static class DescInfo{
+
+        public DescInfo(){}
+
+        public DescInfo(String desc, List<String> imgs) {
+            this.desc = desc;
+            this.imgs = imgs;
+        }
+
         private String desc;
         private List<String> imgs;
     }
@@ -38,23 +46,23 @@ public class WxAddProductRequest {
     @Data
     public static class Sku{
 
-        @JsonProperty("out_product_id")
+        @JSONField(name = "out_product_id")
         private String outProductId;
-        @JsonProperty("out_sku_id")
+        @JSONField(name = "out_sku_id")
         private String outSkuId;
-        @JsonProperty("thumb_img")
+        @JSONField(name = "thumb_img")
         private String thumbImg;
-        @JsonProperty("sale_price")
+        @JSONField(name = "sale_price")
         private BigDecimal salePrice;
-        @JsonProperty("market_price")
+        @JSONField(name = "market_price")
         private BigDecimal marketPrice;
-        @JsonProperty("stock_num")
+        @JSONField(name = "stock_num")
         private Integer stockNum;
-        @JsonProperty("sku_code")
+        @JSONField(name = "sku_code")
         private String skuCode;
-        @JsonProperty("barcode")
+        @JSONField(name = "barcode")
         private String barcode;
-        @JsonProperty("sku_attrs")
+        @JSONField(name = "sku_attrs")
         private List<skuAttrs> skuAttrs;
     }
 
@@ -66,9 +74,9 @@ public class WxAddProductRequest {
             this.attrValue = attrValue;
         }
 
-        @JsonProperty("sku_attrs")
+        @JSONField(name = "attr_key")
         private String attrKey;
-        @JsonProperty("attr_value")
+        @JSONField(name = "attr_value")
         private String attrValue;
     }
 
