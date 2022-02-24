@@ -481,7 +481,7 @@ public class ReturnOrderService {
         List<ReturnItem> returnStoreItemList = returnItemList.stream().filter(returnItem -> Objects.isNull(returnItem.getProviderId())).collect(Collectors.toList());
 //        List<TradeItem> giftItemList =
 //                trade.getGifts().stream().filter(item -> Objects.isNull(item.getProviderId())).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(returnStoreItemList) || CollectionUtils.isNotEmpty(giftItemList)) {
+        if (CollectionUtils.isNotEmpty(returnStoreItemList) /*|| CollectionUtils.isNotEmpty(giftItemList)*/) {
 //            //退款时赠品拆分
 //            this.fullReturnGifts(returnOrder, giftItemList, null);
             //没有供应商，且该订单没有被拆分子单
@@ -491,7 +491,7 @@ public class ReturnOrderService {
             } else {
                 List<TradeItem> storeItemList =
                         tradeItemList.stream().filter(tradeItem -> Objects.isNull(tradeItem.getProviderId())).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(storeItemList) || CollectionUtils.isNotEmpty(giftItemList)) {
+                if (CollectionUtils.isNotEmpty(storeItemList)/* || CollectionUtils.isNotEmpty(giftItemList)*/) {
                     //对应的子单
                     returnOrder.setPtid(providerTrade.getId());
                     buildReturnOrder(returnOrder, trade, StoreType.SUPPLIER, null, storeItemList, providerTrade, deliveryReturnOrderMap);
@@ -811,24 +811,37 @@ public class ReturnOrderService {
         //根据订单id获取退单列表
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(returnOrder.getTid());
 
-
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
         Map<String, ReturnOrder> deliveryReturnOrderMap = new HashMap<>();
+
+        Map<String, List<ReturnItem>> allReturnItemMap = new HashMap<>();
+
         if (CollectionUtils.isNotEmpty(returnOrderList)) {
             //校验是否有没有完成的商品行退单
             this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
 
-            //判断当前是否有退运费的订单
-            deliveryReturnOrderMap = returnOrderList.stream().filter(
-                    returnOrderParam -> returnOrderParam.getReturnReason().equals(ReturnReason.PRICE_DELIVERY)
-                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
-                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
-                            && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE).collect(Collectors.toMap(ReturnOrder::getProviderId, Function.identity(), (k1, k2) -> k1));
-
             //过滤出来所有完成退单的订单列表
-            List<ReturnOrder> completedReturnOrderListTmp = returnOrderList.stream().filter(allOrder -> allOrder
-                    .getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
+            List<ReturnOrder> completedReturnOrderListTmp = new ArrayList<>();
+            for (ReturnOrder returnOrderParam : returnOrderList) {
+                if (returnOrderParam.getReturnFlowState() == ReturnFlowState.COMPLETED) {
+                    completedReturnOrderListTmp.add(returnOrderParam);
+                }
+
+                //已经申请退单的商品列表
+                if (returnOrderParam.getReturnReason().equals(ReturnReason.PRICE_DELIVERY)
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
+                    deliveryReturnOrderMap.put(returnOrderParam.getProviderId(), returnOrderParam);
+                }
+
+                if (returnOrderParam.getReturnFlowState() != ReturnFlowState.VOID
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_REFUND
+                        && returnOrderParam.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
+                    allReturnTradeItem.addAll(returnOrderParam.getReturnItems());
+                }
+            }
 
             //计算已经退款完成的订单总金额
             for (ReturnOrder returnOrderParam : completedReturnOrderListTmp) {
