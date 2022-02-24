@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import lombok.Data;
@@ -15,12 +16,12 @@ public class WxCreateAfterSaleRequest implements Serializable {
     /**
      * 订单号
      */
-    @JsonProperty("out_order_id")
+    @JSONField(name ="out_order_id")
     private String outOrderId;
     /**
      * 售后单ID
      */
-    @JsonProperty("out_aftersale_id")
+    @JSONField(name ="out_aftersale_id")
     private String outAftersaleId;
     private String openid;
     /**
@@ -36,7 +37,7 @@ public class WxCreateAfterSaleRequest implements Serializable {
      */
     private Integer type;
 
-    @JsonProperty("create_time")
+    @JSONField(name ="create_time")
     private String createTime;
 
     /**
@@ -46,10 +47,10 @@ public class WxCreateAfterSaleRequest implements Serializable {
     /**
      * 0:订单存在可售后商品，1:订单所有商品售后完成（订单维度）
      */
-    @JsonProperty("finish_all_aftersale")
+    @JSONField(name ="finish_all_aftersale")
     private Integer finishAllAftersale;
 
-    @JsonProperty("product_infos")
+    @JSONField(name ="product_infos")
     private List<WxProductDTO> productInfos;
 
 

@@ -7,14 +7,19 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRe
 import com.soybean.mall.wx.mini.goods.bean.response.*;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.wanmi.sbc.common.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import sun.security.provider.MD5;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -194,6 +199,24 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 生成签名
+     * 第一步，设所有发送或者接收到的数据为集合M，将集合M内非空参数值的参数按照参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
+     * 第二步，在stringA最后拼接上key=(API密钥的值)得到stringSignTemp字符串，并对stringSignTemp进行MD5运算，再将得到的字符串所有字符转换为大写，得到sign值signValue。
+     * @param params
+     * @return
+     */
+    public String getSign(Map<Object,Object> params){
+        String[] sortedKeys = params.keySet().toArray(new String[]{});
+        Arrays.sort(sortedKeys);// 排序请求参数
+        StringBuilder sb = new StringBuilder();
+        for (String key : sortedKeys) {
+            sb.append(key).append("=").append(params.get(key)).append("&");
+        }
+        sb.append("key=").append(wxAppsecret);
+        return MD5Util.md5Hex(sb.toString(), "utf-8").toUpperCase();
     }
 
 }

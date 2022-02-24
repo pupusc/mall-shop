@@ -1,15 +1,21 @@
 package com.soybean.mall.order.controller;
 
 import com.soybean.mall.order.response.OrderConfirmResponse;
+import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
+import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
+import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
@@ -18,37 +24,46 @@ import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
-import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
-import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
-import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
+import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
+import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.request.TradeItemConfirmRequest;
-import com.wanmi.sbc.order.response.TradeConfirmResponse;
+import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
+import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressVerifyRequest;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+;
 
 @Slf4j
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/wx/order")
 public class OrderController {
 
     @Autowired
@@ -68,6 +83,63 @@ public class OrderController {
 
     @Autowired
     private VerifyQueryProvider verifyQueryProvider;
+
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
+    private CustomerDeliveryAddressQueryProvider customerDeliveryAddressQueryProvider;
+
+    @Autowired
+    private PlatformAddressQueryProvider platformAddressQueryProvider;
+
+    @Autowired
+    private TradeProvider tradeProvider;
+     /**
+         * 提交订单，用于生成订单操作
+     */
+    @ApiOperation(value = "提交订单，用于生成订单操作")
+    @RequestMapping(value = "/commit", method = RequestMethod.POST)
+    @MultiSubmitWithToken
+    @GlobalTransactional
+    public BaseResponse<List<TradeCommitResultVO>> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+        //校验是否需要完善地址信息
+        CustomerDeliveryAddressByIdResponse address = null;
+        customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
+        if (address != null) {
+            PlatformAddressVerifyRequest platformAddressVerifyRequest = new PlatformAddressVerifyRequest();
+            if (Objects.nonNull(address.getProvinceId())) {
+                platformAddressVerifyRequest.setProvinceId(String.valueOf(address.getProvinceId()));
+            }
+            if (Objects.nonNull(address.getCityId())) {
+                platformAddressVerifyRequest.setCityId(String.valueOf(address.getCityId()));
+            }
+            if (Objects.nonNull(address.getAreaId())) {
+                platformAddressVerifyRequest.setAreaId(String.valueOf(address.getAreaId()));
+            }
+            if (Objects.nonNull(address.getStreetId())) {
+                platformAddressVerifyRequest.setStreetId(String.valueOf(address.getStreetId()));
+            }
+            if (Boolean.TRUE.equals(platformAddressQueryProvider.verifyAddress(platformAddressVerifyRequest).getContext())) {
+                throw new SbcRuntimeException("K-220001");
+            }
+        }
+        RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
+        rLock.lock();
+        List<TradeCommitResultVO> successResults;
+        try {
+            Operator operator = commonUtil.getOperator();
+            tradeCommitRequest.setOperator(operator);
+            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getTradeCommitResults();
+
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            rLock.unlock();
+        }
+        return BaseResponse.success(successResults);
+
+    }
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
      */

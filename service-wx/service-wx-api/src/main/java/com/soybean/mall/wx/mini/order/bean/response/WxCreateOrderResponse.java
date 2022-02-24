@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.order.bean.response;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import lombok.Data;
@@ -14,14 +15,14 @@ public class WxCreateOrderResponse extends WxResponseBase {
 
     @Data
     static class ResponseData{
-        @JsonProperty("order_id")
+        @JSONField(name ="order_id")
         private Long orderId;
-        @JsonProperty("out_order_id")
+        @JSONField(name ="out_order_id")
         private String outOrderId;
         private String ticket;
-        @JsonProperty("ticket_expire_time")
+        @JSONField(name ="ticket_expire_time")
         private String ticketExpireTime;
-        @JsonProperty("final_price")
+        @JSONField(name ="final_price")
         private BigDecimal finalPrice;
     }
 

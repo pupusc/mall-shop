@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import io.swagger.annotations.ApiModel;
@@ -16,15 +17,15 @@ public class WxDeliverySendRequest implements Serializable {
     /**
      * 商家自定义订单ID
      */
-    @JsonProperty("out_order_id")
+    @JSONField(name ="out_order_id")
     private String outOrderId;
     private String openid;
     /**
      *发货完成标志位, 0: 部分发货, 1:全部发货
      */
-    @JsonProperty("finish_all_delivery")
+    @JSONField(name ="finish_all_delivery")
     private String finishAllDelivery;
-    @JsonProperty("delivery_list")
+    @JSONField(name ="delivery_list")
     private List<WxDeliveryInfo> deliveryList;
 
     @Data
@@ -32,14 +33,14 @@ public class WxDeliverySendRequest implements Serializable {
         /**
          * 快递公司ID，通过获取快递公司列表获取
          */
-        @JsonProperty("delivery_id")
+        @JSONField(name ="delivery_id")
         private String deliveryId;
         /**
          * 快递单号
          */
-        @JsonProperty("waybill_id")
+        @JSONField(name ="waybill_id")
         private String waybillId;
-        @JsonProperty("product_info_list")
+        @JSONField(name ="product_info_list")
         private List<WxProductDTO> productInfoList;
 
     }
