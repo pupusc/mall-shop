@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,23 +40,8 @@ public class WxDeliverySendRequest implements Serializable {
         @JsonProperty("waybill_id")
         private String waybillId;
         @JsonProperty("product_info_list")
-        private List<WxProductInfo> productInfoList;
+        private List<WxProductDTO> productInfoList;
 
     }
-    @Data
-    public static class WxProductInfo {
-        /**
-         * 订单里的out_product_id
-         */
-        @JsonProperty("out_product_id")
-        private String outProductId;
-        /**
-         * 订单里的out_sku_id
-         */
-        @JsonProperty("out_sku_id")
-        private String outSkuId;
-        @JsonProperty("product_cnt")
-        private Integer productNum;
-
-    }
+   
 }

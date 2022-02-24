@@ -5,10 +5,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.*;
-import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,7 +187,7 @@ public class WxService {
      * @param request
      * @return
      */
-    public WxResponseBase createAfterSale(WxDeliveryReceiveRequest request){
+    public WxResponseBase createAfterSale(WxCreateAfterSaleRequest request){
         String accessToken = getAccessToken();
         String url = AFTER_SALE_URL.concat("?access_token=").concat(accessToken);
 

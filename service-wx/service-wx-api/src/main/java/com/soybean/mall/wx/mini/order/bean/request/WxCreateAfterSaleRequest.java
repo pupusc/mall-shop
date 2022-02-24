@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -47,6 +48,9 @@ public class WxCreateAfterSaleRequest implements Serializable {
      */
     @JsonProperty("finish_all_aftersale")
     private Integer finishAllAftersale;
+
+    @JsonProperty("product_infos")
+    private List<WxProductDTO> productInfos;
 
 
 }
