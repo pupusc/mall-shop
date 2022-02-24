@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("/wx/mini")
-@FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
+@FeignClient(value = "${application.wx.name}", contextId = "WxOrderApiController")
 public interface WxOrderApiController {
     /**
      * 创建订单并返回ticket
