@@ -1,6 +1,10 @@
 package com.soybean.mall.order.controller;
 
+import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
+import com.soybean.mall.vo.WxAddressInfoVO;
+import com.soybean.mall.vo.WxOrderCommitResultVO;
+import com.soybean.mall.vo.WxProductInfoVO;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -34,7 +38,10 @@ import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
+import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.request.TradeItemConfirmRequest;
 import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
 import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressVerifyRequest;
@@ -95,14 +102,15 @@ public class OrderController {
 
     @Autowired
     private TradeProvider tradeProvider;
-     /**
-         * 提交订单，用于生成订单操作
+
+    /**
+     * 提交订单，用于生成订单操作
      */
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
     @GlobalTransactional
-    public BaseResponse<List<TradeCommitResultVO>> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+    public BaseResponse<WxOrderCommitResultVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         //校验是否需要完善地址信息
         CustomerDeliveryAddressByIdResponse address = null;
         customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
@@ -126,20 +134,60 @@ public class OrderController {
         }
         RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
         rLock.lock();
-        List<TradeCommitResultVO> successResults;
+        List<OrderCommitResultVO> successResults;
         try {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
-            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getTradeCommitResults();
+            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {
             throw e;
         } finally {
             rLock.unlock();
         }
-        return BaseResponse.success(successResults);
+        return BaseResponse.success(convertResult(successResults));
 
     }
+
+
+    private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades) {
+        WxOrderCommitResultVO result = new WxOrderCommitResultVO();
+        result.setOutOrderId(trades.get(0).getTid());
+        OrderCommitResultVO trade = trades.get(0);
+
+
+        WxOrderCommitResultVO.OrderDetailVO detail = new WxOrderCommitResultVO.OrderDetailVO();
+        List<WxProductInfoVO> productInfoDTOS = new ArrayList<>();
+        trade.getTradeItems().forEach(tradeItem -> {
+            productInfoDTOS.add(WxProductInfoVO.builder()
+                    .outProductId(tradeItem.getSpuId())
+                    .outSkuId(tradeItem.getSkuId())
+                    .productNum(tradeItem.getNum())
+                    .salePrice(tradeItem.getOriginalPrice())
+                    .realPrice(tradeItem.getSplitPrice())
+                    .title(tradeItem.getSkuName())
+                    .headImg(tradeItem.getPic()).build());
+        });
+        detail.setProductInfos(productInfoDTOS);
+        WxOrderCommitResultVO.PriceInfoVO priceInfo = new WxOrderCommitResultVO.PriceInfoVO();
+        priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice());
+        priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice());
+        detail.setPriceInfo(priceInfo);
+
+        WxAddressInfoVO addressInfo = new WxAddressInfoVO();
+        addressInfo.setCity(trade.getConsignee().getCityName());
+        addressInfo.setReceiverName(trade.getConsignee().getName());
+        addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
+        addressInfo.setProvince(trade.getConsignee().getProvinceName());
+        addressInfo.setTown(trade.getConsignee().getAreaName());
+        addressInfo.setTelNumber(trade.getConsignee().getPhone());
+        result.setAddressInfo(addressInfo);
+        result.setOrderDetail(detail);
+        return result;
+
+
+    }
+
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
      */
@@ -154,12 +202,12 @@ public class OrderController {
         CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
                 (customerId)).getContext();
         //入参是商品sku和num，返回商品信息和价格信息
-        List<TradeItemDTO> tradeItems = KsBeanUtil.convertList(request.getTradeItems(),TradeItemDTO.class);
+        List<TradeItemDTO> tradeItems = KsBeanUtil.convertList(request.getTradeItems(), TradeItemDTO.class);
         List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
 
         //获取订单商品详情和会员价salePrice
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
-        List<TradeConfirmItemVO> items= new ArrayList<>(1);
+        List<TradeConfirmItemVO> items = new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
         StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(skuResp.getGoodsInfos().get(0).getStoreId())
                 .build())
@@ -215,7 +263,6 @@ public class OrderController {
     }
 
 
-
     /**
      * 计算商品价格
      *
@@ -231,7 +278,7 @@ public class OrderController {
             BigDecimal buyItemPrice = t.getPrice().multiply(BigDecimal.valueOf(t.getNum()));
             BigDecimal originalPrice = t.getOriginalPrice().multiply(BigDecimal.valueOf(t.getNum()));
             //总价，有定价=定价*数量，否则=原价
-            BigDecimal totalPrice = t.getPropPrice() != null ? (new BigDecimal(t.getPropPrice()).multiply(BigDecimal.valueOf(t.getNum()))):originalPrice;
+            BigDecimal totalPrice = t.getPropPrice() != null ? (new BigDecimal(t.getPropPrice()).multiply(BigDecimal.valueOf(t.getNum()))) : originalPrice;
             // 订单商品总价
             tradePrice.setGoodsPrice(tradePrice.getGoodsPrice().add(buyItemPrice));
             // 订单总金额

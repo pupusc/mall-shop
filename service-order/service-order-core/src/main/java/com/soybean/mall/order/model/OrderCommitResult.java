@@ -1,12 +1,12 @@
 package com.soybean.mall.order.model;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.soybean.mall.order.bean.dto.ProductInfoDTO;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import lombok.Data;
 
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -22,47 +22,10 @@ public class OrderCommitResult implements Serializable {
      */
     private String parentTid;
 
-    @JSONField(name ="order_detail")
-    private OrderDetail orderDetail;
-    @JSONField(name ="address_info")
-    private AddressInfo addressInfo;
+    private List<TradeItem> tradeItems;
 
-    @Data
-    public static class OrderDetail {
-        private List<ProductInfoDTO> productInfos;
-        private PriceInfo priceInfo;
-        private AddressInfo addressInfo;
-    }
+    private Consignee consignee;
 
-
-
-    @Data
-    public static class PriceInfo {
-        /**
-         * 订单最终金额
-         */
-        private BigDecimal orderPrice;
-        /**
-         * 运费，单位分
-         */
-        private BigDecimal freight;
-        /**
-         * 优惠金额，单位分
-         */
-        private BigDecimal discountPrice;
-    }
-
-
-    @Data
-    public static class AddressInfo {
-        private String receiverName;
-        private String detailedAddress;
-        private String telNumber;
-        private String country;
-        private String province;
-        private String city;
-        private String town;
-
-    }
+    private TradePrice tradePrice;
 
 }

@@ -1,4 +1,7 @@
 package com.soybean.mall.order.bean.vo;
+import com.wanmi.sbc.order.bean.vo.ConsigneeVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,33 +22,12 @@ public class OrderCommitResultVO implements Serializable {
      */
     private String parentTid;
 
-    private OrderDetail orderDetail;
-    
-    private AddressInfoVO addressInfo;
+    private List<TradeItemVO> tradeItems;
 
-    @Data
-    public static class OrderDetail {
-        private List<ProductInfoVO> productInfos;
-        private PriceInfo priceInfo;
-        private AddressInfoVO addressInfo;
-    }
+    private ConsigneeVO consignee;
+
+    private TradePriceVO tradePrice;
 
 
-
-    @Data
-    public static class PriceInfo {
-        /**
-         * 订单最终金额
-         */
-        private BigDecimal orderPrice;
-        /**
-         * 运费，单位分
-         */
-        private BigDecimal freight;
-        /**
-         * 优惠金额，单位分
-         */
-        private BigDecimal discountPrice;
-    }
     
 }

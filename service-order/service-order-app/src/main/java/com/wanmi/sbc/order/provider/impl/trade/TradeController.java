@@ -1,4 +1,5 @@
 package com.wanmi.sbc.order.provider.impl.trade;
+import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
@@ -814,9 +815,9 @@ public class TradeController implements TradeProvider {
      * @return 提交订单结果
      */
     @Override
-    public BaseResponse<OrderCommitResultVO> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+    public BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         List<OrderCommitResult> results = orderService.commitTrade(tradeCommitRequest);
-        return BaseResponse.success(new TradeCommitResponse(KsBeanUtil.convert(results, OrderCommitResultVO.class)));
+        return BaseResponse.success(new OrderCommitResponse(KsBeanUtil.convert(results, OrderCommitResultVO.class)));
     }
 
 

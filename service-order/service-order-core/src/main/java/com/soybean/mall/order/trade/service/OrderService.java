@@ -1,7 +1,6 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.soybean.mall.order.bean.dto.ProductInfoDTO;
 import com.soybean.mall.order.model.OrderCommitResult;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -142,7 +141,7 @@ public class OrderService {
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
             List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
             //返回订单信息
-            results = convertResult(trades);
+            results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {
@@ -193,45 +192,7 @@ public class OrderService {
         return results;
     }
 
-    private List<OrderCommitResult> convertResult(List<Trade> trades){
-        List<OrderCommitResult> results = new ArrayList<>(trades.size());
-        trades.forEach(trade->{
-            OrderCommitResult result = new OrderCommitResult();
-            result.setTid(trade.getId());
-            result.setParentTid(trade.getParentId());
-            OrderCommitResult.OrderDetail detail = new OrderCommitResult.OrderDetail();
-            List<ProductInfoDTO> productInfoDTOS = new ArrayList<>();
-            trade.getTradeItems().forEach(tradeItem -> {
-                productInfoDTOS.add(ProductInfoDTO.builder()
-                        .outProductId(tradeItem.getSpuId())
-                        .outSkuId(tradeItem.getSkuId())
-                        .productNum(tradeItem.getNum())
-                        .salePrice(tradeItem.getOriginalPrice())
-                        .realPrice(tradeItem.getSplitPrice())
-                        .title(tradeItem.getSkuName())
-                        .headImg(tradeItem.getPic()).build());
-            });
-            detail.setProductInfos(productInfoDTOS);
-            OrderCommitResult.PriceInfo priceInfo = new OrderCommitResult.PriceInfo();
-            priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice());
-            priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice());
-            detail.setPriceInfo(priceInfo);
 
-            OrderCommitResult.AddressInfo addressInfo = new OrderCommitResult.AddressInfo();
-            addressInfo.setCity(trade.getConsignee().getCityName());
-            addressInfo.setReceiverName(trade.getConsignee().getName());
-            addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
-            addressInfo.setProvince(trade.getConsignee().getProvinceName());
-            addressInfo.setTown(trade.getConsignee().getAreaName());
-            addressInfo.setTelNumber(trade.getConsignee().getPhone());
-            result.setAddressInfo(addressInfo);
-            result.setOrderDetail(detail);
-            return result;
-
-
-
-        });
-    }
     /**
      *
      * @param request

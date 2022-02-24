@@ -1,13 +1,19 @@
-package com.soybean.mall.order.bean.vo;
+package com.soybean.mall.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class ProductInfoVO implements Serializable {
-    private static final long serialVersionUID = 3137859029592049343L;
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class WxProductInfoVO implements Serializable {
+    private static final long serialVersionUID = 4958268411494180474L;
     /**
      * 商品Id
      */
