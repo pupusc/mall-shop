@@ -1,9 +1,9 @@
 package com.wanmi.sbc.order.api.provider.trade;
 
+import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
-import com.wanmi.sbc.order.bean.vo.TradeItemGroupVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
-import java.util.List;
 
 /**
  * @Author: ZhangLingKe
@@ -455,6 +454,6 @@ public interface TradeProvider {
     BaseResponse<String> addFixPayOrder(@PathVariable("oid") String oid);
 
     @PostMapping("/order/${application.order.version}/trade/commit-new")
-    BaseResponse<TradeCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
+    BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
 }

@@ -1,6 +1,7 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.order.model.OrderCommitResult;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -93,7 +94,7 @@ public class OrderService {
      */
     @Transactional
     @GlobalTransactional
-    public List<TradeCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
+    public List<OrderCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
         // 验证用户
         CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
@@ -111,7 +112,6 @@ public class OrderService {
         GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = tradeCacheService.getGoodsInfoViewByIds(skuIds);
         List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
 
-        // 1.查询快照中的购物清单 list转map,方便获取
         Map<Long, TradeItemGroup> tradeItemGroupsMap = tradeItemGroups.stream().collect(
                 Collectors.toMap(g -> g.getSupplier().getStoreId(), Function.identity()));
         List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
@@ -119,7 +119,7 @@ public class OrderService {
         Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
                 new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
         // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
-        verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
+        //verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
         //校验周期购
         verifyCycleBuy(tradeItemGroups, goodsInfoVOList,tradeCommitRequest.isForceCommit());
         // 处理加价购加购商品
@@ -131,9 +131,7 @@ public class OrderService {
         tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
         tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
         List<Trade> trades = tradeService.wrapperTradeList(tradeWrapperListRequest);
-
-        // 3.批量提交订单
-        List<TradeCommitResult> successResults;
+        List<OrderCommitResult> results = new ArrayList<>();
         try {
             // 处理积分抵扣
             tradeService.dealPoints(trades, tradeCommitRequest);
@@ -141,7 +139,9 @@ public class OrderService {
             //tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
-            successResults = tradeService.createBatch(trades, null, operator);
+            List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
+            //返回订单信息
+            results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {
@@ -189,8 +189,9 @@ public class OrderService {
                     e
             );
         }
-        return successResults;
+        return results;
     }
+
 
     /**
      *

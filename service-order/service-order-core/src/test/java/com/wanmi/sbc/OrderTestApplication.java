@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableAsync
 @EnableDiscoveryClient
-@ComponentScan(basePackages = {"com.wanmi.sbc"})
+@ComponentScan(basePackages = {"com.wanmi.sbc","com.soybean.mall"})
 @SpringBootApplication
 @EnableFeignClients(basePackages = {"com.wanmi.sbc"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
