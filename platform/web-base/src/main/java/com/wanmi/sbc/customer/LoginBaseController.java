@@ -1571,7 +1571,7 @@ public class LoginBaseController {
             openId = phoneAndOpenid2.getContext().getOpenId();
             customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
         }
-        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
+        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("86").registerSource("IntegralMall")
                 .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
         BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
         LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
