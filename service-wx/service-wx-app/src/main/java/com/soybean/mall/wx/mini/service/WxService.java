@@ -5,8 +5,11 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.*;
-import com.soybean.mall.wx.mini.order.bean.request.CreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.response.CreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +33,10 @@ public class WxService {
     private static final String GET_PHONE_NUMBER_URL = "https://api.weixin.qq.com/wxa/business/getuserphonenumber";
     private static final String GET_OPEN_ID_URL = "https://api.weixin.qq.com/sns/jscode2session";
     private static final String CREATE_ORDER_URL="https://api.weixin.qq.com/shop/order/add";
+    private static final String ORDER_PAY_URL="https://api.weixin.qq.com/shop/order/pay";
+    private static final String DELIVERY_SEND_URL="https://api.weixin.qq.com/shop/delivery/send";
+    private static final String DELIVERY_RECEIVE_URL="https://api.weixin.qq.com/shop/delivery/recieve";
+    private static final String AFTER_SALE_URL="https://api.weixin.qq.com/shop/aftersale/add";
 
     private static final HttpHeaders defaultHeader;
     static {
@@ -127,12 +134,69 @@ public class WxService {
      * @param createOrderRequest
      * @return
      */
-    public CreateOrderResponse createOrder(CreateOrderRequest createOrderRequest){
+    public WxCreateOrderResponse createOrder(WxCreateOrderRequest createOrderRequest){
         String accessToken = getAccessToken();
         String url = CREATE_ORDER_URL.concat("?access_token=").concat(accessToken);
 
         String reqJsonStr = JSONObject.toJSONString(createOrderRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        return sendRequest(url, HttpMethod.POST, entity, CreateOrderResponse.class);
+        return sendRequest(url, HttpMethod.POST, entity, WxCreateOrderResponse.class);
     }
+
+    /**
+     * 同步订单支付结果
+     * @param request
+     * @return
+     */
+    public WxResponseBase orderPay(WxOrderPayRequest request){
+        String accessToken = getAccessToken();
+        String url = ORDER_PAY_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 订单发货
+     * @param request
+     * @return
+     */
+    public WxResponseBase deliverySend(WxDeliverySendRequest request){
+        String accessToken = getAccessToken();
+        String url = DELIVERY_SEND_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 订单确认收获
+     * @param request
+     * @return
+     */
+    public WxResponseBase deliveryReceive(WxDeliveryReceiveRequest request){
+        String accessToken = getAccessToken();
+        String url = DELIVERY_RECEIVE_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 售后
+     * @param request
+     * @return
+     */
+    public WxResponseBase createAfterSale(WxDeliveryReceiveRequest request){
+        String accessToken = getAccessToken();
+        String url = AFTER_SALE_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
 }

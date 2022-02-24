@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 
 @Data
-public class CreateOrderResponse extends WxResponseBase {
+public class WxCreateOrderResponse extends WxResponseBase {
 
     private ResponseData data;
 

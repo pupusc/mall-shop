@@ -203,4 +203,9 @@ public class TradeCommitRequest extends BaseRequest {
      * 商品信息
      */
     private List<TradeItemDTO> tradeItems;
+
+    /**
+     * openId
+     */
+    private String openId;
 }

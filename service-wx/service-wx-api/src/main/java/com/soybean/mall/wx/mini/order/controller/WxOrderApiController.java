@@ -1,7 +1,10 @@
 package com.soybean.mall.wx.mini.order.controller;
 
-import com.soybean.mall.wx.mini.order.bean.request.CreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.response.CreateOrderResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +19,15 @@ public interface WxOrderApiController {
      * @return
      */
     @PostMapping("/order/add")
-    BaseResponse<CreateOrderResponse> addOrder(@RequestBody CreateOrderRequest createOrderRequest);
+    BaseResponse<WxCreateOrderResponse> addOrder(@RequestBody WxCreateOrderRequest createOrderRequest);
+
+
+    /**
+     * 同步支付结果
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/add")
+    BaseResponse<WxResponseBase> orderPay(@RequestBody WxOrderPayRequest request);
 
 }

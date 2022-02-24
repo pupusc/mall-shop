@@ -3,11 +3,13 @@ package com.soybean.mall.wx.mini.order.bean.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class CreateOrderRequest {
+public class WxCreateOrderRequest implements Serializable {
+    private static final long serialVersionUID = 5403388427341418460L;
     @JsonProperty("create_time")
     private String createTime;
     @JsonProperty("out_order_id")
