@@ -1,6 +1,6 @@
 package com.soybean.mall.wx.mini.goods.bean.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 import java.util.List;
@@ -11,23 +11,23 @@ public class WxAddProductResponse extends WxResponseBase {
     private ResponseData data;
 
     @Data
-    static class ResponseData{
+    public static class ResponseData{
 
-        @JsonProperty("product_id")
+        @JSONField(name = "product_id")
         private Long productId;
-        @JsonProperty("out_product_id")
+        @JSONField(name = "out_product_id")
         private String outProductId;
-        @JsonProperty("create_time")
+        @JSONField(name = "create_time")
         private String createTime;
-        @JsonProperty("skus")
+        @JSONField(name = "skus")
         private List<Sku> skus;
     }
 
     @Data
     public static class Sku{
-        @JsonProperty("sku_id")
+        @JSONField(name = "sku_id")
         private String skuId;
-        @JsonProperty("out_sku_id")
+        @JSONField(name = "out_sku_id")
         private String outSkuId;
     }
 }

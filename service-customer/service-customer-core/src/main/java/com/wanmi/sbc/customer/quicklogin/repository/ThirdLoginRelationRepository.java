@@ -54,7 +54,6 @@ public interface ThirdLoginRelationRepository extends JpaRepository<ThirdLoginRe
     Optional<ThirdLoginRelation> findByCustomerIdAndThirdTypeAndDelFlagAndStoreId(String customerId, ThirdLoginType
             thirdLoginType,DeleteFlag delFlag, Long storeId);
 
-
     Optional<ThirdLoginRelation> findTop1ByCustomerIdAndThirdLoginTypeAndDelFlagOrderByBindingTimeDesc(String customerId,
                             ThirdLoginType thirdLoginType, DeleteFlag delFlag);
 

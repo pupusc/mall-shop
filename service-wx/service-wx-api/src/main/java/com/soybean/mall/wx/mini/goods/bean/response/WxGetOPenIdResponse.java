@@ -1,13 +1,13 @@
 package com.soybean.mall.wx.mini.goods.bean.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 @Data
 public class WxGetOPenIdResponse extends WxResponseBase {
 
     private String openid;
-    @JsonProperty("session_key")
+    @JSONField(name = "session_key")
     private String sessionKey;
     private String unionid;
 }

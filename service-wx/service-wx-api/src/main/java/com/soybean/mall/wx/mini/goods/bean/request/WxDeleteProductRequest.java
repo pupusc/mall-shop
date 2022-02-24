@@ -1,13 +1,13 @@
 package com.soybean.mall.wx.mini.goods.bean.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 @Data
 public class WxDeleteProductRequest {
 
-    @JsonProperty("product_id")
+    @JSONField(name = "product_id")
     private Long productId;
-    @JsonProperty("out_product_id")
+    @JSONField(name = "out_product_id")
     private String outProductId;
 }

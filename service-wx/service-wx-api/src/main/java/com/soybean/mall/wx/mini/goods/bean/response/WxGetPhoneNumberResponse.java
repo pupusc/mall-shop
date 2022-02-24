@@ -1,12 +1,12 @@
 package com.soybean.mall.wx.mini.goods.bean.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 @Data
 public class WxGetPhoneNumberResponse extends WxResponseBase {
 
-    @JsonProperty("phone_info")
+    @JSONField(name = "phone_info")
     private PhoneInfo phoneInfo;
 
     @Data

@@ -27,7 +27,7 @@ public interface WxOrderApiController {
      * @param request
      * @return
      */
-    @PostMapping("/order/add")
+    @PostMapping("/order/pay")
     BaseResponse<WxResponseBase> orderPay(@RequestBody WxOrderPayRequest request);
 
 }

@@ -1,8 +1,6 @@
 package com.soybean.mall.wx.mini.goods.bean.request;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
