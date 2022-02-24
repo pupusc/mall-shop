@@ -14,10 +14,16 @@ import com.wanmi.sbc.elastic.api.response.sensitivewords.EsSensitiveWordsPageRes
 import com.wanmi.sbc.elastic.bean.vo.sensitivewords.EsSensitiveWordsVO;
 import com.wanmi.sbc.setting.api.provider.SensitiveWordsQueryProvider;
 import com.wanmi.sbc.setting.api.provider.SensitiveWordsSaveProvider;
-import com.wanmi.sbc.setting.api.request.*;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsAddRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsByIdRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsDelByIdListRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsDeleteResponse;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsListRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsModifyRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsQueryRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsSaveResponse;
 import com.wanmi.sbc.setting.api.response.SensitiveWordsByIdResponse;
 import com.wanmi.sbc.setting.api.response.SensitiveWordsListResponse;
-import com.wanmi.sbc.setting.api.response.SensitiveWordsPageResponse;
 import com.wanmi.sbc.setting.bean.vo.SensitiveWordsVO;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.OperateLogMQUtil;
@@ -26,7 +32,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -199,8 +209,8 @@ public class SensitiveWordsController {
 
         //同步改变es
         BaseResponse<SensitiveWordsDeleteResponse> response = saveProvider.deleteByIdList(delByIdListRequest);
-        List<SensitiveWordsVO> sensitiveWordsList = response.getContext().getSensitiveWordsList();
-        if (CollectionUtils.isNotEmpty(sensitiveWordsList)) {
+        if (Objects.nonNull(response.getContext()) && CollectionUtils.isNotEmpty(response.getContext().getSensitiveWordsList())) {
+            List<SensitiveWordsVO> sensitiveWordsList = response.getContext().getSensitiveWordsList();
             List<EsSensitiveWordsVO> newList = KsBeanUtil.convert(sensitiveWordsList, EsSensitiveWordsVO.class);
             EsSensitiveWordsSaveRequest saveRequest = EsSensitiveWordsSaveRequest.builder()
                     .sensitiveWordsList(newList)
