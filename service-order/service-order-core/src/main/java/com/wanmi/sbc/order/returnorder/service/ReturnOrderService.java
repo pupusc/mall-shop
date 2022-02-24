@@ -426,28 +426,28 @@ public class ReturnOrderService {
     private void splitReturnTrade(ReturnOrder returnOrder, Trade trade, List<ReturnOrder> returnOrders, Map<String, ReturnOrder> deliveryReturnOrderMap) {
         //订单详情集合
         List<TradeItem> tradeItemList = trade.getTradeItems();
+        //退单的商品列表
         List<ReturnItem> returnItemList = returnOrder.getReturnItems();
+
         // 查询订单商品,赠品所属供应商id集合
-        List<Long> returnProviderIds = returnItemList.stream()
-                .filter(returnItem -> Objects.nonNull(returnItem.getProviderId()))
-                .map(ReturnItem::getProviderId).distinct().collect(Collectors.toList());
+        List<Long> returnProviderIds = returnItemList.stream().filter(returnItem -> Objects.nonNull(returnItem.getProviderId())).map(ReturnItem::getProviderId).distinct().collect(Collectors.toList());
 
         //退款时全部赠品都退;退货时只需退本次退单需要退的赠品信息由getAndSetReturnGifts()获取
-        List<TradeItem> gifts = trade.getGifts();
-        List<ReturnItem> returnGifts = returnOrder.getReturnGifts();
-        if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && CollectionUtils.isNotEmpty(gifts)) {
-            returnProviderIds.addAll(
-                    gifts.stream().filter(item -> Objects.nonNull(item.getProviderId()))
-                            .map(TradeItem::getProviderId)
-                            .collect(Collectors.toList()));
-            returnProviderIds = returnProviderIds.stream().distinct().collect(Collectors.toList());
-        } else if (ReturnType.RETURN.equals(returnOrder.getReturnType()) && CollectionUtils.isNotEmpty(returnGifts)) {
-            returnProviderIds.addAll(
-                    returnGifts.stream().filter(item -> Objects.nonNull(item.getProviderId()))
-                            .map(ReturnItem::getProviderId)
-                            .collect(Collectors.toList()));
-            returnProviderIds = returnProviderIds.stream().distinct().collect(Collectors.toList());
-        }
+//        List<TradeItem> gifts = trade.getGifts();
+//        List<ReturnItem> returnGifts = returnOrder.getReturnGifts();
+//        if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && CollectionUtils.isNotEmpty(gifts)) {
+//            returnProviderIds.addAll(
+//                    gifts.stream().filter(item -> Objects.nonNull(item.getProviderId()))
+//                            .map(TradeItem::getProviderId)
+//                            .collect(Collectors.toList()));
+//            returnProviderIds = returnProviderIds.stream().distinct().collect(Collectors.toList());
+//        } else if (ReturnType.RETURN.equals(returnOrder.getReturnType()) && CollectionUtils.isNotEmpty(returnGifts)) {
+//            returnProviderIds.addAll(
+//                    returnGifts.stream().filter(item -> Objects.nonNull(item.getProviderId()))
+//                            .map(ReturnItem::getProviderId)
+//                            .collect(Collectors.toList()));
+//            returnProviderIds = returnProviderIds.stream().distinct().collect(Collectors.toList());
+//        }
 
         //供应商商品
         if (CollectionUtils.isNotEmpty(returnProviderIds)) {
@@ -460,9 +460,9 @@ public class ReturnOrderService {
                 if (Objects.nonNull(providerTrade)) {
                     providerReturnOrder.setPtid(providerTrade.getId());
                 }
-                List<TradeItem> providerGiftItems = trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
+//                List<TradeItem> providerGiftItems = trade.getGifts().stream().filter(item -> providerId.equals(item.getProviderId())).collect(Collectors.toList());
                 //退款时赠品拆分
-                this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
+//                this.fullReturnGifts(providerReturnOrder, providerGiftItems, providerId);
                 buildReturnOrder(providerReturnOrder, trade, StoreType.PROVIDER, providerId, null, providerTrade, deliveryReturnOrderMap);
                 StoreVO storeVO = storeVOMap.get(providerId);
                 //判断是否linkedmall,拆分LM店铺子订单
@@ -478,13 +478,12 @@ public class ReturnOrderService {
         }
 
         //商家商品,退单
-        List<ReturnItem> returnStoreItemList =
-                returnItemList.stream().filter(returnItem -> Objects.isNull(returnItem.getProviderId())).collect(Collectors.toList());
-        List<TradeItem> giftItemList =
-                trade.getGifts().stream().filter(item -> Objects.isNull(item.getProviderId())).collect(Collectors.toList());
+        List<ReturnItem> returnStoreItemList = returnItemList.stream().filter(returnItem -> Objects.isNull(returnItem.getProviderId())).collect(Collectors.toList());
+//        List<TradeItem> giftItemList =
+//                trade.getGifts().stream().filter(item -> Objects.isNull(item.getProviderId())).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(returnStoreItemList) || CollectionUtils.isNotEmpty(giftItemList)) {
-            //退款时赠品拆分
-            this.fullReturnGifts(returnOrder, giftItemList, null);
+//            //退款时赠品拆分
+//            this.fullReturnGifts(returnOrder, giftItemList, null);
             //没有供应商，且该订单没有被拆分子单
             ProviderTrade providerTrade = providerTradeService.getProviderTradeByIdAndPid(trade.getId(), trade.getSupplier().getStoreId());
             if (CollectionUtils.isEmpty(returnProviderIds) && Objects.isNull(providerTrade)) {
@@ -574,35 +573,51 @@ public class ReturnOrderService {
                             BigDecimal supplyPrice = Objects.nonNull(tradeItemVO.getSupplyPrice()) ? tradeItemVO.getSupplyPrice() : BigDecimal.ZERO;
                             returnItemDTO.setProviderPrice(supplyPrice.multiply(new BigDecimal(returnItemDTO.getNum())));
                             providerTotalPrice = providerTotalPrice.add(returnItemDTO.getProviderPrice());
-                            price = price.add(returnItemDTO.getSplitPrice());
-                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getPoints() != null) {
-                                points += tradeItemVO.getPoints();
-                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
-                                points += returnItemDTO.getSplitPoint();
+
+                            if (returnItemDTO.getApplyRealPrice() == null) {
+                                price = price.add(returnItemDTO.getSplitPrice());
+                            } else {
+                                price = price.add(returnItemDTO.getApplyRealPrice());
                             }
-                            if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
-                                knowledge += tradeItemVO.getKnowledge();
-                            } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
-                                knowledge += returnItemDTO.getSplitKnowledge();
+
+                            if (returnItemDTO.getApplyRealPrice() == null) {
+                                if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getPoints() != null) {
+                                    points += tradeItemVO.getPoints();
+                                } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getPoints() != null) {
+                                    points += returnItemDTO.getSplitPoint();
+                                }
+                            } else {
+                                points += returnItemDTO.getApplyPoint();
                             }
+
+                            if (returnItemDTO.getApplyKnowledge() == null) {
+                                if (returnOrder.getReturnType() == ReturnType.REFUND && tradeItemVO.getKnowledge() != null) {
+                                    knowledge += tradeItemVO.getKnowledge();
+                                } else if (returnOrder.getReturnType() == ReturnType.RETURN && tradeItemVO.getKnowledge() != null) {
+                                    knowledge += returnItemDTO.getSplitKnowledge();
+                                }
+                            } else {
+                                knowledge = returnItemDTO.getApplyKnowledge();
+                            }
+
                             returnItemDTOList.add(returnItemDTO);
                         }
                     }
                 }
 
-                //填充赠品供应商信息
-                if (CollectionUtils.isNotEmpty(trade.getGifts()) && CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
-                    // 筛选当前供应商的订单商品信息
-                    Map<String, BigDecimal> providerTradeGifts = trade.getGifts().stream()
-                            .filter(tradeItem -> providerId.equals(tradeItem.getProviderId()) && tradeItem.getSupplyPrice() != null)
-                            .collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getSupplyPrice, (a, b) -> a));
-                    //组装退单详情
-                    for (ReturnItem returnItemDTO : returnOrder.getReturnGifts()) {
-                        returnItemDTO.setSupplyPrice(providerTradeGifts.getOrDefault(returnItemDTO.getSkuId(), BigDecimal.ZERO));
-                        returnItemDTO.setProviderPrice(returnItemDTO.getSupplyPrice().multiply(new BigDecimal(returnItemDTO.getNum())));
-                        providerTotalPrice = providerTotalPrice.add(returnItemDTO.getProviderPrice());
-                    }
-                }
+//                //填充赠品供应商信息
+//                if (CollectionUtils.isNotEmpty(trade.getGifts()) && CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+//                    // 筛选当前供应商的订单商品信息
+//                    Map<String, BigDecimal> providerTradeGifts = trade.getGifts().stream()
+//                            .filter(tradeItem -> providerId.equals(tradeItem.getProviderId()) && tradeItem.getSupplyPrice() != null)
+//                            .collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getSupplyPrice, (a, b) -> a));
+//                    //组装退单详情
+//                    for (ReturnItem returnItemDTO : returnOrder.getReturnGifts()) {
+//                        returnItemDTO.setSupplyPrice(providerTradeGifts.getOrDefault(returnItemDTO.getSkuId(), BigDecimal.ZERO));
+//                        returnItemDTO.setProviderPrice(returnItemDTO.getSupplyPrice().multiply(new BigDecimal(returnItemDTO.getNum())));
+//                        providerTotalPrice = providerTotalPrice.add(returnItemDTO.getProviderPrice());
+//                    }
+//                }
 
                 //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费
                 if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (deliveryReturnOrderMap == null || deliveryReturnOrderMap.get(providerId.toString()) == null)) {
@@ -610,11 +625,11 @@ public class ReturnOrderService {
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
                         deliverPrice = deliverPrice.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
-                    }else {
+                    }/*else {
                         if(trade.getTradePrice() != null && trade.getTradePrice().getDeliveryPrice() != null){
                             price = price.add(trade.getTradePrice().getDeliveryPrice());
                         }
-                    }
+                    }*/
                 }
 
                 //针对退运费的强制
@@ -879,49 +894,91 @@ public class ReturnOrderService {
         boolean isSpecial = returnPrice.getApplyStatus() && operator.getPlatform() == Platform.BOSS;
         //未发货，全部退款
         //是否仅退款
-        boolean isRefund = false;
-        if (trade.getCycleBuyFlag()) {
-            //判断订单里面里面的赠品是否有虚拟或者电子卡券
-            List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
-            //判断里面是否有已经发货日历
-            List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
-            //是否仅退款
-            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+//        boolean isRefund = false;
+//        if (trade.getCycleBuyFlag()) {
+//            //判断订单里面里面的赠品是否有虚拟或者电子卡券
+//            List<TradeItem> gifts = trade.getGifts().stream().filter(g -> GoodsType.VIRTUAL_GOODS.equals(g.getGoodsType()) || GoodsType.VIRTUAL_COUPON.equals(g.getGoodsType())).collect(Collectors.toList());
+//            //判断里面是否有已经发货日历
+//            List<DeliverCalendar> deliverCalendarList = trade.getTradeCycleBuyInfo().getDeliverCalendar().stream().filter(deliverCalendar -> deliverCalendar.getCycleDeliverStatus() == CycleDeliverStatus.SHIPPED).collect(Collectors.toList());
+//            //是否仅退款
+//            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED || trade.getTradeState().getDeliverStatus() == DeliverStatus.VOID || (CollectionUtils.isNotEmpty(gifts) && CollectionUtils.isEmpty(deliverCalendarList));
+//
+//            if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
+//                isRefund = false;
+//            }
+//
+//        } else {
+//            //如果未发货或者已经作废 则表示仅仅退款
+//            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED
+//                    || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID
+//                    || returnOrder.getReturnReason() !=  null && ReturnReason.PRICE_DELIVERY == returnOrder.getReturnReason();
+//        }
+//        if (!isRefund) {
+            //------------------start-------------------
 
-            if (CollectionUtils.isNotEmpty(deliverCalendarList)) {
-                isRefund = false;
+
+//        for (ReturnItem returnItem : returnItems) {
+//            //查看订单中是否存在该商品
+//            List<TradeItem> tradeItemListBySkuId = trade.getTradeItems().stream().filter(tradeItem ->
+//                    returnItem.getSkuId().equals(tradeItem.getSkuId())).collect(Collectors.toList());
+//            //
+//            if (CollectionUtils.isEmpty(tradeItemListBySkuId) || tradeItemListBySkuId.size() > 1) {
+//                log.error("ReturnOrderService create returnItem skuId:{} tradeItemListBySkuId is empty or size greater than 1", returnItem.getSkuId());
+//                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//            }
+//            //由于管易云博库只能整个商品一起取消，如果未发货，当前必须的是整个商品行退款，所以数量必须的相同
+//            //获取订单中的商品,商品购买数量为0，则抛出异常
+//            TradeItem tradeItem = tradeItemListBySkuId.get(0);
+//            if (tradeItem.getNum() == 0) {
+//                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//            }
+//
+//            returnItem.setOrderSplitPrice(tradeItem.getSplitPrice()); //设置拆单价格
+//
+//
+//            //单价
+//            BigDecimal itemUnitPrice = tradeItem.getSplitPrice().divide(new BigDecimal(tradeItem.getNum().toString()), 2, BigDecimal.ROUND_HALF_UP);
+//
+//            if ((tradeItem.getCanReturnNum() - returnItem.getNum()) > 0) {
+//                if (itemUnitPrice.compareTo(new BigDecimal("0.01")) == -1) {
+//                    returnItem.setSplitPrice(BigDecimal.ZERO);
+//                } else {
+//                    returnItem.setSplitPrice(itemUnitPrice.multiply(new BigDecimal(tradeItem.getNum() + "")));
+//                }
+//            } else {
+//                //该商品已退完
+//                if (itemUnitPrice.compareTo(new BigDecimal("0.01")) == -1) {
+//                    returnItem.setSplitPrice(tradeItem.getSplitPrice());
+//                } else {
+//                    long returnNum = tradeItem.getNum() - returnItem.getNum();
+//                    returnItem.setSplitPrice(tradeItem.getSplitPrice().subtract(itemUnitPrice.multiply(new BigDecimal(returnNum + ""))));
+//                }
+//            }
+//        }
+
+
+        for (ReturnItem returnItem : returnItems) {
+            //查看订单中是否存在该商品
+            List<TradeItem> tradeItemListBySkuId = trade.getTradeItems().stream().filter(tradeItem -> returnItem.getSkuId().equals(tradeItem.getSkuId())).collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(tradeItemListBySkuId) || tradeItemListBySkuId.size() > 1) {
+                log.error("ReturnOrderService create returnItem skuId:{} tradeItemListBySkuId is empty or size greater than 1", returnItem.getSkuId());
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+            }
+            //由于管易云博库只能整个商品一起取消，如果未发货，当前必须的是整个商品行退款，所以数量必须的相同
+            //获取订单中的商品,商品购买数量为0，则抛出异常
+            TradeItem tradeItem = tradeItemListBySkuId.get(0);
+            if (tradeItem.getNum() == 0) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
             }
 
-        } else {
-            //如果未发货或者已经作废 则表示仅仅退款
-            isRefund = trade.getTradeState().getDeliverStatus() == DeliverStatus.NOT_YET_SHIPPED
-                    || trade.getTradeState().getDeliverStatus()== DeliverStatus.VOID
-                    || returnOrder.getReturnReason() !=  null && ReturnReason.PRICE_DELIVERY == returnOrder.getReturnReason();
-        }
-        if (!isRefund) {
-            //------------------start-------------------
-            //分销人员列表 这个不处理
-            List<TradeDistributeItemVO> tradeDistributeItemVos = returnOrder.getDistributeItems();
+            returnItem.setOrderSplitPrice(tradeItem.getSplitPrice()); //设置拆单价格
 
-            for (ReturnItem returnItem : returnItems) {
-                //查看订单中是否存在该商品
-                List<TradeItem> tradeItemListBySkuId = trade.getTradeItems().stream().filter(tradeItem ->
-                        returnItem.getSkuId().equals(tradeItem.getSkuId())).collect(Collectors.toList());
-                //
-                if (CollectionUtils.isEmpty(tradeItemListBySkuId) || tradeItemListBySkuId.size() > 1) {
-                    log.error("ReturnOrderService create returnItem skuId:{} tradeItemListBySkuId is empty or size greater than 1", returnItem.getSkuId());
-                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-                }
-                //由于管易云博库只能整个商品一起取消，如果未发货，当前必须的是整个商品行退款，所以数量必须的相同
-                //获取订单中的商品,商品购买数量为0，则抛出异常
-                TradeItem tradeItem = tradeItemListBySkuId.get(0);
-                if (tradeItem.getNum() == 0) {
-                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-                }
 
-                returnItem.setOrderSplitPrice(tradeItem.getSplitPrice()); //设置拆单价格
-                //单价 TODO
+            if (returnItem.getApplyRealPrice() == null) {
+                //单价
                 BigDecimal itemUnitPrice = tradeItem.getSplitPrice().divide(new BigDecimal(tradeItem.getNum().toString()), 2, BigDecimal.ROUND_HALF_UP);
+
                 if ((tradeItem.getCanReturnNum() - returnItem.getNum()) > 0) {
                     if (itemUnitPrice.compareTo(new BigDecimal("0.01")) == -1) {
                         returnItem.setSplitPrice(BigDecimal.ZERO);
@@ -937,21 +994,25 @@ public class ReturnOrderService {
                         returnItem.setSplitPrice(tradeItem.getSplitPrice().subtract(itemUnitPrice.multiply(new BigDecimal(returnNum + ""))));
                     }
                 }
+            } else {
+                returnItem.setSplitPrice(returnItem.getApplyRealPrice());
             }
+        }
 
 
-            //-------------------------end--------------------------
-            //这里表示的是用户的拆单价的累加
-            realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
-            // 计算积分
-            if (Objects.nonNull(trade.getTradePrice().getPoints())) {
-                points = getPoints(returnOrder, trade, false);
-            }
-            // 计算知豆
-            if (Objects.nonNull(trade.getTradePrice().getKnowledge())) {
-                knowledge = getKnowledge(returnOrder, trade, false);
-            }
-
+        //-------------------------end--------------------------
+        //这里表示的是用户的拆单价的累加
+        realReturnPrice = isSpecial ? returnPrice.getApplyPrice() : returnOrder.getReturnItems().stream().map(ReturnItem::getSplitPrice).reduce(BigDecimal::add).get();
+        // 计算积分
+        if (Objects.nonNull(trade.getTradePrice().getPoints())) {
+            points = getPoints(returnOrder, trade, false);
+        }
+        // 计算知豆
+        if (Objects.nonNull(trade.getTradePrice().getKnowledge())) {
+            knowledge = getKnowledge(returnOrder, trade, false);
+        }
+        //分销人员列表 这个不处理
+        List<TradeDistributeItemVO> tradeDistributeItemVos = returnOrder.getDistributeItems();
             //分销商品数据接口赋值开始
             tradeDistributeItemVos = tradeDistributeItemVos.stream().filter(item -> skuIds
                     .contains(item.getGoodsInfoId())).collect(Collectors.toList());
@@ -994,7 +1055,7 @@ public class ReturnOrderService {
                 returnOrder.setDistributeItems(distributeItems);
             }
             //分销商品的数据处理结束
-        }
+//        }
         returnOrder.getReturnPrice().setTotalPrice(realReturnPrice);
         returnOrder.getReturnPrice().setApplyPrice(realReturnPrice);
         if (returnOrder.getReturnPoints() != null && returnOrder.getReturnKnowledge() != null) {
@@ -1019,15 +1080,17 @@ public class ReturnOrderService {
             throw new SbcRuntimeException("K-050126");
         }
 
-        if (isRefund) {
+
+        //退款
+        if (returnOrder.getReturnType() == ReturnType.REFUND) {
             //创建退款单，会过滤已完成部分退款的的商品
             createRefund(returnOrder, operator, trade);
         } else {
             createReturn(returnOrder, operator, trade);
-            // 计算并设置需要退的赠品
-            if (Objects.nonNull(trade.getGifts())) {
-                getAndSetReturnGifts(returnOrder, trade, returnOrderList);
-            }
+//            // 计算并设置需要退的赠品
+//            if (Objects.nonNull(trade.getGifts())) {
+//                getAndSetReturnGifts(returnOrder, trade, returnOrderList);
+//            }
         }
 
         List<ReturnOrder> returnOrders = new ArrayList<>();
@@ -1182,6 +1245,15 @@ public class ReturnOrderService {
 
     // 计算积分
     private Long getPoints(ReturnOrder returnOrder, Trade trade, boolean isRefund) {
+        Long applyPoints = 0L;
+        for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+            applyPoints = applyPoints + (returnItem.getApplyPoint() == null ? 0L : returnItem.getApplyPoint());
+        }
+        if (applyPoints > 0) {
+            return applyPoints;
+        }
+
+
         // 各商品均摊积分
         Map<String, Double> splitPointMap = new HashMap<>();
         // 各商品购买数量
@@ -1192,9 +1264,7 @@ public class ReturnOrderService {
         Long points;
         for (TradeItem tradeItem : tradeItems) {
             points = Objects.nonNull(tradeItem.getPoints()) ? tradeItem.getPoints() : NumberUtils.LONG_ZERO;
-            Double splitPoint = new BigDecimal(points)
-                    .divide(new BigDecimal(tradeItem.getNum()), 2, BigDecimal.ROUND_DOWN)
-                    .doubleValue();
+            Double splitPoint = new BigDecimal(points).divide(new BigDecimal(tradeItem.getNum()), 2, BigDecimal.ROUND_DOWN).doubleValue();
             String skuId = tradeItem.getSkuId();
             splitPointMap.put(skuId, splitPoint);
             totalNumMap.put(skuId, tradeItem.getNum());
@@ -1226,6 +1296,15 @@ public class ReturnOrderService {
 
     // 计算知豆
     private Long getKnowledge(ReturnOrder returnOrder, Trade trade, boolean isRefund) {
+        Long applyKnowledge = 0L;
+        for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+            applyKnowledge = applyKnowledge + (returnItem.getApplyKnowledge() == null ? 0L : returnItem.getApplyKnowledge());
+        }
+        if (applyKnowledge > 0) {
+            return applyKnowledge;
+        }
+
+
         // 各商品均摊积分
         Map<String, Double> splitKnowledgeMap = new HashMap<>();
         // 各商品购买数量
@@ -3360,26 +3439,26 @@ public class ReturnOrderService {
 
 
         //计算赠品可退数
-        if (CollectionUtils.isNotEmpty(trade.getGifts())) {
-            Map<String, Integer> giftCanReturnNumMap = findLeftGiftItems(trade);
-            for (TradeItem giftTradeItemParam : trade.getGifts()) {
-                Integer giftsItemCanReturnNum = giftCanReturnNumMap.get(giftTradeItemParam.getSkuId());
-                if (giftsItemCanReturnNum == null) {
-                    throw new SbcRuntimeException("K-050411");
-                }
-                giftTradeItemParam.setCanReturnNum(giftsItemCanReturnNum);
-                //如果订单中已经有供应商，则不再查询
-                if (giftTradeItemParam.getProviderId() != null && giftTradeItemParam.getProviderId() > 0) {
-                    continue;
-                }
-                GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
-                goodsInfoByIdRequest.setGoodsInfoId(giftTradeItemParam.getSkuId());
-                GoodsInfoByIdResponse goodsInfoVo = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
-                if (goodsInfoVo != null) {
-                    giftTradeItemParam.setProviderId(goodsInfoVo.getProviderId());
-                }
-            }
-        }
+//        if (CollectionUtils.isNotEmpty(trade.getGifts())) {
+//            Map<String, Integer> giftCanReturnNumMap = findLeftGiftItems(trade);
+//            for (TradeItem giftTradeItemParam : trade.getGifts()) {
+//                Integer giftsItemCanReturnNum = giftCanReturnNumMap.get(giftTradeItemParam.getSkuId());
+//                if (giftsItemCanReturnNum == null) {
+//                    throw new SbcRuntimeException("K-050411");
+//                }
+//                giftTradeItemParam.setCanReturnNum(giftsItemCanReturnNum);
+//                //如果订单中已经有供应商，则不再查询
+//                if (giftTradeItemParam.getProviderId() != null && giftTradeItemParam.getProviderId() > 0) {
+//                    continue;
+//                }
+//                GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
+//                goodsInfoByIdRequest.setGoodsInfoId(giftTradeItemParam.getSkuId());
+//                GoodsInfoByIdResponse goodsInfoVo = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+//                if (goodsInfoVo != null) {
+//                    giftTradeItemParam.setProviderId(goodsInfoVo.getProviderId());
+//                }
+//            }
+//        }
         /*********************订单中填充供应商 end************************/
 
 
@@ -3648,8 +3727,8 @@ public class ReturnOrderService {
             }
 
             //对所有商品发货的数量统计
-            Map<String, Long> skuId2DeliverNum = trade.getTradeItems().stream().collect(Collectors.toMap(TradeItem::getSkuId,TradeItem::getDeliveredNum));
-
+//            Map<String, Long> skuId2DeliverNum = trade.getTradeItems().stream().collect(Collectors.toMap(TradeItem::getSkuId,TradeItem::getDeliveredNum));
+            Map<String, Long> skuId2DeliverNum = trade.getTradeItems().stream().collect(Collectors.toMap(TradeItem::getSkuId,TradeItem::getNum));
             //对所有退单列表信息进行统计 不包含已作废状态以及拒绝收货的退货单与拒绝退款的退款单
             List<ReturnItem> allReturnItems = this.findReturnsNotVoid(trade.getId())
                     .stream().map(ReturnOrder::getReturnItems).reduce(new ArrayList<>(), (a, b) -> {
