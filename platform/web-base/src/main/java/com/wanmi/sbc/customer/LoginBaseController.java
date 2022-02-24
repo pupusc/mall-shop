@@ -1499,6 +1499,7 @@ public class LoginBaseController {
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
         }
+        loginResponse.setPhoto(resData.getProfilePhoto());
         loginResponse.setOpenId(openId);
         return loginResponse;
     }

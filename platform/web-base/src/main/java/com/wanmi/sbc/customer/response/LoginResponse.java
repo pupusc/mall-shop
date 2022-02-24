@@ -113,4 +113,6 @@ public class LoginResponse implements Serializable{
     private Integer fanDengUserStates;
 
     private String openId;
+
+    private String photo;
 }

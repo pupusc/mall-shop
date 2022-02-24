@@ -716,10 +716,10 @@ public class ExternalService {
                 redisService.delete(appid);
                 httpResponse = HttpUtils.doPost(host, url, getMap(), null, body);
             }
-            log.info("ExternalService getUrl 返回结果：{}", IOUtils.toString(httpResponse.getEntity().getContent()));
-            if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
-                String entity = EntityUtils.toString(httpResponse.getEntity());
-                log.info("樊登请求接口：{},请求参数{},返回状态：{}", url, body, entity);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            String entity = EntityUtils.toString(httpResponse.getEntity());
+            log.info("ExternalService getUrl status：{} , body : {}", statusCode, entity);
+            if (HttpStatus.SC_OK == statusCode) {
                 return entity;
             }
         } catch (Exception e) {
@@ -742,9 +742,10 @@ public class ExternalService {
             try {
                 log.info("ExternalService getAccessToken appId: {} url:{}", appid, url);
                 HttpResponse httpResponse = HttpUtils.doPost(host, url, getMap(), null, null);
-                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, IOUtils.toString(httpResponse.getEntity().getContent()));
-                if (200 == httpResponse.getStatusLine().getStatusCode()) {
-                    String entity = EntityUtils.toString(httpResponse.getEntity());
+                int statusCode = httpResponse.getStatusLine().getStatusCode();
+                String entity = EntityUtils.toString(httpResponse.getEntity());
+                log.info("ExternalService getAccessToken appId: {} httpResponse:{}", appid, entity);
+                if (200 == statusCode) {
                     JSONObject object = JSONObject.parseObject(entity);
                     String error = object.getString("error");
                     if (StringUtils.isBlank(error)) {
