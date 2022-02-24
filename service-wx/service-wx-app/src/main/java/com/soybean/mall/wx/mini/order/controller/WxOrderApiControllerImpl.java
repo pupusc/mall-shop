@@ -17,8 +17,9 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     @Autowired
     private WxService wxService;
 
+
     @Override
-    BaseResponse<WxCreateOrderResponse> addOrder(WxCreateOrderRequest createOrderRequest) {
+    public BaseResponse<WxCreateOrderResponse> addOrder(WxCreateOrderRequest createOrderRequest) {
         return BaseResponse.success(wxService.createOrder(createOrderRequest));
     }
 
