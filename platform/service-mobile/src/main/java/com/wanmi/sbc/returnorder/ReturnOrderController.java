@@ -21,6 +21,7 @@ import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferDeleteRequest;
@@ -52,6 +53,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -377,4 +379,15 @@ public class ReturnOrderController {
         verifyIsReturnable(tid);
         return BaseResponse.SUCCESSFUL();
     }
+
+    /**
+     * 获取退单详列表信息
+     * @param request
+     * @return
+     */
+    @PostMapping("/list-return-provider-trade")
+    public BaseResponse findReturnOrderInfo(@RequestBody @Validated ReturnOrderProviderTradeRequest request) {
+        return returnOrderProvider.listReturnProviderTrade(request);
+    }
+
 }
