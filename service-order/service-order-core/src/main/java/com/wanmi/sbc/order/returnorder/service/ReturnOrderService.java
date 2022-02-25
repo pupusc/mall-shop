@@ -832,6 +832,7 @@ public class ReturnOrderService {
         if (returnVirtualTotalCount == returnTotalCount) {
             // 虚拟商品 只能直接退款
             returnOrder.setReturnWay(ReturnWay.OTHER);
+            returnOrder.setReturnType(ReturnType.RETURN);
         }
 
         //根据订单id获取退单列表
