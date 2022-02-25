@@ -15,12 +15,12 @@ public class OrderCommitResultVO implements Serializable {
     /**
      * 订单编号
      */
-    private String tid;
+    private String id;
 
     /**
      * 父订单号，用于不同商家订单合并支付场景
      */
-    private String parentTid;
+    private String parentId;
 
     private List<TradeItemVO> tradeItems;
 

@@ -152,7 +152,7 @@ public class OrderController {
 
     private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades) {
         WxOrderCommitResultVO result = new WxOrderCommitResultVO();
-        result.setOutOrderId(trades.get(0).getTid());
+        result.setOutOrderId(trades.get(0).getId());
         OrderCommitResultVO trade = trades.get(0);
 
 
