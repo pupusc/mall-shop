@@ -110,57 +110,57 @@ public class OrderController {
     /**
      * 提交订单，用于生成订单操作
      */
-    @ApiOperation(value = "提交订单，用于生成订单操作")
-    @RequestMapping(value = "/commit", method = RequestMethod.POST)
-    @MultiSubmitWithToken
-    //@GlobalTransactional
-    public BaseResponse<WxOrderPaymentVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
-        //校验是否需要完善地址信息
-        CustomerDeliveryAddressByIdResponse address = null;
-        customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
-        if (address != null) {
-            PlatformAddressVerifyRequest platformAddressVerifyRequest = new PlatformAddressVerifyRequest();
-            if (Objects.nonNull(address.getProvinceId())) {
-                platformAddressVerifyRequest.setProvinceId(String.valueOf(address.getProvinceId()));
-            }
-            if (Objects.nonNull(address.getCityId())) {
-                platformAddressVerifyRequest.setCityId(String.valueOf(address.getCityId()));
-            }
-            if (Objects.nonNull(address.getAreaId())) {
-                platformAddressVerifyRequest.setAreaId(String.valueOf(address.getAreaId()));
-            }
-            if (Objects.nonNull(address.getStreetId())) {
-                platformAddressVerifyRequest.setStreetId(String.valueOf(address.getStreetId()));
-            }
-            if (Boolean.TRUE.equals(platformAddressQueryProvider.verifyAddress(platformAddressVerifyRequest).getContext())) {
-                throw new SbcRuntimeException("K-220001");
-            }
-        }
-        RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
-        rLock.lock();
-        List<OrderCommitResultVO> successResults;
-        try {
-            Operator operator = commonUtil.getOperator();
-            tradeCommitRequest.setOperator(operator);
-            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
+//    @ApiOperation(value = "提交订单，用于生成订单操作")
+//    @RequestMapping(value = "/commit", method = RequestMethod.POST)
+//    @MultiSubmitWithToken
+//    //@GlobalTransactional
+//    public BaseResponse<WxOrderPaymentVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+//        //校验是否需要完善地址信息
+//        CustomerDeliveryAddressByIdResponse address = null;
+//        customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
+//        if (address != null) {
+//            PlatformAddressVerifyRequest platformAddressVerifyRequest = new PlatformAddressVerifyRequest();
+//            if (Objects.nonNull(address.getProvinceId())) {
+//                platformAddressVerifyRequest.setProvinceId(String.valueOf(address.getProvinceId()));
+//            }
+//            if (Objects.nonNull(address.getCityId())) {
+//                platformAddressVerifyRequest.setCityId(String.valueOf(address.getCityId()));
+//            }
+//            if (Objects.nonNull(address.getAreaId())) {
+//                platformAddressVerifyRequest.setAreaId(String.valueOf(address.getAreaId()));
+//            }
+//            if (Objects.nonNull(address.getStreetId())) {
+//                platformAddressVerifyRequest.setStreetId(String.valueOf(address.getStreetId()));
+//            }
+//            if (Boolean.TRUE.equals(platformAddressQueryProvider.verifyAddress(platformAddressVerifyRequest).getContext())) {
+//                throw new SbcRuntimeException("K-220001");
+//            }
+//        }
+//        RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
+//        rLock.lock();
+//        List<OrderCommitResultVO> successResults;
+//        try {
+//            Operator operator = commonUtil.getOperator();
+//            tradeCommitRequest.setOperator(operator);
+//            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
+//
+//        } catch (Exception e) {
+//            throw e;
+//        } finally {
+//            rLock.unlock();
+//        }
+//        return BaseResponse.success(getOrderPaymentResult(successResults,""));
+//
+//    }
 
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            rLock.unlock();
-        }
-        return BaseResponse.success(getOrderPaymentResult(successResults,""));
-
-    }
-
-    private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
-        WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
-        wxOrderPaymentVO.setTimeStamp(String.valueOf((new Date()).getTime()/1000));
-        wxOrderPaymentVO.setNonceStr(RandomStringUtils.randomAlphanumeric(32));
-        wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-        wxOrderPaymentVO.setPrepayId(trades.get(0).getId());
-        String sign = getSign(wxOrderPaymentVO);
-    }
+//    private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
+//        WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+//        wxOrderPaymentVO.setTimeStamp(String.valueOf((new Date()).getTime()/1000));
+//        wxOrderPaymentVO.setNonceStr(RandomStringUtils.randomAlphanumeric(32));
+//        wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+//        wxOrderPaymentVO.setPrepayId(trades.get(0).getId());
+//        String sign = getSign(wxOrderPaymentVO);
+//    }
 
     private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades,String openId) {
         WxOrderCommitResultVO result = new WxOrderCommitResultVO();

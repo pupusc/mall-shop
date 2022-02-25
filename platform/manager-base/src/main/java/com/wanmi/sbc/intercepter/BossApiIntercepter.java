@@ -161,6 +161,9 @@ public class BossApiIntercepter implements HandlerInterceptor {
                 for (String restUrl : list) {
                     String reqMethodStr = excludedRestUrlsMap.getString(restUrl);
                     if (reqMethodStr != null) {
+                        if("*".equals(reqMethodStr)){
+                            return true;
+                        }
                         if (reqMethodStr.contains(requestType)) {
                             return true;
                         }
