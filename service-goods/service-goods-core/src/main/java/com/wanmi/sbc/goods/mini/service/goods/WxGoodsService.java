@@ -125,16 +125,16 @@ public class WxGoodsService {
     }
 
     public void auditCallback(Map<String, Object> paramMap){
-        Map<String, Object> auditResult = (Map<String, Object>) paramMap.get("OpenProductSpuAudit");
-        int wxStatus = (int) auditResult.get("status");
-        String goodsId = (String) auditResult.get("out_product_id");
-        long productId = (long) auditResult.get("product_id");
-        if(wxStatus == 4){
+        Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
+        String wxStatus = auditResult.get("status");
+        String goodsId = auditResult.get("out_product_id");
+        String productId = auditResult.get("product_id");
+        if("4".equals(wxStatus)){
             //成功
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
-            wxGoodsModel.setPlatformProductId(productId);
+            wxGoodsModel.setPlatformProductId(Long.parseLong(productId));
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -151,9 +151,9 @@ public class WxGoodsService {
             }else if(wxGoodsStatus.equals(WxGoodsStatus.UPLOAD) && editStatus.equals(WxGoodsEditStatus.ON_CHECK)){
 
             }*/
-        }else if(wxStatus == 3){
+        }else if("3".equals(wxStatus)){
             //失败
-            String rejectReason = (String) auditResult.get("reject_reason");
+            String rejectReason = auditResult.get("reject_reason");
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);

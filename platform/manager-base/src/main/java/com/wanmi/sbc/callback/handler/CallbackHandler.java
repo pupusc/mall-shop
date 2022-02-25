@@ -1,4 +1,4 @@
-package com.soybean.mall.wx.callback.handler;
+package com.wanmi.sbc.callback.handler;
 
 import java.util.Map;
 

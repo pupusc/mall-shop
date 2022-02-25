@@ -1,6 +1,6 @@
-package com.soybean.mall.wx.callback.parser;
+package com.wanmi.sbc.callback.parser;
 
-import com.soybean.mall.wx.callback.handler.CallbackHandler;
+import com.wanmi.sbc.callback.handler.CallbackHandler;
 import com.wanmi.sbc.common.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -8,8 +8,9 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -20,13 +21,13 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class WxAuditCallbackParser implements ApplicationListener<ContextStartedEvent> {
+public class WxAuditCallbackParser implements CommandLineRunner {
 
     private static final byte[] rootPrefix = "<root>".getBytes();
     private static final byte[] rootSuffix = "</root>".getBytes();
     private static Collection<CallbackHandler> handlers;
 
-    public void dealCallback(InputStream inputStream) {
+    public String dealCallback(InputStream inputStream) {
         try {
             Map<String, Object> paramMap = parseXML(inputStream);
             for (CallbackHandler handler : handlers) {
@@ -42,7 +43,9 @@ public class WxAuditCallbackParser implements ApplicationListener<ContextStarted
             } catch (IOException ioException) {
                 log.error("解析微信审核回调失败!", e);
             }
+            return "fail";
         }
+        return "success";
     }
 
     private Map<String, Object> parseXML(InputStream inputStream) throws DocumentException {
@@ -71,8 +74,9 @@ public class WxAuditCallbackParser implements ApplicationListener<ContextStarted
         return paramMap;
     }
 
+
     @Override
-    public void onApplicationEvent(ContextStartedEvent contextStartedEvent) {
-         handlers = SpringContextHolder.getApplicationContext().getBeansOfType(CallbackHandler.class).values();
+    public void run(String... args) {
+        handlers = SpringContextHolder.getApplicationContext().getBeansOfType(CallbackHandler.class).values();
     }
 }

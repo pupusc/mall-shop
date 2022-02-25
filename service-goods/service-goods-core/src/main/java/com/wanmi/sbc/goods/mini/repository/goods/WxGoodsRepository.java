@@ -28,11 +28,11 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
             final List<Predicate> conditionList = new ArrayList<>();
             conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
             if (CollectionUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsIds())) {
-                CriteriaBuilder.In<Object> in = criteriaBuilder.in(root.get("id"));
+                CriteriaBuilder.In<Object> in = criteriaBuilder.in(root.get("goodsId"));
                 for (String goodsId : wxGoodsSearchRequest.getGoodsIds()) {
                     in.value(goodsId);
                 }
-                conditionList.add(criteriaBuilder.in(root.get("id")));
+                conditionList.add(in);
             }
             if (wxGoodsSearchRequest.getAuditStatus() != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("auditStatus").as(Integer.class), wxGoodsSearchRequest.getAuditStatus()));
