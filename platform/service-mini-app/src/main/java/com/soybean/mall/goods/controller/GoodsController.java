@@ -44,7 +44,7 @@ public class GoodsController {
         if(wxGoodsSearchRequest.getGoodsName() != null){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
-            queryRequest.setPageSize(99);
+            queryRequest.setPageSize(50);
             queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
             queryRequest.setQueryGoods(true);
             queryRequest.setAddedFlag(AddedFlag.YES.toValue());
