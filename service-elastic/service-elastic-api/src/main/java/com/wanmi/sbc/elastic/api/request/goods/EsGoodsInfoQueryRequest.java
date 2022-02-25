@@ -19,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
@@ -78,6 +79,8 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "模糊条件-商品名称")
     private String likeGoodsName;
+
+    private String matchGoodsName;
 
     /**
      * 上下架状态
@@ -400,6 +403,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder
                     //.should(matchQuery(queryName.concat(".goodsInfoName"),likeGoodsName))
                     .must(matchPhraseQuery("lowGoodsName", likeGoodsName));
+        }
+
+        if (StringUtils.isNotBlank(matchGoodsName)) {
+            boolQueryBuilder.must(matchQuery("lowGoodsName", matchGoodsName));
         }
 
         String labelVisibleField = "goodsLabelList.labelVisible";
