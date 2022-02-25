@@ -15,10 +15,10 @@ import java.util.Map;
 @ApiEnum
 public enum ReturnWay {
 
-    @ApiEnumProperty("0: 仅退款不退货")
+    @ApiEnumProperty("0: 其他")
     OTHER(0, "仅退款不退货"),
 
-    @ApiEnumProperty("1: 退款退货")
+    @ApiEnumProperty("1: 快递")
     EXPRESS(1, "退款退货");
 
     private Integer type;

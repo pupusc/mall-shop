@@ -620,7 +620,7 @@ public class ReturnOrderService {
 //                }
 
                 //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap == null || providerDeliveryMap.get(providerId.toString()) == null)) {
+                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap.get(providerId.toString()) != null && providerDeliveryMap.get(providerId.toString()))) {
                     //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
@@ -827,6 +827,7 @@ public class ReturnOrderService {
                 .filter(t -> GoodsType.VIRTUAL_COUPON.equals(t.getGoodsType()) || GoodsType.VIRTUAL_GOODS.equals(t.getGoodsType())).count();
         long returnVirtualTotalCount = count + giftsCount;
         long returnTotalCount = returnOrder.getReturnItems().size() + returnOrder.getReturnGifts().size();
+        returnOrder.setReturnType(returnOrder.getReturnWay() == ReturnWay.OTHER ? ReturnType.REFUND : ReturnType.RETURN);
         //表示退款的数量为 虚拟商品的数量相同；
         if (returnVirtualTotalCount == returnTotalCount) {
             // 虚拟商品 只能直接退款
@@ -879,6 +880,18 @@ public class ReturnOrderService {
             }
         }
 
+        //申请退单填充数量
+        for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+            if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY && returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
+                Integer skuIdNum = allReturnSkuIdNumMap.get(returnItem.getSkuId()) == null ? 0 : allReturnSkuIdNumMap.get(returnItem.getSkuId());
+                skuIdNum += returnItem.getNum();
+                allReturnSkuIdNumMap.put(returnItem.getSkuId(), skuIdNum);
+            } else {
+                returnItem.setNum(0);
+            }
+        }
+
+
 
         //此处变更 订单的金额、积分、知豆等信息
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), null);
@@ -897,14 +910,20 @@ public class ReturnOrderService {
 
             //按照供应商提供运费
             for (Map.Entry<String, List<TradeItem>> entry : tradeItemMap.entrySet()) {
+                Boolean isNeedReturnDelivery = providerDeliveryMap.get(entry.getKey());
+                if (isNeedReturnDelivery != null && !isNeedReturnDelivery) {
+                    continue;
+                }
+                isNeedReturnDelivery = true;
                 for (TradeItem tradeItemParam : entry.getValue()) {
                     Integer returnSkuIdNum =
                             allReturnSkuIdNumMap.get(tradeItemParam.getSkuId()) == null ? 0 : allReturnSkuIdNumMap.get(tradeItemParam.getSkuId());
                     if (tradeItemParam.getNum().intValue() != returnSkuIdNum) {
-                        providerDeliveryMap.put(entry.getKey(), false);
+                        isNeedReturnDelivery = false;
                         break;
                     }
                 }
+                providerDeliveryMap.put(entry.getKey(), isNeedReturnDelivery);
             }
         }
 
@@ -3780,7 +3799,8 @@ public class ReturnOrderService {
             if (replace != null && replace == 1) {
                 if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)
                         && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)
-                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED_PART)) {
+                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED_PART)
+                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED)) {
                     throw new SbcRuntimeException("K-050002");
                 }
             } else {
@@ -3932,7 +3952,7 @@ public class ReturnOrderService {
     public List<ReturnOrder> filterFinishedReturnOrder(List<ReturnOrder> returnOrders) {
         return returnOrders.stream().filter(t -> !t.getReturnFlowState().equals(ReturnFlowState.VOID)
                 && !t.getReturnFlowState().equals(ReturnFlowState.REJECT_RECEIVE)
-                && !(t.getReturnType() == ReturnType.REFUND && t.getReturnFlowState() == ReturnFlowState.REJECT_REFUND)
+                && !(t.getReturnFlowState() == ReturnFlowState.REJECT_REFUND)
                 && !(t.getReturnReason() != null && ReturnReason.PRICE_DELIVERY.getType().equals(t.getReturnReason().getType())))
                 .collect(Collectors.toList());
     }

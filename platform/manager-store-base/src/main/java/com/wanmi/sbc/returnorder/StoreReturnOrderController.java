@@ -58,6 +58,8 @@ import com.wanmi.sbc.order.bean.dto.ReturnCustomerAccountDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
+import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -201,6 +203,7 @@ public class StoreReturnOrderController {
         if (returnOrder.getReturnItems().stream().anyMatch(tt -> tt.getNum() == null || tt.getNum() <= 0)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
+        returnOrder.setReturnType(returnOrder.getReturnWay() == ReturnWay.OTHER ? ReturnType.REFUND : ReturnType.RETURN);
         returnOrder.setCompany(CompanyDTO.builder().companyInfoId(companyInfo.getCompanyInfoId())
                 .companyCode(companyInfo.getCompanyCode()).supplierName(companyInfo.getSupplierName())
                 .storeId(commonUtil.getStoreId()).storeName(store.getStoreName()).companyType(store.getCompanyType()).build());
