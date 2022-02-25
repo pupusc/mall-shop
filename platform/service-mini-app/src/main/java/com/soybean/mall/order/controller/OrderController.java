@@ -1,10 +1,13 @@
 package com.soybean.mall.order.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
+import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
+import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -12,7 +15,9 @@ import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.MD5Util;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -49,6 +54,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -60,10 +66,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 ;
@@ -110,7 +114,7 @@ public class OrderController {
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
     //@GlobalTransactional
-    public BaseResponse<WxOrderCommitResultVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+    public BaseResponse<WxOrderPaymentVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         //校验是否需要完善地址信息
         CustomerDeliveryAddressByIdResponse address = null;
         customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
@@ -145,21 +149,30 @@ public class OrderController {
         } finally {
             rLock.unlock();
         }
-        return BaseResponse.success(convertResult(successResults));
+        return BaseResponse.success(getOrderPaymentResult(successResults,""));
 
     }
 
+    private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
+        WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+        wxOrderPaymentVO.setTimeStamp(String.valueOf((new Date()).getTime()/1000));
+        wxOrderPaymentVO.setNonceStr(RandomStringUtils.randomAlphanumeric(32));
+        wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+        wxOrderPaymentVO.setPrepayId(trades.get(0).getId());
+        String sign = getSign(wxOrderPaymentVO);
+    }
 
-    private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades) {
+    private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades,String openId) {
         WxOrderCommitResultVO result = new WxOrderCommitResultVO();
         result.setOutOrderId(trades.get(0).getId());
+        result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        result.setOpenid(openId);
+        result.setPath("test");
         OrderCommitResultVO trade = trades.get(0);
-
-
-        WxOrderCommitResultVO.OrderDetailVO detail = new WxOrderCommitResultVO.OrderDetailVO();
-        List<WxProductInfoVO> productInfoDTOS = new ArrayList<>();
+        WxOrderDetailDTO detail = new WxOrderDetailDTO();
+        List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
-            productInfoDTOS.add(WxProductInfoVO.builder()
+            productInfoDTOS.add(WxProductInfoDTO.builder()
                     .outProductId(tradeItem.getSpuId())
                     .outSkuId(tradeItem.getSkuId())
                     .productNum(tradeItem.getNum())
@@ -169,12 +182,17 @@ public class OrderController {
                     .headImg(tradeItem.getPic()).build());
         });
         detail.setProductInfos(productInfoDTOS);
-        WxOrderCommitResultVO.PriceInfoVO priceInfo = new WxOrderCommitResultVO.PriceInfoVO();
+
+        detail.setPayInfo(WxPayInfoDTO.builder().payMethodType(0)
+                .prepayId(trades.get(0).getId())
+                .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
+
+        WxPriceInfoDTO priceInfo = new WxPriceInfoDTO();
         priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice());
         priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice());
         detail.setPriceInfo(priceInfo);
 
-        WxAddressInfoVO addressInfo = new WxAddressInfoVO();
+        WxAddressInfoDTO addressInfo = new WxAddressInfoDTO();
         addressInfo.setCity(trade.getConsignee().getCityName());
         addressInfo.setReceiverName(trade.getConsignee().getName());
         addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
@@ -186,6 +204,40 @@ public class OrderController {
         return result;
 
 
+    }
+
+    /**
+     * 获取签名
+     * @param orderPaymentVO
+     * @return
+     */
+    private String getSign(WxOrderPaymentVO orderPaymentVO){
+        Map<String,Object> map =new HashMap<>();
+        map.put("timeStamp", orderPaymentVO.getTimeStamp());
+        map.put("nonceStr", orderPaymentVO.getNonceStr());
+        map.put("package",orderPaymentVO.getPrepayId());
+        map.put("orderInfo",JSON.toJSONString(orderPaymentVO.getOrderInfo()));
+        String sign = getSignByMap(map);
+        return sign;
+
+    }
+
+    /**
+     * 生成签名
+     * 第一步，设所有发送或者接收到的数据为集合M，将集合M内非空参数值的参数按照参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
+     * 第二步，在stringA最后拼接上key=(API密钥的值)得到stringSignTemp字符串，并对stringSignTemp进行MD5运算，再将得到的字符串所有字符转换为大写，得到sign值signValue。
+     * @param params
+     * @return
+     */
+    public String getSignByMap(Map<String,Object> params){
+        String[] sortedKeys = params.keySet().toArray(new String[]{});
+        Arrays.sort(sortedKeys);// 排序请求参数
+        StringBuilder sb = new StringBuilder();
+        for (String key : sortedKeys) {
+            sb.append(key).append("=").append(params.get(key)).append("&");
+        }
+        sb.append("key=").append("Fandengdushudianshang20220223kai");
+        return MD5Util.md5Hex(sb.toString(), "utf-8").toUpperCase();
     }
 
     /**
