@@ -169,7 +169,7 @@
                                 service-account-api,service-account-bean,
                                 service-customer-api,service-customer-bean,
                                 service-pay-api,service-pay-bean,service-erp-bean,service-erp-api,
-                                ares-api,
+                                ares-api,service-wx-api,
                                 service-setting-api,service-setting-bean,
                                 service-common,service-erp-api,service-erp-bean
                             </excludeArtifactIds>
@@ -305,6 +305,10 @@
                         <include>
                             <groupId>com.wanmi.sbc</groupId>
                             <artifactId>service-common</artifactId>
+                        </include>
+                        <include>
+                            <groupId>com.soybean.mall</groupId>
+                            <artifactId>service-wx-api</artifactId>
                         </include>
                     </includes>
                     <mainClass>${main-class}</mainClass>
