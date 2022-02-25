@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +42,7 @@ public class GoodsController {
 
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
+        List<EsGoodsVO> esGoodsVOS = null;
         if(wxGoodsSearchRequest.getGoodsName() != null){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
@@ -52,11 +54,21 @@ public class GoodsController {
             queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
             queryRequest.setStoreState(StoreState.OPENING.toValue());
             queryRequest.setVendibility(Constants.yes);
-            List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
+            esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
             List<String> goodsIds = esGoodsVOS.stream().map(g -> g.getId()).collect(Collectors.toList());
             wxGoodsSearchRequest.setGoodsIds(goodsIds);
         }
-        return wxMiniGoodsProvider.list(wxGoodsSearchRequest);
+        BaseResponse<MicroServicePage<WxGoodsVo>> wxGoodsVos = wxMiniGoodsProvider.list(wxGoodsSearchRequest);
+        if(wxGoodsSearchRequest.getGoodsName() != null){
+            Map<String, List<EsGoodsVO>> collect = esGoodsVOS.stream().collect(Collectors.groupingBy(EsGoodsVO::getId));
+            for (WxGoodsVo wxGoodsVo : wxGoodsVos.getContext()) {
+                EsGoodsVO esGoodsVO = collect.get(wxGoodsVo.getGoodsId()).get(0);
+                wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
+                wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsUnBackImg());
+//                wxGoodsVo.setMarketPrice(esGoodsVO.get);
+            }
+        }
+        return wxGoodsVos;
     }
 
     @PostMapping("/add")
