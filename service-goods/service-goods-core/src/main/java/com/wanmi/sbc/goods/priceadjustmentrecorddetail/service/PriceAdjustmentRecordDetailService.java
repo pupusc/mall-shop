@@ -615,19 +615,19 @@ public class PriceAdjustmentRecordDetailService {
             PriceAdjustmentRecordDetail firstRecordDetail = priceAdjustMap.get(goods.getGoodsId());
             if (Objects.isNull(firstRecordDetail)) {
                 priceAdjustMap.put(goods.getGoodsId(), i);
-                firstRecordDetail = i;
+//                firstRecordDetail = i;
                 //修改同一个spu下，不在调价列表中的其他的sku销售类型
-                goodsInfoRepository.updateSaleTypeByGoodsId(goods.getGoodsId(), i.getSaleType().ordinal());
+//                goodsInfoRepository.updateSaleTypeByGoodsId(goods.getGoodsId(), i.getSaleType().ordinal());
 
-                goods.setMarketPrice(firstRecordDetail.getAdjustedMarketPrice());
+//                goods.setMarketPrice(firstRecordDetail.getAdjustedMarketPrice());
                 //修改设价方式
                 //归属于同一个spu下的sku选择的设价方式不一致，以第一个sku的设价方式为准
                 //按订货量设价在调整市场价时如果更改来销售类型（批发->零售），设计方式则改为市场价
-                if(GoodsPriceType.STOCK.ordinal() == goods.getPriceType() && SaleType.RETAIL.equals(i.getSaleType())) {
-                    goods.setPriceType(GoodsPriceType.MARKET.ordinal());
-                } else {
-                    goods.setPriceType(firstRecordDetail.getPriceType() == null ? goods.getPriceType() : firstRecordDetail.getPriceType().ordinal());
-                }
+//                if(GoodsPriceType.STOCK.ordinal() == goods.getPriceType() && SaleType.RETAIL.equals(i.getSaleType())) {
+//                    goods.setPriceType(GoodsPriceType.MARKET.ordinal());
+//                } else {
+//                    goods.setPriceType(firstRecordDetail.getPriceType() == null ? goods.getPriceType() : firstRecordDetail.getPriceType().ordinal());
+//                }
             }
 
             i.setAdjustResult(PriceAdjustmentResult.DONE);
