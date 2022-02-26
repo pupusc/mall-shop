@@ -5062,8 +5062,8 @@ public class TradeService {
 
         private void updateProviderTrade(Trade trade) {
             String parentId = trade.getId();
-            List<ProviderTrade> tradeList =
-                    providerTradeService.findListByParentId(parentId);
+            List<ProviderTrade> tradeList = providerTradeService.findListByParentId(parentId);
+//            List<ProviderTrade> tradeList222 = providerTradeService.findListByParentIdList(Arrays.asList(parentId));
             if (CollectionUtils.isNotEmpty(tradeList)) {
                 tradeList.forEach(childTradeVO -> {
                     childTradeVO.getTradeState().setPayState(trade.getTradeState().getPayState());
@@ -7887,6 +7887,7 @@ public class TradeService {
     public void pushTradeToErp(String tradeNo){
         //根据父订单号,查询子订单集合
         List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
+//        List<ProviderTrade> providerTradeListin = providerTradeService.findListByParentIdList(Arrays.asList(tradeNo));
         Trade trade = tradeRepository.findById(tradeNo).get();
         if (CollectionUtils.isNotEmpty(providerTradeList)){
             providerTradeList.stream().forEach(providerTrade -> {
