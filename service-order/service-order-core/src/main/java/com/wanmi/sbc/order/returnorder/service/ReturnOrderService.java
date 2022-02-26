@@ -1778,18 +1778,61 @@ public class ReturnOrderService {
      */
     public void filterCompletedReturnItem(List<ReturnOrder> returnOrders, ReturnOrder returnOrder, Trade trade) {
         List<ReturnOrder> completedReturnOrderList = returnOrders.stream().filter(o -> o.getReturnFlowState() == ReturnFlowState.COMPLETED).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(completedReturnOrderList)) {
-            List<String> completedGoodsInfoIds = new ArrayList<>();
-            List<String> completedGiftIds = new ArrayList<>();
-            completedReturnOrderList.forEach(o -> {
-                completedGoodsInfoIds.addAll(o.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
-                completedGiftIds.addAll(o.getReturnGifts().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
-            });
-            trade.setTradeItems(trade.getTradeItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
-            trade.setGifts(trade.getGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
-            returnOrder.setReturnItems(returnOrder.getReturnItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
-            returnOrder.setReturnGifts(returnOrder.getReturnGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
+
+        Map<String, Integer> completeGoodsInfoIdNumMap = new HashMap<>();
+        Map<String, Integer> tradeAllGoodsInfoIdNumMap = new HashMap<>();
+//        List<String> completedGiftIds = new ArrayList<>();
+        for (ReturnOrder returnOrderParam : completedReturnOrderList) {
+            for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
+                int skuIdNum = completeGoodsInfoIdNumMap.get(returnItemParam.getSkuId()) == null ? 0 : completeGoodsInfoIdNumMap.get(returnItemParam.getSkuId());
+                skuIdNum += returnItemParam.getNum();
+                completeGoodsInfoIdNumMap.put(returnItemParam.getSkuId(), skuIdNum);
+            }
         }
+
+        List<TradeItem> resultTradeItem = new ArrayList<>();
+        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+            tradeAllGoodsInfoIdNumMap.put(tradeItemParam.getSkuId(), tradeItemParam.getNum() == null ? 0 :tradeItemParam.getNum().intValue());
+            Integer skuIdNum = completeGoodsInfoIdNumMap.get(tradeItemParam.getSkuId());
+            if (skuIdNum != null && skuIdNum >= tradeItemParam.getNum()) {
+                continue;
+            }
+            resultTradeItem.add(tradeItemParam);
+        }
+        trade.setTradeItems(resultTradeItem);
+
+        List<ReturnItem> resultReturnTradeItem = new ArrayList<>();
+        for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
+            Integer skuIdAllNum = tradeAllGoodsInfoIdNumMap.get(returnItemParam.getSkuId());
+            if (skuIdAllNum == null) {
+                log.error("ReturnOrderService filterCompletedReturnItem 退单商品id:{} skuNo:{}, skuName:{} 参数传递有误", returnItemParam.getSkuId(), returnItemParam.getSkuNo(), returnItemParam.getSkuName());
+                continue;
+            }
+            Integer skuIdCompleteNum = completeGoodsInfoIdNumMap.get(returnItemParam.getSkuId()) == null ? 0 : completeGoodsInfoIdNumMap.get(returnItemParam.getSkuId());
+            int skuIdSurplusNum = skuIdAllNum - skuIdCompleteNum;
+            if (skuIdSurplusNum <= 0) {
+                continue;
+            }
+
+            if (returnItemParam.getNum() > skuIdSurplusNum) {
+                returnItemParam.setNum(skuIdSurplusNum);
+            }
+            resultReturnTradeItem.add(returnItemParam);
+        }
+        returnOrder.setReturnItems(resultReturnTradeItem);
+
+//        if (CollectionUtils.isNotEmpty(completedReturnOrderList)) {
+//            List<String> completedGoodsInfoIds = new ArrayList<>();
+//            List<String> completedGiftIds = new ArrayList<>();
+//            completedReturnOrderList.forEach(o -> {
+//                completedGoodsInfoIds.addAll(o.getReturnItems().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
+//                completedGiftIds.addAll(o.getReturnGifts().stream().map(ReturnItem::getSkuId).collect(Collectors.toList()));
+//            });
+//            trade.setTradeItems(trade.getTradeItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
+//            trade.setGifts(trade.getGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
+//            returnOrder.setReturnItems(returnOrder.getReturnItems().stream().filter(item -> !completedGoodsInfoIds.contains(item.getSkuId())).collect(Collectors.toList()));
+//            returnOrder.setReturnGifts(returnOrder.getReturnGifts().stream().filter(item -> !completedGiftIds.contains(item.getSkuId())).collect(Collectors.toList()));
+//        }
     }
 
     /**
@@ -2835,6 +2878,15 @@ public class ReturnOrderService {
                         .eventDetail(detail)
                         .build()
         );
+        ReturnOrder returnOrderRaw;
+        Optional<ReturnOrder> returnOrderRawOptional = returnOrderRepository.findById(returnOrder.getId());
+        if (returnOrderRawOptional.isPresent()) {
+            returnOrderRaw = returnOrderRawOptional.get();
+        } else {
+            throw new SbcRuntimeException("K-050003");
+        }
+        returnOrder.setReturnItems(returnOrderRaw.getReturnItems());
+
         returnOrderService.updateReturnOrder(returnOrder);
         this.operationLogMq.convertAndSend(operator, ReturnEvent.REFUND.getDesc(), detail);
 
