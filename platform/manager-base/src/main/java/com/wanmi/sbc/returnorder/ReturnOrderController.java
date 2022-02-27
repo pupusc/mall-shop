@@ -33,10 +33,12 @@ import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderCodeRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderResponseByReturnOrderCodeRequest;
 import com.wanmi.sbc.order.api.request.returnorder.*;
+import com.wanmi.sbc.order.api.request.trade.TradeConfirmReceiveRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderByReturnCodeResponse;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderListReponse;
@@ -44,6 +46,7 @@ import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByIdResponse;
 import com.wanmi.sbc.order.bean.dto.RefundOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
@@ -106,8 +109,8 @@ public class ReturnOrderController {
     @Autowired
     private ReturnExportService returnExportService;
 
-    @Autowired
-    private PayProvider payProvider;
+//    @Autowired
+//    private PayProvider payProvider;
 
     @Autowired
     private PayQueryProvider payQueryProvider;
@@ -127,11 +130,11 @@ public class ReturnOrderController {
     @Autowired
     private CommonUtil commonUtil;
 
-    @Autowired
-    private OperateLogMQUtil operateLogMQUtil;
-
-    @Autowired
-    private RefundOrderProvider refundOrderProvider;
+//    @Autowired
+//    private OperateLogMQUtil operateLogMQUtil;
+//
+//    @Autowired
+//    private RefundOrderProvider refundOrderProvider;
 
     @Autowired
     private GoodsTobeEvaluateSaveProvider goodsTobeEvaluateSaveProvider;
@@ -139,11 +142,11 @@ public class ReturnOrderController {
     @Autowired
     private StoreTobeEvaluateSaveProvider storeTobeEvaluateSaveProvider;
 
-    @Autowired
-    private CustomerFundsProvider customerFundsProvider;
-
-    @Autowired
-    private CustomerFundsDetailProvider customerFundsDetailProvider;
+//    @Autowired
+//    private CustomerFundsProvider customerFundsProvider;
+//
+//    @Autowired
+//    private CustomerFundsDetailProvider customerFundsDetailProvider;
 
     @Autowired
     private LinkedMallReturnOrderQueryProvider linkedMallReturnOrderQueryProvider;
@@ -153,6 +156,10 @@ public class ReturnOrderController {
 
     @Autowired
     private EsCustomerFundsProvider esCustomerFundsProvider;
+
+    @Autowired
+    private TradeProvider tradeProvider;
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -786,5 +793,32 @@ public class ReturnOrderController {
             }
         }
         return returnOrder;
+    }
+
+
+    /**
+     * 服务端 强制确认收获
+     * @param tid
+     * @return
+     */
+    @RequestMapping(value = "/confirm/{tid}", method = RequestMethod.GET)
+    public BaseResponse confirm (String tid) {
+        Operator operator = commonUtil.getOperator();
+        //是否有权限验证
+        if(operator.getPlatform() != Platform.SUPPLIER) {
+            throw new SbcRuntimeException("K-000014");
+        }
+        TradeGetByIdRequest request = new TradeGetByIdRequest();
+        request.setTid(tid);
+        TradeVO trade = tradeQueryProvider.getById(request).getContext().getTradeVO();
+        if (trade.getTradeState().getFlowState() != FlowState.DELIVERED) {
+            throw new SbcRuntimeException("K-050412");
+        }
+
+        TradeConfirmReceiveRequest tradeConfirmReceiveRequest = TradeConfirmReceiveRequest.builder()
+                .operator(operator).tid(tid).build();
+
+        tradeProvider.confirmReceive(tradeConfirmReceiveRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 }

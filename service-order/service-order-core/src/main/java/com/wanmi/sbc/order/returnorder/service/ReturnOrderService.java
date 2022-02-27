@@ -895,7 +895,7 @@ public class ReturnOrderService {
 
 
         //此处变更 订单的金额、积分、知豆等信息
-        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), null);
+        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null);
         //查看是否需要退还运费
         if (providerDeliveryMap.isEmpty()) {
             Map<String, List<TradeItem>> tradeItemMap = new HashMap<>();
@@ -3526,7 +3526,7 @@ public class ReturnOrderService {
      * 查询订单详情,如已发货则带出可退商品数
      *
      * @param tid
-     * @param replace 是否代客退单
+     * @param replace 是否代客退单, replace需要修改的地方很多，所以此处由两个判断，一个是商家创建订单，一个是 传递replace
      * @return
      */
     public Trade queryCanReturnItemNumByTid(String tid, Integer replace) {

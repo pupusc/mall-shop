@@ -58,6 +58,8 @@ import com.wanmi.sbc.order.bean.dto.ReturnCustomerAccountDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
@@ -195,12 +197,13 @@ public class StoreReturnOrderController {
         if (Objects.isNull(store)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        //如果商品数量不能为空
         if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //商品数量不能有为空的
-        if (returnOrder.getReturnItems().stream().anyMatch(tt -> tt.getNum() == null || tt.getNum() <= 0)) {
+        if (returnOrder.getReturnItems().stream().anyMatch(tt -> tt.getNum() == null || tt.getNum() <= 0)
+                && returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF
+                && returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         returnOrder.setReturnType(returnOrder.getReturnWay() == ReturnWay.OTHER ? ReturnType.REFUND : ReturnType.RETURN);
@@ -208,6 +211,10 @@ public class StoreReturnOrderController {
                 .companyCode(companyInfo.getCompanyCode()).supplierName(companyInfo.getSupplierName())
                 .storeId(commonUtil.getStoreId()).storeName(store.getStoreName()).companyType(store.getCompanyType()).build());
         TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
+        //提示客服去收货
+        if (trade.getTradeState().getFlowState() == FlowState.DELIVERED) {
+            throw new SbcRuntimeException("K-050413");
+        }
         //判断当前申请的退单中包含退单
         Map<String, ReturnItemDTO> returnItemDTOMap =
                 returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItemDTO::getSkuId, Function.identity(), (k1, k2) -> k1));
