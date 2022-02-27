@@ -1821,7 +1821,7 @@ public class ReturnOrderService {
             }
             resultTradeItem.add(tradeItemParam);
         }
-        trade.setTradeItems(resultTradeItem);
+
 
         List<ReturnItem> resultReturnTradeItem = new ArrayList<>();
         for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
@@ -1841,8 +1841,16 @@ public class ReturnOrderService {
             }
             resultReturnTradeItem.add(returnItemParam);
         }
-        returnOrder.setReturnItems(resultReturnTradeItem);
-
+        //如果当前过滤完毕商品，为空，则查看当前是否是退还差价，如果退换差价则过滤商品
+        if (!CollectionUtils.isEmpty(resultReturnTradeItem)) {
+            trade.setTradeItems(resultTradeItem);
+            returnOrder.setReturnItems(resultReturnTradeItem);
+        } else {
+            if (returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
+                trade.setTradeItems(resultTradeItem);
+                returnOrder.setReturnItems(resultReturnTradeItem);
+            }
+        }
 //        if (CollectionUtils.isNotEmpty(completedReturnOrderList)) {
 //            List<String> completedGoodsInfoIds = new ArrayList<>();
 //            List<String> completedGiftIds = new ArrayList<>();
