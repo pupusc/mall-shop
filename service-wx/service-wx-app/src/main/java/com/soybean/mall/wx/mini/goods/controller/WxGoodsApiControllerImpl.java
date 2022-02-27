@@ -1,5 +1,7 @@
 package com.soybean.mall.wx.mini.goods.controller;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
@@ -37,6 +39,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     @Override
     public BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
         return BaseResponse.success(wxService.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest));
+    }
+
+    @Override
+    public BaseResponse<WxUploadImageResponse> uploadImg(WxUploadImageRequest wxUploadImageRequest){
+        return BaseResponse.success(wxService.uploadImg(wxUploadImageRequest));
     }
 
     //接入回调验证

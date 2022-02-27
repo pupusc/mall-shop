@@ -11,6 +11,7 @@ import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.wanmi.sbc.common.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -112,7 +113,7 @@ public class WxService {
         String requestUrl = ACCESS_TOKEN_URL.concat("?grant_type=client_credential").concat("&appid=").concat(wxAppid)
                 .concat("&secret=").concat(wxAppsecret);
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 600L, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), 3500, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
     }
 
@@ -129,9 +130,9 @@ public class WxService {
     }
 
     public WxUploadImageResponse uploadImg(WxUploadImageRequest wxUploadImageRequest){
-        String url = UPLOAD_IMG_URL.concat("access_token=").concat(getAccessToken());
+        String url = UPLOAD_IMG_URL.concat("?access_token=").concat(getAccessToken());
         HttpHeaders header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        header.setContentType(MediaType.parseMediaType("multipart/form-data; charset=UTF-8"));
         MultiValueMap<String, Object> params= new LinkedMultiValueMap<>();
         params.add("resp_type", 1);
         params.add("upload_type", 1);

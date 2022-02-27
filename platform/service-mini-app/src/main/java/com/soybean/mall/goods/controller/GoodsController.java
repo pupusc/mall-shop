@@ -64,8 +64,8 @@ public class GoodsController {
             for (WxGoodsVo wxGoodsVo : wxGoodsVos.getContext()) {
                 EsGoodsVO esGoodsVO = collect.get(wxGoodsVo.getGoodsId()).get(0);
                 wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
-                wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsUnBackImg());
-//                wxGoodsVo.setMarketPrice(esGoodsVO.get);
+                wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsInfos().get(0).getGoodsInfoImg());
+                wxGoodsVo.setMarketPrice(esGoodsVO.getEsSortPrice().toString());
             }
         }
         return wxGoodsVos;

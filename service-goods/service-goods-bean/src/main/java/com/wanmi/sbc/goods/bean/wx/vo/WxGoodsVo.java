@@ -22,6 +22,8 @@ public class WxGoodsVo {
     //审核状态
     private Integer auditStatus;
 
+    private Integer saleStatus;
+
     //审核通过次数
     private Integer auditTimes;
 
@@ -39,5 +41,7 @@ public class WxGoodsVo {
 //    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
 //    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private String uploadTime;
+
+    private String createTime;
 
 }

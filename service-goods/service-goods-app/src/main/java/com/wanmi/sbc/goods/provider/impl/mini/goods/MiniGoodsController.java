@@ -45,16 +45,19 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
             }
             microServicePage.setTotal(goodsPage.getTotalElements());
             List<WxGoodsVo> voList = new ArrayList<>();
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             for (WxGoodsModel wxGoodsModel : content) {
                 WxGoodsVo wxGoodsVo = new WxGoodsVo();
                 BeanUtils.copyProperties(wxGoodsModel, wxGoodsVo);
-//                wxGoodsVo.setAuditStatus(g.getAuditStatus().toValue());
-//                wxGoodsVo.setStatus(g.getStatus().toValue());
-                wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                wxGoodsVo.setAuditStatus(wxGoodsModel.getAuditStatus().toValue());
+                wxGoodsVo.setStatus(wxGoodsModel.getStatus().toValue());
+                wxGoodsVo.setSaleStatus(wxGoodsModel.getPlatformProductId() == null ? 0 : 1);
+                wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime().format(df));
+                wxGoodsVo.setCreateTime(wxGoodsModel.getCreateTime().format(df));
                 if(collect != null){
                     Goods goods = collect.get(wxGoodsModel.getGoodsId()).get(0);
                     wxGoodsVo.setGoodsName(goods.getGoodsName());
-                    wxGoodsVo.setGoodsImg(goods.getGoodsUnBackImg());
+                    wxGoodsVo.setGoodsImg(goods.getGoodsImg());
                     wxGoodsVo.setMarketPrice(goods.getMarketPrice().toString());
                 }
                 voList.add(wxGoodsVo);

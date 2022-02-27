@@ -1,5 +1,7 @@
 package com.wanmi.sbc.goods.mini.service.goods;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
@@ -59,6 +61,7 @@ public class WxGoodsService {
 
     @Transactional
     public void addGoods(WxGoodsCreateRequest createRequest){
+        if(goodsExist(createRequest.getGoodsId())) throw new SbcRuntimeException("商品已存在");
         WxGoodsModel wxGoodsModel = new WxGoodsModel();
         wxGoodsModel.setGoodsId(createRequest.getGoodsId());
         wxGoodsModel.setWxCategory(createRequest.getWxCategory());
@@ -72,9 +75,9 @@ public class WxGoodsService {
         wxGoodsRepository.save(wxGoodsModel);
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
-        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
+        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).delFlag(DeleteFlag.NO.toValue()).build());
         BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-        if(baseResponse.getContext().getErrmsg() != null){
+        if(!baseResponse.getContext().isSuccess()){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
         }
         //todo
@@ -116,10 +119,9 @@ public class WxGoodsService {
 
             Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
             List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-            BaseResponse baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-
-            if(!CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode())){
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "上传微信商品失败");
+            BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
+            if(!baseResponse.getContext().isSuccess()){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
             }
         }
     }
@@ -168,8 +170,8 @@ public class WxGoodsService {
         }
     }
 
-    private boolean goodsExist(WxGoodsCreateRequest createRequest){
-        Integer onShelfCount = wxGoodsRepository.getOnShelfCount(createRequest.getGoodsId());
+    private boolean goodsExist(String goodsId){
+        Integer onShelfCount = wxGoodsRepository.getOnShelfCount(goodsId);
         return onShelfCount > 0;
     }
 
@@ -178,7 +180,7 @@ public class WxGoodsService {
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsSubtitle());
         addProductRequest.setPath("http://www.baidu.com");
-        addProductRequest.setHeadImg(Collections.singletonList("https://mmecimage.cn/p/wxfec78ba019558f6a/HBqO_18RlygXXwLnM2SzOGRG9c-JGIQ3Tk1P0qh71w"));
+        addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
 //        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));
 //        addProductRequest.setQualificationics(Collections.singletonList(goods.getGoodsImg()));
         //商品详情截取图片
@@ -190,15 +192,17 @@ public class WxGoodsService {
                 String[] split1 = s1.split("src=\"");
                 for (String s2 : split1) {
                     if(s2.contains("http")){
-                        detailImgs.add("https://mmecimage.cn/p/wxfec78ba019558f6a/HBqO_18RlygXXwLnM2SzOGRG9c-JGIQ3Tk1P0qh71w");
-//                        detailImgs.add(s2.substring(0, s2.indexOf("\"")));
+                        String url = s2.substring(0, s2.indexOf("\""));
+                        String wxImgUrl = exchangeWxImgUrl(url);
+                        if(wxImgUrl != null) detailImgs.add(wxImgUrl);
                     }
                 }
             }
-            addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
+            if(detailImgs.size() > 0) addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
         }
         //todo 改成变量
-        addProductRequest.setThirdCatId(378031);
+//        addProductRequest.setThirdCatId(378031);
+        addProductRequest.setThirdCatId(thirdCatId);
         addProductRequest.setBrandId(2100000000);
         addProductRequest.setInfoVersion("1");
         addProductRequest.setSkus(createSkus(goods, goodsInfos));
@@ -211,7 +215,7 @@ public class WxGoodsService {
             WxAddProductRequest.Sku sku = new WxAddProductRequest.Sku();
             sku.setOutProductId(goods.getGoodsId());
             sku.setOutSkuId(goodsInfo.getGoodsInfoId());
-            sku.setThumbImg(goodsInfo.getGoodsInfoImg());
+            sku.setThumbImg(exchangeWxImgUrl(goodsInfo.getGoodsInfoImg()));
             sku.setSalePrice(goodsInfo.getMarketPrice());
             sku.setMarketPrice(goodsInfo.getMarketPrice());
             sku.setStockNum(goodsInfo.getStock().intValue());
@@ -219,5 +223,17 @@ public class WxGoodsService {
             skus.add(sku);
         }
         return skus;
+    }
+
+    private String exchangeWxImgUrl(String imgUrl){
+        if(imgUrl == null) return null;
+        WxUploadImageRequest wxUploadImageRequest = new WxUploadImageRequest();
+        wxUploadImageRequest.setImgUrl(imgUrl);
+        BaseResponse<WxUploadImageResponse> wxUploadImageResponseBaseResponse = wxGoodsApiController.uploadImg(wxUploadImageRequest);
+        WxUploadImageResponse uploadImageResponse = wxUploadImageResponseBaseResponse.getContext();
+        if(uploadImageResponse.isSuccess()){
+            return uploadImageResponse.getImgInfo().getTempImgUrl();
+        }
+        return null;
     }
 }

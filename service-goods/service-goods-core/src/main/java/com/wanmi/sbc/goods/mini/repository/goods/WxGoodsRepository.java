@@ -18,7 +18,7 @@ import java.util.List;
 @Repository
 public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, JpaSpecificationExecutor<WxGoodsModel> {
 
-    @Query(value = "select count(*) from t_wx_goods where status=2 and audit_status=3 and goods_id=? and del_flag=0", nativeQuery = true)
+    @Query(value = "select count(*) from t_wx_goods where goods_id=? and del_flag=0", nativeQuery = true)
     Integer getOnShelfCount(String goodsId);
 
     WxGoodsModel findByGoodsIdAndDelFlag(String goodsId, DeleteFlag Flag);
@@ -34,8 +34,13 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
                 conditionList.add(criteriaBuilder.equal(root.get("auditStatus").as(Integer.class), wxGoodsSearchRequest.getAuditStatus()));
             }
             if (wxGoodsSearchRequest.getSaleStatus() != null) {
-                Predicate and = criteriaBuilder.and(criteriaBuilder.isNotNull(root.get("platformProductId")), criteriaBuilder.equal(root.get("status"), WxGoodsStatus.ON_SHELF));
-                conditionList.add(and);
+                if(wxGoodsSearchRequest.getSaleStatus() == 0){
+                    //不可售
+                    conditionList.add(criteriaBuilder.isNull(root.get("platformProductId")));
+                }else if(wxGoodsSearchRequest.getSaleStatus() == 1){
+                    //可售
+                    conditionList.add(criteriaBuilder.isNotNull(root.get("platformProductId")));
+                }
             }
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };

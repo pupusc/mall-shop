@@ -1,5 +1,7 @@
 package com.soybean.mall.wx.mini.goods.controller;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
@@ -25,6 +27,9 @@ public interface WxGoodsApiController {
 
     @PostMapping("/goods/update-without-audit")
     BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest);
+
+    @PostMapping("/goods/upload-image")
+    BaseResponse<WxUploadImageResponse> uploadImg(@RequestBody WxUploadImageRequest wxUploadImageRequest);
 
     @PostMapping("/goods/verify/callback")
     BaseResponse verifyCallback(@RequestBody Map<String, String[]> parameterMap);
