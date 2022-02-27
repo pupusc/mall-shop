@@ -48,7 +48,8 @@ public class RefundAction extends TradeAction {
             //周期购订单 部分发货可以退货退款
             if (!trade.getCycleBuyFlag()) {
                 // 判断已发货
-                if (!tradeState.getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
+                if (!tradeState.getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) &&
+                        !tradeState.getDeliverStatus().equals(DeliverStatus.PART_SHIPPED)) {
                     throw new SbcRuntimeException("K-050106");
                 }
             }else {

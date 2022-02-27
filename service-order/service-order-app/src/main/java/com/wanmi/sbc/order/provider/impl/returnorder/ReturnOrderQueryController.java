@@ -15,6 +15,7 @@ import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.*;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -315,7 +316,8 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
     public BaseResponse<CanReturnItemNumByTidResponse> queryCanReturnItemNumByTid(@RequestBody @Valid
                                                                                           CanReturnItemNumByTidRequest
                                                                                           request) {
-        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid(), request.getReplace()),
+        //此处给一个默认的退款原因，因为当前作废的订单不能退款,只有退差价才可以执行后续
+        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid(), request.getReplace(), ReturnReason.PRICE_DIFF),
                 CanReturnItemNumByTidResponse.class));
     }
 

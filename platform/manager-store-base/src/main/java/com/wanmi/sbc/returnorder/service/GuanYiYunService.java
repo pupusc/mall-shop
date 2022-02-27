@@ -91,10 +91,13 @@ public class GuanYiYunService extends AbstractCRMService {
                 }
             }
 
-        } else {
+        }
+        //不查看当前的订单发货状态，直接进行取消，取消失败啦，就认为已经发货
+        /*else {
             //管易云普通订单  已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
             deliveryQueryRequest.setTid(returnOrderVO.getPtid()); //子单
+            deliveryQueryRequest.setDelivery(1);
             //到管易云中查询订单发货状态
             List<DeliveryInfoVO> deliveryInfoVOList = guanyierpProvider.getDeliveryStatus(deliveryQueryRequest).getContext().getDeliveryInfoVOList();
             //如果订单 没有 作废、完成 同时管易云中存在发货订单
@@ -108,7 +111,7 @@ public class GuanYiYunService extends AbstractCRMService {
                     }
                 }
             }
-        }
+        }*/
 
         /****************商品拦截 begin*******************/
         log.info("订单管易云拦截:{}", JSON.toJSONString(returnOrderVO));

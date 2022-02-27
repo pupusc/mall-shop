@@ -91,6 +91,7 @@ import com.wanmi.sbc.order.api.request.distribution.ReturnOrderSendMQRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
+import com.wanmi.sbc.order.api.request.trade.ProviderTradeGetByIdListRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
@@ -881,8 +882,16 @@ public class ReturnOrderService {
             }
         }
 
+        Map<String, List<ReturnItem>> provider2ReturnItemMap = new HashMap<>();
         //申请退单填充数量
         for (ReturnItem returnItem : returnOrder.getReturnItems()) {
+            List<ReturnItem> returnItemList = provider2ReturnItemMap.get(returnItem.getProviderId().toString());
+            if (CollectionUtils.isEmpty(returnItemList)) {
+                returnItemList = new ArrayList<>();
+                provider2ReturnItemMap.put(returnItem.getProviderId().toString(), returnItemList);
+            }
+            returnItemList.add(returnItem);
+
             if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY && returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
                 Integer skuIdNum = allReturnSkuIdNumMap.get(returnItem.getSkuId()) == null ? 0 : allReturnSkuIdNumMap.get(returnItem.getSkuId());
                 skuIdNum += returnItem.getNum();
@@ -892,10 +901,23 @@ public class ReturnOrderService {
             }
         }
 
+        //获取子单信息
+        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(returnOrder.getTid());
+        if (!CollectionUtils.isEmpty(providerTradeList)) {
+            for (ProviderTrade providerTradeParam : providerTradeList) {
+                List<ReturnItem> returnItemList = provider2ReturnItemMap.get(providerTradeParam.getSupplier().getStoreId().toString());
+                if (CollectionUtils.isEmpty(returnItemList)) {
+                    continue;
+                }
 
+                if (DeliverStatus.PART_SHIPPED == providerTradeParam.getTradeState().getDeliverStatus()) {
+                    throw new SbcRuntimeException("K-050452");
+                }
+            }
+        }
 
         //此处变更 订单的金额、积分、知豆等信息
-        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null);
+        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
         //查看是否需要退还运费
         if (providerDeliveryMap.isEmpty()) {
             Map<String, List<TradeItem>> tradeItemMap = new HashMap<>();
@@ -1443,7 +1465,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(trade.getId());
         this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
 
-        this.verifyNum(trade, returnOrder.getReturnItems());
+        this.verifyNum(trade, returnOrder.getReturnItems(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
         returnOrder.setReturnType(ReturnType.RETURN);
 
         Buyer buyer = new Buyer();
@@ -1693,7 +1715,7 @@ public class ReturnOrderService {
         // 新增订单日志
         tradeService.returnOrder(returnOrder.getTid(), operator);
 
-        this.verifyNum(trade, returnOrder.getReturnItems());
+        this.verifyNum(trade, returnOrder.getReturnItems(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null , returnOrder.getReturnReason());
 
         returnOrder.setReturnType(ReturnType.RETURN);
 
@@ -1701,7 +1723,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
         this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         //填充退货商品信息
-        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade, null);
+        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade, operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
         returnOrder.getReturnItems().forEach(item ->
                 {
                     item.setSkuName(trade.skuItemMap().get(item.getSkuId()).getSkuName());
@@ -3529,7 +3551,7 @@ public class ReturnOrderService {
      * @param replace 是否代客退单, replace需要修改的地方很多，所以此处由两个判断，一个是商家创建订单，一个是 传递replace
      * @return
      */
-    public Trade queryCanReturnItemNumByTid(String tid, Integer replace) {
+    public Trade queryCanReturnItemNumByTid(String tid, Integer replace, ReturnReason returnReason) {
         Trade trade = tradeService.detail(tid);
         if (Objects.isNull(trade)) {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
@@ -3548,7 +3570,7 @@ public class ReturnOrderService {
         // 填充订单商品providerID  这里似乎不需要填充，tradeItem中已存放了providerId
         /*********************订单中填充供应商 和可退数量 begin************************/
         //计算商品可退数 SKUID -> canReturnNum
-        Map<String, Integer> itemCanReturnNumMap = findLeftItems(trade, replace);
+        Map<String, Integer> itemCanReturnNumMap = findLeftItems(trade, replace, returnReason);
         //当前订单的商品列表
         for (TradeItem tradeItemParam : trade.getTradeItems()) {
             //可退数量
@@ -3768,7 +3790,7 @@ public class ReturnOrderService {
         if (trade.getTradeState().getDeliverStatus() != DeliverStatus.NOT_YET_SHIPPED && trade.getTradeState()
                 .getDeliverStatus() != DeliverStatus.VOID) {
             //计算商品可退数
-            Map<String, Integer> map = findLeftItems(trade, null);
+            Map<String, Integer> map = findLeftItems(trade, null, returnOrder.getReturnReason());
             returnOrder.getReturnItems().forEach(item -> item.setCanReturnNum(map.get(item.getSkuId())));
         }
         return returnOrder;
@@ -3824,7 +3846,7 @@ public class ReturnOrderService {
      *
      * @param trade
      */
-    private Map<String, Integer> findLeftItems(Trade trade, Integer replace) {
+    private Map<String, Integer> findLeftItems(Trade trade, Integer replace, ReturnReason returnReason) {
         final Map<String, Integer> canReturnNum = new HashMap<>();
         //如果为周期购
         if (trade.getCycleBuyFlag()) {
@@ -3849,11 +3871,13 @@ public class ReturnOrderService {
             //普通商品
             //表示除 未发货 或者已经完成 不可以操作
             //表示代客退单
+
             if (replace != null && replace == 1) {
                 if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)
                         && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)
                         && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED_PART)
-                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED)) {
+                        && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED)
+                        && (!ReturnReason.PRICE_DIFF.equals(returnReason) && trade.getTradeState().getFlowState().equals(FlowState.VOID))) {
                     throw new SbcRuntimeException("K-050002");
                 }
             } else {
@@ -3966,8 +3990,8 @@ public class ReturnOrderService {
     }
 
 
-    private void verifyNum(Trade trade, List<ReturnItem> returnItems) {
-        Map<String, Integer> map = this.findLeftItems(trade, null);
+    private void verifyNum(Trade trade, List<ReturnItem> returnItems, Integer replace, ReturnReason returnReason) {
+        Map<String, Integer> map = this.findLeftItems(trade, replace, returnReason);
         returnItems.stream().forEach(
                 t -> {
                     //周期购订单部分发货状态下是可以退货退款
@@ -4558,14 +4582,16 @@ public class ReturnOrderService {
                 }
             }
 
-        } else {
-            //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
-           if (returnOrder.getReturnType().equals(ReturnType.REFUND) && providerTrades.stream().anyMatch(p->Objects.equals(p.getId(),returnOrder.getPtid()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.SHIPPED).contains(p.getTradeState().getDeliverStatus()))) {
-                //退款单更新，已拒绝
-                this.refundReject(returnOrder, refundOrder);
-                return null;
-            }
         }
+
+//        else {
+//            //已发货不允许退款，原因是用户先发起的退款，erp发货同步不及时
+//           if (returnOrder.getReturnType().equals(ReturnType.REFUND) && providerTrades.stream().anyMatch(p->Objects.equals(p.getId(),returnOrder.getPtid()) && Arrays.asList(DeliverStatus.PART_SHIPPED,DeliverStatus.SHIPPED).contains(p.getTradeState().getDeliverStatus()))) {
+//                //退款单更新，已拒绝
+//                this.refundReject(returnOrder, refundOrder);
+//                return null;
+//            }
+//        }
 
 
         if (Objects.nonNull(trade) && Objects.nonNull(trade.getBuyer()) && StringUtils.isNotEmpty(trade.getBuyer()
