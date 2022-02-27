@@ -1122,7 +1122,7 @@ public class TradePushERPService {
             //商品skuId和商品的发货信息
             Map<String, DeliveryItemVO> tradeItemMap = new HashMap<>();
             //商品赠品和商品的发货信息
-            Map<String, DeliveryItemVO> giftItemMap = new HashMap<>();
+//            Map<String, DeliveryItemVO> giftItemMap = new HashMap<>();
 
 
             //购买的商品列表
@@ -1171,52 +1171,52 @@ public class TradePushERPService {
                 }
             }
 
-            //赠品的商品列表
-            for (TradeItem giftItem : providerTrade.getGifts()) {
-                Optional<DeliveryItemVO> deliveryGiftVOOptional = deliveryInfoVO.getItemVOList().stream()
-                        .filter(vo -> vo.getOid().equals(giftItem.getOid())
-                                && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_COUPON)
-                                && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
-
-                if (Objects.nonNull(giftItem.getCombinedCommodity()) && giftItem.getCombinedCommodity()) {
-                    if (deliveryGiftVOOptional.isPresent() && giftItem.getDeliverStatus()==DeliverStatus.NOT_YET_SHIPPED ) {
-                        DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
-                        giftItem.setDeliveredNum(giftItem.getNum());
-                        giftItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                        deliveryItemVO.setItemName(giftItem.getSkuName());
-                        deliveryItemVO.setSkuId(giftItem.getSkuId());
-                        deliveryItemVO.setSkuCode(giftItem.getSkuNo());
-                        giftItemMap.put(giftItem.getSkuId(), deliveryItemVO);
-                    }
-                }
-
-                if (Objects.isNull(giftItem.getCombinedCommodity())  &&  deliveryInfoVO.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)){
-                    if (deliveryGiftVOOptional.isPresent()) {
-                        DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
-                        giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
-//                        if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
-//                            giftItem.setDeliveredNum(deliveryItemVO.getQty());
-//                        }else {
-//                            giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+//            //赠品的商品列表
+//            for (TradeItem giftItem : providerTrade.getGifts()) {
+//                Optional<DeliveryItemVO> deliveryGiftVOOptional = deliveryInfoVO.getItemVOList().stream()
+//                        .filter(vo -> vo.getOid().equals(giftItem.getOid())
+//                                && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_COUPON)
+//                                && !giftItem.getGoodsType().equals(GoodsType.VIRTUAL_GOODS)).findFirst();
+//
+//                if (Objects.nonNull(giftItem.getCombinedCommodity()) && giftItem.getCombinedCommodity()) {
+//                    if (deliveryGiftVOOptional.isPresent() && giftItem.getDeliverStatus()==DeliverStatus.NOT_YET_SHIPPED ) {
+//                        DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
+//                        giftItem.setDeliveredNum(giftItem.getNum());
+//                        giftItem.setDeliverStatus(DeliverStatus.SHIPPED);
+//                        deliveryItemVO.setItemName(giftItem.getSkuName());
+//                        deliveryItemVO.setSkuId(giftItem.getSkuId());
+//                        deliveryItemVO.setSkuCode(giftItem.getSkuNo());
+//                        giftItemMap.put(giftItem.getSkuId(), deliveryItemVO);
+//                    }
+//                }
+//
+//                if (Objects.isNull(giftItem.getCombinedCommodity())  &&  deliveryInfoVO.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)){
+//                    if (deliveryGiftVOOptional.isPresent()) {
+//                        DeliveryItemVO deliveryItemVO = deliveryGiftVOOptional.get();
+//                        giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+////                        if(providerTrade.getSupplier().getStoreId().equals(bookuuProviderId)){
+////                            giftItem.setDeliveredNum(deliveryItemVO.getQty());
+////                        }else {
+////                            giftItem.setDeliveredNum(giftItem.getDeliveredNum() + deliveryItemVO.getQty());
+////                        }
+//                        if (giftItem.getDeliveredNum() < giftItem.getNum() && giftItem.getDeliveredNum() > 0) {
+//                            giftItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
+//                        } else if (giftItem.getDeliveredNum() >= giftItem.getNum()) {
+//                            giftItem.setDeliveredNum(giftItem.getNum());
+//                            giftItem.setDeliverStatus(DeliverStatus.SHIPPED);
+//                        } else {
+//                            giftItem.setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
 //                        }
-                        if (giftItem.getDeliveredNum() < giftItem.getNum() && giftItem.getDeliveredNum() > 0) {
-                            giftItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                        } else if (giftItem.getDeliveredNum() >= giftItem.getNum()) {
-                            giftItem.setDeliveredNum(giftItem.getNum());
-                            giftItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                        } else {
-                            giftItem.setDeliverStatus(DeliverStatus.NOT_YET_SHIPPED);
-                        }
-                        deliveryItemVO.setItemName(giftItem.getSkuName());
-                        deliveryItemVO.setSkuId(giftItem.getSkuId());
-                        deliveryItemVO.setSkuCode(giftItem.getSkuNo());
-                        giftItemMap.put(giftItem.getSkuId(), deliveryItemVO);
-                    }
-                }
-            }
+//                        deliveryItemVO.setItemName(giftItem.getSkuName());
+//                        deliveryItemVO.setSkuId(giftItem.getSkuId());
+//                        deliveryItemVO.setSkuCode(giftItem.getSkuNo());
+//                        giftItemMap.put(giftItem.getSkuId(), deliveryItemVO);
+//                    }
+//                }
+//            }
 
             //如果发货map存在值信息
-            if (tradeItemMap.size() > 0 || giftItemMap.size() > 0) {
+            if (tradeItemMap.size() > 0 /*|| giftItemMap.size() > 0*/) {
 
                 List<ShippingItemVO> shippingItems = new ArrayList<>();
                 List<ShippingItemVO> giftItems = new ArrayList<>();
@@ -1248,21 +1248,21 @@ public class TradePushERPService {
                     shippingItems.add(shippingItemVO);
                 });
 
-                //配送赠品信息 发货记录
-                giftItemMap.forEach((skuId, deliveryItemVO) -> {
-                    ShippingItemVO shippingItemVO = KsBeanUtil.convert(deliveryItemVO, ShippingItemVO.class);
-                    TradeItem gifts = providerTrade.getGifts().stream().filter(tradeGifts -> Objects.equals(skuId, tradeGifts.getSkuId())).findFirst().orElse(null);
-                    if (Objects.nonNull(gifts) && Objects.nonNull(gifts.getCombinedCommodity()) && gifts.getCombinedCommodity()){
-                        shippingItemVO.setItemNum(gifts.getNum());
-                    }else {
-                        shippingItemVO.setItemNum(deliveryItemVO.getQty());
-                    }
-                    shippingItemVO.setItemName(deliveryItemVO.getItemName());
-                    shippingItemVO.setItemNum(deliveryItemVO.getQty());
-                    shippingItemVO.setSkuId(deliveryItemVO.getSkuId());
-                    shippingItemVO.setSkuNo(deliveryItemVO.getSkuCode());
-                    giftItems.add(shippingItemVO);
-                });
+//                //配送赠品信息 发货记录
+//                giftItemMap.forEach((skuId, deliveryItemVO) -> {
+//                    ShippingItemVO shippingItemVO = KsBeanUtil.convert(deliveryItemVO, ShippingItemVO.class);
+//                    TradeItem gifts = providerTrade.getGifts().stream().filter(tradeGifts -> Objects.equals(skuId, tradeGifts.getSkuId())).findFirst().orElse(null);
+//                    if (Objects.nonNull(gifts) && Objects.nonNull(gifts.getCombinedCommodity()) && gifts.getCombinedCommodity()){
+//                        shippingItemVO.setItemNum(gifts.getNum());
+//                    }else {
+//                        shippingItemVO.setItemNum(deliveryItemVO.getQty());
+//                    }
+//                    shippingItemVO.setItemName(deliveryItemVO.getItemName());
+//                    shippingItemVO.setItemNum(deliveryItemVO.getQty());
+//                    shippingItemVO.setSkuId(deliveryItemVO.getSkuId());
+//                    shippingItemVO.setSkuNo(deliveryItemVO.getSkuCode());
+//                    giftItems.add(shippingItemVO);
+//                });
 
                 //生成新的发货清单
                 TradeDeliverVO tradeDeliverVO = new TradeDeliverVO();
@@ -1350,6 +1350,9 @@ public class TradePushERPService {
                             tradeVO.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
                             tradeVO.getTradeState().setFlowState(FlowState.DELIVERED_PART);
                             tradeVO.getTradeState().setDeliverTime(null);
+                        } else {
+                            tradeVO.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+                            tradeVO.getTradeState().setFlowState(FlowState.DELIVERED);
                         }
                     }
                 } else {
@@ -1414,14 +1417,14 @@ public class TradePushERPService {
 
             //更新主订单TradeItem/Gift,多供应商不能直接覆盖-update
             List<TradeItem> tradeItems = new ArrayList<>();
-            List<TradeItem> gifts = new ArrayList<>();
+//            List<TradeItem> gifts = new ArrayList<>();
             tradeItems.addAll(trade.getTradeItems().stream().filter(p-> !providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
-            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
+//            gifts.addAll(trade.getGifts().stream().filter(p-> !providerTrade.getGifts().stream().map(TradeItem::getOid).collect(Collectors.toList()).contains(p.getOid())).collect(Collectors.toList()));
             tradeItems.addAll(providerTrade.getTradeItems());
-            gifts.addAll(providerTrade.getGifts());
+//            gifts.addAll(providerTrade.getGifts());
 
             trade.setTradeItems(tradeItems);
-            trade.setGifts(gifts);
+//            trade.setGifts(gifts);
             tradeEventLog.setEventDetail(String.format("主订单同步ERP订单%s发货清单", trade.getId()));
             trade.appendTradeEventLog(tradeEventLog);
 
