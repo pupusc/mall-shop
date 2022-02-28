@@ -7,9 +7,10 @@ public class WxGoodsCreateRequest {
 
     private Long id;
 
+    /**
+     * spu id
+     */
     private String goodsId;
-
-    private String goodsInfoId;
 
     //微信类目id
     private Integer wxCategory;

@@ -6,8 +6,12 @@ import lombok.Data;
 @Data
 public class WxDeleteProductRequest {
 
+    /**
+     * spu id
+     */
     @JSONField(name = "product_id")
     private Long productId;
+
     @JSONField(name = "out_product_id")
     private String outProductId;
 }

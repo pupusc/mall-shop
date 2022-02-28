@@ -30,15 +30,20 @@ public class WxCallbackController {
     private WxGoodsApiController wxGoodsApiController;
 
     @PostMapping(value = "/callback")
-    public String goodsAuditCallback(HttpServletRequest request) throws IOException {
-        log.info("微信商品回调: {}", IOUtils.toString(request.getInputStream()));
+    public String goodsAuditCallback(HttpServletRequest request) {
         try {
-            request.getInputStream().reset();
-            return wxAuditCallbackParser.dealCallback(request.getInputStream());
-        } catch (IOException e) {
-            log.error("微信回调失败");
-            return "fail";
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            StringBuilder sb = new StringBuilder(128);
+            parameterMap.forEach((k, v) -> {
+                sb.append(k).append("=").append(v[0]).append("\n");
+            });
+            String encryptStr = IOUtils.toString(request.getInputStream());
+            log.info("微信商品回调参数: {}, body: {}", sb.toString(), encryptStr);
+            wxAuditCallbackParser.dealCallback(encryptStr, parameterMap.get("timestamp")[0], parameterMap.get("nonce")[0], parameterMap.get("msg_signature")[0]);
+        }catch (Exception e) {
+            log.error("解析微信审核回调失败", e);
         }
+        return "success";
     }
 
     @GetMapping("/callback")
