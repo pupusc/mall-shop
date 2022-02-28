@@ -20,7 +20,10 @@ public enum ChannelType {
     MALL,
 
     @ApiEnumProperty("小店")
-    SHOP;
+    SHOP,
+
+    @ApiEnumProperty("小程序")
+    MINIAPP;
 
     @JsonCreator
     public static ChannelType fromValue(int value) {

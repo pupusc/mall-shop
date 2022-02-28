@@ -3,6 +3,7 @@ package com.soybean.mall.wx.mini.order.controller;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -26,5 +27,10 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     @Override
     public BaseResponse<WxResponseBase> orderPay(WxOrderPayRequest request) {
         return BaseResponse.success(wxService.orderPay(request));
+    }
+
+    @Override
+    public BaseResponse<String> prePayOrder(WxPrePayOrderRequest request) {
+        return BaseResponse.success(wxService.createPreOrder(request));
     }
 }

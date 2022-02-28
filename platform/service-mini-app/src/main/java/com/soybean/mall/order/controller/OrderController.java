@@ -8,10 +8,14 @@ import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
+import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.DistributeChannel;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
@@ -66,6 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -107,6 +112,9 @@ public class OrderController {
     @Autowired
     private TradeProvider tradeProvider;
 
+    @Autowired
+    private WxOrderApiController orderApiController;
+
     /**
      * 提交订单，用于生成订单操作
      */
@@ -142,6 +150,8 @@ public class OrderController {
         try {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
+            DistributeChannel distributeChannel = new DistributeChannel();
+            distributeChannel.setChannelType(ChannelType.MINIAPP);
             successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {
@@ -159,7 +169,12 @@ public class OrderController {
         wxOrderPaymentVO.setNonceStr(RandomStringUtils.randomAlphanumeric(32));
         wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
         wxOrderPaymentVO.setPrepayId(trades.get(0).getId());
-        String sign = getSign(wxOrderPaymentVO);
+        String prepayId = "";//getPrePayId(wxOrderPaymentVO.getOrderInfo());
+        wxOrderPaymentVO.setPrepayId(prepayId);
+        wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(prepayId);
+        wxOrderPaymentVO.setPaySign(getSign(wxOrderPaymentVO));
+        wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
+        return wxOrderPaymentVO;
     }
 
     private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades,String openId) {
@@ -176,8 +191,8 @@ public class OrderController {
                     .outProductId(tradeItem.getSpuId())
                     .outSkuId(tradeItem.getSkuId())
                     .productNum(tradeItem.getNum())
-                    .salePrice(tradeItem.getOriginalPrice())
-                    .realPrice(tradeItem.getSplitPrice())
+                    .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
+                    .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
                     .title(tradeItem.getSkuName())
                     .headImg(tradeItem.getPic()).build());
         });
@@ -188,8 +203,12 @@ public class OrderController {
                 .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
 
         WxPriceInfoDTO priceInfo = new WxPriceInfoDTO();
-        priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice());
-        priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice());
+        if(trade.getTradePrice().getTotalPrice()!=null) {
+            priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        if(trade.getTradePrice().getDeliveryPrice()!=null) {
+            priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice().multiply(new BigDecimal(100)).intValue());
+        }
         detail.setPriceInfo(priceInfo);
 
         WxAddressInfoDTO addressInfo = new WxAddressInfoDTO();
@@ -202,7 +221,21 @@ public class OrderController {
         result.setAddressInfo(addressInfo);
         result.setOrderDetail(detail);
         return result;
+    }
 
+    private String getPrePayId(WxOrderCommitResultVO resultVO){
+        WxPrePayOrderRequest prePayOrderRequest = new WxPrePayOrderRequest();
+        prePayOrderRequest.setOutTradeNo(resultVO.getOutOrderId());
+        WxPrePayOrderRequest.PayerInfo payerInfo = new WxPrePayOrderRequest.PayerInfo();
+        payerInfo.setOpenId(resultVO.getOpenid());
+        prePayOrderRequest.setPayer(payerInfo);
+        WxPrePayOrderRequest.PriceInfo priceInfo = new WxPrePayOrderRequest.PriceInfo();
+        priceInfo.setTotal(resultVO.getOrderDetail().getPriceInfo().getOrderPrice());
+        prePayOrderRequest.setAmount(priceInfo);
+        prePayOrderRequest.setNotifyUrl("test");
+        prePayOrderRequest.setDescription(resultVO.getOrderDetail().getProductInfos().get(0).getTitle());
+        BaseResponse<String> response = orderApiController.prePayOrder(prePayOrderRequest);
+        return response.getContext();
 
     }
 

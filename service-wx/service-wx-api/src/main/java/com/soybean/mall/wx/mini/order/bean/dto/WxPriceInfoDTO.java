@@ -16,8 +16,8 @@ import java.math.BigDecimal;
 public class WxPriceInfoDTO implements Serializable {
     private static final long serialVersionUID = -7952026075135048783L;
     @JSONField(name ="order_price")
-    private BigDecimal orderPrice;
-    private BigDecimal freight;
+    private Integer orderPrice;
+    private Integer freight;
     @JSONField(name ="discounted_price")
-    private BigDecimal discountePrice;
+    private Integer discountePrice;
 }
