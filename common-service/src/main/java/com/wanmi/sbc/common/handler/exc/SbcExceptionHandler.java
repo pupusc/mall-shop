@@ -45,39 +45,21 @@ public class SbcExceptionHandler {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BaseResponse SbcRuntimeExceptionHandler(SbcRuntimeException ex) {
-        //1、异常链的errorMessage
-        String msg = "";
-        if (ex.getCause() != null) {
-            msg = ex.getCause().getMessage();
-        }
-
         String errorCode = ex.getErrorCode();
-        if (StringUtils.isNotEmpty(errorCode)) {
-            if(CommonErrorCode.SPECIFIED.equals(errorCode) && ex.getParams() != null && ex.getParams().length>0){
-                msg = Objects.toString(ex.getParams()[0]);
-            }else {
-                msg = this.getMessage(errorCode, ex.getParams());
-            }
+        String errorMsg = this.getMessage(ex);
 
-            // 如果异常码在本系统中有对应异常信息，以异常码对应的提示信息为准
-            if (!errorCode.equals(msg)) {
-                ex.setResult(msg);
-            }
-
-            if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
-                log.warn(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "true".equalsIgnoreCase(openErrorStackTrace) ? ex : "--");
-                return BaseResponse.info(errorCode, ex.getResult());
-            }
-        } else if (StringUtils.isEmpty(msg)) {
-            //3、异常码为空 & msg为空，提示系统异常
-            msg = this.getMessage(CommonErrorCode.FAILED, ex.getParams());
+        if (StringUtils.isNotBlank(errorCode) && StringUtils.isNotBlank(errorMsg)) {
+            log.warn(LOGGER_FORMAT, ex.getErrorCode(), errorMsg, "true".equalsIgnoreCase(openErrorStackTrace) ? ex : "--");
+            return BaseResponse.info(errorCode, errorMsg);
         }
 
-        if(StringUtils.isEmpty(errorCode)) {
+        if (StringUtils.isBlank(errorCode)) {
             errorCode = CommonErrorCode.FAILED;
         }
-        log.error(LOGGER_FORMAT, errorCode, msg, ex);
-
+        if (StringUtils.isBlank(errorMsg)) {
+            errorMsg = this.getMessage(CommonErrorCode.FAILED, ex.getParams());
+        }
+        log.error(LOGGER_FORMAT, errorCode, errorMsg, ex);
         return new BaseResponse(errorCode, ex.getParams());
     }
 
@@ -153,6 +135,28 @@ public class SbcExceptionHandler {
         } else {
             return new BaseResponse(CommonErrorCode.FAILED);
         }
+    }
+
+    private String getMessage(SbcRuntimeException ex) {
+        String errorCode = ex.getErrorCode();
+
+        if (StringUtils.isNotBlank(errorCode)) {
+            if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
+                return ex.getResult();
+            }
+            if (CommonErrorCode.SPECIFIED.equals(errorCode) && ex.getParams() != null && ex.getParams().length>0){
+                return Objects.toString(ex.getParams()[0]);
+            }
+            String msg = this.getMessage(errorCode, ex.getParams());
+            if (!errorCode.equals(msg)) {
+                return msg;
+            }
+        }
+        if (ex.getCause() != null) {
+            return ex.getCause().getMessage();
+        }
+
+        return "";
     }
 
     /**
