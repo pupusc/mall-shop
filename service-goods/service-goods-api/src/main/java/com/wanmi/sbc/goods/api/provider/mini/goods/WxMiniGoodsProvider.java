@@ -18,6 +18,12 @@ public interface WxMiniGoodsProvider {
     @PostMapping("/goods/${application.goods.version}/wx/add")
     BaseResponse add(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
 
+    @PostMapping("/goods/${application.goods.version}/wx/to-audit")
+    BaseResponse toAudit(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
+
+    @PostMapping("/goods/${application.goods.version}/wx/update")
+    BaseResponse update(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
+
     @PostMapping("/goods/${application.goods.version}/wx/list")
     BaseResponse<MicroServicePage<WxGoodsVo>> list(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest);
 

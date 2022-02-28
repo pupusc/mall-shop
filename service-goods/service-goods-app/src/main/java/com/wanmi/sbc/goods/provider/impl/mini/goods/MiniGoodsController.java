@@ -74,6 +74,18 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
     }
 
     @Override
+    public BaseResponse toAudit(WxGoodsCreateRequest wxGoodsCreateRequest) {
+        wxGoodsService.toAudit(wxGoodsCreateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse update(WxGoodsCreateRequest wxGoodsCreateRequest) {
+        wxGoodsService.update(wxGoodsCreateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse delete(WxDeleteProductRequest wxDeleteProductRequest) {
         wxGoodsService.deleteGoods(wxDeleteProductRequest);
         return BaseResponse.SUCCESSFUL();

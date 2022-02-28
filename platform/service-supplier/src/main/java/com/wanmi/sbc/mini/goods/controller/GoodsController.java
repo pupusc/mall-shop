@@ -1,9 +1,15 @@
 package com.wanmi.sbc.mini.goods.controller;
 
+import com.alipay.api.domain.GoodsInfo;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
+import com.wanmi.ares.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
@@ -32,6 +38,8 @@ public class GoodsController {
     private WxMiniGoodsProvider wxMiniGoodsProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+    @Autowired
+    private WxGoodsApiController wxGoodsApiController;
 
     /**
      * @description 查询直播商品
@@ -79,6 +87,28 @@ public class GoodsController {
     @PostMapping("/add")
     public BaseResponse addGoods(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
         return wxMiniGoodsProvider.add(wxGoodsCreateRequest);
+    }
+
+    /**
+     * @description 审核商品
+     * @param wxGoodsCreateRequest
+     * @menu 小程序
+     * @status done
+     */
+    @PostMapping("/toAudit")
+    public BaseResponse toAudit(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
+        return wxMiniGoodsProvider.toAudit(wxGoodsCreateRequest);
+    }
+
+    /**
+     * @description 审核商品
+     * @param wxGoodsCreateRequest
+     * @menu 小程序
+     * @status done
+     */
+    @PostMapping("/update")
+    public BaseResponse update(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
+        return wxMiniGoodsProvider.update(wxGoodsCreateRequest);
     }
 
     /**
