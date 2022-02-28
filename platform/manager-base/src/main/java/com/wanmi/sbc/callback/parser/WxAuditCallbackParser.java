@@ -37,6 +37,7 @@ public class WxAuditCallbackParser implements CommandLineRunner {
             }
         }catch (Exception e){
             try {
+                inputStream.reset();
                 String s = IOUtils.toString(inputStream);
                 log.error("解析微信审核回调失败:" + s, e);
             } catch (IOException ioException) {
@@ -48,11 +49,11 @@ public class WxAuditCallbackParser implements CommandLineRunner {
     }
 
     private Map<String, Object> parseXML(InputStream inputStream) throws DocumentException {
-        Enumeration<InputStream> streams = Collections.enumeration(Arrays.asList(new ByteArrayInputStream(rootPrefix),
-                inputStream, new ByteArrayInputStream(rootSuffix)));
-        SequenceInputStream in = new SequenceInputStream(streams);
+//        Enumeration<InputStream> streams = Collections.enumeration(Arrays.asList(new ByteArrayInputStream(rootPrefix),
+//                inputStream, new ByteArrayInputStream(rootSuffix)));
+//        SequenceInputStream in = new SequenceInputStream(streams);
         SAXReader saxReader = new SAXReader();
-        Document document = saxReader.read(in);
+        Document document = saxReader.read(inputStream);
         Element rootElement = document.getRootElement();
         Iterator<Element> it = rootElement.elementIterator();
         Map<String, Object> paramMap = new HashMap<>();

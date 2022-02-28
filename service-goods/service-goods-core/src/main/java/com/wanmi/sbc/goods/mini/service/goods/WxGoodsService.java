@@ -87,15 +87,11 @@ public class WxGoodsService {
     public void deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(wxDeleteProductRequest.getOutProductId(), DeleteFlag.NO);
         if(wxGoodsModel != null){
-            Long platformProductId = wxGoodsModel.getPlatformProductId();
             wxGoodsModel.setDelFlag(DeleteFlag.YES);
             wxGoodsRepository.save(wxGoodsModel);
-
-            if(platformProductId != null){
-                BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
-                if(!response.getContext()){
-                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
-                }
+            BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
+            if(!response.getContext()){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "删除微信商品失败");
             }
         }
     }
