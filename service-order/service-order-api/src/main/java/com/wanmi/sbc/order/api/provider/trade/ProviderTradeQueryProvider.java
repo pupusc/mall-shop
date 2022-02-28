@@ -119,6 +119,7 @@ public interface ProviderTradeQueryProvider {
      * @param request
      * @return
      */
+    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status-wechat")
      BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request);
 
 }
