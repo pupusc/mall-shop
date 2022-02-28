@@ -28,9 +28,5 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     public BaseResponse<WxResponseBase> orderPay(WxOrderPayRequest request) {
         return BaseResponse.success(wxService.orderPay(request));
     }
-
-    @Override
-    public BaseResponse<String> prePayOrder(WxPrePayOrderRequest request) {
-        return BaseResponse.success(wxService.createPreOrder(request));
-    }
+    
 }
