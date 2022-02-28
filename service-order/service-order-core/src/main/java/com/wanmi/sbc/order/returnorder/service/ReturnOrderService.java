@@ -2611,43 +2611,43 @@ public class ReturnOrderService {
         //退款，如果全部退款啦，则订单作废
         if (returnOrder.getReturnType() == ReturnType.REFUND) {
             //判断当前是否是全部退款，如果是则作废主单，
-            boolean isTradeVoid = true;
-            for (ProviderTrade providerTradeParam : providerTradeList) {
-                if (!providerTradeParam.getId().equals(returnOrder.getPtid())) {
-                    //判断当前子单子如果没有完成，则主订单不进行作废
-                    if (!FlowState.VOID.equals(providerTradeParam.getTradeState().getFlowState())) {
-                        isTradeVoid = false;
-                    }
-                    continue;
-                }
-                boolean isReturnOrderAllComplete = true;
-                for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
-                    if (tradeItemParam.getTradeReturn().getReturnCompleteNum() != tradeItemParam.getNum().intValue()) {
-                        isReturnOrderAllComplete = false;
-                    }
-                }
-                if (isReturnOrderAllComplete) {
-                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
-                    providerTradeService.updateProviderTrade(providerTradeParam);
-                    //TODO 这里不确定是否要删除 duanlsh
-                    mongoTemplate.updateMulti(new Query(Criteria.where("parentId").is(providerTradeParam.getId())), new Update().set("tradeState.flowState", FlowState.VOID), ThirdPlatformTrade.class);
-                } else {
-                    isTradeVoid = false;
-                }
-            }
+//            boolean isTradeVoid = true;
+//            for (ProviderTrade providerTradeParam : providerTradeList) {
+//                if (!providerTradeParam.getId().equals(returnOrder.getPtid())) {
+//                    //判断当前子单子如果没有完成，则主订单不进行作废
+//                    if (!FlowState.VOID.equals(providerTradeParam.getTradeState().getFlowState())) {
+//                        isTradeVoid = false;
+//                    }
+//                    continue;
+//                }
+//                boolean isReturnOrderAllComplete = true;
+//                for (TradeItem tradeItemParam : providerTradeParam.getTradeItems()) {
+//                    if (tradeItemParam.getTradeReturn().getReturnCompleteNum() != tradeItemParam.getNum().intValue()) {
+//                        isReturnOrderAllComplete = false;
+//                    }
+//                }
+//                if (isReturnOrderAllComplete) {
+//                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
+//                    providerTradeService.updateProviderTrade(providerTradeParam);
+//                    //TODO 这里不确定是否要删除 duanlsh
+//                    mongoTemplate.updateMulti(new Query(Criteria.where("parentId").is(providerTradeParam.getId())), new Update().set("tradeState.flowState", FlowState.VOID), ThirdPlatformTrade.class);
+//                } else {
+//                    isTradeVoid = false;
+//                }
+//            }
             //释放库存
             freeStock(returnOrder, trade);
 
-            if (isTradeVoid) {
-                //作废主订单
-                tradeService.voidTrade(returnOrder.getTid(), operator);
-                trade.getTradeState().setEndTime(LocalDateTime.now());
-            }  else if(providerTradeAllEnd(returnOrder)){
-                //zi订单或作废或已经全部发货，修改主订单为待收货
-                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-                trade.getTradeState().setFlowState(FlowState.DELIVERED);
-                tradeService.updateTrade(trade);
-            }
+//            if (isTradeVoid) {
+//                //作废主订单
+//                tradeService.voidTrade(returnOrder.getTid(), operator);
+//                trade.getTradeState().setEndTime(LocalDateTime.now());
+//            }  else if(providerTradeAllEnd(returnOrder)){
+//                //zi订单或作废或已经全部发货，修改主订单为待收货
+//                trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
+//                trade.getTradeState().setFlowState(FlowState.DELIVERED);
+//                tradeService.updateTrade(trade);
+//            }
         }
 
         if (returnOrder.getReturnType() == ReturnType.RETURN) {
@@ -4577,7 +4577,7 @@ public class ReturnOrderService {
         Trade trade = tradeService.detail(returnOrder.getTid());
 
        //根据主单号查询所有发货单并以此判断主单是部分发货还是全部发货
-        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
+//        List<ProviderTrade> providerTrades = providerTradeService.findListByParentId(trade.getId());
         //判断周期购订单赠品是否是虚拟或者电子卡券
         if (trade.getCycleBuyFlag()) {
             List<TradeItem> gifts = trade.getGifts().stream().filter(tradeItem -> tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS || tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON).collect(Collectors.toList());

@@ -157,6 +157,16 @@ public class ReturnItemVO implements Serializable {
     private String thirdPlatformSubOrderId;
 
     /**
+     * 售后三连击
+     */
+    private BigDecimal applyRealPrice;
+
+    private Long applyKnowledge;
+
+    private Long applyPoint;
+
+
+    /**
      * @param returnItem
      * @return
      */
