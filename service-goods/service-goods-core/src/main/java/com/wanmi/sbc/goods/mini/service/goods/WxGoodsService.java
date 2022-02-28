@@ -137,11 +137,13 @@ public class WxGoodsService {
         }
     }
 
+    @Transactional
     public void auditCallback(Map<String, Object> paramMap){
         Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
         String wxStatus = auditResult.get("status");
         String goodsId = auditResult.get("out_product_id");
         String productId = auditResult.get("product_id");
+        String spuStatus = auditResult.get("spu_status"); //上下架状态 5-上架 11、13-下架
         if("4".equals(wxStatus)){
             //成功
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
@@ -155,6 +157,7 @@ public class WxGoodsService {
             wxReviewLogModel.setRelateId(wxGoodsModel.getId());
             wxReviewLogModel.setReviewedTime(LocalDateTime.now());
             wxReviewLogModel.setReviewResult(WxReviewResult.SUCCESS);
+            wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
         }else if("3".equals(wxStatus)){
             //失败
@@ -162,7 +165,9 @@ public class WxGoodsService {
             WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
+            if("11".equals(spuStatus) || "13".equals(spuStatus)) wxGoodsModel.setStatus(WxGoodsStatus.OFF_SHELF);
             wxGoodsModel.setNeedToAudit(1);
+            wxGoodsModel.setRejectReason(rejectReason);
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -170,6 +175,7 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewedTime(LocalDateTime.now());
             wxReviewLogModel.setReviewReason(rejectReason);
             wxReviewLogModel.setReviewResult(WxReviewResult.FAILED);
+            wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
         }
     }

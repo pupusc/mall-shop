@@ -90,7 +90,7 @@ public class GoodsController {
     }
 
     /**
-     * @description 审核商品
+     * @description 审核直播商品
      * @param wxGoodsCreateRequest
      * @menu 小程序
      * @status done
@@ -101,7 +101,7 @@ public class GoodsController {
     }
 
     /**
-     * @description 审核商品
+     * @description 更新直播商品
      * @param wxGoodsCreateRequest
      * @menu 小程序
      * @status done
