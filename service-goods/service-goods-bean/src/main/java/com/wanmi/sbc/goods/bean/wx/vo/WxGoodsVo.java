@@ -28,10 +28,16 @@ public class WxGoodsVo {
     //微信类目id
     private Integer wxCategory;
 
+    private String goodsName;
+
+    private String goodsImg;
+
+    private String marketPrice;
+
     //提审时间
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime uploadTime;
+//    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+//    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private String uploadTime;
 
 }

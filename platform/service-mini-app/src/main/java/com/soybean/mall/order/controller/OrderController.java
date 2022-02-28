@@ -118,6 +118,7 @@ public class OrderController {
     /**
      * 提交订单，用于生成订单操作
      */
+
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
@@ -177,6 +178,7 @@ public class OrderController {
         return wxOrderPaymentVO;
     }
 
+    
     private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades,String openId) {
         WxOrderCommitResultVO result = new WxOrderCommitResultVO();
         result.setOutOrderId(trades.get(0).getId());

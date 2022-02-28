@@ -15,6 +15,25 @@
     <dependencies>
         <dependency>
             <groupId>com.wanmi.b2b</groupId>
+            <artifactId>bff-manager-base</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.wanmi.b2b</groupId>
             <artifactId>bff-manager-store-base</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -169,7 +188,7 @@
                                 service-account-api,service-account-bean,
                                 service-customer-api,service-customer-bean,
                                 service-pay-api,service-pay-bean,service-erp-bean,service-erp-api,
-                                ares-api,
+                                ares-api,service-wx-api,
                                 service-setting-api,service-setting-bean,
                                 service-common,service-erp-api,service-erp-bean
                             </excludeArtifactIds>
@@ -305,6 +324,10 @@
                         <include>
                             <groupId>com.wanmi.sbc</groupId>
                             <artifactId>service-common</artifactId>
+                        </include>
+                        <include>
+                            <groupId>com.soybean.mall</groupId>
+                            <artifactId>service-wx-api</artifactId>
                         </include>
                     </includes>
                     <mainClass>${main-class}</mainClass>
