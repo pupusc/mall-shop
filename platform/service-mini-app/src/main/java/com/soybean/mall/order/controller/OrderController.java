@@ -161,8 +161,6 @@ public class OrderController {
         try {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
-            DistributeChannel distributeChannel = new DistributeChannel();
-            distributeChannel.setChannelType(ChannelType.MINIAPP);
             successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {
