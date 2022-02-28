@@ -1,7 +1,6 @@
 package com.soybean.mall.goods.response;
 
-import com.soybean.mall.vo.GoodsInfoSimpleVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.soybean.mall.goods.vo.GoodsInfoSimpleVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
 import io.swagger.annotations.ApiModelProperty;

@@ -5,21 +5,16 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoQueryRequest;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
-import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.WxGoodsVo;
-import com.wanmi.sbc.mini.goods.response.GoodsDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +32,6 @@ public class GoodsController {
     private WxMiniGoodsProvider wxMiniGoodsProvider;
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
-    @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
 
     /**
      * @description 查询直播商品
@@ -97,21 +90,6 @@ public class GoodsController {
     @PostMapping("/delete")
     public BaseResponse deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest){
         return wxMiniGoodsProvider.delete(wxDeleteProductRequest);
-    }
-
-    /**
-     * @description 商品详情页
-     * @param spuId
-     * @menu 小程序
-     * @status done
-     */
-    @GetMapping("/detail")
-    public BaseResponse<GoodsDetailResponse> detail(@RequestParam("spuId")String spuId){
-        GoodsViewByIdRequest request = new GoodsViewByIdRequest();
-        request.setGoodsId(spuId);
-        request.setShowLabelFlag(true);
-        GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
-        return BaseResponse.success(KsBeanUtil.convert(response,GoodsDetailResponse.class));
     }
 
 }
