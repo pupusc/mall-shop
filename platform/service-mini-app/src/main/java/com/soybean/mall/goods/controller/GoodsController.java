@@ -40,6 +40,12 @@ public class GoodsController {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
+    /**
+     * @description 查询直播商品
+     * @param wxGoodsSearchRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
         List<EsGoodsVO> esGoodsVOS = null;
@@ -64,27 +70,40 @@ public class GoodsController {
             for (WxGoodsVo wxGoodsVo : wxGoodsVos.getContext()) {
                 EsGoodsVO esGoodsVO = collect.get(wxGoodsVo.getGoodsId()).get(0);
                 wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
-                wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsUnBackImg());
-//                wxGoodsVo.setMarketPrice(esGoodsVO.get);
+                wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsInfos().get(0).getGoodsInfoImg());
+                wxGoodsVo.setMarketPrice(esGoodsVO.getEsSortPrice().toString());
             }
         }
         return wxGoodsVos;
     }
 
+    /**
+     * @description 添加直播商品
+     * @param wxGoodsCreateRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/add")
     public BaseResponse addGoods(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
         return wxMiniGoodsProvider.add(wxGoodsCreateRequest);
     }
 
+    /**
+     * @description 删除直播商品
+     * @param wxDeleteProductRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/delete")
     public BaseResponse deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest){
         return wxMiniGoodsProvider.delete(wxDeleteProductRequest);
     }
 
     /**
-     * 商品详情
+     * @description 商品详情页
      * @param spuId
-     * @return
+     * @menu 小程序
+     * @status done
      */
     @GetMapping("/detail")
     public BaseResponse<GoodsDetailResponse> detail(@RequestParam("spuId")String spuId){

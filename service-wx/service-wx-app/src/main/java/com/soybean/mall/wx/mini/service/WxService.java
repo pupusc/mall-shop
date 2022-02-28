@@ -117,7 +117,7 @@ public class WxService {
         String requestUrl = ACCESS_TOKEN_URL.concat("?grant_type=client_credential").concat("&appid=").concat(wxAppid)
                 .concat("&secret=").concat(wxAppsecret);
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), wxAccessTokenResponse.getExpiresIn() - 600L, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), 3500, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
     }
 
@@ -134,9 +134,9 @@ public class WxService {
     }
 
     public WxUploadImageResponse uploadImg(WxUploadImageRequest wxUploadImageRequest){
-        String url = UPLOAD_IMG_URL.concat("access_token=").concat(getAccessToken());
+        String url = UPLOAD_IMG_URL.concat("?access_token=").concat(getAccessToken());
         HttpHeaders header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        header.setContentType(MediaType.parseMediaType("multipart/form-data; charset=UTF-8"));
         MultiValueMap<String, Object> params= new LinkedMultiValueMap<>();
         params.add("resp_type", 1);
         params.add("upload_type", 1);

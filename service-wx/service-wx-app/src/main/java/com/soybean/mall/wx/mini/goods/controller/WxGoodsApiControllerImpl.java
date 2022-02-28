@@ -1,5 +1,7 @@
 package com.soybean.mall.wx.mini.goods.controller;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
@@ -39,6 +41,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
         return BaseResponse.success(wxService.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest));
     }
 
+    @Override
+    public BaseResponse<WxUploadImageResponse> uploadImg(WxUploadImageRequest wxUploadImageRequest){
+        return BaseResponse.success(wxService.uploadImg(wxUploadImageRequest));
+    }
+
     //接入回调验证
     @Override
     public BaseResponse verifyCallback(Map<String, String[]> parameterMap) {
@@ -47,16 +54,15 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
         String nonce = parameterMap.get("nonce")[0];
         String echostr = parameterMap.get("echostr")[0];
         String token = wxService.getAccessToken();
-        log.info("微信回调接入，参数:{},{},{},{},{}", signature, timestamp, nonce, echostr, token);
         List<String> arrays = Arrays.asList(token, timestamp, nonce);
         Collections.sort(arrays);
         String encryptSHA1 = ShaUtil.encryptSHA1(arrays.get(0).concat(arrays.get(1).concat(arrays.get(2))));
         log.info("接入回调sha1加密结果:{}", encryptSHA1);
         if(signature.equals(encryptSHA1)){
-            log.info("接入回调成功");
+            log.info("接入回调验证成功");
             return BaseResponse.success(echostr);
         }
-        log.info("接入回调失败");
-        return BaseResponse.success("fail");
+        log.info("接入回调验证失败");
+        return BaseResponse.success(echostr);
     }
 }
