@@ -1,5 +1,6 @@
 package com.soybean.mall.vo;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,32 +15,18 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class WxProductInfoVO implements Serializable {
     private static final long serialVersionUID = 4958268411494180474L;
-    /**
-     * 商品Id
-     */
+    @JSONField(name ="out_product_id")
     private String outProductId;
-    /**
-     * skuId
-     */
+    @JSONField(name ="out_sku_id")
     private String outSkuId;
-    /**
-     * 数量
-     */
+    @JSONField(name ="product_cnt")
     private Long productNum;
-    /**
-     * 生成订单时商品的售卖价
-     */
-    private BigDecimal salePrice;
-    /**
-     * 扣除优惠后单件sku的均摊价格
-     */
-    private BigDecimal realPrice;
-    /**
-     * 商品名称
-     */
+    @JSONField(name ="sale_price")
+    private Integer salePrice;
+    @JSONField(name ="real_price")
+    private Integer realPrice;
+    private String path;
     private String title;
-    /**
-     * 头图
-     */
+    @JSONField(name ="head_img")
     private String headImg;
 }

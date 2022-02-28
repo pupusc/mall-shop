@@ -208,10 +208,10 @@ public class OrderController {
         result.setOpenid(openId);
         result.setPath("test");
         OrderCommitResultVO trade = trades.get(0);
-        WxOrderDetailDTO detail = new WxOrderDetailDTO();
-        List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        WxOrderCommitResultVO.WxOrderDetail detail = new WxOrderCommitResultVO.WxOrderDetail();
+        List<WxProductInfoVO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
-            productInfoDTOS.add(WxProductInfoDTO.builder()
+            productInfoDTOS.add(WxProductInfoVO.builder()
                     .outProductId(tradeItem.getSpuId())
                     .outSkuId(tradeItem.getSkuId())
                     .productNum(tradeItem.getNum())
@@ -222,11 +222,11 @@ public class OrderController {
         });
         detail.setProductInfos(productInfoDTOS);
 
-        detail.setPayInfo(WxPayInfoDTO.builder().payMethodType(0)
+        detail.setPayInfo(WxOrderCommitResultVO.WxPayInfo.builder().payMethodType(0)
                 .prepayId(trades.get(0).getId())
                 .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
 
-        WxPriceInfoDTO priceInfo = new WxPriceInfoDTO();
+        WxOrderCommitResultVO.WxPriceInfo priceInfo = new WxOrderCommitResultVO.WxPriceInfo();
         if(trade.getTradePrice().getTotalPrice()!=null) {
             priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
         }
@@ -235,7 +235,7 @@ public class OrderController {
         }
         detail.setPriceInfo(priceInfo);
 
-        WxAddressInfoDTO addressInfo = new WxAddressInfoDTO();
+        WxAddressInfoVO addressInfo = new WxAddressInfoVO();
         addressInfo.setCity(trade.getConsignee().getCityName());
         addressInfo.setReceiverName(trade.getConsignee().getName());
         addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
@@ -271,56 +271,7 @@ public class OrderController {
         jsApiRequest.setStoreId(-2L);
         return jsApiRequest;
     }
-
-    private String getPrePayId(WxOrderCommitResultVO resultVO){
-        WxPrePayOrderRequest prePayOrderRequest = new WxPrePayOrderRequest();
-        prePayOrderRequest.setOutTradeNo(resultVO.getOutOrderId());
-        WxPrePayOrderRequest.PayerInfo payerInfo = new WxPrePayOrderRequest.PayerInfo();
-        payerInfo.setOpenId(resultVO.getOpenid());
-        prePayOrderRequest.setPayer(payerInfo);
-        WxPrePayOrderRequest.PriceInfo priceInfo = new WxPrePayOrderRequest.PriceInfo();
-        priceInfo.setTotal(resultVO.getOrderDetail().getPriceInfo().getOrderPrice());
-        prePayOrderRequest.setAmount(priceInfo);
-        prePayOrderRequest.setNotifyUrl("test");
-        prePayOrderRequest.setDescription(resultVO.getOrderDetail().getProductInfos().get(0).getTitle());
-        BaseResponse<String> response = orderApiController.prePayOrder(prePayOrderRequest);
-        return response.getContext();
-
-    }
-
-    /**
-     * 获取签名
-     * @param orderPaymentVO
-     * @return
-     */
-    private String getSign(WxOrderPaymentVO orderPaymentVO){
-        Map<String,Object> map =new HashMap<>();
-        map.put("timeStamp", orderPaymentVO.getTimeStamp());
-        map.put("nonceStr", orderPaymentVO.getNonceStr());
-        map.put("package",orderPaymentVO.getPrepayId());
-        map.put("orderInfo",JSON.toJSONString(orderPaymentVO.getOrderInfo()));
-        String sign = getSignByMap(map);
-        return sign;
-
-    }
-
-    /**
-     * 生成签名
-     * 第一步，设所有发送或者接收到的数据为集合M，将集合M内非空参数值的参数按照参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
-     * 第二步，在stringA最后拼接上key=(API密钥的值)得到stringSignTemp字符串，并对stringSignTemp进行MD5运算，再将得到的字符串所有字符转换为大写，得到sign值signValue。
-     * @param params
-     * @return
-     */
-    public String getSignByMap(Map<String,Object> params){
-        String[] sortedKeys = params.keySet().toArray(new String[]{});
-        Arrays.sort(sortedKeys);// 排序请求参数
-        StringBuilder sb = new StringBuilder();
-        for (String key : sortedKeys) {
-            sb.append(key).append("=").append(params.get(key)).append("&");
-        }
-        sb.append("key=").append("Fandengdushudianshang20220223kai");
-        return MD5Util.md5Hex(sb.toString(), "utf-8").toUpperCase();
-    }
+    
 
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息
