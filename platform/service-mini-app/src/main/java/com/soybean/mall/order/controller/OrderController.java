@@ -229,7 +229,7 @@ public class OrderController {
         WxPrePayOrderRequest prePayOrderRequest = new WxPrePayOrderRequest();
         prePayOrderRequest.setOutTradeNo(resultVO.getOutOrderId());
         WxPrePayOrderRequest.PayerInfo payerInfo = new WxPrePayOrderRequest.PayerInfo();
-        payerInfo.setOpenId(resultVO.getOpenid());
+//        payerInfo.setOpenId(resultVO.getOpenid());
         prePayOrderRequest.setPayer(payerInfo);
         WxPrePayOrderRequest.PriceInfo priceInfo = new WxPrePayOrderRequest.PriceInfo();
         priceInfo.setTotal(resultVO.getOrderDetail().getPriceInfo().getOrderPrice());
