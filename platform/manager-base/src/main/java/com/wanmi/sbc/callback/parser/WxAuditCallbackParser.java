@@ -1,5 +1,6 @@
 package com.wanmi.sbc.callback.parser;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.callback.handler.CallbackHandler;
 import com.wanmi.sbc.common.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +10,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -71,6 +70,7 @@ public class WxAuditCallbackParser implements CommandLineRunner {
                 paramMap.put(next.getName(), next.getText());
             }
         }
+        log.info("wx callback params: {}", JSONObject.toJSONString(paramMap));
         return paramMap;
     }
 
