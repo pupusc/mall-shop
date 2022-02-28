@@ -490,6 +490,13 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Boolean combinedCommodity;
 
     /**
+     * 库存
+     */
+    @ApiModelProperty(value = "库存")
+    private Long stock;
+
+
+    /**
      * 营销优惠商品结算Bean
      */
     @Data
@@ -623,10 +630,5 @@ public class TradeItemVO implements Serializable, Cloneable {
         @ApiModelProperty(value = "优惠金额")
         private BigDecimal reducePrice;
 
-        /**
-         * 库存
-         */
-        @ApiModelProperty(value = "库存")
-        private Long stock;
     }
 }

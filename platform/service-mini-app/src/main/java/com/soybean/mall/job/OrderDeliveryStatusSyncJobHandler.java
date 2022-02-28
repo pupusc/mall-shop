@@ -2,6 +2,9 @@ package com.soybean.mall.job;
 
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
+import com.xxl.job.core.biz.model.ReturnT;
+import com.xxl.job.core.handler.IJobHandler;
+import com.xxl.job.core.handler.annotation.JobHandler;
 import io.seata.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +24,7 @@ public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
 
     @Override
     public ReturnT<String> execute(String params) throws Exception {
-        log.info("=====订单发货状态更新开始======");
+        log.info("=====查询小程序订单并同步到微信start======");
         String[] paramterArray = params.split(",");
         int size = 0;
         String ptid = StringUtils.EMPTY;
