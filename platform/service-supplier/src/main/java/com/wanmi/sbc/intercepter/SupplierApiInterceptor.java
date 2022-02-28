@@ -92,6 +92,11 @@ public class SupplierApiInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getServletPath();
         String requestType = request.getMethod();
+
+        if(uri.startsWith("/wx")){
+            return true;
+        }
+
         //如果是错误问题，直接返回
         if ("/error".equalsIgnoreCase(uri)) {
             return true;
@@ -103,6 +108,8 @@ public class SupplierApiInterceptor implements HandlerInterceptor {
             return true;
         }
         Claims claims;
+
+
 
         // 1.获取登录人信息
         claims = (Claims) request.getAttribute("claims");
