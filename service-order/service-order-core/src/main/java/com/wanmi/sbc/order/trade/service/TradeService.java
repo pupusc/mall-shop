@@ -6554,7 +6554,7 @@ public class TradeService {
         String businessId = "";
         try {
             PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, tradePayOnlineCallBackRequest.getStoreId())).getContext();
             String apiKey = payGatewayConfig.getApiKey();
             XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
             xStream.alias("xml", WxPayResultResponse.class);
