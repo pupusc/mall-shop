@@ -116,7 +116,7 @@ public class OrderController {
     @Autowired
     private WxOrderApiController orderApiController;
 
-    @Value("mini.program.appid")
+    @Value("${mini.program.appid}")
     private String appId;
 
     @Autowired
@@ -170,7 +170,7 @@ public class OrderController {
         } finally {
             rLock.unlock();
         }
-        return BaseResponse.success(getOrderPaymentResult(successResults,""));
+        return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId()));
 
     }
 
