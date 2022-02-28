@@ -5,6 +5,7 @@ import com.wanmi.sbc.callback.encrypt.WXBizMsgCrypt;
 import com.wanmi.sbc.callback.handler.CallbackHandler;
 import com.wanmi.sbc.common.util.SpringContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -17,6 +18,7 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.*;
 
@@ -99,14 +101,16 @@ public class WxAuditCallbackParser implements CommandLineRunner {
     public void run(String... args) throws Exception {
         handlers = SpringContextHolder.getApplicationContext().getBeansOfType(CallbackHandler.class).values();
 
-        dbf = DocumentBuilderFactory.newInstance();
-        dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        dbf.setXIncludeAware(false);
-        dbf.setExpandEntityReferences(false);
+        if(StringUtils.isNotEmpty(wxCallbackToken)){
+            dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            dbf.setXIncludeAware(false);
+            dbf.setExpandEntityReferences(false);
 
-        pc = new WXBizMsgCrypt(wxCallbackToken, wxCallbackAesKey, wxAppid);
+            pc = new WXBizMsgCrypt(wxCallbackToken, wxCallbackAesKey, wxAppid);
+        }
     }
 }
