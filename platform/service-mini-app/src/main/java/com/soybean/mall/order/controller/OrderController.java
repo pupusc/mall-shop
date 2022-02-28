@@ -1,6 +1,7 @@
 package com.soybean.mall.order.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -18,10 +19,7 @@ import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.DateUtil;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.MD5Util;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -47,13 +45,15 @@ import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.vo.SupplierVO;
-import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
-import com.wanmi.sbc.order.bean.vo.TradeItemVO;
-import com.wanmi.sbc.order.bean.vo.TradePriceVO;
+import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.request.TradeItemConfirmRequest;
+import com.wanmi.sbc.pay.api.provider.WxPayProvider;
+import com.wanmi.sbc.pay.api.request.WxPayForJSApiRequest;
+import com.wanmi.sbc.pay.bean.enums.WxPayTradeType;
 import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
 import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressVerifyRequest;
+import com.wanmi.sbc.setting.api.response.MiniProgramSetGetResponse;
+import com.wanmi.sbc.trade.PayServiceHelper;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
@@ -63,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -115,6 +116,15 @@ public class OrderController {
     @Autowired
     private WxOrderApiController orderApiController;
 
+    @Value("mini.program.appid")
+    private String appId;
+
+    @Autowired
+    private PayServiceHelper payServiceHelper;
+
+    @Autowired
+    private WxPayProvider wxPayProvider;
+
     /**
      * 提交订单，用于生成订单操作
      */
@@ -164,21 +174,33 @@ public class OrderController {
 
     }
 
+
+
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
-        wxOrderPaymentVO.setTimeStamp(String.valueOf((new Date()).getTime()/1000));
-        wxOrderPaymentVO.setNonceStr(RandomStringUtils.randomAlphanumeric(32));
+        //生成预支付订单
+        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
+        req.setAppid(appId);
+        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+        if(prepayResult == null || prepayResult.getContext().isEmpty()){
+            return wxOrderPaymentVO;
+        }
+        wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+        wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
         wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-        wxOrderPaymentVO.setPrepayId(trades.get(0).getId());
-        String prepayId = "";//getPrePayId(wxOrderPaymentVO.getOrderInfo());
-        wxOrderPaymentVO.setPrepayId(prepayId);
-        wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(prepayId);
-        wxOrderPaymentVO.setPaySign(getSign(wxOrderPaymentVO));
+        String prepayId = prepayResult.getContext().get("package");
+        String ppid = "";
+        if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
+            ppid = prepayId.substring(10,prepayId.length());
+        }
+        wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+        wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
+        wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
         wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         return wxOrderPaymentVO;
     }
 
-    
+
     private WxOrderCommitResultVO convertResult(List<OrderCommitResultVO> trades,String openId) {
         WxOrderCommitResultVO result = new WxOrderCommitResultVO();
         result.setOutOrderId(trades.get(0).getId());
@@ -223,6 +245,31 @@ public class OrderController {
         result.setAddressInfo(addressInfo);
         result.setOrderDetail(detail);
         return result;
+    }
+
+
+
+    /**
+     * 微信内浏览器,小程序支付公用逻辑
+     *
+     * @param
+     * @return
+     */
+    private WxPayForJSApiRequest wxPayCommon(String openId,String tid) {
+        WxPayForJSApiRequest jsApiRequest = new WxPayForJSApiRequest();
+        String id = payServiceHelper.getPayBusinessId(tid, null);
+        List<TradeVO> trades = payServiceHelper.checkTrades(id);
+        //订单总金额
+        String totalPrice = payServiceHelper.calcTotalPriceByPenny(trades).toString();
+        String body = payServiceHelper.buildBody(trades);
+        jsApiRequest.setBody(body + "订单");
+        jsApiRequest.setOut_trade_no(id);
+        jsApiRequest.setTotal_fee(totalPrice);
+        jsApiRequest.setSpbill_create_ip(HttpUtil.getIpAddr());
+        jsApiRequest.setTrade_type(WxPayTradeType.JSAPI.toString());
+        jsApiRequest.setOpenid(openId);
+        jsApiRequest.setStoreId(-2L);
+        return jsApiRequest;
     }
 
     private String getPrePayId(WxOrderCommitResultVO resultVO){

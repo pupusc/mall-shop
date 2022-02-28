@@ -146,25 +146,6 @@ public class WxService {
     }
 
     /**
-     * JSAPI下单
-     * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
-     * @param wxPrePayOrderRequest
-     * @return
-     */
-    public String createPreOrder(WxPrePayOrderRequest wxPrePayOrderRequest){
-        wxPrePayOrderRequest.setAppid(wxAppid);
-        wxPrePayOrderRequest.setMchid(merchantId);
-        String reqJsonStr = JSONObject.toJSONString(wxPrePayOrderRequest);
-        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        log.info("请求地址:{},参数:{}", PRE_PAY_TRANSATION_URL, entity == null?"" : JSONObject.toJSONString(entity.getBody()));
-        ResponseEntity<String> exchange = restTemplate.exchange(PRE_PAY_TRANSATION_URL, HttpMethod.POST, entity, String.class);
-        String response = exchange.getBody();
-        log.info("响应:{}", response);
-        WxPrePayOrderResponse result = JSONObject.parseObject(response, WxPrePayOrderResponse.class);
-        return result.getPrepayId();
-    }
-
-    /**
      * 生成订单并获取ticket
      * @param createOrderRequest
      * @return
@@ -234,22 +215,6 @@ public class WxService {
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
-    /**
-     * 生成签名
-     * 第一步，设所有发送或者接收到的数据为集合M，将集合M内非空参数值的参数按照参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
-     * 第二步，在stringA最后拼接上key=(API密钥的值)得到stringSignTemp字符串，并对stringSignTemp进行MD5运算，再将得到的字符串所有字符转换为大写，得到sign值signValue。
-     * @param params
-     * @return
-     */
-    public String getSign(Map<Object,Object> params){
-        String[] sortedKeys = params.keySet().toArray(new String[]{});
-        Arrays.sort(sortedKeys);// 排序请求参数
-        StringBuilder sb = new StringBuilder();
-        for (String key : sortedKeys) {
-            sb.append(key).append("=").append(params.get(key)).append("&");
-        }
-        sb.append("key=").append(wxAppsecret);
-        return MD5Util.md5Hex(sb.toString(), "utf-8").toUpperCase();
-    }
+
 
 }
