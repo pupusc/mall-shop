@@ -3,6 +3,7 @@ package com.soybean.mall.wx.mini.order.controller;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -29,5 +30,16 @@ public interface WxOrderApiController {
      */
     @PostMapping("/order/pay")
     BaseResponse<WxResponseBase> orderPay(@RequestBody WxOrderPayRequest request);
+
+
+    /**
+     * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/pre/pay")
+    BaseResponse<String> prePayOrder(@RequestBody WxPrePayOrderRequest request);
+
+
 
 }

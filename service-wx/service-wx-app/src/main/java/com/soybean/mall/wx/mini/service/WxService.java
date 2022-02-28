@@ -9,6 +9,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRe
 import com.soybean.mall.wx.mini.goods.bean.response.*;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxPrePayOrderResponse;
 import com.wanmi.sbc.common.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
@@ -43,7 +44,7 @@ public class WxService {
     private static final String DELIVERY_RECEIVE_URL="https://api.weixin.qq.com/shop/delivery/recieve";
     private static final String AFTER_SALE_URL="https://api.weixin.qq.com/shop/aftersale/add";
     private static final String UPLOAD_IMG_URL="https://api.weixin.qq.com/shop/img/upload";
-
+    private static final String PRE_PAY_TRANSATION_URL="https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi";
     private static final HttpHeaders defaultHeader;
     static {
         defaultHeader = new HttpHeaders();
@@ -58,6 +59,9 @@ public class WxService {
     private RestTemplate restTemplate;
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Value("${wx.mini.merchantId}")
+    private String merchantId;
 
     public String getPhoneNumber(String code){
         String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
@@ -139,6 +143,25 @@ public class WxService {
         params.add("img_url", wxUploadImageRequest.getImgUrl());
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(params, header);
         return sendRequest(url, HttpMethod.POST, entity, WxUploadImageResponse.class);
+    }
+
+    /**
+     * JSAPI下单
+     * 商户系统先调用该接口在微信支付服务后台生成预支付交易单，返回正确的预支付交易会话标识后再按Native、JSAPI、APP等不同场景生成交易串调起支付。
+     * @param wxPrePayOrderRequest
+     * @return
+     */
+    public String createPreOrder(WxPrePayOrderRequest wxPrePayOrderRequest){
+        wxPrePayOrderRequest.setAppid(wxAppid);
+        wxPrePayOrderRequest.setMchid(merchantId);
+        String reqJsonStr = JSONObject.toJSONString(wxPrePayOrderRequest);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        log.info("请求地址:{},参数:{}", PRE_PAY_TRANSATION_URL, entity == null?"" : JSONObject.toJSONString(entity.getBody()));
+        ResponseEntity<String> exchange = restTemplate.exchange(PRE_PAY_TRANSATION_URL, HttpMethod.POST, entity, String.class);
+        String response = exchange.getBody();
+        log.info("响应:{}", response);
+        WxPrePayOrderResponse result = JSONObject.parseObject(response, WxPrePayOrderResponse.class);
+        return result.getPrepayId();
     }
 
     /**

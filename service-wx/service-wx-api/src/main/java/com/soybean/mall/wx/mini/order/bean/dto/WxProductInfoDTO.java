@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.omg.CORBA.INTERNAL;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -22,9 +23,9 @@ public class WxProductInfoDTO implements Serializable {
     @JSONField(name ="product_cnt")
     private Long productNum;
     @JSONField(name ="sale_price")
-    private BigDecimal salePrice;
+    private Integer salePrice;
     @JSONField(name ="real_price")
-    private BigDecimal realPrice;
+    private Integer realPrice;
     private String path;
     private String title;
     @JSONField(name ="head_img")
