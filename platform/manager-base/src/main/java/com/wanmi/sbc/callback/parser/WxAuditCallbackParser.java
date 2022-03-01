@@ -18,7 +18,6 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.*;
 
@@ -111,6 +110,7 @@ public class WxAuditCallbackParser implements CommandLineRunner {
             dbf.setExpandEntityReferences(false);
 
             pc = new WXBizMsgCrypt(wxCallbackToken, wxCallbackAesKey, wxAppid);
+            log.info("微信回调配置加载完成");
         }
     }
 }

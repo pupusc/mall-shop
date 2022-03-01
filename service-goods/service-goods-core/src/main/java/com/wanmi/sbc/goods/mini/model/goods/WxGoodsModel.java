@@ -39,6 +39,14 @@ public class WxGoodsModel {
     @Column(name = "wx_category")
     private Integer wxCategory;
 
+    //是否需要审核 0-不需要 1-需要
+    @Column(name = "need_to_audit")
+    private Integer needToAudit;
+
+    //审核失败原因
+    @Column(name = "reject_reason")
+    private String rejectReason;
+
     //提审时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "upload_time")

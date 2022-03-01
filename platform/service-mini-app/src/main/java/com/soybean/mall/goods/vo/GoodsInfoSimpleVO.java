@@ -1,29 +1,11 @@
-package com.soybean.mall.vo;
+package com.soybean.mall.goods.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.wanmi.sbc.common.annotation.CanEmpty;
-import com.wanmi.sbc.common.enums.BoolFlag;
-import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
-import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
-import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
-import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
-import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
-import com.wanmi.sbc.goods.bean.vo.*;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 public class GoodsInfoSimpleVO implements Serializable {
@@ -70,7 +52,6 @@ public class GoodsInfoSimpleVO implements Serializable {
      */
     @ApiModelProperty(value = "商品市场价")
     private BigDecimal marketPrice;
-
 
     /**
      * 新增时，模拟多个规格值 ID

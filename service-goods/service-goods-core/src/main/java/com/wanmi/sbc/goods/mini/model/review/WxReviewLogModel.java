@@ -30,6 +30,10 @@ public class WxReviewLogModel {
     @Column(name = "review_reason")
     private String reviewReason;
 
+    //审核的实体类型 0-商品
+    @Column(name = "review_type")
+    private Integer reviewType;
+
     //关联的实体的id
     @Column(name = "relate_id")
     private Long relateId;
