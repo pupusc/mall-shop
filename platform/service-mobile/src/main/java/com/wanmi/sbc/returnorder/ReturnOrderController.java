@@ -35,6 +35,7 @@ import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
@@ -170,13 +171,26 @@ public class ReturnOrderController {
             throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
         }
 
-        if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY) {
+
+        if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY && returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
             List<ReturnItemDTO> returnItemDTOList =
                     returnOrder.getReturnItems().stream().filter(item -> item.getNum() <= 0).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(returnItemDTOList)) {
                 throw new SbcRuntimeException("K-000009"); //参数错误
             }
         }
+
+//        //查看当前退款中的订单，查看是否超额退款
+//        ReturnOrderProviderTradeRequest statisticsRequest = new ReturnOrderProviderTradeRequest();
+//        statisticsRequest.setTid(returnOrder.getTid());
+//        List<ProviderTradeSimpleVO> listBaseResponse = returnOrderProvider.listReturnProviderTrade(statisticsRequest).getContext();
+//        Map<String, ProviderTradeSimpleVO> providerId2ProviderTradeSimpleMap
+//                = listBaseResponse.stream().collect(Collectors.toMap(ProviderTradeSimpleVO::getProviderId, Function.identity(), (k1,k2) -> k1));
+//        //判断数量是否匹配
+//        for (ReturnItemDTO returnItem : returnOrder.getReturnItems()) {
+//            asdf
+//        }
+
 
         //验证订单必须的是支付完成
         BaseResponse<FindPayOrderResponse> response =
@@ -389,5 +403,4 @@ public class ReturnOrderController {
     public BaseResponse findReturnOrderInfo(@RequestBody @Validated ReturnOrderProviderTradeRequest request) {
         return returnOrderProvider.listReturnProviderTrade(request);
     }
-
 }

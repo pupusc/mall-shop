@@ -594,8 +594,6 @@ public class TradeService {
     @Autowired
     private CycleBuyQueryProvider cycleBuyQueryProvider;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
 
     @Autowired
     private PaidCardSaveProvider paidCardSaveProvider;
@@ -4254,6 +4252,16 @@ public class TradeService {
             // 订单作废后，发送MQ消息
             orderProducerService.sendMQForOrderRefundVoid(tradeVO);
         }
+    }
+
+    public void reverse(String tid, Operator operator, TradeEvent tradeEvent) {
+        StateRequest stateRequest = StateRequest
+                .builder()
+                .tid(tid)
+                .operator(operator)
+                .event(tradeEvent)
+                .build();
+        tradeFSMService.changeState(stateRequest);
     }
 
     /**

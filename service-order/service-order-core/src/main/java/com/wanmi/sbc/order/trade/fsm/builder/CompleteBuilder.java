@@ -57,6 +57,12 @@ public class CompleteBuilder implements Builder {
                 .event(TradeEvent.REFUND)
                 .action(refundAction)
 
+                .and()
+                .withExternal()
+                .source(FlowState.DELIVERED).target(FlowState.COMPLETED)
+                .event(TradeEvent.REFUND)
+                .action(refundAction)
+
                 // 完成 -> [申请退货] -> 退货
                 .and()
                 .withExternal()
