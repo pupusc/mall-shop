@@ -34,6 +34,7 @@ public class WxService {
 
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     private static final String ADD_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/add";
+    private static final String CANCEL_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/del_audit";
     private static final String DELETE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/del";
     private static final String UPDATE_PRODUCT_WITHOUT_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/update_without_audit";
     private static final String GET_PHONE_NUMBER_URL = "https://api.weixin.qq.com/wxa/business/getuserphonenumber";
@@ -90,6 +91,13 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(addProductRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
+    }
+
+    public WxResponseBase cancelAudit(String goodsId){
+        String url = CANCEL_AUDIT_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = "{\"out_product_id\":\"" + goodsId + "\"}";
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
     public boolean deleteGoods(WxDeleteProductRequest wxDeleteProductRequest){

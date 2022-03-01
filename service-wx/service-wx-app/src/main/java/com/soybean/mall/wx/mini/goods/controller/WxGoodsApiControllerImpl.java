@@ -6,6 +6,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.ShaUtil;
@@ -29,6 +30,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     @Override
     public BaseResponse<WxAddProductResponse> addGoods(WxAddProductRequest wxAddProductRequest) {
         return BaseResponse.success(wxService.uploadGoodsToWx(wxAddProductRequest));
+    }
+
+    @Override
+    public BaseResponse<WxResponseBase> cancelAudit(String goodsId) {
+        return BaseResponse.success(wxService.cancelAudit(goodsId));
     }
 
     @Override

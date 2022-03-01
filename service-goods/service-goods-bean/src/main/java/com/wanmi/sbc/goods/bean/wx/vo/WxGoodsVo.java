@@ -1,14 +1,6 @@
 package com.wanmi.sbc.goods.bean.wx.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
-import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
-
-import javax.persistence.Column;
-import java.time.LocalDateTime;
 
 @Data
 public class WxGoodsVo {
@@ -17,38 +9,59 @@ public class WxGoodsVo {
 
     private String goodsId;
 
-    //状态
+    /**
+     * 状态 0-等待上传 1-已上传 2-上架 3-下架
+     */
     private Integer status;
 
-    //审核状态
+    /**
+     * 审核状态 0-未审核 1-审核中 2-审核失败 3-审核成功
+     */
     private Integer auditStatus;
 
+    /**
+     * 销售状态 0-不可售 1-可售
+     */
     private Integer saleStatus;
 
-    //是否需要审核
+    /**
+     * 是否需要提交审核
+     */
     private Integer needToAudit;
 
-    //审核失败原因
+    /**
+     * 审核失败原因
+     */
     private String rejectReason;
 
-    //审核通过次数
-    private Integer auditTimes;
-
-    //微信类目id
+    /**
+     * 微信类目id
+     */
     private Integer wxCategory;
 
+    /**
+     * spu名字
+     */
     private String goodsName;
 
+    /**
+     * spu图片
+     */
     private String goodsImg;
 
+    /**
+     * sku最低价格
+     */
     private String marketPrice;
 
-    //提审时间
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-//    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
-//    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    /**
+     * 提审时间
+     */
     private String uploadTime;
 
+    /**
+     * 创建时间
+     */
     private String createTime;
 
 }

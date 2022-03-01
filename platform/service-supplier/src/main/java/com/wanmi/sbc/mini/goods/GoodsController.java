@@ -1,15 +1,10 @@
-package com.wanmi.sbc.mini.goods.controller;
+package com.wanmi.sbc.mini.goods;
 
-import com.alipay.api.domain.GoodsInfo;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
-import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
-import com.wanmi.ares.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
@@ -24,6 +19,7 @@ import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.WxGoodsVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +49,7 @@ public class GoodsController {
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
         List<EsGoodsVO> esGoodsVOS = null;
-        if(wxGoodsSearchRequest.getGoodsName() != null){
+        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
             queryRequest.setPageSize(50);
@@ -76,7 +72,7 @@ public class GoodsController {
             wxGoodsSearchRequest.setGoodsIds(goodsIds);
         }
         BaseResponse<MicroServicePage<WxGoodsVo>> wxGoodsVos = wxMiniGoodsProvider.list(wxGoodsSearchRequest);
-        if(wxGoodsSearchRequest.getGoodsName() != null){
+        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())){
             Map<String, List<EsGoodsVO>> collect = esGoodsVOS.stream().collect(Collectors.groupingBy(EsGoodsVO::getId));
             for (WxGoodsVo wxGoodsVo : wxGoodsVos.getContext()) {
                 List<EsGoodsVO> esGoodsVOSList = collect.get(wxGoodsVo.getGoodsId());
@@ -115,6 +111,17 @@ public class GoodsController {
     @PostMapping("/toAudit")
     public BaseResponse toAudit(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest){
         return wxMiniGoodsProvider.toAudit(wxGoodsCreateRequest);
+    }
+
+    /**
+     * @description 直播商品取消审核
+     * @param goodsId
+     * @menu 小程序
+     * @status done
+     */
+    @PostMapping("/cancelAudit")
+    public BaseResponse cancelAudit(@RequestParam(required = true) String goodsId){
+        return wxMiniGoodsProvider.cancelAudit(goodsId);
     }
 
     /**

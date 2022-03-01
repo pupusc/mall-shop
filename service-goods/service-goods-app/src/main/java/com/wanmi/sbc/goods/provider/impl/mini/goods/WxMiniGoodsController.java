@@ -1,6 +1,5 @@
 package com.wanmi.sbc.goods.provider.impl.mini.goods;
 
-import com.oracle.tools.packager.Log;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-public class MiniGoodsController implements WxMiniGoodsProvider {
+public class WxMiniGoodsController implements WxMiniGoodsProvider {
 
     @Autowired
     private WxGoodsService wxGoodsService;
@@ -63,11 +62,7 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
                         Goods goods = goodsList.get(0);
                         wxGoodsVo.setGoodsName(goods.getGoodsName());
                         wxGoodsVo.setGoodsImg(goods.getGoodsImg());
-                        try {
-                            wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice().toString());
-                        }catch (Exception e){
-                            log.error("{}没有价格!", goods.getGoodsId());
-                        }
+                        wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice() != null ? goods.getSkuMinMarketPrice().toString() : "0");
                     }
                 }
                 voList.add(wxGoodsVo);
@@ -86,6 +81,12 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
     @Override
     public BaseResponse toAudit(WxGoodsCreateRequest wxGoodsCreateRequest) {
         wxGoodsService.toAudit(wxGoodsCreateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse cancelAudit(String goodsId){
+        wxGoodsService.cancelAudit(goodsId);
         return BaseResponse.SUCCESSFUL();
     }
 

@@ -5,6 +5,7 @@ import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -78,6 +79,18 @@ public class WxGoodsService {
         wxGoodsRepository.saveAll(wxGoodsModels);
     }
 
+    public void cancelAudit(String goodsId){
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
+        if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
+
+        BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.cancelAudit(goodsId);
+        if(!wxResponseBaseBaseResponse.getContext().isSuccess()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED,
+                wxResponseBaseBaseResponse.getContext().getErrmsg());
+
+        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
+        wxGoodsRepository.save(wxGoodsModel);
+    }
+
     @Transactional
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
@@ -111,6 +124,7 @@ public class WxGoodsService {
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(wxDeleteProductRequest.getOutProductId(), DeleteFlag.NO);
         if(wxGoodsModel != null){
             wxGoodsModel.setDelFlag(DeleteFlag.YES);
+            wxGoodsModel.setUpdateTime(LocalDateTime.now());
             wxGoodsRepository.save(wxGoodsModel);
             BaseResponse<Boolean> response = wxGoodsApiController.deleteGoods(wxDeleteProductRequest);
             if(!response.getContext()){
