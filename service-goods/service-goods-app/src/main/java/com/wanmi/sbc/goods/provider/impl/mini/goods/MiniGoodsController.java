@@ -58,13 +58,16 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
                 wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime().format(df));
                 wxGoodsVo.setCreateTime(wxGoodsModel.getCreateTime().format(df));
                 if(collect != null){
-                    Goods goods = collect.get(wxGoodsModel.getGoodsId()).get(0);
-                    wxGoodsVo.setGoodsName(goods.getGoodsName());
-                    wxGoodsVo.setGoodsImg(goods.getGoodsImg());
-                    try {
-                        wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice().toString());
-                    }catch (Exception e){
-                        log.error("{}没有价格!", goods.getGoodsId());
+                    List<Goods> goodsList = collect.get(wxGoodsModel.getGoodsId());
+                    if(goodsList != null){
+                        Goods goods = goodsList.get(0);
+                        wxGoodsVo.setGoodsName(goods.getGoodsName());
+                        wxGoodsVo.setGoodsImg(goods.getGoodsImg());
+                        try {
+                            wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice().toString());
+                        }catch (Exception e){
+                            log.error("{}没有价格!", goods.getGoodsId());
+                        }
                     }
                 }
                 voList.add(wxGoodsVo);

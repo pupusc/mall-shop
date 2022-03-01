@@ -57,25 +57,33 @@ public class WxGoodsService {
 
     @Transactional
     public void addGoods(WxGoodsCreateRequest createRequest){
-        if(goodsExist(createRequest.getGoodsId())) throw new SbcRuntimeException("商品已存在");
-        WxGoodsModel wxGoodsModel = new WxGoodsModel();
-        wxGoodsModel.setGoodsId(createRequest.getGoodsId());
-        wxGoodsModel.setWxCategory(createRequest.getWxCategory());
-        wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
-        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
+
         LocalDateTime now = LocalDateTime.now();
-        wxGoodsModel.setUploadTime(now);
-        wxGoodsModel.setCreateTime(now);
-        wxGoodsModel.setUpdateTime(now);
-        wxGoodsModel.setNeedToAudit(1);
-        wxGoodsModel.setDelFlag(DeleteFlag.NO);
-        wxGoodsRepository.save(wxGoodsModel);
+        String goodsIdStr = createRequest.getGoodsId();
+        String[] split = goodsIdStr.split(",");
+        List<WxGoodsModel> wxGoodsModels = new ArrayList<>();
+        for (String goodsId : split) {
+            if(goodsExist(goodsId)) throw new SbcRuntimeException("商品已存在" + goodsId);
+            WxGoodsModel wxGoodsModel = new WxGoodsModel();
+            wxGoodsModel.setGoodsId(goodsId);
+            wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
+            wxGoodsModel.setUploadTime(now);
+            wxGoodsModel.setCreateTime(now);
+            wxGoodsModel.setUpdateTime(now);
+            wxGoodsModel.setNeedToAudit(1);
+            wxGoodsModel.setDelFlag(DeleteFlag.NO);
+            wxGoodsModels.add(wxGoodsModel);
+        }
+        wxGoodsRepository.saveAll(wxGoodsModels);
     }
 
     @Transactional
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
+
+        if(wxGoodsModel.getWxCategory() == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请填写微信商品类目");
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).delFlag(DeleteFlag.NO.toValue()).build());
