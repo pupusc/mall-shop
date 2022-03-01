@@ -30,7 +30,7 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
         return BaseResponse.success(wxService.orderPay(request));
     }
 
-    @Autowired
+    @Override
     public BaseResponse<WxResponseBase> deliverySend(WxDeliverySendRequest request) {
         return BaseResponse.success(wxService.deliverySend(request));
     }

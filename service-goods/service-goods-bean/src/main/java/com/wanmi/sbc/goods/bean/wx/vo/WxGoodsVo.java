@@ -25,7 +25,7 @@ public class WxGoodsVo {
     private Integer saleStatus;
 
     /**
-     * 是否需要提交审核
+     * 是否需要提交审核 0-不需要 1-需要
      */
     private Integer needToAudit;
 
