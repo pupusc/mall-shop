@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -522,20 +523,29 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     List<String> findExistsErpGoodsInfoNo(List<String> erpGoodsInfoNos);
 
 
-    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo) " +
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag) " +
             " from GoodsInfo g where g.erpGoodsNo = ?1 and g.delFlag = 0 ")
     GoodsStockInfo findGoodsInfoId(String erpGoodsNo);
 
-    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo) " +
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag) " +
             " from GoodsInfo g where g.erpGoodsNo in ?1 and g.delFlag = 0 ")
     List<GoodsStockInfo> findGoodsInfoByGoodsNos(List<String> erpGoodsNos);
 
 
     @Modifying
-    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ,gi.marketPrice = :marketPrice, " +
-            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId and gi.delFlag = 0")
+    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ,gi.promotionStartTime = :promotionStartTime, gi.promotionEndTime =:promotionEndTime," +
+            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
     int updateGoodsPriceById(@Param("goodsInfoId") String goodsInfoId,
-                                    @Param("costPrice") BigDecimal costPrice,
-                                    @Param("marketPrice") BigDecimal marketPrice
+                             @Param("costPrice") BigDecimal costPrice,
+                             @Param("promotionStartTime") LocalDateTime promotionStartTime,
+                             @Param("promotionEndTime") LocalDateTime promotionEndTime
+    );
+
+    @Modifying
+    @Transactional
+    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ," +
+            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
+    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,
+                             @Param("costPrice") BigDecimal costPrice
     );
 }

@@ -479,6 +479,9 @@ public class TradePushERPService {
                                     .refund(0)
                                     .oid(tradeItem.getOid())
                                     .build();
+                            if(goodsInfoVO.getCombinedCommodity() != null && goodsInfoVO.getCombinedCommodity()){
+                                erpTradeItemDTO.setSkuCode(null);
+                            }
                             items.add(erpTradeItemDTO);
                         }
                     }
@@ -494,6 +497,9 @@ public class TradePushERPService {
                             .refund(0)
                             .oid(tradeItem.getOid())
                             .build();
+                    if(tradeItem.getCombinedCommodity() != null && tradeItem.getCombinedCommodity()){
+                        erpTradeItemDTO.setSkuCode(null);
+                    }
                     log.info("============TradeItem:{}===============",tradeItem);
                     items.add(erpTradeItemDTO);
                 }

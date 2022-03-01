@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.api.provider.goods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
@@ -10,13 +11,16 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -285,14 +289,33 @@ public interface GoodsProvider {
 
     /**
      * 同步商品价格
-     * @param goodsInfoListByIdRequest
+     * @param goodsPriceSyncRequest
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
-    BaseResponse<Map<String,String>> syncGoodsPrice(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody  GoodsPriceSyncRequest goodsPriceSyncRequest);
 
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
+
+
+    /**
+     * 同步sku成本价价格
+     * @param goodsPriceSyncRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
+    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+
+
+    /**
+     * 根据erpGoodsno 更新成新的 erpGoodsNoOld
+     * @param erpGoodsColl
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/update-goods-erp-goods-no")
+    BaseResponse updateGoodsErpGoodsNo(@RequestBody Collection<GoodsUpdateProviderRequest> erpGoodsColl);
+
 
 
 }

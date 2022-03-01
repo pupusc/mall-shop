@@ -5,6 +5,7 @@ import com.aliyuncs.linkedmall.model.v20180116.QueryBizItemListResponse;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemDetailResponse;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.CompanySourceType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -28,11 +29,14 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemDelDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.request.GoodsCostPriceChangeQueryRequest;
+import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
 import com.wanmi.sbc.goods.info.service.*;
@@ -689,11 +693,21 @@ public class GoodsController implements GoodsProvider {
     }
 
     @Override
-    public BaseResponse<Map<String,String>> syncGoodsPrice(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String,String> resultMap = goodsInfoService.syncGoodsPrice(
-                goodsInfoListByIdRequest.getPageNum(),
-                goodsInfoListByIdRequest.getPageSize());
-        return BaseResponse.success(resultMap);
+    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
+        MicroServicePage<GoodsInfoPriceChangeDTO> result = goodsInfoService.syncGoodsPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsPriceSyncQueryRequest.class));
+        return BaseResponse.success(result);
 
+    }
+
+    @Override
+    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
+        return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
+    }
+
+
+    @Override
+    public BaseResponse updateGoodsErpGoodsNo(Collection<GoodsUpdateProviderRequest> erpGoodsColl){
+        List<String> goodsIdList = goodsService.updateGoodsErpGoodsNo(erpGoodsColl);
+        return BaseResponse.success(goodsIdList);
     }
 }
