@@ -1,17 +1,13 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
 
 @Data
-@ApiModel
 public class WxDeliverySendRequest implements Serializable {
     private static final long serialVersionUID = -2733761653186206206L;
     /**

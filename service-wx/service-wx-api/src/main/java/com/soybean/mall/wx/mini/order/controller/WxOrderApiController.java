@@ -1,10 +1,7 @@
 package com.soybean.mall.wx.mini.order.controller;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -39,5 +36,8 @@ public interface WxOrderApiController {
      */
     @PostMapping("/order/delivery/send")
     BaseResponse<WxResponseBase> deliverySend(@RequestBody WxDeliverySendRequest request);
+
+    @PostMapping("/order/detail")
+    BaseResponse getDetail(@RequestBody WxOrderDetailRequest request);
 
 }

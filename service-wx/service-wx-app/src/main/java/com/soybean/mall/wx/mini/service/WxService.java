@@ -60,8 +60,6 @@ public class WxService {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Value("${wx.mini.merchantId}")
-    private String merchantId;
 
     public String getPhoneNumber(String code){
         String url = GET_PHONE_NUMBER_URL.concat("?access_token=").concat(getAccessToken());
@@ -173,7 +171,14 @@ public class WxService {
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
+    public WxCreateOrderResponse getOrder(WxOrderDetailRequest request){
+        String accessToken = getAccessToken();
+        String url = "https://api.weixin.qq.com/product/order/get_list".concat("?access_token=").concat(accessToken);
 
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxCreateOrderResponse.class);
+    }
 
 
     /**
