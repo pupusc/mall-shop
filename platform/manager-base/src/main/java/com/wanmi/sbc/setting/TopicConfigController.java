@@ -200,4 +200,16 @@ public class TopicConfigController {
     public BaseResponse modifyTopic(@RequestBody TopicStoreyModifyRequest request) {
         return topicConfigProvider.modifyStorey(request);
     }
+
+    /**
+     * @description 删除楼层
+     * @menu 专题
+     * @param request
+     * @status undone
+     */
+    @ApiOperation("删除楼层")
+    @PostMapping("/delete/storey")
+    public BaseResponse deleteStorey(@RequestParam("storeyId") Integer storeyId){
+        return  topicConfigProvider.deleteStorey(storeyId);
+    }
 }

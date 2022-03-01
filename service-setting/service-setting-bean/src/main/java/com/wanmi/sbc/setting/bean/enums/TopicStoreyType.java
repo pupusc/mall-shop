@@ -21,7 +21,11 @@ public enum TopicStoreyType {
 
     SCROLLIMAGE(6, "轮播"),
 
-    HETERSCROLLIMAGE(7, "异形轮播");
+    HETERSCROLLIMAGE(7, "异形轮播"),
+
+    NAVIGATION(8,"导航"),
+
+    COUPON(9,"优惠券");
 
     private Integer id;
 

@@ -23,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GoodsPriceSyncQueryRequest extends BaseQueryRequest {
 
-     private Integer status;
+     private Integer status = 0;
 
      private Integer deleted = 0;
 

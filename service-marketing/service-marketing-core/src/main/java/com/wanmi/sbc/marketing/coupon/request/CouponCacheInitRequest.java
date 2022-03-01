@@ -10,6 +10,7 @@ import com.wanmi.sbc.marketing.coupon.model.entity.cache.CouponInfoCache;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -75,7 +76,8 @@ public class CouponCacheInitRequest {
         sb.append("      coupon_activity.terminals AS `couponActivity.terminals`, ");
         sb.append("      coupon_activity.store_id AS `couponActivity.storeId`, ");
         sb.append("      coupon_activity.platform_flag AS `couponActivity.platformFlag`, ");
-        sb.append("      coupon_activity.create_time AS `couponActivity.createTime` ");
+        sb.append("      coupon_activity.create_time AS `couponActivity.createTime` ,");
+        sb.append("      coupon_activity.activity_scene AS `couponActivity.activityScene` ");
         sb.append("     FROM coupon_activity_config ");
         sb.append("      LEFT JOIN coupon_info ON coupon_info.coupon_id = coupon_activity_config.coupon_id ");
         sb.append("      LEFT JOIN coupon_activity ON coupon_activity.activity_id = coupon_activity_config.activity_id");
@@ -140,6 +142,7 @@ public class CouponCacheInitRequest {
                                 .storeId(toLong(item, "couponActivity.storeId"))
                                 .platformFlag(toInteger(item, "couponActivity.platformFlag") != null ? (toInteger(item, "couponActivity.platformFlag") == 0 ? DefaultFlag.NO : DefaultFlag.YES) : null)
                                 .createTime(toDate(item, "couponActivity.createTime"))
+                                .activityScene(toStr(item, "couponActivity.activityScene") != null ? toStr(item, "couponActivity.activityScene").split(",") : null)
                                 .build()
                         )
                         .build()

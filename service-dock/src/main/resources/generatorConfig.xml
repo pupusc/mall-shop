@@ -19,13 +19,13 @@
                     password="malladmin@2018">
     </jdbcConnection>
 
-    <javaModelGenerator targetPackage="com.fangdeng.server.dto" targetProject="src/main/java" />
+    <javaModelGenerator targetPackage="com.fangdeng.server.entity" targetProject="src/main/java" />
 
     <sqlMapGenerator targetPackage="com.fangdeng.server.mapper"  targetProject="src/main/java"/>
 
-    <javaClientGenerator targetPackage="com.fangdeng.server.mapper" targetProject="src/main/java"  type="XMLMAPPER" />
+    <javaClientGenerator targetPackage="com.fangdeng.server.repository" targetProject="src/main/java"  type="XMLMAPPER" />
 
-    <table tableName="goods_label" domainObjectName="GoodsLabelDTO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+    <table tableName="goods_special_price_sync" domainObjectName="GoodsSpecialPriceSync" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
   </context>
 </generatorConfiguration>
 

@@ -257,5 +257,14 @@ public class TradeParams {
      */
     private String source;
 
+    /**
+     * 埋点
+     */
+    private String emallSessionId;
+
+    /**
+     * 组合购场景
+     */
+    private Integer suitScene;
 
 }

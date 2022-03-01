@@ -609,5 +609,30 @@ public class GoodsInfo implements Serializable {
     @Transient
     private BigDecimal enterPriseMaxPrice;
 
+    @Column(name = "stock_sync_flag")
+    private Integer stockSyncFlag;
 
+    /**
+     * 成本价同步标记,0:否 1:是
+     */
+    @Column(name = "cost_price_sync_flag")
+    private Integer costPriceSyncFlag;
+
+    /**
+     * 促销价格开始时间
+     */
+    @Column(name = "promotion_start_time")
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime promotionStartTime;
+
+    /**
+     * 促销价格结束时间
+     */
+    @Column(name = "promotion_end_time")
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime promotionEndTime;
 }

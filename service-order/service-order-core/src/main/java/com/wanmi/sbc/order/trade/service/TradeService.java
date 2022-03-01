@@ -42,6 +42,7 @@ import com.wanmi.sbc.common.enums.PointsOrderType;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.enums.node.DistributionType;
 import com.wanmi.sbc.common.enums.node.OrderProcessType;
+import com.wanmi.sbc.common.exception.NotSupportDeliveryException;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
@@ -1312,6 +1313,7 @@ public class TradeService {
                             .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
                             .address(i.getInvoiceAddressDetail())
                             .addressId(i.getInvoiceAddressId())
+                            .email(i.getInvoiceEmail())
                             .projectId(i.getInvoiceProjectId())
                             .projectName(i.getInvoiceProjectName())
                             .projectUpdateTime(i.getInvoiceProjectUpdateTime())
@@ -1336,6 +1338,7 @@ public class TradeService {
                                     .commitFlag(true) //表示下单
                                     .marketingList(group.getTradeMarketingList())
                                     .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
                                     .couponCodeId(i.getCouponCodeId())
                                     .tradePrice(new TradePrice())
                                     .tradeItems(group.getTradeItems())
@@ -1371,6 +1374,7 @@ public class TradeService {
                                             ? null : tradeCommitRequest.getShareUserId())
                                     .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
                                     .suitMarketingFlag(group.getSuitMarketingFlag())
+                                    .suitScene(group.getSuitScene())
                                     .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
                                     .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
                                     .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
@@ -1721,6 +1725,7 @@ public class TradeService {
      * @return 待入库的订单对象
      */
     public Trade validateAndWrapperTrade(Trade trade, TradeParams tradeParams) {
+        trade.setEmallSessionId(tradeParams.getEmallSessionId());
         //判断是否为秒杀抢购商品订单
         if (Objects.nonNull(tradeParams.getIsFlashSaleGoods()) && tradeParams.getIsFlashSaleGoods()) {
             trade.setIsFlashSaleGoods(tradeParams.getIsFlashSaleGoods());
@@ -2022,7 +2027,6 @@ public class TradeService {
         } else {
             tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
         }
-
         return trade;
     }
 
@@ -2056,6 +2060,7 @@ public class TradeService {
      */
     private void dealSuitOrder(Trade trade, TradeParams tradeParams) {
         trade.setSuitMarketingFlag(tradeParams.getSuitMarketingFlag());
+        trade.setSuitScene(tradeParams.getSuitScene());
         // 组合购标记
         if (Objects.equals(trade.getSuitMarketingFlag(), Boolean.TRUE) && CollectionUtils.isNotEmpty(tradeParams.getMarketingList())) {
             // 获取并校验组合购活动信息
@@ -2320,11 +2325,9 @@ public class TradeService {
      */
     public BigDecimal calcTradeFreight(Consignee consignee, Supplier supplier, DeliverWay deliverWay, BigDecimal
             totalPrice, List<TradeItem> goodsList, List<TradeItem> giftList) {
+        if(!tradeCacheService.queryIfnotSupportArea(consignee.getProvinceId(), consignee.getCityId()))
+            throw new NotSupportDeliveryException("not support area,province:" + consignee.getProvinceId() + ", or city: " + consignee.getCityId());
         BigDecimal freight = BigDecimal.ZERO;
-        //商家商品数量
-        // TODO  定制分支 商品全是供应商商品
-       /*long supplierGoodsCount = goodsList.stream().filter(tradeItem -> tradeItem.getProviderId() == null).count();
-       long supplierGiftsCount = giftList.stream().filter(tradeItem -> tradeItem.getProviderId() == null).count();*/
         //周期购商品
         Boolean cycleBuyFlag = goodsList.stream().filter(item -> GoodsType.CYCLE_BUY.equals(item.getGoodsType())).count() > 0 ? Boolean.TRUE : Boolean.FALSE;
         if (DefaultFlag.NO.equals(supplier.getFreightTemplateType())) {
@@ -5676,6 +5679,9 @@ public class TradeService {
         boolean isGeneral = invoice.getType() == 0;
         OrderInvoiceSaveRequest request = new OrderInvoiceSaveRequest();
         request.setCustomerId(trade.getBuyer().getId());
+        if(invoice.getEmail() != null){
+            request.setInvoiceEmail(invoice.getEmail());
+        }
         if (Objects.nonNull(invoice.getAddress())) {
             request.setInvoiceAddress(trade.getInvoice().getContacts() + " " + trade.getInvoice().getPhone() + " " +
                     invoice.getAddress());
@@ -5686,7 +5692,9 @@ public class TradeService {
         request.setInvoiceTitle(isGeneral ? invoice.getGeneralInvoice().getFlag() == 0 ? null :
                 invoice.getGeneralInvoice().getTitle()
                 : invoice.getSpecialInvoice().getCompanyName());
-
+        if(invoice.getType() == 2 && StringUtils.isNotEmpty(invoice.getGeneralInvoice().getTitle())){
+            request.setInvoiceTitle(invoice.getGeneralInvoice().getTitle());
+        }
         request.setInvoiceType(InvoiceType.NORMAL.fromValue(invoice.getType()));
         request.setOrderNo(trade.getId());
         request.setProjectId(invoice.getProjectId());

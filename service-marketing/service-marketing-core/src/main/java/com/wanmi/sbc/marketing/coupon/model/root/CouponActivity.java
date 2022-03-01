@@ -185,4 +185,7 @@ public class CouponActivity {
      */
     @Column(name = "activity_desc")
     private String activityDesc;
+
+    @Column(name = "activity_scene")
+    private String activityScene;
 }

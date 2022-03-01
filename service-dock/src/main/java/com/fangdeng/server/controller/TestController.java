@@ -3,25 +3,24 @@ package com.fangdeng.server.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fangdeng.server.dto.*;
+import com.fangdeng.server.entity.GoodsCateSync;
+import com.fangdeng.server.entity.Tag;
 import com.fangdeng.server.job.SyncGoodsJobHandler;
 import com.fangdeng.server.job.SyncGoodsPriceJobHandler;
 import com.fangdeng.server.job.SyncGoodsStockJobHandler;
 import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
+import com.fangdeng.server.service.GoodsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +49,10 @@ public class TestController {
 
     @Autowired
     private RedisTemplate<Object,Object> redisTemplate;
+
+    @Autowired
+    private GoodsService goodsService;
+
 
     @PostMapping("test")
     public void test(@RequestBody OrderTradeDTO orderTradeDTO){
@@ -134,13 +137,13 @@ public class TestController {
     }
 
     @PostMapping("/goods/cate/init")
-    public void initCate(@RequestBody List<GoodsCateSyncDTO> cates){
+    public void initCate(@RequestBody List<GoodsCateSync> cates){
         try {
 
-            List<TagDTO> tagDTOS = tagMapper.list();
+            List<Tag> tagDTOS = tagMapper.list();
             cates.forEach(c->{
                 List<String> names = getName(c,cates);
-                List<TagDTO> tags = tagDTOS.stream().filter(p->names.contains(p.getTagName())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(TagDTO :: getTagName))), ArrayList::new));
+                List<Tag> tags = tagDTOS.stream().filter(p->names.contains(p.getTagName())).collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Tag:: getTagName))), ArrayList::new));
                 List<String> labelIds = tags.stream().map(p->p.getId().toString()).collect(Collectors.toList());
                 c.setLabelIds(String.join(",",labelIds));
             });
@@ -151,21 +154,39 @@ public class TestController {
         }
     }
 
-    private List<String> getName(GoodsCateSyncDTO cate,List<GoodsCateSyncDTO> cates){
+    private List<String> getName(GoodsCateSync cate, List<GoodsCateSync> cates){
 
-        List<GoodsCateSyncDTO> cateSyncDTOS = getParentCates(cate,cates);
-       return cateSyncDTOS.stream().map(GoodsCateSyncDTO::getName).collect(Collectors.toList());
+        List<GoodsCateSync> cateSyncDTOS = getParentCates(cate,cates);
+       return cateSyncDTOS.stream().map(GoodsCateSync::getName).collect(Collectors.toList());
     }
 
 
-    private List<GoodsCateSyncDTO> getParentCates(GoodsCateSyncDTO cate,List<GoodsCateSyncDTO> cates){
-        List<GoodsCateSyncDTO> parentCates = new ArrayList<>();
+    private List<GoodsCateSync> getParentCates(GoodsCateSync cate, List<GoodsCateSync> cates){
+        List<GoodsCateSync> parentCates = new ArrayList<>();
         parentCates.add(cate);
-        Optional<GoodsCateSyncDTO> parentCate = cates.stream().filter(p->p.getId().equals(cate.getParentId())).findFirst();
+        Optional<GoodsCateSync> parentCate = cates.stream().filter(p->p.getId().equals(cate.getParentId())).findFirst();
         if(parentCate.isPresent()){
             parentCates.addAll(getParentCates(parentCate.get(),cates));
         }
         return parentCates;
     }
 
+    @GetMapping("/goods/audit")
+    public void audit(@RequestParam("goodsNo")String goodsNo){
+        goodsService.auditGoods(goodsNo);
+    }
+
+
+    @GetMapping("/delete/rediskey")
+    public void deleteRedisKey(@RequestParam("key")String key) {
+        redisTemplate.delete(key);
+    }
+
+    @GetMapping("/sync/special/price")
+    public void syncSepcialPrice(@Param("startTime")String startTime, @Param("endTime")String endTime){
+        SyncGoodsQueryDTO queryDTO = new SyncGoodsQueryDTO();
+        queryDTO.setStime(startTime);
+        queryDTO.setEtime(endTime);
+        goodsService.syncSpecialPrice(queryDTO);
+    }
 }

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.account;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.order.api.request.trade.LogisticsRepeatRequest;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.account.api.provider.invoice.InvoiceProjectQueryProvider;
 import com.wanmi.sbc.account.api.request.invoice.InvoiceProjectByIdRequest;
@@ -352,8 +353,13 @@ public class OrderInvoiceController {
                         new Column("订单金额", new SpelColumnRender<OrderInvoiceResponse>("orderPrice")),
                         new Column("订单状态", (cell, object) -> {
                             String status = "";
-                            if (Objects.isNull(((OrderInvoiceResponse) object).getTradeState().getFlowState())) {
-                                cell.setCellValue("未付款");
+                            try {
+                                if (Objects.isNull(((OrderInvoiceResponse) object).getTradeState().getFlowState())) {
+                                    cell.setCellValue("未付款");
+                                    return;
+                                }
+                            }catch (Exception e) {
+                                logger.error("订单发票数据错误:" + ((OrderInvoiceResponse) object).getOrderInvoiceId(), e);
                                 return;
                             }
                             switch (((OrderInvoiceResponse) object).getTradeState().getFlowState()) {
@@ -423,6 +429,8 @@ public class OrderInvoiceController {
                             InvoiceType invoiceType = ((OrderInvoiceResponse) object).getInvoiceType();
                             if (InvoiceType.SPECIAL.equals(invoiceType)) {
                                 cell.setCellValue("增值税专用发票");
+                            }else if(InvoiceType.ELECTRONIC.equals(invoiceType)){
+                                cell.setCellValue("电子发票");
                             } else {
                                 cell.setCellValue("普通发票");
                             }

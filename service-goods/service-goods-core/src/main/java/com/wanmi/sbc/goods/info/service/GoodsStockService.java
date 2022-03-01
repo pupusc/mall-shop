@@ -5,35 +5,24 @@ import com.google.common.collect.Lists;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.redis.CacheKeyConstant;
-import com.wanmi.sbc.common.util.IteratorUtils;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import com.wanmi.sbc.goods.info.model.root.GoodsPriceSync;
 import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
-import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
 import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
@@ -44,8 +33,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -53,12 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.persistence.criteria.Predicate;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -289,37 +272,23 @@ public class GoodsStockService {
                     salableQty = 0;
                     log.info("{}停用,库存清零", erpGoodsInfoVO.getSkuCode());
                 }else {
-                    if(erpGoodsInfoVO.getItemCode().startsWith(AGENCY_PRODUCT_PREFIX)){
-                        String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                        if(StringUtils.isEmpty(stockStatus)){
-                            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
-                            for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
-                                stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
-                            }
-                            stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    if(StringUtils.isEmpty(stockStatus)){
+                        BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
+                        for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
+                            stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
                         }
-                        // 代发商品没有库存状态、不停用就认为有货
-                        if(StringUtils.isEmpty(stockStatus)) {
-                            salableQty = 99;
-                        }else {
-                            salableQty = 0;
-                        }
-                    }else {
-                        if(salableQty < 9){
-                            String stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                            if(StringUtils.isEmpty(stockStatus)){
-                                BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsInfoVO.getItemCode());
-                                for (ERPGoodsInfoVO goodsInfoVO : erpGoodsInfoWithoutStock.getContext()) {
-                                    stockStatusMap.put(goodsInfoVO.getSkuCode(), goodsInfoVO.getStockStatusCode());
-                                }
-                                stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
-                            }
-                            if(StringUtils.isEmpty(stockStatus) || stockStatus.equals("1")) {
-                                if(salableQty < 0) salableQty = 0;
-                            }else if(stockStatus.equals("0")){
-                                salableQty = 99;
-                            }
-                        }
+                        stockStatus = stockStatusMap.get(erpGoodsInfoVO.getSkuCode());
+                    }
+                    if(StringUtils.isEmpty(stockStatus) || !Arrays.asList("0","1","2","3").contains(stockStatus)){
+                        log.info("仅状态为0，1，2，3的商品同步库存,sku:{}",erpGoodsInfoVO.getSkuCode());
+                        continue;
+                    }
+                    //虚拟0、代发无所库2：99逻辑，当库存＜10，自动库存变为99
+                    if(Arrays.asList("0","2").contains(stockStatus) && salableQty < 10){
+                        salableQty = 99;
+                    }else if(salableQty < 0){
+                        salableQty = 0;
                     }
                 }
                 erpGoodsNos.add(erpGoodsInfoVO.getItemCode());
@@ -335,7 +304,7 @@ public class GoodsStockService {
             infoQueryRequest.setErpGoodsNos(new ArrayList<>(erpGoodsNos));
             goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
         }
-        Map<String, Map<String, Integer>> resultMap = goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfos, erpSkuStockMap);
+        Map<String, Map<String, Integer>> resultMap = goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfos, erpSkuStockMap,stockStatusMap);
         Map<String, Integer> itemCountMap = new HashMap<>();
         itemCountMap.put("total", erpStockInfo.getTotal());
         resultMap.put("total", itemCountMap);
@@ -390,9 +359,9 @@ public class GoodsStockService {
     public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
         //查询sku信息
         GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
-        if (goodsInfo ==null) {
+        if (goodsInfo ==null || Objects.equals(goodsInfo.getStockSyncFlag(),0)) {
             goodsStockSyncRepository.updateStatus(stock.getId());
-            log.info("there is no sku,stock:{}", stock);
+            log.info("updateGoodsStockSingle there is no sku or stock,stockSyncFlag is false, goods:{},goodsInfo:{}", stock,goodsInfo);
             return;
         }
         Long actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());

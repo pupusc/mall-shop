@@ -101,4 +101,9 @@ public class EsCouponActivityDTO {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime;
+
+    /**
+     * 优惠券领券场景:1专题页2商详页3领券中心 多选，用,分隔
+     */
+    private List<String> activityScene;
 }

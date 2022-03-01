@@ -2,17 +2,16 @@ package com.fangdeng.server.service;
 
 import com.fangdeng.server.assembler.GoodsAssembler;
 import com.fangdeng.server.client.BookuuClient;
-import com.fangdeng.server.client.request.bookuu.BookuuGoodsQueryRequest;
-import com.fangdeng.server.client.request.bookuu.BookuuPriceChangeRequest;
-import com.fangdeng.server.client.request.bookuu.BookuuPriceQueryRequest;
-import com.fangdeng.server.client.request.bookuu.BookuuStockQueryRequest;
-import com.fangdeng.server.client.response.bookuu.BookuuGoodsQueryResponse;
-import com.fangdeng.server.client.response.bookuu.BookuuPriceChangeResponse;
-import com.fangdeng.server.client.response.bookuu.BookuuPriceQueryResponse;
-import com.fangdeng.server.client.response.bookuu.BookuuStockQueryResponse;
+import com.fangdeng.server.client.request.bookuu.*;
+import com.fangdeng.server.client.response.bookuu.*;
 import com.fangdeng.server.dto.*;
+import com.fangdeng.server.entity.GoodsStockSync;
+import com.fangdeng.server.entity.GoodsSync;
+import com.fangdeng.server.entity.GoodsSyncRelation;
+import com.fangdeng.server.entity.RiskVerify;
 import com.fangdeng.server.enums.GoodsSyncStatusEnum;
 import com.fangdeng.server.mapper.*;
+import com.fangdeng.server.mapper.GoodsSpecialPriceSyncMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -47,6 +47,9 @@ public class GoodsService {
 
     @Autowired
     private GoodsSyncRelationMapper goodsSyncRelationMapper;
+
+    @Autowired
+    private GoodsSpecialPriceSyncMapper goodsSpecialPriceSyncMapper;
 
     @Value("${bookuu.providerId}")
     private  Long providerId;
@@ -136,16 +139,16 @@ public class GoodsService {
 
 
     private void batchAdd(List<BookuuGoodsDTO> goodsDTOS,BookuuPriceQueryResponse priceQueryResponse) {
-        List<GoodsSyncDTO> list = new ArrayList(30);
+        List<GoodsSync> list = new ArrayList(30);
         List<RiskVerify> imageList = new ArrayList<>();
         goodsDTOS.forEach(g -> {
-            GoodsSyncDTO goodsSyncDTO = GoodsAssembler.convertGoodsDTO(g,priceQueryResponse);
-            goodsSyncDTO.setProviderId(providerId);
+            GoodsSync goodsSync = GoodsAssembler.convertGoodsDTO(g,priceQueryResponse);
+            goodsSync.setProviderId(providerId);
             List<RiskVerify> imgList = GoodsAssembler.getImageList(g);
             if(CollectionUtils.isEmpty(imgList)){
-                goodsSyncDTO.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());
+                goodsSync.setStatus(GoodsSyncStatusEnum.AUDITED.getKey());
             }
-            list.add(goodsSyncDTO);
+            list.add(goodsSync);
             imageList.addAll(imgList);
 
         });
@@ -163,7 +166,7 @@ public class GoodsService {
      * 更新商品价格
      *
      */
-    public void syncGoodsPrice() {
+    public void syncGoodsPrice(SyncGoodsQueryDTO queryDTO) {
 //        Integer maxPage = getMaxPage(queryDTO.getStime(), queryDTO.getEtime());
 //        if (maxPage < 1) {
 //            log.info("max page is 0");
@@ -181,13 +184,13 @@ public class GoodsService {
         //plan b 根据发布商品同步价格
         Long startId = 0L;
         while (true){
-            List<GoodsSyncRelationDTO> goodsNo = goodsSyncRelationMapper.list(startId);
+            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,queryDTO.getGoodsNos());
             if(CollectionUtils.isEmpty(goodsNo)){
                 break;
             }
-            startId = goodsNo.stream().mapToLong(GoodsSyncRelationDTO::getId).max().getAsLong();
+            startId = goodsNo.stream().mapToLong(GoodsSyncRelation::getId).max().getAsLong();
             BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
-            priceQueryRequest.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelationDTO::getGoodsNo).collect(Collectors.toList())));
+            priceQueryRequest.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelation::getGoodsNo).collect(Collectors.toList())));
             BookuuPriceQueryResponse response = bookuuClient.queryPrice(priceQueryRequest);
             if(response == null || CollectionUtils.isEmpty(response.getPriceList())){
                 return;
@@ -195,7 +198,6 @@ public class GoodsService {
             //落表
             goodsPriceSyncMapper.batchInsert(GoodsAssembler.convertPriceList(response.getPriceList()));
         }
-
     }
 
     private Integer getMaxPage(String startTime, String eTime) {
@@ -256,23 +258,68 @@ public class GoodsService {
         //plan b
         Long startId = 0L;
         while (true){
-            List<GoodsSyncRelationDTO> goodsNo = goodsSyncRelationMapper.list(startId);
+            List<GoodsSyncRelation> goodsNo = goodsSyncRelationMapper.list(startId,null);
             if(CollectionUtils.isEmpty(goodsNo)){
                 break;
             }
-            startId = goodsNo.stream().mapToLong(GoodsSyncRelationDTO::getId).max().getAsLong();
+            startId = goodsNo.stream().mapToLong(GoodsSyncRelation::getId).max().getAsLong();
             BookuuStockQueryRequest request = new BookuuStockQueryRequest();
-            request.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelationDTO::getGoodsNo).collect(Collectors.toList())));
+            request.setBookID(String.join(",", goodsNo.stream().map(GoodsSyncRelation::getGoodsNo).collect(Collectors.toList())));
             BookuuStockQueryResponse response = bookuuClient.queryStock(request);
             if (response == null || CollectionUtils.isEmpty(response.getBookList())) {
                 log.info("there is no stock change,queryDTO:{}", request);
                 return;
             }
             //落表，根据最后更新时间过滤
-            List<GoodsStockSyncDTO> list = GoodsAssembler.convertStockList(response.getBookList(),stockSyncSecond);
+            List<GoodsStockSync> list = GoodsAssembler.convertStockList(response.getBookList(),stockSyncSecond);
             if(CollectionUtils.isNotEmpty(list)){
                 goodsStockSyncMapper.batchInsert(list);
             }
+
+        }
+    }
+
+    public void auditGoods(String goodsNo){
+        goodsSyncMapper.updateStatus(goodsNo);
+        riskVerifyMapper.updateStatus(goodsNo);
+    }
+
+    /**
+     * 促销成本价
+     * T-1有促销价，更新促销价，
+     * T-1无促销价，若T-2有促销价且在有效期内，更新促销价
+     * T-1无促销价，若T-2无促销价或不在有效期内，则无促销价
+     */
+    public void syncSpecialPrice(SyncGoodsQueryDTO queryDTO){
+        //促销成本价格
+        Integer maxPage = Integer.MAX_VALUE;
+        BookuuSpecialPriceQueryRequest specialPriceQueryRequest = new BookuuSpecialPriceQueryRequest();
+        specialPriceQueryRequest.setPage(1);
+        String startTime = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1));
+        String  sTime = StringUtils.isNotEmpty(queryDTO.getStime()) ? queryDTO.getStime() :startTime;
+        String eTime = StringUtils.isNotEmpty(queryDTO.getEtime()) ? queryDTO.getEtime() : startTime;
+        specialPriceQueryRequest.setStime(sTime);
+        specialPriceQueryRequest.setEtime(eTime);
+        while (specialPriceQueryRequest.getPage() < maxPage){
+            BookuuSpecialPriceQueryResponse priceQueryResponse = bookuuClient.querySpecialPrice(specialPriceQueryRequest);
+            specialPriceQueryRequest.setPage(specialPriceQueryRequest.getPage() +1);
+            if(priceQueryResponse != null && priceQueryResponse.getMaxPages() != null){
+                maxPage = priceQueryResponse.getMaxPages();
+            }
+            if(priceQueryResponse != null && CollectionUtils.isEmpty(priceQueryResponse.getBookList())){
+                break;
+            }
+            List<BookuuSpecialPriceQueryResponse.BookuuSpecialPrice> specialPrices = priceQueryResponse.getBookList();
+            List<String> bookIds = specialPrices.stream().map(BookuuSpecialPriceQueryResponse.BookuuSpecialPrice::getBookId).collect(Collectors.toList());
+            List<String> bookNos = goodsSyncRelationMapper.listByGoodsNos(bookIds);
+            if(CollectionUtils.isEmpty(bookNos)){
+                log.info("there is no goods to sync special price,bookids:{}",bookIds);
+                continue;
+            }
+            //商城上架的商品才需要同步价格
+            List<BookuuSpecialPriceQueryResponse.BookuuSpecialPrice> priceList = specialPrices.stream().filter(p->bookNos.contains(p.getBookId())).collect(Collectors.toList());
+            goodsSpecialPriceSyncMapper.updateStatus(priceList.stream().map(BookuuSpecialPriceQueryResponse.BookuuSpecialPrice::getBookId).collect(Collectors.toList()));
+            goodsSpecialPriceSyncMapper.batchInsert(GoodsAssembler.convertSpecialPriceList(priceList));
 
         }
     }

@@ -90,4 +90,9 @@ public class CouponActivityCache extends BaseBean{
      */
     private LocalDateTime createTime;
 
+    /**
+     * 活动场景
+     */
+    private String[] activityScene;
+
 }

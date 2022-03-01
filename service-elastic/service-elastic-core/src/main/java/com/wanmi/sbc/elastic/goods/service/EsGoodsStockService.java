@@ -19,8 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -139,44 +141,51 @@ public class EsGoodsStockService {
      * 覆盖更新ES SPU库存数据
      * @param spusMap
      */
-    public void batchResetStockBySpuId(Map<String, Integer> spusMap){
+    public void batchResetStockBySpuId(Map spusMap){
         if (!spusMap.isEmpty()){
             Client client = elasticsearchTemplate.getClient();
-            UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
-            for (String spuId : spusMap.keySet()){
-                Long stock = Long.valueOf(spusMap.get(spuId));
-                if (org.apache.commons.lang3.StringUtils.isNotEmpty(spuId) && Objects.nonNull(stock)) {
-                    updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_TYPE)
-                            //查询要修改的结果集
-                            .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_TYPE).addIds(spuId))
-                            //修改操作
-                            .script(new Script("ctx._source.stock = " + stock));
-                    updateByQuery.get().getUpdated();
-                }
+            Set spus = spusMap.keySet();
+            String[] skuIds = new String[spus.size()];
+            int i = 0;
+            Iterator it = spus.iterator();
+            while (it.hasNext()) {
+                skuIds[i] = (String) it.next();
+                i++;
             }
+            UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
+            updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_TYPE)
+                    //查询要修改的结果集
+                    .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_TYPE).addIds(skuIds))
+                    //修改操作
+                    .script(new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG,
+                            "if(params[ctx._source.id] != null) ctx._source.stock = params[ctx._source.id]", spusMap));
+            updateByQuery.get().getUpdated();
         }
-
     }
 
     /**
      * 覆盖更新ES SKu库存数据
      * @param skusMap
      */
-    public void batchResetStockBySkuId(Map<String, Integer> skusMap){
+    public void batchResetStockBySkuId(Map skusMap){
         if (!skusMap.isEmpty()){
             Client client = elasticsearchTemplate.getClient();
-            UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
-            for (String skuId : skusMap.keySet()){
-                Long stock = Long.valueOf(skusMap.get(skuId));
-                if (StringUtils.isNotEmpty(skuId) && Objects.nonNull(stock)) {
-                    updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_INFO_TYPE)
-                            //查询要修改的结果集
-                            .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_INFO_TYPE).addIds(skuId))
-                            //修改操作
-                            .script(new Script("ctx._source.goodsInfo.stock = " + stock));
-                    updateByQuery.get().getUpdated();
-                }
+            Set skus = skusMap.keySet();
+            String[] skuIds = new String[skus.size()];
+            int i = 0;
+            Iterator it = skus.iterator();
+            while (it.hasNext()) {
+                skuIds[i] = (String) it.next();
+                i++;
             }
+            UpdateByQueryRequestBuilder updateByQuery = UpdateByQueryAction.INSTANCE.newRequestBuilder(client);
+            updateByQuery = updateByQuery.source(EsConstants.DOC_GOODS_INFO_TYPE)
+                    //查询要修改的结果集
+                    .filter(QueryBuilders.idsQuery(EsConstants.DOC_GOODS_INFO_TYPE).addIds(skuIds))
+                    //修改操作
+                    .script(new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG,
+                            "if(params[ctx._source.id] != null) ctx._source.goodsInfo.stock = params[ctx._source.id]", skusMap));
+            updateByQuery.get().getUpdated();
         }
     }
 

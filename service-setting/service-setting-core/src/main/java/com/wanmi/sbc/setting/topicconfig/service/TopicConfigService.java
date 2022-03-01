@@ -1,5 +1,7 @@
 package com.wanmi.sbc.setting.topicconfig.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -10,6 +12,7 @@ import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.setting.api.request.topicconfig.*;
 import com.wanmi.sbc.setting.api.response.TopicStoreyContentResponse;
 import com.wanmi.sbc.setting.bean.dto.TopicHeadImageDTO;
+import com.wanmi.sbc.setting.bean.dto.TopicStoreyCouponDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyDTO;
 import com.wanmi.sbc.setting.bean.dto.TopicStoreyContentDTO;
 import com.wanmi.sbc.setting.bean.enums.TopicStoreyType;
@@ -23,6 +26,7 @@ import com.wanmi.sbc.setting.topicconfig.repository.TopicHeadImageRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyContentRepository;
 import com.wanmi.sbc.setting.topicconfig.repository.TopicStoreyRepository;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +36,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -185,14 +190,15 @@ public class TopicConfigService {
                 return;
             }
             List<TopicStoreyContentDTO> itemList = new ArrayList<>(items.size());
-            if (Objects.equals(p.getStoreyType(), TopicStoreyType.HETERSCROLLIMAGE.getId())) {
-                //轮播类型根据时间过滤
-                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && (i.getStartTime() == null ||  i.getEndTime() == null)).collect(Collectors.toList()));
-                itemList.addAll(items.stream().filter(i->i.getType().equals(2) && i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
+            if (Arrays.asList(TopicStoreyType.HETERSCROLLIMAGE.getId(),TopicStoreyType.COUPON.getId()).contains(p.getStoreyType())) {
+                //轮播类型或优惠券根据时间过滤
+                itemList.addAll(items.stream().filter(i->i.getStartTime() == null ||  i.getEndTime() == null).collect(Collectors.toList()));
+                itemList.addAll(items.stream().filter(i->i.getStartTime() != null && i.getEndTime() != null && i.getStartTime().compareTo(LocalDateTime.now()) <= 0 && i.getEndTime().compareTo(LocalDateTime.now()) >=0).collect(Collectors.toList()));
             }else{
                 itemList = items;
             }
 
+            initAttr(itemList,p.getStoreyType());
             //排序
             List<TopicStoreyContentDTO> sortContents = itemList.stream().sorted(Comparator.comparing(TopicStoreyContentDTO::getType).thenComparing(TopicStoreyContentDTO::getSorting)).collect(Collectors.toList());
             p.setContents(sortContents);
@@ -201,6 +207,30 @@ public class TopicConfigService {
         return topicVO;
     }
 
+    private void initAttr(List<TopicStoreyContentDTO> contents,Integer storeyType){
+        if(Objects.equals(TopicStoreyType.COUPON.getId(),storeyType)){
+            contents.forEach(item->{
+                TopicStoreyCouponDTO couponDTO = JSONObject.parseObject(item.getAttributeInfo(),TopicStoreyCouponDTO.class);
+                item.setActivityId(couponDTO.getActivityId());
+                item.setCouponId(couponDTO.getCouponId());
+                item.setReceiveImageUrl(couponDTO.getReceiveImageUrl());
+                item.setUseImageUrl(couponDTO.getUseImageUrl());
+                item.setDoneImageUrl(couponDTO.getDoneImageUrl());
+                item.setActivityName(couponDTO.getActivityName());
+                item.setDenomination(couponDTO.getDenomination());
+                item.setFullBuyType(couponDTO.getFullBuyType());
+                item.setFullBuyPrice(couponDTO.getFullBuyPrice());
+                item.setActivityConfigId(couponDTO.getActivityConfigId());
+
+            });
+        }else if(Objects.equals(TopicStoreyType.NAVIGATION.getId(),storeyType)){
+            contents.forEach(item->{
+                JSONObject configJson = JSONObject.parseObject(item.getAttributeInfo());
+                item.setRelStoreyId(configJson.getInteger("relStoreyId"));
+            });
+        }
+
+    }
 
 
     @Transactional
@@ -210,18 +240,26 @@ public class TopicConfigService {
 
     @Transactional
     public void addStoreyContents(TopicStoreyContentAddRequest request){
-        if(request == null){
+        if(request == null || CollectionUtils.isEmpty(request.getContents())){
             throw  new  SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //删除原数据
         contentRepository.deleteBySid(request.getStoreyId());
-        List<TopicStoreyContent> contents = new ArrayList<>();
-        if(CollectionUtils.isNotEmpty(request.getGoodsContents())){
-            contents.addAll(KsBeanUtil.convertList(request.getGoodsContents(),TopicStoreyContent.class));
+        //设置属性
+        if(Objects.equals(request.getStoreyType(),TopicStoreyType.COUPON.getId())){
+            request.getContents().forEach(c->{
+                TopicStoreyCouponDTO couponDTO = (TopicStoreyCouponDTO)c;
+                c.setAttributeInfo(JSON.toJSONString(couponDTO));
+            });
+        }else if(Objects.equals(request.getStoreyType(),TopicStoreyType.NAVIGATION.getId())){
+            request.getContents().forEach(c->{
+                Map<String,Integer> map = new HashMap<>();
+                map.put("relStoreyId",c.getRelStoreyId());
+                c.setAttributeInfo(JSON.toJSONString(map));
+            });
         }
-        if(CollectionUtils.isNotEmpty(request.getLinkContents())){
-            contents.addAll(KsBeanUtil.convertList(request.getLinkContents(),TopicStoreyContent.class));
-        }
+        List<TopicStoreyContent> contents = KsBeanUtil.convertList(request.getContents(),TopicStoreyContent.class);
+
         contents.forEach(c->{
             c.setCreateTime(LocalDateTime.now());
             c.setUpdateTime(LocalDateTime.now());
@@ -247,14 +285,9 @@ public class TopicConfigService {
          if(CollectionUtils.isEmpty(list)){
             return response;
          }
-         List<TopicStoreyContent> goodsContents = list.stream().filter(p->p.getType() == 1).collect(Collectors.toList());
-         if(CollectionUtils.isNotEmpty(goodsContents)){
-             response.setGoodsContents(KsBeanUtil.convertList(goodsContents,TopicStoreyContentDTO.class));
-         }
-        List<TopicStoreyContent> linkContents = list.stream().filter(p->p.getType() == 2).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(linkContents)){
-            response.setLinkContents(KsBeanUtil.convertList(linkContents,TopicStoreyContentDTO.class));
-        }
+         response.setContents(KsBeanUtil.convertList(list,TopicStoreyContentDTO.class));
+        //设置属性
+        initAttr(response.getContents(),topicStorey.getStoreyType());
         return response;
     }
 
@@ -289,4 +322,9 @@ public class TopicConfigService {
     }
 
 
+    @Transactional
+    public void deleteStorey(Integer storeyId){
+        storeyRepository.delete(storeyId);
+        contentRepository.deleteBySid(storeyId);
+    }
 }

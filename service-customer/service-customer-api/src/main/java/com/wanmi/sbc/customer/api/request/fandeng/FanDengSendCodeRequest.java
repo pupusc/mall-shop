@@ -68,4 +68,10 @@ public class FanDengSendCodeRequest implements Serializable {
     @NotBlank
     private String mobile;
 
+    /**
+     * 请求人ip
+     */
+    @ApiModelProperty(value = "请求人ip")
+    private String clientIp;
+
 }

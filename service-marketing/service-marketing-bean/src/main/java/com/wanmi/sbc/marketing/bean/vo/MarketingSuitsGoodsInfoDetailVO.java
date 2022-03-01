@@ -48,4 +48,7 @@ public class MarketingSuitsGoodsInfoDetailVO {
     @ApiModelProperty(value = "组合套餐商品最高省")
     private BigDecimal suitsNoNeedPrice;
 
+    @ApiModelProperty("场景1商详页组合优惠2商详页书单组合优惠")
+    private Integer suitScene;
+
 }

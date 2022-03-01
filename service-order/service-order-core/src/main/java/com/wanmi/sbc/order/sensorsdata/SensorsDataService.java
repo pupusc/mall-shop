@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.sensorsdata;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.common.util.IntegerEncryptTool;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sun.rmi.runtime.Log;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,22 +46,29 @@ public class SensorsDataService {
             BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
             String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
             if (StringUtils.isNotBlank(fandengUserNo)) {
+                String fanDengUserNoEncrypt = "";
+                try {
+                    fanDengUserNoEncrypt = IntegerEncryptTool.encrypt(Integer.parseInt(fandengUserNo));
+                } catch (Exception ex) {
+                    log.error("SensorsDataService sendPaySuccessEvent Encrypt error", ex);
+                }
+
                 for (TradeItem tradeItem : trade.getTradeItems()) {
                     SensorsMessageDto sensorsMessageDto = new SensorsMessageDto();
                     sensorsMessageDto.setEventName(PAY_SUCCESS_EVENT);
-                    sensorsMessageDto.setDistinctId(fandengUserNo);
+                    sensorsMessageDto.setDistinctId(fanDengUserNoEncrypt);
                     sensorsMessageDto.setLoginId(false);
                     sensorsMessageDto.addProperty("click_type", "付款成功");
                     sensorsMessageDto.addProperty("var_id", tradeItem.getSkuId());
                     sensorsMessageDto.addProperty("goods_name", tradeItem.getSkuName());
-                    sensorsMessageDto.addProperty("price", trade.getTradePrice().getTotalPrice().toString());
+                    sensorsMessageDto.addProperty("price", tradeItem.getSplitPrice());
                     if(trade.getSource() != null) sensorsMessageDto.addProperty("s_str", trade.getSource());
                     if(trade.getPromoteUserId() != null) sensorsMessageDto.addProperty("r_str", trade.getPromoteUserId());
+                    if(trade.getEmallSessionId() != null) sensorsMessageDto.addProperty("emall_session_id", trade.getEmallSessionId());
                     sensorsMessageDtos.add(sensorsMessageDto);
                 }
             }
             orderProducerService.sendSensorsMessage(sensorsMessageDtos);
         }
     }
-
 }

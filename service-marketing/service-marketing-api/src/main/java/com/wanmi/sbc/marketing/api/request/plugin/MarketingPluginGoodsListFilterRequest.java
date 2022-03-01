@@ -2,11 +2,14 @@ package com.wanmi.sbc.marketing.api.request.plugin;
 
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.MarketingPluginDTO;
+import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>插件公共Request</p>
@@ -44,5 +47,8 @@ public class MarketingPluginGoodsListFilterRequest extends MarketingPluginDTO {
      * 是否设置独立字段（付费会员价使用）
      */
     private Boolean isIndependent = Boolean.FALSE;
+
+    @ApiModelProperty(value = "优惠券使用场景1商详页+领券中心+购物车2专题页")
+    private List<String> couponScene = Stream.of(CouponSceneType.DETAIL_CART_CENTER.getType().toString()).collect(Collectors.toList());
 
 }
