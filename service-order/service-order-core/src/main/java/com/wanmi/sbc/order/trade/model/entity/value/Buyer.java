@@ -61,6 +61,8 @@ public class Buyer implements Serializable {
      */
     private boolean isIepCustomer;
 
+    private String openId;
+
     /**
      * @param customer
      * @param level

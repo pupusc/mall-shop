@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.provider.impl.trade;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
 import com.wanmi.sbc.common.util.UUIDUtil;
@@ -74,6 +75,9 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private TradeOrderService tradeOrderService;
 
 
     /**
@@ -159,7 +163,7 @@ public class TradeController implements TradeProvider {
 
 
     /**
-     * 补单 根据trade 生成 payOrder
+     * 补单 根据trade 生成 papayOrder
      * @param oid
      */
     @Override
@@ -821,4 +825,14 @@ public class TradeController implements TradeProvider {
     }
 
 
+    /**
+     * 同步订单到微信
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request) {
+        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid());
+        return BaseResponse.SUCCESSFUL();
+    }
 }

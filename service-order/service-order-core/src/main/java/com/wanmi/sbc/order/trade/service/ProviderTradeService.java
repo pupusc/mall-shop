@@ -142,6 +142,8 @@ public class ProviderTradeService {
      */
     private final String BATCH_UPDATE_DELIVERY_STATUS_LOCKS = "autoSyncDeliveryStatus";
 
+
+
     /**
      * 重置扫描次数
      */
@@ -1584,68 +1586,5 @@ public class ProviderTradeService {
     }
 
 
-    /**
-     * 批量同步发货状态到微信-查询本地
-     *
-     * @param pageSize
-     */
-    public void batchSyncDeliveryStatusToWechat(int pageSize, String ptid) {
-        RLock lock = redissonClient.getLock(BATCH_UPDATE_DELIVERY_STATUS_LOCKS);
-        if (lock.isLocked()) {
-            log.error("定时任务在执行中,下次执行.");
-            return;
-        }
-        lock.lock();
-        try {
-            /**
-             * 普通订单发货状态更新
-             */
-            List<Criteria> criterias = new ArrayList<>();
-            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            criterias.add(Criteria.where("tradeState.erpTradeState").is(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
-            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()));
-            criterias.add(Criteria.where("cycleBuyFlag").is(false));
-            //单个订单发货状态同步
-            if (StringUtils.isNoneBlank(ptid)) {
-                criterias.add(Criteria.where("id").is(ptid));
-            }
-            if (pageSize <= 0) {
-                pageSize = 200;
-            }
-            Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-            Query query = new Query(newCriteria).limit(pageSize);
-            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
 
-            /**
-             * 周期购订单发货单状态更新
-             */
-            Criteria cycleBuycriteria = new Criteria();
-            cycleBuycriteria.andOperator(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()),
-                    Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()),
-                    Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.SHIPPED.getStatusId()),
-                    Criteria.where("cycleBuyFlag").is(true));
-
-            Query cycleQuery = new Query(cycleBuycriteria).limit(pageSize);
-            query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
-            List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery, ProviderTrade.class);
-
-            List<ProviderTrade> totalTradeList =
-                    Stream.of(providerTrades, cycleBuyTradeList).flatMap(Collection::stream).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(totalTradeList)) {
-                log.info("#批量同步发货状态的订单:{}", totalTradeList);
-                totalTradeList.stream().forEach(providerTrade -> {
-                    tradePushERPService.syncDeliveryStatus(providerTrade,null);
-                    log.info("#批量同步发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
-
-                });
-            }
-        } catch (Exception e) {
-            log.error("#批量同步发货状态异常:{}", e);
-        } finally {
-            //释放锁
-            lock.unlock();
-        }
-    }
 }

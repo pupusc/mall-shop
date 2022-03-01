@@ -34,13 +34,13 @@ public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
                 ptid = paramterArray[1];
             }
         } catch (RuntimeException e) {
-            log.error("调用ERP接口更新订单发货状态,参数错误,采用默认 200,{}", e);
+            log.error("调用小程序订单并同步到微信,参数错误,采用默认 200,{}", e);
         }
         providerTradeQueryProvider.batchSyncDeliveryStatus(ProviderTradeErpRequest.builder()
                 .pageSize(size)
                 .ptid(ptid)
                 .build());
-        log.info("=====订单发货状态更新结束======");
+        log.info("=====小程序订单并同步到微信end======");
         return SUCCESS;
     }
 }

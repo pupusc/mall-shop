@@ -70,6 +70,11 @@
             <version>${wm.micro.service.version}</version>
         </dependency>
         <dependency>
+            <artifactId>service-wx-api</artifactId>
+            <groupId>com.soybean.mall</groupId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
+        <dependency>
             <artifactId>service-goods-api</artifactId>
             <exclusions>
                 <exclusion>

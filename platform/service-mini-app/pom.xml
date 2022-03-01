@@ -81,11 +81,6 @@
         </dependency>
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
-            <artifactId>service-pay-api</artifactId>
-            <version>${wm.micro.service.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.wanmi.sbc</groupId>
             <version>${wm.micro.service.version}</version>
             <artifactId>service-goods-api</artifactId>
             <exclusions>
