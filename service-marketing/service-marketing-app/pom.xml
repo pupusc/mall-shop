@@ -12,6 +12,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-log</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-marketing-core</artifactId>
             <version>${project.version}</version>

@@ -1,6 +1,7 @@
 package com.wanmi.ares;
 
 //import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
+
 import com.wanmi.ares.configuration.CompositePropertySourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -14,8 +15,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * <p>Ares应用安装启动类</p>
@@ -24,7 +24,7 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @EnableAsync
 @MapperScan(basePackages = {"com.wanmi.ares.report.*.dao", "com.wanmi.ares.export.dao"})
-@ComponentScan(basePackages = {"com.wanmi.ares", "com.wanmi.ares.provider"}, excludeFilters = {
+@ComponentScan(basePackages = {"com.wanmi.ares", "com.wanmi.ares.provider", "com.wanmi.sbc.common.handler.exc"}, excludeFilters = {
         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = com.wanmi.sbc.common.handler.aop.TomcatDataSourceAspect.class)
 })
 @Slf4j

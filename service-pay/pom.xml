@@ -29,6 +29,7 @@
         <bcprov-jdk15on.version>1.64</bcprov-jdk15on.version>
         <wxpay-sdk.version>wanmi-3.0.9</wxpay-sdk.version>
         <xstream.version>1.4.11.1</xstream.version>
+        <mall.common.dependency.version>0.0.1-SNAPSHOT</mall.common.dependency.version>
     </properties>
 
     <dependencies>
@@ -83,6 +84,18 @@
             <version>${alipay-sdk-java.version}</version>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-dependency</artifactId>
+                <version>${mall.common.dependency.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
