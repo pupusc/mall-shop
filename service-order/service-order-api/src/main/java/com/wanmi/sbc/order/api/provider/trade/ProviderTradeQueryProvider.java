@@ -114,12 +114,6 @@ public interface ProviderTradeQueryProvider {
     @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
     BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
 
-    /**
-     * 同步订单状态到微信
-     * @param request
-     * @return
-     */
-    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status-wechat")
-     BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request);
+
 
 }

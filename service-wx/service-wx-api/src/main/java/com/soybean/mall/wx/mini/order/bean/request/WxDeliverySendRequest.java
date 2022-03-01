@@ -24,7 +24,7 @@ public class WxDeliverySendRequest implements Serializable {
      *发货完成标志位, 0: 部分发货, 1:全部发货
      */
     @JSONField(name ="finish_all_delivery")
-    private String finishAllDelivery;
+    private Integer finishAllDelivery;
     @JSONField(name ="delivery_list")
     private List<WxDeliveryInfo> deliveryList;
 

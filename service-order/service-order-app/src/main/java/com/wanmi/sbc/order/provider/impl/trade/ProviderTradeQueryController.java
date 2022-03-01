@@ -247,14 +247,5 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
         return BaseResponse.SUCCESSFUL();
     }
 
-    /**
-     * 同步订单到微信
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request) {
-        providerTradeService.batchSyncDeliveryStatus(request.getPageSize(),request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
+
 }

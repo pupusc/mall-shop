@@ -661,6 +661,7 @@ public class PayCallbackController {
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
                             .wxPayCallBackResultStr(retXmlStr)
+                            .storeId(storeId)
                             .wxPayCallBackResultXmlStr(retXml.toString())
                             .build());
                 }

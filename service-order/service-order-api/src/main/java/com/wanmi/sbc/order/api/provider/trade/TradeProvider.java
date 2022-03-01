@@ -456,4 +456,13 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/commit-new")
     BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
+
+    /**
+     * 同步订单状态到微信
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/batch-sync-delivery-status-wechat")
+    BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request);
+
 }
