@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.bean.wx.vo.WxGoodsVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
@@ -20,6 +21,9 @@ public interface WxMiniGoodsProvider {
 
     @PostMapping("/goods/${application.goods.version}/wx/to-audit")
     BaseResponse toAudit(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
+
+    @PostMapping("/goods/${application.goods.version}/wx/cancel-audit")
+    BaseResponse cancelAudit(@RequestParam("goodsId") String goodsId);
 
     @PostMapping("/goods/${application.goods.version}/wx/update")
     BaseResponse update(@RequestBody WxGoodsCreateRequest wxGoodsCreateRequest);
