@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 
 @Data
@@ -23,6 +24,12 @@ public class WxGoodsVo {
     private Integer auditStatus;
 
     private Integer saleStatus;
+
+    //是否需要审核
+    private Integer needToAudit;
+
+    //审核失败原因
+    private String rejectReason;
 
     //审核通过次数
     private Integer auditTimes;

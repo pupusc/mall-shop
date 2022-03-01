@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.mini.goods;
 
+import com.oracle.tools.packager.Log;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -11,6 +12,7 @@ import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
 import com.wanmi.sbc.goods.mini.service.goods.WxGoodsService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 public class MiniGoodsController implements WxMiniGoodsProvider {
 
@@ -58,7 +61,11 @@ public class MiniGoodsController implements WxMiniGoodsProvider {
                     Goods goods = collect.get(wxGoodsModel.getGoodsId()).get(0);
                     wxGoodsVo.setGoodsName(goods.getGoodsName());
                     wxGoodsVo.setGoodsImg(goods.getGoodsImg());
-                    wxGoodsVo.setMarketPrice(goods.getMarketPrice().toString());
+                    try {
+                        wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice().toString());
+                    }catch (Exception e){
+                        log.error("{}没有价格!", goods.getGoodsId());
+                    }
                 }
                 voList.add(wxGoodsVo);
             }
