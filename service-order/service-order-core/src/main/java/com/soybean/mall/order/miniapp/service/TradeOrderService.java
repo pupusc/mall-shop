@@ -5,10 +5,14 @@ import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
+import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.ArrayStack;
 import org.apache.commons.collections4.CollectionUtils;
@@ -21,6 +25,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +46,11 @@ public class TradeOrderService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    //@Autowired
+   // @Autowired
     //private WxOrderApiController wxOrderApiController;
+
+    @Autowired
+    private TradeRepository tradeRepository;
     /**
      * 批量同步发货状态到微信-查询本地
      *
@@ -63,6 +71,8 @@ public class TradeOrderService {
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
             criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
             criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
+            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP));
+            criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
             criterias.add(Criteria.where("cycleBuyFlag").is(false));
             //单个订单发货状态同步
             if (StringUtils.isNoneBlank(ptid)) {
@@ -83,6 +93,7 @@ public class TradeOrderService {
             cycleBuycriteria.andOperator(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()),
                     Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()),
                     Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()),
+                    Criteria.where("channelType").is(ChannelType.MINIAPP),
                     Criteria.where("cycleBuyFlag").is(true));
 
             Query cycleQuery = new Query(cycleBuycriteria).limit(pageSize);
@@ -107,12 +118,20 @@ public class TradeOrderService {
     }
 
     private void syncDeliveryStatusToWechat(Trade trade){
+        //判断是否需要同步
+        List<String> deliveryIds = trade.getMiniProgram().getDelivery().stream().map(TradeDeliver::getDeliverId).collect(Collectors.toList());
+        List<TradeDeliver> unSyncDelivery = trade.getTradeDelivers().stream().filter(tradeDeliver -> !ObjectUtils.isEmpty(tradeDeliver)
+                        && !deliveryIds.contains(tradeDeliver.getDeliverId())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(unSyncDelivery)) {
+              log.info("没有需要同步的物流信息，trade：{}",trade);
+              return;
+        }
         WxDeliverySendRequest request = new WxDeliverySendRequest();
         request.setOpenid(trade.getBuyer().getOpenId());
         request.setOutOrderId(trade.getId());
         request.setFinishAllDelivery(Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)?1:0);
         List<WxDeliverySendRequest.WxDeliveryInfo>  deliveryInfos = new ArrayList<>();
-        trade.getTradeDelivers().forEach(delivery->{
+        unSyncDelivery.forEach(delivery->{
             WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
             deliveryInfo.setDeliveryId(delivery.getLogistics().getLogisticStandardCode());
             deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
@@ -128,6 +147,12 @@ public class TradeOrderService {
             deliveryInfos.add(deliveryInfo);
         });
         request.setDeliveryList(deliveryInfos);
-        //BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
+        BaseResponse<WxResponseBase> result = null;//wxOrderApiController.deliverySend(request);
+        if(result!=null && result.getContext().isSuccess() && Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
+            //全部发货且已经全部同步
+            trade.getMiniProgram().setSyncStatus(1);
+        }
+        trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
+        tradeRepository.save(trade);
     }
 }

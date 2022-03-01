@@ -242,6 +242,10 @@
                             <artifactId>service-account-api</artifactId>
                         </include>
                         <include>
+                            <groupId>com.soybean.mall</groupId>
+                            <artifactId>service-wx-api</artifactId>
+                        </include>
+                        <include>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>service-account-bean</artifactId>
                         </include>
