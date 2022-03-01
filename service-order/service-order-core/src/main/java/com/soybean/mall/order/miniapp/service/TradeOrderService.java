@@ -41,8 +41,8 @@ public class TradeOrderService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Autowired
-    private WxOrderApiController wxOrderApiController;
+    //@Autowired
+    //private WxOrderApiController wxOrderApiController;
     /**
      * 批量同步发货状态到微信-查询本地
      *
@@ -128,6 +128,6 @@ public class TradeOrderService {
             deliveryInfos.add(deliveryInfo);
         });
         request.setDeliveryList(deliveryInfos);
-        BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
+        //BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
     }
 }
