@@ -1,5 +1,6 @@
 package com.wanmi.sbc.returnorder.service;
 
+import com.sbc.wanmi.erp.bean.enums.DeliveryStatus;
 import com.wanmi.sbc.client.CancelOrderRequest;
 import com.wanmi.sbc.client.CancelOrderResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -59,29 +60,32 @@ public class BoKuService extends AbstractCRMService{
             }
         }
 
-        DeliverStatus deliverStatus = tradeVO.getTradeState().getDeliverStatus();
+        List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
+        for (TradeVO providerTradeParam : providerTradeVoList) {
+            BaseResponse<DeliveryStatusResponse> deliveryStatusResponse = bizSupplierClient.getDeliveryStatus(providerTradeParam.getId());
+            //表示调用第三方接口异常或者 订单没有推送过去。
+            if (deliveryStatusResponse == null || deliveryStatusResponse.getContext() == null) {
+                log.error("BoKuService bizSupplierClient getDeliveryStatus tradeId:{} pid: {} result content is null 获取订单信息的时候异常", tradeVO.getId(), providerTradeParam.getId());
+                throw new SbcRuntimeException("K-050143", new Object[]{"获取博库订单信息失败"});
+            }
 
-        if (deliverStatus.equals(DeliverStatus.NOT_YET_SHIPPED) || deliverStatus.equals(DeliverStatus.PART_SHIPPED)) {
-            //这里获取的实际上是子单
-            List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
-            for (TradeVO providerTradeParam : providerTradeVoList) {
-                BaseResponse<DeliveryStatusResponse> deliveryStatusResponse = bizSupplierClient.getDeliveryStatus(providerTradeParam.getId());
-                //表示调用第三方接口异常
-                if (deliveryStatusResponse == null || deliveryStatusResponse.getContext() == null) {
-                    log.error("BoKuService bizSupplierClient getDeliveryStatus tradeId:{} pid: {} result content is null 获取订单信息的时候异常", tradeVO.getId(), providerTradeParam.getId());
-                    throw new SbcRuntimeException("K-050143", new Object[]{"获取订单网络异常，请稍后重试"});
-                }
+            //博库已经取消，本地没有取消
+            if (deliveryStatusResponse.getContext() != null
+                    && CollectionUtils.isNotEmpty(deliveryStatusResponse.getContext().getDeliveryInfoVOList())
+                    && DeliveryStatus.CANCELED.equals(deliveryStatusResponse.getContext().getDeliveryInfoVOList().get(0).getDeliveryStatus())) {
+                log.info("BoKuService bizSupplierClient tradeId:{} pid: {} 博库申请退款 博库第三方不存在该商品，直接取消该商品；", tradeVO.getId(), providerTradeParam.getId());
+                return BaseResponse.SUCCESSFUL();
+            }
+            //如果博库已经发货
+            //博库已经取消，本地没有取消
+            Map<String, TradeItemVO> skuId2TradeItemMap =
+                    providerTradeParam.getTradeItems().stream().collect(Collectors.toMap(TradeItemVO::getSkuId, Function.identity(), (k1, k2) -> k2));
 
-                if (deliveryStatusResponse.getContext() != null && CollectionUtils.isEmpty(deliveryStatusResponse.getContext().getDeliveryInfoVOList())) {
-                    log.info("BoKuService bizSupplierClient tradeId:{} pid: {} 博库申请退款 博库第三方不存在该商品，直接取消该商品；", tradeVO.getId(), providerTradeParam.getId());
-                    return BaseResponse.SUCCESSFUL();
-                }
+            if (deliveryStatusResponse.getContext() != null
+                    && CollectionUtils.isNotEmpty(deliveryStatusResponse.getContext().getDeliveryInfoVOList())
+                    && DeliveryStatus.UN_DELIVERY.equals(deliveryStatusResponse.getContext().getDeliveryInfoVOList().get(0).getDeliveryStatus())) {
 
-                Map<String, TradeItemVO> skuId2TradeItemMap =
-                        providerTradeParam.getTradeItems().stream().collect(Collectors.toMap(TradeItemVO::getSkuId, Function.identity(), (k1, k2) -> k2));
-
-                List<ReturnItemVO> returnItems = returnOrderVO.getReturnItems();
-                for (ReturnItemVO returnItemParam : returnItems) {
+                for (ReturnItemVO returnItemParam : returnOrderVO.getReturnItems()) {
                     TradeItemVO tradeItemVO = skuId2TradeItemMap.get(returnItemParam.getSkuId());
                     if (tradeItemVO == null) {
                         throw new SbcRuntimeException("K-000009");
@@ -96,10 +100,64 @@ public class BoKuService extends AbstractCRMService{
                         throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
                     }
                 }
-
-
+            } else {
+                //此处表示博库已经发货，则只有商品航全部发货才可以取消退单
+                for (ReturnItemVO returnItemParam : returnOrderVO.getReturnItems()) {
+                    TradeItemVO tradeItemVO = skuId2TradeItemMap.get(returnItemParam.getSkuId());
+                    if (tradeItemVO == null) {
+                        throw new SbcRuntimeException("K-000009");
+                    }
+                    if (!DeliverStatus.SHIPPED.equals(tradeItemVO.getDeliverStatus())) {
+                        throw new SbcRuntimeException("K-050511");
+                    }
+                }
             }
         }
+
+//
+//
+//
+//        DeliverStatus deliverStatus = tradeVO.getTradeState().getDeliverStatus();
+//
+//        if (deliverStatus.equals(DeliverStatus.NOT_YET_SHIPPED) || deliverStatus.equals(DeliverStatus.PART_SHIPPED)) {
+//            //这里获取的实际上是子单
+//            List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
+//            for (TradeVO providerTradeParam : providerTradeVoList) {
+//                BaseResponse<DeliveryStatusResponse> deliveryStatusResponse = bizSupplierClient.getDeliveryStatus(providerTradeParam.getId());
+//                //表示调用第三方接口异常
+//                if (deliveryStatusResponse == null || deliveryStatusResponse.getContext() == null) {
+//                    log.error("BoKuService bizSupplierClient getDeliveryStatus tradeId:{} pid: {} result content is null 获取订单信息的时候异常", tradeVO.getId(), providerTradeParam.getId());
+//                    throw new SbcRuntimeException("K-050143", new Object[]{"获取订单网络异常，请稍后重试"});
+//                }
+//
+//                if (deliveryStatusResponse.getContext() != null && CollectionUtils.isEmpty(deliveryStatusResponse.getContext().getDeliveryInfoVOList())) {
+//                    log.info("BoKuService bizSupplierClient tradeId:{} pid: {} 博库申请退款 博库第三方不存在该商品，直接取消该商品；", tradeVO.getId(), providerTradeParam.getId());
+//                    return BaseResponse.SUCCESSFUL();
+//                }
+//
+//                Map<String, TradeItemVO> skuId2TradeItemMap =
+//                        providerTradeParam.getTradeItems().stream().collect(Collectors.toMap(TradeItemVO::getSkuId, Function.identity(), (k1, k2) -> k2));
+//
+//                List<ReturnItemVO> returnItems = returnOrderVO.getReturnItems();
+//                for (ReturnItemVO returnItemParam : returnItems) {
+//                    TradeItemVO tradeItemVO = skuId2TradeItemMap.get(returnItemParam.getSkuId());
+//                    if (tradeItemVO == null) {
+//                        throw new SbcRuntimeException("K-000009");
+//                    }
+//                    CancelOrderRequest cancelOrderRequest = new CancelOrderRequest();
+//                    cancelOrderRequest.setOrderId(providerTradeParam.getDeliveryOrderId());
+//                    cancelOrderRequest.setPid(providerTradeParam.getId());
+//                    cancelOrderRequest.setType(1); //单品
+//                    cancelOrderRequest.setErpGoodsInfoNo(tradeItemVO.getErpSkuNo());
+//                    BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(cancelOrderRequest);
+//                    if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
+//                        throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
+//                    }
+//                }
+//
+//
+//            }
+//        }
 
         if (returnOrderVO.getReturnType().equals(ReturnType.RETURN)) {
             log.info("BoKuService bizSupplierClient tradeId:{} 博库退货退款请走博库平台 ", tradeVO.getId());

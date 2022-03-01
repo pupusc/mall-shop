@@ -65,6 +65,7 @@ public class GuanYiYunService extends AbstractCRMService {
 //            //退单不存在
 //            throw new SbcRuntimeException("K-050003");
 //        }
+        boolean isDelivery = false;
         TradeGetByIdResponse tradeAndProviderTrade = super.getTradeAndProviderTrade(returnOrderVO.getTid(), flag);
         TradeVO tradeVO = tradeAndProviderTrade.getTradeVO();
         //如果为周期购
@@ -105,32 +106,38 @@ public class GuanYiYunService extends AbstractCRMService {
                 //如果是已经全部发货，则抛出异常
                 for (DeliveryInfoVO deliveryInfoVOParam : deliveryInfoVOList) {
                     if (deliveryInfoVOParam.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)){
-                        throw new SbcRuntimeException("K-050106");
+//                        throw new SbcRuntimeException("K-050106");
+                        isDelivery = true;
                     }
                 }
             }
         }
-
         /****************商品拦截 begin*******************/
         log.info("订单管易云拦截:{}", JSON.toJSONString(returnOrderVO));
+
         //获取退单的商品列表
         Map<String, ReturnItemVO> skuId2ReturnItemMap =
                 returnOrderVO.getReturnItems().stream().collect(Collectors.toMap(ReturnItemVO::getSkuId, Function.identity(), (k1, k2) -> k1));
-
-
         DeliverStatus deliverStatus = tradeVO.getTradeState().getDeliverStatus();
-        //如果未发货或者部分发货则处理
-        if (deliverStatus.equals(DeliverStatus.NOT_YET_SHIPPED) || deliverStatus.equals(DeliverStatus.PART_SHIPPED)) {
-            //这里获取的实际上是子单
-            List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
+        //这里获取的实际上是子单
+        List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
 
-            for (TradeVO providerTradeParam : providerTradeVoList) {
-                //普通订单 拦截主商品
-                for (TradeItemVO tradeItemParam : providerTradeParam.getTradeItems()) {
-                    ReturnItemVO returnItemVO = skuId2ReturnItemMap.get(tradeItemParam.getSkuId());
-                    if (returnItemVO == null) {
-                        continue;
+
+        for (TradeVO providerTradeParam : providerTradeVoList) {
+            //普通订单 拦截主商品
+            for (TradeItemVO tradeItemParam : providerTradeParam.getTradeItems()) {
+                ReturnItemVO returnItemVO = skuId2ReturnItemMap.get(tradeItemParam.getSkuId());
+                if (returnItemVO == null) {
+                    continue;
+                }
+                //如果已经发货
+                if (isDelivery) {
+                    if (!DeliverStatus.SHIPPED.equals(tradeItemParam.getDeliverStatus())) {
+                        throw new SbcRuntimeException("K-050511");
                     }
+                    log.info("GuanYiYunService interceptorErpDeliverStatus tid:{} 退款执行完成", returnOrderVO.getTid());
+                } else {
+                    //如果没有发货，则可以通过商品行退款
                     //tid表示的是 子单id  Oid表示的是管易云上的订单号
                     RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(tradeItemParam.getOid()).refundState(2).build();
                     BaseResponse baseResponse = guanyierpProvider.refundTradeItem(refundTradeRequest);
@@ -142,19 +149,9 @@ public class GuanYiYunService extends AbstractCRMService {
                         throw new SbcRuntimeException("K-050141", new Object[]{returnOrderVO.getPtid(), tradeItemParam.getSpuName()});
                     }
                 }
-
-                //普通订单 拦截赠品,取消订单，赠品全部取消
-                if (!CollectionUtils.isEmpty(providerTradeParam.getGifts())){
-                    providerTradeParam.getGifts().forEach(giftVO -> {
-                        RefundTradeRequest refundTradeRequest = RefundTradeRequest.builder().tid(providerTradeParam.getId()).oid(giftVO.getOid()).build();
-                        BaseResponse baseResponse = guanyierpProvider.RefundTrade(refundTradeRequest);
-                        if (CommonErrorCode.SUCCESSFUL.equals(baseResponse.getCode())) {
-                            //此处更新订单商品为作废状态 TODO duanlsh
-                        }
-                    });
-                }
             }
         }
+
 
         /****************商品拦截 end*******************/
 
