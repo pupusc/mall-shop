@@ -46,11 +46,12 @@ public class TradeOrderService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-   // @Autowired
-    //private WxOrderApiController wxOrderApiController;
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
 
     @Autowired
     private TradeRepository tradeRepository;
+
     /**
      * 批量同步发货状态到微信-查询本地
      *
@@ -68,12 +69,12 @@ public class TradeOrderService {
              * 查询部分发货或全部发货且未更新全部状态的小程序订单
              */
             List<Criteria> criterias = new ArrayList<>();
-            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
-            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP));
-            criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
-            criterias.add(Criteria.where("cycleBuyFlag").is(false));
+//            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+//            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+//            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
+//            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP));
+//            criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
+//            criterias.add(Criteria.where("cycleBuyFlag").is(false));
             //单个订单发货状态同步
             if (StringUtils.isNoneBlank(ptid)) {
                 criterias.add(Criteria.where("id").is(ptid));
@@ -119,9 +120,13 @@ public class TradeOrderService {
 
     private void syncDeliveryStatusToWechat(Trade trade){
         //判断是否需要同步
-        List<String> deliveryIds = trade.getMiniProgram().getDelivery().stream().map(TradeDeliver::getDeliverId).collect(Collectors.toList());
+        List<String> deliveryIds = new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(trade.getMiniProgram().getDelivery())) {
+            deliveryIds = trade.getMiniProgram().getDelivery().stream().map(TradeDeliver::getDeliverId).collect(Collectors.toList());
+        }
+        List<String> delvieryIdsNew = deliveryIds;
         List<TradeDeliver> unSyncDelivery = trade.getTradeDelivers().stream().filter(tradeDeliver -> !ObjectUtils.isEmpty(tradeDeliver)
-                        && !deliveryIds.contains(tradeDeliver.getDeliverId())).collect(Collectors.toList());
+                        && !delvieryIdsNew.contains(tradeDeliver.getDeliverId())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(unSyncDelivery)) {
               log.info("没有需要同步的物流信息，trade：{}",trade);
               return;
@@ -147,7 +152,7 @@ public class TradeOrderService {
             deliveryInfos.add(deliveryInfo);
         });
         request.setDeliveryList(deliveryInfos);
-        BaseResponse<WxResponseBase> result = null;//wxOrderApiController.deliverySend(request);
+        BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
         if(result!=null && result.getContext().isSuccess() && Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
             //全部发货且已经全部同步
             trade.getMiniProgram().setSyncStatus(1);

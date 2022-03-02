@@ -149,6 +149,7 @@
                             <excludeArtifactIds>
                                 ${project.parent.artifactId}-api,${project.parent.artifactId}-bean,${project.parent.artifactId}-core,
                                 ares-api,
+                                service-wx-api,
                                 service-marketing-api,service-marketing-bean,
                                 service-goods-api,service-goods-bean,
                                 service-linkedmall-api,service-linkedmall-bean,

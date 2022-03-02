@@ -110,9 +110,6 @@ public class OrderController {
     @Autowired
     private TradeProvider tradeProvider;
 
-    @Autowired
-    private WxOrderApiController orderApiController;
-
     @Value("${mini.program.appid}")
     private String appId;
 
@@ -121,6 +118,14 @@ public class OrderController {
 
     @Autowired
     private WxPayProvider wxPayProvider;
+
+    @Value("${wx.default.image.url}")
+    private String defaultImageUrl;
+
+    @Value("${wx.goods.detail.url}")
+    private String goodsDetailUrl;
+    @Value("${wx.order.detail.url}")
+    private String orderDetailUrl;
 
     /**
      * 提交订单，用于生成订单操作
@@ -201,7 +206,7 @@ public class OrderController {
         result.setOutOrderId(trades.get(0).getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         result.setOpenid(openId);
-        result.setPath("test");
+        result.setPath(orderDetailUrl);
         OrderCommitResultVO trade = trades.get(0);
         WxOrderCommitResultVO.WxOrderDetail detail = new WxOrderCommitResultVO.WxOrderDetail();
         List<WxProductInfoVO> productInfoDTOS = new ArrayList<>();
@@ -213,7 +218,8 @@ public class OrderController {
                     .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
                     .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
                     .title(tradeItem.getSkuName())
-                    .headImg(tradeItem.getPic()).build());
+                    .path(goodsDetailUrl+tradeItem.getSpuId())
+                    .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());
         });
         detail.setProductInfos(productInfoDTOS);
 
@@ -243,7 +249,6 @@ public class OrderController {
     }
 
 
-
     /**
      * 微信内浏览器,小程序支付公用逻辑
      *
@@ -266,7 +271,7 @@ public class OrderController {
         jsApiRequest.setStoreId(-2L);
         return jsApiRequest;
     }
-    
+
 
     /**
      * 用于确认订单后，创建订单前的获取订单商品信息

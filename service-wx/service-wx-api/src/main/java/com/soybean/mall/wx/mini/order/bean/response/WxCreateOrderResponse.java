@@ -1,7 +1,6 @@
 package com.soybean.mall.wx.mini.order.bean.response;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import lombok.Data;
 

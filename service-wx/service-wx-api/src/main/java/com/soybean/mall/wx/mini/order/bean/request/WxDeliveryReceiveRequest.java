@@ -1,7 +1,6 @@
 package com.soybean.mall.wx.mini.order.bean.request;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 

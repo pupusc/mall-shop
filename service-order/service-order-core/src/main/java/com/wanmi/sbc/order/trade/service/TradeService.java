@@ -9,6 +9,9 @@ import com.google.common.collect.Lists;
 //import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -626,6 +629,8 @@ public class TradeService {
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -6811,6 +6816,8 @@ public class TradeService {
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, isMergePay);
+        //微信支付同步支付结果,失败处理todo
+        syncWxOrderPay(wxPayResultResponse,trades.get(0));
     }
 
     /**
@@ -7943,5 +7950,19 @@ public class TradeService {
         log.info("===========查询对账积分金额：{}===============",pointsPrice);
 
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
+    }
+
+    /**
+     * 同步订单支付状态
+     * @param trade
+     */
+    private BaseResponse<WxResponseBase> syncWxOrderPay(WxPayResultResponse wxPayResultResponse, Trade trade){
+        WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
+        wxOrderPayRequest.setOpenId(wxPayResultResponse.getOpenid());
+        wxOrderPayRequest.setOutOrderId(trade.getId());
+        wxOrderPayRequest.setActionId(1);
+        wxOrderPayRequest.setPayTime(DateUtil.format(trade.getTradeState().getPayTime(),DateUtil.FMT_TIME_1));
+        wxOrderPayRequest.setTransactionId(wxPayResultResponse.getTransaction_id());
+        return wxOrderApiController.orderPay(wxOrderPayRequest);
     }
 }

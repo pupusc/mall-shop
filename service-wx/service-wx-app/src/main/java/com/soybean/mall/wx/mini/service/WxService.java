@@ -181,7 +181,7 @@ public class WxService {
 
     public WxCreateOrderResponse getOrder(WxOrderDetailRequest request){
         String accessToken = getAccessToken();
-        String url = "https://api.weixin.qq.com/product/order/get_list".concat("?access_token=").concat(accessToken);
+        String url = "https://api.weixin.qq.com/product/order/get".concat("?access_token=").concat(accessToken);
 
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
