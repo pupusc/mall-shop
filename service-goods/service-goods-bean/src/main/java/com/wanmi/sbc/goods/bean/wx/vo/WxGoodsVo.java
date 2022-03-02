@@ -15,7 +15,7 @@ public class WxGoodsVo {
     private Integer status;
 
     /**
-     * 审核状态 0-未审核 1-审核中 2-审核失败 3-审核成功
+     * 审核状态 0-未审核 1-审核中 2-审核失败 3-审核成功 4-取消审核
      */
     private Integer auditStatus;
 
@@ -25,7 +25,7 @@ public class WxGoodsVo {
     private Integer saleStatus;
 
     /**
-     * 是否需要提交审核 0-不需要 1-需要
+     * 是否需要提交审核 0-不需要 1-需要审核 2-需要免审 3-审核通过后需要再审(审核中的时候商品有编辑)
      */
     private Integer needToAudit;
 

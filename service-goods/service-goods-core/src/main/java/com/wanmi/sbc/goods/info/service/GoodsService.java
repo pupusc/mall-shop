@@ -82,6 +82,10 @@ import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSyncQueryRequest;
+import com.wanmi.sbc.goods.mini.enums.goods.WxGoodsEditStatus;
+import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
+import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
+import com.wanmi.sbc.goods.mini.service.goods.WxGoodsService;
 import com.wanmi.sbc.goods.pointsgoods.model.root.PointsGoods;
 import com.wanmi.sbc.goods.pointsgoods.repository.PointsGoodsRepository;
 import com.wanmi.sbc.goods.pointsgoods.service.PointsGoodsWhereCriteriaBuilder;
@@ -172,8 +176,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @Slf4j
 public class GoodsService {
-
-    private static Logger log = LoggerFactory.getLogger(GoodsService.class);
 
     @Value("${stock.threshold:5}")
     private Integer stockThreshold;
@@ -324,6 +326,9 @@ public class GoodsService {
 
     @Autowired
     private GoodsVoteRepository goodsVoteRepository;
+
+    @Autowired
+    private WxGoodsRepository wxGoodsRepository;
 
 
     /**
@@ -1897,6 +1902,18 @@ public class GoodsService {
         Goods oldGoods = goodsRepository.findById(newGoods.getGoodsId()).orElse(null);
         if (oldGoods == null || oldGoods.getDelFlag().compareTo(DeleteFlag.YES) == 0) {
             throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);
+        }
+        //微信是微信直播商品，修改后需要重新向微信提审
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(newGoods.getGoodsId(), DeleteFlag.NO);
+        if(wxGoodsModel != null){
+            log.info("编辑直播商品:" + newGoods.getGoodsId());
+            if(wxGoodsModel.getAuditStatus().equals(WxGoodsEditStatus.ON_CHECK)){
+                log.info("编辑直播商品，正在审核中:" + newGoods.getGoodsId());
+                wxGoodsModel.setNeedToAudit(3);
+            }else {
+                wxGoodsModel.setNeedToAudit(1);
+            }
+            wxGoodsRepository.save(wxGoodsModel);
         }
         //设价方式是否变更
         boolean priceTypeUpdate = !oldGoods.getPriceType().equals(newGoods.getPriceType());

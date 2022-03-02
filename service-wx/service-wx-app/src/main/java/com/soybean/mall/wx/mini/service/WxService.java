@@ -34,6 +34,7 @@ public class WxService {
 
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     private static final String ADD_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/add";
+    private static final String UPDATE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/update";
     private static final String CANCEL_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/del_audit";
     private static final String DELETE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/del";
     private static final String UPDATE_PRODUCT_WITHOUT_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/update_without_audit";
@@ -85,7 +86,13 @@ public class WxService {
     public WxAddProductResponse uploadGoodsToWx(WxAddProductRequest addProductRequest){
         String accessToken = getAccessToken();
         String url = ADD_PRODUCT_URL.concat("?access_token=").concat(accessToken);
+        String reqJsonStr = JSONObject.toJSONString(addProductRequest);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
+    }
 
+    public WxAddProductResponse updateGoods(WxAddProductRequest addProductRequest){
+        String url = UPDATE_PRODUCT_URL.concat("?access_token=").concat(getAccessToken());
         String reqJsonStr = JSONObject.toJSONString(addProductRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxAddProductResponse.class);
@@ -107,13 +114,11 @@ public class WxService {
         return false;
     }
 
-    public boolean updateGoodsWithoutAudit(WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
-        String url = UPDATE_PRODUCT_WITHOUT_AUDIT_URL.concat("access_token=").concat(getAccessToken());
+    public WxResponseBase updateGoodsWithoutAudit(WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
+        String url = UPDATE_PRODUCT_WITHOUT_AUDIT_URL.concat("?access_token=").concat(getAccessToken());
         String reqJsonStr = JSONObject.toJSONString(wxUpdateProductWithoutAuditRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        WxUpdateProductWithoutAuditRequest response = sendRequest(url, HttpMethod.POST, entity, WxUpdateProductWithoutAuditRequest.class);
-        if(response.isSuccess()) return true;
-        return false;
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
     public String getAccessToken(){
@@ -134,6 +139,10 @@ public class WxService {
         log.info("响应:{}", response);
         T t = JSONObject.parseObject(response, clazz);
         if(!t.isSuccess()){
+            if(t.getErrcode() == 42001){
+                // token过期
+                redisTemplate.delete(ACCESS_TOKEN_REDIS_KEY);
+            }
             log.error("微信api请求失败:{}", t.getErrmsg());
         }
         return t;

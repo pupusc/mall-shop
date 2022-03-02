@@ -4,6 +4,7 @@ import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
@@ -26,12 +27,15 @@ import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -64,7 +68,7 @@ public class WxGoodsService {
         String[] split = goodsIdStr.split(",");
         List<WxGoodsModel> wxGoodsModels = new ArrayList<>();
         for (String goodsId : split) {
-            if(goodsExist(goodsId)) throw new SbcRuntimeException("商品已存在" + goodsId);
+            if(goodsExist(goodsId)) throw new SbcRuntimeException("商品重复添加" + goodsId);
             WxGoodsModel wxGoodsModel = new WxGoodsModel();
             wxGoodsModel.setGoodsId(goodsId);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
@@ -79,33 +83,60 @@ public class WxGoodsService {
         wxGoodsRepository.saveAll(wxGoodsModels);
     }
 
+    @Transactional
     public void cancelAudit(String goodsId){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
 
+        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_CANCEL);
+        wxGoodsModel.setNeedToAudit(1);
+        wxGoodsRepository.save(wxGoodsModel);
+
         BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.cancelAudit(goodsId);
         if(!wxResponseBaseBaseResponse.getContext().isSuccess()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED,
                 wxResponseBaseBaseResponse.getContext().getErrmsg());
-
-        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
-        wxGoodsRepository.save(wxGoodsModel);
     }
 
     @Transactional
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
-
         if(wxGoodsModel.getWxCategory() == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请填写微信商品类目");
+        if(wxGoodsModel.getNeedToAudit() == 0) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品无需审核");
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).delFlag(DeleteFlag.NO.toValue()).build());
-        BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-        if(!baseResponse.getContext().isSuccess()){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
+        if(wxGoodsModel.getNeedToAudit() == 1) {
+            WxGoodsEditStatus auditStatus = wxGoodsModel.getAuditStatus();
+            if(auditStatus.equals(WxGoodsEditStatus.WAIT_CHECK)){
+                //初次提审
+                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel.getWxCategory()));
+                if(!baseResponse.getContext().isSuccess()){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
+                }
+                wxGoodsModel.setAuditStatus(WxGoodsEditStatus.ON_CHECK);
+                wxGoodsRepository.save(wxGoodsModel);
+            }else if(auditStatus.equals(WxGoodsEditStatus.ON_CHECK)){
+
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品正在审核中");
+            }else if(auditStatus.equals(WxGoodsEditStatus.CHECK_FAILED) || auditStatus.equals(WxGoodsEditStatus.CHECK_CANCEL)){
+                //更新商品,重新提审
+                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.updateGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel.getWxCategory()));
+                if(!baseResponse.getContext().isSuccess()){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
+                }
+                wxGoodsModel.setAuditStatus(WxGoodsEditStatus.ON_CHECK);
+                wxGoodsRepository.save(wxGoodsModel);
+            }
+        }else if(wxGoodsModel.getNeedToAudit() == 2){
+            //需要免审更新
+            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goods, goodsInfos));
+            if(!baseResponse.getContext().isSuccess()){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
+            }
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
+            wxGoodsRepository.save(wxGoodsModel);
         }
-        wxGoodsModel.setAuditStatus(WxGoodsEditStatus.ON_CHECK);
-        wxGoodsRepository.save(wxGoodsModel);
     }
 
     public void update(WxGoodsCreateRequest createRequest){
@@ -114,8 +145,8 @@ public class WxGoodsService {
 
         if(createRequest.getWxCategory() != null){
             wxGoodsModel.setWxCategory(createRequest.getWxCategory());
+            wxGoodsModel.setNeedToAudit(1);
         }
-        wxGoodsModel.setNeedToAudit(1);
         wxGoodsRepository.save(wxGoodsModel);
     }
 
@@ -134,32 +165,6 @@ public class WxGoodsService {
     }
 
     @Transactional
-    public void updateGoodsAndReaudit(WxGoodsCreateRequest createRequest){
-        Optional<WxGoodsModel> opt = wxGoodsRepository.findById(createRequest.getId());
-        if(opt.isPresent()){
-            WxGoodsModel wxGoodsModel = opt.get();
-            boolean updated = false;
-            if(!createRequest.getWxCategory().equals(wxGoodsModel.getWxCategory())){
-                wxGoodsModel.setWxCategory(createRequest.getWxCategory());
-                updated = true;
-            }
-            if(updated){
-                wxGoodsModel.setUpdateTime(LocalDateTime.now());
-                wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
-//                wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
-                wxGoodsRepository.save(wxGoodsModel);
-            }
-
-            Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
-            List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(createRequest.getGoodsId()).build());
-            BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, createRequest.getWxCategory()));
-            if(!baseResponse.getContext().isSuccess()){
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
-            }
-        }
-    }
-
-    @Transactional
     public void auditCallback(Map<String, Object> paramMap){
         Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
         String wxStatus = auditResult.get("status");
@@ -172,7 +177,12 @@ public class WxGoodsService {
             wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
             wxGoodsModel.setPlatformProductId(Long.parseLong(productId));
-            wxGoodsModel.setNeedToAudit(0);
+            wxGoodsModel.setRejectReason("");
+            if(wxGoodsModel.getNeedToAudit() == 3){
+                wxGoodsModel.setNeedToAudit(1);
+            }else {
+                wxGoodsModel.setNeedToAudit(0);
+            }
             wxGoodsRepository.save(wxGoodsModel);
 
             WxReviewLogModel wxReviewLogModel = new WxReviewLogModel();
@@ -239,6 +249,28 @@ public class WxGoodsService {
         addProductRequest.setInfoVersion("1");
         addProductRequest.setSkus(createSkus(goods, goodsInfos));
         return addProductRequest;
+    }
+
+    public WxUpdateProductWithoutAuditRequest createWxUpdateProductWithoutAuditRequest(Goods goods, List<GoodsInfo> goodsInfos){
+        WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+        wxUpdateProductWithoutAuditRequest.setOutProductId(goods.getGoodsId());
+        wxUpdateProductWithoutAuditRequest.setSkus(createSkusWithoutAudit(goodsInfos));
+        return wxUpdateProductWithoutAuditRequest;
+    }
+
+    public List<WxUpdateProductWithoutAuditRequest.Sku> createSkusWithoutAudit(List<GoodsInfo> goodsInfos){
+        List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+        for (GoodsInfo goodsInfo : goodsInfos) {
+            WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+            sku.setOutSkuId(goodsInfo.getGoodsInfoId());
+            BigDecimal marketPrice = goodsInfo.getMarketPrice();
+            if(marketPrice == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "sku缺少价格信息:" + goodsInfo.getGoodsInfoId());
+            sku.setMarketPrice(marketPrice);
+            sku.setSalePrice(marketPrice);
+            sku.setStockNum(goodsInfo.getStock() == null ? 0 : goodsInfo.getStock().intValue());
+            skus.add(sku);
+        }
+        return skus;
     }
 
     private List<WxAddProductRequest.Sku> createSkus(Goods goods, List<GoodsInfo> goodsInfos){
