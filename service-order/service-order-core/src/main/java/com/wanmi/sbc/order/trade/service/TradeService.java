@@ -9,6 +9,8 @@ import com.google.common.collect.Lists;
 //import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
+import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
@@ -632,8 +634,16 @@ public class TradeService {
     @Autowired
     private WxOrderApiController wxOrderApiController;
 
+    @Autowired
+    private CommonController wxCommonController;
+
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
+    @Value("${wx.create.order.send.message.templateId}")
+    private String createOrderSendMsgTemplateId;
+
+    @Value("${wx.create.order.send.message.link.url}")
+    private String createOrderSendMsgLinkUrl;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -6818,6 +6828,7 @@ public class TradeService {
         payCallbackOnline(trades, operator, isMergePay);
         //微信支付同步支付结果,失败处理todo
         syncWxOrderPay(wxPayResultResponse,trades.get(0));
+        sendWxCreateOrderMessage(trades.get(0));
     }
 
     /**
@@ -7964,5 +7975,30 @@ public class TradeService {
         wxOrderPayRequest.setPayTime(DateUtil.format(trade.getTradeState().getPayTime(),DateUtil.FMT_TIME_1));
         wxOrderPayRequest.setTransactionId(wxPayResultResponse.getTransaction_id());
         return wxOrderApiController.orderPay(wxOrderPayRequest);
+    }
+
+    private BaseResponse<WxResponseBase> sendWxCreateOrderMessage(Trade trade){
+        WxSendMessageRequest request =new WxSendMessageRequest();
+        request.setOpenId(trade.getBuyer().getOpenId());
+        request.setTemplateId(createOrderSendMsgTemplateId);
+        request.setUrl(createOrderSendMsgLinkUrl);
+        Map<String,Map<String,String>> map = new HashMap<>();
+        map.put("character_string1",new HashMap<String,String>(){{
+            put("value", trade.getId());
+        }});
+        map.put("amount2",new HashMap<String,String>(){{
+            put("value", String.valueOf(trade.getTradePrice().getActualPrice()));
+        }});
+        map.put("thing3",new HashMap<String,String>(){{
+            put("value", trade.getConsignee().getDetailAddress());
+        }});
+        map.put("name4",new HashMap<String,String>(){{
+            put("value", trade.getTradeItems().get(0).getSpuName());
+        }});
+        map.put("phrase5",new HashMap<String,String>(){{
+            put("value", "待发货");
+        }});
+        request.setData(map);
+        return wxCommonController.sendMessage(request);
     }
 }

@@ -30,7 +30,7 @@ public class WxCreateAfterSaleRequest implements Serializable {
     /**
      * 退款金额，单位：分
      */
-    private BigDecimal refund;
+    private Integer refund;
     /**
      * 售后类型，1:退款,2:退款退货,3:换货
      */

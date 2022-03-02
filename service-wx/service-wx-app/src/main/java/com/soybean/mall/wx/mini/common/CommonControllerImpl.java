@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.common;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
@@ -21,4 +22,10 @@ public class CommonControllerImpl implements CommonController {
         WxUploadImageResponse wxUploadImageResponse = wxService.uploadImg(wxUploadImageRequest);
         return BaseResponse.success(wxUploadImageResponse);
     }
+
+    @Override
+    public BaseResponse sendMessage(WxSendMessageRequest request) {
+        return BaseResponse.success(wxService.sendMessage(request));
+    }
+
 }

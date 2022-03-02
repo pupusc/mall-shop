@@ -40,4 +40,13 @@ public interface WxOrderApiController {
     @PostMapping("/order/detail")
     BaseResponse getDetail(@RequestBody WxOrderDetailRequest request);
 
+
+    /**
+     * 创建售后单
+     * @param request
+     * @return
+     */
+    @PostMapping("/aftersale/add")
+    BaseResponse<WxResponseBase> createAfterSale(WxCreateAfterSaleRequest request);
+
 }

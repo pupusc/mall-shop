@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
@@ -46,7 +47,7 @@ public class WxService {
     private static final String DELIVERY_RECEIVE_URL="https://api.weixin.qq.com/shop/delivery/recieve";
     private static final String AFTER_SALE_URL="https://api.weixin.qq.com/shop/aftersale/add";
     private static final String UPLOAD_IMG_URL="https://api.weixin.qq.com/shop/img/upload";
-    private static final String PRE_PAY_TRANSATION_URL="https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi";
+    private static final String SEND_MESSAGE_URL="https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
     private static final HttpHeaders defaultHeader;
     static {
         defaultHeader = new HttpHeaders();
@@ -241,5 +242,13 @@ public class WxService {
     }
 
 
+    public WxResponseBase sendMessage(WxSendMessageRequest request){
+        String accessToken = getAccessToken();
+        String url = SEND_MESSAGE_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
 
 }

@@ -37,4 +37,10 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
         wxService.getOrder(request);
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse<WxResponseBase> createAfterSale(WxCreateAfterSaleRequest request) {
+        return BaseResponse.success(wxService.createAfterSale(request));
+    }
+
 }
