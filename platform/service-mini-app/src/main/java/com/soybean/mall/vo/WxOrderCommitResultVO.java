@@ -22,11 +22,11 @@ public class WxOrderCommitResultVO implements Serializable {
     @JSONField(name ="out_order_id")
     private String outOrderId;
     private String openid;
-    private String path;
+    private String path = "test";
     @JSONField(name ="order_detail")
     private WxOrderDetail orderDetail;
     @JSONField(name ="delivery_detail")
-    private DeliveryDetail deliveryDetail;
+    private DeliveryDetail deliveryDetail = new DeliveryDetail();
     @JSONField(name ="address_info")
     private WxAddressInfoVO addressInfo;
 

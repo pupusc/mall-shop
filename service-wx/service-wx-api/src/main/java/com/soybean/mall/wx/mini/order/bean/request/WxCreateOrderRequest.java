@@ -15,7 +15,7 @@ public class WxCreateOrderRequest implements Serializable {
     private String outOrderId;
     private String openid;
     private String path;
-    //private Integer scene;
+    private Integer scene;
     @JSONField(name ="order_detail")
     private WxOrderDetailDTO orderDetail;
     @JSONField(name ="delivery_detail")
