@@ -2,7 +2,7 @@ package com.wanmi.sbc.open.vo;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 /**
  * @author Liang Jun
@@ -12,6 +12,6 @@ import javax.validation.constraints.NotNull;
 public class GoodsQueryReqVO extends BaseReqVO {
     private String skuNo;
     private String goodsName;
-    @NotNull
+    @NotBlank
     private BossPageVO page;
 }

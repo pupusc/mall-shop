@@ -21,12 +21,19 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
-import org.springframework.data.elasticsearch.core.query.SourceFilter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.idsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 /**
  * <p>EsGoods表动态查询条件构建器</p>
@@ -42,6 +49,16 @@ public class EsSkuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSkuPageRequest request) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+
+        //查询非赠品
+        if (Integer.valueOf(0).equals(request.getGiftFlag())) {
+            boolQb.mustNot(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
+        }
+        //查询赠品
+        if (Integer.valueOf(1).equals(request.getGiftFlag())) {
+            boolQb.must(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
+        }
+
         //批量SKU编号
         if(CollectionUtils.isNotEmpty(request.getGoodsInfoIds())){
             boolQb.must(idsQuery().addIds(request.getGoodsInfoIds().toArray(new String[]{})));

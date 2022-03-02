@@ -2,6 +2,7 @@ package com.wanmi.sbc.open.vo;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.*;
@@ -16,22 +17,22 @@ public class OrderCreateReqVO extends BaseReqVO implements Serializable {
     /**
      * 樊登读书用户id
      */
-    @NotNull
+    @NotBlank
     private String fddsUserId;
     /**
      * 外部交易编号
      */
-    @NotNull
+    @NotBlank
     private String outTradeNo;
     /**
      * 备注信息
      */
-    @NotNull
+    @NotBlank
     private String buyerRemark;
     /**
      * 收货地址
      */
-    @NotNull
+    @NotBlank
     private String consigneeAddress;
     /**
      * 收货人信息

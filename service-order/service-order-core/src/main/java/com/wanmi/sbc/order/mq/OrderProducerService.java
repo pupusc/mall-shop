@@ -282,6 +282,6 @@ public class OrderProducerService {
      * @param trade
      */
     public void sendMQForOrderDelivered(Trade trade) {
-        resolver.resolveDestination(JmsDestinationConstants.Q_ORDER_SERVICE_ORDER_DELIVERED).send(new GenericMessage<>(JSONObject.toJSONString(trade)));
+        resolver.resolveDestination(JmsDestinationConstants.Q_OPEN_ORDER_DELIVERED_PRODUCER).send(new GenericMessage<>(JSONObject.toJSONString(trade)));
     }
 }

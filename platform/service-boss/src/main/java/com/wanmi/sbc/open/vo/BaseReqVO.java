@@ -11,6 +11,11 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class BaseReqVO {
     /**
+     * 时间戳
+     */
+    @NotBlank
+    private String t;
+    /**
      * 数据签名
      */
     @NotBlank

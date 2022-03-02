@@ -137,5 +137,7 @@ public interface JmsDestinationConstants {
     /**
      * 订单发货后，发送订单发货MQ消息
      */
-    String Q_ORDER_SERVICE_ORDER_DELIVERED = "q.order.service.order.delivered";
+    String Q_OPEN_ORDER_DELIVERED_PRODUCER = "q-open-order-delivered-producer";
+
+    String Q_OPEN_ORDER_DELIVERED_CONSUMER = "q-open-order-delivered-consumer";
 }

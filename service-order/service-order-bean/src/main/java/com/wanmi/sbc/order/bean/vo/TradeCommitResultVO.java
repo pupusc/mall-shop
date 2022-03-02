@@ -85,4 +85,23 @@ public class TradeCommitResultVO {
      */
     @ApiModelProperty(value = "是否平台自营",dataType = "com.wanmi.sbc.common.enums.BoolFlag")
     private Boolean isSelf;
+
+    /**
+     * 交易金额
+     */
+    private BigDecimal originPrice;
+
+    public TradeCommitResultVO(String tid, String parentTid, TradeStateVO tradeState, PaymentOrder paymentOrder, BigDecimal price, BigDecimal totalPrice,
+                               LocalDateTime orderTimeOut, Boolean isBookingSaleGoods, String storeName, Boolean isSelf) {
+        this.tid = tid;
+        this.parentTid = parentTid;
+        this.tradeState = tradeState;
+        this.paymentOrder = paymentOrder;
+        this.price = price;
+        this.totalPrice = totalPrice;
+        this.orderTimeOut = orderTimeOut;
+        this.isBookingSaleGoods = isBookingSaleGoods;
+        this.storeName = storeName;
+        this.isSelf = isSelf;
+    }
 }

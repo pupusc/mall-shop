@@ -12,11 +12,10 @@ import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Enumerated;
 import javax.persistence.Transient;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -434,4 +433,9 @@ public class GoodsDTO implements Serializable {
      */
     @ApiModelProperty(value = "商品标签列表", hidden = true)
     private List<GoodsLabelDTO> goodsLabelList;
+
+    /**
+     * 赠品标记：0否；1是；
+     */
+    private Integer giftFlag;
 }

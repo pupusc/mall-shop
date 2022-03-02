@@ -17,7 +17,7 @@ import lombok.Data;
 import javax.persistence.Column;
 import javax.persistence.Enumerated;
 import javax.persistence.Transient;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -512,4 +512,9 @@ public class GoodsVO  implements Serializable {
         }
         return Constants.yes;
     }
+
+    /**
+     * 赠品标记：0否；1是；
+     */
+    private Integer giftFlag;
 }

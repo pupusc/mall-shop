@@ -44,8 +44,6 @@ import com.wanmi.sbc.goods.api.request.price.GoodsCustomerPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceListBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateGoodsRelaListByGoodsIdsRequest;
-import com.wanmi.sbc.goods.api.response.classify.ClassifyGoodsProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifySimpleProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
@@ -60,7 +58,6 @@ import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.StoreCateGoodsRelaVO;
 import com.wanmi.sbc.marketing.api.provider.distribution.DistributionSettingQueryProvider;
 import com.wanmi.sbc.marketing.api.request.distribution.DistributionStoreSettingListByStoreIdsRequest;
 import com.wanmi.sbc.marketing.bean.vo.DistributionStoreSettingVO;
@@ -83,7 +80,15 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -382,6 +387,7 @@ public class EsGoodsElasticService {
                     List<GoodsInfoVO> finalGoodsInfos = goodsinfos;
                     goodsList.forEach(goods -> {
                         EsGoods esGoods = new EsGoods();
+                        esGoods.setGiftFlag(goods.getGiftFlag());
                         esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
                         esGoods.setAnchorPushs(goods.getAnchorPushs());

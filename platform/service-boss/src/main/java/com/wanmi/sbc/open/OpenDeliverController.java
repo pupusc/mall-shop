@@ -1,5 +1,6 @@
 package com.wanmi.sbc.open;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayType;
@@ -9,6 +10,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -31,11 +33,12 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.sku.EsSkuQueryProvider;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.enums.GiftFlagEnum;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
-import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -59,6 +62,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
 import com.wanmi.sbc.order.api.response.open.DeliverResBO;
 import com.wanmi.sbc.order.api.response.open.OrderDeliverInfoResBO;
+import com.wanmi.sbc.order.api.response.trade.TradeAddBatchResponse;
 import com.wanmi.sbc.order.bean.dto.ConsigneeDTO;
 import com.wanmi.sbc.order.bean.dto.InvoiceDTO;
 import com.wanmi.sbc.order.bean.dto.TradeAddDTO;
@@ -66,9 +70,10 @@ import com.wanmi.sbc.order.bean.dto.TradeCreateDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
 import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
+import com.wanmi.sbc.order.bean.vo.TradeCommitResultVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
-import com.wanmi.sbc.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
@@ -96,8 +101,6 @@ import java.util.stream.Collectors;
 @RequestMapping("open/deliver")
 public class OpenDeliverController extends OpenBaseController {
     @Autowired
-    private CommonUtil commonUtil;
-    @Autowired
     private TradeProvider tradeProvider;
     @Autowired
     private EsSkuQueryProvider esSkuQueryProvider;
@@ -116,10 +119,7 @@ public class OpenDeliverController extends OpenBaseController {
     @Autowired
     private OpenDeliverProvider openDeliverProvider;
     @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
-
-    // TODO: 2022/2/16 增加赠品标记
-    // TODO: 2022/2/23 确定商家id，店铺id
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     /**
      * @description: 实物商品查询
@@ -135,11 +135,13 @@ public class OpenDeliverController extends OpenBaseController {
         Integer pageSize = Objects.nonNull(param.getPage()) && Objects.nonNull(param.getPage().getPageSize()) ? param.getPage().getPageSize() : 20;
 
         EsSkuPageRequest queryRequest = new EsSkuPageRequest();
-        queryRequest.setGoodsInfoNos(Arrays.asList(param.getSkuNo()));
+        if (StringUtils.isNotBlank(param.getSkuNo())) {
+            queryRequest.setGoodsInfoNos(Arrays.asList(param.getSkuNo()));
+        }
         queryRequest.setLikeGoodsName(param.getGoodsName());
         queryRequest.setPageNum(pageNo < 1 ? 1 : pageNo);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
-//        queryRequest.setIsGift(true); //赠品标记 TODO: 2022/2/16
+        queryRequest.setGiftFlag(GiftFlagEnum.TRUE.getCode()); //赠品标记
 
         //按创建时间倒序、ID升序
         queryRequest.putSort("addedTime", SortType.DESC.toValue());
@@ -184,23 +186,31 @@ public class OpenDeliverController extends OpenBaseController {
         checkSign();
 
         Optional<TradeItemReqVO> first = params.getTradeItems().stream().findFirst();
-        if (first.isPresent()) {
+        if (!first.isPresent()) {
             return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
         }
-        BaseResponse<GoodsByIdResponse> goodsResponse = goodsQueryProvider.getById(new GoodsByIdRequest(first.get().getSkuId()));
+
+        BaseResponse<GoodsInfoViewByIdResponse> goodsResponse = goodsInfoQueryProvider.getViewById(new GoodsInfoViewByIdRequest(first.get().getSkuId()));
         if (Objects.isNull(goodsResponse.getContext())) {
             return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
         }
-
-        //商家id
-        Long companyId = goodsResponse.getContext().getCompanyInfoId();
-        //店铺id
-        Long storeId = goodsResponse.getContext().getStoreId();
+        if (!GiftFlagEnum.TRUE.getCode().equals(goodsResponse.getContext().getGoods().getGiftFlag())) {
+            log.warn("履约中台下单的商品不是赠品类型");
+            return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
+        }
 
         log.info("第三方开始代客下单......");
-        Operator operator = commonUtil.getOperator();
+        Operator operator = Operator.builder()
+                .platform(Platform.THIRD)
+                .build();
+
+        //商家id
+        Long companyId = goodsResponse.getContext().getGoods().getCompanyInfoId();
+        //店铺id
+        Long storeId = goodsResponse.getContext().getGoods().getStoreId();
+
         CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(new CompanyInfoByIdRequest(companyId)).getContext();
-        StoreInfoResponse storeInfoResponse = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeId)).getContext();
+        StoreInfoResponse storeInfo = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeId)).getContext();
 
         //1.校验与包装订单信息-与业务员app代客下单公用
         log.info("开始校验与包装订单信息......");
@@ -233,6 +243,8 @@ public class OpenDeliverController extends OpenBaseController {
         tradeCreateParam.setSellerRemark("履约中台订单");
         tradeCreateParam.setTradePrice(TradePriceDTO.builder().special(true).privilegePrice(BigDecimal.ZERO).build());
         tradeCreateParam.setTradeItems(new ArrayList<>());
+        tradeCreateParam.setOutTradeNo(params.getOutTradeNo());
+        tradeCreateParam.setTradeMarketingList(Lists.newArrayList());
 
         if (CollectionUtils.isEmpty(params.getTradeItems())) {
             return BusinessResponse.error("参数错误：缺少商品信息");
@@ -247,7 +259,7 @@ public class OpenDeliverController extends OpenBaseController {
         TradeVO trade = tradeQueryProvider.wrapperBackendCommit(TradeWrapperBackendCommitRequest.builder()
                 .operator(operator)
                 .companyInfo(KsBeanUtil.convert(companyInfo, CompanyInfoDTO.class))
-                .storeInfo(KsBeanUtil.convert(storeInfoResponse, StoreInfoDTO.class))
+                .storeInfo(KsBeanUtil.convert(storeInfo, StoreInfoDTO.class))
                 .tradeCreate(tradeCreateParam)
                 .build()
         ).getContext().getTradeVO();
@@ -266,8 +278,22 @@ public class OpenDeliverController extends OpenBaseController {
         log.info("校验与包装订单信息结束，开始校验订单中的限售商品......");
         this.validateRestrictedGoods(tradeCreateParam.getTradeItems(), customerVO);
 
-        tradeProvider.addBatch(tradeAddBatchRequest);
-        return BusinessResponse.success();
+        BaseResponse<TradeAddBatchResponse> addResponse = tradeProvider.addBatch(tradeAddBatchRequest);
+        if (!CommonErrorCode.SUCCESSFUL.equals(addResponse.getCode())) {
+            log.info("来自三方系统订单创建失败, result = {}", JSON.toJSONString(addResponse));
+            return BusinessResponse.error(addResponse.getCode(), addResponse.getMessage());
+        }
+        if (CollectionUtils.isEmpty(addResponse.getContext().getTradeCommitResultVOS())) {
+            log.error("订单创建结果为空");
+            return BusinessResponse.success();
+        }
+
+        TradeCommitResultVO commitResult = addResponse.getContext().getTradeCommitResultVOS().stream().findFirst().get();
+        OrderCreateResVO createResVO = new OrderCreateResVO();
+        createResVO.setOrderNo(commitResult.getTid());
+        createResVO.setTotalPrice(commitResult.getPrice());
+        createResVO.setOriginPrice(commitResult.getOriginPrice());
+        return BusinessResponse.success(createResVO);
     }
 
     /**

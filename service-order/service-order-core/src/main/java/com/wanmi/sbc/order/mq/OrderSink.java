@@ -1,6 +1,5 @@
 package com.wanmi.sbc.order.mq;
 
-import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.messaging.SubscribableChannel;
@@ -70,4 +69,9 @@ public interface OrderSink {
 	@Input(JmsDestinationConstants.GROWTH_VALUE_MEMBER_EQUITY_ORDER)
 	SubscribableChannel orderGrowthValueTemp();
 
+	/**
+	 * 订单发货状态变更
+	 * */
+	@Input(JmsDestinationConstants.Q_OPEN_ORDER_DELIVERED_CONSUMER)
+	SubscribableChannel openOrderDelivered();
 }

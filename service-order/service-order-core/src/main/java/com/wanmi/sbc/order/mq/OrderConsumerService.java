@@ -165,7 +165,7 @@ public class OrderConsumerService {
     /**
      * 订单发货消息通知
      */
-    @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_ORDER_DELIVERED)
+    @StreamListener(JmsDestinationConstants.Q_OPEN_ORDER_DELIVERED_CONSUMER)
     public void onMessageForOrderDelivered(Trade trade) {
         log.info("收到发货消息通知：tradeNo = {}, outTradeNo = {}", trade.getId(), trade.getOutTradeNo());
         tradeDeliverService.onDeliveredForOutPlat(trade.getId());

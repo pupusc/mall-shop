@@ -36,8 +36,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhrasePrefixQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * 商品SKU查询请求
@@ -334,6 +340,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     private String anchorPushs;
+
+    /**
+     * 赠品标记
+     */
+    private Integer giftFlag;
+
     /**
      * 封装公共条件
      * @return
@@ -358,6 +370,15 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     public QueryBuilder getWhereCriteria() {
         String queryName = isQueryGoods ? "goodsInfos" : "goodsInfo";
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        //查询非赠品标记
+        if (Integer.valueOf(0).equals(giftFlag)) {
+            boolQueryBuilder.mustNot(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
+        }
+        //查询赠品标记
+        if (Integer.valueOf(1).equals(giftFlag)) {
+            boolQueryBuilder.must(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
+        }
 
         //批量商品ID
         if ( CollectionUtils.isNotEmpty(goodsIds)&& !isQueryGoods) {
