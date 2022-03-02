@@ -12,7 +12,9 @@ public enum WxGoodsEditStatus {
     //审核失败
     CHECK_FAILED,
     //审核成功
-    CHECK_SUCCESS;
+    CHECK_SUCCESS,
+    //取消审核
+    CHECK_CANCEL;
 
     @JsonCreator
     public static WxGoodsEditStatus fromValue(int value) {

@@ -33,6 +33,11 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     }
 
     @Override
+    public BaseResponse<WxAddProductResponse> updateGoods(WxAddProductRequest wxAddProductRequest) {
+        return BaseResponse.success(wxService.updateGoods(wxAddProductRequest));
+    }
+
+    @Override
     public BaseResponse<WxResponseBase> cancelAudit(String goodsId) {
         return BaseResponse.success(wxService.cancelAudit(goodsId));
     }
@@ -43,7 +48,7 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     }
 
     @Override
-    public BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
+    public BaseResponse<WxResponseBase> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest){
         return BaseResponse.success(wxService.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest));
     }
 

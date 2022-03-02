@@ -24,6 +24,9 @@ public interface WxGoodsApiController {
     @PostMapping("/goods/add")
     BaseResponse<WxAddProductResponse> addGoods(@RequestBody WxAddProductRequest wxAddProductRequest);
 
+    @PostMapping("/goods/update")
+    BaseResponse<WxAddProductResponse> updateGoods(@RequestBody WxAddProductRequest wxAddProductRequest);
+
     @PostMapping("/goods/cancel-audit")
     BaseResponse<WxResponseBase> cancelAudit(@RequestParam("goodsId") String goodsId);
 
@@ -31,7 +34,7 @@ public interface WxGoodsApiController {
     BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
 
     @PostMapping("/goods/update-without-audit")
-    BaseResponse<Boolean> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest);
+    BaseResponse<WxResponseBase> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest);
 
     @PostMapping("/goods/upload-image")
     BaseResponse<WxUploadImageResponse> uploadImg(@RequestBody WxUploadImageRequest wxUploadImageRequest);
