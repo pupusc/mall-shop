@@ -25,8 +25,8 @@ public class WxProductInfoVO implements Serializable {
     private Integer salePrice;
     @JSONField(name ="real_price")
     private Integer realPrice;
-    private String path;
+    private String path ="test";
     private String title;
     @JSONField(name ="head_img")
-    private String headImg;
+    private String headImg ="test.jpg";
 }
