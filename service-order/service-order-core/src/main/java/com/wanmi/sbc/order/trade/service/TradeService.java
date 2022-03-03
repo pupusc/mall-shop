@@ -6655,7 +6655,7 @@ public class TradeService {
                                     .getPayState() == PayState.PAID
                                     && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
                                 //同一批订单重复支付或过期作废，直接退款
-                                wxRefundHandle(wxPayResultResponse, businessId, -1L);
+                                wxRefundHandle(wxPayResultResponse, businessId,tradePayOnlineCallBackRequest.getStoreId());
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                                 wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
                             }
