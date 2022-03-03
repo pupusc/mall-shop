@@ -6,6 +6,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxCateNodeResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
+import java.util.Set;
 
 @RequestMapping("/wx/mini")
 @FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
@@ -30,7 +32,7 @@ public interface WxGoodsApiController {
     BaseResponse<WxResponseBase> cancelAudit(@RequestParam("goodsId") String goodsId);
 
     @PostMapping("/goods/get-all-cate")
-    BaseResponse<String> getAllCate();
+    BaseResponse<Set<WxCateNodeResponse>> getAllCate();
 
     @PostMapping("/goods/delete")
     BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);

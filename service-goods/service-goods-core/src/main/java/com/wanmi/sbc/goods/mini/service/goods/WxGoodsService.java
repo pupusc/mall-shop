@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.mini.service.goods;
 
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
@@ -217,7 +218,7 @@ public class WxGoodsService {
         return onShelfCount > 0;
     }
 
-    public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, Integer thirdCatId){
+    public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, String thirdCatId){
         WxAddProductRequest addProductRequest = new WxAddProductRequest();
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsSubtitle());
@@ -243,8 +244,8 @@ public class WxGoodsService {
             if(detailImgs.size() > 0) addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
         }
         //todo 改成变量
-//        addProductRequest.setThirdCatId(378031);
-        addProductRequest.setThirdCatId(thirdCatId);
+        String ids = JSONObject.parseObject(thirdCatId).getString("id");
+        addProductRequest.setThirdCatId(Integer.parseInt(ids.substring(ids.lastIndexOf(",") + 1)));
         addProductRequest.setBrandId(2100000000);
         addProductRequest.setInfoVersion("1");
         addProductRequest.setSkus(createSkus(goods, goodsInfos));

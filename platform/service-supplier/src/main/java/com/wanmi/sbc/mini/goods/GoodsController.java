@@ -1,6 +1,7 @@
 package com.wanmi.sbc.mini.goods;
 
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxCateNodeResponse;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -130,7 +132,7 @@ public class GoodsController {
      * @status done
      */
     @PostMapping("/getAllCate")
-    public BaseResponse<String> getAllCate(){
+    public BaseResponse<Set<WxCateNodeResponse>> getAllCate(){
         return wxGoodsApiController.getAllCate();
     }
 

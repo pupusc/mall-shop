@@ -13,5 +13,5 @@ public class WxGoodsCreateRequest {
     private String goodsId;
 
     //微信类目id
-    private Integer wxCategory;
+    private String wxCategory;
 }
