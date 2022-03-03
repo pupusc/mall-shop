@@ -7991,7 +7991,7 @@ public class TradeService {
             put("value", trade.getId());
         }});
         map.put("amount2",new HashMap<String,String>(){{
-            put("value", String.valueOf(trade.getTradePrice().getActualPrice()));
+            put("value", String.valueOf(trade.getTradePrice().getTotalPrice()));
         }});
         map.put("thing3",new HashMap<String,String>(){{
             put("value", address);
