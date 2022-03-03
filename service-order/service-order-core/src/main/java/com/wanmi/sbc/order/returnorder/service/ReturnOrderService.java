@@ -1083,15 +1083,15 @@ public class ReturnOrderService {
                 //表示部分申请，则此时最大申请金额 必须的小于 单价 * 数量
                 if (diffNum != 0) {
                     //单价
-                    BigDecimal itemUnitPrice = tradeItem.getSplitPrice().divide(new BigDecimal(tradeItem.getNum().toString()), 2, BigDecimal.ROUND_HALF_UP);
+                    BigDecimal itemUnitPrice = (tradeItem.getSplitPrice() == null ?BigDecimal.ZERO : tradeItem.getSplitPrice()).divide(new BigDecimal(tradeItem.getNum().toString()), 2, BigDecimal.ROUND_HALF_UP);
                     if (returnItem.getApplyRealPrice().compareTo(itemUnitPrice.multiply(new BigDecimal(returnItem.getNum().toString()))) > 0) {
                         throw new SbcRuntimeException("K-050456");
                     }
-                    long itemUnitPoint = tradeItem.getPoints() / tradeItem.getNum();
+                    long itemUnitPoint = (tradeItem.getPoints() == null ? 0L : tradeItem.getPoints()) / tradeItem.getNum();
                     if (returnItem.getApplyPoint() - (itemUnitPoint * tradeItem.getNum()) > 0) {
                         throw new SbcRuntimeException("K-050454");
                     }
-                    long itemUnitKnowledge = tradeItem.getKnowledge() / tradeItem.getNum();
+                    long itemUnitKnowledge = tradeItem.getKnowledge() == null ? 0L : tradeItem.getKnowledge() / tradeItem.getNum();
                     if (returnItem.getApplyKnowledge() - (itemUnitKnowledge * tradeItem.getNum()) > 0) {
                         throw new SbcRuntimeException("K-050455");
                     }
