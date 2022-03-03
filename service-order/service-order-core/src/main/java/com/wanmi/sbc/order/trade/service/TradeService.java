@@ -8009,7 +8009,7 @@ public class TradeService {
     private String filterChineseAndAlp(String str){
         String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
         if(StringUtils.isEmpty(goodsName)){
-            goodsName ="商品名称";
+            goodsName ="购买的商品";
         }
         return goodsName;
     }
