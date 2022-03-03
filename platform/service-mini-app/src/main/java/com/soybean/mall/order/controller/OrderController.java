@@ -137,8 +137,7 @@ public class OrderController {
     //@GlobalTransactional
     public BaseResponse<WxOrderPaymentVO> commit(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
         //校验是否需要完善地址信息
-        CustomerDeliveryAddressByIdResponse address = null;
-        customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
+        CustomerDeliveryAddressByIdResponse address = customerDeliveryAddressQueryProvider.getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
         if (address != null) {
             PlatformAddressVerifyRequest platformAddressVerifyRequest = new PlatformAddressVerifyRequest();
             if (Objects.nonNull(address.getProvinceId())) {
@@ -163,6 +162,9 @@ public class OrderController {
         try {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
+            DistributeChannel distributeChannel =new DistributeChannel();
+            distributeChannel.setChannelType(ChannelType.MINIAPP);
+            tradeCommitRequest.setDistributeChannel(distributeChannel);
             successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {
