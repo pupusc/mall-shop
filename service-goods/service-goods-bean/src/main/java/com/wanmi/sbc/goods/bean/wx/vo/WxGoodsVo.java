@@ -37,7 +37,7 @@ public class WxGoodsVo {
     /**
      * 微信类目id
      */
-    private Integer wxCategory;
+    private String wxCategory;
 
     /**
      * spu名字

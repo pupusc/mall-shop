@@ -1,7 +1,7 @@
 package com.soybean.mall.wx.mini.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.soybean.mall.wx.mini.common.bean.CateNode;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
@@ -11,10 +11,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRe
 import com.soybean.mall.wx.mini.goods.bean.response.*;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
-import com.soybean.mall.wx.mini.order.bean.response.WxPrePayOrderResponse;
-import com.wanmi.sbc.common.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,10 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -138,21 +132,23 @@ public class WxService {
         return wxAccessTokenResponse.getAccessToken();
     }
 
-    public String getAllCate(){
+    public Set<WxCateNodeResponse> getAllCate(){
         Object allCate = redisTemplate.opsForValue().get(GOODS_CATE_REDIS_KEY);
-        if(allCate != null) return (String) allCate;
-
+        if(allCate != null) {
+            List<WxCateNodeResponse> cateNodes = JSONArray.parseArray((String) allCate, WxCateNodeResponse.class);
+            return new HashSet<>(cateNodes);
+        }
         String url = GET_ALL_CATE_URL.concat("?access_token=").concat(getAccessToken());
         HttpEntity<String> entity = new HttpEntity<>("{}", defaultHeader);
         WxGetAllCateResponse wxGetAllCateResponse = sendRequest(url, HttpMethod.POST, entity, WxGetAllCateResponse.class);
         if(wxGetAllCateResponse.isSuccess()){
             List<WxGetAllCateResponse.WxCate> thirdCatList = wxGetAllCateResponse.getThirdCatist();
-            Set<CateNode> cateNodes = CateNode.buildCateTree(thirdCatList);
+            Set<WxCateNodeResponse> cateNodes = WxCateNodeResponse.buildCateTree(thirdCatList);
             String str = JSONObject.toJSONString(cateNodes);
             redisTemplate.opsForValue().set(GOODS_CATE_REDIS_KEY, str, 1, TimeUnit.DAYS);
-            return str;
+            return cateNodes;
         }
-        return "";
+        return Collections.emptySet();
     }
 
     private <T extends WxResponseBase> T sendRequest(String url, HttpMethod method, HttpEntity httpEntity, Class<T> clazz){

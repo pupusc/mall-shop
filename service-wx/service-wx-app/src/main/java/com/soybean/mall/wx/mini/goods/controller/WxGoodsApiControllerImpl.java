@@ -6,7 +6,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
-import com.soybean.mall.wx.mini.goods.bean.response.WxGetAllCateResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxCateNodeResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Slf4j
@@ -39,7 +36,7 @@ public class WxGoodsApiControllerImpl implements WxGoodsApiController {
     }
 
     @Override
-    public BaseResponse<String> getAllCate() {
+    public BaseResponse<Set<WxCateNodeResponse>> getAllCate() {
         return BaseResponse.success(wxService.getAllCate());
     }
 

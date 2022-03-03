@@ -37,7 +37,7 @@ public class WxGoodsModel {
 
     //微信类目id
     @Column(name = "wx_category")
-    private Integer wxCategory;
+    private String wxCategory;
 
     //是否需要审核 0-不需要审核 1-需要审核 2-需要免审 3-审核通过后需要再审(审核中的时候商品有编辑)
     @Column(name = "need_to_audit")
