@@ -158,7 +158,7 @@ public class WxService {
         log.info("响应:{}", response);
         T t = JSONObject.parseObject(response, clazz);
         if(!t.isSuccess()){
-            if(t.getErrcode() == 42001){
+            if(t.getErrcode() == 42001 | t.getErrcode() == 40001){
                 // token过期
                 redisTemplate.delete(ACCESS_TOKEN_REDIS_KEY);
             }

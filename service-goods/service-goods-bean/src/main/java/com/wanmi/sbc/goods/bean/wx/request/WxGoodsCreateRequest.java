@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.bean.wx.request;
 
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class WxGoodsCreateRequest {
 
@@ -13,5 +15,5 @@ public class WxGoodsCreateRequest {
     private String goodsId;
 
     //微信类目id
-    private String wxCategory;
+    private Map<String, String> wxCategory;
 }

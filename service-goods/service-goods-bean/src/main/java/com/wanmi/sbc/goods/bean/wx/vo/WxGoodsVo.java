@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.bean.wx.vo;
 
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class WxGoodsVo {
 
@@ -37,7 +39,7 @@ public class WxGoodsVo {
     /**
      * 微信类目id
      */
-    private String wxCategory;
+    private Map<String, String> wxCategory;
 
     /**
      * spu名字
