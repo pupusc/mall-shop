@@ -97,6 +97,7 @@ public class OrderService {
     public List<OrderCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
         // 验证用户
         CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
+        customer.setOpenId(tradeCommitRequest.getOpenId());
         tradeCommitRequest.setCustomer(customer);
         Operator operator = tradeCommitRequest.getOperator();
         //商品明细传参

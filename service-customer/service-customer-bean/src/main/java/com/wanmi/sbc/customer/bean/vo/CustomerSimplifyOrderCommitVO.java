@@ -62,4 +62,9 @@ public class CustomerSimplifyOrderCommitVO implements Serializable {
      */
     private CustomerDetailSimplifyVO customerDetail;
 
+    /**
+     * openId
+     */
+    private String openId;
+
 }
