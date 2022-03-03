@@ -7,6 +7,10 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateAfterSaleRequest;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByReturnOrderCodeAndTypeRequest;
@@ -18,19 +22,10 @@ import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MessageMQRequest;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.CompanySourceType;
-import com.wanmi.sbc.common.enums.NodeType;
-import com.wanmi.sbc.common.enums.Platform;
-import com.wanmi.sbc.common.enums.StoreType;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.enums.node.ReturnOrderProcessType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.GeneratorService;
-import com.wanmi.sbc.common.util.IteratorUtils;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.UUIDUtil;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountProvider;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -359,6 +354,12 @@ public class ReturnOrderService {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+    @Value("${wx.create.order.send.message.link.url}")
+    private String orderDetailUrl;
+
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -4019,4 +4020,32 @@ public class ReturnOrderService {
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
     }
+
+
+    /**
+     * 微信退款单
+     * @param returnOrder
+     */
+    private void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status){
+        if(!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)){
+            return;
+        }
+        WxCreateAfterSaleRequest request = new WxCreateAfterSaleRequest();
+        request.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        request.setFinishAllAftersale(1);
+        request.setOutOrderId(returnOrder.getTid());
+        request.setOutAftersaleId(returnOrder.getId());
+        request.setOpenid(returnOrder.getBuyer().getOpenId());
+        request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
+        request.setPath(orderDetailUrl+returnOrder.getTid());
+        request.setStatus(status.getId());
+        request.setRefund(returnOrder.getReturnPrice().getActualReturnPrice().multiply(new BigDecimal(100)).intValue());
+        List<WxProductDTO> products = new ArrayList<>();
+        returnOrder.getReturnItems().forEach(item->{
+            products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());
+        });
+        request.setProductInfos(products);
+        wxOrderApiController.createAfterSale(request);
+    }
+
 }
