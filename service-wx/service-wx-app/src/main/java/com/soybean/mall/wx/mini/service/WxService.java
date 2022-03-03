@@ -1,6 +1,7 @@
 package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.common.bean.CateNode;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
@@ -24,7 +25,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -32,10 +35,12 @@ import java.util.concurrent.TimeUnit;
 public class WxService {
 
     private static final String ACCESS_TOKEN_REDIS_KEY = "WX_ACCESS_TOKEN";
+    private static final String GOODS_CATE_REDIS_KEY = "WX_GOODS_CATE";
 
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     private static final String ADD_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/add";
     private static final String UPDATE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/update";
+    private static final String GET_ALL_CATE_URL = "https://api.weixin.qq.com/shop/cat/get";
     private static final String CANCEL_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/del_audit";
     private static final String DELETE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/del";
     private static final String UPDATE_PRODUCT_WITHOUT_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/update_without_audit";
@@ -131,6 +136,23 @@ public class WxService {
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
         redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), 3500, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
+    }
+
+    public String getAllCate(){
+        Object allCate = redisTemplate.opsForValue().get(GOODS_CATE_REDIS_KEY);
+        if(allCate != null) return (String) allCate;
+
+        String url = GET_ALL_CATE_URL.concat("?access_token=").concat(getAccessToken());
+        HttpEntity<String> entity = new HttpEntity<>("{}", defaultHeader);
+        WxGetAllCateResponse wxGetAllCateResponse = sendRequest(url, HttpMethod.POST, entity, WxGetAllCateResponse.class);
+        if(wxGetAllCateResponse.isSuccess()){
+            List<WxGetAllCateResponse.WxCate> thirdCatList = wxGetAllCateResponse.getThirdCatist();
+            Set<CateNode> cateNodes = CateNode.buildCateTree(thirdCatList);
+            String str = JSONObject.toJSONString(cateNodes);
+            redisTemplate.opsForValue().set(GOODS_CATE_REDIS_KEY, str, 1, TimeUnit.DAYS);
+            return str;
+        }
+        return "";
     }
 
     private <T extends WxResponseBase> T sendRequest(String url, HttpMethod method, HttpEntity httpEntity, Class<T> clazz){

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RequestMapping("/wx/mini")
@@ -29,6 +28,9 @@ public interface WxGoodsApiController {
 
     @PostMapping("/goods/cancel-audit")
     BaseResponse<WxResponseBase> cancelAudit(@RequestParam("goodsId") String goodsId);
+
+    @PostMapping("/goods/get-all-cate")
+    BaseResponse<String> getAllCate();
 
     @PostMapping("/goods/delete")
     BaseResponse<Boolean> deleteGoods(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);

@@ -125,6 +125,16 @@ public class GoodsController {
     }
 
     /**
+     * @description 获取所有类目
+     * @menu 小程序
+     * @status done
+     */
+    @PostMapping("/getAllCate")
+    public BaseResponse<String> getAllCate(){
+        return wxGoodsApiController.getAllCate();
+    }
+
+    /**
      * @description 更新直播商品
      * @param wxGoodsCreateRequest
      * @menu 小程序
