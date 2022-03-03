@@ -56,7 +56,7 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
                 wxGoodsVo.setStatus(wxGoodsModel.getStatus().toValue());
                 wxGoodsVo.setSaleStatus(wxGoodsModel.getPlatformProductId() == null ? 0 : 1);
                 wxGoodsVo.setWxCategory(wxGoodsModel.getWxCategory() != null ? JSONObject.parseObject(wxGoodsModel.getWxCategory(), Map.class) : null);
-                wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime().format(df));
+                wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime() == null ? null : wxGoodsModel.getUploadTime().format(df));
                 wxGoodsVo.setCreateTime(wxGoodsModel.getCreateTime().format(df));
                 if(collect != null){
                     List<Goods> goodsList = collect.get(wxGoodsModel.getGoodsId());
