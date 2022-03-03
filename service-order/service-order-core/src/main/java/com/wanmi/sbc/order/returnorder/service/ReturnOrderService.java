@@ -175,6 +175,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -182,6 +183,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.session.StoreType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -1047,9 +1049,10 @@ public class ReturnOrderService {
                 BigDecimal surplusPrice = BigDecimal.ZERO;
                 TradeItemSimpleVO tradeItemSimpleVO = skuId2TradeItemSimpleMap.get(returnItem.getSkuId());
                 if (tradeItemSimpleVO != null) {
-                    surplusPoint = tradeItemSimpleVO.getPoints() - tradeItemSimpleVO.getReturnIngPoint() - tradeItemSimpleVO.getReturnCompletePoint();
-                    surplusKnowLedge = tradeItemSimpleVO.getKnowledge() - tradeItemSimpleVO.getReturnIngKnowledge() - tradeItemSimpleVO.getReturnCompleteKnowledge();
-                    surplusPrice = new BigDecimal(tradeItemSimpleVO.getPrice()).subtract(new BigDecimal(tradeItemSimpleVO.getReturnIngPrice())).subtract(new BigDecimal(tradeItemSimpleVO.getReturnCompletePrice()));
+                    surplusPoint = (tradeItemSimpleVO.getPoints() == null ? 0 : tradeItemSimpleVO.getPoints()) - tradeItemSimpleVO.getReturnIngPoint() - tradeItemSimpleVO.getReturnCompletePoint();
+                    surplusKnowLedge = (tradeItemSimpleVO.getKnowledge() == null ? 0 : tradeItemSimpleVO.getKnowledge()) - tradeItemSimpleVO.getReturnIngKnowledge() - tradeItemSimpleVO.getReturnCompleteKnowledge();
+                    BigDecimal price = tradeItemSimpleVO.getPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getPrice().toString());
+                    surplusPrice = price.subtract(new BigDecimal(tradeItemSimpleVO.getReturnIngPrice())).subtract(new BigDecimal(tradeItemSimpleVO.getReturnCompletePrice()));
                     surplusNum = tradeItemSimpleVO.getNum().intValue() - tradeItemSimpleVO.getReturnIngNum() - tradeItemSimpleVO.getReturnCompleteNum();
                 }
 
