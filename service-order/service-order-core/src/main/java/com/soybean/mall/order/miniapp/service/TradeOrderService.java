@@ -1,5 +1,7 @@
 package com.soybean.mall.order.miniapp.service;
 
+import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
+import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
@@ -20,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -27,10 +30,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,6 +51,15 @@ public class TradeOrderService {
 
     @Autowired
     private TradeRepository tradeRepository;
+
+    @Value("${wx.order.delivery.send.message.templateId}")
+    private String orderDeliveryMsgTemplateId;
+
+    @Value("${wx.create.order.send.message.link.url}")
+    private String createOrderSendMsgLinkUrl;
+
+    @Autowired
+    private CommonController wxCommonController;
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -159,5 +168,43 @@ public class TradeOrderService {
         }
         trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
         tradeRepository.save(trade);
+        sendWxDeliveryMessage(trade);
+    }
+
+
+    private BaseResponse<WxResponseBase> sendWxDeliveryMessage(Trade trade){
+        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return null;
+        }
+        WxSendMessageRequest request =new WxSendMessageRequest();
+        request.setOpenId(trade.getBuyer().getOpenId());
+        request.setTemplateId(orderDeliveryMsgTemplateId);
+        request.setUrl(createOrderSendMsgLinkUrl);
+        Map<String, Map<String,String>> map = new HashMap<>();
+       map.put("character_string1",new HashMap<String,String>(){{
+            put("value", trade.getId());
+        }});
+        map.put("thing2",new HashMap<String,String>(){{
+            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
+        }});
+        map.put("phrase3",new HashMap<String,String>(){{
+            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticCompanyName());
+        }});
+        map.put("character_string4",new HashMap<String,String>(){{
+            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticNo());
+        }});
+        map.put("thing9",new HashMap<String,String>(){{
+            put("value", "");
+        }});
+        request.setData(map);
+        return wxCommonController.sendMessage(request);
+    }
+
+    private String filterChineseAndAlp(String str){
+        String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
+        if(StringUtils.isEmpty(goodsName)){
+            goodsName ="购买的商品";
+        }
+        return goodsName;
     }
 }
