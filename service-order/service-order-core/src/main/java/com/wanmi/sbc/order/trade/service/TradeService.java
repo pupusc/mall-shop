@@ -7978,6 +7978,9 @@ public class TradeService {
     }
 
     private BaseResponse<WxResponseBase> sendWxCreateOrderMessage(Trade trade){
+        if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return null;
+        }
         WxSendMessageRequest request =new WxSendMessageRequest();
         request.setOpenId(trade.getBuyer().getOpenId());
         request.setTemplateId(createOrderSendMsgTemplateId);

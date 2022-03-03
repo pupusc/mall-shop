@@ -82,6 +82,7 @@ public class Buyer implements Serializable {
             b.setLevelName(commonLevelVO.getLevelName());
         }
         b.setCustomerFlag(customerFlag);
+        b.setOpenId(customer.getOpenId());
         return b;
     }
 
