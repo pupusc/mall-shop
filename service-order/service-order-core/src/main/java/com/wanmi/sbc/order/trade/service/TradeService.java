@@ -7986,6 +7986,7 @@ public class TradeService {
         request.setTemplateId(createOrderSendMsgTemplateId);
         request.setUrl(createOrderSendMsgLinkUrl);
         Map<String,Map<String,String>> map = new HashMap<>();
+        String address =StringUtils.isNotEmpty(trade.getConsignee().getDetailAddress()) && trade.getConsignee().getDetailAddress().length()>20?trade.getConsignee().getDetailAddress().substring(0,20):trade.getConsignee().getDetailAddress();
         map.put("character_string1",new HashMap<String,String>(){{
             put("value", trade.getId());
         }});
@@ -7993,15 +7994,23 @@ public class TradeService {
             put("value", String.valueOf(trade.getTradePrice().getActualPrice()));
         }});
         map.put("thing3",new HashMap<String,String>(){{
-            put("value", trade.getConsignee().getDetailAddress());
+            put("value", address);
         }});
         map.put("name4",new HashMap<String,String>(){{
-            put("value", trade.getTradeItems().get(0).getSpuName());
+            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
         }});
         map.put("phrase5",new HashMap<String,String>(){{
             put("value", "待发货");
         }});
         request.setData(map);
         return wxCommonController.sendMessage(request);
+    }
+
+    private String filterChineseAndAlp(String str){
+        String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
+        if(StringUtils.isEmpty(goodsName)){
+            goodsName ="商品名称";
+        }
+        return goodsName;
     }
 }
