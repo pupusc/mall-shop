@@ -1138,12 +1138,11 @@ public class ReturnOrderService {
         }
 
         //如果当前为退差价或者运费，订单为作废，同时订单进行扭转为完成状态；
+        log.info("returnOrderService  tid:{} returnOrder.getReturnReason() :{} flowState:{}", trade.getId(), returnOrder.getReturnReason(), trade.getTradeState().getFlowState());
         if ((returnOrder.getReturnReason() == ReturnReason.PRICE_DELIVERY
                 || returnOrder.getReturnReason() == ReturnReason.PRICE_DIFF) && FlowState.VOID.equals(trade.getTradeState().getFlowState())) {
             //如果订单状态为作废，则进行扭转
             tradeService.reverse(returnOrder.getTid(), operator, TradeEvent.REVERSE_RETURN);
-        } else {
-            throw new SbcRuntimeException("K-050458");
         }
 
         //退款
