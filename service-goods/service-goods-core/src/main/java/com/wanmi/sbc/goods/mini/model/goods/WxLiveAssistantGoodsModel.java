@@ -41,6 +41,12 @@ public class WxLiveAssistantGoodsModel {
     @Column(name = "old_goods_info")
     private String oldGoodsInfo;
 
+    /**
+     * 添加助手前的库存同步标识，直播结束后恢复原值
+     */
+    @Column(name = "olf_sync_stock_flag")
+    private String olfSyncStockFlag;
+
     //创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "create_time")

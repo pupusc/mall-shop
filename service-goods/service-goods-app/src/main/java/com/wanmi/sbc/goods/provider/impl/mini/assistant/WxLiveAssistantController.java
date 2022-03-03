@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.mini.assistant;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
@@ -35,7 +36,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     private GoodsInfoService goodsInfoService;
 
     @Override
-    public BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> add(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest) {
+    public BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest) {
         Page<WxLiveAssistantGoodsModel> wxLiveAssistantGoodsPage = wxLiveAssistantService.listGoods(wxLiveAssistantSearchRequest);
         List<WxLiveAssistantGoodsModel> content = wxLiveAssistantGoodsPage.getContent();
 
@@ -45,7 +46,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             List<Goods> goodsList = goodsService.listByGoodsIds(goodsIds);
             Map<String, List<Goods>> goodsMap = goodsList.stream().collect(Collectors.groupingBy(Goods::getGoodsId));
 
-            List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIds).build());
+            List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIds).delFlag(DeleteFlag.NO.toValue()).build());
             Map<String, List<GoodsInfo>> goodsInfoMap = goodsInfoList.stream().collect(Collectors.groupingBy(GoodsInfo::getGoodsId));
 
             microServicePage.setTotal(wxLiveAssistantGoodsPage.getTotalElements());

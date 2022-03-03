@@ -10,5 +10,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface WxLiveAssistantProvider {
 
     @PostMapping("/wx/assistang/${application.goods.version}/list")
-    BaseResponse add(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
+    BaseResponse listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
 }
