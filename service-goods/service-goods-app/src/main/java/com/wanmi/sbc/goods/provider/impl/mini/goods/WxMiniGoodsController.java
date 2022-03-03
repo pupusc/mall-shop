@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.mini.goods;
 
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -54,6 +55,7 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
                 wxGoodsVo.setAuditStatus(wxGoodsModel.getAuditStatus().toValue());
                 wxGoodsVo.setStatus(wxGoodsModel.getStatus().toValue());
                 wxGoodsVo.setSaleStatus(wxGoodsModel.getPlatformProductId() == null ? 0 : 1);
+                wxGoodsVo.setWxCategory(wxGoodsModel.getWxCategory() != null ? JSONObject.parseObject(wxGoodsModel.getWxCategory(), Map.class) : null);
                 wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime().format(df));
                 wxGoodsVo.setCreateTime(wxGoodsModel.getCreateTime().format(df));
                 if(collect != null){

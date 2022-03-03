@@ -28,8 +28,9 @@ import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,9 +41,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@RefreshScope
 @Service
 @Slf4j
 public class WxGoodsService {
+
+
+    @Value("${wx.mini.license:}")
+    private String license;
 
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
@@ -74,7 +80,6 @@ public class WxGoodsService {
             wxGoodsModel.setGoodsId(goodsId);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.WAIT_CHECK);
-            wxGoodsModel.setUploadTime(now);
             wxGoodsModel.setCreateTime(now);
             wxGoodsModel.setUpdateTime(now);
             wxGoodsModel.setNeedToAudit(1);
@@ -115,6 +120,7 @@ public class WxGoodsService {
                 if(!baseResponse.getContext().isSuccess()){
                     throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
                 }
+                wxGoodsModel.setUploadTime(LocalDateTime.now());
                 wxGoodsModel.setAuditStatus(WxGoodsEditStatus.ON_CHECK);
                 wxGoodsRepository.save(wxGoodsModel);
             }else if(auditStatus.equals(WxGoodsEditStatus.ON_CHECK)){
@@ -126,6 +132,7 @@ public class WxGoodsService {
                 if(!baseResponse.getContext().isSuccess()){
                     throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
                 }
+                wxGoodsModel.setUploadTime(LocalDateTime.now());
                 wxGoodsModel.setAuditStatus(WxGoodsEditStatus.ON_CHECK);
                 wxGoodsRepository.save(wxGoodsModel);
             }
@@ -135,6 +142,7 @@ public class WxGoodsService {
             if(!baseResponse.getContext().isSuccess()){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
             }
+            wxGoodsModel.setUploadTime(LocalDateTime.now());
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
             wxGoodsRepository.save(wxGoodsModel);
         }
@@ -145,7 +153,7 @@ public class WxGoodsService {
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
 
         if(createRequest.getWxCategory() != null){
-            wxGoodsModel.setWxCategory(createRequest.getWxCategory());
+            wxGoodsModel.setWxCategory(JSONObject.toJSONString(createRequest.getWxCategory()));
             wxGoodsModel.setNeedToAudit(1);
         }
         wxGoodsRepository.save(wxGoodsModel);
@@ -225,7 +233,7 @@ public class WxGoodsService {
         addProductRequest.setPath("http://www.baidu.com");
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
 //        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));
-//        addProductRequest.setQualificationics(Collections.singletonList(goods.getGoodsImg()));
+        addProductRequest.setQualificationics(Collections.singletonList(license));
         //商品详情截取图片
         String detail = goods.getGoodsMobileDetail();
         if(detail != null){
