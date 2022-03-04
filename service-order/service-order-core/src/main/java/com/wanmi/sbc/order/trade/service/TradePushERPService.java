@@ -59,6 +59,7 @@ import com.wanmi.sbc.setting.bean.vo.ErpLogisticsMappingVO;
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -1160,6 +1161,9 @@ public class TradePushERPService {
                         DeliveryItemVO deliveryItemVO = deliveryItemVOOptional.get();
 //                        tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
                         tradeItem.setDeliveredNum(tradeItem.getDeliveredNum() + deliveryItemVO.getQty());
+                        if (tradeItem.getProviderId().equals(bookuuProviderId)) { //博库定义
+                            tradeItem.setDeliveredNum(deliveryItemVO.getQty());
+                        }
                         //更改商品的发货状态
                         if (tradeItem.getDeliveredNum() < tradeItem.getNum() && tradeItem.getDeliveredNum() > 0) {
                             tradeItem.setDeliverStatus(DeliverStatus.PART_SHIPPED);
