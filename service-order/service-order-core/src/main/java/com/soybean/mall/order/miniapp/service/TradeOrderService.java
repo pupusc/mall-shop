@@ -7,9 +7,12 @@ import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -32,6 +35,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +69,8 @@ public class TradeOrderService {
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
+
+    private
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -230,6 +236,25 @@ public class TradeOrderService {
             return optional.get().getLogisticCode();
         }
         return "OTHERS";
+
+    }
+
+    public void createWxOrderAndPay(String tid){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
+        if(trade == null){
+            throw new SbcRuntimeException("");
+        }
+        //先创建订单
+
+        //支付同步
+        WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
+        wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());
+        wxOrderPayRequest.setOutOrderId(trade.getId());
+        wxOrderPayRequest.setActionId(1);
+        wxOrderPayRequest.setPayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        wxOrderPayRequest.setTransactionId(trade.getId());
+        BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
+
 
     }
 }
