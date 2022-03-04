@@ -1,5 +1,7 @@
 package com.wanmi.sbc.callback.handler;
 
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ public class ProductAuditCallbackHandler implements CallbackHandler {
 
     @Autowired
     private WxMiniGoodsProvider wxMiniGoodsProvider;
+    @Autowired
+    private EsGoodsStockProvider esGoodsStockProvider;
 
     @Override
     public boolean support(String eventType) {
@@ -21,6 +25,11 @@ public class ProductAuditCallbackHandler implements CallbackHandler {
 
     @Override
     public void handle(Map<String, Object> paramMap) {
-        wxMiniGoodsProvider.auditCallback(paramMap);
+        BaseResponse<Boolean> response = wxMiniGoodsProvider.auditCallback(paramMap);
+        if(response.getContext()){
+            Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
+            String goodsId = auditResult.get("out_product_id");
+            esGoodsStockProvider.updateWxAuditStatus(goodsId);
+        }
     }
 }

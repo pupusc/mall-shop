@@ -28,6 +28,7 @@ import com.wanmi.sbc.goods.mini.model.review.WxReviewLogModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.review.WxReviewLogRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -45,7 +46,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class WxGoodsService {
-
 
     @Value("${wx.mini.license:}")
     private String license;
@@ -107,7 +107,8 @@ public class WxGoodsService {
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
-        if(wxGoodsModel.getWxCategory() == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请填写微信商品类目");
+        if(wxGoodsModel.getWxCategory() == null || wxGoodsModel.getIsbnImg() == null || wxGoodsModel.getPublisherImg() == null)
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品类目、ISBN图、出版社图必填");
         if(wxGoodsModel.getNeedToAudit() == 0) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品无需审核");
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
@@ -116,7 +117,7 @@ public class WxGoodsService {
             WxGoodsEditStatus auditStatus = wxGoodsModel.getAuditStatus();
             if(auditStatus.equals(WxGoodsEditStatus.WAIT_CHECK)){
                 //初次提审
-                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel.getWxCategory()));
+                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.addGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel));
                 if(!baseResponse.getContext().isSuccess()){
                     throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
                 }
@@ -128,7 +129,7 @@ public class WxGoodsService {
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品正在审核中");
             }else if(auditStatus.equals(WxGoodsEditStatus.CHECK_FAILED) || auditStatus.equals(WxGoodsEditStatus.CHECK_CANCEL)){
                 //更新商品,重新提审
-                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.updateGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel.getWxCategory()));
+                BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.updateGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel));
                 if(!baseResponse.getContext().isSuccess()){
                     throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
                 }
@@ -174,7 +175,7 @@ public class WxGoodsService {
     }
 
     @Transactional
-    public void auditCallback(Map<String, Object> paramMap){
+    public boolean auditCallback(Map<String, Object> paramMap){
         Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
         String wxStatus = auditResult.get("status");
         String goodsId = auditResult.get("out_product_id");
@@ -200,6 +201,8 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewResult(WxReviewResult.SUCCESS);
             wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
+
+            return true;
         }else if("3".equals(wxStatus)){
             //失败
             String rejectReason = auditResult.get("reject_reason");
@@ -218,7 +221,9 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewResult(WxReviewResult.FAILED);
             wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
+            return false;
         }
+        return false;
     }
 
     private boolean goodsExist(String goodsId){
@@ -226,16 +231,24 @@ public class WxGoodsService {
         return onShelfCount > 0;
     }
 
-    public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, String thirdCatId){
+    public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, WxGoodsModel wxGoodsModel){
         WxAddProductRequest addProductRequest = new WxAddProductRequest();
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsSubtitle());
         addProductRequest.setPath("http://www.baidu.com");
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
 //        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));
-        addProductRequest.setQualificationics(Collections.singletonList(license));
+        List<String> qualificationics = new ArrayList<>();
+        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
+        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
+        addProductRequest.setQualificationics(qualificationics);
         //商品详情截取图片
-        String detail = goods.getGoodsMobileDetail();
+        String detail;
+        if(StringUtils.isNotEmpty(goods.getGoodsMobileDetail())){
+            detail = goods.getGoodsMobileDetail();
+        }else {
+            detail = goods.getGoodsDetail();
+        }
         if(detail != null){
             List<String> detailImgs = new ArrayList<>();
             String[] split = detail.split("<img");
@@ -252,7 +265,7 @@ public class WxGoodsService {
             if(detailImgs.size() > 0) addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
         }
         //todo 改成变量
-        String ids = JSONObject.parseObject(thirdCatId).getString("id");
+        String ids = JSONObject.parseObject(wxGoodsModel.getWxCategory()).getString("id");
         addProductRequest.setThirdCatId(Integer.parseInt(ids.substring(ids.lastIndexOf(",") + 1)));
         addProductRequest.setBrandId(2100000000);
         addProductRequest.setInfoVersion("1");

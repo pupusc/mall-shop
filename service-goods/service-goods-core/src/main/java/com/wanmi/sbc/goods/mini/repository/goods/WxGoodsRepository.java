@@ -33,15 +33,15 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
             if (wxGoodsSearchRequest.getAuditStatus() != null) {
                 conditionList.add(criteriaBuilder.equal(root.get("auditStatus").as(Integer.class), wxGoodsSearchRequest.getAuditStatus()));
             }
-            if (wxGoodsSearchRequest.getSaleStatus() != null) {
-                if(wxGoodsSearchRequest.getSaleStatus() == 0){
-                    //不可售
-                    conditionList.add(criteriaBuilder.isNull(root.get("platformProductId")));
-                }else if(wxGoodsSearchRequest.getSaleStatus() == 1){
-                    //可售
-                    conditionList.add(criteriaBuilder.isNotNull(root.get("platformProductId")));
-                }
-            }
+//            if (wxGoodsSearchRequest.getSaleStatus() != null) {
+//                if(wxGoodsSearchRequest.getSaleStatus() == 0){
+//                    //不可售
+//                    conditionList.add(criteriaBuilder.isNull(root.get("platformProductId")));
+//                }else if(wxGoodsSearchRequest.getSaleStatus() == 1){
+//                    //可售
+//                    conditionList.add(criteriaBuilder.isNotNull(root.get("platformProductId")));
+//                }
+//            }
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
     }

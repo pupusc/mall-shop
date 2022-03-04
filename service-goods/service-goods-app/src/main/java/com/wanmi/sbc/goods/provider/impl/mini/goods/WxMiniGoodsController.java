@@ -62,6 +62,7 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
                     List<Goods> goodsList = collect.get(wxGoodsModel.getGoodsId());
                     if(goodsList != null){
                         Goods goods = goodsList.get(0);
+                        wxGoodsVo.setGoodsNo(goods.getGoodsNo());
                         wxGoodsVo.setGoodsName(goods.getGoodsName());
                         wxGoodsVo.setGoodsImg(goods.getGoodsImg());
                         wxGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice() != null ? goods.getSkuMinMarketPrice().toString() : "0");
@@ -105,10 +106,8 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
     }
 
     @Override
-    public BaseResponse auditCallback(Map<String, Object> paramMap) {
-        wxGoodsService.auditCallback(paramMap);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<Boolean> auditCallback(Map<String, Object> paramMap) {
+        return BaseResponse.success(wxGoodsService.auditCallback(paramMap));
     }
-
 
 }

@@ -51,11 +51,12 @@ public class GoodsController {
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
         List<EsGoodsVO> esGoodsVOS = null;
-        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())){
+        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName()) || wxGoodsSearchRequest.getSaleStatus() != null){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
             queryRequest.setPageSize(50);
-            queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
+            if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())) queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
+            if(wxGoodsSearchRequest.getSaleStatus() != null) queryRequest.setSaleStatus(wxGoodsSearchRequest.getSaleStatus());
             queryRequest.setQueryGoods(true);
             queryRequest.setAddedFlag(AddedFlag.YES.toValue());
             queryRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -81,6 +82,7 @@ public class GoodsController {
                 if(esGoodsVOSList != null){
                     EsGoodsVO esGoodsVO = esGoodsVOSList.get(0);
                     try {
+                        wxGoodsVo.setGoodsNo(esGoodsVO.getGoodsNo());
                         wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
                         wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsInfos().get(0).getGoodsInfoImg());
                         wxGoodsVo.setMarketPrice(esGoodsVO.getEsSortPrice().toString());

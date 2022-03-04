@@ -605,6 +605,10 @@ curl -H "Content-Type:application/json" -X PUT "http://localhost:9200/es_goods/e
             {
                 "type": "long"
             },
+            "wxAudit":
+            {
+                "type": "integer"
+            },
             "goodsExtProps": {
                 "properties": {
                   "author": {

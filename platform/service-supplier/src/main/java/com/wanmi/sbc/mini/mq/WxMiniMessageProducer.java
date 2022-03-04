@@ -1,7 +1,7 @@
-package com.wanmi.sbc.goods.mini.mq;
+package com.wanmi.sbc.mini.mq;
 
-import com.wanmi.sbc.goods.mini.mq.bean.WxLiveAssistantMessageData;
-import com.wanmi.sbc.goods.mini.mq.config.WxLiveMessageSink;
+import com.wanmi.sbc.mini.mq.bean.WxLiveAssistantMessageData;
+import com.wanmi.sbc.mini.mq.config.WxLiveMessageSink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binding.BinderAwareChannelResolver;

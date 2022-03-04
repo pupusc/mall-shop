@@ -46,6 +46,9 @@ public class EsSpuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        if(request.getWxAudit() != null){
+            boolQb.mustNot(QueryBuilders.termQuery("wxAudit", 1));
+        }
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
             boolQb.must(idsQuery().addIds(request.getGoodsIds().toArray(new String[]{})));

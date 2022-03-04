@@ -83,6 +83,11 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     private String matchGoodsName;
 
     /**
+     * 微信审核状态
+     */
+    private Integer saleStatus;
+
+    /**
      * 上下架状态
      */
     @ApiModelProperty(value = "上下架状态")
@@ -362,6 +367,25 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         //批量商品ID
+        if (saleStatus != null) {
+            if(saleStatus == 0){
+                //不可售
+                BoolQueryBuilder boolQueryBuilder1 = QueryBuilders.boolQuery();
+                boolQueryBuilder1.mustNot(termQuery(queryName.concat("wxAudit"), 1));
+                boolQueryBuilder1.mustNot(termQuery(queryName.concat("addedFlag"), 1));
+                boolQueryBuilder.should(boolQueryBuilder1);
+            }else if(saleStatus == 1){
+                //可售
+                boolQueryBuilder.must(termQuery(queryName.concat("wxAudit"), 1));
+                boolQueryBuilder.must(termQuery(queryName.concat("addedFlag"), 1));
+            }
+        }
+
+        if (StringUtils.isNotBlank(matchGoodsName)) {
+            boolQueryBuilder.must(matchQuery("lowGoodsName", matchGoodsName));
+        }
+
+        //批量商品ID
         if ( CollectionUtils.isNotEmpty(goodsIds)&& !isQueryGoods) {
             boolQueryBuilder.must(termsQuery(queryName.concat(".goodsId"), goodsIds));
         }
@@ -403,10 +427,6 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             boolQueryBuilder
                     //.should(matchQuery(queryName.concat(".goodsInfoName"),likeGoodsName))
                     .must(matchPhraseQuery("lowGoodsName", likeGoodsName));
-        }
-
-        if (StringUtils.isNotBlank(matchGoodsName)) {
-            boolQueryBuilder.must(matchQuery("lowGoodsName", matchGoodsName));
         }
 
         String labelVisibleField = "goodsLabelList.labelVisible";

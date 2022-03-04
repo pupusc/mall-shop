@@ -35,5 +35,5 @@ public interface WxMiniGoodsProvider {
     BaseResponse delete(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
 
     @PostMapping("/${application.goods.version}/wx/audit/callback")
-    BaseResponse auditCallback(@RequestBody Map<String, Object> paramMap);
+    BaseResponse<Boolean> auditCallback(@RequestBody Map<String, Object> paramMap);
 }

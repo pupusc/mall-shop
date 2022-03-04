@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.mini.mq.config;
+package com.wanmi.sbc.mini.mq.config;
 
 import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.messaging.SubscribableChannel;
