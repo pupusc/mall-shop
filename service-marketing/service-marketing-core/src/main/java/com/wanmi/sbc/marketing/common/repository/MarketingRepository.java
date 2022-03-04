@@ -34,6 +34,31 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
             , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
             , @Param("excludeId") Long excludeId);
 
+
+    /**
+     * 容器临时处理，后续要更改 todo
+     * @param skuIds
+     * @param marketingType
+     * @param startTime
+     * @param endTime
+     * @param storeId
+     * @param excludeId
+     * @return
+     */
+    @Query("select s.scopeId from Marketing m left join m.marketingScopeList s " +
+            "where m.delFlag = 0 and m.marketingType = :marketingType and m.storeId = :storeId and s.scopeId in :skuIds " +
+            "and not(m.beginTime > :endTime or m.endTime < :startTime)")
+    List<String> getExistsSkuByMarketingTypeRongQi(@Param("skuIds") List<String> skuIds, @Param("marketingType") MarketingType marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId);
+
+    @Query("select s.scopeId from Marketing m left join m.marketingScopeList s " +
+            "where m.delFlag = 0 and m.marketingType = :marketingType and m.storeId = :storeId and s.scopeId in :skuIds " +
+            "and not(m.beginTime > :endTime or m.endTime < :startTime) and m.marketingId <> :excludeId")
+    List<String> getExistsSkuByMarketingTypeRongQi(@Param("skuIds") List<String> skuIds, @Param("marketingType") MarketingType marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
+            , @Param("excludeId") Long excludeId);
+
+
     /**
      * 获取重复的换购skuIds
      * @param
