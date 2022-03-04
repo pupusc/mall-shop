@@ -27,7 +27,7 @@ public interface MiniAppOrderProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/trade/create-wx-order-and-pay")
-    BaseResponse createWxOrderAndPay(@RequestBody WxCreateOrderRequest request);
+    BaseResponse createWxOrderAndPay(@RequestBody CreateWxOrderAndPayRequest request);
 
 
 

@@ -6,8 +6,10 @@ import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -70,7 +72,6 @@ public class TradeOrderService {
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
 
-    private
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -239,13 +240,13 @@ public class TradeOrderService {
 
     }
 
-    public void createWxOrderAndPay(String tid){
-        Trade trade = tradeRepository.findById(tid).orElse(null);
+    public void createWxOrderAndPay(WxCreateOrderRequest request){
+        Trade trade = tradeRepository.findById(request.getOutOrderId()).orElse(null);
         if(trade == null){
             throw new SbcRuntimeException("");
         }
         //先创建订单
-
+        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(request);
         //支付同步
         WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
         wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());

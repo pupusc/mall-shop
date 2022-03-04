@@ -2,6 +2,8 @@ package com.soybean.mall.order.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
+import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -112,6 +114,9 @@ public class OrderController {
 
     @Autowired
     private TradeProvider tradeProvider;
+
+    @Autowired
+    private MiniAppOrderProvider miniAppOrderProvider;
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -393,8 +398,9 @@ public class OrderController {
     @ApiOperation("0元订单批量支付（支付网关默认为银联）")
     @GlobalTransactional
     @RequestMapping("/default")
-    public BaseResponse defaultPayBatch(@RequestBody @Valid DefaultPayBatchRequest request) {
-        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY));
+    public BaseResponse defaultPay(@RequestBody  CreateWxOrderAndPayRequest request) {
+        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(request.getOutOrderId()), PayWay.UNIONPAY));
+        miniAppOrderProvider.createWxOrderAndPay(request);
         return BaseResponse.SUCCESSFUL();
     }
 
