@@ -825,14 +825,5 @@ public class TradeController implements TradeProvider {
     }
 
 
-    /**
-     * 同步订单到微信
-     * @param request
-     * @return
-     */
-    @Override
-    public BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request) {
-        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid());
-        return BaseResponse.SUCCESSFUL();
-    }
+
 }

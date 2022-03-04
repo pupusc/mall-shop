@@ -2,6 +2,8 @@ package com.soybean.mall.order.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
+import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -11,6 +13,7 @@ import com.soybean.mall.vo.WxProductInfoVO;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
+import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.DistributeChannel;
@@ -42,6 +45,7 @@ import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterR
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
@@ -54,6 +58,7 @@ import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryPr
 import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressVerifyRequest;
 import com.wanmi.sbc.setting.api.response.MiniProgramSetGetResponse;
 import com.wanmi.sbc.trade.PayServiceHelper;
+import com.wanmi.sbc.trade.request.DefaultPayBatchRequest;
 import com.wanmi.sbc.util.CommonUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
@@ -109,6 +114,9 @@ public class OrderController {
 
     @Autowired
     private TradeProvider tradeProvider;
+
+    @Autowired
+    private MiniAppOrderProvider miniAppOrderProvider;
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -378,6 +386,22 @@ public class OrderController {
             tradePrice.setVipDiscountPrice(originalPrice.subtract(buyItemPrice));
         });
         return tradePrice;
+    }
+
+
+    /**
+     * 0元订单批量支付（支付网关默认为银联）
+     *
+     * @param request 请求参数
+     * @return {@link BaseResponse}
+     */
+    @ApiOperation("0元订单批量支付（支付网关默认为银联）")
+    @GlobalTransactional
+    @RequestMapping("/default")
+    public BaseResponse defaultPay(@RequestBody  CreateWxOrderAndPayRequest request) {
+        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(request.getOutOrderId()), PayWay.UNIONPAY));
+        miniAppOrderProvider.createWxOrderAndPay(request);
+        return BaseResponse.SUCCESSFUL();
     }
 
 }

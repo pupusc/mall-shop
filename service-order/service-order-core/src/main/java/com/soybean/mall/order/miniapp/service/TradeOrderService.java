@@ -1,13 +1,20 @@
 package com.soybean.mall.order.miniapp.service;
 
+import com.alibaba.fastjson.JSON;
+import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -30,6 +37,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,6 +68,10 @@ public class TradeOrderService {
 
     @Autowired
     private CommonController wxCommonController;
+
+    @Value("${wx.logistics}")
+    private String wxLogisticsStr;
+
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -147,7 +159,7 @@ public class TradeOrderService {
         List<WxDeliverySendRequest.WxDeliveryInfo>  deliveryInfos = new ArrayList<>();
         unSyncDelivery.forEach(delivery->{
             WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
-            deliveryInfo.setDeliveryId(delivery.getLogistics().getLogisticStandardCode());
+            deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(),delivery.getLogistics().getLogisticCompanyName()));
             deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
             List<WxProductDTO> productDTS = new ArrayList<>();
             delivery.getShippingItems().forEach(item->{
@@ -206,5 +218,44 @@ public class TradeOrderService {
             goodsName ="购买的商品";
         }
         return goodsName;
+    }
+
+    private String getWxLogisticsCode(String code,String name){
+        if(StringUtils.isEmpty(wxLogisticsStr)){
+            return "OTHERS";
+        }
+        List<WxLogisticsInfoDTO> wxLogisticsMap = JSON.parseArray(wxLogisticsStr,WxLogisticsInfoDTO.class);
+        Optional<WxLogisticsInfoDTO> optional = null;
+        if(StringUtils.isNotEmpty(code)){
+            optional = wxLogisticsMap.stream().filter(p->p.getErpLogisticCode().equals(code)).findFirst();
+            if(optional.isPresent()){
+                return optional.get().getLogisticCode();
+            }
+        }
+        optional = wxLogisticsMap.stream().filter(p->p.getLogisticName().equals(name)).findFirst();
+        if(optional.isPresent()){
+            return optional.get().getLogisticCode();
+        }
+        return "OTHERS";
+
+    }
+
+    public void createWxOrderAndPay(WxCreateOrderRequest request){
+        Trade trade = tradeRepository.findById(request.getOutOrderId()).orElse(null);
+        if(trade == null){
+            throw new SbcRuntimeException("");
+        }
+        //先创建订单
+        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(request);
+        //支付同步
+        WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
+        wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());
+        wxOrderPayRequest.setOutOrderId(trade.getId());
+        wxOrderPayRequest.setActionId(1);
+        wxOrderPayRequest.setPayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        wxOrderPayRequest.setTransactionId(trade.getId());
+        BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
+
+
     }
 }
