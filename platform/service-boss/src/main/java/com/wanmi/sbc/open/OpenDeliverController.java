@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayType;
+import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -59,6 +60,7 @@ import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.open.OrderDeliverInfoReqBO;
 import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
 import com.wanmi.sbc.order.api.response.open.DeliverResBO;
 import com.wanmi.sbc.order.api.response.open.OrderDeliverInfoResBO;
@@ -184,7 +186,7 @@ public class OpenDeliverController extends OpenBaseController {
     @PostMapping(value = "/order/create")
     public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody @Validated OrderCreateReqVO params) {
         checkSign();
-
+        //按照
         Optional<TradeItemReqVO> first = params.getTradeItems().stream().findFirst();
         if (!first.isPresent()) {
             return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
@@ -200,10 +202,7 @@ public class OpenDeliverController extends OpenBaseController {
         }
 
         log.info("第三方开始代客下单......");
-        Operator operator = Operator.builder()
-                .platform(Platform.THIRD)
-                .build();
-
+        Operator operator = Operator.builder().platform(Platform.THIRD).build();
         //商家id
         Long companyId = goodsResponse.getContext().getGoods().getCompanyInfoId();
         //店铺id
@@ -289,6 +288,10 @@ public class OpenDeliverController extends OpenBaseController {
         }
 
         TradeCommitResultVO commitResult = addResponse.getContext().getTradeCommitResultVOS().stream().findFirst().get();
+
+        //执行0元订单流程
+        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(commitResult.getTid(), PayWay.UNIONPAY));
+
         OrderCreateResVO createResVO = new OrderCreateResVO();
         createResVO.setOrderNo(commitResult.getTid());
         createResVO.setTotalPrice(commitResult.getPrice());

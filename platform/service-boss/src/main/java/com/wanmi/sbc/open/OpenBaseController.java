@@ -48,7 +48,7 @@ public class OpenBaseController {
         String localSign = createSign(getAppSecret(), mapParams);
         if (!localSign.equals(mapParams.get("sign"))) {
             log.warn("验签错误，paramSign = {}, localSign = {}", mapParams.get("sign"), localSign);
-            throw new SbcRuntimeException(CommonErrorCode.FAILED);
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
     }
 
@@ -94,7 +94,31 @@ public class OpenBaseController {
     }
 
     public static void main(String[] args) {
-        String params = "";
+        String params = "{\n" +
+                "    \"fddsUserId\": 19187,\n" +
+                "    \"outTradeNo\": \"dd000005\",\n" +
+                "    \"buyerRemark\": \"乌克兰战争\",\n" +
+                "    \"consigneeAddress\": \"安徽省合肥市庐阳区庐阳工业区文一名门首府\",\n" +
+                "        \"consignee\": {\n" +
+                "        \"provinceId\": \"340000\",\n" +
+                "        \"cityId\": \"340100\",\n" +
+                "        \"areaId\": \"340103\",\n" +
+                "        \"streetId\": \"340103400\",\n" +
+                "        \"address\": \"文一名门首府\",\n" +
+                "        \"name\": \"千鹤\",\n" +
+                "        \"phone\": \"18788891200\"\n" +
+                "    },\n" +
+                "    \"tradeItems\": [\n" +
+                "        {\n" +
+                "            \"specDetails\": null,\n" +
+                "            \"skuId\": \"2c90c8647f361c2f017f3cab3d06007a\",\n" +
+                "            \"num\": 1,\n" +
+                "            \"marketingIds\": []\n" +
+                "        }\n" +
+                "    ],\n" +
+                "    \n" +
+                "    \"t\":123324092384034\n" +
+                "}";
 
         String appKey = "fdds-mall-deliver-secret-xxoo";
         JSONObject jsonParams = JSON.parseObject(params);
