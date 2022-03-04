@@ -1,5 +1,6 @@
 package com.soybean.mall.order.miniapp.service;
 
+import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
@@ -62,8 +63,8 @@ public class TradeOrderService {
     @Autowired
     private CommonController wxCommonController;
 
-    @Value("${wx.logistics:[]}")
-    private List<WxLogisticsInfoDTO> wxLogisticsMap;
+    @Value("${wx.logistics}")
+    private String wxLogisticsStr;
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -213,9 +214,10 @@ public class TradeOrderService {
     }
 
     private String getWxLogisticsCode(String code,String name){
-        if(CollectionUtils.isEmpty(wxLogisticsMap)){
+        if(StringUtils.isEmpty(wxLogisticsStr)){
             return "OTHERS";
         }
+        List<WxLogisticsInfoDTO> wxLogisticsMap = JSON.parseArray(wxLogisticsStr,WxLogisticsInfoDTO.class);
         Optional<WxLogisticsInfoDTO> optional = null;
         if(StringUtils.isNotEmpty(code)){
             optional = wxLogisticsMap.stream().filter(p->p.getErpLogisticCode().equals(code)).findFirst();
