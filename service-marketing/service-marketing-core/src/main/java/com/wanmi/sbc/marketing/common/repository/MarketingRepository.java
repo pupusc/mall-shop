@@ -65,10 +65,24 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
      * @param
      * @return
      */
+//    @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
+//            "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
+//            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)",nativeQuery = true)
+//    List<String> getExistsMarkupSkuBy(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+//            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
+//            , @Param("excludeId") Long excludeId);
+
+
     @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
             "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
-            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)",nativeQuery = true)
-    List<String> getExistsMarkupSkuBy(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+            "and not(m.begin_time > :endTime or m.end_time < :startTime) ",nativeQuery = true)
+    List<String> getExistsMarkupSkuByRongQi(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId);
+
+    @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
+            "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
+            "and not(m.begin_time > :endTime or m.end_time < :startTime) and m.marketing_id <> :excludeId",nativeQuery = true)
+    List<String> getExistsMarkupSkuByRongQi(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
             , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
             , @Param("excludeId") Long excludeId);
 
