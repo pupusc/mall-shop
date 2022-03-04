@@ -7,6 +7,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Map;
+
 /**
  * @author Liang Jun
  * @desc 履约中台
@@ -16,4 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface OpenDeliverProvider {
     @PostMapping("/order/${application.order.version}/open/deliverInfo")
     BusinessResponse<OrderDeliverInfoResBO> deliverInfo(@RequestBody OrderDeliverInfoReqBO param);
+
+    @PostMapping("/order/${application.order.version}/open/deliverSync")
+    BusinessResponse<Object> deliverSync(@RequestBody Map<String, Object> param);
 }

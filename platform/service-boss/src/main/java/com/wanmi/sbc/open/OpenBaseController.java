@@ -96,7 +96,7 @@ public class OpenBaseController {
     public static void main(String[] args) {
         String params = "{\n" +
                 "    \"fddsUserId\": 19187,\n" +
-                "    \"outTradeNo\": \"dd000005\",\n" +
+                "    \"outTradeNo\": \"dd000006\",\n" +
                 "    \"buyerRemark\": \"乌克兰战争\",\n" +
                 "    \"consigneeAddress\": \"安徽省合肥市庐阳区庐阳工业区文一名门首府\",\n" +
                 "        \"consignee\": {\n" +

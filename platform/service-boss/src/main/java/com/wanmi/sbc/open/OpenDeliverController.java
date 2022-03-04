@@ -38,12 +38,13 @@ import com.wanmi.sbc.goods.api.enums.GiftFlagEnum;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.DeliverWay;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.open.vo.ConsigneeResVO;
 import com.wanmi.sbc.open.vo.DeliverItemResVO;
 import com.wanmi.sbc.open.vo.DeliverResVO;
@@ -130,17 +131,18 @@ public class OpenDeliverController extends OpenBaseController {
      * @status done
      */
     @PostMapping(value = "/goods/query")
-    public BusinessResponse<List<GoodsQueryResVO>> goodsQuery(@RequestBody @Validated GoodsQueryReqVO param) {
+    public BusinessResponse<List<GoodsQueryResVO>> goodsQuery(@RequestBody @Validated GoodsQueryReqVO params) {
+        log.info("==>>履约中台查询商品：params = {}", JSON.toJSONString(params));
         checkSign();
 
-        Integer pageNo = Objects.nonNull(param.getPage()) && Objects.nonNull(param.getPage().getPageNo()) ? param.getPage().getPageNo() : 1;
-        Integer pageSize = Objects.nonNull(param.getPage()) && Objects.nonNull(param.getPage().getPageSize()) ? param.getPage().getPageSize() : 20;
+        Integer pageNo = Objects.nonNull(params.getPage()) && Objects.nonNull(params.getPage().getPageNo()) ? params.getPage().getPageNo() : 1;
+        Integer pageSize = Objects.nonNull(params.getPage()) && Objects.nonNull(params.getPage().getPageSize()) ? params.getPage().getPageSize() : 20;
 
         EsSkuPageRequest queryRequest = new EsSkuPageRequest();
-        if (StringUtils.isNotBlank(param.getSkuNo())) {
-            queryRequest.setGoodsInfoNos(Arrays.asList(param.getSkuNo()));
+        if (StringUtils.isNotBlank(params.getSkuNo())) {
+            queryRequest.setGoodsInfoNos(Arrays.asList(params.getSkuNo()));
         }
-        queryRequest.setLikeGoodsName(param.getGoodsName());
+        queryRequest.setLikeGoodsName(params.getGoodsName());
         queryRequest.setPageNum(pageNo < 1 ? 1 : pageNo);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
         queryRequest.setGiftFlag(GiftFlagEnum.TRUE.getCode()); //赠品标记
@@ -185,34 +187,43 @@ public class OpenDeliverController extends OpenBaseController {
      */
     @PostMapping(value = "/order/create")
     public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody @Validated OrderCreateReqVO params) {
+        log.info("==>>履约中台创建订单：params = {}", JSON.toJSONString(params));
         checkSign();
-        //按照
-        Optional<TradeItemReqVO> first = params.getTradeItems().stream().findFirst();
-        if (!first.isPresent()) {
-            return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
-        }
 
-        BaseResponse<GoodsInfoViewByIdResponse> goodsResponse = goodsInfoQueryProvider.getViewById(new GoodsInfoViewByIdRequest(first.get().getSkuId()));
+        GoodsInfoViewByIdsRequest goodsRequest = new GoodsInfoViewByIdsRequest();
+        goodsRequest.setGoodsInfoIds(params.getTradeItems().stream().map(TradeItemReqVO::getSkuId).collect(Collectors.toList()));
+        BaseResponse<GoodsInfoViewByIdsResponse> goodsResponse = goodsInfoQueryProvider.listViewByIds(goodsRequest);
+
+        //商品验证
+        if (!CommonErrorCode.SUCCESSFUL.equals(goodsResponse.getCode())) {
+            log.info("下单商品查询失败, result = {}", JSON.toJSONString(goodsResponse));
+            return BusinessResponse.error(goodsResponse.getCode(), goodsResponse.getMessage());
+        }
         if (Objects.isNull(goodsResponse.getContext())) {
+            log.info("下单商品没有找到, result = {}", JSON.toJSONString(goodsResponse));
             return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
         }
-        if (!GiftFlagEnum.TRUE.getCode().equals(goodsResponse.getContext().getGoods().getGiftFlag())) {
-            log.warn("履约中台下单的商品不是赠品类型");
-            return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR);
+        Optional<GoodsVO> anyGoods = goodsResponse.getContext().getGoodses().stream().filter(item -> !GiftFlagEnum.TRUE.getCode().equals(item.getGiftFlag())).findAny();
+        if (anyGoods.isPresent()) {
+            log.info("下单的商品不是赠品类型, goodsId = {}", anyGoods.get().getGoodsId());
+            return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR, "下单的商品不是赠品类型");
         }
 
-        log.info("第三方开始代客下单......");
-        Operator operator = Operator.builder().platform(Platform.THIRD).build();
-        //商家id
-        Long companyId = goodsResponse.getContext().getGoods().getCompanyInfoId();
-        //店铺id
-        Long storeId = goodsResponse.getContext().getGoods().getStoreId();
+        List<Long> companyIds = goodsResponse.getContext().getGoodses().stream().map(GoodsVO::getCompanyInfoId).distinct().collect(Collectors.toList());
+        List<Long> storeIds = goodsResponse.getContext().getGoodses().stream().map(GoodsVO::getStoreId).distinct().collect(Collectors.toList());
+        if (companyIds.size() > 1) {
+            log.info("商品对应的商家信息有多个，请检查商城配置信息");
+            return BusinessResponse.error(CommonErrorCode.FAILED, "商品对应的商家信息有多个，请检查商城配置信息");
+        }
+        if (storeIds.size() > 1) {
+            log.info("商品对应的商家信息有多个，请检查商城配置信息");
+            return BusinessResponse.error(CommonErrorCode.FAILED, "商品对应的商家信息有多个，请检查商城配置信息");
+        }
 
-        CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(new CompanyInfoByIdRequest(companyId)).getContext();
-        StoreInfoResponse storeInfo = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeId)).getContext();
-
-        //1.校验与包装订单信息-与业务员app代客下单公用
         log.info("开始校验与包装订单信息......");
+        Operator operator = Operator.builder().platform(Platform.THIRD).build();
+        CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(new CompanyInfoByIdRequest(companyIds.get(0))).getContext();
+        StoreInfoResponse storeInfo = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeIds.get(0))).getContext();
 
         //收件人
         if (Objects.isNull(params.getConsignee())) {
@@ -226,14 +237,12 @@ public class OpenDeliverController extends OpenBaseController {
         consigneeDTO.setPhone(params.getConsignee().getPhone());
         consigneeDTO.setProvinceId(params.getConsignee().getProvinceId());
         //consigneeDTO.setStreetId(params.getConsignee().getStreetId());
-        //用户信息
-        CustomerVO customerVO = getCustomByFddsUser(params.getFddsUserId(), params.getConsignee().getName(), params.getConsignee().getPhone());
+
         //订单信息
         TradeCreateDTO tradeCreateParam = new TradeCreateDTO();
         tradeCreateParam.setBuyerRemark(params.getBuyerRemark());
         tradeCreateParam.setConsignee(consigneeDTO);  //收件人
         tradeCreateParam.setConsigneeAddress(params.getConsigneeAddress());
-        tradeCreateParam.setCustom(customerVO.getCustomerId());
         tradeCreateParam.setDeliverWay(DeliverWay.EXPRESS);
         tradeCreateParam.setForceCommit(false); //是否强制提交，用于营销活动有效性校验，true: 无效依然提交， false: 无效做异常返回
         tradeCreateParam.setInvoice(InvoiceDTO.builder().type(-1).build());
@@ -244,6 +253,9 @@ public class OpenDeliverController extends OpenBaseController {
         tradeCreateParam.setTradeItems(new ArrayList<>());
         tradeCreateParam.setOutTradeNo(params.getOutTradeNo());
         tradeCreateParam.setTradeMarketingList(Lists.newArrayList());
+        //用户信息
+        CustomerVO customerVO = getCustomByFddsUser(params.getFddsUserId(), params.getConsignee().getName(), params.getConsignee().getPhone());
+        tradeCreateParam.setCustom(customerVO.getCustomerId());
 
         if (CollectionUtils.isEmpty(params.getTradeItems())) {
             return BusinessResponse.error("参数错误：缺少商品信息");
@@ -274,8 +286,8 @@ public class OpenDeliverController extends OpenBaseController {
                 .build();
 
         // 3.限售校验
-        log.info("校验与包装订单信息结束，开始校验订单中的限售商品......");
-        this.validateRestrictedGoods(tradeCreateParam.getTradeItems(), customerVO);
+        //log.info("校验与包装订单信息结束，开始校验订单中的限售商品......");
+        //this.validateRestrictedGoods(tradeCreateParam.getTradeItems(), customerVO);
 
         BaseResponse<TradeAddBatchResponse> addResponse = tradeProvider.addBatch(tradeAddBatchRequest);
         if (!CommonErrorCode.SUCCESSFUL.equals(addResponse.getCode())) {
@@ -288,9 +300,12 @@ public class OpenDeliverController extends OpenBaseController {
         }
 
         TradeCommitResultVO commitResult = addResponse.getContext().getTradeCommitResultVOS().stream().findFirst().get();
-
         //执行0元订单流程
-        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(commitResult.getTid(), PayWay.UNIONPAY));
+        BaseResponse payResposne = tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(commitResult.getTid()), PayWay.UNIONPAY));
+        if (!CommonErrorCode.SUCCESSFUL.equals(payResposne.getCode())) {
+            //支付失败的订单需要补偿处理
+            log.error("履约中台系统订单支付状态更新失败, orderId = {}, result = {}", commitResult.getTid(), JSON.toJSONString(payResposne));
+        }
 
         OrderCreateResVO createResVO = new OrderCreateResVO();
         createResVO.setOrderNo(commitResult.getTid());
@@ -306,11 +321,12 @@ public class OpenDeliverController extends OpenBaseController {
      * @status done
      */
     @PostMapping(value = "/order/deliverInfo")
-    public BusinessResponse<OrderDeliverInfoResVO> deliverInfo(@RequestBody @Validated OrderDeliverInfoReqVO param) {
+    public BusinessResponse<OrderDeliverInfoResVO> deliverInfo(@RequestBody @Validated OrderDeliverInfoReqVO params) {
+        log.info("==>>履约中台查询发货信息：params = {}", JSON.toJSONString(params));
         checkSign();
 
         OrderDeliverInfoReqBO reqBO = new OrderDeliverInfoReqBO();
-        reqBO.setOrderNo(param.getOrderNo());
+        reqBO.setOrderNo(params.getOrderNo());
         BusinessResponse<OrderDeliverInfoResBO> resResponse = openDeliverProvider.deliverInfo(reqBO);
 
         if (!CommonErrorCode.SUCCESSFUL.equals(resResponse.getCode())) {

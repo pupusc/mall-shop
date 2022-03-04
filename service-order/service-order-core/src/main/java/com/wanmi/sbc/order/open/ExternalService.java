@@ -33,7 +33,7 @@ public class ExternalService {
     @Value("${fandeng.appsecret}")
     private String appsecret;
     @Value("${fandeng.callback.deliver}")
-    private static String callbackDeliver;
+    private String callbackDeliver;
 
     @Autowired
     private RedisService redisService;
@@ -82,7 +82,7 @@ public class ExternalService {
             }
             return entity;
         } catch (Exception e) {
-            log.error("发货状态回调通知发生错误");
+            log.error("发货状态回调通知发生错误", e);
             throw new SbcRuntimeException(e);
         }
     }
