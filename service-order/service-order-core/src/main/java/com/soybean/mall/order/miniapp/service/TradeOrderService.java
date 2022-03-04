@@ -1,5 +1,6 @@
 package com.soybean.mall.order.miniapp.service;
 
+import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -60,6 +61,9 @@ public class TradeOrderService {
 
     @Autowired
     private CommonController wxCommonController;
+
+    @Value("${wx.logistics:[]}")
+    private List<WxLogisticsInfoDTO> wxLogisticsMap;
 
     /**
      * 批量同步发货状态到微信-查询本地
@@ -147,7 +151,7 @@ public class TradeOrderService {
         List<WxDeliverySendRequest.WxDeliveryInfo>  deliveryInfos = new ArrayList<>();
         unSyncDelivery.forEach(delivery->{
             WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
-            deliveryInfo.setDeliveryId(delivery.getLogistics().getLogisticStandardCode());
+            deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(),delivery.getLogistics().getLogisticCompanyName()));
             deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
             List<WxProductDTO> productDTS = new ArrayList<>();
             delivery.getShippingItems().forEach(item->{
@@ -206,5 +210,24 @@ public class TradeOrderService {
             goodsName ="购买的商品";
         }
         return goodsName;
+    }
+
+    private String getWxLogisticsCode(String code,String name){
+        if(CollectionUtils.isEmpty(wxLogisticsMap)){
+            return "OTHERS";
+        }
+        Optional<WxLogisticsInfoDTO> optional = null;
+        if(StringUtils.isNotEmpty(code)){
+            optional = wxLogisticsMap.stream().filter(p->p.getErpLogisticCode().equals(code)).findFirst();
+            if(optional.isPresent()){
+                return optional.get().getLogisticCode();
+            }
+        }
+        optional = wxLogisticsMap.stream().filter(p->p.getLogisticName().equals(name)).findFirst();
+        if(optional.isPresent()){
+            return optional.get().getLogisticCode();
+        }
+        return "OTHERS";
+
     }
 }
