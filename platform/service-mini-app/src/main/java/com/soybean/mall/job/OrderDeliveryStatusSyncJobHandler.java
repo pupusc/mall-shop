@@ -1,5 +1,6 @@
 package com.soybean.mall.job;
 
+import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
 
     @Autowired
-    private TradeProvider tradeProvider;
+    private MiniAppOrderProvider miniAppOrderProvider;
 
     @Override
     public ReturnT<String> execute(String params) throws Exception {
@@ -38,7 +39,7 @@ public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
         } catch (RuntimeException e) {
             log.error("调用小程序订单并同步到微信,参数错误,采用默认 200,{}", e);
         }
-        tradeProvider.batchSyncDeliveryStatusToWechat(ProviderTradeErpRequest.builder()
+        miniAppOrderProvider.batchSyncDeliveryStatusToWechat(ProviderTradeErpRequest.builder()
                 .pageSize(size)
                 .ptid(ptid)
                 .build());
