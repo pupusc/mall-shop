@@ -13,16 +13,14 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateR
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
-import com.wanmi.sbc.mini.mq.bean.WxLiveAssistantMessageData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -107,7 +105,12 @@ public class GoodsLiveAssistantController {
         LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
         LocalDateTime now2 = LocalDateTime.now();
         Duration duration2 = Duration.between(now2, endTime);
-        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(1).time(endTime.format(df)).build(), duration2.toMillis());
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("assistantId", assistantId);
+        map.put("time", endTime.format(df));
+        map.put("type", 1);
+        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
     }
 
     public void resetEsStock(Map<String, Map<String, Integer>> map){

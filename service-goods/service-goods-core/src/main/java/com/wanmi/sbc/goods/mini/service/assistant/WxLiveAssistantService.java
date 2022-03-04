@@ -16,7 +16,6 @@ import com.wanmi.sbc.goods.info.service.GoodsInfoStockService;
 import com.wanmi.sbc.goods.info.service.GoodsStockService;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantGoodsModel;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantModel;
-import com.wanmi.sbc.goods.mini.mq.WxMiniMessageProducer;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +47,6 @@ public class WxLiveAssistantService {
     private GoodsInfoService goodsInfoService;
     @Autowired
     private GoodsInfoRepository goodsInfoRepository;
-    @Autowired
-    private WxMiniMessageProducer wxMiniMessageProducer;
     @Autowired
     private GoodsInfoStockService goodsInfoStockService;
     @Autowired
