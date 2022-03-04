@@ -1,6 +1,7 @@
 package com.fangdeng.server;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -15,7 +16,7 @@ import java.net.*;
 
 
 
-@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc"})
+@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc","com.fangdeng.server"})
 @SpringBootApplication
 @EnableAsync
 @EnableDiscoveryClient
@@ -23,8 +24,10 @@ import java.net.*;
 @EnableScheduling
 @EnableSwagger2
 @Configuration
+@Slf4j
 public class Application {
     public static void main(String[] args) throws UnknownHostException {
           SpringApplication.run(Application.class,args);
+          log.info("dock service start complete ...............");
     }
 }
