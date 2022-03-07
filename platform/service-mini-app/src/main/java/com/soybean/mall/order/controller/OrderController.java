@@ -188,6 +188,11 @@ public class OrderController {
 
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+        //0元支付不需要生成预支付单
+        if(trades.get(0).getTradePrice().getTotalPayCash().compareTo(new BigDecimal(0))==0){
+            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+            return wxOrderPaymentVO;
+        }
         //生成预支付订单
         WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
         req.setAppid(appId);
@@ -255,6 +260,9 @@ public class OrderController {
         addressInfo.setTelNumber(trade.getConsignee().getPhone());
         result.setAddressInfo(addressInfo);
         result.setOrderDetail(detail);
+        if(trades.get(0).getTradePrice().getTotalPayCash().compareTo(new BigDecimal(0)) ==0){
+            result.setPrePay(false);
+        }
         return result;
     }
 
