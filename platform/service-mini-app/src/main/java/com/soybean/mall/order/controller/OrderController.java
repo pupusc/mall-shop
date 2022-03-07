@@ -137,7 +137,10 @@ public class OrderController {
 
 
     /**
-     * 提交订单，用于生成订单操作
+     * @description 创建订单
+     * @param tradeCommitRequest
+     * @menu 小程序
+     * @status done
      */
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
@@ -260,7 +263,7 @@ public class OrderController {
         addressInfo.setTelNumber(trade.getConsignee().getPhone());
         result.setAddressInfo(addressInfo);
         result.setOrderDetail(detail);
-        if(trades.get(0).getTradePrice().getTotalPayCash().compareTo(new BigDecimal(0)) ==0){
+        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) ==0){
             result.setPrePay(false);
         }
         return result;
@@ -292,7 +295,10 @@ public class OrderController {
 
 
     /**
-     * 用于确认订单后，创建订单前的获取订单商品信息
+     * @description 用于确认订单后，创建订单前的获取订单商品信息
+     * @param request
+     * @menu 小程序
+     * @status done
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
@@ -397,18 +403,19 @@ public class OrderController {
     }
 
 
+
     /**
-     * 0元订单批量支付（支付网关默认为银联）
-     *
-     * @param request 请求参数
-     * @return {@link BaseResponse}
+     * @description 0元订单批量支付
+     * @param request
+     * @menu 小程序
+     * @status done
      */
     @ApiOperation("0元订单批量支付（支付网关默认为银联）")
-    @GlobalTransactional
     @RequestMapping("/default")
-    public BaseResponse defaultPay(@RequestBody @Valid DefaultPayBatchRequest request) {
-        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY));
-        miniAppOrderProvider.createWxOrderAndPay(request);
+    public BaseResponse defaultPay(@RequestBody DefaultPayBatchRequest request) {
+        TradeDefaultPayBatchRequest tradeDefaultPayBatchRequest = new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY);
+        tradeProvider.defaultPayBatch(tradeDefaultPayBatchRequest);
+        miniAppOrderProvider.createWxOrderAndPay(tradeDefaultPayBatchRequest);
         return BaseResponse.SUCCESSFUL();
     }
 

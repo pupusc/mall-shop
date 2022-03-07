@@ -295,7 +295,7 @@ public class TradeOrderService {
                 .prepayId(trade.getId())
                 .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
 
-        CreateWxOrderAndPayRequest.PriceInfoDTO priceInfo = new CreateWxOrderAndPayRequest.PriceInfoDTO;
+        CreateWxOrderAndPayRequest.PriceInfoDTO priceInfo = new CreateWxOrderAndPayRequest.PriceInfoDTO();
         if(trade.getTradePrice().getTotalPrice()!=null) {
             priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
         }

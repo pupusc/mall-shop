@@ -92,7 +92,7 @@ public class CreateWxOrderAndPayRequest implements Serializable {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public class PayInfoDTO implements Serializable {
+    public static class PayInfoDTO implements Serializable {
         private static final long serialVersionUID = 1227044415106015323L;
         @JSONField(name ="pay_method_type")
         private Integer payMethodType;
@@ -103,7 +103,7 @@ public class CreateWxOrderAndPayRequest implements Serializable {
     }
 
     @Data
-    public class PriceInfoDTO implements Serializable {
+    public static class PriceInfoDTO implements Serializable {
         private static final long serialVersionUID = 1821182651497127881L;
         @JSONField(name ="order_price")
         private Integer orderPrice;

@@ -41,7 +41,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
      */
     @Override
     public BaseResponse createWxOrderAndPay(@RequestBody TradeDefaultPayBatchRequest request) {
-        tradeOrderService.createWxOrderAndPay(KsBeanUtil.convert(request,WxCreateOrderRequest.class));
+        tradeOrderService.createWxOrderAndPay(request.getTradeIds().get(0));
         return BaseResponse.SUCCESSFUL();
     }
 }
