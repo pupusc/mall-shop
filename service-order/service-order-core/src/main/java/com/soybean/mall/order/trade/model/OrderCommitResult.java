@@ -1,4 +1,4 @@
-package com.soybean.mall.order.model;
+package com.soybean.mall.order.trade.model;
 
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Consignee;

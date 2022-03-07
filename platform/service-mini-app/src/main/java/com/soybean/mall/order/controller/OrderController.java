@@ -3,7 +3,6 @@ package com.soybean.mall.order.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
-import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -410,7 +409,7 @@ public class OrderController {
      * @menu 小程序
      * @status done
      */
-    @ApiOperation("0元订单批量支付（支付网关默认为银联）")
+    @ApiOperation("0元订单批量支付（支付网关默认为银联")
     @RequestMapping("/default")
     public BaseResponse defaultPay(@RequestBody DefaultPayBatchRequest request) {
         TradeDefaultPayBatchRequest tradeDefaultPayBatchRequest = new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY);
