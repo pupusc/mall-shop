@@ -2,6 +2,7 @@ package com.wanmi.ares.utils.excel.impl;
 
 import com.wanmi.ares.exception.AresRuntimeException;
 import com.wanmi.ares.utils.excel.ColumnRender;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.springframework.expression.Expression;
@@ -63,7 +64,8 @@ public class SpelColumnRender<T> implements ColumnRender<T> {
         }
         //
         else {
-            throw new AresRuntimeException("未检出的类型");
+            //throw new AresRuntimeException("未检出的类型");
+            throw new SbcRuntimeException("未检出的类型");
         }
     }
 

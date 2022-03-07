@@ -265,4 +265,33 @@ public class BookuuClient {
         return response;
     }
 
+    /**
+     * 促销价格查询，只能根据时间查询
+     *
+     * @param request
+     * @return
+     */
+    public BookuuSpecialPriceQueryResponse querySpecialPrice(BookuuSpecialPriceQueryRequest request) {
+
+        request.setChannelID(channelID);
+        request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+
+        String url = String.format(path, "special");
+
+        String result = null;
+        try {
+            result = OkHttpUtil.postXml(url, XmlUtil.convertToXml(request));
+            log.info("get bookuu special price   request:{}, response: {}", JSONObject.toJSONString(request), result);
+        } catch (Exception e) {
+            log.warn("get bookuu special price  error,request:{},error:{}", request, e.getMessage());
+        }
+        BookuuSpecialPriceQueryResponse response = null;
+        try {
+            response = XmlUtil.convertToJavaBean(result, BookuuSpecialPriceQueryResponse.class);
+        } catch (Exception e) {
+
+        }
+        return response;
+    }
+
 }

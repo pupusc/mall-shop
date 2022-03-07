@@ -1,5 +1,6 @@
 package com.fangdeng.server.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -54,7 +55,8 @@ public class MyBatisConfig {
 //        ds.setUsername("fddsh_mall");
 //        ds.setPassword("malladmin@2018");
 //        return ds;
-       return DataSourceBuilder.create().build();
+
+       return new DruidDataSource();
     }
 
     @Bean("dataSourceTransactionManager")

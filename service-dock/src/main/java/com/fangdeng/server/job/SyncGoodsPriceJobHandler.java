@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -42,7 +45,15 @@ public class SyncGoodsPriceJobHandler extends IJobHandler {
 //        if(StringUtils.isEmpty(queryDTO.getEtime())) {
 //            queryDTO.setEtime(eTime);
 //        }
-        goodsService.syncGoodsPrice();
+        SyncGoodsQueryDTO queryDTO = new SyncGoodsQueryDTO();
+        try{
+            queryDTO = objectMapper.readValue(params, SyncGoodsQueryDTO.class);
+        }
+        catch (Exception e){
+            log.warn("syncGoodsPriceJobHandler参数解析失败",e);
+        }
+        goodsService.syncGoodsPrice(queryDTO);
+        goodsService.syncSpecialPrice(queryDTO);
         log.info("=====同步博库价格end======");
         return SUCCESS;
     }

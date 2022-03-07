@@ -34,16 +34,55 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
             , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
             , @Param("excludeId") Long excludeId);
 
+
+    /**
+     * 容器临时处理，后续要更改 todo
+     * @param skuIds
+     * @param marketingType
+     * @param startTime
+     * @param endTime
+     * @param storeId
+     * @param excludeId
+     * @return
+     */
+    @Query("select s.scopeId from Marketing m left join m.marketingScopeList s " +
+            "where m.delFlag = 0 and m.marketingType = :marketingType and m.storeId = :storeId and s.scopeId in :skuIds " +
+            "and not(m.beginTime > :endTime or m.endTime < :startTime)")
+    List<String> getExistsSkuByMarketingTypeRongQi(@Param("skuIds") List<String> skuIds, @Param("marketingType") MarketingType marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId);
+
+    @Query("select s.scopeId from Marketing m left join m.marketingScopeList s " +
+            "where m.delFlag = 0 and m.marketingType = :marketingType and m.storeId = :storeId and s.scopeId in :skuIds " +
+            "and not(m.beginTime > :endTime or m.endTime < :startTime) and m.marketingId <> :excludeId")
+    List<String> getExistsSkuByMarketingTypeRongQi(@Param("skuIds") List<String> skuIds, @Param("marketingType") MarketingType marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
+            , @Param("excludeId") Long excludeId);
+
+
     /**
      * 获取重复的换购skuIds
      * @param
      * @param
      * @return
      */
+//    @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
+//            "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
+//            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)",nativeQuery = true)
+//    List<String> getExistsMarkupSkuBy(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+//            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
+//            , @Param("excludeId") Long excludeId);
+
+
     @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
             "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
-            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)",nativeQuery = true)
-    List<String> getExistsMarkupSkuBy(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+            "and not(m.begin_time > :endTime or m.end_time < :startTime) ",nativeQuery = true)
+    List<String> getExistsMarkupSkuByRongQi(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
+            , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId);
+
+    @Query(value = "select s.goods_info_id from marketing m left join markup_level_detail s on m.marketing_id=s.markup_id " +
+            "where m.del_flag = 0 and m.marketing_type = :marketingType and m.store_id = :storeId and s.goods_info_id in :markupSkuIds " +
+            "and not(m.begin_time > :endTime or m.end_time < :startTime) and m.marketing_id <> :excludeId",nativeQuery = true)
+    List<String> getExistsMarkupSkuByRongQi(@Param("markupSkuIds") List<String> markupSkuIds, @Param("marketingType") int marketingType
             , @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId
             , @Param("excludeId") Long excludeId);
 

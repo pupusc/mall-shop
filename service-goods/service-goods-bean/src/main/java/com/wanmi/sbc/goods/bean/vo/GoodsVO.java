@@ -309,7 +309,7 @@ public class GoodsVO  implements Serializable {
     private Long stock;
 
     public Long getStock() {
-        if(stock <= 5) return 0L;
+        if(stock == null || stock <= 5) return 0L;
         return stock;
     }
 
