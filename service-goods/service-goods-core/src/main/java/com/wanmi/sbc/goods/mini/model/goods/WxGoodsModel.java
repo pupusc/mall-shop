@@ -57,6 +57,18 @@ public class WxGoodsModel {
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
+    /**
+     * isbn图片
+     */
+    @Column(name = "isbn_img")
+    private String isbnImg;
+
+    /**
+     * 出版社图片
+     */
+    @Column(name = "publisher_img")
+    private String publisherImg;
+
     //更新时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "update_time")

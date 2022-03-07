@@ -13,10 +13,9 @@ import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.info.service.GoodsInfoService;
 import com.wanmi.sbc.goods.info.service.GoodsInfoStockService;
+import com.wanmi.sbc.goods.info.service.GoodsStockService;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantGoodsModel;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantModel;
-import com.wanmi.sbc.goods.mini.mq.WxMiniMessageProducer;
-import com.wanmi.sbc.goods.mini.mq.bean.WxLiveAssistantMessageData;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -50,36 +48,37 @@ public class WxLiveAssistantService {
     @Autowired
     private GoodsInfoRepository goodsInfoRepository;
     @Autowired
-    private WxMiniMessageProducer wxMiniMessageProducer;
-    @Autowired
     private GoodsInfoStockService goodsInfoStockService;
+    @Autowired
+    private GoodsStockService goodsStockService;
 
-    public void addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
+    public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         if(wxLiveAssistantCreateRequest.getStartTime() == null || wxLiveAssistantCreateRequest.getEndTime() == null){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "缺少参数");
         }
         WxLiveAssistantModel wxLiveAssistantModel = WxLiveAssistantModel.create(wxLiveAssistantCreateRequest);
         //发送延时消息
-        sendDelayMessage(wxLiveAssistantModel);
+//        sendDelayMessage(wxLiveAssistantModel);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+        return wxLiveAssistantModel.getId();
     }
 
-    private void sendDelayMessage(WxLiveAssistantModel wxLiveAssistantModel){
-        Long assistantId = wxLiveAssistantModel.getId();
-
-//        LocalDateTime startTime = wxLiveAssistantModel.getStartTime();
-//        LocalDateTime now1 = LocalDateTime.now();
-//        Duration duration1 = Duration.between(now1, startTime);
-//        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(0).time(startTime.format(df)).build(), duration1.toMillis());
-
-        LocalDateTime endTime = wxLiveAssistantModel.getEndTime();
-        LocalDateTime now2 = LocalDateTime.now();
-        Duration duration2 = Duration.between(now2, endTime);
-        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(1).time(endTime.format(df)).build(), duration2.toMillis());
-    }
+//    private void sendDelayMessage(WxLiveAssistantModel wxLiveAssistantModel){
+//        Long assistantId = wxLiveAssistantModel.getId();
+//
+////        LocalDateTime startTime = wxLiveAssistantModel.getStartTime();
+////        LocalDateTime now1 = LocalDateTime.now();
+////        Duration duration1 = Duration.between(now1, startTime);
+////        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(0).time(startTime.format(df)).build(), duration1.toMillis());
+//
+//        LocalDateTime endTime = wxLiveAssistantModel.getEndTime();
+//        LocalDateTime now2 = LocalDateTime.now();
+//        Duration duration2 = Duration.between(now2, endTime);
+//        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(1).time(endTime.format(df)).build(), duration2.toMillis());
+//    }
 
     @Transactional
-    public void deleteAssistant(Long id){
+    public Map<String, Map<String, Integer>> deleteAssistant(Long id){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(id);
         if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
@@ -88,11 +87,11 @@ public class WxLiveAssistantService {
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
         log.info("删除直播助手:{}, 所有直播商品将恢复原价和库存", id);
-        resetStockAndProce(id);
+        return resetStockAndProce(id);
     }
 
     @Transactional
-    public void updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
+    public Long updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantCreateRequest.getId());
         if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
         LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
@@ -109,7 +108,8 @@ public class WxLiveAssistantService {
             wxLiveAssistantModel.setEndTime(endTime);
         }
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
-        sendDelayMessage(wxLiveAssistantModel);
+//        sendDelayMessage(wxLiveAssistantModel);
+        return wxLiveAssistantModel.getId();
     }
 
     public Page<WxLiveAssistantModel> listAssistant(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
@@ -155,7 +155,8 @@ public class WxLiveAssistantService {
         goodsInfoRepository.saveAll(goodsInfos);
     }
 
-    public void deleteGoods(Long id){
+    @Transactional
+    public Map<String, Map<String, Integer>> deleteGoods(Long id){
         Optional<WxLiveAssistantGoodsModel> opt = wxLiveAssistantGoodsRepository.findById(id);
         if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
         WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt.get();
@@ -174,8 +175,12 @@ public class WxLiveAssistantService {
         String goodsId = wxLiveAssistantGoodsModel.getGoodsId();
         log.info("直播商品{}删除，关联的sku将恢复库存同步", goodsId);
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Arrays.asList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
-        resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos);
-        goodsInfoRepository.saveAll(goodsInfos);
+        List<GoodsInfo> toSave = new ArrayList<>();
+        Map<String, Map<String, Integer>> map = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos, toSave);
+        if (!toSave.isEmpty()) {
+            goodsInfoRepository.saveAll(toSave);
+        }
+        return map;
     }
 
     public void updateGoodsInfos(WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest){
@@ -214,15 +219,18 @@ public class WxLiveAssistantService {
                 if (v == null) return new HashMap<>();
                 return v;
             });
+            boolean updateGoodsInfo = false;
             if(stock != null) {
+                updateGoodsInfo = true;
                 goodsInfo.setStock(stock.longValue());
                 if(!map.containsKey("stock")) map.put("stock", stock.toString());
             }
             if(price != null){
+                updateGoodsInfo = true;
                 goodsInfo.setMarketPrice(new BigDecimal(price));
                 if(!map.containsKey("price")) map.put("price", price);
             }
-            toUpdateGoodsInfo.add(goodsInfo);
+            if(updateGoodsInfo) toUpdateGoodsInfo.add(goodsInfo);
         }
         if(oldGoodsInfo != null && CollectionUtils.isNotEmpty(liveAssistantGoodsInfos)){
             wxLiveAssistantGoodsModel.setOldGoodsInfo(JSONObject.toJSONString(oldGoodsInfo));
@@ -237,42 +245,110 @@ public class WxLiveAssistantService {
         return wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageNum()));
     }
 
+    public WxLiveAssistantModel findAssistantById(Long assistantId){
+        Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(assistantId);
+        if(opt.isPresent()) return opt.get();
+        return null;
+    }
+
     @Transactional
-    public void resetStockAndProce(Long wxLiveAssistantId){
+    public Map<String, Map<String, Integer>> resetStockAndProce(Long wxLiveAssistantId){
         List<WxLiveAssistantGoodsModel> assistantGoodsModels = wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository
                 .buildSearchCondition(WxLiveAssistantSearchRequest.builder().liveAssistantId(wxLiveAssistantId).build()));
         Map<String, List<WxLiveAssistantGoodsModel>> assistantGoodsGroup = assistantGoodsModels.stream().collect(Collectors.groupingBy(WxLiveAssistantGoodsModel::getGoodsId));
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(new ArrayList<>(assistantGoodsGroup.keySet())).delFlag(DeleteFlag.NO.toValue()).build());
         Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().collect(Collectors.groupingBy(GoodsInfo::getGoodsId));
+
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        Map<String, Integer> skus = new HashMap<>();
+        Map<String, Integer> spus = new HashMap<>();
+
+        List<GoodsInfo> toSave = new ArrayList<>();
         for (List<WxLiveAssistantGoodsModel> value : assistantGoodsGroup.values()) {
             WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = value.get(0);
-            resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfoGroup.get(wxLiveAssistantGoodsModel.getGoodsId()));
+            Map<String, Map<String, Integer>> map = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfoGroup.get(wxLiveAssistantGoodsModel.getGoodsId()), toSave);
+            Map<String, Integer> skus1 = map.get("skus");
+            Map<String, Integer> spus1 = map.get("spus");
+            skus1.forEach((k ,v) -> {
+                skus.compute(k, (k2, v2) -> {
+                    if(v2 == null){
+                        return v;
+                    }else {
+                        return v + v2;
+                    }
+                });
+            });
+            spus1.forEach((k, v) -> {
+                spus.compute(k, (k2, v2) -> {
+                    if(v2 == null){
+                        return v;
+                    }else {
+                        return v + v2;
+                    }
+                });
+            });
         }
+        if(!toSave.isEmpty()){
+            goodsInfoRepository.saveAll(toSave);
+        }
+        resultMap.put("spus", spus);
+        resultMap.put("skus", skus);
+        return resultMap;
     }
 
-    private void resetStockAndProce(WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel, List<GoodsInfo> goodsInfos){
+    private Map<String, Map<String, Integer>> resetStockAndProce(WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel, List<GoodsInfo> goodsInfos, List<GoodsInfo> toSave){
         String olfSyncStockFlagStr = wxLiveAssistantGoodsModel.getOlfSyncStockFlag();
         JSONObject olfSyncStockFlag = JSONObject.parseObject(olfSyncStockFlagStr);
         String oldGoodsInfoStr = wxLiveAssistantGoodsModel.getOldGoodsInfo();
         Map oldGoodsInfo = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
 
+        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+        Map<String, Integer> skus = new HashMap<>();
+        Map<String, Integer> spus = new HashMap<>();
+
         for (GoodsInfo goodsInfo : goodsInfos) {
             Integer oldFlag = (Integer) olfSyncStockFlag.get(goodsInfo);
-            if(oldFlag != null){
-                goodsInfo.setStockSyncFlag(oldFlag);
+            if(oldFlag == null || oldFlag == 0){
+                //开播之前未开同步
+
+            }else {
+                //开播之前同步了,同步一次库存
+                goodsInfo.setStockSyncFlag(1);
+                Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
+                Map<String, Integer> skus1 = map.get("skus");
+                Map<String, Integer> spus1 = map.get("spus");
+                skus1.forEach((k ,v) -> {
+                    skus.compute(k, (k2, v2) -> {
+                        if(v2 == null){
+                            return v;
+                        }else {
+                            return v + v2;
+                        }
+                    });
+                });
+                spus1.forEach((k, v) -> {
+                    spus.compute(k, (k2, v2) -> {
+                        if(v2 == null){
+                            return v;
+                        }else {
+                            return v + v2;
+                        }
+                    });
+                });
             }
             Map<String, String> oldInfo = (Map<String, String>) oldGoodsInfo.get(goodsInfo);
             if(oldInfo != null){
                 String price = oldInfo.get("price");
-                String stock = oldInfo.get("stock");
-                if(price != null) goodsInfo.setMarketPrice(new BigDecimal(price));
-                if(stock != null) goodsInfoStockService.resetGoodsInfoStock(Long.parseLong(stock), goodsInfo.getGoodsInfoId());
+//                String stock = oldInfo.get("stock");
+                if(price != null){
+                    goodsInfo.setMarketPrice(new BigDecimal(price));
+                    toSave.add(goodsInfo);
+                }
             }
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(1);
+        resultMap.put("spus", spus);
+        resultMap.put("skus", skus);
+        return resultMap;
     }
 
 }

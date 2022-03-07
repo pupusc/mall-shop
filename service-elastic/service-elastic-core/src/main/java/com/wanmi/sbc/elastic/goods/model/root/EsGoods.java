@@ -367,4 +367,10 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Keyword)
     private String providerGoodsId;
+
+    /**
+     * 微信是否审核通过 0-没有 1-有
+     */
+    @Field(type = FieldType.Integer)
+    private Integer wxAudit;
 }

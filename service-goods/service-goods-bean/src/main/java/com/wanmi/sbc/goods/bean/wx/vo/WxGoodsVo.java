@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.bean.wx.vo;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.util.Map;
 
 @Data
@@ -10,6 +11,8 @@ public class WxGoodsVo {
     private Long id;
 
     private String goodsId;
+
+    private String goodsNo;
 
     /**
      * 状态 0-等待上传 1-已上传 2-上架 3-下架
@@ -36,6 +39,15 @@ public class WxGoodsVo {
      */
     private String rejectReason;
 
+    /**
+     * isbn图片
+     */
+    private String isbnImg;
+
+    /**
+     * 出版社图片
+     */
+    private String publisherImg;
     /**
      * 微信类目id
      */

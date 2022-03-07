@@ -241,4 +241,9 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
      */
     @ApiModelProperty(value = "ERP的SPU编码")
     private String spuErp;
+
+    /**
+     * 微信审核状态
+     */
+    private Integer wxAudit;
 }
