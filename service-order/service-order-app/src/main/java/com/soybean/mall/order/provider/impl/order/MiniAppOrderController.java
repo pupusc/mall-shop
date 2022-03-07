@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -39,7 +40,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
      * @return
      */
     @Override
-    public BaseResponse createWxOrderAndPay(CreateWxOrderAndPayRequest request) {
+    public BaseResponse createWxOrderAndPay(@RequestBody TradeDefaultPayBatchRequest request) {
         tradeOrderService.createWxOrderAndPay(KsBeanUtil.convert(request,WxCreateOrderRequest.class));
         return BaseResponse.SUCCESSFUL();
     }

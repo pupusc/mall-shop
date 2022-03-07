@@ -135,10 +135,10 @@ public class OrderController {
     @Value("${wx.order.detail.url}")
     private String orderDetailUrl;
 
+
     /**
      * 提交订单，用于生成订单操作
      */
-
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
@@ -189,7 +189,7 @@ public class OrderController {
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
         //0元支付不需要生成预支付单
-        if(trades.get(0).getTradePrice().getTotalPayCash().compareTo(new BigDecimal(0))==0){
+        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
             wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
             return wxOrderPaymentVO;
         }
@@ -406,8 +406,8 @@ public class OrderController {
     @ApiOperation("0元订单批量支付（支付网关默认为银联）")
     @GlobalTransactional
     @RequestMapping("/default")
-    public BaseResponse defaultPay(@RequestBody  CreateWxOrderAndPayRequest request) {
-        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(request.getOutOrderId()), PayWay.UNIONPAY));
+    public BaseResponse defaultPay(@RequestBody @Valid DefaultPayBatchRequest request) {
+        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY));
         miniAppOrderProvider.createWxOrderAndPay(request);
         return BaseResponse.SUCCESSFUL();
     }

@@ -1,7 +1,9 @@
 package com.soybean.mall.order.miniapp.service;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
+import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -15,6 +17,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
@@ -37,6 +40,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -71,6 +75,14 @@ public class TradeOrderService {
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
+
+    @Value("${wx.default.image.url}")
+    private String defaultImageUrl;
+
+    @Value("${wx.goods.detail.url}")
+    private String goodsDetailUrl;
+    @Value("${wx.order.detail.url}")
+    private String orderDetailUrl;
 
 
     /**
@@ -240,13 +252,14 @@ public class TradeOrderService {
 
     }
 
-    public void createWxOrderAndPay(WxCreateOrderRequest request){
-        Trade trade = tradeRepository.findById(request.getOutOrderId()).orElse(null);
+    public void createWxOrderAndPay(String tid){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
         if(trade == null){
             throw new SbcRuntimeException("");
         }
+        CreateWxOrderAndPayRequest request = convertResult(trade);
         //先创建订单
-        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(request);
+        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(KsBeanUtil.convert(request,WxCreateOrderRequest.class));
         //支付同步
         WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
         wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());
@@ -255,7 +268,51 @@ public class TradeOrderService {
         wxOrderPayRequest.setPayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         wxOrderPayRequest.setTransactionId(trade.getId());
         BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
+    }
 
+    private CreateWxOrderAndPayRequest convertResult(Trade trade) {
+        CreateWxOrderAndPayRequest result = new CreateWxOrderAndPayRequest();
+        result.setOutOrderId(trade.getId());
+        result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        result.setOpenid(trade.getBuyer().getOpenId());
+        result.setPath(orderDetailUrl);
+        CreateWxOrderAndPayRequest.OrderDetailDTO detail = new CreateWxOrderAndPayRequest.OrderDetailDTO();
+        List<CreateWxOrderAndPayRequest.ProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        trade.getTradeItems().forEach(tradeItem -> {
+            productInfoDTOS.add(CreateWxOrderAndPayRequest.ProductInfoDTO.builder()
+                    .outProductId(tradeItem.getSpuId())
+                    .outSkuId(tradeItem.getSkuId())
+                    .productNum(tradeItem.getNum())
+                    .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
+                    .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
+                    .title(tradeItem.getSkuName())
+                    .path(goodsDetailUrl+tradeItem.getSpuId())
+                    .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());
+        });
+        detail.setProductInfos(productInfoDTOS);
 
+        detail.setPayInfo(CreateWxOrderAndPayRequest.PayInfoDTO.builder().payMethodType(0)
+                .prepayId(trade.getId())
+                .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
+
+        CreateWxOrderAndPayRequest.PriceInfoDTO priceInfo = new CreateWxOrderAndPayRequest.PriceInfoDTO;
+        if(trade.getTradePrice().getTotalPrice()!=null) {
+            priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        if(trade.getTradePrice().getDeliveryPrice()!=null) {
+            priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        detail.setPriceInfo(priceInfo);
+
+        CreateWxOrderAndPayRequest.AddressInfoDTO addressInfo = new CreateWxOrderAndPayRequest.AddressInfoDTO();
+        addressInfo.setCity(trade.getConsignee().getCityName());
+        addressInfo.setReceiverName(trade.getConsignee().getName());
+        addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
+        addressInfo.setProvince(trade.getConsignee().getProvinceName());
+        addressInfo.setTown(trade.getConsignee().getAreaName());
+        addressInfo.setTelNumber(trade.getConsignee().getPhone());
+        result.setAddressInfo(addressInfo);
+        result.setOrderDetail(detail);
+        return result;
     }
 }
