@@ -25,6 +25,7 @@ public class MiniProgramOrderReportVO implements Serializable {
     @Data
     public static class OrderReportDetailVO{
         private String orderId;
+        private String pic;
         private String goodsName;
         private String createTime;
         private BigDecimal price;
