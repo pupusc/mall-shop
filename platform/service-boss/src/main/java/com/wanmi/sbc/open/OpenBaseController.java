@@ -45,7 +45,12 @@ public class OpenBaseController {
         Map<String, String> mapParams = Maps.newTreeMap();
         spreadParams(jsonParams, mapParams, null);
 
-        String localSign = createSign(getAppSecret(), mapParams);
+        if (Objects.isNull(mapParams.get("t")) || Objects.isNull(mapParams.get("sign"))) {
+            log.warn("签名基础参数错误, params = {}", JSON.toJSONString(mapParams));
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        String localSign = createSign(getAppSecret(), mapParams, request.getRequestURI());
         if (!localSign.equals(mapParams.get("sign"))) {
             log.warn("验签错误，paramSign = {}, localSign = {}", mapParams.get("sign"), localSign);
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
@@ -71,22 +76,21 @@ public class OpenBaseController {
         }
     }
 
-    private static String createSign(String appKey, Map<String, String> parameters) {
-        StringBuffer sb = new StringBuffer();
+    private static String createSign(String appKey, Map<String, String> parameters, String uri) {
+        StringBuffer sb = new StringBuffer(uri + "&");
         Iterator<Map.Entry<String, String>> it = parameters.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, String> entry = it.next();
             String key = entry.getKey();
             //去掉带sign的项
             String value = entry.getValue();
-            if (null != value && !"".equals(value) && !"sign".equals(key)
-                    && !"key".equals(key)) {
+            if (null != value && !"".equals(value) && !"sign".equals(key) && !"key".equals(key)) {
                 sb.append(key + "=" + value + "&");
             }
         }
         sb.append("key=" + appKey);
         //注意sign转为大写
-        return DigestUtils.md5DigestAsHex(sb.toString().getBytes()).toUpperCase();
+        return DigestUtils.md5DigestAsHex(sb.toString().getBytes());
     }
 
     private String getAppSecret() {
@@ -94,9 +98,12 @@ public class OpenBaseController {
     }
 
     public static void main(String[] args) {
+//        String uri = "/open/deliver/goods/query";
+//        String params = "{\"t\":\"1646644547381\",\"page\":{\"pageNo\":1,\"pageSize\":10,\"totalCount\":0}}";
+        String uri = "/open/deliver/order/create";
         String params = "{\n" +
                 "    \"fddsUserId\": 19187,\n" +
-                "    \"outTradeNo\": \"dd000006\",\n" +
+                "    \"outTradeNo\": \"dd000008\",\n" +
                 "    \"buyerRemark\": \"乌克兰战争\",\n" +
                 "    \"consigneeAddress\": \"安徽省合肥市庐阳区庐阳工业区文一名门首府\",\n" +
                 "        \"consignee\": {\n" +
@@ -126,7 +133,7 @@ public class OpenBaseController {
 
         spreadParams(jsonParams, mapParams, null);
         System.out.println("------------------------------------");
-        System.out.println(createSign(appKey, mapParams));
+        System.out.println(createSign(appKey, mapParams, uri));
         System.out.println("------------------------------------");
     }
 }
