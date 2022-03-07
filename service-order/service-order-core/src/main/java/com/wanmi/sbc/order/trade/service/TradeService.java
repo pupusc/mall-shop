@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 //import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -644,6 +645,9 @@ public class TradeService {
 
     @Value("${wx.create.order.send.message.link.url}")
     private String createOrderSendMsgLinkUrl;
+
+    @Autowired
+    private TradeOrderService tradeOrderService;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -6828,7 +6832,7 @@ public class TradeService {
         payCallbackOnline(trades, operator, isMergePay);
         //微信支付同步支付结果,失败处理todo
         syncWxOrderPay(wxPayResultResponse,trades.get(0));
-        sendWxCreateOrderMessage(trades.get(0));
+        tradeOrderService.sendWxCreateOrderMessage(trades.get(0));
     }
 
     /**
@@ -7977,40 +7981,4 @@ public class TradeService {
         return wxOrderApiController.orderPay(wxOrderPayRequest);
     }
 
-    private BaseResponse<WxResponseBase> sendWxCreateOrderMessage(Trade trade){
-        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            return null;
-        }
-        WxSendMessageRequest request =new WxSendMessageRequest();
-        request.setOpenId(trade.getBuyer().getOpenId());
-        request.setTemplateId(createOrderSendMsgTemplateId);
-        request.setUrl(createOrderSendMsgLinkUrl);
-        Map<String,Map<String,String>> map = new HashMap<>();
-        String address =StringUtils.isNotEmpty(trade.getConsignee().getDetailAddress()) && trade.getConsignee().getDetailAddress().length()>20?trade.getConsignee().getDetailAddress().substring(0,20):trade.getConsignee().getDetailAddress();
-        map.put("character_string1",new HashMap<String,String>(){{
-            put("value", trade.getId());
-        }});
-        map.put("amount2",new HashMap<String,String>(){{
-            put("value", String.valueOf(trade.getTradePrice().getTotalPrice()));
-        }});
-        map.put("thing3",new HashMap<String,String>(){{
-            put("value", address);
-        }});
-        map.put("name4",new HashMap<String,String>(){{
-            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
-        }});
-        map.put("phrase5",new HashMap<String,String>(){{
-            put("value", "待发货");
-        }});
-        request.setData(map);
-        return wxCommonController.sendMessage(request);
-    }
-
-    private String filterChineseAndAlp(String str){
-        String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
-        if(StringUtils.isEmpty(goodsName)){
-            goodsName ="购买的商品";
-        }
-        return goodsName;
-    }
 }
