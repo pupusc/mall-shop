@@ -385,8 +385,8 @@ public class TradeOrderService {
             //分时金额
             Integer hour = LocalDateTime.now().getHour();
             Map<Integer,BigDecimal> cacheHourPrice = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date),Map.class);
-            if(cacheHourPrice.isEmpty()){
-                cacheHourPrice.put(hour,trade.getTradePrice().getTotalPrice());
+            if(cacheHourPrice == null || cacheHourPrice.isEmpty()){
+                cacheHourPrice = new HashMap<>();
             }
             BigDecimal lastHourPrice =new BigDecimal(0);
             if (cacheHourPrice.containsKey(hour) && cacheHourPrice.get(hour) !=null) {
@@ -406,9 +406,9 @@ public class TradeOrderService {
             List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),OrderReportDetailDTO.class);
             newList.add(0,orderReportDetailDTO);
             if(CollectionUtils.isNotEmpty(list)){
-                list.addAll(list.stream().limit(list.size()>19 ? 19 :list.size()).collect(Collectors.toList()));
+                newList.addAll(list.stream().limit(list.size()>19 ? 19 :list.size()).collect(Collectors.toList()));
             }
-            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),list,86400);
+            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),newList,86400);
 
         }catch(Exception e){
             log.warn("小程序实时数据报表报错，trade:{}",new Gson().toJson(trade),e);
