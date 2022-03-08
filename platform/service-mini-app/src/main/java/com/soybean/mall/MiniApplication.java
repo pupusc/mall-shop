@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 
-@PropertySource(value = {"web-base-application.properties","application.properties","api-application.properties"}, factory = CompositePropertySourceFactory.class)
+@PropertySource(value = {"application.properties","api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 @ComponentScan(basePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 @EnableDiscoveryClient
