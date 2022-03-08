@@ -300,7 +300,10 @@ public class TradeOrderService {
     public void createWxOrderAndPay(String tid){
         Trade trade = tradeRepository.findById(tid).orElse(null);
         if(trade == null){
-            throw new SbcRuntimeException("");
+            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+        }
+        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return;
         }
         //先创建订单
         BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(buildRequest(trade));
@@ -368,7 +371,10 @@ public class TradeOrderService {
     public void orderReportCache(String tid){
         Trade trade = tradeRepository.findById(tid).orElse(null);
         if(trade == null){
-            throw new SbcRuntimeException("K");
+            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+        }
+        if(!trade.getChannelType().equals(ChannelType.MINIAPP)){
+            return;
         }
         try {
 
@@ -401,6 +407,7 @@ public class TradeOrderService {
                     .createTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))
                     .goodsName(trade.getTradeItems().get(0).getSpuName())
                     .orderId(trade.getId())
+                    .pic(trade.getTradeItems().get(0).getPic())
                     .price(trade.getTradePrice().getTotalPrice()).build();
             List<OrderReportDetailDTO> newList = new ArrayList<>(20);
             List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),OrderReportDetailDTO.class);

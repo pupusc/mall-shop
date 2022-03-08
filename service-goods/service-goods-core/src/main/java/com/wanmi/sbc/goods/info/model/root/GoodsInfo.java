@@ -350,6 +350,12 @@ public class GoodsInfo implements Serializable {
     private List<Long> mockSpecDetailIds;
 
     /**
+     * 新增时，模拟多个规格值名称
+     * 查询详情返回响应，扁平化多个规格值名称
+     */
+    @Transient
+    private List<String> mockSpecDetailName;
+    /**
      * 商品分页，扁平化多个商品规格值ID
      */
     @Transient
