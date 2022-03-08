@@ -1,10 +1,8 @@
 package com.wanmi.sbc.open;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayType;
-import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -57,24 +55,17 @@ import com.wanmi.sbc.open.vo.OrderDeliverInfoReqVO;
 import com.wanmi.sbc.open.vo.OrderDeliverInfoResVO;
 import com.wanmi.sbc.open.vo.TradeItemReqVO;
 import com.wanmi.sbc.order.api.provider.open.OpenDeliverProvider;
-import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
-import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.open.OrderDeliverInfoReqBO;
-import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
 import com.wanmi.sbc.order.api.response.open.DeliverResBO;
 import com.wanmi.sbc.order.api.response.open.OrderDeliverInfoResBO;
-import com.wanmi.sbc.order.api.response.trade.TradeAddBatchResponse;
 import com.wanmi.sbc.order.bean.dto.ConsigneeDTO;
 import com.wanmi.sbc.order.bean.dto.InvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.TradeAddDTO;
 import com.wanmi.sbc.order.bean.dto.TradeCreateDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.dto.TradePriceDTO;
-import com.wanmi.sbc.order.bean.enums.OutTradePlatEnum;
 import com.wanmi.sbc.order.bean.vo.TradeCommitResultVO;
-import com.wanmi.sbc.order.bean.vo.TradeVO;
+import com.wanmi.sbc.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +79,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -104,11 +94,7 @@ import java.util.stream.Collectors;
 @RequestMapping("open/deliver")
 public class OpenDeliverController extends OpenBaseController {
     @Autowired
-    private TradeProvider tradeProvider;
-    @Autowired
     private EsSkuQueryProvider esSkuQueryProvider;
-    @Autowired
-    private TradeQueryProvider tradeQueryProvider;
     @Autowired
     private StoreQueryProvider storeQueryProvider;
     @Autowired
@@ -123,6 +109,11 @@ public class OpenDeliverController extends OpenBaseController {
     private OpenDeliverProvider openDeliverProvider;
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+    @Autowired
+    private RedisService redisService;
+
+    private static String LOCK_OPEN_DELIVER_CREATE_ORDER_KEY = "LOCK.OPEN.DELIVER.CREATE.ORDER";
+    private static Long LOCK_OPEN_DELIVER_CREATE_ORDER_TIME = 1000L * 10;
 
     /**
      * @description: 实物商品查询
@@ -143,7 +134,7 @@ public class OpenDeliverController extends OpenBaseController {
             queryRequest.setGoodsInfoNos(Arrays.asList(params.getSkuNo()));
         }
         queryRequest.setLikeGoodsName(params.getGoodsName());
-        queryRequest.setPageNum(pageNo < 1 ? 1 : pageNo);
+        queryRequest.setPageNum(pageNo < 1 ? 0 : pageNo-1);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
         queryRequest.setGiftFlag(GiftFlagEnum.TRUE.getCode()); //赠品标记
 
@@ -189,6 +180,12 @@ public class OpenDeliverController extends OpenBaseController {
     public BusinessResponse<OrderCreateResVO> orderCreate(@RequestBody @Validated OrderCreateReqVO params) {
         log.info("==>>履约中台创建订单：params = {}", JSON.toJSONString(params));
         checkSign();
+
+        Boolean lockFlag = redisService.setNx(LOCK_OPEN_DELIVER_CREATE_ORDER_KEY + ":" + params.getOutTradeNo(), "1", LOCK_OPEN_DELIVER_CREATE_ORDER_TIME);
+        if (!lockFlag) {
+            log.warn("重复提交，外部订单编号={}，处理结束", params.getOutTradeNo());
+            return BusinessResponse.error(CommonErrorCode.REPEAT_REQUEST);
+        }
 
         GoodsInfoViewByIdsRequest goodsRequest = new GoodsInfoViewByIdsRequest();
         goodsRequest.setGoodsInfoIds(params.getTradeItems().stream().map(TradeItemReqVO::getSkuId).collect(Collectors.toList()));
@@ -267,50 +264,23 @@ public class OpenDeliverController extends OpenBaseController {
             tradeCreateParam.getTradeItems().add(itemDTO);
         }
 
-        TradeVO trade = tradeQueryProvider.wrapperBackendCommit(TradeWrapperBackendCommitRequest.builder()
+        BusinessResponse<TradeCommitResultVO> commitResult = openDeliverProvider.createOrder(
+                TradeWrapperBackendCommitRequest.builder()
                 .operator(operator)
                 .companyInfo(KsBeanUtil.convert(companyInfo, CompanyInfoDTO.class))
                 .storeInfo(KsBeanUtil.convert(storeInfo, StoreInfoDTO.class))
                 .tradeCreate(tradeCreateParam)
-                .build()
-        ).getContext().getTradeVO();
+                .build());
 
-        //2.订单入库(转换成list,传入批量创建订单的service方法,同一套逻辑,能够回滚)
-        TradeAddDTO tradeAddDTO = KsBeanUtil.convert(trade, TradeAddDTO.class, SerializerFeature.DisableCircularReferenceDetect);
-        tradeAddDTO.setOutTradeNo(params.getOutTradeNo());
-        tradeAddDTO.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
-
-        TradeAddBatchRequest tradeAddBatchRequest = TradeAddBatchRequest.builder()
-                .tradeDTOList(Collections.singletonList(tradeAddDTO))
-                .operator(operator)
-                .build();
-
-        // 3.限售校验
-        //log.info("校验与包装订单信息结束，开始校验订单中的限售商品......");
-        //this.validateRestrictedGoods(tradeCreateParam.getTradeItems(), customerVO);
-
-        BaseResponse<TradeAddBatchResponse> addResponse = tradeProvider.addBatch(tradeAddBatchRequest);
-        if (!CommonErrorCode.SUCCESSFUL.equals(addResponse.getCode())) {
-            log.info("来自三方系统订单创建失败, result = {}", JSON.toJSONString(addResponse));
-            return BusinessResponse.error(addResponse.getCode(), addResponse.getMessage());
-        }
-        if (CollectionUtils.isEmpty(addResponse.getContext().getTradeCommitResultVOS())) {
-            log.error("订单创建结果为空");
-            return BusinessResponse.success();
-        }
-
-        TradeCommitResultVO commitResult = addResponse.getContext().getTradeCommitResultVOS().stream().findFirst().get();
-        //执行0元订单流程
-        BaseResponse payResposne = tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(commitResult.getTid()), PayWay.UNIONPAY));
-        if (!CommonErrorCode.SUCCESSFUL.equals(payResposne.getCode())) {
-            //支付失败的订单需要补偿处理
-            log.error("履约中台系统订单支付状态更新失败, orderId = {}, result = {}", commitResult.getTid(), JSON.toJSONString(payResposne));
+        if (!CommonErrorCode.SUCCESSFUL.equals(commitResult.getCode())) {
+            log.warn("创建订单失败, 外部订单编号 = {}, result = {}", params.getOutTradeNo(), JSON.toJSONString(commitResult));
+            return BusinessResponse.error(commitResult.getCode(), commitResult.getMessage());
         }
 
         OrderCreateResVO createResVO = new OrderCreateResVO();
-        createResVO.setOrderNo(commitResult.getTid());
-        createResVO.setTotalPrice(commitResult.getPrice());
-        createResVO.setOriginPrice(commitResult.getOriginPrice());
+        createResVO.setOrderNo(commitResult.getContext().getTid());
+        createResVO.setTotalPrice(commitResult.getContext().getPrice());
+        createResVO.setOriginPrice(commitResult.getContext().getOriginPrice());
         return BusinessResponse.success(createResVO);
     }
 
