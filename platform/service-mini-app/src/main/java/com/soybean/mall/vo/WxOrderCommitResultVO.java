@@ -29,6 +29,8 @@ public class WxOrderCommitResultVO implements Serializable {
     private DeliveryDetail deliveryDetail = new DeliveryDetail();
     @JSONField(name ="address_info")
     private WxAddressInfoVO addressInfo;
+    @JSONField(serialize = false)
+    private Boolean prePay = true;
 
 
     @Data

@@ -3,7 +3,7 @@ package com.soybean.mall.order.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
-import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
+import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -69,10 +69,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
@@ -135,10 +132,13 @@ public class OrderController {
     @Value("${wx.order.detail.url}")
     private String orderDetailUrl;
 
-    /**
-     * 提交订单，用于生成订单操作
-     */
 
+    /**
+     * @description 创建订单
+     * @param tradeCommitRequest
+     * @menu 小程序
+     * @status done
+     */
     @ApiOperation(value = "提交订单，用于生成订单操作")
     @RequestMapping(value = "/commit", method = RequestMethod.POST)
     @MultiSubmitWithToken
@@ -188,6 +188,11 @@ public class OrderController {
 
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+        //0元支付不需要生成预支付单
+        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
+            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+            return wxOrderPaymentVO;
+        }
         //生成预支付订单
         WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
         req.setAppid(appId);
@@ -255,6 +260,9 @@ public class OrderController {
         addressInfo.setTelNumber(trade.getConsignee().getPhone());
         result.setAddressInfo(addressInfo);
         result.setOrderDetail(detail);
+        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) ==0){
+            result.setPrePay(false);
+        }
         return result;
     }
 
@@ -284,7 +292,10 @@ public class OrderController {
 
 
     /**
-     * 用于确认订单后，创建订单前的获取订单商品信息
+     * @description 用于确认订单后，创建订单前的获取订单商品信息
+     * @param request
+     * @menu 小程序
+     * @status done
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
@@ -389,19 +400,22 @@ public class OrderController {
     }
 
 
+
     /**
-     * 0元订单批量支付（支付网关默认为银联）
-     *
-     * @param request 请求参数
-     * @return {@link BaseResponse}
+     * @description 0元订单批量支付
+     * @param request
+     * @menu 小程序
+     * @status done
      */
-    @ApiOperation("0元订单批量支付（支付网关默认为银联）")
-    @GlobalTransactional
-    @RequestMapping("/default")
-    public BaseResponse defaultPay(@RequestBody  CreateWxOrderAndPayRequest request) {
-        tradeProvider.defaultPayBatch(new TradeDefaultPayBatchRequest(Arrays.asList(request.getOutOrderId()), PayWay.UNIONPAY));
-        miniAppOrderProvider.createWxOrderAndPay(request);
+    @ApiOperation("0元订单批量支付（支付网关默认为银联")
+    @PostMapping("/default")
+    public BaseResponse defaultPay(@RequestBody DefaultPayBatchRequest request) {
+        TradeDefaultPayBatchRequest tradeDefaultPayBatchRequest = new TradeDefaultPayBatchRequest(request.getTradeIds(), PayWay.UNIONPAY);
+        tradeProvider.defaultPayBatch(tradeDefaultPayBatchRequest);
+        miniAppOrderProvider.createWxOrderAndPay(tradeDefaultPayBatchRequest);
         return BaseResponse.SUCCESSFUL();
     }
+
+
 
 }

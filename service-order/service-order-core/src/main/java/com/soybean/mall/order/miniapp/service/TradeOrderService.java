@@ -1,11 +1,16 @@
 package com.soybean.mall.order.miniapp.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
+import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
+import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
+import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
@@ -15,9 +20,11 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.root.Trade;
@@ -37,6 +44,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,13 +75,31 @@ public class TradeOrderService {
     @Value("${wx.create.order.send.message.link.url}")
     private String createOrderSendMsgLinkUrl;
 
+    @Value("${wx.create.order.send.message.templateId}")
+    private String createOrderSendMsgTemplateId;
+
     @Autowired
     private CommonController wxCommonController;
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
 
+    @Value("${wx.default.image.url}")
+    private String defaultImageUrl;
 
+    @Value("${wx.goods.detail.url}")
+    private String goodsDetailUrl;
+    @Value("${wx.order.detail.url}")
+    private String orderDetailUrl;
+
+    @Autowired
+    private RedisService redisService;
+
+    private static  final String MINI_PROGRAM_ORDER_REPORT_PRICE = "mini:ord:report:price:";
+
+    private static  final String MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE = "mini:ord:report:hour:price:";
+
+    private static  final String MINI_PROGRAM_ORDER_REPORT_LIST = "mini:ord:list:";
     /**
      * 批量同步发货状态到微信-查询本地
      *
@@ -212,6 +239,36 @@ public class TradeOrderService {
         return wxCommonController.sendMessage(request);
     }
 
+
+    public BaseResponse<WxResponseBase> sendWxCreateOrderMessage(Trade trade){
+        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return null;
+        }
+        WxSendMessageRequest request =new WxSendMessageRequest();
+        request.setOpenId(trade.getBuyer().getOpenId());
+        request.setTemplateId(createOrderSendMsgTemplateId);
+        request.setUrl(createOrderSendMsgLinkUrl);
+        Map<String,Map<String,String>> map = new HashMap<>();
+        String address =StringUtils.isNotEmpty(trade.getConsignee().getDetailAddress()) && trade.getConsignee().getDetailAddress().length()>20?trade.getConsignee().getDetailAddress().substring(0,20):trade.getConsignee().getDetailAddress();
+        map.put("character_string1",new HashMap<String,String>(){{
+            put("value", trade.getId());
+        }});
+        map.put("amount2",new HashMap<String,String>(){{
+            put("value", String.valueOf(trade.getTradePrice().getTotalPrice()));
+        }});
+        map.put("thing3",new HashMap<String,String>(){{
+            put("value", address);
+        }});
+        map.put("name4",new HashMap<String,String>(){{
+            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
+        }});
+        map.put("phrase5",new HashMap<String,String>(){{
+            put("value", "待发货");
+        }});
+        request.setData(map);
+        return wxCommonController.sendMessage(request);
+    }
+
     private String filterChineseAndAlp(String str){
         String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
         if(StringUtils.isEmpty(goodsName)){
@@ -240,13 +297,13 @@ public class TradeOrderService {
 
     }
 
-    public void createWxOrderAndPay(WxCreateOrderRequest request){
-        Trade trade = tradeRepository.findById(request.getOutOrderId()).orElse(null);
+    public void createWxOrderAndPay(String tid){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
         if(trade == null){
             throw new SbcRuntimeException("");
         }
         //先创建订单
-        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(request);
+        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(buildRequest(trade));
         //支付同步
         WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
         wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());
@@ -255,7 +312,122 @@ public class TradeOrderService {
         wxOrderPayRequest.setPayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         wxOrderPayRequest.setTransactionId(trade.getId());
         BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
+        this.sendWxCreateOrderMessage(trade);
+    }
 
+    private WxCreateOrderRequest buildRequest(Trade trade) {
+        WxCreateOrderRequest result = new WxCreateOrderRequest();
+        result.setOutOrderId(trade.getId());
+        result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        result.setOpenid(trade.getBuyer().getOpenId());
+        result.setPath(orderDetailUrl);
+        WxOrderDetailDTO detail = new WxOrderDetailDTO();
+        List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        trade.getTradeItems().forEach(tradeItem -> {
+            productInfoDTOS.add(WxProductInfoDTO.builder()
+                    .outProductId(tradeItem.getSpuId())
+                    .outSkuId(tradeItem.getSkuId())
+                    .productNum(tradeItem.getNum())
+                    .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
+                    .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
+                    .title(tradeItem.getSkuName())
+                    .path(goodsDetailUrl+tradeItem.getSpuId())
+                    .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());
+        });
+        detail.setProductInfos(productInfoDTOS);
 
+        detail.setPayInfo(WxPayInfoDTO.builder().payMethodType(0)
+                .prepayId(trade.getId())
+                .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
+
+        WxPriceInfoDTO priceInfo = new WxPriceInfoDTO();
+        if(trade.getTradePrice().getTotalPrice()!=null) {
+            priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        if(trade.getTradePrice().getDeliveryPrice()!=null) {
+            priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        detail.setPriceInfo(priceInfo);
+
+        WxAddressInfoDTO addressInfo = new WxAddressInfoDTO();
+        addressInfo.setCity(trade.getConsignee().getCityName());
+        addressInfo.setReceiverName(trade.getConsignee().getName());
+        addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
+        addressInfo.setProvince(trade.getConsignee().getProvinceName());
+        addressInfo.setTown(trade.getConsignee().getAreaName());
+        addressInfo.setTelNumber(trade.getConsignee().getPhone());
+        result.setAddressInfo(addressInfo);
+        result.setOrderDetail(detail);
+        return result;
+    }
+
+    /**
+     * 小程序实时报表
+     * @param tid
+     */
+    public void orderReportCache(String tid){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
+        if(trade == null){
+            throw new SbcRuntimeException("K");
+        }
+        try {
+
+            String date = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1);
+            //总金额
+            String cachePrice = redisService.getString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date));
+            BigDecimal lastPrice =new BigDecimal(0);
+            if (StringUtils.isNotEmpty(cachePrice)) {
+                lastPrice = new BigDecimal(cachePrice);
+            }
+            BigDecimal totalPrice = trade.getTradePrice().getTotalPrice().add(lastPrice).setScale(2, RoundingMode.HALF_UP);
+            redisService.setString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date), totalPrice.toString(), 86400);
+            log.info("小程序实时报表设置付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
+            //分时金额
+            Integer hour = LocalDateTime.now().getHour();
+            Map<Integer,BigDecimal> cacheHourPrice = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date),Map.class);
+            if(cacheHourPrice == null || cacheHourPrice.isEmpty()){
+                cacheHourPrice = new HashMap<>();
+            }
+            BigDecimal lastHourPrice =new BigDecimal(0);
+            if (cacheHourPrice.containsKey(hour) && cacheHourPrice.get(hour) !=null) {
+                lastHourPrice = cacheHourPrice.get(hour);
+            }
+            BigDecimal totalHourPrice = trade.getTradePrice().getTotalPrice().add(lastHourPrice).setScale(2, RoundingMode.HALF_UP);
+            cacheHourPrice.put(hour,totalHourPrice);
+            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), cacheHourPrice, 86400);
+            log.info("小程序实时报表设置分时付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
+            //只保存20条数据
+            OrderReportDetailDTO orderReportDetailDTO = OrderReportDetailDTO.builder()
+                    .createTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))
+                    .goodsName(trade.getTradeItems().get(0).getSpuName())
+                    .orderId(trade.getId())
+                    .price(trade.getTradePrice().getTotalPrice()).build();
+            List<OrderReportDetailDTO> newList = new ArrayList<>(20);
+            List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),OrderReportDetailDTO.class);
+            newList.add(0,orderReportDetailDTO);
+            if(CollectionUtils.isNotEmpty(list)){
+                newList.addAll(list.stream().limit(list.size()>19 ? 19 :list.size()).collect(Collectors.toList()));
+            }
+            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),newList,86400);
+
+        }catch(Exception e){
+            log.warn("小程序实时数据报表报错，trade:{}",new Gson().toJson(trade),e);
+        }
+
+    }
+
+    public MiniProgramOrderReportVO getMiniProgramOrderReportCache(){
+        MiniProgramOrderReportVO result = new MiniProgramOrderReportVO();
+        String date = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1);
+        //总金额
+        String cachePrice = redisService.getString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date));
+        if(StringUtils.isNotEmpty(cachePrice)){
+            result.setTotalPrice(new BigDecimal(cachePrice));
+        }
+        //分时金额
+        result.setHourPrice(redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date),Map.class));
+        //订单数据
+        result.setOrders(redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), MiniProgramOrderReportVO.OrderReportDetailVO.class));
+        return result;
     }
 }

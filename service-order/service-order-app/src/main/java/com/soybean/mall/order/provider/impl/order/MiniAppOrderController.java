@@ -2,11 +2,14 @@ package com.soybean.mall.order.provider.impl.order;
 
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
 import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
+import com.soybean.mall.order.api.request.order.TradeOrderReportRequest;
+import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +25,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
     @Autowired
     private TradeOrderService tradeOrderService;
+
     /**
      * 同步订单到微信
      * @param request
@@ -39,8 +43,19 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
      * @return
      */
     @Override
-    public BaseResponse createWxOrderAndPay(CreateWxOrderAndPayRequest request) {
-        tradeOrderService.createWxOrderAndPay(KsBeanUtil.convert(request,WxCreateOrderRequest.class));
+    public BaseResponse createWxOrderAndPay(@RequestBody TradeDefaultPayBatchRequest request) {
+        tradeOrderService.createWxOrderAndPay(request.getTradeIds().get(0));
         return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse addOrderReportCache(@RequestBody TradeOrderReportRequest request) {
+        tradeOrderService.orderReportCache(request.getTid());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse<MiniProgramOrderReportVO> getOrderReportCache() {
+        return BaseResponse.success(tradeOrderService.getMiniProgramOrderReportCache());
     }
 }

@@ -2,9 +2,8 @@ package com.wanmi.sbc.order.provider.impl.trade;
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
-import com.soybean.mall.order.model.OrderCommitResult;
+import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.service.OrderService;
-import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.order.bean.vo.*;
 
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -27,7 +26,6 @@ import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeGroup;
-import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.request.TradePriceChangeRequest;
 import com.wanmi.sbc.order.trade.request.TradeRemedyRequest;
 import com.wanmi.sbc.order.trade.service.*;
@@ -35,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 

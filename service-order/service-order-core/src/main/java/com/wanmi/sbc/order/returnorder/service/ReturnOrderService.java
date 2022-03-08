@@ -4039,7 +4039,7 @@ public class ReturnOrderService {
         request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
         request.setPath(orderDetailUrl+returnOrder.getTid());
         request.setStatus(status.getId());
-        request.setRefund(returnOrder.getReturnPrice().getActualReturnPrice().multiply(new BigDecimal(100)).intValue());
+        request.setRefund(returnOrder.getReturnPrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
         List<WxProductDTO> products = new ArrayList<>();
         returnOrder.getReturnItems().forEach(item->{
             products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());

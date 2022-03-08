@@ -1,10 +1,14 @@
 package com.soybean.mall.order.api.provider.order;
 
 import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
+import com.soybean.mall.order.api.request.order.TradeOrderReportRequest;
+import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -27,8 +31,24 @@ public interface MiniAppOrderProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/trade/create-wx-order-and-pay")
-    BaseResponse createWxOrderAndPay(@RequestBody CreateWxOrderAndPayRequest request);
+    BaseResponse createWxOrderAndPay(@RequestBody TradeDefaultPayBatchRequest request);
 
 
+    /**
+     * 小程序报表数据
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/create-wx-order-report-cache")
+    BaseResponse addOrderReportCache(@RequestBody TradeOrderReportRequest request);
+
+
+    /**
+     * 获取小程序报表数据
+     * @param
+     * @return
+     */
+    @GetMapping("/order/${application.order.version}/trade/get-wx-order-report-cache")
+    BaseResponse<MiniProgramOrderReportVO> getOrderReportCache();
 
 }
