@@ -26,7 +26,7 @@ public interface WxLiveAssistantProvider {
     BaseResponse<Map<String, Map<String, Integer>>> deleteAssistant(@RequestParam("id") Long id);
 
     @PostMapping("/wx/assistant/${application.goods.version}/update")
-    BaseResponse<Long> updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
+    BaseResponse<Map<String, String>> updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/list")
     BaseResponse<MicroServicePage<WxLiveAssistantVo>> listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
@@ -45,4 +45,7 @@ public interface WxLiveAssistantProvider {
 
     @PostMapping("/wx/assistant/${application.goods.version}/live-end")
     BaseResponse afterWxLiveEnd(@RequestParam("message") String message);
+
+    @PostMapping("/wx/assistant/${application.goods.version}/if-goods-in-live")
+    BaseResponse<Boolean> ifGoodsInLive(@RequestParam("goodsId") String goodsId);
 }

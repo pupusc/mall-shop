@@ -71,6 +71,7 @@ public class WxLiveAssistantGoodsModel {
             LocalDateTime now = LocalDateTime.now();
             wxLiveAssistantGoodsModel.setCreateTime(now);
             wxLiveAssistantGoodsModel.setUpdateTime(now);
+            wxLiveAssistantGoodsModel.setDelFlag(DeleteFlag.NO);
             assistantGoodsModels.add(wxLiveAssistantGoodsModel);
         }
         return assistantGoodsModels;

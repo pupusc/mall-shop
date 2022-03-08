@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mini-app</artifactId>
+    <artifactId>service-mini-app</artifactId>
 
     <properties>
         <main-class>com.soybean.mall.MiniApplication</main-class>

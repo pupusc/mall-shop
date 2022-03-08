@@ -2,10 +2,12 @@ package com.wanmi.sbc.goods.mini.model.goods;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -48,11 +50,16 @@ public class WxLiveAssistantModel {
     public static WxLiveAssistantModel create(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         WxLiveAssistantModel wxLiveAssistantModel = new WxLiveAssistantModel();
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        wxLiveAssistantModel.setTheme(wxLiveAssistantCreateRequest.getTheme());
-        wxLiveAssistantModel.setStartTime(LocalDateTime.parse(wxLiveAssistantCreateRequest.getStartTime(), df));
-        wxLiveAssistantModel.setEndTime(LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df));
-        wxLiveAssistantModel.setGoodsCount(0);
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getStartTime(), df);
+        LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
+        if(endTime.isBefore(startTime)) throw new SbcRuntimeException("开始时间不能大于结束时间");
+        if(endTime.isBefore(now)) throw new SbcRuntimeException("结束时间不能小于现在");
+        wxLiveAssistantModel.setTheme(wxLiveAssistantCreateRequest.getTheme());
+        wxLiveAssistantModel.setStartTime(startTime);
+        wxLiveAssistantModel.setEndTime(endTime);
+        wxLiveAssistantModel.setGoodsCount(0);
+
         wxLiveAssistantModel.setCreateTime(now);
         wxLiveAssistantModel.setUpdateTime(now);
         wxLiveAssistantModel.setDelFlag(DeleteFlag.NO);

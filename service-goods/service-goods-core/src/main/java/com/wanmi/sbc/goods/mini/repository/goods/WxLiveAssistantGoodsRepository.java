@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.mini.repository.goods;
 
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantGoodsModel;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +31,7 @@ public interface WxLiveAssistantGoodsRepository extends JpaRepository<WxLiveAssi
             if(wxLiveAssistantSearchRequest.getGoodsIdIn() != null){
                 conditionList.add(root.get("goodsId").in(wxLiveAssistantSearchRequest.getGoodsIdIn()));
             }
+            conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
             return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
         };
     }

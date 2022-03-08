@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateR
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,16 +60,19 @@ public class GoodsLiveAssistantController {
 
     @PostMapping("/assistant/update")
     public BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
-        BaseResponse<Long> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
+        BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
         if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            sendDelayMessage(response.getContext(), wxLiveAssistantCreateRequest.getEndTime());
+            Map<String, String> context = response.getContext();
+            if(context.get("endTime") != null){
+                sendDelayMessage(Long.parseLong(context.get("id")), wxLiveAssistantCreateRequest.getEndTime());
+            }
             return BaseResponse.SUCCESSFUL();
         }
         return BaseResponse.FAILED();
     }
 
     @PostMapping("/assistant/list")
-    public BaseResponse listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
+    public BaseResponse<MicroServicePage<WxLiveAssistantVo>> listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return wxLiveAssistantProvider.listAssistant(wxLiveAssistantSearchRequest);
     }
 
@@ -97,11 +101,13 @@ public class GoodsLiveAssistantController {
         return wxLiveAssistantProvider.listGoods(wxLiveAssistantSearchRequest);
     }
 
+    @PostMapping("/assistant/ifGoodsInLive")
+    public BaseResponse<Boolean> ifGoodsInLive(@RequestParam String goodsId){
+        return wxLiveAssistantProvider.ifGoodsInLive(goodsId);
+    }
+
     private void sendDelayMessage(Long assistantId, String endTimeStr){
-//        LocalDateTime startTime = wxLiveAssistantModel.getStartTime();
-//        LocalDateTime now1 = LocalDateTime.now();
-//        Duration duration1 = Duration.between(now1, startTime);
-//        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(0).time(startTime.format(df)).build(), duration1.toMillis());
+        log.info("发送直播助手延时消息: {},{}", assistantId, endTimeStr);
         LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
         LocalDateTime now2 = LocalDateTime.now();
         Duration duration2 = Duration.between(now2, endTime);
@@ -109,7 +115,7 @@ public class GoodsLiveAssistantController {
         Map<String, Object> map = new HashMap<>();
         map.put("assistantId", assistantId);
         map.put("time", endTime.format(df));
-        map.put("type", 1);
+        map.put("event_type", 1);
         wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
     }
 

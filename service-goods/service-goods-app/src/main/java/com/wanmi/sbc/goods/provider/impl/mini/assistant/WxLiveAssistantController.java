@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +57,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<Long> updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest) {
+    public BaseResponse<Map<String, String>> updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest) {
         return BaseResponse.success(wxLiveAssistantService.updateAssistant(wxLiveAssistantCreateRequest));
     }
 
@@ -66,13 +68,25 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
 
         MicroServicePage<WxLiveAssistantVo> microServicePage = new MicroServicePage<>();
         microServicePage.setTotal(assistantModelPage.getTotalElements());
+        LocalDateTime now = LocalDateTime.now();
         List<WxLiveAssistantVo> collect = assistantModels.stream().map(assistantModel -> {
             WxLiveAssistantVo wxLiveAssistantVo = new WxLiveAssistantVo();
+            LocalDateTime endTime = assistantModel.getEndTime();
+            LocalDateTime startTime = assistantModel.getStartTime();
+            Duration duration = Duration.between(startTime, endTime);
+            wxLiveAssistantVo.setDuration(duration.toMinutes());
             wxLiveAssistantVo.setTheme(assistantModel.getTheme());
             wxLiveAssistantVo.setId(assistantModel.getId());
-            wxLiveAssistantVo.setEndTime(assistantModel.getEndTime().format(df));
-            wxLiveAssistantVo.setStartTime(assistantModel.getStartTime().format(df));
+            wxLiveAssistantVo.setEndTime(endTime.format(df));
+            wxLiveAssistantVo.setStartTime(startTime.format(df));
             wxLiveAssistantVo.setGoodsCount(assistantModel.getGoodsCount());
+            if(endTime.isBefore(now)){
+                wxLiveAssistantVo.setStatus(2);
+            }else if(endTime.isAfter(now) && startTime.isBefore(now)){
+                wxLiveAssistantVo.setStatus(1);
+            }else {
+                wxLiveAssistantVo.setStatus(0);
+            }
             return wxLiveAssistantVo;
         }).collect(Collectors.toList());
         microServicePage.setContent(collect);
@@ -147,12 +161,17 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         return BaseResponse.success(microServicePage);
     }
 
+    @Override
+    public BaseResponse<Boolean> ifGoodsInLive(String goodsId){
+        return BaseResponse.success(wxLiveAssistantService.ifGoodsInLive(goodsId));
+    }
+
     public BaseResponse afterWxLiveEnd(String message){
         JSONObject wxLiveAssistantMessage = JSONObject.parseObject(message);
         Long assistantId = wxLiveAssistantMessage.getLong("assistantId");
-        if(wxLiveAssistantMessage.getInteger("type") == 0){
+        if(wxLiveAssistantMessage.getInteger("event_type") == 0){
             //开始直播
-        }else if(wxLiveAssistantMessage.getInteger("type") == 1){
+        }else if(wxLiveAssistantMessage.getInteger("event_type") == 1){
             WxLiveAssistantModel wxLiveAssistantModel = wxLiveAssistantService.findAssistantById(assistantId);
             if(wxLiveAssistantModel != null){
                 if(wxLiveAssistantModel.getDelFlag().equals(DeleteFlag.NO) && wxLiveAssistantModel.getEndTime().format(df).equals(wxLiveAssistantMessage.getString("time"))){

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.mini.mq;
 
+import com.sun.org.apache.bcel.internal.generic.DALOAD;
 import com.wanmi.sbc.mini.mq.config.WxLiveMessageSink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -17,6 +18,9 @@ public class WxMiniMessageProducer {
     private BinderAwareChannelResolver resolver;
 
     public void sendDelay(Map<String, Object> map, long delay){
+        if(delay <= 0){
+            delay = 1500;
+        }
         resolver.resolveDestination(WxLiveMessageSink.MSG_DELAY_LIVE_ASSISTANT_PRODUCER)
                 .send(MessageBuilder.withPayload(map).setHeader("x-delay", delay).build());
     }

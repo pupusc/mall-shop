@@ -57,31 +57,16 @@ public class WxLiveAssistantService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "缺少参数");
         }
         WxLiveAssistantModel wxLiveAssistantModel = WxLiveAssistantModel.create(wxLiveAssistantCreateRequest);
-        //发送延时消息
-//        sendDelayMessage(wxLiveAssistantModel);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
         return wxLiveAssistantModel.getId();
     }
 
-//    private void sendDelayMessage(WxLiveAssistantModel wxLiveAssistantModel){
-//        Long assistantId = wxLiveAssistantModel.getId();
-//
-////        LocalDateTime startTime = wxLiveAssistantModel.getStartTime();
-////        LocalDateTime now1 = LocalDateTime.now();
-////        Duration duration1 = Duration.between(now1, startTime);
-////        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(0).time(startTime.format(df)).build(), duration1.toMillis());
-//
-//        LocalDateTime endTime = wxLiveAssistantModel.getEndTime();
-//        LocalDateTime now2 = LocalDateTime.now();
-//        Duration duration2 = Duration.between(now2, endTime);
-//        wxMiniMessageProducer.sendDelay(WxLiveAssistantMessageData.builder().assistantId(assistantId).type(1).time(endTime.format(df)).build(), duration2.toMillis());
-//    }
-
     @Transactional
     public Map<String, Map<String, Integer>> deleteAssistant(Long id){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(id);
-        if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
+        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能删除");
         wxLiveAssistantModel.setDelFlag(DeleteFlag.YES);
         wxLiveAssistantModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
@@ -91,25 +76,34 @@ public class WxLiveAssistantService {
     }
 
     @Transactional
-    public Long updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
+    public Map<String, String> updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantCreateRequest.getId());
-        if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
-        LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
-        if(endTime.isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "结束时间不能小于当前时间");
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
         if(wxLiveAssistantCreateRequest.getTheme() != null){
             wxLiveAssistantModel.setTheme(wxLiveAssistantCreateRequest.getTheme());
         }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getStartTime(), df);
+        LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
+        if(endTime.isBefore(startTime)) throw new SbcRuntimeException("开始时间不能大于结束时间");
+        if(endTime.isBefore(now)) throw new SbcRuntimeException("结束时间不能小于现在");
+        Map<String, String> resultMap = new HashMap<>();
         if (wxLiveAssistantCreateRequest.getStartTime() != null){
-            wxLiveAssistantModel.setStartTime(LocalDateTime.parse(wxLiveAssistantCreateRequest.getStartTime(), df));
+            if(!wxLiveAssistantModel.getStartTime().isEqual(startTime)){
+                wxLiveAssistantModel.setStartTime(startTime);
+            }
         }
         if(wxLiveAssistantCreateRequest.getEndTime() != null){
-            wxLiveAssistantModel.setEndTime(endTime);
+            if(!wxLiveAssistantModel.getEndTime().isEqual(endTime)){
+                wxLiveAssistantModel.setEndTime(endTime);
+                resultMap.put("endTime", wxLiveAssistantCreateRequest.getEndTime());
+            }
         }
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
-//        sendDelayMessage(wxLiveAssistantModel);
-        return wxLiveAssistantModel.getId();
+        resultMap.put("id", wxLiveAssistantModel.getId().toString());
+        return resultMap;
     }
 
     public Page<WxLiveAssistantModel> listAssistant(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
@@ -158,22 +152,23 @@ public class WxLiveAssistantService {
     @Transactional
     public Map<String, Map<String, Integer>> deleteGoods(Long id){
         Optional<WxLiveAssistantGoodsModel> opt = wxLiveAssistantGoodsRepository.findById(id);
-        if(!opt.isPresent()) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
         WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt.get();
         wxLiveAssistantGoodsModel.setDelFlag(DeleteFlag.YES);
         wxLiveAssistantGoodsModel.setUpdateTime(LocalDateTime.now());
-        wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
 
         Optional<WxLiveAssistantModel> opt2 = wxLiveAssistantRepository.findById(wxLiveAssistantGoodsModel.getAssistId());
         if(!opt2.isPresent() || opt2.get().getDelFlag().equals(DeleteFlag.YES)){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         }
         WxLiveAssistantModel wxLiveAssistantModel = opt2.get();
+        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
         wxLiveAssistantModel.setGoodsCount(wxLiveAssistantModel.getGoodsCount() - 1);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+        wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
 
         String goodsId = wxLiveAssistantGoodsModel.getGoodsId();
-        log.info("直播商品{}删除，关联的sku将恢复库存同步", goodsId);
+        log.info("直播商品{}删除，关联的sku将恢复库存同步和价格", goodsId);
         List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Arrays.asList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
         List<GoodsInfo> toSave = new ArrayList<>();
         Map<String, Map<String, Integer>> map = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos, toSave);
@@ -215,20 +210,20 @@ public class WxLiveAssistantService {
             if(CollectionUtils.isEmpty(goodsInfoList)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "goodsInfo不存在: " + goodsInfoId);
             GoodsInfo goodsInfo = goodsInfoList.get(0);
             if(!wxLiveAssistantGoodsModel.getGoodsId().equals(goodsInfo.getGoodsId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "非法参数");
-            HashMap<String, String> map = (HashMap<String, String>) oldGoodsInfo.compute(goodsInfoId, (k, v) -> {
-                if (v == null) return new HashMap<>();
+            JSONObject map = (JSONObject) oldGoodsInfo.compute(goodsInfoId, (k, v) -> {
+                if (v == null) return new JSONObject();
                 return v;
             });
             boolean updateGoodsInfo = false;
             if(stock != null) {
+                if(!map.containsKey("stock")) map.put("stock", goodsInfo.getStock().toString());
                 updateGoodsInfo = true;
                 goodsInfo.setStock(stock.longValue());
-                if(!map.containsKey("stock")) map.put("stock", stock.toString());
             }
             if(price != null){
+                if(!map.containsKey("price")) map.put("price", goodsInfo.getMarketPrice().toString());
                 updateGoodsInfo = true;
                 goodsInfo.setMarketPrice(new BigDecimal(price));
-                if(!map.containsKey("price")) map.put("price", price);
             }
             if(updateGoodsInfo) toUpdateGoodsInfo.add(goodsInfo);
         }
@@ -242,7 +237,15 @@ public class WxLiveAssistantService {
     }
 
     public Page<WxLiveAssistantGoodsModel> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
-        return wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageNum()));
+        return wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageSize()));
+    }
+
+    public boolean ifGoodsInLive(String goodsId){
+        List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(Collections.singletonList(goodsId));
+        if(CollectionUtils.isNotEmpty(timeConflictGoods)){
+            return true;
+        }
+        return false;
     }
 
     public WxLiveAssistantModel findAssistantById(Long assistantId){
@@ -307,12 +310,14 @@ public class WxLiveAssistantService {
         Map<String, Integer> spus = new HashMap<>();
 
         for (GoodsInfo goodsInfo : goodsInfos) {
-            Integer oldFlag = (Integer) olfSyncStockFlag.get(goodsInfo);
+            boolean change = false;
+            Integer oldFlag = (Integer) olfSyncStockFlag.get(goodsInfo.getGoodsInfoId());
             if(oldFlag == null || oldFlag == 0){
                 //开播之前未开同步
 
             }else {
                 //开播之前同步了,同步一次库存
+                change = true;
                 goodsInfo.setStockSyncFlag(1);
                 Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
                 Map<String, Integer> skus1 = map.get("skus");
@@ -336,14 +341,19 @@ public class WxLiveAssistantService {
                     });
                 });
             }
-            Map<String, String> oldInfo = (Map<String, String>) oldGoodsInfo.get(goodsInfo);
-            if(oldInfo != null){
-                String price = oldInfo.get("price");
+            if(oldGoodsInfo != null){
+                Map<String, String> oldInfo = (Map<String, String>) oldGoodsInfo.get(goodsInfo.getGoodsInfoId());
+                if(oldInfo != null){
+                    String price = oldInfo.get("price");
 //                String stock = oldInfo.get("stock");
-                if(price != null){
-                    goodsInfo.setMarketPrice(new BigDecimal(price));
-                    toSave.add(goodsInfo);
+                    if(price != null){
+                        change = true;
+                        goodsInfo.setMarketPrice(new BigDecimal(price));
+                    }
                 }
+            }
+            if(change){
+                toSave.add(goodsInfo);
             }
         }
         resultMap.put("spus", spus);
