@@ -117,12 +117,12 @@ public class TradeOrderService {
              * 查询部分发货或全部发货且未更新全部状态的小程序订单
              */
             List<Criteria> criterias = new ArrayList<>();
-//            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-//            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
-//            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
-//            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP));
-//            criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
-//            criterias.add(Criteria.where("cycleBuyFlag").is(false));
+            criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
+            criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
+            criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
+            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP.toValue()));
+            criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
+            criterias.add(Criteria.where("cycleBuyFlag").is(false));
             //单个订单发货状态同步
             if (StringUtils.isNoneBlank(ptid)) {
                 criterias.add(Criteria.where("id").is(ptid));
