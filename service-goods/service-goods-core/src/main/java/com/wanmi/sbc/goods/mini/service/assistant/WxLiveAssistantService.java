@@ -52,12 +52,19 @@ public class WxLiveAssistantService {
     @Autowired
     private GoodsStockService goodsStockService;
 
+    @Transactional
     public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         if(wxLiveAssistantCreateRequest.getStartTime() == null || wxLiveAssistantCreateRequest.getEndTime() == null){
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "缺少参数");
         }
         WxLiveAssistantModel wxLiveAssistantModel = WxLiveAssistantModel.create(wxLiveAssistantCreateRequest);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+
+        WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest = new WxLiveAssistantGoodsCreateRequest();
+        wxLiveAssistantGoodsCreateRequest.setAssistantId(wxLiveAssistantModel.getId());
+        wxLiveAssistantGoodsCreateRequest.setGoods(wxLiveAssistantCreateRequest.getGoodsId());
+        addGoods(wxLiveAssistantGoodsCreateRequest);
+
         return wxLiveAssistantModel.getId();
     }
 
