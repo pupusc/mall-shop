@@ -6833,6 +6833,7 @@ public class TradeService {
         //微信支付同步支付结果,失败处理todo
         syncWxOrderPay(wxPayResultResponse,trades.get(0));
         tradeOrderService.sendWxCreateOrderMessage(trades.get(0));
+        tradeOrderService.orderReportCache(trades.get(0).getId());
     }
 
     /**

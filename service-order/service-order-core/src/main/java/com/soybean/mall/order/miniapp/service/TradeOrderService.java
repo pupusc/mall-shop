@@ -316,6 +316,7 @@ public class TradeOrderService {
         wxOrderPayRequest.setTransactionId(trade.getId());
         BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
         this.sendWxCreateOrderMessage(trade);
+        orderReportCache(trade.getId());
     }
 
     private WxCreateOrderRequest buildRequest(Trade trade) {

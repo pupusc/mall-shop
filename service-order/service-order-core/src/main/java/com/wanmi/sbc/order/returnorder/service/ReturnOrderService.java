@@ -4032,7 +4032,7 @@ public class ReturnOrderService {
         }
         WxCreateAfterSaleRequest request = new WxCreateAfterSaleRequest();
         request.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
-        request.setFinishAllAftersale(1);
+        request.setFinishAllAftersale(0);
         request.setOutOrderId(returnOrder.getTid());
         request.setOutAftersaleId(returnOrder.getId());
         request.setOpenid(returnOrder.getBuyer().getOpenId());
