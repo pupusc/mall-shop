@@ -1810,7 +1810,7 @@ public class ReturnOrderService {
             trade.setTradeItems(resultTradeItem);
             returnOrder.setReturnItems(resultReturnTradeItem);
         } else {
-            if (returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
+            if (returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF && returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY) {
                 trade.setTradeItems(resultTradeItem);
                 returnOrder.setReturnItems(resultReturnTradeItem);
             }
