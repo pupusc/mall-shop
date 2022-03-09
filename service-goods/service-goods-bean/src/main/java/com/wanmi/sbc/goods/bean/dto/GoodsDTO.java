@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 商品实体类
@@ -434,4 +435,9 @@ public class GoodsDTO implements Serializable {
      */
     @ApiModelProperty(value = "商品标签列表", hidden = true)
     private List<GoodsLabelDTO> goodsLabelList;
+
+    /**
+     * 商品渠道 1 H5 2、小程序 3、普通分类
+     */
+    private Set<String> goodsChannelTypeSet;
 }

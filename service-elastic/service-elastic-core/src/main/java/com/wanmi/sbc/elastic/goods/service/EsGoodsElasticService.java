@@ -380,8 +380,13 @@ public class EsGoodsElasticService {
                     List<IndexQuery> esGoodsList = new ArrayList<>();
                     List<IndexQuery> esSkuList = new ArrayList<>();
                     List<GoodsInfoVO> finalGoodsInfos = goodsinfos;
-                    goodsList.forEach(goods -> {
+                    for (GoodsVO goods : goodsList) {
                         EsGoods esGoods = new EsGoods();
+                        if (CollectionUtils.isEmpty(goods.getGoodsChannelTypeSet())) {
+                            logger.error("商品id {} 商品No:{} 商品名称:{} 渠道为空，不刷新到es中", goods.getGoodsId(), goods.getGoodsNo(), goods.getGoodsName());
+                            continue;
+                        }
+                        esGoods.setGoodsChannelTypeList(goods.getGoodsChannelTypeSet().stream().map(Integer::valueOf).collect(Collectors.toList()));
                         esGoods.setGoodsUnBackImg(goods.getGoodsUnBackImg());
                         esGoods.setCpsSpecial(goods.getCpsSpecial());
                         esGoods.setAnchorPushs(goods.getAnchorPushs());
@@ -648,7 +653,8 @@ public class EsGoodsElasticService {
                         iq.setIndexName(EsConstants.DOC_GOODS_TYPE);
                         iq.setType(EsConstants.DOC_GOODS_TYPE);
                         esGoodsList.add(iq);
-                    });
+                    }
+
 
 
                     //持久化商品

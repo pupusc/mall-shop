@@ -91,6 +91,9 @@ public class ClassifyService {
                 continue;
             }
             ClassifyProviderResponse parent = resultMap.get(classifyParam.getParentId());
+            if (parent == null) {
+                continue;
+            }
             ClassifyProviderResponse children = this.classifyDTO2ClassifyProviderResponse(classifyParam);
             children.setId(classifyParam.getId());
             children.setClassifyName(classifyParam.getClassifyName());

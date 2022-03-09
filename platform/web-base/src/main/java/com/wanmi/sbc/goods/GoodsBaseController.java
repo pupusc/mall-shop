@@ -426,6 +426,11 @@ public class GoodsBaseController {
      * @return spu商品封装数据
      */
     private EsGoodsResponse list(EsGoodsInfoQueryRequest queryRequest, CustomerVO customer) {
+
+        //获取商品渠道
+        queryRequest.setGoodsChannelTypeSet(new HashSet<>(Collections.singletonList(commonUtil.getTerminal().getCode())));
+
+
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }

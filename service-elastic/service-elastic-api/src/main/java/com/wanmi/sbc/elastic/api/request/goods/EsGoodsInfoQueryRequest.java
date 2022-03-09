@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -334,6 +335,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     private String anchorPushs;
+
+    /**
+     * 商品渠道类型 1H5 2小程序 3 樊登赠品
+     */
+    private Set<Integer> goodsChannelTypeSet;
+
     /**
      * 封装公共条件
      * @return
@@ -389,6 +396,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         //批量商品分类ID
         if (CollectionUtils.isNotEmpty(cateIds)) {
             boolQueryBuilder.must(termsQuery("goodsCate.cateId", cateIds));
+        }
+
+        if (CollectionUtils.isNotEmpty(goodsChannelTypeSet)) {
+            boolQueryBuilder.must(termsQuery("goodsChannelTypeList", goodsChannelTypeSet));
         }
 
         //店铺ID
