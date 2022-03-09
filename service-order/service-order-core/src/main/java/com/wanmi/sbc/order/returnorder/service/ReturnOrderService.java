@@ -1039,6 +1039,15 @@ public class ReturnOrderService {
                     }
                 }
             } else {
+                //只有有传递apply 对应的信息，则认为是新版本的售后
+                if (returnItem.getApplyKnowledge() == null
+                        || returnItem.getApplyPoint() == null
+                        || (returnItem.getApplyPoint() == 0L && returnItem.getApplyKnowledge() == 0L && returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) == 0)
+                        || returnItem.getApplyPoint() < 0
+                        || returnItem.getApplyKnowledge() < 0
+                        || returnItem.getApplyRealPrice().compareTo(BigDecimal.ZERO) < 0) {
+                    throw new SbcRuntimeException("K-050459");
+                }
                 returnItem.setSplitPrice(returnItem.getApplyRealPrice());
 
 
