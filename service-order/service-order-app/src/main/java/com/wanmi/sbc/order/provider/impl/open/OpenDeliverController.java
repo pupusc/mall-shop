@@ -2,11 +2,14 @@ package com.wanmi.sbc.order.provider.impl.open;
 
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
+import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.provider.open.OpenDeliverProvider;
 import com.wanmi.sbc.order.api.request.open.OrderDeliverInfoReqBO;
 import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +98,8 @@ public class OpenDeliverController implements OpenDeliverProvider {
     @Override
     public BusinessResponse<TradeCommitResultVO> createOrder(TradeWrapperBackendCommitRequest param) {
         //包装验证下单参数
-        Trade trade = tradeService.wrapperBackendCommitTrade(param.getOperator(),
+        Trade trade = tradeService.wrapperBackendCommitTrade(
+                Operator.builder().platform(Platform.THIRD).build(),
                 KsBeanUtil.convert(param.getCompanyInfo(), CompanyInfoVO.class),
                 KsBeanUtil.convert(param.getStoreInfo(), StoreInfoResponse.class),
                 KsBeanUtil.convert(param.getTradeCreate(), TradeCreateRequest.class));
@@ -104,6 +109,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
 
         trade.setOutTradeNo(param.getTradeCreate().getOutTradeNo());
         trade.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
+        trade.setTags(Arrays.asList(OrderTagEnum.GIFT.getCode()));
         List<TradeCommitResult> trades = tradeService.createBatch(Collections.singletonList(trade),null, param.getOperator());
 
         if (CollectionUtils.isEmpty(trades)) {

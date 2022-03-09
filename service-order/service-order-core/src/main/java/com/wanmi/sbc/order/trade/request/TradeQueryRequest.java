@@ -14,11 +14,22 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.marketing.bean.vo.TradeGrouponVO;
-import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.enums.AuditState;
+import com.wanmi.sbc.order.bean.enums.BookingType;
+import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.PaymentOrder;
+import com.wanmi.sbc.order.bean.enums.QueryOrderType;
+import com.wanmi.sbc.order.bean.enums.QueryPayType;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
 import com.wanmi.sbc.order.util.XssUtils;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -342,12 +353,21 @@ public class TradeQueryRequest extends BaseQueryRequest {
     }
 
     /**
+     * 标签
+     */
+    private String tag;
+
+    /**
      * 封装公共条件
      *
      * @return
      */
     private List<Criteria> getCommonCriteria() {
         List<Criteria> criterias = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(tag)) {
+            criterias.add(Criteria.where("tags").is(tag));
+        }
 
         //判断--小b端我的客户列表是否是查询全部
         if (customerOrderListAllType) {

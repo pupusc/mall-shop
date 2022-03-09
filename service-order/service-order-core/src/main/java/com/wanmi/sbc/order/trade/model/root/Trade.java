@@ -506,4 +506,8 @@ public class Trade implements Serializable {
      * 外部交易平台：FDDS:樊登读书
      */
     private String outTradePlat;
+    /**
+     * 标签
+     */
+    private List<String> tags;
 }

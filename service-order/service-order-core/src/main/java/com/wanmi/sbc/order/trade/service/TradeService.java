@@ -189,6 +189,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
@@ -7712,6 +7713,9 @@ public class TradeService {
                         tradeVo.getId())).map(vo -> tradeMapper.providerTradeToTradeVo(vo)).collect(Collectors.toList()));
             } else {
                 tradeVo.setTradeVOList(Lists.newArrayList());
+            }
+            if (CollectionUtils.isNotEmpty(tradeVo.getTags())) {
+                tradeVo.setGiftFlag(tradeVo.getTags().contains(OrderTagEnum.GIFT.getCode()));
             }
             return tradeVo;
         }).collect(Collectors.toList()), request

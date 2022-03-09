@@ -6,10 +6,8 @@ import com.wanmi.sbc.account.bean.enums.PayType;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.enums.DeleteFlag;
-import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.SortType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -218,7 +216,6 @@ public class OpenDeliverController extends OpenBaseController {
         }
 
         log.info("开始校验与包装订单信息......");
-        Operator operator = Operator.builder().platform(Platform.THIRD).build();
         CompanyInfoVO companyInfo = companyInfoQueryProvider.getCompanyInfoById(new CompanyInfoByIdRequest(companyIds.get(0))).getContext();
         StoreInfoResponse storeInfo = storeQueryProvider.getStoreInfoById(new StoreInfoByIdRequest(storeIds.get(0))).getContext();
 
@@ -244,7 +241,7 @@ public class OpenDeliverController extends OpenBaseController {
         tradeCreateParam.setForceCommit(false); //是否强制提交，用于营销活动有效性校验，true: 无效依然提交， false: 无效做异常返回
         tradeCreateParam.setInvoice(InvoiceDTO.builder().type(-1).build());
         tradeCreateParam.setInvoiceConsignee(null);
-        tradeCreateParam.setPayType(PayType.ONLINE);
+        tradeCreateParam.setPayType(PayType.INNER_SETTLE);
         tradeCreateParam.setSellerRemark("履约中台订单");
         tradeCreateParam.setTradePrice(TradePriceDTO.builder().special(true).privilegePrice(BigDecimal.ZERO).build());
         tradeCreateParam.setTradeItems(new ArrayList<>());
@@ -266,7 +263,6 @@ public class OpenDeliverController extends OpenBaseController {
 
         BusinessResponse<TradeCommitResultVO> commitResult = openDeliverProvider.createOrder(
                 TradeWrapperBackendCommitRequest.builder()
-                .operator(operator)
                 .companyInfo(KsBeanUtil.convert(companyInfo, CompanyInfoDTO.class))
                 .storeInfo(KsBeanUtil.convert(storeInfo, StoreInfoDTO.class))
                 .tradeCreate(tradeCreateParam)

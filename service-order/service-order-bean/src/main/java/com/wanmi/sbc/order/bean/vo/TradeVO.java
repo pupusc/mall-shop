@@ -27,7 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -537,4 +537,12 @@ public class TradeVO implements Serializable {
     @ApiModelProperty("第三方订单号")
     private String deliveryOrderId;
 
+    /**
+     * 标签
+     */
+    private List<String> tags;
+    /**
+     * 赠品标记
+     */
+    private Boolean giftFlag = Boolean.FALSE;
 }
