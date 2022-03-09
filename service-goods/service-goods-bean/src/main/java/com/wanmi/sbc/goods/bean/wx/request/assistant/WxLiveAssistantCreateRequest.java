@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.bean.wx.request.assistant;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class WxLiveAssistantCreateRequest {
 
@@ -18,4 +20,8 @@ public class WxLiveAssistantCreateRequest {
      * 结束时间
      */
     private String endTime;
+    /**
+     * spu id
+     */
+    private List<String> goodsId;
 }
