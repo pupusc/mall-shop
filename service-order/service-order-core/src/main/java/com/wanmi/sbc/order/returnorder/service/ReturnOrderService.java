@@ -3577,12 +3577,12 @@ public class ReturnOrderService {
             BigDecimal completePrice = BigDecimal.ZERO;
             for (ReturnOrder returnOrderParam : allReturnOrderList) {
                 //积分
-                if (Objects.nonNull(returnOrderParam.getReturnPoints()) || Objects.nonNull(returnOrderParam.getReturnPoints().getActualPoints())) {
+                if (Objects.nonNull(returnOrderParam.getReturnPoints()) && Objects.nonNull(returnOrderParam.getReturnPoints().getActualPoints())) {
                     completeReturnPoints += returnOrderParam.getReturnPoints().getActualPoints();
                 }
 
                 //知豆
-                if (Objects.nonNull(returnOrderParam.getReturnKnowledge()) || Objects.nonNull(returnOrderParam.getReturnKnowledge().getActualKnowledge())) {
+                if (Objects.nonNull(returnOrderParam.getReturnKnowledge()) && Objects.nonNull(returnOrderParam.getReturnKnowledge().getActualKnowledge())) {
                     completeReturnKnowledge += returnOrderParam.getReturnKnowledge().getActualKnowledge();
                 }
 
