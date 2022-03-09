@@ -111,7 +111,7 @@ public class OpenDeliverController extends OpenBaseController {
     private RedisService redisService;
 
     private static String LOCK_OPEN_DELIVER_CREATE_ORDER_KEY = "LOCK.OPEN.DELIVER.CREATE.ORDER";
-    private static Long LOCK_OPEN_DELIVER_CREATE_ORDER_TIME = 1000L * 10;
+    private static Long LOCK_OPEN_DELIVER_CREATE_ORDER_TIME = 10L;
 
     /**
      * @description: 实物商品查询
