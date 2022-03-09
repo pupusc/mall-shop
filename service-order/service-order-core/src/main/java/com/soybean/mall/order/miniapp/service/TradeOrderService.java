@@ -386,7 +386,7 @@ public class TradeOrderService {
             if (StringUtils.isNotEmpty(cachePrice)) {
                 lastPrice = new BigDecimal(cachePrice);
             }
-            BigDecimal totalPrice = trade.getTradePrice().getTotalPrice().add(lastPrice).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalPrice = trade.getTradePrice().getGoodsPrice().add(lastPrice).setScale(2, RoundingMode.HALF_UP);
             redisService.setString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date), totalPrice.toString(), 86400);
             log.info("小程序实时报表设置付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
             //分时金额
@@ -399,7 +399,7 @@ public class TradeOrderService {
             if (cacheHourPrice.containsKey(hour) && cacheHourPrice.get(hour) !=null) {
                 lastHourPrice = cacheHourPrice.get(hour);
             }
-            BigDecimal totalHourPrice = trade.getTradePrice().getTotalPrice().add(lastHourPrice).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalHourPrice = trade.getTradePrice().getGoodsPrice().add(lastHourPrice).setScale(2, RoundingMode.HALF_UP);
             cacheHourPrice.put(hour,totalHourPrice);
             redisService.setObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), cacheHourPrice, 86400);
             log.info("小程序实时报表设置分时付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
@@ -409,7 +409,7 @@ public class TradeOrderService {
                     .goodsName(trade.getTradeItems().get(0).getSpuName())
                     .orderId(trade.getId())
                     .pic(trade.getTradeItems().get(0).getPic())
-                    .price(trade.getTradePrice().getTotalPrice()).build();
+                    .price(trade.getTradePrice().getGoodsPrice()).build();
             List<OrderReportDetailDTO> newList = new ArrayList<>(20);
             List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),OrderReportDetailDTO.class);
             newList.add(0,orderReportDetailDTO);
