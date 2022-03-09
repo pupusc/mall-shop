@@ -1,22 +1,18 @@
 package com.soybean.mall.job;
 
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
-import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
-import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
-import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
-import io.seata.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * 同步小程序订单到微信
  */
-
 @JobHandler(value = "OrderDeliveryStatusSyncJobHandler")
 @Component
 @Slf4j

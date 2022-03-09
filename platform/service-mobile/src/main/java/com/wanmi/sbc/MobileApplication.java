@@ -1,10 +1,7 @@
 package com.wanmi.sbc;
 
-
 import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
-import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;

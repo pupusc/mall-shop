@@ -1,18 +1,17 @@
 package com.soybean.mall.order.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
-import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.common.DefaultPayBatchRequest;
+import com.soybean.mall.order.common.PayServiceHelper;
+import com.soybean.mall.order.request.TradeItemConfirmRequest;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
-import com.soybean.mall.wx.mini.order.bean.dto.*;
-import com.soybean.mall.wx.mini.order.bean.request.WxPrePayOrderRequest;
-import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -50,20 +49,13 @@ import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.vo.*;
-import com.wanmi.sbc.order.request.TradeItemConfirmRequest;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
 import com.wanmi.sbc.pay.api.request.WxPayForJSApiRequest;
 import com.wanmi.sbc.pay.bean.enums.WxPayTradeType;
 import com.wanmi.sbc.setting.api.provider.platformaddress.PlatformAddressQueryProvider;
 import com.wanmi.sbc.setting.api.request.platformaddress.PlatformAddressVerifyRequest;
-import com.wanmi.sbc.setting.api.response.MiniProgramSetGetResponse;
-import com.wanmi.sbc.trade.PayServiceHelper;
-import com.wanmi.sbc.trade.request.DefaultPayBatchRequest;
-import com.wanmi.sbc.util.CommonUtil;
-import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -181,10 +173,7 @@ public class OrderController {
             rLock.unlock();
         }
         return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId()));
-
     }
-
-
 
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
