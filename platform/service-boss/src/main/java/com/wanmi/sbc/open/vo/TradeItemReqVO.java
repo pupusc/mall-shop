@@ -3,6 +3,7 @@ package com.wanmi.sbc.open.vo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.*;
 
 @Data
@@ -12,6 +13,6 @@ public class TradeItemReqVO implements Serializable {
     /**
      * 购买数量
      */
-    @NotBlank
+    @NotNull
     private Long num;
 }

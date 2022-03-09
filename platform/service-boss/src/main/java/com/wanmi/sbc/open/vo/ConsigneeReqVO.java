@@ -3,6 +3,7 @@ package com.wanmi.sbc.open.vo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.*;
 
 @Data
@@ -11,24 +12,23 @@ public class ConsigneeReqVO implements Serializable {
     /**
      * 省
      */
-    @NotBlank
+    @NotNull
     private Long provinceId;
 
     /**
      * 市
      */
-    @NotBlank
+    @NotNull
     private Long cityId;
 
     /**
      * 区
      */
-    @NotBlank
+    @NotNull
     private Long areaId;
     /**
      * 街道
      */
-    @NotBlank
     private String streetId;
 
     /**

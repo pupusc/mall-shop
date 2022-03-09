@@ -2,6 +2,7 @@ package com.wanmi.sbc.open.vo;
 
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -37,11 +38,13 @@ public class OrderCreateReqVO extends BaseReqVO implements Serializable {
     /**
      * 收货人信息
      */
+    @Valid
     @NotNull
     private ConsigneeReqVO consignee;
     /**
      * 发货清单
      */
+    @Valid
     @NotEmpty
     private List<TradeItemReqVO> tradeItems;
 }
