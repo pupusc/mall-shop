@@ -1044,7 +1044,8 @@ public class ReturnOrderService {
                         returnItem.setSplitPrice(tradeItem.getSplitPrice().subtract(itemUnitPrice.multiply(new BigDecimal(returnNum + ""))));
                     }
                 }
-            } else {
+                //非运费
+            } else if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
                 //只有有传递apply 对应的信息，则认为是新版本的售后
                 if ((returnItem.getApplyKnowledge() == null
                         || returnItem.getApplyPoint() == null
@@ -1066,7 +1067,7 @@ public class ReturnOrderService {
                 if (tradeItemSimpleVO != null) {
                     surplusPoint = (tradeItemSimpleVO.getPoints() == null ? 0 : tradeItemSimpleVO.getPoints()) - tradeItemSimpleVO.getReturnIngPoint() - tradeItemSimpleVO.getReturnCompletePoint();
                     surplusKnowLedge = (tradeItemSimpleVO.getKnowledge() == null ? 0 : tradeItemSimpleVO.getKnowledge()) - tradeItemSimpleVO.getReturnIngKnowledge() - tradeItemSimpleVO.getReturnCompleteKnowledge();
-                    BigDecimal price = tradeItemSimpleVO.getPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getPrice());
+                    BigDecimal price = tradeItemSimpleVO.getSplitPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getSplitPrice());
                     surplusPrice = price.subtract(new BigDecimal(tradeItemSimpleVO.getReturnIngPrice())).subtract(new BigDecimal(tradeItemSimpleVO.getReturnCompletePrice()));
                     surplusNum = tradeItemSimpleVO.getNum().intValue() - tradeItemSimpleVO.getReturnIngNum() - tradeItemSimpleVO.getReturnCompleteNum();
                 }
