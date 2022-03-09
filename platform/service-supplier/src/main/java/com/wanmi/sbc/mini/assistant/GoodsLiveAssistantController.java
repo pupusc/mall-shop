@@ -11,6 +11,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateReques
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
@@ -145,7 +146,7 @@ public class GoodsLiveAssistantController {
      * @status done
      */
     @PostMapping("/assistant/listGoods")
-    public BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
+    public BaseResponse<WxLiveAssistantDetailVo> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return wxLiveAssistantProvider.listGoods(wxLiveAssistantSearchRequest);
     }
 
