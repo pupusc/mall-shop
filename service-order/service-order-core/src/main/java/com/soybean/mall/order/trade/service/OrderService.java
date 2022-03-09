@@ -34,6 +34,7 @@ import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.value.MiniProgram;
 import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
@@ -140,6 +141,9 @@ public class OrderService {
         tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
         tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
         List<Trade> trades = tradeService.wrapperTradeList(tradeWrapperListRequest);
+        trades.forEach(trade -> {
+            trade.setMiniProgram(new MiniProgram());
+        });
         List<OrderCommitResult> results = new ArrayList<>();
         try {
             // 处理积分抵扣

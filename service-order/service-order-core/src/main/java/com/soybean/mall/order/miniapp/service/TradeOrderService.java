@@ -120,7 +120,7 @@ public class TradeOrderService {
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
             criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
             criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
-            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP.toValue()));
+            criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP.toString()));
             criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
             criterias.add(Criteria.where("cycleBuyFlag").is(false));
             //单个订单发货状态同步
@@ -142,7 +142,8 @@ public class TradeOrderService {
             cycleBuycriteria.andOperator(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()),
                     Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()),
                     Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()),
-                    Criteria.where("channelType").is(ChannelType.MINIAPP),
+                    Criteria.where("channelType").is(ChannelType.MINIAPP.toString()),
+                    Criteria.where("miniProgram.syncStatus").is(0),
                     Criteria.where("cycleBuyFlag").is(true));
 
             Query cycleQuery = new Query(cycleBuycriteria).limit(pageSize);
@@ -191,7 +192,7 @@ public class TradeOrderService {
             List<WxProductDTO> productDTS = new ArrayList<>();
             delivery.getShippingItems().forEach(item->{
                 WxProductDTO wxProductDTO = new WxProductDTO();
-                wxProductDTO.setOutProductId(item.getSpuId());
+                wxProductDTO.setOutProductId(trade.getTradeItems().stream().filter(p->p.getSkuId().equals(item.getSkuId())).findFirst().get().getSpuId());
                 wxProductDTO.setOutSkuId(item.getSkuId());
                 wxProductDTO.setPrroductNum(item.getItemNum().intValue());
                 productDTS.add(wxProductDTO);

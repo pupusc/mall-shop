@@ -19,7 +19,7 @@ public class MiniProgram {
     /**
      * 订单状态同步结果1同步完成0未同步完成
      */
-    private Integer syncStatus;
+    private Integer syncStatus = 0;
 
     /**
      * 同步过的物流信息
