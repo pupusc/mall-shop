@@ -123,6 +123,19 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
      */
     List<Marketing> findByStoreIdAndScopeType(Long storeId, MarketingScopeType scopeType);
 
+//    /**
+//     * 根据skuId获取进行中组合购活动的id
+//     * @param skuId
+//     * @param
+//     * @return
+//     */
+//    @Query(value = "select distinct m.marketing_id from marketing m left join marketing_suits_sku s on m.marketing_id = s.marketing_id " +
+//            "where m.del_flag = 0 and m.store_id = :storeId and m.marketing_type = 6 and s.sku_id = :skuId " +
+//            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)", nativeQuery = true)
+//    List<String> getMarketingSuitsExists(@Param("skuId") String skuId, @Param("startTime") LocalDateTime startTime,
+//                                            @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId, @Param("excludeId") Long excludeId);
+
+
     /**
      * 根据skuId获取进行中组合购活动的id
      * @param skuId
@@ -131,9 +144,21 @@ public interface MarketingRepository extends JpaRepository<Marketing, Long>, Jpa
      */
     @Query(value = "select distinct m.marketing_id from marketing m left join marketing_suits_sku s on m.marketing_id = s.marketing_id " +
             "where m.del_flag = 0 and m.store_id = :storeId and m.marketing_type = 6 and s.sku_id = :skuId " +
-            "and not(m.begin_time > :endTime or m.end_time < :startTime) and (:excludeId is null or m.marketing_id <> :excludeId)", nativeQuery = true)
-    List<String> getMarketingSuitsExists(@Param("skuId") String skuId, @Param("startTime") LocalDateTime startTime,
-                                            @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId, @Param("excludeId") Long excludeId);
+            "and not(m.begin_time > :endTime or m.end_time < :startTime)", nativeQuery = true)
+    List<String> getMarketingSuitsExistsRongQi(@Param("skuId") String skuId, @Param("startTime") LocalDateTime startTime,
+                                         @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId);
+
+    /**
+     * 根据skuId获取进行中组合购活动的id
+     * @param skuId
+     * @param
+     * @return
+     */
+    @Query(value = "select distinct m.marketing_id from marketing m left join marketing_suits_sku s on m.marketing_id = s.marketing_id " +
+            "where m.del_flag = 0 and m.store_id = :storeId and m.marketing_type = 6 and s.sku_id = :skuId " +
+            "and not(m.begin_time > :endTime or m.end_time < :startTime) and m.marketing_id <> :excludeId", nativeQuery = true)
+    List<String> getMarketingSuitsExistsRongQi(@Param("skuId") String skuId, @Param("startTime") LocalDateTime startTime,
+                                               @Param("endTime") LocalDateTime endTime, @Param("storeId") Long storeId, @Param("excludeId") Long excludeId);
 
     /**
      * 根据skuId查询正在进行中的组合购活动
