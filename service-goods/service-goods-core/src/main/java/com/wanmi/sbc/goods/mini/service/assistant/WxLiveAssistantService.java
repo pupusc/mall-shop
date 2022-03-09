@@ -60,10 +60,12 @@ public class WxLiveAssistantService {
         WxLiveAssistantModel wxLiveAssistantModel = WxLiveAssistantModel.create(wxLiveAssistantCreateRequest);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
-        WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest = new WxLiveAssistantGoodsCreateRequest();
-        wxLiveAssistantGoodsCreateRequest.setAssistantId(wxLiveAssistantModel.getId());
-        wxLiveAssistantGoodsCreateRequest.setGoods(wxLiveAssistantCreateRequest.getGoodsId());
-        addGoods(wxLiveAssistantGoodsCreateRequest);
+        if(wxLiveAssistantCreateRequest.getGoodsId() != null){
+            WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest = new WxLiveAssistantGoodsCreateRequest();
+            wxLiveAssistantGoodsCreateRequest.setAssistantId(wxLiveAssistantModel.getId());
+            wxLiveAssistantGoodsCreateRequest.setGoods(wxLiveAssistantCreateRequest.getGoodsId());
+            addGoods(wxLiveAssistantGoodsCreateRequest, wxLiveAssistantModel);
+        }
 
         return wxLiveAssistantModel.getId();
     }
@@ -114,7 +116,7 @@ public class WxLiveAssistantService {
     }
 
     public Page<WxLiveAssistantModel> listAssistant(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
-        return wxLiveAssistantRepository.findAll(PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageSize(),
+        return wxLiveAssistantRepository.findAll(wxLiveAssistantRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "startTime")));
     }
 
@@ -126,6 +128,13 @@ public class WxLiveAssistantService {
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
 
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
+        addGoods(wxLiveAssistantGoodsCreateRequest, wxLiveAssistantModel);
+    }
+
+
+    @Transactional
+    public void addGoods(WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest, WxLiveAssistantModel wxLiveAssistantModel){
+
         if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
 
         List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(wxLiveAssistantGoodsCreateRequest.getGoods());
@@ -257,7 +266,7 @@ public class WxLiveAssistantService {
 
     public WxLiveAssistantModel findAssistantById(Long assistantId){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(assistantId);
-        if(opt.isPresent()) return opt.get();
+        if(opt.isPresent() && opt.get().getDelFlag().equals(DeleteFlag.NO)) return opt.get();
         return null;
     }
 

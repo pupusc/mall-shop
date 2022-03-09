@@ -9,6 +9,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateReques
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
@@ -111,11 +112,19 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest) {
+    public BaseResponse<WxLiveAssistantDetailVo> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest) {
+        WxLiveAssistantModel assistantModel = wxLiveAssistantService.findAssistantById(wxLiveAssistantSearchRequest.getLiveAssistantId());
+        if(assistantModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        WxLiveAssistantDetailVo wxLiveAssistantDetailVo = new WxLiveAssistantDetailVo();
+        wxLiveAssistantDetailVo.setAssistantId(assistantModel.getId());
+        wxLiveAssistantDetailVo.setTheme(assistantModel.getTheme());
+        wxLiveAssistantDetailVo.setStartTime(assistantModel.getStartTime().format(df));
+        wxLiveAssistantDetailVo.setEndTime(assistantModel.getEndTime().format(df));
+
+        wxLiveAssistantSearchRequest.setPageSize(100);
         Page<WxLiveAssistantGoodsModel> wxLiveAssistantGoodsPage = wxLiveAssistantService.listGoods(wxLiveAssistantSearchRequest);
         List<WxLiveAssistantGoodsModel> content = wxLiveAssistantGoodsPage.getContent();
 
-        MicroServicePage<WxLiveAssistantGoodsVo> microServicePage = new MicroServicePage<>();
         if (CollectionUtils.isNotEmpty(content)) {
             List<String> goodsIds = content.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
             List<Goods> goodsList = goodsService.listByGoodsIds(goodsIds);
@@ -124,7 +133,6 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIds).delFlag(DeleteFlag.NO.toValue()).build());
             Map<String, List<GoodsInfo>> goodsInfoMap = goodsInfoList.stream().collect(Collectors.groupingBy(GoodsInfo::getGoodsId));
 
-            microServicePage.setTotal(wxLiveAssistantGoodsPage.getTotalElements());
             List<WxLiveAssistantGoodsVo> voList = new ArrayList<>();
             for (WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel : content) {
                 WxLiveAssistantGoodsVo wxLiveAssistantGoodsVo = new WxLiveAssistantGoodsVo();
@@ -155,10 +163,11 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                 wxLiveAssistantGoodsVo.setStock(stockSum.intValue());
                 wxLiveAssistantGoodsVo.setGoodsInfos(wxLiveAssistantGoodsInfoVos);
                 voList.add(wxLiveAssistantGoodsVo);
+
+                wxLiveAssistantDetailVo.setGoods(voList);
             }
-            microServicePage.setContent(voList);
         }
-        return BaseResponse.success(microServicePage);
+        return BaseResponse.success(wxLiveAssistantDetailVo);
     }
 
     @Override

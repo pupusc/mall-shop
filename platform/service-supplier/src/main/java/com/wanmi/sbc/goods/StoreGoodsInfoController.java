@@ -255,7 +255,7 @@ public class StoreGoodsInfoController {
             esGrouponActivityPageRequest.setAuditStatus(AuditStatus.CHECKED);
             List<GrouponActivityForManagerVO> grouponActivityForManagerVOS = esGrouponActivityQueryProvider
                     .page(esGrouponActivityPageRequest).getContext().getGrouponActivityVOPage().getContent();
-            List<String> goodsInfoVOS = grouponActivityForManagerVOS.stream().map(GrouponActivityForManagerVO::getGoodsInfoId).collect(Collectors.toList());
+            List<String> goodsInfoVOS = grouponActivityForManagerVOS.stream().filter(Objects::nonNull).map(GrouponActivityForManagerVO::getGoodsInfoId).collect(Collectors.toList());
             queryRequest.getNotGoodsInfoIds().addAll(goodsInfoVOS);
         }
 

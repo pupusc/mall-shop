@@ -7,6 +7,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateReques
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -41,7 +42,7 @@ public interface WxLiveAssistantProvider {
     BaseResponse updateGoodsInfos(@RequestBody WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/list")
-    BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
+    BaseResponse<WxLiveAssistantDetailVo> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/live-end")
     BaseResponse afterWxLiveEnd(@RequestParam("message") String message);
