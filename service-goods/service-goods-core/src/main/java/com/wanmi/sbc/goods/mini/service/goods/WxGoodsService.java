@@ -157,6 +157,14 @@ public class WxGoodsService {
             wxGoodsModel.setWxCategory(JSONObject.toJSONString(createRequest.getWxCategory()));
             wxGoodsModel.setNeedToAudit(1);
         }
+        if(createRequest.getIsbnImg() != null){
+            wxGoodsModel.setIsbnImg(createRequest.getIsbnImg());
+            wxGoodsModel.setNeedToAudit(1);
+        }
+        if(createRequest.getPublisherImg() != null){
+            wxGoodsModel.setPublisherImg(createRequest.getPublisherImg());
+            wxGoodsModel.setNeedToAudit(1);
+        }
         wxGoodsRepository.save(wxGoodsModel);
     }
 
