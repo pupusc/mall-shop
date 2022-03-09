@@ -3928,20 +3928,23 @@ public class ReturnOrderService {
 
     private void verifyNum(Trade trade, List<ReturnItem> returnItems, Integer replace, ReturnReason returnReason) {
         Map<String, Integer> map = this.findLeftItems(trade, replace, returnReason);
-        returnItems.stream().forEach(
-                t -> {
-                    //周期购订单部分发货状态下是可以退货退款
-                    if (!trade.getCycleBuyFlag()) {
-                        if (map.get(t.getSkuId()) - t.getNum() < 0) {
-                            throw new SbcRuntimeException("K-050001", new Object[]{t.getSkuId()});
+        //只是退运费的情况下，会出现num为0的情况
+        if (!ReturnReason.PRICE_DELIVERY.equals(returnReason) && !ReturnReason.PRICE_DIFF.equals(returnReason) ) {
+            returnItems.stream().forEach(
+                    t -> {
+                        //周期购订单部分发货状态下是可以退货退款
+                        if (!trade.getCycleBuyFlag()) {
+                            if (map.get(t.getSkuId()) - t.getNum() < 0) {
+                                throw new SbcRuntimeException("K-050001", new Object[]{t.getSkuId()});
+                            }
                         }
-                    }
-                    if (t.getNum() <= 0) {
-                        throw new SbcRuntimeException("K-050102");
-                    }
+                        if (t.getNum() <= 0) {
+                            throw new SbcRuntimeException("K-050102");
+                        }
 
-                }
-        );
+                    }
+            );
+        }
     }
 
     /**
