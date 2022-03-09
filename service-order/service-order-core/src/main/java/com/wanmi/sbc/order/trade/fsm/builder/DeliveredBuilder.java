@@ -4,6 +4,7 @@ import com.wanmi.sbc.order.trade.fsm.Builder;
 import com.wanmi.sbc.order.trade.fsm.action.CompleteAction;
 import com.wanmi.sbc.order.trade.fsm.action.ConfirmAction;
 import com.wanmi.sbc.order.trade.fsm.action.ObsoleteDeliverAction;
+import com.wanmi.sbc.order.trade.fsm.action.RefundAction;
 import com.wanmi.sbc.order.trade.fsm.event.TradeEvent;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.trade.model.root.Trade;
@@ -29,6 +30,9 @@ public class DeliveredBuilder implements Builder {
 
     @Autowired
     private CompleteAction completeAction;
+
+    @Autowired
+    private RefundAction refundAction;
 
 
     @Autowired
@@ -68,6 +72,13 @@ public class DeliveredBuilder implements Builder {
                 .source(FlowState.DELIVERED).target(FlowState.COMPLETED)
                 .event(TradeEvent.COMPLETE)
                 .action(completeAction)
+
+                // 收货 -> 退款
+                .and()
+                .withExternal()
+                .source(FlowState.DELIVERED).target(FlowState.COMPLETED)
+                .event(TradeEvent.REFUND)
+                .action(refundAction)
 
                 // 发货 -> [作废] -> 部分发货
                 .and()

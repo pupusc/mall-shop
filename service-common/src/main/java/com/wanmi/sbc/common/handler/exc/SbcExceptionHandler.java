@@ -60,7 +60,7 @@ public class SbcExceptionHandler {
             }
 
             if (StringUtils.isNotBlank(ex.getResult()) && !"fail".equals(ex.getResult())) {
-                //log.error(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), ex);
+                log.error(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), ex);
                 log.info(LOGGER_FORMAT, ex.getErrorCode(), ex.getResult(), "--");
                 return BaseResponse.info(errorCode, ex.getResult());
             }
