@@ -239,6 +239,8 @@ public class WxGoodsService {
         return onShelfCount > 0;
     }
 
+
+    
     public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, WxGoodsModel wxGoodsModel){
         WxAddProductRequest addProductRequest = new WxAddProductRequest();
         addProductRequest.setOutProductId(goods.getGoodsId());
