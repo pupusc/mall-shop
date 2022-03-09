@@ -76,7 +76,7 @@ public class DeliveredBuilder implements Builder {
                 // 收货 -> 退款
                 .and()
                 .withExternal()
-                .source(FlowState.DELIVERED).target(FlowState.COMPLETED)
+                .source(FlowState.DELIVERED).target(FlowState.DELIVERED)
                 .event(TradeEvent.REFUND)
                 .action(refundAction)
 

@@ -26,7 +26,7 @@ public class RefundAction extends TradeAction {
         TradeState tradeState = trade.getTradeState();
 
         // 已完成的退款操作
-        if (tradeState.getFlowState().equals(FlowState.COMPLETED)) {
+        if (tradeState.getFlowState().equals(FlowState.COMPLETED) || tradeState.getFlowState().equals(FlowState.DELIVERED)) {
             String detail = String.format("订单[%s],申请退货,操作人:%s", trade.getId(), tsc.getOperator().getName());
             trade.appendTradeEventLog(TradeEventLog
                     .builder()
