@@ -1051,7 +1051,7 @@ public class ReturnOrderService {
                 if (tradeItemSimpleVO != null) {
                     surplusPoint = (tradeItemSimpleVO.getPoints() == null ? 0 : tradeItemSimpleVO.getPoints()) - tradeItemSimpleVO.getReturnIngPoint() - tradeItemSimpleVO.getReturnCompletePoint();
                     surplusKnowLedge = (tradeItemSimpleVO.getKnowledge() == null ? 0 : tradeItemSimpleVO.getKnowledge()) - tradeItemSimpleVO.getReturnIngKnowledge() - tradeItemSimpleVO.getReturnCompleteKnowledge();
-                    BigDecimal price = tradeItemSimpleVO.getPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getPrice().toString());
+                    BigDecimal price = tradeItemSimpleVO.getPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getPrice());
                     surplusPrice = price.subtract(new BigDecimal(tradeItemSimpleVO.getReturnIngPrice())).subtract(new BigDecimal(tradeItemSimpleVO.getReturnCompletePrice()));
                     surplusNum = tradeItemSimpleVO.getNum().intValue() - tradeItemSimpleVO.getReturnIngNum() - tradeItemSimpleVO.getReturnCompleteNum();
                 }
@@ -1063,16 +1063,16 @@ public class ReturnOrderService {
                 BigDecimal diffPrice = returnItem.getApplyRealPrice().subtract(surplusPrice);
                 log.info("ReturnOrderService create tid:{} skuId:{} diffNum:{} diffPoint:{} diffKnowLedge:{} diffPrice:{}",
                         returnOrder.getTid(), returnItem.getSkuId(), diffNum, diffPoint, diffKnowLedge, diffPrice);
-                if (diffNum > 0) {
+                if (diffNum < 0) {
                     throw new SbcRuntimeException("K-050453");
                 }
-                if (diffPoint > 0) {
+                if (diffPoint < 0) {
                     throw new SbcRuntimeException("K-050454");
                 }
-                if (diffKnowLedge > 0) {
+                if (diffKnowLedge < 0) {
                     throw new SbcRuntimeException("K-050455");
                 }
-                if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
+                if (diffPrice.compareTo(BigDecimal.ZERO) < 0) {
                     throw new SbcRuntimeException("K-050456");
                 }
 
@@ -1088,11 +1088,11 @@ public class ReturnOrderService {
                         throw new SbcRuntimeException("K-050456");
                     }
                     long itemUnitPoint = (tradeItem.getPoints() == null ? 0L : tradeItem.getPoints()) / tradeItem.getNum();
-                    if (returnItem.getApplyPoint() - (itemUnitPoint * tradeItem.getNum()) > 0) {
+                    if (returnItem.getApplyPoint() - (itemUnitPoint * returnItem.getNum()) > 0) {
                         throw new SbcRuntimeException("K-050454");
                     }
                     long itemUnitKnowledge = tradeItem.getKnowledge() == null ? 0L : tradeItem.getKnowledge() / tradeItem.getNum();
-                    if (returnItem.getApplyKnowledge() - (itemUnitKnowledge * tradeItem.getNum()) > 0) {
+                    if (returnItem.getApplyKnowledge() - (itemUnitKnowledge * returnItem.getNum()) > 0) {
                         throw new SbcRuntimeException("K-050455");
                     }
                 }
