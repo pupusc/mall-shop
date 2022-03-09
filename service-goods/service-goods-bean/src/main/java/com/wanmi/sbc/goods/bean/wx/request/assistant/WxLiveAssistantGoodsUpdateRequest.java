@@ -16,7 +16,7 @@ public class WxLiveAssistantGoodsUpdateRequest {
      */
     private Long assistantGoodsId;
     /**
-     * 商品skus
+     * skus
      */
     private List<WxLiveAssistantGoodsInfo> goodsInfos;
 
@@ -31,7 +31,7 @@ public class WxLiveAssistantGoodsUpdateRequest {
          */
         private String price;
         /**
-         *库存
+         * 库存
          */
         private Integer stock;
     }

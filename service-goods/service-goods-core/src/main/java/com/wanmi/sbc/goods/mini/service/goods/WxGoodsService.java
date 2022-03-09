@@ -157,6 +157,14 @@ public class WxGoodsService {
             wxGoodsModel.setWxCategory(JSONObject.toJSONString(createRequest.getWxCategory()));
             wxGoodsModel.setNeedToAudit(1);
         }
+        if(createRequest.getIsbnImg() != null){
+            wxGoodsModel.setIsbnImg(createRequest.getIsbnImg());
+            wxGoodsModel.setNeedToAudit(1);
+        }
+        if(createRequest.getPublisherImg() != null){
+            wxGoodsModel.setPublisherImg(createRequest.getPublisherImg());
+            wxGoodsModel.setNeedToAudit(1);
+        }
         wxGoodsRepository.save(wxGoodsModel);
     }
 
@@ -234,7 +242,7 @@ public class WxGoodsService {
     public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, WxGoodsModel wxGoodsModel){
         WxAddProductRequest addProductRequest = new WxAddProductRequest();
         addProductRequest.setOutProductId(goods.getGoodsId());
-        addProductRequest.setTitle(goods.getGoodsSubtitle());
+        addProductRequest.setTitle(goods.getGoodsName());
         addProductRequest.setPath("http://www.baidu.com");
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
 //        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));

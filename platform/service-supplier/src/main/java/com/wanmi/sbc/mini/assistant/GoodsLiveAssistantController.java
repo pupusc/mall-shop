@@ -38,6 +38,12 @@ public class GoodsLiveAssistantController {
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
 
+    /**
+     * @description 添加直播计划
+     * @param wxLiveAssistantCreateRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/add")
     public BaseResponse addAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         BaseResponse<Long> response = wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
@@ -48,8 +54,14 @@ public class GoodsLiveAssistantController {
         return BaseResponse.FAILED();
     }
 
+    /**
+     * @description 删除直播计划
+     * @param id
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/delete")
-    public BaseResponse addAssistant(@RequestParam Long id){
+    public BaseResponse deleteAssistant(@RequestParam Long id){
         BaseResponse<Map<String, Map<String, Integer>>> response = wxLiveAssistantProvider.deleteAssistant(id);
         if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
             resetEsStock(response.getContext());
@@ -58,6 +70,12 @@ public class GoodsLiveAssistantController {
         return BaseResponse.FAILED();
     }
 
+    /**
+     * @description 修改直播计划
+     * @param wxLiveAssistantCreateRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/update")
     public BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
@@ -71,16 +89,34 @@ public class GoodsLiveAssistantController {
         return BaseResponse.FAILED();
     }
 
+    /**
+     * @description 查询直播计划
+     * @param wxLiveAssistantSearchRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/list")
     public BaseResponse<MicroServicePage<WxLiveAssistantVo>> listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return wxLiveAssistantProvider.listAssistant(wxLiveAssistantSearchRequest);
     }
 
+    /**
+     * @description 添加直播计划商品
+     * @param wxLiveAssistantGoodsCreateRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/addGoods")
     public BaseResponse addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest){
         return wxLiveAssistantProvider.addGoods(wxLiveAssistantGoodsCreateRequest);
     }
 
+    /**
+     * @description 删除直播计划商品
+     * @param id 直播计划商品id
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/deleteGoods")
     public BaseResponse deleteGoods(@RequestParam Long id){
         BaseResponse<Map<String, Map<String, Integer>>> response = wxLiveAssistantProvider.deleteGoods(id);
@@ -91,16 +127,34 @@ public class GoodsLiveAssistantController {
         return BaseResponse.FAILED();
     }
 
+    /**
+     * @description 更新直播计划商品
+     * @param wxLiveAssistantGoodsUpdateRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/updateGoods")
     public BaseResponse updateGoodsInfos(@RequestBody WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest){
         return wxLiveAssistantProvider.updateGoodsInfos(wxLiveAssistantGoodsUpdateRequest);
     }
 
+    /**
+     * @description 查询直播计划商品
+     * @param wxLiveAssistantSearchRequest
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/listGoods")
     public BaseResponse<MicroServicePage<WxLiveAssistantGoodsVo>> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return wxLiveAssistantProvider.listGoods(wxLiveAssistantSearchRequest);
     }
 
+    /**
+     * @description 查询直播计划商品是否在直播计划中
+     * @param goodsId
+     * @menu 小程序
+     * @status done
+     */
     @PostMapping("/assistant/ifGoodsInLive")
     public BaseResponse<Boolean> ifGoodsInLive(@RequestParam String goodsId){
         return wxLiveAssistantProvider.ifGoodsInLive(goodsId);
