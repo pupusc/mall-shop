@@ -637,7 +637,13 @@ public class ReturnOrderService {
 
                 //针对退运费的强制
                 if (ReturnReason.PRICE_DELIVERY.getType().equals(returnOrder.getReturnReason().getType())) {
+                    if (trade.getTradePrice().getSplitDeliveryPrice() == null) {
+                        throw new SbcRuntimeException("K-050460");
+                    }
                     price = trade.getTradePrice().getSplitDeliveryPrice().get(providerId);
+                    if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new SbcRuntimeException("K-050461");
+                    }
                     deliverPrice = price;
                     providerTotalPrice = BigDecimal.ZERO;
                     points = 0L;
