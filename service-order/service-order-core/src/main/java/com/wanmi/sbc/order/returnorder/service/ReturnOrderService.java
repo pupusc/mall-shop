@@ -1063,16 +1063,16 @@ public class ReturnOrderService {
                 BigDecimal diffPrice = returnItem.getApplyRealPrice().subtract(surplusPrice);
                 log.info("ReturnOrderService create tid:{} skuId:{} diffNum:{} diffPoint:{} diffKnowLedge:{} diffPrice:{}",
                         returnOrder.getTid(), returnItem.getSkuId(), diffNum, diffPoint, diffKnowLedge, diffPrice);
-                if (diffNum < 0) {
+                if (diffNum > 0) {
                     throw new SbcRuntimeException("K-050453");
                 }
-                if (diffPoint < 0) {
+                if (diffPoint > 0) {
                     throw new SbcRuntimeException("K-050454");
                 }
-                if (diffKnowLedge < 0) {
+                if (diffKnowLedge > 0) {
                     throw new SbcRuntimeException("K-050455");
                 }
-                if (diffPrice.compareTo(BigDecimal.ZERO) < 0) {
+                if (diffPrice.compareTo(BigDecimal.ZERO) > 0) {
                     throw new SbcRuntimeException("K-050456");
                 }
 
