@@ -243,7 +243,7 @@ public class GoodsInfoVO implements Serializable {
     @ApiModelProperty(value = "新增时，模拟多个规格值 ID", notes = "查询详情返回响应，扁平化多个规格值ID")
     private List<Long> mockSpecDetailIds;
 
-    private String mockSpecDetailName;
+    private List<String> mockSpecDetailName;
 
     /**
      * 商品分页，扁平化多个商品规格值ID
