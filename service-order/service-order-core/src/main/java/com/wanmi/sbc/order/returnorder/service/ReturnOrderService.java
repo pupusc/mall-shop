@@ -3803,12 +3803,13 @@ public class ReturnOrderService {
                         && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)
                         && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED_PART)
                         && !trade.getTradeState().getFlowState().equals(FlowState.DELIVERED)
-                        && (!ReturnReason.PRICE_DIFF.equals(returnReason) && trade.getTradeState().getFlowState().equals(FlowState.VOID))) {
-                    throw new SbcRuntimeException("K-050002");
+                        && (!ReturnReason.PRICE_DIFF.equals(returnReason) && trade.getTradeState().getFlowState().equals(FlowState.VOID))
+                        && (!ReturnReason.PRICE_DELIVERY.equals(returnReason) && trade.getTradeState().getFlowState().equals(FlowState.VOID))) {
+                    throw new SbcRuntimeException("K-050004");
                 }
             } else {
                 if (!trade.getTradeState().getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) && !trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
-                    throw new SbcRuntimeException("K-050002");
+                    throw new SbcRuntimeException("K-050004");
                 }
             }
 
