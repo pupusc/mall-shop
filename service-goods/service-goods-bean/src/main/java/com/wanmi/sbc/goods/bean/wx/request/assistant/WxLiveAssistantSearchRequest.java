@@ -18,7 +18,7 @@ public class WxLiveAssistantSearchRequest {
      */
     private Long liveAssistantId;
     /**
-     * 商品id
+     * spu id
      */
     private List<String> goodsIdIn;
 
