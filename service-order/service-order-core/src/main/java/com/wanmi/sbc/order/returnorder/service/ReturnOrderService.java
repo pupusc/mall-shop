@@ -622,8 +622,8 @@ public class ReturnOrderService {
 //                    }
 //                }
 
-                //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费
-                if (ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap.get(providerId.toString()) != null && providerDeliveryMap.get(providerId.toString()))) {
+                //添加运费, 如果存在申请中或者申请完成的订单，则退还运费，否则不退还运费 只有未退款的情况才会退运费
+                if (trade.getTradeState().getFlowState().equals(FlowState.AUDIT) && ReturnType.REFUND.equals(returnOrder.getReturnType()) && (providerDeliveryMap.get(providerId.toString()) != null && providerDeliveryMap.get(providerId.toString()))) {
                     //判断当前是否是未发货，同时是最后一个商品
                     if(trade.getTradePrice() != null && trade.getTradePrice().getSplitDeliveryPrice() != null && trade.getTradePrice().getSplitDeliveryPrice().get(providerId) != null){
                         price = price.add(trade.getTradePrice().getSplitDeliveryPrice().get(providerId));
