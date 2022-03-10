@@ -172,11 +172,11 @@ public class TradePriceVO implements Serializable {
     @ApiModelProperty(value = "优惠券优惠金额")
     private BigDecimal couponPrice = BigDecimal.ZERO;
 
-//    /**
-//     * 单个订单返利总金额
-//     */
-//    @ApiModelProperty(value = "单个订单返利总金额")
-//    private BigDecimal orderDistributionCommission = BigDecimal.ZERO;
+    /**
+     * 单个订单返利总金额
+     */
+    @ApiModelProperty(value = "单个订单返利总金额")
+    private BigDecimal orderDistributionCommission = BigDecimal.ZERO;
 
     /**
      * 订单供货价总额
