@@ -70,10 +70,10 @@ public class ConsigneeReqVO implements Serializable {
     /**
      * 区名称
      */
+    @NotBlank
     private String areaName;
     /**
      * 街道
      */
-    @NotBlank
     private String streetName;
 }
