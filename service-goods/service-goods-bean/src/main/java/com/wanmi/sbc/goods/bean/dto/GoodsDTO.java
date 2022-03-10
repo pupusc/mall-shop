@@ -19,6 +19,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 商品实体类
@@ -438,4 +439,9 @@ public class GoodsDTO implements Serializable {
      * 赠品标记：0否；1是；
      */
     private Integer giftFlag;
+
+    /*
+     * 商品渠道 1 H5 2、小程序 3、普通分类
+     */
+    private Set<String> goodsChannelTypeSet;
 }

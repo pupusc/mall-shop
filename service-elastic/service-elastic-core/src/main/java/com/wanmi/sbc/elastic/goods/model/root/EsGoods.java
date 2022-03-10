@@ -373,4 +373,10 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Integer)
     private Integer giftFlag;
+
+    /*
+     * 商品渠道 1 h5 2小程序
+     */
+    @Field(type = FieldType.Integer)
+    private List<Integer> goodsChannelTypeList;
 }

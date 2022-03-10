@@ -522,4 +522,10 @@ public class Goods {
      */
     @Column(name = "gift_flag")
     private Integer giftFlag;
+
+    /*
+     * 商品渠道 1 H5 2、小程序 3、普通分类 多个以,分割
+     */
+    @Column(name = "channel_type")
+    private String goodsChannelType;
 }

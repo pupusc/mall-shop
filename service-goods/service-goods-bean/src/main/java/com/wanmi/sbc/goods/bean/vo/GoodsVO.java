@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 商品实体类
@@ -499,6 +500,13 @@ public class GoodsVO  implements Serializable {
      */
     @ApiModelProperty(value = "商品标签列表")
     private List<GoodsLabelVO> goodsLabelList;
+
+
+
+    /**
+     * 商品渠道 1 H5 2、小程序 3、普通分类
+     */
+    private Set<String> goodsChannelTypeSet;
 
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {
