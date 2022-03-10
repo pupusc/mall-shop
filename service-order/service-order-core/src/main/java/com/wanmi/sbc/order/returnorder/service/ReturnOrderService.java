@@ -1092,9 +1092,9 @@ public class ReturnOrderService {
                     throw new SbcRuntimeException("K-050456");
                 }
 
-                if (diffNum == 0 && diffPoint == 0 && diffKnowLedge == 0 && diffPrice.compareTo(BigDecimal.ZERO) == 0) {
-                    throw new SbcRuntimeException("K-050457");
-                }
+//                if (diffNum == 0 && diffPoint == 0 && diffKnowLedge == 0 && diffPrice.compareTo(BigDecimal.ZERO) == 0) {
+//                    throw new SbcRuntimeException("K-050457");
+//                }
 
                 //表示部分申请，则此时最大申请金额 必须的小于 单价 * 数量
                 if (diffNum != 0) {
