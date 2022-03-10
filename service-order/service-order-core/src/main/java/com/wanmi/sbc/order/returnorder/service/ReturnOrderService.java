@@ -1045,7 +1045,7 @@ public class ReturnOrderService {
                     }
                 }
                 //非运费
-            } else if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason())) {
+            } else if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason()) && !ReturnReason.PRICE_DIFF.equals(returnOrder.getReturnReason())) {
                 //只有有传递apply 对应的信息，则认为是新版本的售后
                 if ((returnItem.getApplyKnowledge() == null
                         || returnItem.getApplyPoint() == null
