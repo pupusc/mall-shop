@@ -1301,6 +1301,7 @@ public class LoginBaseController {
             loginResponse = commonUtil.getLoginResponse(customerVO, jwtSecretKey);
             loginResponse.setNewFlag(Boolean.FALSE);
             if (Objects.isNull(customerVO.getLoginTime())) {
+                webBaseProducerService.sendUserRegisterEvent(customerVO.getFanDengUserNo(), "H5");
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
@@ -1526,6 +1527,7 @@ public class LoginBaseController {
             loginResponse.setNewFlag(Boolean.FALSE);
             loginResponse.setFanDengUserStates(authLogin.getContext().getUserStatus());
             if (Objects.isNull(customerVO.getLoginTime())) {
+                webBaseProducerService.sendUserRegisterEvent(customerVO.getFanDengUserNo(), "H5");
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
