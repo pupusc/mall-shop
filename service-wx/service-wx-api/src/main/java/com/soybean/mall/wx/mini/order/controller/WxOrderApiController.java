@@ -47,6 +47,6 @@ public interface WxOrderApiController {
      * @return
      */
     @PostMapping("/aftersale/add")
-    BaseResponse<WxResponseBase> createAfterSale(WxCreateAfterSaleRequest request);
+    BaseResponse<WxResponseBase> createAfterSale(@RequestBody WxCreateAfterSaleRequest request);
 
 }
