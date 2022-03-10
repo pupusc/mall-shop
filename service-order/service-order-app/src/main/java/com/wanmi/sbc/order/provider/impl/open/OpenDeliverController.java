@@ -97,7 +97,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
 
     @Override
     public BusinessResponse<TradeCommitResultVO> createOrder(TradeWrapperBackendCommitRequest param) {
-        Operator operator = Operator.builder().platform(Platform.THIRD).build();
+        Operator operator = Operator.builder().platform(Platform.FDDS).build();
 
         //包装验证下单参数
         Trade trade = tradeService.wrapperBackendCommitTrade(
@@ -112,6 +112,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
         trade.setOutTradeNo(param.getTradeCreate().getOutTradeNo());
         trade.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
         trade.setTags(Arrays.asList(OrderTagEnum.GIFT.getCode()));
+        trade.setPayWay(PayWay.OTHER);
         List<TradeCommitResult> trades = tradeService.createBatch(Collections.singletonList(trade),null, operator);
 
         if (CollectionUtils.isEmpty(trades)) {

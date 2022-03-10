@@ -501,7 +501,11 @@ public class GoodsVO  implements Serializable {
     @ApiModelProperty(value = "商品标签列表")
     private List<GoodsLabelVO> goodsLabelList;
 
-
+    /**
+     * 销售渠道
+     */
+    @ApiModelProperty(value = "销售渠道")
+    private String goodsChannelType;
 
     /**
      * 商品渠道 1 H5 2、小程序 3、普通分类
