@@ -1067,7 +1067,7 @@ public class ReturnOrderService {
                 if (tradeItemSimpleVO != null) {
                     surplusPoint = (tradeItemSimpleVO.getPoints() == null ? 0 : tradeItemSimpleVO.getPoints()) - tradeItemSimpleVO.getReturnIngPoint() - tradeItemSimpleVO.getReturnCompletePoint();
                     surplusKnowLedge = (tradeItemSimpleVO.getKnowledge() == null ? 0 : tradeItemSimpleVO.getKnowledge()) - tradeItemSimpleVO.getReturnIngKnowledge() - tradeItemSimpleVO.getReturnCompleteKnowledge();
-                    BigDecimal price = tradeItemSimpleVO.getSplitPrice()== null ? BigDecimal.ZERO : new BigDecimal(tradeItemSimpleVO.getSplitPrice());
+                    BigDecimal price = tradeItemSimpleVO.getSplitPrice()== null ? BigDecimal.ZERO : tradeItemSimpleVO.getSplitPrice();
                     surplusPrice = price.subtract(new BigDecimal(tradeItemSimpleVO.getReturnIngPrice())).subtract(new BigDecimal(tradeItemSimpleVO.getReturnCompletePrice()));
                     surplusNum = tradeItemSimpleVO.getNum().intValue() - tradeItemSimpleVO.getReturnIngNum() - tradeItemSimpleVO.getReturnCompleteNum();
                 }
