@@ -25,6 +25,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
 import com.wanmi.sbc.order.api.response.trade.TradePageCriteriaResponse;
+import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.bean.dto.TradeQueryDTO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import io.swagger.annotations.ApiOperation;
@@ -130,7 +131,8 @@ public class UserController {
             loginResponse.setFanDengUserStates(resData.getUserStatus());
             if (Objects.isNull(customerVO.getLoginTime())) {
                 customerProvider.modifyCustomerOpenIdAndUnionId(customerVO.getCustomerId(), openId, unionId);
-                //todo 发送埋点
+                webBaseProducerService.sendUserRegisterEvent(resData.getUserNo(), "mini_app");
+
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }

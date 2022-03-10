@@ -22,6 +22,10 @@ import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantGoodsModel;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantModel;
 import com.wanmi.sbc.goods.mini.service.assistant.WxLiveAssistantService;
+import com.wanmi.sbc.goods.spec.model.root.GoodsInfoSpecDetailRel;
+import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
+import com.wanmi.sbc.goods.spec.repository.GoodsInfoSpecDetailRelRepository;
+import com.wanmi.sbc.goods.spec.repository.GoodsSpecRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,6 +53,10 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     private GoodsService goodsService;
     @Autowired
     private GoodsInfoService goodsInfoService;
+    @Autowired
+    private GoodsInfoSpecDetailRelRepository goodsInfoSpecDetailRelRepository;
+    @Autowired
+    private GoodsSpecRepository goodsSpecRepository;
 
     @Override
     public BaseResponse<Long> addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest) {
@@ -122,13 +131,40 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         wxLiveAssistantDetailVo.setTheme(assistantModel.getTheme());
         wxLiveAssistantDetailVo.setStartTime(assistantModel.getStartTime().format(df));
         wxLiveAssistantDetailVo.setEndTime(assistantModel.getEndTime().format(df));
-
+        LocalDateTime endTime = assistantModel.getEndTime();
+        LocalDateTime startTime = assistantModel.getStartTime();
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(startTime, endTime);
+        if(endTime.isBefore(now)){
+            wxLiveAssistantDetailVo.setStatus(2);
+        }else if(endTime.isAfter(now) && startTime.isBefore(now)){
+            wxLiveAssistantDetailVo.setStatus(1);
+        }else {
+            wxLiveAssistantDetailVo.setStatus(0);
+        }
+        wxLiveAssistantDetailVo.setDuration(duration.toMinutes());
         wxLiveAssistantSearchRequest.setPageSize(100);
         Page<WxLiveAssistantGoodsModel> wxLiveAssistantGoodsPage = wxLiveAssistantService.listGoods(wxLiveAssistantSearchRequest);
         List<WxLiveAssistantGoodsModel> content = wxLiveAssistantGoodsPage.getContent();
 
         if (CollectionUtils.isNotEmpty(content)) {
             List<String> goodsIds = content.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
+
+            List<GoodsSpec> goodsSpecList = goodsSpecRepository.findByGoodsIds(goodsIds);
+            Map<Long, List<GoodsSpec>> goodsSpecMap;
+            if(CollectionUtils.isNotEmpty(goodsSpecList)){
+                goodsSpecMap = goodsSpecList.stream().collect(Collectors.groupingBy(GoodsSpec::getSpecId));
+            }else {
+                goodsSpecMap = new HashMap<>();
+            }
+            List<GoodsInfoSpecDetailRel> goodsInfoSpecDetailRelList = goodsInfoSpecDetailRelRepository.findByGoodsIds(goodsIds);
+            Map<String, List<GoodsInfoSpecDetailRel>> goodsInfoSpecDetailRelMap;
+            if(CollectionUtils.isNotEmpty(goodsSpecList)){
+                goodsInfoSpecDetailRelMap = goodsInfoSpecDetailRelList.stream().collect(Collectors.groupingBy(GoodsInfoSpecDetailRel::getGoodsId));
+            }else {
+                goodsInfoSpecDetailRelMap = new HashMap<>();
+            }
+
             List<Goods> goodsList = goodsService.listByGoodsIds(goodsIds);
             Map<String, List<Goods>> goodsMap = goodsList.stream().collect(Collectors.groupingBy(Goods::getGoodsId));
 
@@ -143,22 +179,39 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                 List<Goods> goodsGroup = goodsMap.get(wxLiveAssistantGoodsModel.getGoodsId());
                 if (goodsGroup != null) {
                     Goods goods = goodsGroup.get(0);
+                    wxLiveAssistantGoodsVo.setGoodsImg(goods.getGoodsImg());
                     wxLiveAssistantGoodsVo.setGoodsName(goods.getGoodsName());
                     wxLiveAssistantGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice() != null ? goods.getSkuMinMarketPrice().toString() : "0");
                 }
                 List<GoodsInfo> goodsInfoGroup = goodsInfoMap.get(wxLiveAssistantGoodsModel.getGoodsId());
+                //规格
+                List<GoodsInfoSpecDetailRel> goodsInfoSpecDetailGroup = goodsInfoSpecDetailRelMap.get(wxLiveAssistantGoodsModel.getGoodsId());
+
                 List<WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo> wxLiveAssistantGoodsInfoVos = new ArrayList<>();
                 Long stockSum = 0L;
                 if (goodsInfoGroup != null) {
                     for (GoodsInfo goodsInfo : goodsInfoGroup) {
                         WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo wxLiveAssistantGoodsInfoVo = new WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo();
                         wxLiveAssistantGoodsInfoVo.setGoodsInfoName(goodsInfo.getGoodsInfoName());
+                        wxLiveAssistantGoodsInfoVo.setGoodsInfoId(goodsInfo.getGoodsInfoId());
                         Long stock = goodsInfo.getStock();
                         if (stock != null){
                             stockSum += stock;
                             wxLiveAssistantGoodsInfoVo.setStock(stock.intValue());
                         }
                         wxLiveAssistantGoodsInfoVo.setMarketPrice(goodsInfo.getMarketPrice() != null ? goodsInfo.getMarketPrice().toString() : "0");
+
+                        if(CollectionUtils.isNotEmpty(goodsInfoSpecDetailGroup)){
+                            Map<String, String> goodsInfoSpec = new HashMap<>();
+                            for (GoodsInfoSpecDetailRel goodsInfoSpecDetailRel : goodsInfoSpecDetailGroup) {
+                                Long specId = goodsInfoSpecDetailRel.getSpecId();
+                                List<GoodsSpec> goodsSpecs = goodsSpecMap.get(specId);
+                                if(goodsSpecs != null){
+                                    goodsInfoSpec.put(goodsSpecs.get(0).getSpecName(), goodsInfoSpecDetailRel.getDetailName());
+                                }
+                            }
+                            wxLiveAssistantGoodsInfoVo.setGoodsInfoSpec(goodsInfoSpec);
+                        }
                         wxLiveAssistantGoodsInfoVos.add(wxLiveAssistantGoodsInfoVo);
                     }
                 }

@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.bean.wx.vo.assistant;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class WxLiveAssistantGoodsVo {
@@ -19,6 +20,10 @@ public class WxLiveAssistantGoodsVo {
      * 商品名称
      */
     private String GoodsName;
+    /**
+     * 商品图片
+     */
+    private String GoodsImg;
     /**
      * 商品价格
      */
@@ -40,6 +45,10 @@ public class WxLiveAssistantGoodsVo {
          */
         private String goodsInfoName;
         /**
+         * sku id
+         */
+        private String goodsInfoId;
+        /**
          * sku价格
          */
         private String marketPrice;
@@ -47,6 +56,10 @@ public class WxLiveAssistantGoodsVo {
          * sku库存
          */
         private Integer stock;
+        /**
+         * 商品规格
+         */
+        private Map<String, String> goodsInfoSpec;
     }
 
 }
