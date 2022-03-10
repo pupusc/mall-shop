@@ -48,7 +48,7 @@ public class WebBaseProducerService {
      * 神策埋点事件
      */
     private void sendSensorsEvent(List<SensorsMessageDto> sensorsMessageDto) {
-        resolver.resolveDestination(MQConstant.MSG_SENSORS_EVENT).send(new GenericMessage<>(sensorsMessageDto));
+        resolver.resolveDestination("msg-sensors-producer-event").send(new GenericMessage<>(sensorsMessageDto));
     }
 
     public void sendUserRegisterEvent(String fandengUserNo, String source) {
