@@ -2,11 +2,19 @@ package com.wanmi.sbc.mini.assistant;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.customer.bean.enums.StoreState;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.elastic.api.request.goods.*;
+import com.wanmi.sbc.elastic.api.response.goods.EsGoodsResponse;
+import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
@@ -15,14 +23,16 @@ import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -37,6 +47,10 @@ public class GoodsLiveAssistantController {
     private WxMiniMessageProducer wxMiniMessageProducer;
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
+    @Autowired
+    private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
+    @Autowired
+    private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
 
     /**
      * @description 添加直播计划
@@ -62,9 +76,15 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/delete")
     public BaseResponse deleteAssistant(@RequestParam Long id){
-        BaseResponse<Map<String, Map<String, Integer>>> response = wxLiveAssistantProvider.deleteAssistant(id);
+        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteAssistant(id);
         if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            resetEsStock(response.getContext());
+            List<String> goodsIds = response.getContext();
+            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+            if(CollectionUtils.isNotEmpty(goodsIds)){
+                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+            }
+//            resetEsStock(response.getContext());
             return BaseResponse.SUCCESSFUL();
         }
         return BaseResponse.FAILED();
@@ -119,9 +139,15 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/deleteGoods")
     public BaseResponse deleteGoods(@RequestParam Long id){
-        BaseResponse<Map<String, Map<String, Integer>>> response = wxLiveAssistantProvider.deleteGoods(id);
+        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteGoods(id);
         if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            resetEsStock(response.getContext());
+            List<String> goodsIds = response.getContext();
+            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+            if(CollectionUtils.isNotEmpty(goodsIds)){
+                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+            }
+//            resetEsStock(response.getContext());
             return BaseResponse.SUCCESSFUL();
         }
         return BaseResponse.FAILED();
@@ -135,7 +161,16 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/updateGoods")
     public BaseResponse updateGoodsInfos(@RequestBody WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest){
-        return wxLiveAssistantProvider.updateGoodsInfos(wxLiveAssistantGoodsUpdateRequest);
+        BaseResponse<String> response = wxLiveAssistantProvider.updateGoodsInfos(wxLiveAssistantGoodsUpdateRequest);
+        if(response.getContext() != null){
+            log.info("商品es更新: {}", response.getContext());
+            esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(Collections.singletonList(response.getContext())).build());
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(response.getContext()).build());
+        }else{
+            return BaseResponse.FAILED();
+        }
+        return BaseResponse.SUCCESSFUL();
+
     }
 
     /**
@@ -146,6 +181,26 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/listGoods")
     public BaseResponse<WxLiveAssistantDetailVo> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
+        if(StringUtils.isNotEmpty(wxLiveAssistantSearchRequest.getGoodsName())){
+            EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
+            queryRequest.setPageNum(0);
+            queryRequest.setPageSize(20);
+            queryRequest.setMatchGoodsName(wxLiveAssistantSearchRequest.getGoodsName());
+            queryRequest.setQueryGoods(true);
+            queryRequest.setAddedFlag(AddedFlag.YES.toValue());
+            queryRequest.setDelFlag(DeleteFlag.NO.toValue());
+            queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
+            queryRequest.setStoreState(StoreState.OPENING.toValue());
+            queryRequest.setVendibility(Constants.yes);
+            EsGoodsResponse context = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
+            if(context == null || context.getEsGoods() == null || CollectionUtils.isEmpty(context.getEsGoods().getContent())){
+                wxLiveAssistantSearchRequest.setGoodsIdIn(Collections.singletonList("nothing"));
+            }else{
+                List<EsGoodsVO> esGoodsVOS = context.getEsGoods().getContent();
+                List<String> goodsIds = esGoodsVOS.stream().map(g -> g.getId()).collect(Collectors.toList());
+                wxLiveAssistantSearchRequest.setGoodsIdIn(goodsIds);
+            }
+        }
         return wxLiveAssistantProvider.listGoods(wxLiveAssistantSearchRequest);
     }
 

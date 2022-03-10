@@ -18,9 +18,17 @@ public class WxLiveAssistantSearchRequest {
      */
     private Long liveAssistantId;
     /**
+     * 直播计划名称
+     */
+    private String assistantName;
+    /**
      * spu id
      */
     private List<String> goodsIdIn;
+    /**
+     * 商品名称
+     */
+    private String goodsName;
 
     private Integer pageNum = 0;
     private Integer pageSize = 10;

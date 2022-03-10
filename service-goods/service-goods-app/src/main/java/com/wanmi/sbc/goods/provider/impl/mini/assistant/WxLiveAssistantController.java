@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -64,8 +65,10 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> deleteAssistant(Long id) {
-        return BaseResponse.success(wxLiveAssistantService.deleteAssistant(id));
+    public BaseResponse<List<String>> deleteAssistant(Long id) {
+        List<Goods> goodsList = wxLiveAssistantService.deleteAssistant(id);
+        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+        return BaseResponse.success(goodsIds);
     }
 
     @Override
@@ -112,14 +115,15 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> deleteGoods(Long id) {
-        return BaseResponse.success(wxLiveAssistantService.deleteGoods(id));
+    public BaseResponse<List<String>> deleteGoods(Long id) {
+        List<Goods> goodsList = wxLiveAssistantService.deleteGoods(id);
+        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+        return BaseResponse.success(goodsIds);
     }
 
     @Override
-    public BaseResponse updateGoodsInfos(WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest) {
-        wxLiveAssistantService.updateGoodsInfos(wxLiveAssistantGoodsUpdateRequest);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<String> updateGoodsInfos(WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest) {
+        return BaseResponse.success(wxLiveAssistantService.updateGoodsInfos(wxLiveAssistantGoodsUpdateRequest));
     }
 
     @Override
@@ -179,6 +183,8 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                 List<Goods> goodsGroup = goodsMap.get(wxLiveAssistantGoodsModel.getGoodsId());
                 if (goodsGroup != null) {
                     Goods goods = goodsGroup.get(0);
+                    wxLiveAssistantGoodsVo.setAddedFlag(goods.getAddedFlag());
+                    wxLiveAssistantGoodsVo.setGoodsNo(goods.getGoodsNo());
                     wxLiveAssistantGoodsVo.setGoodsImg(goods.getGoodsImg());
                     wxLiveAssistantGoodsVo.setGoodsName(goods.getGoodsName());
                     wxLiveAssistantGoodsVo.setMarketPrice(goods.getSkuMinMarketPrice() != null ? goods.getSkuMinMarketPrice().toString() : "0");
@@ -199,11 +205,13 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                             stockSum += stock;
                             wxLiveAssistantGoodsInfoVo.setStock(stock.intValue());
                         }
+                        wxLiveAssistantGoodsInfoVo.setGoodsInfoNo(goodsInfo.getGoodsInfoNo());
                         wxLiveAssistantGoodsInfoVo.setMarketPrice(goodsInfo.getMarketPrice() != null ? goodsInfo.getMarketPrice().toString() : "0");
 
                         if(CollectionUtils.isNotEmpty(goodsInfoSpecDetailGroup)){
                             Map<String, String> goodsInfoSpec = new HashMap<>();
                             for (GoodsInfoSpecDetailRel goodsInfoSpecDetailRel : goodsInfoSpecDetailGroup) {
+                                if(!goodsInfo.getGoodsInfoId().equals(goodsInfoSpecDetailRel.getGoodsInfoId())) continue;
                                 Long specId = goodsInfoSpecDetailRel.getSpecId();
                                 List<GoodsSpec> goodsSpecs = goodsSpecMap.get(specId);
                                 if(goodsSpecs != null){
@@ -230,7 +238,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         return BaseResponse.success(wxLiveAssistantService.ifGoodsInLive(goodsId));
     }
 
-    public BaseResponse afterWxLiveEnd(String message){
+    public BaseResponse<List<String>> afterWxLiveEnd(String message){
         JSONObject wxLiveAssistantMessage = JSONObject.parseObject(message);
         Long assistantId = wxLiveAssistantMessage.getLong("assistantId");
         if(wxLiveAssistantMessage.getInteger("event_type") == 0){
@@ -240,7 +248,9 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             if(wxLiveAssistantModel != null){
                 if(wxLiveAssistantModel.getDelFlag().equals(DeleteFlag.NO) && wxLiveAssistantModel.getEndTime().format(df).equals(wxLiveAssistantMessage.getString("time"))){
                     log.info("直播助手结束直播:{}, 所有直播商品将恢复原价和库存", assistantId);
-                    wxLiveAssistantService.resetStockAndProce(assistantId);
+                    List<Goods> goodsList = wxLiveAssistantService.resetStockAndProce(assistantId);
+                    List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+                    return BaseResponse.success(goodsIds);
                 }
             }
         }

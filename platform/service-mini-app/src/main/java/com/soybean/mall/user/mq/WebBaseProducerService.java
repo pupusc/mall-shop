@@ -1,21 +1,15 @@
 package com.soybean.mall.user.mq;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.oracle.tools.packager.mac.MacAppBundler;
 import com.soybean.common.util.IntegerEncryptTool;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailModifyRequest;
-import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.bean.dto.customer.EsCustomerDetailDTO;
 import com.wanmi.sbc.elastic.bean.dto.customer.EsEnterpriseInfoDTO;
-import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

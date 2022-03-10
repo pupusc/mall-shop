@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
 
 @FeignClient(value = "${application.goods.name}", contextId = "WxLiveAssistantProvider")
@@ -22,7 +23,7 @@ public interface WxLiveAssistantProvider {
     BaseResponse<Long> addAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/delete")
-    BaseResponse<Map<String, Map<String, Integer>>> deleteAssistant(@RequestParam("id") Long id);
+    BaseResponse<List<String>> deleteAssistant(@RequestParam("id") Long id);
 
     @PostMapping("/wx/assistant/${application.goods.version}/update")
     BaseResponse<Map<String, String>> updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
@@ -34,16 +35,16 @@ public interface WxLiveAssistantProvider {
     BaseResponse addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/delete")
-    BaseResponse<Map<String, Map<String, Integer>>> deleteGoods(@RequestParam("id") Long id);
+    BaseResponse<List<String>> deleteGoods(@RequestParam("id") Long id);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/update")
-    BaseResponse updateGoodsInfos(@RequestBody WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest);
+    BaseResponse<String> updateGoodsInfos(@RequestBody WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/list")
     BaseResponse<WxLiveAssistantDetailVo> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/live-end")
-    BaseResponse afterWxLiveEnd(@RequestParam("message") String message);
+    BaseResponse<List<String>> afterWxLiveEnd(@RequestParam("message") String message);
 
     @PostMapping("/wx/assistant/${application.goods.version}/if-goods-in-live")
     BaseResponse<Boolean> ifGoodsInLive(@RequestParam("goodsId") String goodsId);

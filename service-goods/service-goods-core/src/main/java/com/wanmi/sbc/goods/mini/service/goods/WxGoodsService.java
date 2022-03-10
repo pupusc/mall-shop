@@ -149,6 +149,24 @@ public class WxGoodsService {
         }
     }
 
+    /**
+     * 微信免审
+     */
+    public void toAudit(Goods goods){
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goods.getGoodsId(), DeleteFlag.NO);
+        if(wxGoodsModel != null && wxGoodsModel.getPlatformProductId() != null){
+            //需要免审更新
+            List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(goods.getGoodsId()).delFlag(DeleteFlag.NO.toValue()).build());
+            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goods, goodsInfos));
+            if(!baseResponse.getContext().isSuccess()){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
+            }
+            wxGoodsModel.setUploadTime(LocalDateTime.now());
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
+            wxGoodsRepository.save(wxGoodsModel);
+        }
+    }
+
     public void update(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
@@ -293,10 +311,9 @@ public class WxGoodsService {
         for (GoodsInfo goodsInfo : goodsInfos) {
             WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
             sku.setOutSkuId(goodsInfo.getGoodsInfoId());
-            BigDecimal marketPrice = goodsInfo.getMarketPrice();
-            if(marketPrice == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "sku缺少价格信息:" + goodsInfo.getGoodsInfoId());
-            sku.setMarketPrice(marketPrice);
-            sku.setSalePrice(marketPrice);
+            BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
+            sku.setMarketPrice(price);
+            sku.setSalePrice(price);
             sku.setStockNum(goodsInfo.getStock() == null ? 0 : goodsInfo.getStock().intValue());
             skus.add(sku);
         }
@@ -310,8 +327,9 @@ public class WxGoodsService {
             sku.setOutProductId(goods.getGoodsId());
             sku.setOutSkuId(goodsInfo.getGoodsInfoId());
             sku.setThumbImg(exchangeWxImgUrl(goodsInfo.getGoodsInfoImg()));
-            sku.setSalePrice(goodsInfo.getMarketPrice());
-            sku.setMarketPrice(goodsInfo.getMarketPrice());
+            BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
+            sku.setSalePrice(price);
+            sku.setMarketPrice(price);
             sku.setStockNum(goodsInfo.getStock().intValue());
 //            sku.setSkuAttrs();
             skus.add(sku);
