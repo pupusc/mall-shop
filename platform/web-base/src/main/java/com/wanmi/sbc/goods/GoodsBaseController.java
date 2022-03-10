@@ -34,7 +34,6 @@ import com.wanmi.sbc.elastic.bean.dto.goods.EsGoodsInfoDTO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
-import com.wanmi.sbc.goods.api.enums.GiftFlagEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.distributor.goods.DistributorGoodsInfoQueryProvider;
@@ -146,6 +145,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -519,8 +519,7 @@ public class GoodsBaseController {
             queryRequest.setGoodsType(GoodsType.CYCLE_BUY);
             queryRequest.setKeywords(null);
         }
-        //查非赠品
-        queryRequest.setGiftFlag(GiftFlagEnum.FALSE.getCode());
+
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
         List<GoodsInfoNestVO> goodsInfoNestList = response.getEsGoods().getContent().stream()

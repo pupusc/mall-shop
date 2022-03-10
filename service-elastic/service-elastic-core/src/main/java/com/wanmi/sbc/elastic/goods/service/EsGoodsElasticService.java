@@ -387,7 +387,6 @@ public class EsGoodsElasticService {
                     List<GoodsInfoVO> finalGoodsInfos = goodsinfos;
                     for (GoodsVO goods : goodsList) {
                         EsGoods esGoods = new EsGoods();
-                        esGoods.setGiftFlag(goods.getGiftFlag());
                         if (CollectionUtils.isEmpty(goods.getGoodsChannelTypeSet())) {
                             logger.error("商品id {} 商品No:{} 商品名称:{} 渠道为空，不刷新到es中", goods.getGoodsId(), goods.getGoodsNo(), goods.getGoodsName());
                             continue;

@@ -245,5 +245,5 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
     /**
      * 商品销售平台
      */
-    private List<String> goodsChannelType;
+    private String goodsChannelType;
 }

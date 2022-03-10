@@ -1,7 +1,5 @@
 package com.wanmi.sbc.task;
 
-import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
-import com.wanmi.sbc.classify.response.ClassifyNoChildResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
@@ -9,6 +7,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
@@ -23,8 +22,6 @@ import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -106,6 +103,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
         //按照销售数量排序
         sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
         esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        esGoodsCustomRequest.setNotChannelType(GoodsChannelTypeEnum.FDDS_DELIVER.getCode());
         //获取分类下的商品列表
         BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();

@@ -1,6 +1,5 @@
 package com.wanmi.sbc.elastic.spu.serivce;
 
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
@@ -8,7 +7,6 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.marketing.bean.enums.RangeDayType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -23,14 +21,17 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.ObjectUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.idsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 /**
  * <p>EsGoods表动态查询条件构建器</p>
@@ -46,6 +47,11 @@ public class EsSpuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+
+        if (Objects.nonNull(request.getGoodsChannelType())) {
+            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
+        }
+
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
             boolQb.must(idsQuery().addIds(request.getGoodsIds().toArray(new String[]{})));

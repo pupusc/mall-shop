@@ -520,9 +520,4 @@ public class GoodsVO  implements Serializable {
         }
         return Constants.yes;
     }
-
-    /**
-     * 赠品标记：0否；1是；
-     */
-    private Integer giftFlag;
 }

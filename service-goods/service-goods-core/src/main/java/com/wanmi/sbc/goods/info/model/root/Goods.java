@@ -517,12 +517,6 @@ public class Goods {
     @Transient
     private Long cateTopId;
 
-    /**
-     * 赠品标记：0否；1是；
-     */
-    @Column(name = "gift_flag")
-    private Integer giftFlag;
-
     /*
      * 商品渠道 1 H5 2、小程序 3、普通分类 多个以,分割
      */

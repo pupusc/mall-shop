@@ -342,11 +342,6 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     private String anchorPushs;
 
-    /**
-     * 赠品标记
-     */
-    private Integer giftFlag;
-
     /*
      * 商品渠道类型 1H5 2小程序 3 樊登赠品
      */
@@ -376,15 +371,6 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     public QueryBuilder getWhereCriteria() {
         String queryName = isQueryGoods ? "goodsInfos" : "goodsInfo";
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-
-        //查询非赠品标记
-        if (Integer.valueOf(0).equals(giftFlag)) {
-            boolQueryBuilder.mustNot(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
-        }
-        //查询赠品标记
-        if (Integer.valueOf(1).equals(giftFlag)) {
-            boolQueryBuilder.must(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
-        }
 
         //批量商品ID
         if ( CollectionUtils.isNotEmpty(goodsIds)&& !isQueryGoods) {

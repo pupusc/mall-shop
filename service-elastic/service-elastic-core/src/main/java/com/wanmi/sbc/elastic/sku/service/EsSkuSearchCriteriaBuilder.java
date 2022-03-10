@@ -50,13 +50,9 @@ public class EsSkuSearchCriteriaBuilder {
     private static QueryBuilder getWhereCriteria(EsSkuPageRequest request) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
 
-        //查询非赠品
-        if (Integer.valueOf(0).equals(request.getGiftFlag())) {
-            boolQb.mustNot(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
-        }
         //查询赠品
-        if (Integer.valueOf(1).equals(request.getGiftFlag())) {
-            boolQb.must(QueryBuilders.termQuery("giftFlag", Integer.valueOf(1)));
+        if (Objects.nonNull(request.getGoodsChannelType())){
+            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
         }
 
         //批量SKU编号
