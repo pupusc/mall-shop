@@ -49,12 +49,6 @@ public class ConsigneeReqVO implements Serializable {
     private String phone;
 
     //-------------------------以下部分前端没有传输入参---------------------------------
-    /***
-     * 详细地址(包含省市区）
-     */
-    @NotBlank
-    private String detailAddress;
-
     /**
      * 省名称
      */

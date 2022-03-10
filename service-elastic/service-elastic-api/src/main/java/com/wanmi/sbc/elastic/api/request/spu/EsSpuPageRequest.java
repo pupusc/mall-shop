@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -241,4 +241,9 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
      */
     @ApiModelProperty(value = "ERP的SPU编码")
     private String spuErp;
+
+    /**
+     * 商品销售平台
+     */
+    private List<String> goodsChannelType;
 }

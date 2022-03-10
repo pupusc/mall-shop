@@ -31,11 +31,6 @@ public class OrderCreateReqVO extends BaseReqVO implements Serializable {
     @NotBlank
     private String buyerRemark;
     /**
-     * 收货地址
-     */
-    @NotBlank
-    private String consigneeAddress;
-    /**
      * 收货人信息
      */
     @Valid

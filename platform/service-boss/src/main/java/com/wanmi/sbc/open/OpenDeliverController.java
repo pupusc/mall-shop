@@ -236,7 +236,7 @@ public class OpenDeliverController extends OpenBaseController {
         TradeCreateDTO tradeCreateParam = new TradeCreateDTO();
         tradeCreateParam.setBuyerRemark(params.getBuyerRemark());
         tradeCreateParam.setConsignee(consigneeDTO);  //收件人
-        tradeCreateParam.setConsigneeAddress(params.getConsigneeAddress());
+        tradeCreateParam.setConsigneeAddress(params.getConsignee().getAddress());
         tradeCreateParam.setDeliverWay(DeliverWay.EXPRESS);
         tradeCreateParam.setForceCommit(false); //是否强制提交，用于营销活动有效性校验，true: 无效依然提交， false: 无效做异常返回
         tradeCreateParam.setInvoice(InvoiceDTO.builder().type(-1).build());
