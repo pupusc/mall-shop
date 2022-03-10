@@ -23,5 +23,5 @@ public class WxLiveAssistantCreateRequest {
     /**
      * spu id
      */
-    private List<String> goodsId;
+    private List<String> goods;
 }

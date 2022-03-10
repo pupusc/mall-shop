@@ -12,7 +12,6 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateR
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
-import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
 import lombok.extern.slf4j.Slf4j;
