@@ -97,9 +97,11 @@ public class OpenDeliverController implements OpenDeliverProvider {
 
     @Override
     public BusinessResponse<TradeCommitResultVO> createOrder(TradeWrapperBackendCommitRequest param) {
+        Operator operator = Operator.builder().platform(Platform.THIRD).build();
+
         //包装验证下单参数
         Trade trade = tradeService.wrapperBackendCommitTrade(
-                Operator.builder().platform(Platform.THIRD).build(),
+                operator,
                 KsBeanUtil.convert(param.getCompanyInfo(), CompanyInfoVO.class),
                 KsBeanUtil.convert(param.getStoreInfo(), StoreInfoResponse.class),
                 KsBeanUtil.convert(param.getTradeCreate(), TradeCreateRequest.class));
@@ -110,7 +112,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
         trade.setOutTradeNo(param.getTradeCreate().getOutTradeNo());
         trade.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
         trade.setTags(Arrays.asList(OrderTagEnum.GIFT.getCode()));
-        List<TradeCommitResult> trades = tradeService.createBatch(Collections.singletonList(trade),null, param.getOperator());
+        List<TradeCommitResult> trades = tradeService.createBatch(Collections.singletonList(trade),null, operator);
 
         if (CollectionUtils.isEmpty(trades)) {
             log.info("订单创建异常，结果为空");

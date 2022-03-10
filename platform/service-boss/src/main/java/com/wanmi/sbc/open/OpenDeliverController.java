@@ -194,18 +194,20 @@ public class OpenDeliverController extends OpenBaseController {
             log.info("下单商品查询失败, result = {}", JSON.toJSONString(goodsResponse));
             return BusinessResponse.error(goodsResponse.getCode(), goodsResponse.getMessage());
         }
-        if (Objects.isNull(goodsResponse.getContext())) {
+
+        GoodsInfoViewByIdsResponse gooddsContent = goodsResponse.getContext();
+        if (Objects.isNull(gooddsContent) || Objects.isNull(gooddsContent.getGoodses()) || gooddsContent.getGoodses().size() != params.getTradeItems().size()) {
             log.info("下单商品没有找到, result = {}", JSON.toJSONString(goodsResponse));
             return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
         }
-        Optional<GoodsVO> anyGoods = goodsResponse.getContext().getGoodses().stream().filter(item -> !GiftFlagEnum.TRUE.getCode().equals(item.getGiftFlag())).findAny();
+        Optional<GoodsVO> anyGoods = gooddsContent.getGoodses().stream().filter(item -> !GiftFlagEnum.TRUE.getCode().equals(item.getGiftFlag())).findAny();
         if (anyGoods.isPresent()) {
             log.info("下单的商品不是赠品类型, goodsId = {}", anyGoods.get().getGoodsId());
             return BusinessResponse.error(CommonErrorCode.PARAMETER_ERROR, "下单的商品不是赠品类型");
         }
 
-        List<Long> companyIds = goodsResponse.getContext().getGoodses().stream().map(GoodsVO::getCompanyInfoId).distinct().collect(Collectors.toList());
-        List<Long> storeIds = goodsResponse.getContext().getGoodses().stream().map(GoodsVO::getStoreId).distinct().collect(Collectors.toList());
+        List<Long> companyIds = gooddsContent.getGoodses().stream().map(GoodsVO::getCompanyInfoId).distinct().collect(Collectors.toList());
+        List<Long> storeIds = gooddsContent.getGoodses().stream().map(GoodsVO::getStoreId).distinct().collect(Collectors.toList());
         if (companyIds.size() > 1) {
             log.info("商品对应的商家信息有多个，请检查商城配置信息");
             return BusinessResponse.error(CommonErrorCode.FAILED, "商品对应的商家信息有多个，请检查商城配置信息");
