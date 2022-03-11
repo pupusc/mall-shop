@@ -91,6 +91,7 @@ import com.wanmi.sbc.order.bean.dto.TradeRemedyDTO;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.QueryOrderType;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
 import com.wanmi.sbc.order.bean.vo.DeliverCalendarVO;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeExportVO;
@@ -273,7 +274,7 @@ public class TradeController {
     @PageNumCheck
     @RequestMapping(value = "/supplierPage", method = RequestMethod.POST)
     public BaseResponse<MicroServicePage<TradeVO>> supplierPage(@RequestBody TradeQueryDTO tradeQueryRequest) {
-        if (Integer.valueOf(1000).equals(tradeQueryRequest.getQueryOrderType())) {
+        if (QueryOrderType.GIFT_ORDER.equals(tradeQueryRequest.getQueryOrderType())) {
             tradeQueryRequest.setQueryOrderType(null);
             tradeQueryRequest.setTag(OrderTagEnum.GIFT.getCode());
         }

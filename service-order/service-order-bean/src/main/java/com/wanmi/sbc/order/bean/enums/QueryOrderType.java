@@ -33,7 +33,8 @@ public enum QueryOrderType {
     @ApiEnumProperty("周期购订单")
     CYCLE_BUY_ORDER,
 
-    ;
+    @ApiEnumProperty("赠品订单")
+    GIFT_ORDER;
 
     @JsonCreator
     public QueryOrderType fromValue(int value) {
