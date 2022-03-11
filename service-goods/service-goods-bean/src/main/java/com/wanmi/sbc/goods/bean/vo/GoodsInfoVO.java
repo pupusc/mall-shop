@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 商品SKU实体类
@@ -751,4 +752,9 @@ public class GoodsInfoVO implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime promotionEndTime;
+
+    /**
+     * 商品渠道 1 H5 2、小程序 3、普通分类
+     */
+    private Set<String> goodsChannelTypeSet;
 }

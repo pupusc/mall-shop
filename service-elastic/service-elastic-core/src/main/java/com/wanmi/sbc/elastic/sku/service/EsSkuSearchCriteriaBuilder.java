@@ -5,6 +5,8 @@ import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
+import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
+import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsInfoSelectStatus;
@@ -48,7 +50,8 @@ public class EsSkuSearchCriteriaBuilder {
      * @return
      */
     private static QueryBuilder getWhereCriteria(EsSkuPageRequest request) {
-        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        CommonEsSearchCriteriaRequest commonRequest = new CommonEsSearchCriteriaRequest();
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(commonRequest);
 
         //查询赠品
         if (Objects.nonNull(request.getGoodsChannelType())){
@@ -59,6 +62,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(CollectionUtils.isNotEmpty(request.getGoodsInfoIds())){
             boolQb.must(idsQuery().addIds(request.getGoodsInfoIds().toArray(new String[]{})));
         }
+
         if(CollectionUtils.isNotEmpty(request.getNotGoodsInfoIds())){
             boolQb.mustNot(idsQuery().addIds(request.getNotGoodsInfoIds().toArray(new String[]{})));
         }
@@ -67,6 +71,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(StringUtils.isNotBlank(request.getGoodsId())){
             boolQb.must(termQuery("goodsInfo.goodsId", request.getGoodsId()));
         }
+
         //批量SPU编号
         if(CollectionUtils.isNotEmpty(request.getGoodsIds())){
             boolQb.must(termsQuery("goodsInfo.goodsId", request.getGoodsIds()));
@@ -76,6 +81,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(CollectionUtils.isNotEmpty(request.getGoodsInfoNos())){
             boolQb.must(termsQuery("goodsInfo.goodsInfoNo", request.getGoodsInfoNos()));
         }
+
         //批量SPU NO编号
         if(CollectionUtils.isNotEmpty(request.getGoodsNos())){
             boolQb.must(termsQuery("goodsNo", request.getGoodsNos()));
@@ -90,6 +96,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(StringUtils.isNotEmpty(request.getLikeGoodsInfoNo())){
             boolQb.must(wildcardQuery("goodsInfo.goodsInfoNo", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeGoodsInfoNo().trim())));
         }
+
         //店铺ID
         if(request.getStoreId() != null){
             boolQb.must(termQuery("goodsInfo.storeId", request.getStoreId()));
@@ -109,6 +116,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(request.getCompanyInfoId() != null){
             boolQb.must(termQuery("goodsInfo.companyInfoId", request.getCompanyInfoId()));
         }
+
         if (request.getNotThirdPlatformType() != null && request.getNotThirdPlatformType().size() > 0) {
             BoolQueryBuilder bq = QueryBuilders.boolQuery();
             bq.should(QueryBuilders.boolQuery().mustNot(termsQuery("thirdPlatformType", request.getNotThirdPlatformType())));
@@ -120,6 +128,7 @@ public class EsSkuSearchCriteriaBuilder {
         if(CollectionUtils.isNotEmpty(request.getStoreIds())){
             boolQb.must(termsQuery("goodsInfo.storeId", request.getStoreIds()));
         }
+
         //模糊查询名称
         if(StringUtils.isNotEmpty(request.getLikeGoodsName())){
             boolQb.must(wildcardQuery("goodsName", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeGoodsName().trim())));
@@ -133,18 +142,22 @@ public class EsSkuSearchCriteriaBuilder {
             bq.should(wildcardQuery("goodsNo", str));
             boolQb.must(bq);
         }
+
         //上下架状态
         if (request.getAddedFlag() != null) {
             boolQb.must(termQuery("goodsInfo.addedFlag", request.getAddedFlag()));
         }
+
         //多个上下架状态
         if (CollectionUtils.isNotEmpty(request.getAddedFlags())) {
             boolQb.must(termsQuery("goodsInfo.addedFlag", request.getAddedFlags()));
         }
+
         //多个品牌
         if (request.getBrandId() != null && request.getBrandId() > 0) {
             boolQb.must(termQuery("goodsInfo.brandId", request.getBrandId()));
         }
+
         //审核状态
         if(request.getAuditStatus() != null){
             boolQb.must(termQuery("auditStatus", request.getAuditStatus().toValue()));
@@ -154,18 +167,22 @@ public class EsSkuSearchCriteriaBuilder {
         if(CollectionUtils.isNotEmpty(request.getAuditStatuses())){
             boolQb.must(termsQuery("auditStatus", request.getAuditStatuses().stream().map(CheckStatus::toValue).collect(Collectors.toList())));
         }
+
         // 过滤积分价商品
         if (Objects.nonNull(request.getIntegralPriceFlag()) && Objects.equals(Boolean.TRUE, request.getIntegralPriceFlag())){
             boolQb.must(termQuery("goodsInfo.buyPoint", 0));
         }
+
         //删除标记
         if (request.getDelFlag() != null) {
             boolQb.must(termQuery("goodsInfo.delFlag", request.getDelFlag()));
         }
+
         //非商品编号
         if(StringUtils.isNotBlank(request.getNotGoodsId())){
             boolQb.mustNot(termQuery("goodsInfo.goodsId", request.getNotGoodsId()));
         }
+
         //非商品SKU编号
         if(StringUtils.isNotBlank(request.getNotGoodsInfoId())){
             boolQb.mustNot(idsQuery().addIds(request.getNotGoodsInfoId()));

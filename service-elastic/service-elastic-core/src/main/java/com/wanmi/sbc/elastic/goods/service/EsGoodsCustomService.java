@@ -65,6 +65,7 @@ public class EsGoodsCustomService {
     public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
+
         int pageNum = request.getPageNum();
         builder.withPageable(PageRequest.of(pageNum, request.getPageSize()));
         builder.withQuery(this.packageWhere(request));
