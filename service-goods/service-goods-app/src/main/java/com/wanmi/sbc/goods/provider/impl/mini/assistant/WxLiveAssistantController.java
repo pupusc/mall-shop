@@ -234,8 +234,8 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<Boolean> ifGoodsInLive(String goodsId){
-        return BaseResponse.success(wxLiveAssistantService.ifGoodsInLive(goodsId));
+    public BaseResponse<List<String>> ifGoodsInLive(List<String> goodsIds){
+        return BaseResponse.success(wxLiveAssistantService.ifGoodsInLive(goodsIds));
     }
 
     public BaseResponse<List<String>> afterWxLiveEnd(String message){

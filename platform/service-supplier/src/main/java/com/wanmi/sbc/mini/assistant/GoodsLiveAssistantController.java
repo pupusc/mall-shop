@@ -212,7 +212,14 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/ifGoodsInLive")
     public BaseResponse<Boolean> ifGoodsInLive(@RequestParam String goodsId){
-        return wxLiveAssistantProvider.ifGoodsInLive(goodsId);
+        BaseResponse<List<String>> response = wxLiveAssistantProvider.ifGoodsInLive(Collections.singletonList(goodsId));
+        if(CollectionUtils.isNotEmpty(response.getContext())){
+            if(response.getContext().contains(goodsId)){
+                return BaseResponse.success(true);
+            }
+            return BaseResponse.success(false);
+        }
+        return BaseResponse.success(false);
     }
 
     private void sendDelayMessage(Long assistantId, String endTimeStr){

@@ -32,6 +32,7 @@ import com.wanmi.sbc.goods.api.provider.excel.GoodsSupplierExcelProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
@@ -152,6 +153,9 @@ public class StoreGoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+    @Autowired
+    private WxLiveAssistantProvider wxLiveAssistantProvider;
+
     /**
      * 查询商品
      *
@@ -193,7 +197,9 @@ public class StoreGoodsController {
         EsSpuPageResponse response = pageResponse.getContext();
         List<GoodsPageSimpleVO> goodses = response.getGoodsPage().getContent();
         if(CollectionUtils.isNotEmpty(goodses)) {
-            List<String> goodsIds = goodses.stream().map(GoodsPageSimpleVO::getGoodsId).collect(Collectors.toList());
+            Map<String, List<GoodsPageSimpleVO>> goodsGroup = goodses.stream().collect(Collectors.groupingBy(GoodsPageSimpleVO::getGoodsId));
+            List<String> goodsIds = new ArrayList<>(goodsGroup.keySet());
+//            List<String> goodsIds = goodses.stream().map(GoodsPageSimpleVO::getGoodsId).collect(Collectors.toList());
             BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds);
             if(mapBaseResponse.getContext() != null){
                 Map<String, List<Integer>> storeCateMap = mapBaseResponse.getContext();
@@ -203,6 +209,17 @@ public class StoreGoodsController {
                         goods.setStoreCateIds(new ArrayList<>());
                     }else{
                         goods.setStoreCateIds(classifies.stream().map(Integer::longValue).collect(Collectors.toList()));
+                    }
+                }
+            }
+
+            // 商品是否在直播助手中
+            BaseResponse<List<String>> goodsInLiveRes = wxLiveAssistantProvider.ifGoodsInLive(goodsIds);
+            if(CollectionUtils.isNotEmpty(goodsInLiveRes.getContext())){
+                for (String goodsId : goodsInLiveRes.getContext()) {
+                    List<GoodsPageSimpleVO> goodsPageSimpleVOS = goodsGroup.get(goodsId);
+                    if(goodsPageSimpleVOS != null){
+                        goodsPageSimpleVOS.get(0).setGoodsInLive(true);
                     }
                 }
             }

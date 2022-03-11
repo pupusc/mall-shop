@@ -47,5 +47,5 @@ public interface WxLiveAssistantProvider {
     BaseResponse<List<String>> afterWxLiveEnd(@RequestParam("message") String message);
 
     @PostMapping("/wx/assistant/${application.goods.version}/if-goods-in-live")
-    BaseResponse<Boolean> ifGoodsInLive(@RequestParam("goodsId") String goodsId);
+    BaseResponse<List<String>> ifGoodsInLive(@RequestBody List<String> goodsIds);
 }

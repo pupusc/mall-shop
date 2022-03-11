@@ -300,6 +300,10 @@ public class GoodsPageSimpleVO implements Serializable {
      */
     @ApiModelProperty(value = "运费模板ID")
     private Long freightTempId;
+    /**
+     * 是否在直播助手中
+     */
+    private Boolean goodsInLive;
 
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {

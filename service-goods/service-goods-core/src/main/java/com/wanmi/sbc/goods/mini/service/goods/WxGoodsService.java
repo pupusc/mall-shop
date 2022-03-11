@@ -49,6 +49,9 @@ import java.util.*;
 @Slf4j
 public class WxGoodsService {
 
+    @Value("${wx.mini.goods.path}")
+    private String wxGoodsPath;
+
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
     @Autowired
@@ -300,9 +303,8 @@ public class WxGoodsService {
         WxAddProductRequest addProductRequest = new WxAddProductRequest();
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsName());
-        addProductRequest.setPath("http://www.baidu.com");
+        addProductRequest.setPath(wxGoodsPath.concat("?spuId=").concat(goods.getGoodsId()));
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
-//        addProductRequest.setHeadImg(Collections.singletonList(goods.getGoodsImg()));
         List<String> qualificationics = new ArrayList<>();
         qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
         qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
@@ -329,7 +331,6 @@ public class WxGoodsService {
             }
             if(detailImgs.size() > 0) addProductRequest.setDescInfo(new WxAddProductRequest.DescInfo("", detailImgs));
         }
-        //todo 改成变量
         String ids = JSONObject.parseObject(wxGoodsModel.getWxCategory()).getString("id");
         addProductRequest.setThirdCatId(Integer.parseInt(ids.substring(ids.lastIndexOf(",") + 1)));
         addProductRequest.setBrandId(2100000000);

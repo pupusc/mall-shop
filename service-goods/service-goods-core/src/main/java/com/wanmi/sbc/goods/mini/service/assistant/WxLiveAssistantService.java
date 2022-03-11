@@ -300,12 +300,12 @@ public class WxLiveAssistantService {
         return wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageSize()));
     }
 
-    public boolean ifGoodsInLive(String goodsId){
-        List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(Collections.singletonList(goodsId));
+    public List<String> ifGoodsInLive(List<String> goodsIds){
+        List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(goodsIds);
         if(CollectionUtils.isNotEmpty(timeConflictGoods)){
-            return true;
+            return timeConflictGoods.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
         }
-        return false;
+        return Collections.emptyList();
     }
 
     public WxLiveAssistantModel findAssistantById(Long assistantId){
