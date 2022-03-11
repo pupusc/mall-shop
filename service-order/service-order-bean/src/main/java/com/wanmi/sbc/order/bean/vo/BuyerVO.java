@@ -67,6 +67,11 @@ public class BuyerVO implements Serializable {
     private String employeeId;
 
     /**
+     * openId
+     */
+    private String openId;
+
+    /**
      * @param customer
      * @param level
      * @return
