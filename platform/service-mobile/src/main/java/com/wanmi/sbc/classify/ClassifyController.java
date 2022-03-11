@@ -10,6 +10,7 @@ import com.wanmi.sbc.classify.response.ClassifyGoodsAndBookListModelResponse;
 import com.wanmi.sbc.classify.response.ClassifyNoChildResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
@@ -25,6 +26,7 @@ import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.index.RefreshConfig;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
@@ -79,6 +81,9 @@ public class ClassifyController {
 
     @Autowired
     private BookListModelProvider bookListModelProvider;
+
+    @Autowired
+    private CommonUtil commonUtil;
 
     @Value("${exclude-classifyIdStr:000}")
     private String excludeClassifyIdStr;
@@ -175,7 +180,7 @@ public class ClassifyController {
         String refreshCountStr = redis.getString(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT);
         long refreshCount = Long.parseLong(StringUtils.isEmpty(refreshCountStr) ? "0" : refreshCountStr);
         //获取商品列表
-        String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
+        String goodsIdKey = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + "_" + commonUtil.getTerminal().getMessage() + ":" + refreshCount + ":" + classifyGoodsAndBookListModelRequest.getClassifyId();
         int goodsStart = pageNum * pageSize;
         int goodsEnd = (pageNum + 1) * pageSize;
         List<String> goodsIdList = redisService.findByRangeString(goodsIdKey, goodsStart, goodsEnd - 1);
@@ -193,6 +198,7 @@ public class ClassifyController {
         //按照销售数量排序
         sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
         esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+        esGoodsCustomRequest.setGoodsChannelType(commonUtil.getTerminal().getCode());
         MicroServicePage<EsGoodsVO> esGoodsRandomList = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
         List<EsGoodsVO> content = esGoodsRandomList.getContent();
         if (CollectionUtils.isEmpty(content)) {
@@ -273,6 +279,7 @@ public class ClassifyController {
         result.setContent(new ArrayList<>());
         result.setTotal(0);
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+        esGoodsCustomRequest.setGoodsChannelType(commonUtil.getTerminal().getCode());
         //获取当前一级分类下的所有子分类
         if (classifyGoodsAndBookListModelPageRequest.getClassifyId() != null) {
             ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
@@ -354,6 +361,7 @@ public class ClassifyController {
         } else {
             return BaseResponse.success(result);
         }
+
 
         MicroServicePage<EsGoodsVO> esGoodsVOMicroServiceResponse = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
         List<EsGoodsVO> esGoodsVOList = esGoodsVOMicroServiceResponse.getContent();

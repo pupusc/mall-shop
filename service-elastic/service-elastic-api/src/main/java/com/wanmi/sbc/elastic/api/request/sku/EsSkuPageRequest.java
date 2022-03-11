@@ -300,9 +300,9 @@ public class EsSkuPageRequest extends BaseQueryRequest implements Serializable {
     @ApiModelProperty(value = "过滤拼团商品")
     private Boolean groupon = Boolean.FALSE;
 
-    /**
-     * 商品销售渠道
-     */
-    @ApiModelProperty(value = "商品销售渠道")
-    private String goodsChannelType;
+//    /**
+//     * 商品销售渠道
+//     */
+//    @ApiModelProperty(value = "商品销售渠道")
+//    private String goodsChannelType;
 }

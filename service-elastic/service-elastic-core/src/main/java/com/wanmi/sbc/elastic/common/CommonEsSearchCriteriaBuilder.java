@@ -1,7 +1,11 @@
 package com.wanmi.sbc.elastic.common;
 
+import com.wanmi.sbc.common.base.BaseRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+//import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:
@@ -17,9 +21,11 @@ public class CommonEsSearchCriteriaBuilder {
      * 查询es_goodsinfo 索引中的中公共部分
      * @return
      */
-    public static BoolQueryBuilder getSkuCommonSearchCriterialBuilder(CommonEsSearchCriteriaRequest request) {
+    public static BoolQueryBuilder getSkuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-
+        if (baseRequest.getGoodsChannelType() != null) {
+            boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelType()));
+        }
         return boolQb;
     }
 
@@ -28,9 +34,11 @@ public class CommonEsSearchCriteriaBuilder {
      * 查询 es_goods 索引中的公共部分
      * @return
      */
-    public static BoolQueryBuilder getSpuCommonSearchCriterialBuilder(CommonEsSearchCriteriaRequest request) {
+    public static BoolQueryBuilder getSpuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-
+        if (baseRequest.getGoodsChannelType() != null) {
+            boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelType()));
+        }
         return boolQb;
     }
 }

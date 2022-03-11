@@ -4,7 +4,6 @@ import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
 import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
@@ -49,8 +48,7 @@ public class EsSpuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
 //        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        CommonEsSearchCriteriaRequest commonEsSearchCriteriaRequest = new CommonEsSearchCriteriaRequest();
-        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(commonEsSearchCriteriaRequest);
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
 
         if (Objects.nonNull(request.getGoodsChannelType())) {
             boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));

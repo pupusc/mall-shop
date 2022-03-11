@@ -6,7 +6,6 @@ import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsInfoSelectStatus;
@@ -50,8 +49,7 @@ public class EsSkuSearchCriteriaBuilder {
      * @return
      */
     private static QueryBuilder getWhereCriteria(EsSkuPageRequest request) {
-        CommonEsSearchCriteriaRequest commonRequest = new CommonEsSearchCriteriaRequest();
-        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(commonRequest);
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(request);
 
         //查询赠品
         if (Objects.nonNull(request.getGoodsChannelType())){

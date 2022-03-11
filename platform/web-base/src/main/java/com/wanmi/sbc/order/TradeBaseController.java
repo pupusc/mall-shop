@@ -3750,7 +3750,7 @@ public class TradeBaseController {
                 .keyworks(paramRequest.getKeywords())
                 .isBoss(false)
                 .build();
-        tradeQueryRequest.setTag(paramRequest.getTag());
+//        tradeQueryRequest.setTag(paramRequest.getTag());
         tradeQueryRequest.setPageNum(paramRequest.getPageNum());
         tradeQueryRequest.setPageSize(paramRequest.getPageSize());
         //设定状态条件逻辑,已审核状态需筛选出已审核与部分发货

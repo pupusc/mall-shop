@@ -9,6 +9,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.SortType;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
@@ -30,7 +31,6 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.elastic.api.provider.sku.EsSkuQueryProvider;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
-import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
@@ -134,7 +134,7 @@ public class OpenDeliverController extends OpenBaseController {
         queryRequest.setLikeGoodsName(params.getGoodsName());
         queryRequest.setPageNum(pageNo < 1 ? 0 : pageNo-1);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
-        queryRequest.setGoodsChannelType(GoodsChannelTypeEnum.FDDS_DELIVER.getCode()); //商品销售渠道
+        queryRequest.setGoodsChannelType(TerminalSource.FDDS_DELIVER.getCode()); //商品销售渠道
 
         //按创建时间倒序、ID升序
         queryRequest.putSort("addedTime", SortType.DESC.toValue());
@@ -201,7 +201,7 @@ public class OpenDeliverController extends OpenBaseController {
             return BusinessResponse.error(CommonErrorCode.DATA_NOT_EXISTS);
         }
         Optional<GoodsVO> anyGoods = gooddsContent.getGoodses().stream().filter(item ->
-                Objects.isNull(item.getGoodsChannelTypeSet()) || !item.getGoodsChannelTypeSet().contains(GoodsChannelTypeEnum.FDDS_DELIVER.getCode())
+                Objects.isNull(item.getGoodsChannelTypeSet()) || !item.getGoodsChannelTypeSet().contains(TerminalSource.FDDS_DELIVER.getCode().toString())
         ).findAny();
         if (anyGoods.isPresent()) {
             log.info("下单的商品不是赠品类型, goodsId = {}", anyGoods.get().getGoodsId());

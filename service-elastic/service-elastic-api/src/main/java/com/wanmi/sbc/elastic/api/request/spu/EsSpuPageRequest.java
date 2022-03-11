@@ -242,8 +242,8 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
     @ApiModelProperty(value = "ERP的SPU编码")
     private String spuErp;
 
-    /**
-     * 商品销售平台
-     */
-    private String goodsChannelType;
+//    /**
+//     * 商品销售平台
+//     */
+//    private String goodsChannelType;
 }
