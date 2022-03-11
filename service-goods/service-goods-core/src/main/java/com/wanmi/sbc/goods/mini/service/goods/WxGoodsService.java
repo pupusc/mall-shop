@@ -10,6 +10,7 @@ import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -33,12 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -46,9 +48,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class WxGoodsService {
-
-    @Value("${wx.mini.license:}")
-    private String license;
 
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
@@ -60,11 +59,51 @@ public class WxGoodsService {
     private GoodsInfoService goodsInfoService;
     @Autowired
     private WxReviewLogRepository wxReviewLogRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Transactional
     public Page<WxGoodsModel> listGoods(WxGoodsSearchRequest wxGoodsSearchRequest){
-        Specification<WxGoodsModel> specification = wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest);
-        return wxGoodsRepository.findAll(specification, PageRequest.of(wxGoodsSearchRequest.getPageNum(), wxGoodsSearchRequest.getPageSize()));
+        StringBuilder select = new StringBuilder(128);
+        StringBuilder condition = new StringBuilder(128).append(" where tg.del_flag=0");
+        Map<String, Object> params = new HashMap<>();
+        select.append("select tg.* from t_wx_goods as tg ");
+        if(wxGoodsSearchRequest.getSaleStatus() != null){
+            select.append(" join goods as g on tg.goods_id=g.goods_id");
+            if(wxGoodsSearchRequest.getSaleStatus() == 1){
+                condition.append(" and tg.platform_product_id is not null and g.added_flag=1");
+            }else{
+                condition.append(" and (tg.platform_product_id is null or g.added_flag=0)");
+            }
+        }
+        if(wxGoodsSearchRequest.getGoodsIds() != null){
+            condition.append(" and tg.goods_id in :goodsIds");
+            params.put("goodsIds", wxGoodsSearchRequest.getGoodsIds());
+        }
+        if (wxGoodsSearchRequest.getAuditStatus() != null) {
+            condition.append(" and audit_status=:auditStatus");
+            params.put("auditStatus", wxGoodsSearchRequest.getAuditStatus());
+        }
+        String sql = select.append(condition).toString();
+        String countSql = new StringBuilder(128).append("select count(*) from (").append(sql).append(") t").toString();
+        Query nativeQuery = entityManager.createNativeQuery(sql, WxGoodsModel.class);
+        Query countQuery = entityManager.createNativeQuery(countSql);
+        if(!params.isEmpty()) {
+            params.forEach((k, v) -> {
+                nativeQuery.setParameter(k, v);
+                countQuery.setParameter(k, v);
+            });
+        }
+        nativeQuery.setFirstResult(wxGoodsSearchRequest.getPageNum() * wxGoodsSearchRequest.getPageSize());
+        nativeQuery.setMaxResults(wxGoodsSearchRequest.getPageSize());
+        List<WxGoodsModel> resultList = nativeQuery.getResultList();
+        Long count = ((BigInteger) countQuery.getSingleResult()).longValue();
+        MicroServicePage<WxGoodsModel> page = new MicroServicePage<>();
+        page.setContent(resultList);
+        page.setTotal(count);
+        return page;
+//        Specification<WxGoodsModel> specification = wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest);
+//        return wxGoodsRepository.findAll(specification, PageRequest.of(wxGoodsSearchRequest.getPageNum(), wxGoodsSearchRequest.getPageSize()));
     }
 
     @Transactional
