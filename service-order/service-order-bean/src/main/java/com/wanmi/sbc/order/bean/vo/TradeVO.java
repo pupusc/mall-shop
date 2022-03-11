@@ -537,4 +537,10 @@ public class TradeVO implements Serializable {
     @ApiModelProperty("第三方订单号")
     private String deliveryOrderId;
 
+    /**
+     * 小程序相关信息，有时间单独建表处理
+     */
+    private MiniProgramVO miniProgram;
+
+
 }
