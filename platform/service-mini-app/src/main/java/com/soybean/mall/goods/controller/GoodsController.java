@@ -38,7 +38,7 @@ public class GoodsController {
      * @status done
      */
     @GetMapping("/detail")
-    public BaseResponse<GoodsDetailResponse> detail(@RequestParam("spuId")String spuId, @RequestParam("skuId")String skuId){
+    public BaseResponse<GoodsDetailResponse> detail(@RequestParam("spuId")String spuId, @RequestParam(value = "skuId",required = false)String skuId){
         GoodsViewByIdRequest request = new GoodsViewByIdRequest();
         request.setGoodsId(spuId);
         request.setShowLabelFlag(true);
