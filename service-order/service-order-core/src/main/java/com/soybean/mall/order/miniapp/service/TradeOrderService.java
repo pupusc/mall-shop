@@ -202,13 +202,16 @@ public class TradeOrderService {
         });
         request.setDeliveryList(deliveryInfos);
         BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
-        if(result!=null && result.getContext().isSuccess() && Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)){
+        if(result!=null && result.getContext().isSuccess()){
             //全部发货且已经全部同步
-            trade.getMiniProgram().setSyncStatus(1);
+            if(Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)) {
+                trade.getMiniProgram().setSyncStatus(1);
+            }
+            trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
+            tradeRepository.save(trade);
+            sendWxDeliveryMessage(trade);
         }
-        trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
-        tradeRepository.save(trade);
-        sendWxDeliveryMessage(trade);
+
     }
 
 
