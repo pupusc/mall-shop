@@ -201,8 +201,8 @@ public class WxLiveAssistantService {
         List<GoodsInfo> toSave = new ArrayList<>();
         List<Goods> goodsList = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos, toSave);
         if (!toSave.isEmpty()) {
-            goodsInfoRepository.saveAll(toSave);
-            goodsRepository.saveAll(goodsList);
+//            goodsInfoRepository.saveAll(toSave);
+//            goodsRepository.saveAll(goodsList);
         }
         return goodsList;
     }
@@ -354,8 +354,8 @@ public class WxLiveAssistantService {
 //            });
         }
         if(!toSave.isEmpty()){
-            goodsInfoRepository.saveAll(toSave);
-            goodsRepository.saveAll(goodsList);
+//            goodsInfoRepository.saveAll(toSave);
+//            goodsRepository.saveAll(goodsList);
         }
 //        resultMap.put("spus", spus);
 //        resultMap.put("skus", skus);
@@ -366,8 +366,8 @@ public class WxLiveAssistantService {
     private List<Goods> resetStockAndProce(WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel, List<GoodsInfo> goodsInfos, List<GoodsInfo> toSave){
         String olfSyncStockFlagStr = wxLiveAssistantGoodsModel.getOlfSyncStockFlag();
         JSONObject olfSyncStockFlag = JSONObject.parseObject(olfSyncStockFlagStr);
-        String oldGoodsInfoStr = wxLiveAssistantGoodsModel.getOldGoodsInfo();
-        Map oldGoodsInfo = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
+//        String oldGoodsInfoStr = wxLiveAssistantGoodsModel.getOldGoodsInfo();
+//        Map oldGoodsInfo = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
 
 //        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
 //        Map<String, Integer> skus = new HashMap<>();
@@ -376,20 +376,21 @@ public class WxLiveAssistantService {
 
         String goodsId = goodsInfos.get(0).getGoodsId();
         Goods goods = goodsService.findByGoodsId(goodsId);
-
-        boolean goodsChange = false;
+        goodsList.add(goods);
+//        boolean goodsChange = false;
         for (GoodsInfo goodsInfo : goodsInfos) {
-            boolean change = false;
+//            boolean change = false;
             Integer oldFlag = (Integer) olfSyncStockFlag.get(goodsInfo.getGoodsInfoId());
-            BigDecimal skuMinMarketPrice = goods.getSkuMinMarketPrice();
+//            BigDecimal skuMinMarketPrice = goods.getSkuMinMarketPrice();
             if(oldFlag == null || oldFlag == 0){
                 //开播之前未开同步
 
             }else {
                 //开播之前同步了,同步一次库存
-                change = true;
+//                change = true;
                 goodsInfo.setStockSyncFlag(1);
-                Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
+//                Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
+                goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
 //                Map<String, Integer> skus1 = map.get("skus");
 //                Map<String, Integer> spus1 = map.get("spus");
 //                skus1.forEach((k ,v) -> {
@@ -411,31 +412,31 @@ public class WxLiveAssistantService {
 //                    });
 //                });
             }
-            if(oldGoodsInfo != null){
-                Map<String, String> oldInfo = (Map<String, String>) oldGoodsInfo.get(goodsInfo.getGoodsInfoId());
-                if(oldInfo != null){
-                    String price = oldInfo.get("price");
-                    if(price != null){
-                        change = true;
-                        goodsChange = true;
-                        goodsInfo.setMarketPrice(new BigDecimal(price));
-                    }
-                }
-            }
-            if(change){
-                toSave.add(goodsInfo);
-            }
+//            if(oldGoodsInfo != null){
+//                Map<String, String> oldInfo = (Map<String, String>) oldGoodsInfo.get(goodsInfo.getGoodsInfoId());
+//                if(oldInfo != null){
+//                    String price = oldInfo.get("price");
+//                    if(price != null){
+//                        change = true;
+//                        goodsChange = true;
+//                        goodsInfo.setMarketPrice(new BigDecimal(price));
+//                    }
+//                }
+//            }
+//            if(change){
+//                toSave.add(goodsInfo);
+//            }
         }
-        if(goodsChange){
-            goodsList.add(goods);
-            BigDecimal minPrice = BigDecimal.valueOf(99999);
-            for (GoodsInfo goodsInfo : goodsInfos) {
-                if(goodsInfo.getMarketPrice().compareTo(minPrice) < 0){
-                    minPrice = goodsInfo.getMarketPrice();
-                }
-            }
-            goods.setSkuMinMarketPrice(minPrice);
-        }
+//        if(goodsChange){
+//            goodsList.add(goods);
+//            BigDecimal minPrice = BigDecimal.valueOf(99999);
+//            for (GoodsInfo goodsInfo : goodsInfos) {
+//                if(goodsInfo.getMarketPrice().compareTo(minPrice) < 0){
+//                    minPrice = goodsInfo.getMarketPrice();
+//                }
+//            }
+//            goods.setSkuMinMarketPrice(minPrice);
+//        }
 //        resultMap.put("spus", spus);
 //        resultMap.put("skus", skus);
         return goodsList;
