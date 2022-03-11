@@ -112,7 +112,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
         trade.setOutTradeNo(param.getTradeCreate().getOutTradeNo());
         trade.setOutTradePlat(OutTradePlatEnum.FDDS_PERFORM.getCode());
         trade.setTags(Arrays.asList(OrderTagEnum.GIFT.getCode()));
-        trade.setPayWay(PayWay.OTHER);
+        //trade.setPayWay(PayWay.OTHER);
         List<TradeCommitResult> trades = tradeService.createBatch(Collections.singletonList(trade),null, operator);
 
         if (CollectionUtils.isEmpty(trades)) {
@@ -130,7 +130,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "订单单据数量错误");
         }
         //执行0元订单流程
-        tradeService.tradeDefaultPayBatch(details, PayWay.UNIONPAY);
+        tradeService.tradeDefaultPayBatch(details, PayWay.OTHER);
         return BusinessResponse.success(KsBeanUtil.convert(trades.get(0), TradeCommitResultVO.class));
     }
 }

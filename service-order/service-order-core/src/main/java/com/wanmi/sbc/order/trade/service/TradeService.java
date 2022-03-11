@@ -4499,7 +4499,7 @@ public class TradeService {
                     .UNCONFIRMED);
         }
 
-        if (PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.ONLINE) {
+        if (PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.ONLINE || PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.INNER_SETTLE) {
             // 如果是拼团订单
             if (Objects.nonNull(trade.getGrouponFlag()) && trade.getGrouponFlag()) {
                 // 拼团订单支付处理，拼团成功更新子单
