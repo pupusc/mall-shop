@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -273,8 +274,19 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         }
         //供应商商品相关信息
         if (Boolean.TRUE.equals(request.getShowProviderInfoFlag())) {
-            List<GoodsInfo> list = KsBeanUtil.convert(response.getGoodsInfos(), GoodsInfo.class);
+            List<GoodsInfo> list = new ArrayList<>();
+            for (GoodsInfoVO goodsInfoParam : response.getGoodsInfos()) {
+                list.add(KsBeanUtil.convert(goodsInfoParam, GoodsInfo.class));
+            }
             goodsInfoService.updateGoodsInfoSupplyPriceAndStock(list);
+
+            List<GoodsInfoVO> result = new ArrayList<>();
+            for (GoodsInfo goodsInfoParam : list) {
+                GoodsInfoVO goodsInfoVO = KsBeanUtil.convert(goodsInfoParam, GoodsInfoVO.class);
+                result.add();
+            }
+
+            result.add(goodsVO);
             response.setGoodsInfos(KsBeanUtil.convert(list, GoodsInfoVO.class));
         }
 

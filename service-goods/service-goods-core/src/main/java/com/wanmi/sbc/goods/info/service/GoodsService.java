@@ -1820,6 +1820,7 @@ public class GoodsService {
             sku.setGoodsSource(goods.getGoodsSource());
             sku.setAddedTimingTime(goods.getAddedTimingTime());
             sku.setAddedTimingFlag(goods.getAddedTimingFlag());
+            sku.setGoodsChannelType(goods.getGoodsChannelType());
             String goodsInfoId = goodsInfoRepository.save(sku).getGoodsInfoId();
             sku.setGoodsInfoId(goodsInfoId);
             sku.setEnterprisePriceType(0);
@@ -2381,6 +2382,7 @@ public class GoodsService {
                     }
                     oldInfo.setGoodsInfoName(newGoods.getGoodsName());
                     oldInfo.setUpdateTime(currDate);
+                    oldInfo.setGoodsChannelType(oldGoods.getGoodsChannelType());
                     goodsInfoRepository.save(oldInfo);
 
                     //覆盖redis中的库存，如需增量修改，则需要结合前端修改
