@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -321,4 +321,9 @@ public class EsGoodsVO implements Serializable {
      * 扩展属性信息
      */
     private EsExtPropsVo goodsExtProps;
+
+    /**
+     * 销售渠道
+     */
+    private List<String> goodsChannelTypeList;
 }
