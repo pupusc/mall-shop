@@ -538,9 +538,18 @@ public class TradeVO implements Serializable {
     private String deliveryOrderId;
 
     /**
+     * 外部交易编号
+     */
+    private String outTradeNo;
+    /**
+     * 外部交易平台：FDDS:樊登读书
+     */
+    private String outTradePlat;
+    /**
      * 标签
      */
     private List<String> tags;
+
     /**
      * 赠品标记
      */
