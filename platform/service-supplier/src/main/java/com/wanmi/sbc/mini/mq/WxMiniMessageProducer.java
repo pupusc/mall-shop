@@ -1,6 +1,5 @@
 package com.wanmi.sbc.mini.mq;
 
-import com.sun.org.apache.bcel.internal.generic.DALOAD;
 import com.wanmi.sbc.mini.mq.config.WxLiveMessageSink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;

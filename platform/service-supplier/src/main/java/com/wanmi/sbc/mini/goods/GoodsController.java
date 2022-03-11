@@ -51,12 +51,11 @@ public class GoodsController {
     @PostMapping("/list")
     public BaseResponse<MicroServicePage<WxGoodsVo>> listGoods(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest){
         List<EsGoodsVO> esGoodsVOS = null;
-        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName()) || wxGoodsSearchRequest.getSaleStatus() != null){
+        if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())){
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
             queryRequest.setPageSize(50);
-            if(StringUtils.isNotEmpty(wxGoodsSearchRequest.getGoodsName())) queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
-            if(wxGoodsSearchRequest.getSaleStatus() != null) queryRequest.setSaleStatus(wxGoodsSearchRequest.getSaleStatus());
+            queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
             queryRequest.setQueryGoods(true);
             queryRequest.setAddedFlag(AddedFlag.YES.toValue());
             queryRequest.setDelFlag(DeleteFlag.NO.toValue());
