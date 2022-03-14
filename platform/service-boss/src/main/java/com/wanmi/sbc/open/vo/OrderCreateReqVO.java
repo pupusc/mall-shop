@@ -20,6 +20,13 @@ public class OrderCreateReqVO extends BaseReqVO implements Serializable {
      */
     @NotBlank
     private String fddsUserId;
+
+    /**
+     * 樊登读书用户手机
+     */
+    @NotBlank
+    private String fddsUserPhone;
+
     /**
      * 外部交易编号
      */

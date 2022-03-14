@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.provider.impl.open;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -129,8 +130,12 @@ public class OpenDeliverController implements OpenDeliverProvider {
         if (details.size() != tradeIds.size()) {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "订单单据数量错误");
         }
-        //执行0元订单流程
-        tradeService.tradeDefaultPayBatch(details, PayWay.OTHER);
+        try {
+            //执行0元订单流程
+            tradeService.tradeDefaultPayBatch(details, PayWay.OTHER);
+        } catch (Exception e) {
+            log.error("执行0元订单支付发生错误，trades = {}", JSON.toJSONString(details), e);
+        }
         return BusinessResponse.success(KsBeanUtil.convert(trades.get(0), TradeCommitResultVO.class));
     }
 }
