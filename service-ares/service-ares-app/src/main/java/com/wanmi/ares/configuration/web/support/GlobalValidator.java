@@ -3,6 +3,7 @@ package com.wanmi.ares.configuration.web.support;
 
 import com.wanmi.ares.base.BaseRequest;
 import com.wanmi.ares.exception.AresRuntimeException;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -37,7 +38,8 @@ public class GlobalValidator implements Validator {
                 throw ex;
             } else {
                 log.error("error message: {}", ex.getMessage());
-                throw new AresRuntimeException("R-000002");
+                //throw new AresRuntimeException("R-000002");
+                throw new SbcRuntimeException("R-000002");
             }
         }
     }

@@ -15,6 +15,7 @@ import com.wanmi.ares.utils.DateUtil;
 import com.wanmi.ares.view.customer.CustomerGrowthPageView;
 import com.wanmi.ares.view.customer.CustomerGrowthReportView;
 import com.wanmi.ares.view.customer.CustomerGrowthTrendView;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -252,7 +253,8 @@ public class CustomerGrowthReportThriftService implements CustomerGrowthReportSe
                 LocalDate firstDayOfMonth = DateUtil.pareeByMonthFirst(month);
                 return new DateRange(DateUtil.format(firstDayOfMonth, DateUtil.FMT_DATE_1), DateUtil.format(lastDayOfMonth, DateUtil.FMT_DATE_1));
             } catch (Exception ex) {
-                throw new AresRuntimeException("时间参数格式错误");
+                //throw new AresRuntimeException("时间参数格式错误");
+                throw new SbcRuntimeException("时间参数格式错误");
             }
         } else {
             String startDate = "";
@@ -274,7 +276,8 @@ public class CustomerGrowthReportThriftService implements CustomerGrowthReportSe
                     startDate = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1);
                     return new DateRange(startDate, startDate);
                 default:
-                    throw new AresRuntimeException("时间参数错误");
+                    //throw new AresRuntimeException("时间参数错误");
+                    throw new SbcRuntimeException("时间参数错误");
             }
         }
     }

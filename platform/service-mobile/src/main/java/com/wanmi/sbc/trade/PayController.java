@@ -343,7 +343,8 @@ public class PayController {
         //订单总金额
         String totalPrice = payServiceHelper.calcTotalPriceByPenny(trades).toString();
         String body = payServiceHelper.buildBody(trades);
-        mWebRequest.setBody(body + "订单");
+        log.info("wxPayUnifiedorderForMweb trade_no: {}, body:{}", id, body);
+        mWebRequest.setBody(body);
         mWebRequest.setOut_trade_no(id);
         mWebRequest.setTotal_fee(totalPrice);
         mWebRequest.setSpbill_create_ip(HttpUtil.getIpAddr());

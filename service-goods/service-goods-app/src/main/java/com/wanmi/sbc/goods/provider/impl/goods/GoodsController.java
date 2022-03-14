@@ -703,4 +703,11 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
         return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
     }
+
+
+    @Override
+    public BaseResponse updateGoodsErpGoodsNo(Collection<GoodsUpdateProviderRequest> erpGoodsColl){
+        List<String> goodsIdList = goodsService.updateGoodsErpGoodsNo(erpGoodsColl);
+        return BaseResponse.success(goodsIdList);
+    }
 }

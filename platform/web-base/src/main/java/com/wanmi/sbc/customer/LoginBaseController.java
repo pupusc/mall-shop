@@ -1616,6 +1616,7 @@ public class LoginBaseController {
     @ApiOperation(value = "获取樊登验证码")
     @RequestMapping(value = "/sendCode", method = RequestMethod.POST)
     public BaseResponse<FanDengSengCodeResponse> sendCode(@Valid @RequestBody FanDengSendCodeRequest request) {
+        request.setClientIp(HttpUtil.getIpAddr());
         return externalProvider.sendCode(request);
     }
 

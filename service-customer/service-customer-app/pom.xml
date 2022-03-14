@@ -16,6 +16,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-log</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-customer-core</artifactId>
             <version>${project.version}</version>
@@ -27,6 +39,10 @@
                 <exclusion>
                     <artifactId>commons-io</artifactId>
                     <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>mapstruct</artifactId>
+                    <groupId>org.mapstruct</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -116,126 +132,126 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>*.**</exclude>
-                        <exclude>*.xml</exclude>
-                        <exclude>express-com</exclude>
-                        <exclude>i18n/**</exclude>
-                        <exclude>config/**</exclude>
-                        <exclude>com.**.*/**</exclude>
-                    </excludes>
-                    <archive>
-                        <addMavenDescriptor>false</addMavenDescriptor>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>../3rd-lib/</classpathPrefix>
-                            <useUniqueVersions>false</useUniqueVersions>
-                            <mainClass>${main-class}</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <Class-Path>../resources/</Class-Path>
-                        </manifestEntries>
-                    </archive>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <excludes>-->
+<!--                        <exclude>*.**</exclude>-->
+<!--                        <exclude>*.xml</exclude>-->
+<!--                        <exclude>express-com</exclude>-->
+<!--                        <exclude>i18n/**</exclude>-->
+<!--                        <exclude>config/**</exclude>-->
+<!--                        <exclude>com.**.*/**</exclude>-->
+<!--                    </excludes>-->
+<!--                    <archive>-->
+<!--                        <addMavenDescriptor>false</addMavenDescriptor>-->
+<!--                        <manifest>-->
+<!--                            <addClasspath>true</addClasspath>-->
+<!--                            <classpathPrefix>../3rd-lib/</classpathPrefix>-->
+<!--                            <useUniqueVersions>false</useUniqueVersions>-->
+<!--                            <mainClass>${main-class}</mainClass>-->
+<!--                        </manifest>-->
+<!--                        <manifestEntries>-->
+<!--                            <Class-Path>../resources/</Class-Path>-->
+<!--                        </manifestEntries>-->
+<!--                    </archive>-->
+<!--                    <outputDirectory>${project.build.directory}</outputDirectory>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <type>jar</type>
-                            <includeTypes>jar</includeTypes>
-                            <includeScope>runtime</includeScope>
-                            <excludeArtifactIds>
-                                service-customer-api,service-customer-bean,service-customer-core,ares-api,
-                                service-setting-api,service-setting-bean,service-common,
-                                service-erp-api,service-erp-bean
-                            </excludeArtifactIds>
-                            <outputDirectory>
-                                ${project.build.directory}/3rd-lib/
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-dependency-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>copy-dependencies</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>copy-dependencies</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <type>jar</type>-->
+<!--                            <includeTypes>jar</includeTypes>-->
+<!--                            <includeScope>runtime</includeScope>-->
+<!--                            <excludeArtifactIds>-->
+<!--                                service-customer-api,service-customer-bean,service-customer-core,ares-api,-->
+<!--                                service-setting-api,service-setting-bean,service-common,-->
+<!--                                service-erp-api,service-erp-bean-->
+<!--                            </excludeArtifactIds>-->
+<!--                            <outputDirectory>-->
+<!--                                ${project.build.directory}/3rd-lib/-->
+<!--                            </outputDirectory>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources</directory>
-                                </resource>
-                            </resources>
-                            <outputDirectory>${project.build.directory}/resources</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-resources-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>copy-resources</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>copy-resources</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <resources>-->
+<!--                                <resource>-->
+<!--                                    <directory>src/main/resources</directory>-->
+<!--                                </resource>-->
+<!--                            </resources>-->
+<!--                            <outputDirectory>${project.build.directory}/resources</outputDirectory>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <layout>ZIP</layout>
-                    <includes>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-customer-api</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-customer-bean</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-customer-core</artifactId>
-                        </include>
-                        <include>
-                            <groupId>com.wanmi.ares</groupId>
-                            <artifactId>ares-api</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-setting-api</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-setting-bean</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-common</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-erp-api</artifactId>
-                        </include>
-                        <include>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>service-erp-bean</artifactId>
-                        </include>
-                    </includes>
+<!--                    <layout>ZIP</layout>-->
+<!--                    <includes>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-customer-api</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-customer-bean</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-customer-core</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>com.wanmi.ares</groupId>-->
+<!--                            <artifactId>ares-api</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-setting-api</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-setting-bean</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-common</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-erp-api</artifactId>-->
+<!--                        </include>-->
+<!--                        <include>-->
+<!--                            <groupId>${project.groupId}</groupId>-->
+<!--                            <artifactId>service-erp-bean</artifactId>-->
+<!--                        </include>-->
+<!--                    </includes>-->
                     <mainClass>${main-class}</mainClass>
                     <layout>ZIP</layout>
                     <fork>true</fork>

@@ -6,7 +6,13 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.setting.api.constant.SettingErrorCode;
 import com.wanmi.sbc.setting.api.provider.SensitiveWordsSaveProvider;
-import com.wanmi.sbc.setting.api.request.*;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsAddRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsDelByIdListRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsDelByIdRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsDeleteResponse;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsModifyRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsQueryRequest;
+import com.wanmi.sbc.setting.api.request.SensitiveWordsSaveResponse;
 import com.wanmi.sbc.setting.api.response.SensitiveWordsModifyResponse;
 import com.wanmi.sbc.setting.bean.vo.SensitiveWordsVO;
 import com.wanmi.sbc.setting.sensitivewords.model.root.SensitiveWords;
@@ -98,9 +104,9 @@ public class SensitiveWordsSaveController implements SensitiveWordsSaveProvider 
 
 	@Override
 	public BaseResponse deleteByIdList(@RequestBody @Valid SensitiveWordsDelByIdListRequest sensitiveWordsDelByIdListRequest) {
-		sensitiveWordsService.deleteByIdList(sensitiveWordsDelByIdListRequest);
+        SensitiveWordsDeleteResponse response = sensitiveWordsService.deleteByIdList(sensitiveWordsDelByIdListRequest);
 		badWordService.addBadWordToHashMap(true);
-		return BaseResponse.SUCCESSFUL();
+		return BaseResponse.success(response);
 	}
 
 }

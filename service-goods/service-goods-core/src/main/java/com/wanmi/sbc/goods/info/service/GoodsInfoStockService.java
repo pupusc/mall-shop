@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisCallback;
@@ -112,18 +113,22 @@ public class GoodsInfoStockService {
     }
 
     @Transactional
-    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap){
+    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap,Map<String, String> stockStatusMap){
         Map<String, Map<String, Integer>> resultMap = new HashMap<>();
         Map<String, Integer> goodsStockMap = new HashMap<>();
         Map<String, Integer> goodsInfoStockMap = new HashMap<>();
-        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos)){
+        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos) && !stockStatusMap.isEmpty()){
             for (GoodsInfo goodsInfo : goodsInfos) {
                 if (Objects.equals(goodsInfo.getStockSyncFlag(),0)){
+                    log.info("{}同步库存关闭",goodsInfo.getErpGoodsInfoNo());
                     continue;
                 }
                 Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
+                String erpStockStatus = stockStatusMap.get(goodsInfo.getErpGoodsInfoNo());
                 int actualStock;
-                if(goodsInfo.getErpGoodsInfoNo() != null && goodsInfo.getErpGoodsInfoNo().startsWith("DF")){
+                //虚拟、代发无所库：99逻辑，当库存＜10，自动库存变为99
+                if(StringUtils.isNotEmpty(erpStockStatus) && Arrays.asList("0","2").contains(erpStockStatus)){
+                    log.info("{}同步库存，99逻辑",goodsInfo.getErpGoodsInfoNo());
                     if(erpGoodsInfoStock == null) {
                         Long stock = goodsInfo.getStock();
                         if(stock == null) {
@@ -145,7 +150,9 @@ public class GoodsInfoStockService {
                             }
                         }
                     }
+                    log.info("{}同步库存，99逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
                 }else {
+                    log.info("{}同步库存，正常同步逻辑",goodsInfo.getErpGoodsInfoNo());
                     if(erpGoodsInfoStock == null) {
                         Long stock = goodsInfo.getStock();
                         if(stock == null) {
@@ -157,6 +164,7 @@ public class GoodsInfoStockService {
                         actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId()).intValue();
                         resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), (long) actualStock);
                     }
+                    log.info("{}同步库存，正常同步逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
                 }
                 goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
                     if(v == null) return actualStock;
@@ -182,6 +190,7 @@ public class GoodsInfoStockService {
         try {
             Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
             Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+            log.info("{}redis数据,stock:{},lastStock:{},nowStock:{}",goodsInfoId,stock,lastStock,nowStock);
             if (lastStock != null && nowStock != null) {
                 if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
                     actualStock = stock - (Long.valueOf(lastStock.toString()) - Long.valueOf(nowStock.toString()));

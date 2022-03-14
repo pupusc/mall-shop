@@ -141,11 +141,20 @@ public class PayServiceHelper {
 
     public String buildBody(List<TradeVO> trades) {
         TradeVO trade = trades.get(0);
-        String body = StringUtils.substring(trade.getTradeItems().get(0).getSkuName(), 0, 20) + " " + (trade.getTradeItems().get(0).getSpecDetails
-                () == null ? "" : trade.getTradeItems().get(0).getSpecDetails());
-        if (trades.size() > 1 || trade.getTradeItems().size() > 1) {
-            body = body + " 等多件商品";
+        StringBuilder body = new StringBuilder();
+        String skuName = trade.getTradeItems().get(0).getSkuName();
+        if (StringUtils.isNotEmpty(skuName) && skuName.length() > 35) {
+            body.append(skuName, 0, 35).append("...");
+        } else {
+            body.append(StringUtils.isEmpty(skuName) ? "" : skuName);
         }
-        return body;
+
+        String specDetails = trade.getTradeItems().get(0).getSpecDetails();
+        if (StringUtils.isNotEmpty(specDetails) && specDetails.length() > 5) {
+            body.append(specDetails, 0, 5).append("...");
+        } else {
+            body.append(StringUtils.isEmpty(specDetails) ? "" : specDetails);
+        }
+        return body.toString();
     }
 }

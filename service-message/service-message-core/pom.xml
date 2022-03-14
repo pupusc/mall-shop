@@ -4,6 +4,7 @@
         <groupId>com.wanmi.sbc</groupId>
         <artifactId>service-message</artifactId>
         <version>fandeng-4.1.7-release</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -149,6 +150,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
+            <version>${druid-spring-boot-starter.version}</version>
         </dependency>
 
         <dependency>
