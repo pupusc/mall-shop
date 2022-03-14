@@ -33,10 +33,12 @@ import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderCodeRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderResponseByReturnOrderCodeRequest;
 import com.wanmi.sbc.order.api.request.returnorder.*;
+import com.wanmi.sbc.order.api.request.trade.TradeConfirmReceiveRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderByReturnCodeResponse;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderListReponse;
@@ -44,6 +46,7 @@ import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByIdResponse;
 import com.wanmi.sbc.order.bean.dto.RefundOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
+import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
@@ -77,6 +80,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -105,8 +109,8 @@ public class ReturnOrderController {
     @Autowired
     private ReturnExportService returnExportService;
 
-    @Autowired
-    private PayProvider payProvider;
+//    @Autowired
+//    private PayProvider payProvider;
 
     @Autowired
     private PayQueryProvider payQueryProvider;
@@ -126,11 +130,11 @@ public class ReturnOrderController {
     @Autowired
     private CommonUtil commonUtil;
 
-    @Autowired
-    private OperateLogMQUtil operateLogMQUtil;
-
-    @Autowired
-    private RefundOrderProvider refundOrderProvider;
+//    @Autowired
+//    private OperateLogMQUtil operateLogMQUtil;
+//
+//    @Autowired
+//    private RefundOrderProvider refundOrderProvider;
 
     @Autowired
     private GoodsTobeEvaluateSaveProvider goodsTobeEvaluateSaveProvider;
@@ -138,11 +142,11 @@ public class ReturnOrderController {
     @Autowired
     private StoreTobeEvaluateSaveProvider storeTobeEvaluateSaveProvider;
 
-    @Autowired
-    private CustomerFundsProvider customerFundsProvider;
-
-    @Autowired
-    private CustomerFundsDetailProvider customerFundsDetailProvider;
+//    @Autowired
+//    private CustomerFundsProvider customerFundsProvider;
+//
+//    @Autowired
+//    private CustomerFundsDetailProvider customerFundsDetailProvider;
 
     @Autowired
     private LinkedMallReturnOrderQueryProvider linkedMallReturnOrderQueryProvider;
@@ -152,6 +156,10 @@ public class ReturnOrderController {
 
     @Autowired
     private EsCustomerFundsProvider esCustomerFundsProvider;
+
+    @Autowired
+    private TradeProvider tradeProvider;
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -238,7 +246,7 @@ public class ReturnOrderController {
     @ApiOperation(value = "退单原因查询")
     @RequestMapping(value = "/reasons", method = RequestMethod.GET)
     public BaseResponse<List<ReturnReason>> findReturnReason() {
-        return BaseResponse.success(returnOrderQueryProvider.listReturnReason().getContext().getReturnReasonList());
+        return BaseResponse.success(returnOrderQueryProvider.listReturnReason(1).getContext().getReturnReasonList());
     }
 
 
@@ -249,9 +257,9 @@ public class ReturnOrderController {
     }
 
     /**
-     * 审核
+     * 后台审核订单 update by duanlsh
      *
-     * @param rid
+     * @param
      * @return
      */
     @ApiOperation(value = "审核")
@@ -261,9 +269,10 @@ public class ReturnOrderController {
     })
     @RequestMapping(value = {"/audit/{rid}", "/audit/{rid}/{addressId}"}, method = RequestMethod.POST)
     @GlobalTransactional
-    public BaseResponse audit(@PathVariable String rid, @PathVariable(value = "addressId", required = false) String addressId) {
-        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(
-                ReturnOrderByConditionRequest.builder().rids(new String[]{rid}).build()).getContext().getReturnOrderList();
+    public BaseResponse audit(@PathVariable("rid") String returnOrderId, @PathVariable(value = "addressId", required = false) String addressId) {
+        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
+        returnOrderByConditionRequest.setRid(returnOrderId);
+        List<ReturnOrderVO> returnOrderVOList = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest).getContext().getReturnOrderList();
         if (CollectionUtils.isEmpty(returnOrderVOList)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
@@ -288,8 +297,11 @@ public class ReturnOrderController {
                 }
             }
         }
-
-        return returnOrderProvider.audit(ReturnOrderAuditRequest.builder().rid(rid).addressId(addressId).operator(commonUtil.getOperator()).build());
+        ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+        returnOrderAuditRequest.setRid(returnOrderId);
+        returnOrderAuditRequest.setAddressId(addressId);
+        returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+        return returnOrderProvider.audit(returnOrderAuditRequest);
     }
 
     /**
@@ -329,6 +341,7 @@ public class ReturnOrderController {
             if (tradeStatus == TradeStatus.PROCESSING) {
                 throw new SbcRuntimeException("K-100105");
             } else if (tradeStatus == TradeStatus.SUCCEED) {
+                //TODO update by duanlsh
                 RefundOrderByReturnCodeResponse refundOrder =
                         refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(rid)).getContext();
                 Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
@@ -573,18 +586,56 @@ public class ReturnOrderController {
     }
 
     /**
-     * 拒绝收款
+     * 拒绝收款 update duanlsh
      *
-     * @param rid
+     * @param returnOrderId
      * @return
      */
     @ApiOperation(value = "拒绝收款")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
-    @RequestMapping(value = "/refund/{rid}/reject", method = RequestMethod.POST)
+    @RequestMapping(value = "/refund/{returnOrderId}/reject", method = RequestMethod.POST)
     @GlobalTransactional
-    public BaseResponse refundReject(@PathVariable String rid, @RequestBody RejectRequest request) {
+    public BaseResponse refundReject(@PathVariable String returnOrderId, @RequestBody RejectRequest request) {
+//        //1、校验订单状态
+//        ReturnOrderVO returnOrder;
+//        if(commonUtil.getOperator().getPlatform().equals(Platform.PLATFORM)) {
+//            returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(returnOrderId)
+//                    .build()).getContext();
+//        }else{
+//            returnOrder = checkOperatorByReturnOrder(returnOrderId);
+//        }
+//
+//        // 2、审核订单
+//        //只有不是审核状态，则会进入审核流程
+//        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
+//            //1、走审核流程，
+//            ReturnOrderAuditRequest returnOrderAuditRequest = new ReturnOrderAuditRequest();
+//            returnOrderAuditRequest.setRid(returnOrderId);
+//            returnOrderAuditRequest.setAddressId(null); // TODO
+//            returnOrderAuditRequest.setOperator(commonUtil.getOperator());
+//            returnOrderProvider.audit(returnOrderAuditRequest);
+//        }
+//
+//        TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
+//                (returnOrder.getTid(), returnOrderId)).getContext().getTradeStatus();
+//        if (tradeStatus != null) {
+//            if (tradeStatus == TradeStatus.PROCESSING) {
+//                throw new SbcRuntimeException("K-100105");
+//            } else if (tradeStatus == TradeStatus.SUCCEED) {
+//                //TODO update by duanlsh
+//                RefundOrderByReturnCodeResponse refundOrder =
+//                        refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrderId)).getContext();
+//                Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("1").name("system")
+//                        .account("system").platform(Platform.BOSS).build();
+//                returnOrderProvider.onlineRefund(ReturnOrderOnlineRefundRequest.builder().operator(operator)
+//                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
+//                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
+//                throw new SbcRuntimeException("K-100104");
+//            }
+//        }
+        // 3、拒绝退款
         return returnOrderProvider.rejectRefund(ReturnOrderRejectRefundRequest.builder().operator(commonUtil.getOperator())
-                .rid(rid).reason(request.getReason()).build());
+                .rid(returnOrderId).reason(request.getReason()).build());
     }
 
     /**
@@ -654,10 +705,10 @@ public class ReturnOrderController {
     @ApiOperation(value = "查看退货订单详情和可退商品数")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "退单Id", required = true)
     @RequestMapping(value = "/trade/{tid}", method = RequestMethod.GET)
-    public BaseResponse<TradeVO> tradeDetails(@PathVariable String tid) {
+    public BaseResponse<TradeVO> tradeDetails(@PathVariable String tid, @RequestParam("replace") Integer replace) {
         checkOperatorByTrade(tid);
-        TradeVO trade = returnOrderQueryProvider.queryCanReturnItemNumByTid(CanReturnItemNumByTidRequest.builder()
-                .tid(tid).build()).getContext();
+        TradeVO trade = returnOrderQueryProvider.queryCanReturnItemNumByTid(
+                CanReturnItemNumByTidRequest.builder().tid(tid).replace(replace).build()).getContext();
         return BaseResponse.success(trade);
     }
 
@@ -742,5 +793,32 @@ public class ReturnOrderController {
             }
         }
         return returnOrder;
+    }
+
+
+    /**
+     * 服务端 强制确认收获
+     * @param tid
+     * @return
+     */
+    @RequestMapping(value = "/confirm/{tid}", method = RequestMethod.GET)
+    public BaseResponse confirm (String tid) {
+        Operator operator = commonUtil.getOperator();
+        //是否有权限验证
+        if(operator.getPlatform() != Platform.SUPPLIER) {
+            throw new SbcRuntimeException("K-000014");
+        }
+        TradeGetByIdRequest request = new TradeGetByIdRequest();
+        request.setTid(tid);
+        TradeVO trade = tradeQueryProvider.getById(request).getContext().getTradeVO();
+        if (trade.getTradeState().getFlowState() != FlowState.DELIVERED) {
+            throw new SbcRuntimeException("K-050412");
+        }
+
+        TradeConfirmReceiveRequest tradeConfirmReceiveRequest = TradeConfirmReceiveRequest.builder()
+                .operator(operator).tid(tid).build();
+
+        tradeProvider.confirmReceive(tradeConfirmReceiveRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 }

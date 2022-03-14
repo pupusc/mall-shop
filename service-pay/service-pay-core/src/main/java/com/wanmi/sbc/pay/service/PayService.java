@@ -413,14 +413,15 @@ public class PayService {
      * @return null-无退款记录 | TradeStatus-退款状态
      */
     @Transactional
-    public TradeStatus queryRefundResult(String rid, String tid) {
-        PayTradeRecord refundRecord = recordRepository.findByBusinessId(rid);
+    public TradeStatus queryRefundResult(String returnTradeId, String tradeId) {
+
+        PayTradeRecord refundRecord = recordRepository.findByBusinessId(returnTradeId);
         if (!Objects.isNull(refundRecord)) {
             if (refundRecord.getStatus() == TradeStatus.SUCCEED) {
                 return TradeStatus.SUCCEED;
             } else if (refundRecord.getStatus() == TradeStatus.PROCESSING && !Objects.isNull(refundRecord.getChargeId())) {
                 //处理中退单，跟踪状态
-                PayTradeRecord payRecord = recordRepository.findTopByBusinessIdAndStatus(tid, TradeStatus.SUCCEED);
+                PayTradeRecord payRecord = recordRepository.findTopByBusinessIdAndStatus(tradeId, TradeStatus.SUCCEED);
                 RefundRecordResult result = queryRefundResult(refundRecord, payRecord.getChargeId());
                 if (result.getRecord().getStatus() == TradeStatus.SUCCEED) {
                     //更新记录

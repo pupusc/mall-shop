@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单金额归总
@@ -67,6 +68,10 @@ public class TradePriceVO implements Serializable {
      */
     @ApiModelProperty(value = "积分")
     private Long points;
+    /**
+     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
+     */
+    private Long knowledge;
 
     /**
      * 购买积分
@@ -74,10 +79,21 @@ public class TradePriceVO implements Serializable {
     private Long buyPoints;
 
     /**
+     * 购买知豆
+     */
+    private Long buyKnowledge;
+
+    /**
      * 积分兑换金额
      */
     @ApiModelProperty(value = "积分兑换金额")
     private BigDecimal pointsPrice;
+
+
+    /**
+     * 知豆兑换金额
+     */
+    private BigDecimal knowledgePrice;
 
     /**
      * 积分价值
@@ -86,21 +102,9 @@ public class TradePriceVO implements Serializable {
     private Long pointWorth;
 
     /**
-     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
-     */
-    private Long knowledge;
-    /**
-     * 知豆兑换金额
-     */
-    private BigDecimal knowledgePrice;
-    /**
      * 知豆价值
      */
-    private BigDecimal knowledgeWorth;
-    /**
-     * 购买知豆
-     */
-    private Long buyKnowledge;
+    private Long knowledgeWorth;
 
     /**
      * 是否特价单
@@ -211,4 +215,24 @@ public class TradePriceVO implements Serializable {
      */
     @ApiModelProperty(value = "活动优惠总额")
     private BigDecimal marketingDiscountPrice;
+
+
+    /**
+     * 根据供应商拆分后的运费
+     */
+    private Map<Long, BigDecimal> splitDeliveryPrice;
+
+    /**
+     * 实际支付金额
+     */
+    private BigDecimal actualPrice;
+
+    /**
+     * 实际积分
+     */
+    private BigDecimal actualPoints;
+    /**
+     * 实际知豆
+     */
+    private Long actualKnowledge;
 }

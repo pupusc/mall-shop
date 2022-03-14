@@ -86,6 +86,23 @@ public interface GuanyierpProvider {
     BaseResponse<DeliveryStatusResponse> getDeliveryStatus(@RequestBody @Valid DeliveryQueryRequest request);
 
     /**
+     * 退款商品终止发货
+     * @param request
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-item")
+    BaseResponse refundTradeItem(@RequestBody @Valid RefundTradeRequest request);
+
+
+    /**
+     * 退款订单拦截
+     * @param request
+     * @return
+     */
+    @PostMapping("/erp/${application.erp.version}/guanyierp/refund-trade-order")
+    BaseResponse refundTradeOrder(@RequestBody @Valid RefundTradeRequest request);
+
+    /**
      * 退款中止发货
      * @param request
      * @return

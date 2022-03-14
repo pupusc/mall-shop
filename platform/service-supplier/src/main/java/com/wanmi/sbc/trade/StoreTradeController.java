@@ -63,13 +63,13 @@ public class StoreTradeController {
         returnQueryRequest.setSupplierId(commonUtil.getCompanyInfoId());
         TradeConfigGetByTypeRequest request = new TradeConfigGetByTypeRequest();
         request.setConfigType(ConfigType.ORDER_SETTING_APPLY_REFUND);
-        TradeConfigGetByTypeResponse config = auditQueryProvider.getTradeConfigByType(request).getContext();
-        JSONObject content = JSON.parseObject(config.getContext());
-        Integer day = content.getObject("day", Integer.class);
-        returnQueryRequest.setStatus(config.getStatus());
-        if (Objects.nonNull(config.getStatus()) && config.getStatus() == 1 && Objects.nonNull(day) && day > 0) {
-            returnQueryRequest.setDay(day);
-        }
+//        TradeConfigGetByTypeResponse config = auditQueryProvider.getTradeConfigByType(request).getContext();
+//        JSONObject content = JSON.parseObject(config.getContext());
+//        Integer day = content.getObject("day", Integer.class);
+//        returnQueryRequest.setStatus(config.getStatus());
+//        if (Objects.nonNull(config.getStatus()) && config.getStatus() == 1 && Objects.nonNull(day) && day > 0) {
+//            returnQueryRequest.setDay(day);
+//        }
 
         //周期购订单查询部分发货的订单
         returnQueryRequest.setPeriodicPurchaseRefund(Boolean.TRUE);

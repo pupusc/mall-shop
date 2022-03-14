@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -20,16 +21,27 @@ import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferDeleteRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderTransferByUserIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
+import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeReturnVO;
+import com.wanmi.sbc.order.bean.vo.TradeStateVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import com.wanmi.sbc.setting.api.request.TradeConfigGetByTypeRequest;
@@ -42,12 +54,17 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @menu 退单相关
@@ -94,11 +111,12 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> create(@RequestBody @Valid ReturnOrderDTO returnOrder) {
-        verifyIsReturnable(returnOrder.getTid());
+//        verifyIsReturnable(returnOrder.getTid());
+
+
         //验证用户
         String userId = commonUtil.getOperatorId();
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (userId)).getContext();
+//        customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
         if (!verifyTradeByCustomerId(returnOrder.getTid(), userId)) {
             throw new SbcRuntimeException("K-050204");
         }
@@ -115,8 +133,7 @@ public class ReturnOrderController {
         oldReturnOrder.setReturnLogistics(returnOrder.getReturnLogistics());
         oldReturnOrder.setReturnWay(returnOrder.getReturnWay());
         oldReturnOrder.setReturnPrice(returnOrder.getReturnPrice());
-        TradeVO trade =
-                tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
+        TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
         oldReturnOrder.setCompany(CompanyDTO.builder().companyInfoId(trade.getSupplier().getSupplierId())
                 .companyCode(trade.getSupplier().getSupplierCode()).supplierName(trade.getSupplier().getSupplierName())
                 .storeId(trade.getSupplier().getStoreId()).storeName(trade.getSupplier().getStoreName()).companyType(trade.getSupplier().getIsSelf() ? BoolFlag.NO : BoolFlag.YES).build());
@@ -147,21 +164,117 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> createRefund(@RequestBody @Valid ReturnOrderDTO returnOrder) {
-        verifyIsReturnable(returnOrder.getTid());
-//        String fanDengUserNo = commonUtil.getCustomer().getFanDengUserNo();
-        //验证用户
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (commonUtil.getOperatorId())).getContext();
-        if (!verifyTradeByCustomerId(returnOrder.getTid(), commonUtil.getOperatorId())) {
+        if (StringUtils.isBlank(returnOrder.getDescription())) {
+            throw new SbcRuntimeException("K-050454");
+        }
+        if (returnOrder.getDescription().length() > 100) {
+            throw new SbcRuntimeException("K-050453"); //描述必须的大雨100字
+        }
+
+
+        if (returnOrder.getReturnReason() != ReturnReason.PRICE_DELIVERY && returnOrder.getReturnReason() != ReturnReason.PRICE_DIFF) {
+            List<ReturnItemDTO> returnItemDTOList =
+                    returnOrder.getReturnItems().stream().filter(item -> item.getNum() <= 0).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(returnItemDTOList)) {
+                throw new SbcRuntimeException("K-000009"); //参数错误
+            }
+        }
+
+//        //查看当前退款中的订单，查看是否超额退款
+//        ReturnOrderProviderTradeRequest statisticsRequest = new ReturnOrderProviderTradeRequest();
+//        statisticsRequest.setTid(returnOrder.getTid());
+//        List<ProviderTradeSimpleVO> listBaseResponse = returnOrderProvider.listReturnProviderTrade(statisticsRequest).getContext();
+//        Map<String, ProviderTradeSimpleVO> providerId2ProviderTradeSimpleMap
+//                = listBaseResponse.stream().collect(Collectors.toMap(ProviderTradeSimpleVO::getProviderId, Function.identity(), (k1,k2) -> k1));
+//        //判断数量是否匹配
+//        for (ReturnItemDTO returnItem : returnOrder.getReturnItems()) {
+//            asdf
+//        }
+
+
+        //验证订单必须的是支付完成
+        BaseResponse<FindPayOrderResponse> response =
+                payOrderQueryProvider.findPayOrder(FindPayOrderRequest.builder().value(returnOrder.getTid()).build());
+        FindPayOrderResponse payOrderResponse = response.getContext();
+        if (Objects.isNull(payOrderResponse) || Objects.isNull(payOrderResponse.getPayOrderStatus()) || payOrderResponse.getPayOrderStatus() != PayOrderStatus.PAYED) {
+            throw new SbcRuntimeException("K-050103");
+        }
+
+        TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
+        tradeGetByIdRequest.setTid(returnOrder.getTid()); //orderId
+        BaseResponse<TradeGetByIdResponse> tradeGetByIdResponseBaseResponse = tradeQueryProvider.getById(tradeGetByIdRequest);
+        TradeGetByIdResponse context = tradeGetByIdResponseBaseResponse.getContext();
+        //如果订单中的信息为空，则直接返回参数错误
+        if (context == null || context.getTradeVO() == null || org.springframework.util.StringUtils.isEmpty(context.getTradeVO().getId())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+
+        TradeVO trade = context.getTradeVO();
+        //判断申请中是否存在 已经全部退款的商品
+        Map<String, ReturnItemDTO> applyReturnOrderMap =
+                returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItemDTO::getSkuId, Function.identity()));
+
+        for (TradeItemVO tradeItemParam : trade.getTradeItems()) {
+            if (tradeItemParam.getTradeReturn() == null){
+                continue;
+            }
+            TradeReturnVO tradeReturn = tradeItemParam.getTradeReturn();
+            if (tradeReturn.getReturnCompleteNum() == tradeItemParam.getNum().intValue()) {
+                ReturnItemDTO returnItemDTO = applyReturnOrderMap.get(tradeItemParam.getSkuId());
+                if (returnItemDTO != null) {
+                    throw new SbcRuntimeException("K-050211");
+                }
+            }
+        }
+
+        //查看订单信息和用户信息是否一致
+        if (!trade.getBuyer().getId().equals(commonUtil.getOperatorId())) {
             throw new SbcRuntimeException("K-050204");
         }
-        TradeVO trade =
-                tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(returnOrder.getTid()).build()).getContext().getTradeVO();
-        returnOrder.setCompany(CompanyDTO.builder().companyInfoId(trade.getSupplier().getSupplierId())
-                .companyCode(trade.getSupplier().getSupplierCode()).supplierName(trade.getSupplier().getSupplierName())
-                .storeId(trade.getSupplier().getStoreId()).storeName(trade.getSupplier().getStoreName())
-                .companyType(trade.getSupplier().getIsSelf() ? BoolFlag.NO : BoolFlag.YES)
-                .build());
+
+        //如果为部分发货，则提示联系客服，当前系统不支持部分发货退款退货
+        if (Objects.equals(trade.getTradeState().getDeliverStatus(), DeliverStatus.PART_SHIPPED)) {
+            throw new SbcRuntimeException("K-050452");
+        }
+
+        //查看是否可以申请退款 1表示可以，0表示不可以申请
+        TradeConfigGetByTypeRequest request = new TradeConfigGetByTypeRequest();
+        request.setConfigType(ConfigType.ORDER_SETTING_APPLY_REFUND);
+        TradeConfigGetByTypeResponse config = auditQueryProvider.getTradeConfigByType(request).getContext();
+        if (config.getStatus() == 0) {
+            throw new SbcRuntimeException("K-050208");
+        }
+
+        if (!trade.getCycleBuyFlag()) {
+            if (trade.getTradeState().getFlowState().equals(FlowState.COMPLETED)) {
+                JSONObject content = JSON.parseObject(config.getContext());
+                Integer day = content.getObject("day", Integer.class);
+                //必须的有完成时间
+                if (Objects.isNull(trade.getTradeState().getEndTime())) {
+                    throw new SbcRuntimeException("K-050002");
+                }
+                if (trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < LocalDateTime.now().minusDays(day).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()) {
+                    throw new SbcRuntimeException("K-050208");
+                }
+            }
+        }
+
+        //获取商家信息
+        SupplierVO supplier = context.getTradeVO().getSupplier();
+        if (supplier == null) {
+            throw new SbcRuntimeException("K-110102");
+        }
+        CompanyDTO company = new CompanyDTO();
+        company.setCompanyInfoId(supplier.getSupplierId());
+        company.setSupplierName(supplier.getSupplierName());
+        company.setCompanyCode(supplier.getSupplierCode());
+        company.setAccountName("");
+        company.setStoreId(supplier.getStoreId());
+        company.setStoreName(supplier.getStoreName());
+        company.setCompanyType(supplier.getIsSelf() ? BoolFlag.NO : BoolFlag.YES);
+        returnOrder.setCompany(company);
+
         returnOrder.setChannelType(trade.getChannelType());
         returnOrder.setDistributorId(trade.getDistributorId());
         returnOrder.setInviteeId(trade.getInviteeId());
@@ -170,9 +283,12 @@ public class ReturnOrderController {
         returnOrder.setDistributeItems(trade.getDistributeItems());
         returnOrder.setTerminalSource(commonUtil.getTerminal());
 //        returnOrder.setFanDengUserNo(fanDengUserNo);
-        String rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder)
-                .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
-        return BaseResponse.success(rid);
+
+        ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
+        returnOrderAddRequest.setReturnOrder(returnOrder);
+        returnOrderAddRequest.setOperator(commonUtil.getOperator());
+        String returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
+        return BaseResponse.success(returnOrderId);
     }
 
     /**
@@ -276,5 +392,15 @@ public class ReturnOrderController {
     public BaseResponse isReturnable(@PathVariable String tid) {
         verifyIsReturnable(tid);
         return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 获取退单详列表信息
+     * @param request
+     * @return
+     */
+    @PostMapping("/list-return-provider-trade")
+    public BaseResponse findReturnOrderInfo(@RequestBody @Validated ReturnOrderProviderTradeRequest request) {
+        return returnOrderProvider.listReturnProviderTrade(request);
     }
 }

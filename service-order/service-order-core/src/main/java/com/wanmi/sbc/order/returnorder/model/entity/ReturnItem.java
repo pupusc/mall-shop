@@ -166,6 +166,12 @@ public class ReturnItem {
      */
     private Long brandId;
 
+    private BigDecimal applyRealPrice;
+
+    private Long applyKnowledge;
+
+    private Long applyPoint;
+
     /**
      *
      * @param returnItem

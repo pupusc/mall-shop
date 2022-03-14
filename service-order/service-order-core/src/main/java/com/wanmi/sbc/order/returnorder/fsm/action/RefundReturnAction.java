@@ -124,7 +124,7 @@ public class RefundReturnAction extends ReturnAction {
             }
         }
         Long knowledge = Objects.nonNull(returnOrder.getReturnKnowledge()) ? returnOrder.getReturnKnowledge().getApplyKnowledge() : null;
-        if (knowledge > 0) {
+        if (knowledge != null && knowledge > 0) {
             try {
                 log.info("RefundReturnAction log knowledge begin returnOrderId:{}", returnOrder.getId());
                 exceptionOfTradePoints.setType(4); //不影响原来的类型内容,只是做记录

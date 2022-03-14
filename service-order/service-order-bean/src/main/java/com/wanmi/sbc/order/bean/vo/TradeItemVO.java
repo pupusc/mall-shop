@@ -161,6 +161,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Long deliveredNum = 0L;
 
     /**
+     *  发货完成后更新字段
+     */
+    private Long deliveredNumHis = 0L;
+
+    /**
      * 发货状态
      */
     @ApiModelProperty(value = "发货状态")
@@ -267,6 +272,11 @@ public class TradeItemVO implements Serializable, Cloneable {
      */
     @ApiModelProperty(value = "可退数量")
     private Integer canReturnNum;
+
+//    /**
+//     * 真实可退数量 无效
+//     */
+//    private Integer canReturnNumHis;
 
     /**
      * 规格描述信息
@@ -488,6 +498,11 @@ public class TradeItemVO implements Serializable, Cloneable {
      */
     @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
     private Boolean combinedCommodity;
+
+    /**
+     * 退款信息
+     */
+    private TradeReturnVO tradeReturn;
 
     /**
      * 营销优惠商品结算Bean
