@@ -24,7 +24,7 @@
         <poi>3.17</poi>
         <xxl-job-core.version>2.0.2</xxl-job-core.version>
         <wm.micro.service.version>fandeng-4.1.7-release</wm.micro.service.version>
-
+        <mall.common.dependency.version>0.0.1-SNAPSHOT</mall.common.dependency.version>
     </properties>
 
     <modules>
@@ -36,8 +36,13 @@
 
     <dependencyManagement>
         <dependencies>
-
-
+            <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-dependency</artifactId>
+                <version>${mall.common.dependency.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-io</artifactId>

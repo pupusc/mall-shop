@@ -102,7 +102,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
             return null;
         }
         lock.lock();
-        log.info("同步商品成本价任务执行开始");
+        log.info("同步商品价格任务执行开始");
         try {
             syncBookuuPrice();
             return SUCCESS;

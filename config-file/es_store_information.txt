@@ -1,0 +1,7 @@
+{
+  "es_store_information" : {
+    "mappings" : {
+
+    }
+  }
+}

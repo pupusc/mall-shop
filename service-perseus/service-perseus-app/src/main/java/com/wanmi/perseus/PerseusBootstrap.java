@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
@@ -16,6 +17,7 @@ import java.net.UnknownHostException;
  * <p>Perseus应用安装启动类</p>
  * Created by of628-wenzhi on 2017-09-22-下午2:06.
  */
+@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc"})
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableAsync
