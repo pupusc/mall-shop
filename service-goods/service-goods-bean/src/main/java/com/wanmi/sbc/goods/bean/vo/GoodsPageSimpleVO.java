@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 商品实体类
@@ -317,5 +318,5 @@ public class GoodsPageSimpleVO implements Serializable {
     /**
      * 销售qudao
      */
-    private List<String> goodsChannelTypeList;
+    private Set<Integer> goodsChannelTypeSet;
 }
