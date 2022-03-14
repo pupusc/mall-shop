@@ -84,7 +84,7 @@ public class WxGoodsService {
             params.put("goodsIds", wxGoodsSearchRequest.getGoodsIds());
         }
         if (wxGoodsSearchRequest.getAuditStatus() != null) {
-            condition.append(" and audit_status=:auditStatus");
+            condition.append(" and tg.audit_status=:auditStatus");
             params.put("auditStatus", wxGoodsSearchRequest.getAuditStatus());
         }
         String sql = select.append(condition).toString();
@@ -105,8 +105,6 @@ public class WxGoodsService {
         page.setContent(resultList);
         page.setTotal(count);
         return page;
-//        Specification<WxGoodsModel> specification = wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest);
-//        return wxGoodsRepository.findAll(specification, PageRequest.of(wxGoodsSearchRequest.getPageNum(), wxGoodsSearchRequest.getPageSize()));
     }
 
     @Transactional
@@ -117,7 +115,7 @@ public class WxGoodsService {
         String[] split = goodsIdStr.split(",");
         List<WxGoodsModel> wxGoodsModels = new ArrayList<>();
         for (String goodsId : split) {
-            if(goodsExist(goodsId)) throw new SbcRuntimeException("商品重复添加" + goodsId);
+            if(goodsExist(goodsId)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品重复添加: " + goodsId);
             WxGoodsModel wxGoodsModel = new WxGoodsModel();
             wxGoodsModel.setGoodsId(goodsId);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
