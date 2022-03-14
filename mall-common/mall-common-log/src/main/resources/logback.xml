@@ -39,10 +39,10 @@
 
     <if condition='isNull("logpath")'>
         <then>
-            <logger name="org.springframework" additivity="false" level="info"/>
-            <logger name="org.apache" additivity="false" level="info"/>
-            <logger name="springfox.documentation" additivity="false" level="info"/>
-            <logger name="org.hibernate" additivity="false" level="info"/>
+            <logger name="org.springframework" additivity="true" level="info"/>
+            <logger name="org.apache" additivity="true" level="info"/>
+            <logger name="springfox.documentation" additivity="true" level="info"/>
+            <logger name="org.hibernate" additivity="true" level="info"/>
             <root level="debug">
                 <appender-ref ref="APPENDER_CONSOLE"/>
             </root>

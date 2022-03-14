@@ -37,6 +37,12 @@
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-customer-bean</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>mapstruct</artifactId>
+                    <groupId>org.mapstruct</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

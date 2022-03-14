@@ -36,8 +36,8 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
    /* @Autowired
     private PrincipalArgumentResolver principalArgumetnResolve;*/
 
-    @Value("${swagger.enable}")
-    boolean enable;
+//    @Value("${swagger.enable}")
+//    boolean enable;
 
     @Value("${api.badWords.addPath-rest-urls}")
     String apiBadWordsAddPathUrls;
@@ -139,14 +139,14 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         WebMvcConfigurer.super.addInterceptors(registry);
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        if (enable) {
-            registry.addResourceHandler("swagger-ui.html")
-                    .addResourceLocations("classpath:/META-INF/resources/");
-
-            registry.addResourceHandler("/webjars/**")
-                    .addResourceLocations("classpath:/META-INF/resources/webjars/");
-        }
-    }
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        if (enable) {
+//            registry.addResourceHandler("swagger-ui.html")
+//                    .addResourceLocations("classpath:/META-INF/resources/");
+//
+//            registry.addResourceHandler("/webjars/**")
+//                    .addResourceLocations("classpath:/META-INF/resources/webjars/");
+//        }
+//    }
 }
