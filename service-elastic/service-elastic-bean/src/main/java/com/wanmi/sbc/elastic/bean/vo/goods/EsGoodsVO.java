@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ES商品实体类
@@ -325,5 +326,5 @@ public class EsGoodsVO implements Serializable {
     /**
      * 销售渠道
      */
-    private List<String> goodsChannelTypeList;
+    private Set<Integer> goodsChannelTypeSet;
 }

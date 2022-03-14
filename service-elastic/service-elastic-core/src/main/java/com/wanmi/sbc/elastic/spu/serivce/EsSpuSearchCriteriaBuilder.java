@@ -51,7 +51,7 @@ public class EsSpuSearchCriteriaBuilder {
         BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
 
         if (Objects.nonNull(request.getGoodsChannelType())) {
-            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
+            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeSet", request.getGoodsChannelType()));
         }
 
         //批量商品编号

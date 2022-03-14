@@ -405,7 +405,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         }
 
         if (CollectionUtils.isNotEmpty(goodsChannelTypeSet)) {
-            boolQueryBuilder.must(termsQuery("goodsChannelTypeList", goodsChannelTypeSet));
+            boolQueryBuilder.must(termsQuery("goodsChannelTypeSet", goodsChannelTypeSet));
         }
 
         //店铺ID

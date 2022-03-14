@@ -2459,6 +2459,7 @@ public class GoodsService {
                 sku.setAloneFlag(Boolean.FALSE);
                 sku.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
                 sku.setSaleType(newGoods.getSaleType());
+                sku.setGoodsChannelType(oldGoods.getGoodsChannelType());
                 //批发类型不支付购买积分
                 if (Integer.valueOf(SaleType.WHOLESALE.toValue()).equals(newGoods.getSaleType())) {
                     sku.setBuyPoint(0L);

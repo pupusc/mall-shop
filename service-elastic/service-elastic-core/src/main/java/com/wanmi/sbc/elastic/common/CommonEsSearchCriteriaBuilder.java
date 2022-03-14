@@ -24,7 +24,7 @@ public class CommonEsSearchCriteriaBuilder {
     public static BoolQueryBuilder getSkuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         if (baseRequest.getGoodsChannelType() != null) {
-            boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelType()));
+            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
         }
         return boolQb;
     }
@@ -37,7 +37,7 @@ public class CommonEsSearchCriteriaBuilder {
     public static BoolQueryBuilder getSpuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         if (baseRequest.getGoodsChannelType() != null) {
-            boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelType()));
+            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
         }
         return boolQb;
     }

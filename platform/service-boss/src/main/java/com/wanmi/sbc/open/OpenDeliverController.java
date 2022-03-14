@@ -252,7 +252,7 @@ public class OpenDeliverController extends OpenBaseController {
         tradeCreateParam.setOutTradeNo(params.getOutTradeNo());
         tradeCreateParam.setTradeMarketingList(Lists.newArrayList());
         //用户信息
-        CustomerVO customerVO = getCustomByFddsUser(params.getFddsUserId(), params.getConsignee().getName(), params.getConsignee().getPhone());
+        CustomerVO customerVO = getCustomByFddsUser(params.getFddsUserId(), params.getFddsUserPhone());
         tradeCreateParam.setCustom(customerVO.getCustomerId());
 
         if (CollectionUtils.isEmpty(params.getTradeItems())) {
@@ -339,7 +339,7 @@ public class OpenDeliverController extends OpenBaseController {
     /**
      * 根据樊登读书用户获取商城用户信息
      */
-    private CustomerVO getCustomByFddsUser(String fddsUserId, String name, String phone) {
+    private CustomerVO getCustomByFddsUser(String fddsUserId, String fddsUserPhone) {
         NoDeleteCustomerGetByFanDengRequest fddsId = new NoDeleteCustomerGetByFanDengRequest();
         fddsId.setFanDengId(fddsUserId);
         BaseResponse<NoDeleteCustomerGetByAccountResponse> queryResponse = customerQueryProvider.getNoDeleteCustomerByFanDengId(fddsId);
@@ -353,8 +353,8 @@ public class OpenDeliverController extends OpenBaseController {
         //注册用户
         FanDengModifyCustomerRequest customerRequest = FanDengModifyCustomerRequest.builder()
                 .fanDengUserNo(fddsUserId)
-                .nickName(name)
-                .customerAccount(phone)
+                .nickName(fddsUserPhone)
+                .customerAccount(fddsUserPhone)
                 .build();
         BaseResponse<NoDeleteCustomerGetByAccountResponse> registResponse = externalProvider.modifyCustomer(customerRequest);
         if (!CommonErrorCode.SUCCESSFUL.equals(registResponse.getCode()) || Objects.isNull(registResponse.getContext())) {
