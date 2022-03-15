@@ -304,6 +304,10 @@ public class GoodsPageSimpleVO implements Serializable {
      * 是否在直播助手中
      */
     private Boolean goodsInLive;
+    /**
+     * 是否在视频号商品池
+     */
+    private Boolean goodsInWxGoodsPool;
 
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {

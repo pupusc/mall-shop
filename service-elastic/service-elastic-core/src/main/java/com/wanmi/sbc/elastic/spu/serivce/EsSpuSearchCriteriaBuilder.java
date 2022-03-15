@@ -46,12 +46,8 @@ public class EsSpuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        if(request.getWxAudit() != null){
-            if(request.getWxAudit() == 1){
-                boolQb.must(QueryBuilders.termQuery("wxAudit", 1));
-            }else {
-                boolQb.mustNot(QueryBuilders.termQuery("wxAudit", 1));
-            }
+        if(request.getWxAudit() != null && request.getWxAudit() == 1){
+            boolQb.must(QueryBuilders.termQuery("wxAudit", 1));
         }
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
@@ -252,8 +248,9 @@ public class EsSpuSearchCriteriaBuilder {
     public static SearchQuery getSearchCriteria(EsSpuPageRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
-        builder.withQuery(getWhereCriteria(request));
-        System.out.println("where===>" + getWhereCriteria(request).toString());
+        QueryBuilder whereCriteria = getWhereCriteria(request);
+        builder.withQuery(whereCriteria);
+        System.out.println("where===>" + whereCriteria.toString());
         builder.withPageable(request.getPageable());
         List<SortBuilder> sortBuilders = getSorts(request);
         if (CollectionUtils.isNotEmpty(sortBuilders)) {

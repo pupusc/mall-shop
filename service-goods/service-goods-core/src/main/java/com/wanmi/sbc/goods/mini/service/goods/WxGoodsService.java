@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RefreshScope
 @Service
@@ -115,7 +116,10 @@ public class WxGoodsService {
         String[] split = goodsIdStr.split(",");
         List<WxGoodsModel> wxGoodsModels = new ArrayList<>();
         for (String goodsId : split) {
-            if(goodsExist(goodsId)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品重复添加: " + goodsId);
+            if(goodsExist(goodsId)){
+                Goods goods = goodsService.findByGoodsId(goodsId);
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, goods.getGoodsNo() + " 已添加至其他直播计划，无法重复添加");
+            }
             WxGoodsModel wxGoodsModel = new WxGoodsModel();
             wxGoodsModel.setGoodsId(goodsId);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
@@ -167,7 +171,7 @@ public class WxGoodsService {
             }else if(auditStatus.equals(WxGoodsEditStatus.ON_CHECK)){
 
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品正在审核中");
-            }else if(auditStatus.equals(WxGoodsEditStatus.CHECK_FAILED) || auditStatus.equals(WxGoodsEditStatus.CHECK_CANCEL)){
+            }else if(auditStatus.equals(WxGoodsEditStatus.CHECK_FAILED) || auditStatus.equals(WxGoodsEditStatus.CHECK_CANCEL) || auditStatus.equals(WxGoodsEditStatus.CHECK_SUCCESS)){
                 //更新商品,重新提审
                 BaseResponse<WxAddProductResponse> baseResponse = wxGoodsApiController.updateGoods(createWxAddProductRequestByGoods(goods, goodsInfos, wxGoodsModel));
                 if(!baseResponse.getContext().isSuccess()){
@@ -295,6 +299,16 @@ public class WxGoodsService {
     private boolean goodsExist(String goodsId){
         Integer onShelfCount = wxGoodsRepository.getOnShelfCount(goodsId);
         return onShelfCount > 0;
+    }
+
+    public List<WxGoodsModel> findAll(){
+        return wxGoodsRepository.findAll(wxGoodsRepository.buildSearchCondition(new WxGoodsSearchRequest()));
+    }
+
+    public List<WxGoodsModel> findByGoodsIds(List<String> goodsIds){
+        WxGoodsSearchRequest wxGoodsSearchRequest = new WxGoodsSearchRequest();
+        wxGoodsSearchRequest.setGoodsIds(goodsIds);
+        return wxGoodsRepository.findAll(wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest));
     }
 
     public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, WxGoodsModel wxGoodsModel){

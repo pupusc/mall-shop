@@ -243,7 +243,7 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
     private String spuErp;
 
     /**
-     * 微信审核状态
+     * 微信审核状态 0-非视频号商品 1-微信审核通过
      */
     private Integer wxAudit;
 }
