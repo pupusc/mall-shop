@@ -152,7 +152,9 @@ public class WxLiveAssistantService {
         List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(wxLiveAssistantGoodsCreateRequest.getGoods());
         if(CollectionUtils.isNotEmpty(timeConflictGoods)){
             List<String> timeConflictGoodsIds = timeConflictGoods.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "以下商品已在直播计划中: " + Arrays.toString(timeConflictGoodsIds.toArray()));
+            List<Goods> goodsList = goodsRepository.findAllByGoodsIdIn(timeConflictGoodsIds);
+            List<String> goodsNoList = goodsList.stream().map(Goods::getGoodsNo).collect(Collectors.toList());
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, Arrays.toString(goodsNoList.toArray()) + " 已添加至其他直播计划，无法重复添加");
         }
         wxLiveAssistantModel.setGoodsCount(wxLiveAssistantModel.getGoodsCount() + wxLiveAssistantGoodsCreateRequest.getGoods().size());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
