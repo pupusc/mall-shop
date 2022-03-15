@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -16,13 +14,10 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
-import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsCateErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
-import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
@@ -51,10 +46,7 @@ import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.enums.UnAddedFlagReason;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
-import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
@@ -76,12 +68,24 @@ import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
-import com.wanmi.sbc.goods.info.model.root.*;
+import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.root.GoodsSync;
+import com.wanmi.sbc.goods.info.model.root.GoodsSyncRelation;
+import com.wanmi.sbc.goods.info.model.root.GoodsVote;
 import com.wanmi.sbc.goods.info.reponse.GoodsDetailResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
-import com.wanmi.sbc.goods.info.repository.*;
+import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsSyncRelationRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsVoteRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
@@ -130,7 +134,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1889,6 +1892,10 @@ public class GoodsService {
             goodsSyncRelationRepository.save(goodsSyncRelation);
 
         }
+
+        //商品推送到站内搜索
+
+
         return goodsId;
     }
 
