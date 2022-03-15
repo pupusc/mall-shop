@@ -224,7 +224,6 @@ public class BookuuClient {
     public BookuuOrderCancelResponse cancelOrder(BookuuOrderCancelRequest request) {
         request.setChannelID(channelID);
         request.setTimeStamp(DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
-        request.setType(2);
 
         String url = String.format(path, "ordercancel");
         String result = null;

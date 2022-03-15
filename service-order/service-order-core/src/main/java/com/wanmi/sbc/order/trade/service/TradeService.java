@@ -587,8 +587,6 @@ public class TradeService {
     @Autowired
     private CycleBuyQueryProvider cycleBuyQueryProvider;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
 
     @Autowired
     private PaidCardSaveProvider paidCardSaveProvider;
@@ -1299,6 +1297,7 @@ public class TradeService {
                         if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
                             item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
                         }
+                        item.setProviderName(group.getSupplier().getStoreName());
                     });
                     // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
                     Invoice invoice = Invoice.builder()
@@ -4020,10 +4019,10 @@ public class TradeService {
     /**
      * 查询订单
      *
-     * @param tid
+     * @param orderId
      */
-    public Trade detail(String tid) {
-        return tradeRepository.findById(tid).orElse(null);
+    public Trade detail(String orderId) {
+        return tradeRepository.findById(orderId).orElse(null);
     }
 
     /**
@@ -4268,6 +4267,16 @@ public class TradeService {
             // 订单作废后，发送MQ消息
             orderProducerService.sendMQForOrderRefundVoid(tradeVO);
         }
+    }
+
+    public void reverse(String tid, Operator operator, TradeEvent tradeEvent) {
+        StateRequest stateRequest = StateRequest
+                .builder()
+                .tid(tid)
+                .operator(operator)
+                .event(tradeEvent)
+                .build();
+        tradeFSMService.changeState(stateRequest);
     }
 
     /**
@@ -5076,8 +5085,8 @@ public class TradeService {
 
         private void updateProviderTrade(Trade trade) {
             String parentId = trade.getId();
-            List<ProviderTrade> tradeList =
-                    providerTradeService.findListByParentId(parentId);
+            List<ProviderTrade> tradeList = providerTradeService.findListByParentId(parentId);
+//            List<ProviderTrade> tradeList222 = providerTradeService.findListByParentIdList(Arrays.asList(parentId));
             if (CollectionUtils.isNotEmpty(tradeList)) {
                 tradeList.forEach(childTradeVO -> {
                     childTradeVO.getTradeState().setPayState(trade.getTradeState().getPayState());
@@ -7904,6 +7913,7 @@ public class TradeService {
     public void pushTradeToErp(String tradeNo){
         //根据父订单号,查询子订单集合
         List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(tradeNo);
+//        List<ProviderTrade> providerTradeListin = providerTradeService.findListByParentIdList(Arrays.asList(tradeNo));
         Trade trade = tradeRepository.findById(tradeNo).get();
         if (CollectionUtils.isNotEmpty(providerTradeList)){
             providerTradeList.stream().forEach(providerTrade -> {

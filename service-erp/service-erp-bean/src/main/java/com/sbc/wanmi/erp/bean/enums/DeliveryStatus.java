@@ -18,7 +18,10 @@ public enum DeliveryStatus {
     DELIVERY_COMPLETE(1, "已发货"),
 
     @ApiEnumProperty("部分发货")
-    PART_DELIVERY(2, "部分发货");
+    PART_DELIVERY(2, "部分发货"),
+
+    @ApiEnumProperty("取消发货")
+    CANCELED(3, "取消发货");
 
     private Integer key;
 

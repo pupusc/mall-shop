@@ -30,4 +30,8 @@ public class CanReturnItemNumByTidRequest implements Serializable {
     @NotBlank
     private String tid;
 
+    /**
+     * 空表示 普通的 申请，1表示代客退单
+     */
+    private Integer replace;
 }

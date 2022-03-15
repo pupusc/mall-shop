@@ -173,6 +173,7 @@ public class ReturnOrder implements Serializable {
      */
     private ReturnPrice returnPrice;
 
+
     /**
      * 退积分信息
      */
@@ -347,6 +348,8 @@ public class ReturnOrder implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
+
+
 
     /**
      * 增加操作日志

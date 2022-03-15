@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.mq.OrderGrowthValueTempConsumptionSink;
 import com.wanmi.sbc.order.mq.OrderProducerService;
+import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.ResultCode;
@@ -105,7 +106,9 @@ public class CompleteAction extends TradeAction {
     @Transactional
     protected void evaluateInternal(Trade trade, StateRequest request, TradeStateContext tsc) {
         trade = (Trade) request.getData();
-
+        if (trade == null) {
+            trade = tradeService.detail(request.getTid());
+        }
         TradeState tradeState = trade.getTradeState();
 
          if (!tradeState.getPayState().equals(PayState.PAID)) {

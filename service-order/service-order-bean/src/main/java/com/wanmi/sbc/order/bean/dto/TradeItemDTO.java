@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.marketing.bean.enums.CouponType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingType;
@@ -93,6 +94,17 @@ public class TradeItemDTO implements Serializable, Cloneable {
      */
     @ApiModelProperty(value = "商品来源，0供应商，1商家 2linkedMall")
     private Integer goodsSource;
+
+    /**
+     * 商品类型，0：实体商品，1：虚拟商品，2：卡券商品，3：周期购商品
+     */
+    private GoodsType goodsType;
+
+    /**
+     * 知识顾问专享 0:不是 ，1：是
+     */
+    private Integer cpsSpecial;
+
     /**
      * 电子卡券id
      */
@@ -157,6 +169,11 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private Long deliveredNum = 0L;
 
     /**
+     *  发货完成后更新字段
+     */
+    private Long deliveredNumHis = 0L;
+
+    /**
      * 发货状态
      */
     @ApiModelProperty(value = "发货状态")
@@ -173,6 +190,11 @@ public class TradeItemDTO implements Serializable, Cloneable {
      */
     @ApiModelProperty(value = "成交价格")
     private BigDecimal price;
+
+    /**
+     * 商品属性的定价
+     */
+    private Double propPrice;
 
     /**
      * 定金
@@ -286,10 +308,25 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private BigDecimal distributionCommission;
 
     /**
+     * 佣金比例（返利人）
+     */
+    private BigDecimal commissionRate;
+
+    /**
      * 商品参加的营销活动id集合
      */
     @ApiModelProperty(value = "商品参加的营销活动id集合")
     private List<Long> marketingIds = new ArrayList<>();
+
+    /**
+     * 虚拟卡券商品详细信息
+     */
+    private List<VirtualCouponDTO> virtualCoupons = new ArrayList<>();
+
+    /**
+     * 商品参加的营销活动id集合
+     */
+    private List<Long> coupon = new ArrayList<>();
 
     /**
      * 商品参加的营销活动levelid集合
@@ -302,15 +339,14 @@ public class TradeItemDTO implements Serializable, Cloneable {
      */
     @ApiModelProperty(value = "营销商品结算信息")
     private List<MarketingSettlementDTO> marketingSettlements;
-    /**
-     * 虚拟卡券商品详细信息
-     */
-    private List<VirtualCouponDTO> virtualCoupons = new ArrayList<>();
+
+
     /**
      * 优惠券商品结算信息(包括商品参加的优惠券信息)
      */
     @ApiModelProperty(value = "优惠券商品结算信息", notes = "包括商品参加的优惠券信息")
     private List<CouponSettlementDTO> couponSettlements = new ArrayList<>();
+
 
     /**
      * 积分
@@ -319,10 +355,29 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private Long points;
 
     /**
+     * 知豆，被用于知豆订单的商品知豆，普通订单的均摊知豆
+     */
+    private Long knowledge;
+
+    /**
      * 商品购买积分
      */
     @ApiModelProperty(value = "商品购买积分")
     private Long buyPoint;
+
+    /**
+     * 购买知豆，被用于普通订单的知豆+金额混合商品
+     */
+    private Long buyKnowledge;
+
+    /**
+     * 积分兑换金额
+     */
+    private BigDecimal pointsPrice;
+    /**
+     * 积分兑换金额
+     */
+    private BigDecimal knowledgePrice;
 
     /**
      * 积分商品Id
@@ -337,84 +392,15 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private BigDecimal settlementPrice;
 
     /**
-     * 是否是秒杀抢购商品
+     * 企业购商品的审核状态
      */
-    @ApiModelProperty(value = "是否是秒杀抢购商品")
-    private Boolean isFlashSaleGoods;
+    private EnterpriseAuditState enterPriseAuditState;
 
     /**
-     * 秒杀抢购商品Id
+     * 企业购商品的价格
      */
-    private Long flashSaleGoodsId;
-    /**
-     * 是否是加价购换购商品
-     */
-    private Boolean isMarkupGoods;
-    /**
-     * 供应商id
-     */
-    private Long providerId;
+    private BigDecimal enterPrisePrice;
 
-    /**
-     * 供货价
-     */
-    private BigDecimal supplyPrice;
-
-    /**
-     * 供货价总额
-     */
-    private BigDecimal totalSupplyPrice;
-
-    /**
-     * 供应商名称
-     */
-    private String providerName;
-
-    /**
-     * 供应商编号
-     */
-    private String providerCode;
-
-    /**
-     * 供应商SKU编码
-     */
-    private String providerSkuNo;
-
-
-    /**
-     * 是否是预约抢购商品
-     */
-    private Boolean isAppointmentSaleGoods = Boolean.FALSE;
-
-    /**
-     * 抢购活动Id
-     */
-    private Long appointmentSaleId;
-
-    /**
-     * 是否是预售商品
-     */
-    private Boolean isBookingSaleGoods = Boolean.FALSE;
-
-    /**
-     * 预售活动Id
-     */
-    private Long bookingSaleId;
-
-    /**
-     * 预售类型
-     */
-    private BookingType bookingType;
-
-    /**
-     * 商品类型
-     */
-    private GoodsType goodsType;
-
-    /**
-     * 知识顾问专享 0:不是 ，1：是
-     */
-    private Integer cpsSpecial;
 
     /**
      * 期数
@@ -422,7 +408,10 @@ public class TradeItemDTO implements Serializable, Cloneable {
     private Integer cycleNum;
 
 
-
+    /**
+     * 退款信息
+     */
+    private TradeReturnDTO tradeReturn;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -563,6 +552,80 @@ public class TradeItemDTO implements Serializable, Cloneable {
     }
 
     /**
+     * 是否是秒杀抢购商品
+     */
+    private Boolean isFlashSaleGoods;
+    /**
+     * 是否是加价购换购商品
+     */
+    private Boolean isMarkupGoods;
+
+    /**
+     * 秒杀抢购商品Id
+     */
+    private Long flashSaleGoodsId;
+
+    /**
+     * 供应商id
+     */
+    private Long providerId;
+
+    /**
+     * 供货价
+     */
+    private BigDecimal supplyPrice;
+
+    /**
+     * 供货价总额
+     */
+    private BigDecimal totalSupplyPrice;
+
+    /**
+     * 供应商名称
+     */
+    private String providerName;
+
+    /**
+     * 供应商编号
+     */
+    private String providerCode;
+
+
+    /**
+     * 供应商SKU编码
+     */
+    private String providerSkuNo;
+
+
+
+    /**
+     * 是否是预约抢购商品
+     */
+    private Boolean isAppointmentSaleGoods = Boolean.FALSE;
+
+    /**
+     * 抢购活动Id
+     */
+    private Long appointmentSaleId;
+
+    /**
+     * 是否是预售商品
+     */
+    private Boolean isBookingSaleGoods = Boolean.FALSE;
+
+    /**
+     * 预售活动Id
+     */
+    private Long bookingSaleId;
+
+
+    /**
+     * 预售类型
+     */
+    private BookingType bookingType;
+
+
+    /**
      * ERP商品SKU编码
      */
     private String erpSkuNo;
@@ -581,9 +644,5 @@ public class TradeItemDTO implements Serializable, Cloneable {
     @ApiModelProperty("成本价")
     private BigDecimal costPrice;
 
-    /**
-     * 商品属性的定价
-     */
-    private Double propPrice;
-
+    private Long stock;
 }

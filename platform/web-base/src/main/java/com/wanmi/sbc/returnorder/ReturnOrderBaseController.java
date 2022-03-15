@@ -194,9 +194,9 @@ public class ReturnOrderBaseController {
      * @return
      */
     @ApiOperation(value = "所有退货原因")
-    @RequestMapping(value = "/reasons", method = RequestMethod.GET)
-    public BaseResponse<List<ReturnReason>> findReturnReason() {
-        return BaseResponse.success(returnOrderQueryProvider.listReturnReason().getContext().getReturnReasonList());
+    @RequestMapping(value = "/reasons/{replace}", method = RequestMethod.GET)
+    public BaseResponse<List<ReturnReason>> findReturnReason(@PathVariable("replace") Integer replace) {
+        return BaseResponse.success(returnOrderQueryProvider.listReturnReason(replace).getContext().getReturnReasonList());
     }
 
 
