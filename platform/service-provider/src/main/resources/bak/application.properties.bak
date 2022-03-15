@@ -22,7 +22,7 @@ server.tomcat.max-threads=200
 #server.error.path=/error
 server.error.whitelabel.enabled=false
 server.error.include-stacktrace=ALWAYS
-server.tomcat.basedir=${user.home}/data/s2b/provider/tmp
+#server.tomcat.basedir=${user.home}/data/s2b/provider/tmp
 
 # ----------------------------------------
 # spring cloud
@@ -79,7 +79,7 @@ management.endpoints.web.exposure.include=env,health,info,mappings
 management.endpoint.health.show-details=always
 
 #####JWT\u914D\u7F6E
-jwt.secret-key=eda1782204cf41efaca1e051ccc610be62acdcf24c09f011f343583c41cfb941f
+jwt.secret-key=eda1782204cf41efaca1e051ccc610be62acdcf24c09f011f343583c41cfb941f_test
 jwt.url-patterns=/**
 
 
@@ -93,9 +93,9 @@ async.maxPoolSize=50
 async.queueCapacity=2000
 
 ### \u63A5\u6536\u6587\u4EF6\u6700\u5927\u5C3A\u5BF8
-spring.servlet.multipart.enabled = true
-spring.servlet.multipart.max-file-size = 50MB
-spring.servlet.multipart.max-request-size = 55MB
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=55MB
 
 spring.mvc.dispatch-options-request=true
 
@@ -119,11 +119,11 @@ ribbon.ConnectTimeout=60000
 # ----------------------------------------
 
 ########sso cookie
-cookie.name = a9a68f4fefd3b693f10be4a89799dc48
-cookie.domain = kstore.shop
-cookie.secure = false
-cookie.path = /
-cookie.maxAge = -1
+cookie.name=a9a68f4fefd3b693f10be4a89799dc48
+cookie.domain=kstore.shop
+cookie.secure=false
+cookie.path=/
+cookie.maxAge=-1
 
 # \u540C\u4E00\u4E2A\u4E91\u5B58\u50A8\uFF0C\u540C\u4E00\u4E2Abucket\u573A\u666F\u4E0B\uFF0C\u6587\u4EF6\u524D\u7F00\u901A\u8FC7\u73AF\u5883\u6807\u8BC6\u6765\u533A\u5206\uFF0C\u9632\u6B62\u4E0D\u540C\u73AF\u5883\u7684\u8986\u76D6
 yun.file.path.env.profile=dev186

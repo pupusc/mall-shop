@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.*;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -82,8 +83,8 @@ public interface ReturnOrderQueryProvider {
      *
      * @return 退货原因列表 {@link ReturnReasonListResponse}
      */
-    @PostMapping("/order/${application.order.version}/return/list-return-reason")
-    BaseResponse<ReturnReasonListResponse> listReturnReason();
+    @PostMapping("/order/${application.order.version}/return/list-return-reason/{replace}")
+    BaseResponse<ReturnReasonListResponse> listReturnReason(@PathVariable("replace") Integer replace);
 
     /**
      * 查询可退金额

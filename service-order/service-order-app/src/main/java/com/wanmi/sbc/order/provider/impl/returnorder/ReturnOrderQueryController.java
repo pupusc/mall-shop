@@ -15,6 +15,7 @@ import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.*;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -121,7 +122,6 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
 
         MicroServicePage<ReturnOrderVO> returnOrderVOS = KsBeanUtil.convertPage(orderPage, ReturnOrderVO.class);
         List<ReturnOrderVO> list=returnOrderVOS.getContent();
-        System.out.println("************"+list);
         list.forEach(returnOrderVO -> {
             tradeList.forEach(trade -> {
                 if (Objects.equals(returnOrderVO.getTid(),trade.getId()) && trade.getCycleBuyFlag()) {
@@ -287,9 +287,9 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
      * @return 退货原因列表 {@link ReturnReasonListResponse}
      */
     @Override
-    public BaseResponse<ReturnReasonListResponse> listReturnReason() {
+    public BaseResponse<ReturnReasonListResponse> listReturnReason(Integer replace) {
         return BaseResponse.success(ReturnReasonListResponse.builder()
-                .returnReasonList(returnOrderService.findReturnReason()).build());
+                .returnReasonList(returnOrderService.findReturnReason(replace)).build());
     }
 
     /**
@@ -316,7 +316,8 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
     public BaseResponse<CanReturnItemNumByTidResponse> queryCanReturnItemNumByTid(@RequestBody @Valid
                                                                                           CanReturnItemNumByTidRequest
                                                                                           request) {
-        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid()),
+        //此处给一个默认的退款原因，因为当前作废的订单不能退款,只有退差价才可以执行后续
+        return BaseResponse.success(KsBeanUtil.convert(returnOrderService.queryCanReturnItemNumByTid(request.getTid(), request.getReplace(), ReturnReason.PRICE_DIFF),
                 CanReturnItemNumByTidResponse.class));
     }
 

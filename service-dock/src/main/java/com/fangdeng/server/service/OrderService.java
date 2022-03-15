@@ -38,11 +38,14 @@ public class OrderService {
         BookuuOrderStatusQueryRequest request = new BookuuOrderStatusQueryRequest();
         request.setOutID(Arrays.asList(pid));
         BookuuOrderStatusQueryResponse response = bookuuClient.queryOrderStatus(request);
-        if (response == null || CollectionUtils.isEmpty(response.getStatusDTOS())) {
+        if (response == null) {
             log.warn("query order delivery status error,pid:{},response:{}", pid,response);
             return BaseResponse.FAILED("response is null");
         }
         DeliveryStatusVO deliveryStatusVO = new DeliveryStatusVO();
+        if(CollectionUtils.isEmpty(response.getStatusDTOS())){
+            return BaseResponse.success(deliveryStatusVO);
+        }
         DeliveryStatusVO.DeliveryInfoVO deliveryInfoVO = new DeliveryStatusVO.DeliveryInfoVO();
         deliveryInfoVO.setPlatformCode(response.getStatusDTOS().get(0).getOrderId());
         deliveryInfoVO.setPlatformCode(pid);
@@ -59,6 +62,8 @@ public class OrderService {
     public BaseResponse<CancelOrderVO> cancelOrder(CancelOrderDTO cancelOrderDTO) {
         BookuuOrderCancelRequest request = new BookuuOrderCancelRequest();
         request.setOrderId(cancelOrderDTO.getOrderId());
+        request.setType(cancelOrderDTO.getType());
+        request.setBookId(cancelOrderDTO.getErpGoodsInfoNo());
         CancelOrderVO cancelOrderVO =new CancelOrderVO();
         cancelOrderVO.setOrderID(cancelOrderDTO.getPid());
         if(StringUtils.isEmpty(request.getOrderId())){

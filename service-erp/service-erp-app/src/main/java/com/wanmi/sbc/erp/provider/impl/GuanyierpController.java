@@ -206,6 +206,42 @@ public class GuanyierpController implements GuanyierpProvider {
         return BaseResponse.success(DeliveryStatusResponse.builder().build());
     }
 
+
+    /**
+     * 退款商品中止发货
+     * @param request
+     * @return
+     */
+    public BaseResponse refundTradeItem(@Valid RefundTradeRequest request) {
+        ERPRefundUpdateRequest refundUpdateRequest = new ERPRefundUpdateRequest();
+        refundUpdateRequest.setTid(request.getTid());
+        refundUpdateRequest.setOid(request.getOid());
+        refundUpdateRequest.setRefundState(1);
+        Optional<ERPRefundUpdateResponse> refundUpdateReponseOptional = guanyierpService.refundOrderUpdate(refundUpdateRequest);
+        if (refundUpdateReponseOptional.isPresent()){
+            return BaseResponse.SUCCESSFUL();
+        }
+        return BaseResponse.FAILED();
+    }
+
+    /**
+     * 订单拦截
+     * @param request
+     * @return
+     */
+    public BaseResponse refundTradeOrder(@Valid RefundTradeRequest request) {
+        //进行订单拦截
+        ERPTradeInterceptRequest tradeInterceptRequest = new ERPTradeInterceptRequest();
+        tradeInterceptRequest.setOperateType(1);
+        tradeInterceptRequest.setPlatformCode(request.getTid());
+        tradeInterceptRequest.setTradeHoldCode(InterceptType.CANCEL_DELIVERY.getCode());
+        tradeInterceptRequest.setTradeHoldReason(InterceptType.CANCEL_DELIVERY.getReason());
+        Optional<ERPBaseResponse> optionalERPBaseResponse = guanyierpService.interceptTrade(tradeInterceptRequest);
+        if (optionalERPBaseResponse.isPresent() && optionalERPBaseResponse.get().isSuccess()){
+            return BaseResponse.SUCCESSFUL();
+        }
+        return BaseResponse.FAILED();
+    }
     /**
      * 订单仅退款
      * @param request
@@ -223,17 +259,19 @@ public class GuanyierpController implements GuanyierpProvider {
 //                log.info("--->> guanyierpController RefundTrade tid:{} oid:{} 当前强制退款，不需要管易云执行终止操作", request.getTid(), request.getOid());
 //                return BaseResponse.SUCCESSFUL();
 //            }
-            //进行订单拦截
-            ERPTradeInterceptRequest tradeInterceptRequest = ERPTradeInterceptRequest.builder()
-                    .operateType(1)
-                    .platformCode(request.getTid())
-                    .tradeHoldCode(InterceptType.CANCEL_DELIVERY.getCode())
-                    .tradeHoldReason(InterceptType.CANCEL_DELIVERY.getReason())
-                    .build();
-            Optional<ERPBaseResponse> optionalERPBaseResponse = guanyierpService.interceptTrade(tradeInterceptRequest);
-            if (optionalERPBaseResponse.isPresent() && optionalERPBaseResponse.get().isSuccess()){
-                return BaseResponse.SUCCESSFUL();
-            }
+
+//            //进行订单拦截
+//            ERPTradeInterceptRequest tradeInterceptRequest = ERPTradeInterceptRequest.builder()
+//                    .operateType(1)
+//                    .platformCode(request.getTid())
+//                    .tradeHoldCode(InterceptType.CANCEL_DELIVERY.getCode())
+//                    .tradeHoldReason(InterceptType.CANCEL_DELIVERY.getReason())
+//                    .build();
+//            Optional<ERPBaseResponse> optionalERPBaseResponse = guanyierpService.interceptTrade(tradeInterceptRequest);
+//            if (optionalERPBaseResponse.isPresent() && optionalERPBaseResponse.get().isSuccess()){
+//                return BaseResponse.SUCCESSFUL();
+//            }
+            return BaseResponse.SUCCESSFUL();
         }
         return BaseResponse.FAILED();
     }

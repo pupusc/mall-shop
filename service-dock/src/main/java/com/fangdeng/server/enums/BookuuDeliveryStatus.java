@@ -14,7 +14,7 @@ public enum BookuuDeliveryStatus {
     DELIVERYED(5, "已发货",1),
     REFUND(6, "退换货",0),
 
-    CANCEL(7, "取消",0),
+    CANCEL(7, "取消",3),
 
     HANGUP(8, "挂起",0);
 

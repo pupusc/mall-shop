@@ -59,6 +59,13 @@ public class VoidBuilder implements Builder {
                 .source(FlowState.VOID).target(FlowState.AUDIT)
                 .event(TradeEvent.REVERSE_RETURN)
                 .action(completeAction);
+
+//                //作废 -> [作废退款单] -> 已完成
+//                .and()
+//                .withExternal()
+//                .source(FlowState.VOID).target(FlowState.AUDIT)
+//                .event(TradeEvent.REFUND)
+//                .action(completeAction);
         return builder.build();
     }
 

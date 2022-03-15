@@ -74,6 +74,7 @@ public class DeliveredPartBuilder implements Builder {
                 .action(obsoleteDeliverAction)
                 .and()
 
+
                 //周期购订单在申请退货退款时状态变更 部分发货 -> [申请退货] -> 部分发货
                 .withExternal()
                 .source(FlowState.DELIVERED_PART).target(FlowState.DELIVERED_PART)

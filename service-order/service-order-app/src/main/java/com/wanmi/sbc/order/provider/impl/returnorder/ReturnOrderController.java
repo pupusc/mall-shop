@@ -6,6 +6,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.refund.model.root.RefundBill;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -43,10 +44,33 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse<ReturnOrderAddResponse> add(@RequestBody @Valid ReturnOrderAddRequest request) {
-        String rid = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
+        if (request.getReturnOrder() == null || request.getReturnOrder().getReturnReason() == null) {
+
+            return BaseResponse.FAILED();
+        }
+        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
                 request.getOperator());
-        return BaseResponse.success(ReturnOrderAddResponse.builder().returnOrderId(rid).build());
+
+        ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
+        returnOrderAddResponse.setReturnOrderId(returnOrderId);
+        return BaseResponse.success(returnOrderAddResponse);
     }
+
+//
+//    /**
+//     * 退单运费订单
+//     *
+//     * @param request 退单创建请求结构 {@link ReturnOrderAddRequest}
+//     * @return 退单id {@link ReturnOrderAddResponse}
+//     */
+//    public BaseResponse<ReturnOrderAddResponse> addDeliver(@RequestBody @Valid ReturnOrderAddRequest request) {
+//        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
+//                request.getOperator());
+//
+//        ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
+//        returnOrderAddResponse.setReturnOrderId(returnOrderId);
+//        return BaseResponse.success(returnOrderAddResponse);
+//    }
 
     /**
      * 退单快照创建
@@ -319,5 +343,16 @@ public class ReturnOrderController implements ReturnOrderProvider {
             return BaseResponse.success(null);
         }
         return BaseResponse.success(result.get(0));
+    }
+
+    /**
+     * 获取子单（包含退单信息）列表
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<List<ProviderTradeSimpleVO>> listReturnProviderTrade(ReturnOrderProviderTradeRequest request) {
+        List<ProviderTradeSimpleVO> providerTradeSimpleVOList = returnOrderService.listReturnProviderTrade(request);
+        return BaseResponse.success(providerTradeSimpleVOList);
     }
 }
