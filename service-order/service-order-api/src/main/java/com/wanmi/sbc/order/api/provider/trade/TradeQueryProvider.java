@@ -99,6 +99,7 @@ public interface TradeQueryProvider {
 
     /**
      * 通过id获取交易单信息并将buyer.account加密
+     * 获取 trade 和 providerTrade 这两部分，主要包含订单和子单
      *
      * @param tradeGetByIdRequest 交易单id {@link TradeGetByIdRequest}
      * @return 交易单信息 {@link TradeGetByIdResponse}

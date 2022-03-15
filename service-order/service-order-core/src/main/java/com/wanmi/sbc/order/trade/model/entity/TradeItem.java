@@ -148,6 +148,11 @@ public class TradeItem implements Serializable, Cloneable {
     private Long deliveredNum = 0L;
 
     /**
+     *  发货完成后更新字段
+     */
+    private Long deliveredNumHis = 0L;
+
+    /**
      * 发货状态
      */
     private DeliverStatus deliverStatus;
@@ -240,6 +245,11 @@ public class TradeItem implements Serializable, Cloneable {
      * 可退数量
      */
     private Integer canReturnNum;
+
+//    /**
+//     * 历史可退数量 根据这个字段可以判断当前商品是否发货
+//     */
+//    private Integer canReturnNumHis;
 
     /**
      * 规格描述信息
@@ -350,6 +360,11 @@ public class TradeItem implements Serializable, Cloneable {
      * 期数
      */
     private Integer cycleNum;
+
+    /**
+     * 退款信息
+     */
+    private TradeReturn tradeReturn;
 
     @Override
     public Object clone() throws CloneNotSupportedException {

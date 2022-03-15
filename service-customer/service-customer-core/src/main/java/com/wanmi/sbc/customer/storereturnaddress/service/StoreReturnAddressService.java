@@ -45,7 +45,7 @@ public class StoreReturnAddressService {
 
 
 
-	private final static int LABEL_MAX_LENGTH = 20;
+	private final static int LABEL_MAX_LENGTH = 100;
 
 	/**
 	 * 新增店铺退货地址表

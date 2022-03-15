@@ -5,7 +5,9 @@ public enum DeliveryStatus {
 
     DELIVERY_COMPLETE(1, "已发货"),
 
-    PART_DELIVERY(2, "部分发货");
+    PART_DELIVERY(2, "部分发货"),
+
+    CANCELED(3,"已取消");
 
     private Integer key;
 

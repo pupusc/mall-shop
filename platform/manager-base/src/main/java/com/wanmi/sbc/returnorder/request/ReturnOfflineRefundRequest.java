@@ -95,4 +95,9 @@ public class ReturnOfflineRefundRequest extends BaseRequest {
     @ApiModelProperty(value = "实退知豆")
     @Min(value = 0)
     private Long actualReturnKnowledge;
+
+    /**
+     * 默认调用管易云拦截
+     */
+    private Boolean hasInvokeGuanYiYun = true;
 }

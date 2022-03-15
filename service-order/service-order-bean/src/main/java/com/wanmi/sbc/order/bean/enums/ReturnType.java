@@ -15,13 +15,13 @@ public enum ReturnType {
     /**
      * 退货
      */
-    @ApiEnumProperty("0: 退货")
+    @ApiEnumProperty("0: 退货退款")
     RETURN,
 
     /**
      * 退款
      */
-    @ApiEnumProperty("1: 退款")
+    @ApiEnumProperty("1: 仅退款不退货")
     REFUND;
 
     @JsonCreator

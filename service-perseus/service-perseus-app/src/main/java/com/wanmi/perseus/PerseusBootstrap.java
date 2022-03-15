@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
  * <p>Perseus应用安装启动类</p>
  * Created by of628-wenzhi on 2017-09-22-下午2:06.
  */
-@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc"})
+@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc","com.wanmi.perseus"})
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableAsync

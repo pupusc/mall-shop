@@ -142,4 +142,10 @@ public class ReturnItemDTO implements Serializable {
     @ApiModelProperty(value = "应退积分")
     private Long splitPoint;
 
+
+    private BigDecimal applyRealPrice;
+
+    private Long applyKnowledge;
+
+    private Long applyPoint;
 }

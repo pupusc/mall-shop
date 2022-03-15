@@ -836,19 +836,20 @@ public class TradeQueryRequest extends BaseQueryRequest {
         // 开店礼包不支持退单
         criteria.add(Criteria.where("storeBagsFlag").ne(DefaultFlag.YES));
 
-        //已完成订单允许申请退单时间
-        if (Objects.nonNull(day) && day > 0) {
-            dayCriteria.andOperator(
-                    Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()),
-                    Criteria.where("tradeState.endTime").gte(LocalDateTime.now().minusDays(day))
-            );
-        } else {
-            dayCriteria.andOperator(Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()));
-        }
+//        //已完成订单允许申请退单时间
+//        if (Objects.nonNull(day) && day > 0) {
+//            dayCriteria.andOperator(
+//                    Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()),
+//                    Criteria.where("tradeState.endTime").gte(LocalDateTime.now().minusDays(day))
+//            );
+//        } else {
+//            dayCriteria.andOperator(Criteria.where("tradeState.flowState").is(FlowState.COMPLETED.getStateId()));
+//        }
 
 
-        //周期购订单查询部分发货的订单
-        Criteria criteria2=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.PART_SHIPPED.getStatusId()),Criteria.where("cycleBuyFlag").is(true));
+
+        //部分发货仍然可以发起售后
+        Criteria criteria2=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.PART_SHIPPED.getStatusId()));
 
         //其他订单未发货
         Criteria criteria3=  new Criteria().andOperator(Criteria.where("tradeState.deliverStatus").is(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));

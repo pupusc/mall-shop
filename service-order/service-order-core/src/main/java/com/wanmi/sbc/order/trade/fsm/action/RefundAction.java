@@ -26,7 +26,7 @@ public class RefundAction extends TradeAction {
         TradeState tradeState = trade.getTradeState();
 
         // 已完成的退款操作
-        if (tradeState.getFlowState().equals(FlowState.COMPLETED)) {
+        if (tradeState.getFlowState().equals(FlowState.COMPLETED) || tradeState.getFlowState().equals(FlowState.DELIVERED)) {
             String detail = String.format("订单[%s],申请退货,操作人:%s", trade.getId(), tsc.getOperator().getName());
             trade.appendTradeEventLog(TradeEventLog
                     .builder()
@@ -48,7 +48,8 @@ public class RefundAction extends TradeAction {
             //周期购订单 部分发货可以退货退款
             if (!trade.getCycleBuyFlag()) {
                 // 判断已发货
-                if (!tradeState.getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED)) {
+                if (!tradeState.getDeliverStatus().equals(DeliverStatus.NOT_YET_SHIPPED) &&
+                        !tradeState.getDeliverStatus().equals(DeliverStatus.PART_SHIPPED)) {
                     throw new SbcRuntimeException("K-050106");
                 }
             }else {
