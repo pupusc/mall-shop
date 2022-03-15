@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -30,7 +32,13 @@ public class BaseRequest implements Serializable {
     /**
      * 获取源头 1 H5 2 小程序 3 主站 4 销售渠道
      */
-    private Integer goodsChannelType;
+//    private Integer goodsChannelType;
+
+    /*
+     * 商品渠道类型 1H5 2小程序 3 樊登赠品
+     */
+    private Set<Integer> goodsChannelTypeSet;
+
 
     /**
      * 统一参数校验入口

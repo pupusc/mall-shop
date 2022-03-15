@@ -30,6 +30,7 @@ import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.xxl.job.core.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateUtils;
@@ -89,6 +90,9 @@ public class IndexHomeController {
 
     @Value("${stock.size:5}")
     private Long stockSize;
+
+    @Autowired
+    private CommonUtil commonUtil;
 
     /**
      * @description 获取首页配置数据
@@ -290,6 +294,7 @@ public class IndexHomeController {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
+        queryRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         CustomerVO customer = bookListModelAndGoodsService.getCustomerVo();
         List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, customer);

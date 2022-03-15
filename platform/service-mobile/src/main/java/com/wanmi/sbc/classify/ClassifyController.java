@@ -198,7 +198,7 @@ public class ClassifyController {
         //按照销售数量排序
         sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
         esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        esGoodsCustomRequest.setGoodsChannelType(commonUtil.getTerminal().getCode());
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
         MicroServicePage<EsGoodsVO> esGoodsRandomList = bookListModelAndGoodsService.listEsGoodsVo(esGoodsCustomRequest);
         List<EsGoodsVO> content = esGoodsRandomList.getContent();
         if (CollectionUtils.isEmpty(content)) {
@@ -279,7 +279,7 @@ public class ClassifyController {
         result.setContent(new ArrayList<>());
         result.setTotal(0);
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-        esGoodsCustomRequest.setGoodsChannelType(commonUtil.getTerminal().getCode());
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
         //获取当前一级分类下的所有子分类
         if (classifyGoodsAndBookListModelPageRequest.getClassifyId() != null) {
             ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();

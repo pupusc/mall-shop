@@ -1,10 +1,12 @@
 package com.wanmi.sbc.elastic.api.common;
 
 import com.wanmi.sbc.common.base.BaseRequest;
+import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:
@@ -22,8 +24,17 @@ public class CommonEsSearchCriteriaBuilder {
      */
     public static BoolQueryBuilder getSkuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        if (baseRequest.getGoodsChannelType() != null) {
-            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
+//        if (baseRequest.getGoodsChannelType() != null) {
+//            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
+//        }
+
+        if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
+            if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
+                boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+            } else {
+                boolQb.must(termsQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+            }
+
         }
         return boolQb;
     }
@@ -35,8 +46,17 @@ public class CommonEsSearchCriteriaBuilder {
      */
     public static BoolQueryBuilder getSpuCommonSearchCriterialBuilder(BaseRequest baseRequest) {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        if (baseRequest.getGoodsChannelType() != null) {
-            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
+//        if (baseRequest.getGoodsChannelType() != null) {
+//            boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelType()));
+//        }
+
+        if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
+            if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
+                boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+            } else {
+                boolQb.must(termsQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+            }
+
         }
         return boolQb;
     }
