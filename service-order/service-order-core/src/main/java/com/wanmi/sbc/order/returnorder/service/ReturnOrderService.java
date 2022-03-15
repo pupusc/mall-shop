@@ -2093,6 +2093,7 @@ public class ReturnOrderService {
             returnFSMService.changeState(request);
             //自动发货
             autoDeliver(returnOrderId, operator);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.WAIT_RETURN:WxAfterSaleStatus.REFUNDING);
 
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
@@ -2365,7 +2366,7 @@ public class ReturnOrderService {
             // 更新子单状态
             updateProviderTrade(returnOrder);
         }
-
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING);
         Trade trade = tradeService.detail(returnOrder.getTid());
 
         //周期购订单部分发货退货退款
@@ -2462,9 +2463,9 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN);
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
@@ -2473,6 +2474,7 @@ public class ReturnOrderService {
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
         log.info("ReturnOrderService rejectReceive 拒绝收货 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+
         //退货物品拒收通知发送MQ消息
         if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
                 || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
@@ -2523,6 +2525,7 @@ public class ReturnOrderService {
                 .data(price)
                 .build();
         returnFSMService.changeState(request);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED);
 
 
         Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
@@ -3375,7 +3378,7 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
         // 拒绝退款时，发送MQ消息
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
@@ -3443,6 +3446,7 @@ public class ReturnOrderService {
                     .data(refundOrderResponse.getRefuseReason())
                     .build();
             returnFSMService.changeState(request);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
         });
     }
 
@@ -3495,6 +3499,7 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
 
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
