@@ -118,7 +118,7 @@ public class WxGoodsService {
         for (String goodsId : split) {
             if(goodsExist(goodsId)){
                 Goods goods = goodsService.findByGoodsId(goodsId);
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, goods.getGoodsNo() + " 已添加至其他直播计划，无法重复添加");
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, goods.getGoodsNo() + " 已添加至商品池，无法重复添加");
             }
             WxGoodsModel wxGoodsModel = new WxGoodsModel();
             wxGoodsModel.setGoodsId(goodsId);
