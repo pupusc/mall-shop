@@ -49,7 +49,11 @@ import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
-import com.wanmi.sbc.order.trade.model.root.*;
+import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.model.root.TradeGroup;
+import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
+import com.wanmi.sbc.order.trade.model.root.TradeItemSnapshot;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
 import com.wanmi.sbc.order.trade.request.TradeWrapperListRequest;
@@ -63,7 +67,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

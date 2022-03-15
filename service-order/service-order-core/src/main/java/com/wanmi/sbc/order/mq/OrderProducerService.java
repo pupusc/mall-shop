@@ -3,7 +3,6 @@ package com.wanmi.sbc.order.mq;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.account.bean.vo.CustomerFundsForEsVO;
 import com.wanmi.sbc.common.base.MessageMQRequest;
-import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.goods.api.constant.GoodsJmsDestinationConstants;
 import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyAlreadyGrouponNumRequest;
 import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyStatisticsNumRequest;
@@ -12,14 +11,12 @@ import com.wanmi.sbc.marketing.api.request.grouponactivity.GrouponActivityModify
 import com.wanmi.sbc.marketing.bean.enums.GrouponOrderStatus;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.constant.MessageConstants;
-import com.wanmi.sbc.order.api.request.esCustomerFunds.EsCustomerFundsSaveListRequest;
 import com.wanmi.sbc.order.api.request.esCustomerFunds.EsCustomerFundsSaveRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeBackRestrictedRequest;
 import com.wanmi.sbc.order.bean.dto.SensorsMessageDto;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.vo.GrouponInstanceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
-import com.wanmi.sbc.order.growthvalue.model.root.OrderGrowthValueTemp;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -278,4 +275,13 @@ public class OrderProducerService {
 //            log.error("新增会员权益处理订单成长值临时表MQ异常", e);
 //        }
 //    }
+
+
+    /**
+     * 订单发货后，发送MQ消息
+     * @param trade
+     */
+    public void sendMQForOrderDelivered(Trade trade) {
+        resolver.resolveDestination(JmsDestinationConstants.Q_OPEN_ORDER_DELIVERED_PRODUCER).send(new GenericMessage<>(trade));
+    }
 }

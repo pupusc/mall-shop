@@ -87,4 +87,8 @@ public class TradePageQueryRequest extends BaseQueryRequest {
     @ApiModelProperty(value = "店铺编码 精确查询")
     private Long storeId;
 
+    /**
+     * 订单标签 赠品：GIFT
+     */
+    private String tag;
 }

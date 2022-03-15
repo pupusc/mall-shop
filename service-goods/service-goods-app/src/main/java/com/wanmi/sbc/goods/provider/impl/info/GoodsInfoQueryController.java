@@ -6,11 +6,40 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.goodslabel.GoodsLabelQueryRequest;
-import com.wanmi.sbc.goods.api.request.info.*;
+import com.wanmi.sbc.goods.api.request.info.DistributionGoodsChangeRequest;
+import com.wanmi.sbc.goods.api.request.info.DistributionGoodsPageRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoCountByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoMarketingPriceByNosRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoPartColsByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoStoreIdBySkuIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewPageRequest;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterpriseGoodsInfoPageResponse;
-import com.wanmi.sbc.goods.api.response.info.*;
+import com.wanmi.sbc.goods.api.response.info.DistributionGoodsInfoPageResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoByGoodsIdresponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoCountByConditionResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoMarketingPriceByNosResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoPageResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoPartColsByIdsResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoStoreIdBySkuIdResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewPageResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMarketingPriceDTO;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLabelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
 import com.wanmi.sbc.goods.goodslabel.model.root.GoodsLabel;
 import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
@@ -151,6 +180,15 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         if (Boolean.TRUE.equals(request.getShowLabelFlag())) {
             goodsLabelService.fillGoodsLabel(response.getGoodses(), request.getShowSiteLabelFlag());
         }
+
+        if (CollectionUtils.isNotEmpty(response.getGoodses())) {
+            for (GoodsVO item : response.getGoodses()) {
+                if (StringUtils.isNotBlank(item.getGoodsChannelType())) {
+                    item.setGoodsChannelTypeSet(Arrays.stream(item.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+                }
+            }
+        }
+
         return BaseResponse.success(response);
     }
 

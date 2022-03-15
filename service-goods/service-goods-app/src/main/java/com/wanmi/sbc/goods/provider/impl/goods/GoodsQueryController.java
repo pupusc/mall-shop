@@ -12,15 +12,51 @@ import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsCountByStoreIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailSimpleRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsErpNoRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPageByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPageRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPropDetailRelByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsQueryNeedSynRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUnAuditCountRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsCountByStoreIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageByConditionResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageForXsiteResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPropDetailRelByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsUnAuditCountResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdAndSkuIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByPointsGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.appointmentsale.model.root.AppointmentSaleDO;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsForXsiteVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSyncVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bookingsale.model.root.BookingSale;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
@@ -41,7 +77,11 @@ import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
 import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
-import com.wanmi.sbc.goods.info.service.*;
+import com.wanmi.sbc.goods.info.service.GoodsInfoService;
+import com.wanmi.sbc.goods.info.service.GoodsService;
+import com.wanmi.sbc.goods.info.service.GoodsStockService;
+import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
+import com.wanmi.sbc.goods.info.service.S2bGoodsService;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
@@ -53,13 +93,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -185,7 +232,15 @@ public class GoodsQueryController implements GoodsQueryProvider {
                         goods.setGoodsFavorableCommentNum((Long) ((Object[]) count)[1]);
                     }
             );
-            microServicePage = KsBeanUtil.convertPage(goodsPage, GoodsVO.class);
+
+            List<GoodsVO> result = new ArrayList<>();
+            for (Goods goodsParam : goodsPage.getContent()) {
+                GoodsVO goodsVO = KsBeanUtil.convert(goodsParam, GoodsVO.class);
+                goodsVO.setGoodsChannelTypeSet(Arrays.stream(goodsParam.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+                result.add(goodsVO);
+            }
+
+            microServicePage = new MicroServicePage<>(result, PageRequest.of(goodsPage.getNumber(), goodsPage.getSize(), goodsPage.getSort()), goodsPage.getTotalElements());
         }
         response.setGoodsPage(microServicePage);
         return BaseResponse.success(response);
@@ -356,6 +411,11 @@ public class GoodsQueryController implements GoodsQueryProvider {
         GoodsEditResponse goodsEditResponse = goodsService.findInfoById(goodsId);
         GoodsViewByIdResponse goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         GoodsVO goods = goodsByIdResponse.getGoods();
+
+        if (Objects.nonNull(goods) && StringUtils.isNotBlank(goods.getGoodsChannelType())) {
+            goods.setGoodsChannelTypeSet(Arrays.stream(goods.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+        }
+
         if (StringUtils.isNotBlank(goods.getProviderGoodsId()) && Objects.nonNull(goods.getProviderId())) {
             Goods providerGoods = goodsService.getGoodsById(goods.getProviderGoodsId());
             if (Objects.nonNull(providerGoods)) {

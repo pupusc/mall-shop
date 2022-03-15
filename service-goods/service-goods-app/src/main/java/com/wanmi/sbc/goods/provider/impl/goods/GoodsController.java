@@ -10,18 +10,15 @@ import com.wanmi.sbc.common.enums.CompanySourceType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
@@ -138,9 +135,6 @@ public class GoodsController implements GoodsProvider {
     @Autowired
     private GoodsInfoService goodsInfoService;
 
-//    @Autowired
-//    private GoodsQueryProvider goodsQueryProvider;
-
     public BaseResponse<List<GoodsTagVo>> tags(){
         List<Tag> tags = tagService.findAllTag();
         List<GoodsTagVo> vos = new ArrayList<>();
@@ -160,6 +154,11 @@ public class GoodsController implements GoodsProvider {
     @Override
     public BaseResponse<GoodsAddResponse> add(@RequestBody @Valid GoodsAddRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
+        Set<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
+        if (CollectionUtils.isEmpty(goodsChannelTypeSet)) {
+            throw new SbcRuntimeException("K-0400001");
+        }
+        goodsSaveRequest.getGoods().setGoodsChannelType(String.join(",", goodsChannelTypeSet));
         String result = goodsService.add(goodsSaveRequest);
 
         GoodsAddResponse response = new GoodsAddResponse();
@@ -365,6 +364,11 @@ public class GoodsController implements GoodsProvider {
     @Transactional
     public BaseResponse<GoodsModifyResponse> modify(@RequestBody @Valid GoodsModifyRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
+        Set<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
+        if (CollectionUtils.isEmpty(goodsChannelTypeSet)) {
+            throw new SbcRuntimeException("K-0400001");
+        }
+        goodsSaveRequest.getGoods().setGoodsChannelType(String.join(",", goodsChannelTypeSet));
         goodsSaveRequest.getGoods().setAddedTimingTime(request.getGoods().getAddedTimingTime());
         Goods goods = goodsService.getGoodsById(goodsSaveRequest.getGoods().getGoodsId());
         Map<String, Object> map;

@@ -16,7 +16,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -367,4 +367,10 @@ public class EsGoods implements Serializable {
      */
     @Field(type = FieldType.Keyword)
     private String providerGoodsId;
+
+    /*
+     * 商品渠道 1 h5 2小程序
+     */
+    @Field(type = FieldType.Integer)
+    private List<Integer> goodsChannelTypeList;
 }

@@ -16,7 +16,6 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
-import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
@@ -51,7 +50,6 @@ import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.enums.UnAddedFlagReason;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
@@ -76,12 +74,24 @@ import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
-import com.wanmi.sbc.goods.info.model.root.*;
+import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.root.GoodsSync;
+import com.wanmi.sbc.goods.info.model.root.GoodsSyncRelation;
+import com.wanmi.sbc.goods.info.model.root.GoodsVote;
 import com.wanmi.sbc.goods.info.reponse.GoodsDetailResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
-import com.wanmi.sbc.goods.info.repository.*;
+import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsSyncRelationRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
+import com.wanmi.sbc.goods.info.repository.GoodsVoteRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
@@ -1820,6 +1830,7 @@ public class GoodsService {
             sku.setGoodsSource(goods.getGoodsSource());
             sku.setAddedTimingTime(goods.getAddedTimingTime());
             sku.setAddedTimingFlag(goods.getAddedTimingFlag());
+            sku.setGoodsChannelType(goods.getGoodsChannelType());
             String goodsInfoId = goodsInfoRepository.save(sku).getGoodsInfoId();
             sku.setGoodsInfoId(goodsInfoId);
             sku.setEnterprisePriceType(0);
@@ -2381,6 +2392,7 @@ public class GoodsService {
                     }
                     oldInfo.setGoodsInfoName(newGoods.getGoodsName());
                     oldInfo.setUpdateTime(currDate);
+                    oldInfo.setGoodsChannelType(oldGoods.getGoodsChannelType());
                     goodsInfoRepository.save(oldInfo);
 
                     //覆盖redis中的库存，如需增量修改，则需要结合前端修改

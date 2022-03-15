@@ -20,15 +20,16 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateChildCateIdsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsPageRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageResponse;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandSimpleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateSimpleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPageSimpleVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.UpdateByQueryAction;
-import org.elasticsearch.index.reindex.UpdateByQueryRequest;
 import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
 import org.elasticsearch.script.Script;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,12 @@ import org.springframework.data.elasticsearch.core.ResultsMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -151,6 +157,7 @@ public class EsSpuService {
                             .filter(i -> Objects.nonNull(i.getSupplyPrice()))
                             .map(GoodsInfoNestVO::getSupplyPrice).min(BigDecimal::compareTo).orElse(spu.getSupplyPrice()));
                     spu.setProviderName(g.getProviderName());
+                    spu.setGoodsChannelTypeList(g.getGoodsChannelTypeList());
                     return spu;
                 }).collect(Collectors.toList());
 
