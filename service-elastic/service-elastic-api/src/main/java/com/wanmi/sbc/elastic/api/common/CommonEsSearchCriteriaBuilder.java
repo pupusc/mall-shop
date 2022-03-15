@@ -1,11 +1,10 @@
-package com.wanmi.sbc.elastic.common;
+package com.wanmi.sbc.elastic.api.common;
 
 import com.wanmi.sbc.common.base.BaseRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-//import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:

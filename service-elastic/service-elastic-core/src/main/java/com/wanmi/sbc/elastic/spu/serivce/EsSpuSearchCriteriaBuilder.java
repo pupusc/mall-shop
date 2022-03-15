@@ -3,7 +3,7 @@ package com.wanmi.sbc.elastic.spu.serivce;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
@@ -49,10 +49,6 @@ public class EsSpuSearchCriteriaBuilder {
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
 //        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
-
-        if (Objects.nonNull(request.getGoodsChannelType())) {
-            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeSet", request.getGoodsChannelType()));
-        }
 
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
