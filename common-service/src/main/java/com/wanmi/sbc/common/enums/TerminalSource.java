@@ -64,7 +64,7 @@ public enum TerminalSource {
                 return terminal;
             }
         }
-        throw new SbcRuntimeException("参数错误！请检查TerminalType是否正确！！");
+        return TerminalSource.H5;
     }
 
 //    public static TerminalSource getSource(String name) {
