@@ -81,6 +81,8 @@ public class GoodsController {
                 if(esGoodsVOSList != null){
                     EsGoodsVO esGoodsVO = esGoodsVOSList.get(0);
                     try {
+                        Integer addedFlag = esGoodsVO.getAddedFlag();
+                        wxGoodsVo.setStatus((addedFlag == null || addedFlag == 0) ? 3 : 2);
                         wxGoodsVo.setGoodsNo(esGoodsVO.getGoodsNo());
                         wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
                         wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsInfos().get(0).getGoodsInfoImg());

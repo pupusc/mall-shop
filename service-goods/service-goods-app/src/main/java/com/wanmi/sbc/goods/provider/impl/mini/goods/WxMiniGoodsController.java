@@ -53,7 +53,6 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
                 WxGoodsVo wxGoodsVo = new WxGoodsVo();
                 BeanUtils.copyProperties(wxGoodsModel, wxGoodsVo);
                 wxGoodsVo.setAuditStatus(wxGoodsModel.getAuditStatus().toValue());
-                wxGoodsVo.setStatus(wxGoodsModel.getStatus().toValue());
                 wxGoodsVo.setSaleStatus(wxGoodsModel.getPlatformProductId() == null ? 0 : 1);
                 wxGoodsVo.setWxCategory(wxGoodsModel.getWxCategory() != null ? JSONObject.parseObject(wxGoodsModel.getWxCategory(), Map.class) : null);
                 wxGoodsVo.setUploadTime(wxGoodsModel.getUploadTime() == null ? null : wxGoodsModel.getUploadTime().format(df));
@@ -62,6 +61,8 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
                     List<Goods> goodsList = collect.get(wxGoodsModel.getGoodsId());
                     if(goodsList != null){
                         Goods goods = goodsList.get(0);
+                        Integer addedFlag = goods.getAddedFlag();
+                        wxGoodsVo.setStatus((addedFlag == null || addedFlag == 0) ? 3 : 2);
                         wxGoodsVo.setGoodsNo(goods.getGoodsNo());
                         wxGoodsVo.setGoodsName(goods.getGoodsName());
                         wxGoodsVo.setGoodsImg(goods.getGoodsImg());

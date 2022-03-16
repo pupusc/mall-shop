@@ -15,7 +15,7 @@ public class WxGoodsVo {
     private String goodsNo;
 
     /**
-     * 状态 0-等待上传 1-已上传 2-上架 3-下架
+     * 商品山下架状态 2-上架 3-下架
      */
     private Integer status;
 
