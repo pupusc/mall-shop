@@ -512,6 +512,13 @@ public class GoodsVO  implements Serializable {
      */
     private Set<String> goodsChannelTypeSet;
 
+
+
+    /**
+     * 发货说明
+     */
+    private String deliverNotice;
+
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {
             //供应商商品可售（商品上架、未删除、已审核，店铺开店）
