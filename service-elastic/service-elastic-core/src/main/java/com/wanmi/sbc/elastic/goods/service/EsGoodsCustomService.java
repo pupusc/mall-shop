@@ -65,6 +65,7 @@ public class EsGoodsCustomService {
     public MicroServicePage<EsGoodsVO> listEsGoodsNormal(EsGoodsCustomQueryProviderRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
+
         int pageNum = request.getPageNum();
         builder.withPageable(PageRequest.of(pageNum, request.getPageSize()));
         builder.withQuery(this.packageWhere(request));
@@ -140,6 +141,10 @@ public class EsGoodsCustomService {
     private BoolQueryBuilder packageWhere(EsGoodsCustomQueryProviderRequest request) {
 
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
+
+        if (!StringUtils.isEmpty(request.getNotChannelType())) {
+            boolQueryBuilder.mustNot(termQuery("goodsChannelTypeList", request.getNotChannelType()));
+        }
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
             boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
         }

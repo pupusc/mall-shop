@@ -100,6 +100,7 @@ public class GoodsAddRequest extends BaseRequest {
 
     @ApiModelProperty(value = "标签")
     private String tags;
+
     /**
      * 重写敏感词，用于验证
      * @return 拼凑关键内容

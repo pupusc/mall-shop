@@ -52,7 +52,13 @@ public enum Platform {
      * 供应商
      */
     @ApiEnumProperty("供应商")
-    PROVIDER("供应商");
+    PROVIDER("供应商"),
+
+    /**
+     * 主站
+     */
+    @ApiEnumProperty("樊登读书")
+    FDDS("樊登读书");
 
     private String desc;
 

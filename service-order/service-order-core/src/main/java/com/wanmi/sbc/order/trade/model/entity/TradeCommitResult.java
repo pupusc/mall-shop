@@ -6,7 +6,6 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.order.bean.enums.PaymentOrder;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
  * Created by of628-wenzhi on 2017-07-25-下午3:52.
  */
 @Data
-@AllArgsConstructor
 public class TradeCommitResult {
 
     /**
@@ -64,4 +62,33 @@ public class TradeCommitResult {
     @ApiModelProperty(value = "是否平台自营",dataType = "com.wanmi.sbc.common.enums.BoolFlag")
     private Boolean isSelf;
 
+    /**
+     * 交易金额
+     */
+    private BigDecimal originPrice;
+
+    public TradeCommitResult(String tid, String parentTid, TradeState tradeState, PaymentOrder paymentOrder,
+                             BigDecimal price, LocalDateTime orderTimeOut, String storeName, Boolean isSelf) {
+        this.tid = tid;
+        this.parentTid = parentTid;
+        this.tradeState = tradeState;
+        this.paymentOrder = paymentOrder;
+        this.price = price;
+        this.orderTimeOut = orderTimeOut;
+        this.storeName = storeName;
+        this.isSelf = isSelf;
+    }
+
+    public TradeCommitResult(String tid, String parentTid, TradeState tradeState, PaymentOrder paymentOrder,
+                             BigDecimal price, LocalDateTime orderTimeOut, String storeName, Boolean isSelf, BigDecimal originPrice) {
+        this.tid = tid;
+        this.parentTid = parentTid;
+        this.tradeState = tradeState;
+        this.paymentOrder = paymentOrder;
+        this.price = price;
+        this.orderTimeOut = orderTimeOut;
+        this.storeName = storeName;
+        this.isSelf = isSelf;
+        this.originPrice = originPrice;
+    }
 }

@@ -12,15 +12,66 @@ import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewListResponse;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
-import com.wanmi.sbc.order.api.request.trade.*;
-import com.wanmi.sbc.order.api.response.trade.*;
-import com.wanmi.sbc.order.bean.dto.ProviderTradeListQueryDTO;
+import com.wanmi.sbc.order.api.request.trade.LatestDeliverDateRequest;
+import com.wanmi.sbc.order.api.request.trade.LogisticsRepeatRequest;
+import com.wanmi.sbc.order.api.request.trade.ProviderTradeVerifyAfterProcessingRequest;
+import com.wanmi.sbc.order.api.request.trade.ShippingCalendarRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeByPayOrderIdRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeCountCriteriaRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeDeliveryCheckRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetByIdListRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetByIdsRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetGoodsRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetPayOrderByIdRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetRemedyByTidRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeListAllRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeListByParentIdRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeListExportRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePageForSettlementRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeParamsRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeQueryFirstCompleteRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeQueryPurchaseInfoRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeSendEmailToFinanceRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeVerifyAfterProcessingRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeWrapperBackendCommitRequest;
+import com.wanmi.sbc.order.api.response.trade.LatestDeliverDateResponse;
+import com.wanmi.sbc.order.api.response.trade.LogisticNoRepeatResponse;
+import com.wanmi.sbc.order.api.response.trade.ShippingCalendarResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeByPayOrderIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeCountCriteriaResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetByIdsResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetFreightResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetPayOrderByIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeGetRemedyByTidResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeListAllResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeListByParentIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeListExportResponse;
+import com.wanmi.sbc.order.api.response.trade.TradePageCriteriaResponse;
+import com.wanmi.sbc.order.api.response.trade.TradePageForSettlementResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeQueryFirstCompleteResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeQueryPurchaseInfoResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeVerifyAfterProcessingResponse;
+import com.wanmi.sbc.order.api.response.trade.TradeWrapperBackendCommitResponse;
 import com.wanmi.sbc.order.bean.dto.TradeQueryDTO;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
-import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.order.bean.vo.DeliverCalendarVO;
+import com.wanmi.sbc.order.bean.vo.PayOrderVO;
+import com.wanmi.sbc.order.bean.vo.PointsTradeVO;
+import com.wanmi.sbc.order.bean.vo.ProviderTradeVO;
+import com.wanmi.sbc.order.bean.vo.ShippingCalendarVO;
+import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeRemedyDetailsVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
@@ -34,8 +85,11 @@ import com.wanmi.sbc.order.trade.model.root.TradeConfirmItem;
 import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.reponse.TradeFreightResponse;
 import com.wanmi.sbc.order.trade.reponse.TradeRemedyDetails;
+import com.wanmi.sbc.order.trade.request.ProviderTradeQueryRequest;
+import com.wanmi.sbc.order.trade.request.TradeCreateRequest;
 import com.wanmi.sbc.order.trade.request.TradeDeliverRequest;
-import com.wanmi.sbc.order.trade.request.*;
+import com.wanmi.sbc.order.trade.request.TradeParams;
+import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
 import com.wanmi.sbc.order.trade.service.CycleBuyDeliverTimeService;
 import com.wanmi.sbc.order.trade.service.ProviderTradeService;
 import com.wanmi.sbc.order.trade.service.TradeOptimizeService;
@@ -46,14 +100,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -191,6 +248,11 @@ public class TradeQueryController implements TradeQueryProvider {
         }
         Page<Trade> page = tradeService.page(criteria, tradeQueryRequest);
         MicroServicePage<TradeVO> tradeVOS = KsBeanUtil.convertPage(page, TradeVO.class);
+
+        if (CollectionUtils.isNotEmpty(tradeVOS.getContent())) {
+            tradeVOS.getContent().forEach(item -> item.setGiftFlag(CollectionUtils.isNotEmpty(item.getTags()) ? item.getTags().contains(OrderTagEnum.GIFT.getCode()) : false));
+        }
+
         List<TradeVO> tradeVOList=tradeVOS.getContent();
         // 未支付不显示卡券信息
         tradeVOList.stream()

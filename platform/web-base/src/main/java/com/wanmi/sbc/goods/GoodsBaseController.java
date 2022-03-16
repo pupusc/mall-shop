@@ -79,7 +79,16 @@ import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.enums.PriceType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.DistributorGoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GrouponGoodsInfoVO;
 import com.wanmi.sbc.goods.request.GrouponGoodsViewByIdResponse;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
@@ -122,11 +131,25 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -426,6 +449,11 @@ public class GoodsBaseController {
      * @return spu商品封装数据
      */
     private EsGoodsResponse list(EsGoodsInfoQueryRequest queryRequest, CustomerVO customer) {
+
+        //获取商品渠道
+        queryRequest.setGoodsChannelTypeSet(new HashSet<>(Collections.singletonList(commonUtil.getTerminal().getCode())));
+
+
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }

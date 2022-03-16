@@ -21,6 +21,7 @@ public class InitRunner implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		Class.forName("com.ofpay.rex.security.validation.ValidationPattern");
 		initProvider.init();
 		log.info("=======系统初始化（公司信息、默认素材分类等）");
 	}

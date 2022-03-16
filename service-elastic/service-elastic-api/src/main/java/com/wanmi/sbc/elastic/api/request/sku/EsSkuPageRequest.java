@@ -4,13 +4,11 @@ import com.wanmi.sbc.common.base.BaseQueryRequest;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsInfoSelectStatus;
-import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
-import com.wanmi.sbc.goods.bean.enums.GoodsSortType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -302,5 +300,9 @@ public class EsSkuPageRequest extends BaseQueryRequest implements Serializable {
     @ApiModelProperty(value = "过滤拼团商品")
     private Boolean groupon = Boolean.FALSE;
 
-
+    /**
+     * 商品销售渠道
+     */
+    @ApiModelProperty(value = "商品销售渠道")
+    private String goodsChannelType;
 }

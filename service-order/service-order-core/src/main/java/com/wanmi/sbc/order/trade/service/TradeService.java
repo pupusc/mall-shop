@@ -5,10 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
-//import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
-//import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
-//import com.sensorsdata.analytics.javasdk.bean.EventRecord;
-//import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -63,7 +59,6 @@ import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcard.PaidCardSaveProvider;
 import com.wanmi.sbc.customer.api.provider.points.CustomerPointsDetailSaveProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
-import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
 import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerListForOrderCommitRequest;
 import com.wanmi.sbc.customer.api.request.email.NoDeleteCustomerEmailListByCustomerIdRequest;
@@ -76,7 +71,6 @@ import com.wanmi.sbc.customer.api.request.level.CustomerLevelByCustomerIdAndStor
 import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
-import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
 import com.wanmi.sbc.customer.api.response.invoice.CustomerInvoiceByIdAndDelFlagResponse;
@@ -195,6 +189,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
@@ -255,7 +250,6 @@ import com.wanmi.sbc.order.receivables.service.ReceivableService;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
-//import com.wanmi.sbc.order.sensorsdata.SensorsDataService;
 import com.wanmi.sbc.order.sensorsdata.SensorsDataService;
 import com.wanmi.sbc.order.thirdplatformtrade.model.entity.LinkedMallTradeResult;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
@@ -380,7 +374,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -399,7 +393,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1603,6 +1596,9 @@ public class TradeService {
      */
     public Trade wrapperBackendCommitTrade(Operator operator, CompanyInfoVO companyInfo, StoreInfoResponse
             storeInfoResponse, TradeCreateRequest tradeCreateRequest) {
+        //验证外部订单
+        validateOutTrade(tradeCreateRequest);
+
         //1.获取代客下单操作人信息
         Seller seller = Seller.fromOperator(operator);
 
@@ -1668,6 +1664,21 @@ public class TradeService {
                         .distributeChannel(new DistributeChannel())
                         .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
                         .build());
+    }
+
+    private void validateOutTrade(TradeCreateRequest tradeCreateRequest) {
+        if (Objects.isNull(tradeCreateRequest) || Objects.isNull(tradeCreateRequest.getOutTradeNo())) {
+            return;
+        }
+        List<Trade> trades = detailByOutTradeNo(tradeCreateRequest.getOutTradeNo());
+        if (CollectionUtils.isEmpty(trades)) {
+            return;
+        }
+        for (Trade item : trades) {
+            if (!FlowState.VOID.getStateId().equals(item.getTradeState().getFlowState())) {
+                throw new SbcRuntimeException(CommonErrorCode.REPEAT_REQUEST, "订单已经存在");
+            }
+        }
     }
 
     /**
@@ -3241,13 +3252,13 @@ public class TradeService {
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getEarnestPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
                         } else {
                             resultList.add(new TradeCommitResult(result.getId(),
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getTotalPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
                         }
                     } catch (Exception e) {
                         log.error("commit trade error,trade={}，错误信息：{}", trade, e);
@@ -4032,6 +4043,10 @@ public class TradeService {
         return tradeRepository.findListByParentId(parentTid);
     }
 
+    public List<Trade> detailByOutTradeNo(String outTradeNo) {
+        return tradeRepository.findListByOutTradeNo(outTradeNo);
+    }
+
     /**
      * 发货
      *
@@ -4493,7 +4508,7 @@ public class TradeService {
                     .UNCONFIRMED);
         }
 
-        if (PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.ONLINE) {
+        if (PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.ONLINE || PayType.fromValue(Integer.parseInt(trade.getPayInfo().getPayTypeId())) == PayType.INNER_SETTLE) {
             // 如果是拼团订单
             if (Objects.nonNull(trade.getGrouponFlag()) && trade.getGrouponFlag()) {
                 // 拼团订单支付处理，拼团成功更新子单
@@ -7707,6 +7722,9 @@ public class TradeService {
                         tradeVo.getId())).map(vo -> tradeMapper.providerTradeToTradeVo(vo)).collect(Collectors.toList()));
             } else {
                 tradeVo.setTradeVOList(Lists.newArrayList());
+            }
+            if (CollectionUtils.isNotEmpty(tradeVo.getTags())) {
+                tradeVo.setGiftFlag(tradeVo.getTags().contains(OrderTagEnum.GIFT.getCode()));
             }
             return tradeVo;
         }).collect(Collectors.toList()), request

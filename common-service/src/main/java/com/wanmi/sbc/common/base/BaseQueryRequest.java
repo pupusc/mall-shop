@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+
 /**
  * 请求基类
  * Created by aqlu on 15/11/30.

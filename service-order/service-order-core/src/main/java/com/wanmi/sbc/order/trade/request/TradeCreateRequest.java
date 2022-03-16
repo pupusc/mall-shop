@@ -10,5 +10,5 @@ public class TradeCreateRequest extends TradeRemedyRequest {
 
     private static final long serialVersionUID = 3529565997588014310L;
     private String custom;
-
+    private String outTradeNo;
 }

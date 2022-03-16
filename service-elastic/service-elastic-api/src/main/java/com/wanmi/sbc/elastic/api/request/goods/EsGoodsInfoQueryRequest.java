@@ -34,10 +34,17 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhrasePrefixQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * 商品SKU查询请求
@@ -334,6 +341,12 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "主播推荐 1樊登解读,2非凡精读,3樊登直播 内容以 相隔")
     private String anchorPushs;
+
+    /*
+     * 商品渠道类型 1H5 2小程序 3 樊登赠品
+     */
+    private Set<Integer> goodsChannelTypeSet;
+
     /**
      * 封装公共条件
      * @return
@@ -352,6 +365,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             aggs.forEach(builder::addAggregation);
         }
         SearchQuery searchQuery = builder.build();
+        log.info("--->>> EsGoodsInfoQueryRequest.getSearchCriteria DSL: {}", searchQuery.getQuery().toString());
         return searchQuery;
     }
 
@@ -389,6 +403,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         //批量商品分类ID
         if (CollectionUtils.isNotEmpty(cateIds)) {
             boolQueryBuilder.must(termsQuery("goodsCate.cateId", cateIds));
+        }
+
+        if (CollectionUtils.isNotEmpty(goodsChannelTypeSet)) {
+            boolQueryBuilder.must(termsQuery("goodsChannelTypeList", goodsChannelTypeSet));
         }
 
         //店铺ID

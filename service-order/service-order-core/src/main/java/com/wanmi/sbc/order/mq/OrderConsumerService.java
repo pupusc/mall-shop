@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.request.employee.EmployeeHandoverRequest;
 import com.wanmi.sbc.goods.api.provider.restrictedrecord.RestrictedRecordSaveProvider;
-import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyStatisticsNumRequest;
 import com.wanmi.sbc.goods.api.request.restrictedrecord.RestrictedRecordBatchAddRequest;
 import com.wanmi.sbc.goods.bean.vo.RestrictedRecordSimpVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
-import com.wanmi.sbc.order.api.request.exceptionoftradepoints.ExceptionOfTradePointsAddRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeBackRestrictedRequest;
 import com.wanmi.sbc.order.exceptionoftradepoints.model.root.ExceptionOfTradePoints;
 import com.wanmi.sbc.order.exceptionoftradepoints.service.ExceptionOfTradePointsService;
+import com.wanmi.sbc.order.open.TradeDeliverService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
@@ -49,6 +48,9 @@ public class OrderConsumerService {
 
     @Autowired
     private ExceptionOfTradePointsService exceptionOfTradePointsService;
+
+    @Autowired
+    private TradeDeliverService tradeDeliverService;
 
     @StreamListener(JmsDestinationConstants.Q_ORDER_SERVICE_MODIFY_EMPLOYEE_DATA)
     public void modifyEmployeeData(EmployeeHandoverRequest request){
@@ -158,5 +160,14 @@ public class OrderConsumerService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 订单发货消息通知
+     */
+    @StreamListener(JmsDestinationConstants.Q_OPEN_ORDER_DELIVERED_CONSUMER)
+    public void onMessageForOrderDelivered(Trade trade) {
+        log.info("收到发货消息通知：tradeNo = {}, outTradeNo = {}", trade.getId(), trade.getOutTradeNo());
+        tradeDeliverService.onDeliveredForOutPlat(trade.getId());
     }
 }
