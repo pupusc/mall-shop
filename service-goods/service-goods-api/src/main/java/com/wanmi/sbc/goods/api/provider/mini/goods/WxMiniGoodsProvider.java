@@ -36,7 +36,7 @@ public interface WxMiniGoodsProvider {
     BaseResponse delete(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
 
     @PostMapping("/goods/${application.goods.version}/wx/find-all-id")
-    BaseResponse<List<String>> findAllId();
+    BaseResponse<List<String>> findAllId(@RequestBody WxGoodsSearchRequest wxGoodsSearchRequest);
 
     @PostMapping("/goods/${application.goods.version}/wx/find-by-goods-ids")
     BaseResponse<List<String>> findByGoodsIds(@RequestBody List<String> goodsIds);

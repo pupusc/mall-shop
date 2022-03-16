@@ -301,8 +301,8 @@ public class WxGoodsService {
         return onShelfCount > 0;
     }
 
-    public List<WxGoodsModel> findAll(){
-        return wxGoodsRepository.findAll(wxGoodsRepository.buildSearchCondition(new WxGoodsSearchRequest()));
+    public List<WxGoodsModel> findAll(WxGoodsSearchRequest wxGoodsSearchRequest){
+        return wxGoodsRepository.findAll(wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest));
     }
 
     public List<WxGoodsModel> findByGoodsIds(List<String> goodsIds){

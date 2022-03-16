@@ -25,6 +25,10 @@ public class WxGoodsSearchRequest {
      * 审核状态 0-未审核 1-审核中 2-审核失败 3-审核成功
      */
     private Integer auditStatus;
+    /**
+     * 通过至少一次微信审核的
+     */
+    private Boolean auditPassedOnce;
 
     private List<String> goodsIds;
 

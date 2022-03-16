@@ -106,8 +106,8 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
     }
 
     @Override
-    public BaseResponse<List<String>> findAllId(){
-        List<WxGoodsModel> wxGoodsModels = wxGoodsService.findAll();
+    public BaseResponse<List<String>> findAllId(WxGoodsSearchRequest wxGoodsSearchRequest){
+        List<WxGoodsModel> wxGoodsModels = wxGoodsService.findAll(wxGoodsSearchRequest);
         return BaseResponse.success(wxGoodsModels.stream().map(WxGoodsModel::getGoodsId).collect(Collectors.toList()));
     }
 
