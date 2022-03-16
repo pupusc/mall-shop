@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
 
 @FeignClient(value = "${application.goods.name}", contextId = "WxMiniGoodsProvider")
@@ -33,6 +34,12 @@ public interface WxMiniGoodsProvider {
 
     @PostMapping("/goods/${application.goods.version}/wx/delete")
     BaseResponse delete(@RequestBody WxDeleteProductRequest wxDeleteProductRequest);
+
+    @PostMapping("/goods/${application.goods.version}/wx/find-all-id")
+    BaseResponse<List<String>> findAllId();
+
+    @PostMapping("/goods/${application.goods.version}/wx/find-by-goods-ids")
+    BaseResponse<List<String>> findByGoodsIds(@RequestBody List<String> goodsIds);
 
     @PostMapping("/${application.goods.version}/wx/audit/callback")
     BaseResponse<Boolean> auditCallback(@RequestBody Map<String, Object> paramMap);
