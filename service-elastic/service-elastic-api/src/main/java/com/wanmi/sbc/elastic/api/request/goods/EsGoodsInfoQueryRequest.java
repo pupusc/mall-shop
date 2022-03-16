@@ -365,6 +365,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
             aggs.forEach(builder::addAggregation);
         }
         SearchQuery searchQuery = builder.build();
+        log.info("--->>> EsGoodsInfoQueryRequest.getSearchCriteria DSL: {}", searchQuery.getQuery().toString());
         return searchQuery;
     }
 
