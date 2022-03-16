@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
@@ -28,6 +29,7 @@ import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -213,14 +215,19 @@ public class SiteSearchService {
         }
 
         //是否是主站商品
-        // TODO: 2022/3/16 过滤主站商品才推送
+        if (StringUtils.isBlank(goods.getGoodsChannelType())) {
+            return 0;
+        }
+        String[] channelArr = goods.getGoodsChannelType().split(",");
+        if (!Arrays.stream(channelArr).filter(item -> GoodsChannelTypeEnum.FDDS_DELIVER.getCode().equals(item)).findFirst().isPresent()) {
+            return 0;
+        }
 
         Optional<GoodsCate> goodsCate = goodsCateRepository.findById(goods.getCateId());
         //不是书籍分类
         if (!goodsCate.isPresent() || !Integer.valueOf(1).equals(goodsCate.get().getBookFlag())) {
             return 0;
         }
-
         return 1;
     }
 
