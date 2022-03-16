@@ -143,7 +143,7 @@ public class EsGoodsCustomService {
         BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
 
         if (!StringUtils.isEmpty(request.getNotChannelType())) {
-            boolQueryBuilder.must(termQuery("goodsChannelTypeList", request.getNotChannelType()));
+            boolQueryBuilder.mustNot(termQuery("goodsChannelTypeList", request.getNotChannelType()));
         }
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
             boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
