@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.fandeng.model;
 import lombok.Data;
 
 import java.io.*;
+import java.util.Date;
 
 /**
  * @author Liang Jun
@@ -43,10 +44,25 @@ public class SyncBookPkgMetaReq implements Serializable {
     /**
      * 实体书书单的书单描述
      */
-    private String summary;
+    private String content;
 
     /**
      * 已购买的数量（书单对应的所有的书的购买数量的总和仅实体书书单拥有。）
      */
     private Integer payCount;
+
+    /**
+     * 发布状态1发布，0不发布
+     */
+    private Integer publishStatus;
+
+    /**
+     * 书单发布开始时间
+     */
+    private Date resPublishStart;
+
+    /**
+     * 书单发布结束时间
+     */
+    private Date resPublishEnd;
 }

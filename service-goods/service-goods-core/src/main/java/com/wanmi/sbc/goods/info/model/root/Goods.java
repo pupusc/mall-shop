@@ -10,7 +10,6 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Proxy;

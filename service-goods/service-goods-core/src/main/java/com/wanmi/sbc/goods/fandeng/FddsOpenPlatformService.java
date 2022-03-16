@@ -2,12 +2,10 @@ package com.wanmi.sbc.goods.fandeng;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.ShaUtil;
-import com.wanmi.sbc.goods.api.request.common.ImageAuditRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsImageAuditResponse;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -18,9 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -42,13 +40,6 @@ public class FddsOpenPlatformService {
     public static final String OAUTH_TOKEN_URL = "/oauth/token?grant_type=client_credentials&client_id=%s&client_secret=%s";
 
     /**
-     * 图片
-     */
-    public static final String AUDIT_IMAGE_URL = "/content/verifyImg";
-
-
-
-    /**
      * 调用樊登接口公共参数
      */
     public static final String PARAMETER = "?appid=%s&sign=%s&access_token=%s";
@@ -58,95 +49,96 @@ public class FddsOpenPlatformService {
      */
     public static final Long FANDENG_TIME = 7000L;
 
+    public String doRequest(String url, String body) {
+        if (StringUtils.isBlank(url) || StringUtils.isBlank(body)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        return doPost(jointUrl(url + PARAMETER, body), JSON.toJSONString(body));
+    }
 
-    public BaseResponse<GoodsImageAuditResponse> aduitImage(@Valid ImageAuditRequest request) throws Exception {
-        String body = JSON.toJSONString(request);
-        String result = getUrl(jointUrl(AUDIT_IMAGE_URL + PARAMETER, body), JSON.toJSONString(request));
-        GoodsImageAuditResponse response =
-                (GoodsImageAuditResponse) exchange(result, GoodsImageAuditResponse.class);
-        return BaseResponse.success(response);
+    public <T> T doRequest(String url, String body, Class<T> clazz) {
+        String result = doRequest(url, body);
+        return exchange(result, clazz);
     }
 
     /**
      * 除免登接口其他调用接口统一入口
      */
-    private String getUrl(String url, String body) {
+    private String doPost(String url, String body) {
         try {
             HttpResponse httpResponse = HttpUtil.doPost(host, url, getHeaders(), null, body);
             if (HttpStatus.SC_UNAUTHORIZED == httpResponse.getStatusLine().getStatusCode()) {
                 redisService.delete(appid);
                 httpResponse = HttpUtil.doPost(host, url, getHeaders(), null, body);
             }
-            log.info("樊登请求接口直接返回：{}", httpResponse);
-            log.info("樊登请求接口：{},请求参数{}", url, body);
 
-            if (HttpStatus.SC_OK == httpResponse.getStatusLine().getStatusCode()) {
-//                log.info("请求接口：{},请求参数：{}", host + url, body);
-                String entity = EntityUtils.toString(httpResponse.getEntity());
-                log.info("樊登请求接口：{},请求参数{},返回状态：{}", url, body, entity);
-                return entity;
+            if (HttpStatus.SC_OK != httpResponse.getStatusLine().getStatusCode()) {
+                log.warn("樊登读书接口响应异常，请求接口:{}, 请求参数:{}, 返回状态:{}", url, body, httpResponse.getStatusLine().getStatusCode());
+                throw new SbcRuntimeException("K-120801", "樊登读书接口响应异常");
             }
+
+            String entity = EntityUtils.toString(httpResponse.getEntity());
+            log.info("樊登读书接口请求成功，请求接口:{}, 请求参数:{}, 返回结果:{}", url, body, entity);
+            return entity;
         } catch (Exception e) {
-            log.error("樊登接口调用异常：{}", e);
+            log.error("樊登读书接口调用异常");
+            throw new SbcRuntimeException(e);
         }
-        throw new SbcRuntimeException("K-120801", "樊登接口异常");
     }
 
     /**
      * 获取樊登token
-     *
-     * @return
      */
     private String getAccessToken() {
         String accessToken = redisService.getString(appid);
-//        String accessToken = "";
-        if (StringUtils.isBlank(accessToken)) {
-            String url = String.format(OAUTH_TOKEN_URL, appid, appsecret);
-            try {
-                HttpResponse httpResponse = HttpUtil.doPost(host,
-                        url, getHeaders(), null, null);
-                if (200 == httpResponse.getStatusLine().getStatusCode()) {
-                    String entity = EntityUtils.toString(httpResponse.getEntity());
-                    JSONObject object = JSONObject.parseObject(entity);
-                    String error = object.getString("error");
-                    if (StringUtils.isBlank(error)) {
-                        //获取到token
-                        accessToken = object.getString("value");
-                        redisService.setString(appid, accessToken, FANDENG_TIME);
-                        return accessToken;
-                    }
-                    log.error("获取樊登AccessToken失败异常:{}", entity);
-                }
-            } catch (Exception e) {
-                log.error("获取樊登token:{}", e);
-            }
-            throw new SbcRuntimeException("K-120802");
+
+        if (StringUtils.isNotBlank(accessToken)) {
+            return accessToken;
         }
-        return accessToken;
+
+        String url = String.format(OAUTH_TOKEN_URL, appid, appsecret);
+        try {
+            HttpResponse httpResponse = HttpUtil.doPost(host, url, getHeaders(), null, null);
+
+            if (HttpStatus.SC_OK != httpResponse.getStatusLine().getStatusCode()) {
+                log.warn("樊登读书接口响应异常，请求接口:{}, 请求参数:{}, 返回状态:{}", url, "", httpResponse.getStatusLine().getStatusCode());
+                throw new SbcRuntimeException("K-120802", "樊登读书接口响应异常");
+            }
+            String entity = EntityUtils.toString(httpResponse.getEntity());
+            JSONObject object = JSONObject.parseObject(entity);
+
+            if (StringUtils.isNotBlank(object.getString("error"))) {
+                log.warn("获取樊登AccessToken失败异常:{}", entity);
+                throw new SbcRuntimeException("K-120802", "获取樊登读书AccessToken失败");
+            }
+
+            //获取到token
+            accessToken = object.getString("value");
+            redisService.setString(appid, accessToken, FANDENG_TIME);
+            return accessToken;
+        } catch (Exception e) {
+            log.error("获取樊登读书token发生异常");
+            throw new SbcRuntimeException(e);
+        }
     }
 
     /**
      * 拼接url参数  并生成签名
-     *
-     * @param url
-     * @return
      */
     private String jointUrl(String url, String body) {
         try {
             String encryptSHA1 = ShaUtil.encryptSHA1(body + appid, appsecret);
-            String realUrl = String.format(url, appid, encryptSHA1, getAccessToken());
-            return realUrl;
+            return String.format(url, appid, encryptSHA1, getAccessToken());
         } catch (Exception e) {
             log.error("拼接加密参数:{}", e);
+            throw new SbcRuntimeException(e);
         }
-
-        return null;
     }
 
     /**
      * 获取请求头参数
      */
-    public Map<String, String> getHeaders() {
+    private Map<String, String> getHeaders() {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json;charset=UTF-8");
         return headers;
@@ -154,36 +146,16 @@ public class FddsOpenPlatformService {
 
     /**
      * 转换成返回对象
-     *
-     * @param body
-     * @param t
-     * @return
      */
-    private Object exchange(String body, Class t) {
+    private <T> T exchange(String body, Class<T> clazz) {
         JSONObject object = JSONObject.parseObject(body);
         String code = (String) object.get("status");
-        if (code == null || (code != null && code.equals("0000"))) {
-            JSONObject data = (JSONObject) object.get("data");
-            Object parseObject = JSON.parseObject(data.toString(), t);
-            return parseObject;
-        }
-        throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
-    }
 
-    /**
-     * 转换成返回对象
-     *
-     * @param body
-     * @param t
-     * @return
-     */
-    private Boolean exchangeBoolean(String body) {
-        JSONObject object = JSONObject.parseObject(body);
-        String code = (String) object.get("status");
-        if (code == null || (code != null && code.equals("0000"))) {
-            Boolean data = (Boolean) object.get("data");
-            return data;
+        if (Objects.nonNull(code) && !"0000".equals(code)) {
+            throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
         }
-        throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
+
+        JSONObject data = object.getJSONObject("data");
+        return JSON.parseObject(data.toString(), clazz);
     }
 }

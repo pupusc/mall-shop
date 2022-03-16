@@ -29,6 +29,7 @@ import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
 import com.wanmi.sbc.goods.classify.service.ClassifyService;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,8 @@ public class BookListModelService {
     @Autowired
     private ClassifyService classifyService;
 
-
+    @Autowired
+    private SiteSearchService siteSearchService;
 
     /**
      * 新增 书单模板
@@ -137,7 +139,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.add(chooseRuleGoodsListModel, bookListMixProviderRequest.getOperator());
         }
 
-
+        siteSearchService.createBookPkg(bookListModelParam);
     }
 
     /**
@@ -238,8 +240,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
         }
 
-
-
+        siteSearchService.updateBookPkg(bookListModelRequest);
     }
 
     /**
@@ -269,8 +270,7 @@ public class BookListModelService {
         }
 
         //todo  删除控件和商品列表
-
-
+        siteSearchService.deleteBookPkg(bookListModelId);
     }
 
     /**
@@ -295,6 +295,7 @@ public class BookListModelService {
         bookListModelObj.setUpdateTime(new Date());
         bookListModelRepository.save(bookListModelObj);
 
+        siteSearchService.updateBookPkgPublish(bookListModelId);
     }
 
     /**

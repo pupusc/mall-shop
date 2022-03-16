@@ -3,6 +3,8 @@ package com.wanmi.sbc.goods.fandeng.model;
 import lombok.Data;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,14 +13,6 @@ import java.util.List;
  */
 @Data
 public class SyncBookResMetaReq implements Serializable {
-    /**
-     * id
-     */
-    private String id;
-    /**
-     * 标题
-     */
-    private String title;
     /**
      * xxx
      */
@@ -35,6 +29,10 @@ public class SyncBookResMetaReq implements Serializable {
      * 商品名称
      */
     private String goodsName;
+    /**
+     * 商品标题
+     */
+    private String title;
     /**
      * 商品副标题
      */
@@ -91,4 +89,19 @@ public class SyncBookResMetaReq implements Serializable {
      * 标签列表（顺序商城控制）
      */
     private List<SyncBookResMetaLabelReq> labels;
+
+    /**
+     * 发布状态1发布，0不发布
+     */
+    private Integer publishStatus;
+
+    /**
+     * 书单发布开始时间
+     */
+    private LocalDateTime resPublishStart;
+
+    /**
+     * 书单发布结束时间
+     */
+    private LocalDateTime resPublishEnd;
 }

@@ -64,6 +64,7 @@ import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
@@ -335,6 +336,9 @@ public class GoodsService {
     @Autowired
     private GoodsVoteRepository goodsVoteRepository;
 
+    @Autowired
+    private SiteSearchService siteSearchService;
+
 
     /**
      * 供应商商品删除
@@ -381,6 +385,9 @@ public class GoodsService {
 
         //ares埋点-商品-后台批量删除商品spu
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
+
+        //删除主站搜素
+        siteSearchService.deleteBook(goodsIds);
     }
 
     /**
@@ -438,6 +445,7 @@ public class GoodsService {
             }
         }
 
+        siteSearchService.updateBookShelf(goodsIds);
     }
 
     /**
@@ -1892,10 +1900,8 @@ public class GoodsService {
             goodsSyncRelationRepository.save(goodsSyncRelation);
 
         }
-
         //商品推送到站内搜索
-
-
+        siteSearchService.createBook(goods);
         return goodsId;
     }
 
@@ -2551,6 +2557,8 @@ public class GoodsService {
         returnMap.put("oldGoodsInfos", oldGoodsInfos);
         returnMap.put("oldGoods", oldGoods);
         returnMap.put("isDealGoodsVendibility", isDealGoodsVendibility);
+
+        siteSearchService.updateBook(newGoods);
         return returnMap;
     }
 
@@ -2626,6 +2634,8 @@ public class GoodsService {
 //        goodsInfoRepository.save(goodsInfos);
 
         this.saveGoodsPrice(goodsInfos, newGoods, saveRequest);
+
+        siteSearchService.updateBook(newGoods);
     }
 
     /**
@@ -2735,6 +2745,7 @@ public class GoodsService {
                 }
             }
         }
+        siteSearchService.updateBook(goods);
     }
 
     /**
@@ -2779,6 +2790,8 @@ public class GoodsService {
 
         //ares埋点-商品-后台批量删除商品spu
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
+
+        siteSearchService.deleteBook(goodsIds);
     }
 
     /**
@@ -2800,6 +2813,8 @@ public class GoodsService {
                 distributiorGoodsInfoRepository.deleteByGoodsId(goodsID);
             });
         }
+
+        siteSearchService.updateBookShelf(goodsIds);
     }
 
     /**
@@ -2823,6 +2838,7 @@ public class GoodsService {
 
         storeCateGoodsRelaRepository.saveAll(relas);
 
+        siteSearchService.updateBookCate(goodsIds);
     }
 
     /**
@@ -3257,6 +3273,7 @@ public class GoodsService {
             }
         }
 
+        siteSearchService.updateBooKVendibility(request.getGoodsIds());
     }
 
     /**
