@@ -72,7 +72,7 @@ public class WxLiveAssistantService {
         WxLiveAssistantModel wxLiveAssistantModel = WxLiveAssistantModel.create(wxLiveAssistantCreateRequest);
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
-        if(wxLiveAssistantCreateRequest.getGoodsId() != null){
+        if(CollectionUtils.isNotEmpty(wxLiveAssistantCreateRequest.getGoodsId())){
             WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest = new WxLiveAssistantGoodsCreateRequest();
             wxLiveAssistantGoodsCreateRequest.setAssistantId(wxLiveAssistantModel.getId());
             wxLiveAssistantGoodsCreateRequest.setGoods(wxLiveAssistantCreateRequest.getGoodsId());
