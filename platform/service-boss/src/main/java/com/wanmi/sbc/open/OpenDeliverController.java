@@ -134,7 +134,7 @@ public class OpenDeliverController extends OpenBaseController {
         queryRequest.setLikeGoodsName(params.getGoodsName());
         queryRequest.setPageNum(pageNo < 1 ? 0 : pageNo-1);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
-        queryRequest.setGoodsChannelType(TerminalSource.FDDS_DELIVER.getCode()); //商品销售渠道
+        queryRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{TerminalSource.FDDS_DELIVER.getCode()}).collect(Collectors.toSet())); //商品销售渠道
 
         //按创建时间倒序、ID升序
         queryRequest.putSort("addedTime", SortType.DESC.toValue());
