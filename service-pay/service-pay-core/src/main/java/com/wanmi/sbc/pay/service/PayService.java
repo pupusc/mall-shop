@@ -196,7 +196,7 @@ public class PayService {
         //未退款或退款失败的退单，调用网关执行退款操作
         PayTradeRecord payRecord = recordRepository.findTopByBusinessIdAndStatus(request.getBusinessId(), TradeStatus.SUCCEED);
 
-        Long storeId = Constants.BOSS_DEFAULT_STORE_ID;
+        Long storeId = request.getStoreId();
         request.setStoreId(storeId);
         PayChannelItem item = getPayChannelItem(payRecord.getChannelItemId(),storeId);
         if (payRecord.getChannelItemId().equals(11L)) {

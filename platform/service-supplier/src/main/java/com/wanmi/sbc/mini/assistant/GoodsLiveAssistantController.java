@@ -187,11 +187,7 @@ public class GoodsLiveAssistantController {
             queryRequest.setPageSize(50);
             queryRequest.setLikeGoodsName(wxLiveAssistantSearchRequest.getGoodsName());
             queryRequest.setQueryGoods(true);
-            queryRequest.setAddedFlag(AddedFlag.YES.toValue());
             queryRequest.setDelFlag(DeleteFlag.NO.toValue());
-            queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
-            queryRequest.setStoreState(StoreState.OPENING.toValue());
-            queryRequest.setVendibility(Constants.yes);
             EsGoodsResponse context = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
             if(context == null || context.getEsGoods() == null || CollectionUtils.isEmpty(context.getEsGoods().getContent())){
                 wxLiveAssistantSearchRequest.setGoodsIdIn(Collections.singletonList("nothing"));
