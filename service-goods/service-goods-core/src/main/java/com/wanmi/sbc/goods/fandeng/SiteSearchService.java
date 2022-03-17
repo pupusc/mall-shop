@@ -6,7 +6,6 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
-import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelProviderRequest;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
@@ -27,6 +26,7 @@ import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
+import com.wanmi.sbc.goods.mq.ProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Liang Jun
@@ -98,30 +99,64 @@ public class SiteSearchService {
     @Autowired
     private BookListGoodsPublishService bookListGoodsPublishService;
 
-    public void syncBookResData(@Valid SyncBookResReqVO reqVO) {
+    @Autowired
+    private ProducerService producerService;
+
+
+    public void siteSearchBookResNotify(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            log.warn("同步的书籍id为空");
+            return;
+        }
+
+        SiteSearchNotifyModel model = new SiteSearchNotifyModel();
+        model.setType("BOOK_RES");
+        model.setIds(ids);
+        producerService.siteSearchDataNotify(model);
+    }
+
+    public void siteSearchBookPkgNotify(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            log.warn("同步的书单id为空");
+            return;
+        }
+        SiteSearchNotifyModel model = new SiteSearchNotifyModel();
+        model.setType("BOOK_PKG");
+        model.setIds(ids.stream().map(item -> item.toString()).collect(Collectors.toList()));
+        producerService.siteSearchDataNotify(model);
+    }
+
+    public void siteSearchDataConsumer(SiteSearchNotifyModel model) {
+        if (Objects.isNull(model)) {
+            log.info("站内搜索同步消息内容为空");
+        }
+
+        if ("BOOK_RES".equals(model.getType())) {
+            sendBookResData(model.getIds());
+            return;
+        }
+
+        if ("BOOK_PKG".equals(model.getType()) && CollectionUtils.isNotEmpty(model.getIds())) {
+            for (String id : model.getIds()) {
+                sendBookPkgData(Integer.valueOf(id));
+            }
+            return;
+        }
+    }
+
+    private void syncBookResData(@Valid SyncBookResReqVO reqVO) {
         String json = JSON.toJSONString(reqVO);
         log.info("--->>>同步书籍信息到站内搜索系统, data = {}", json);
         fddsOpenPlatformService.doRequest(syncBookResUrl, json);
     }
 
-    public void syncBookPkgData(@Valid SyncBookPkgReqVO reqVO) {
+    private void syncBookPkgData(@Valid SyncBookPkgReqVO reqVO) {
         String json = JSON.toJSONString(reqVO);
         log.info("--->>>同步书单信息到站内搜索系统, data = {}", json);
         fddsOpenPlatformService.doRequest(syncBookPkgUrl, json);
     }
 
-    /**
-     * 1.商品上下架：主动上下架、定时上下架
-     */
-
-    /**
-     * 新增书籍
-     */
-    public void createBook(Goods goods) {
-        sendBookResDatas(Arrays.asList(goods.getGoodsId()));
-    }
-
-    private void sendBookResDatas(List<String> goodsIds) {
+    private void sendBookResData(List<String> goodsIds) {
         if (CollectionUtils.isEmpty(goodsIds)) {
             log.error("商品goodsIds参数为空");
             return;
@@ -229,7 +264,7 @@ public class SiteSearchService {
             return 0;
         }
 
-        if (goodsSyncCate <= 0 || !goodsSyncCate.equals(goods.getCateId())) {
+        if (goodsSyncCate > 0 && !goodsSyncCate.equals(goods.getCateId())) {
             return 0;
         }
 
@@ -240,72 +275,6 @@ public class SiteSearchService {
         }
 
         return 1;
-    }
-
-
-    /**
-     * 更新书籍
-     */
-    public void updateBook(Goods newGoods) {
-        sendBookResDatas(Arrays.asList(newGoods.getGoodsId()));
-    }
-
-    /**
-     * 删除书籍
-     */
-    public void deleteBook(List<String> goodsIds) {
-        sendBookResDatas(goodsIds);
-    }
-
-    /**
-     * 更新上下架
-     * 如果商品下架，删除主站搜索
-     */
-    public void updateBookShelf(List<String> goodsIds) {
-        sendBookResDatas(goodsIds);
-    }
-
-    /**
-     * 更新商品分类
-     * 如果变成非书籍分类，删除主站搜索
-     */
-    public void updateBookCate(List<String> goodsIds) {
-        sendBookResDatas(goodsIds);
-    }
-
-    /**
-     * 更新商品销售状态
-     */
-    public void updateBooKVendibility(List<String> goodsIds) {
-
-    }
-
-    /**
-     * 新增书单
-     */
-    public void createBookPkg(BookListModelDTO bookListModelParam) {
-        sendBookPkgData(bookListModelParam.getId());
-    }
-
-    /**
-     * 更新书单
-     */
-    public void updateBookPkg(BookListModelProviderRequest bookListModelRequest) {
-        sendBookPkgData(bookListModelRequest.getId());
-    }
-
-    /**
-     * 删除书单
-     */
-    public void deleteBookPkg(Integer bookPkgId) {
-        sendBookPkgData(bookPkgId);
-    }
-
-    /**
-     * 更新书单发布
-     */
-    public void updateBookPkgPublish(Integer bookPkgId) {
-        sendBookPkgData(bookPkgId);
     }
 
     private void sendBookPkgData(Integer pkgId) {

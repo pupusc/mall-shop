@@ -51,6 +51,7 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -139,7 +140,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.add(chooseRuleGoodsListModel, bookListMixProviderRequest.getOperator());
         }
 
-        siteSearchService.createBookPkg(bookListModelParam);
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelParam.getId()));
     }
 
     /**
@@ -240,7 +241,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
         }
 
-        siteSearchService.updateBookPkg(bookListModelRequest);
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelRequest.getId()));
     }
 
     /**
@@ -269,8 +270,7 @@ public class BookListModelService {
             throw new SbcRuntimeException("书单" + bookListModelId + "删除中异常");
         }
 
-        //todo  删除控件和商品列表
-        siteSearchService.deleteBookPkg(bookListModelId);
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelId));
     }
 
     /**
@@ -295,7 +295,7 @@ public class BookListModelService {
         bookListModelObj.setUpdateTime(new Date());
         bookListModelRepository.save(bookListModelObj);
 
-        siteSearchService.updateBookPkgPublish(bookListModelId);
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelId));
     }
 
     /**

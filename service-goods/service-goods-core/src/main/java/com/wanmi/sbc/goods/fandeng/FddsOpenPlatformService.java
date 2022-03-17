@@ -53,7 +53,7 @@ public class FddsOpenPlatformService {
         if (StringUtils.isBlank(url) || StringUtils.isBlank(body)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        return doPost(jointUrl(url + PARAMETER, body), JSON.toJSONString(body));
+        return doPost(jointUrl(url + PARAMETER, body), body);
     }
 
     public <T> T doRequest(String url, String body, Class<T> clazz) {

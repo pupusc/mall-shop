@@ -22,4 +22,8 @@ public class GoodsJmsDestinationConstants {
      * 更新商品所属的供应商店铺状态
      */
     public static final String Q_GOODS_MODIFY_PROVIDER_STATUS = "q.goods.modify.provider.status";
+
+    public static final String Q_SITE_SEARCH_SYNC_PRODUCER = "q-site-search-sync-producer";
+
+    public static final String Q_SITE_SEARCH_SYNC_CONSUMER = "q-site-search-sync-onsumer";
 }

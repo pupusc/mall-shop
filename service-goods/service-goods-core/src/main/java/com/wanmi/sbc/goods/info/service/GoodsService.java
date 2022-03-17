@@ -387,7 +387,7 @@ public class GoodsService {
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
 
         //删除主站搜素
-        siteSearchService.deleteBook(goodsIds);
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -445,7 +445,7 @@ public class GoodsService {
             }
         }
 
-        siteSearchService.updateBookShelf(goodsIds);
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -1902,7 +1902,7 @@ public class GoodsService {
 
         }
         //商品推送到站内搜索
-        siteSearchService.createBook(goods);
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(goods.getGoodsId()));
         return goodsId;
     }
 
@@ -2560,7 +2560,7 @@ public class GoodsService {
         returnMap.put("oldGoods", oldGoods);
         returnMap.put("isDealGoodsVendibility", isDealGoodsVendibility);
 
-        siteSearchService.updateBook(newGoods);
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(newGoods.getGoodsId()));
         return returnMap;
     }
 
@@ -2637,7 +2637,7 @@ public class GoodsService {
 
         this.saveGoodsPrice(goodsInfos, newGoods, saveRequest);
 
-        siteSearchService.updateBook(newGoods);
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(newGoods.getGoodsId()));
     }
 
     /**
@@ -2747,7 +2747,7 @@ public class GoodsService {
                 }
             }
         }
-        siteSearchService.updateBook(goods);
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(goods.getGoodsId()));
     }
 
     /**
@@ -2793,7 +2793,7 @@ public class GoodsService {
         //ares埋点-商品-后台批量删除商品spu
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
 
-        siteSearchService.deleteBook(goodsIds);
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -2816,7 +2816,7 @@ public class GoodsService {
             });
         }
 
-        siteSearchService.updateBookShelf(goodsIds);
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -2840,7 +2840,7 @@ public class GoodsService {
 
         storeCateGoodsRelaRepository.saveAll(relas);
 
-        siteSearchService.updateBookCate(goodsIds);
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -3274,8 +3274,6 @@ public class GoodsService {
                 goodsInfoRepository.updateGoodsInfoVendibility(Constants.no, goodsInfoIds);
             }
         }
-
-        siteSearchService.updateBooKVendibility(request.getGoodsIds());
     }
 
     /**
