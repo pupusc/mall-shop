@@ -237,7 +237,7 @@ public class TradeOrderService {
             put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticNo());
         }});
         map.put("thing9",new HashMap<String,String>(){{
-            put("value", "");
+            put("value", StringUtils.isNotEmpty(trade.getBuyerRemark())?trade.getBuyerRemark():"无");
         }});
         request.setData(map);
         return wxCommonController.sendMessage(request);
