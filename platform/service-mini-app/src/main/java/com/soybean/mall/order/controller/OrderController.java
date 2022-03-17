@@ -34,6 +34,7 @@ import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
@@ -106,6 +107,9 @@ public class OrderController {
 
     @Autowired
     private MiniAppOrderProvider miniAppOrderProvider;
+
+    @Autowired
+    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -314,6 +318,13 @@ public class OrderController {
                 verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
                         KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
                         store.getStoreId(), true)).getContext().getTradeItems();
+        //定价
+        for (TradeItemVO tradeItem : tradeItemVOList) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if(priceByGoodsId.getContext() != null){
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+        }
         tradeConfirmItemVO.setTradeItems(tradeItemVOList);
         tradeConfirmItemVO.setTradePrice(calPrice(tradeItemVOList));
 
