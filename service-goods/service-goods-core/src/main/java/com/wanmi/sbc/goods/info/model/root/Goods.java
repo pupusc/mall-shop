@@ -517,9 +517,17 @@ public class Goods {
     @Transient
     private Long cateTopId;
 
-    /*
+    /**
      * 商品渠道 1 H5 2、小程序 3、普通分类 多个以,分割
      */
     @Column(name = "channel_type")
     private String goodsChannelType;
+
+
+
+    /**
+     * 发货说明
+     */
+    @Column(name = "deliver_notice")
+    private String deliverNotice;
 }

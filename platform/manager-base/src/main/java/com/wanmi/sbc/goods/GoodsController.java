@@ -194,6 +194,9 @@ public class GoodsController {
         if (CollectionUtils.isEmpty(request.getGoods().getGoodsChannelTypeSet())) {
             throw new SbcRuntimeException("K-030010");
         }
+        if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
+            throw new SbcRuntimeException("K-030011");
+        }
         request.setUpdatePerson(commonUtil.getOperatorId());
         request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
@@ -379,6 +382,9 @@ public class GoodsController {
     public BaseResponse edit(@RequestBody @Valid GoodsModifyRequest request) {
         if (CollectionUtils.isEmpty(request.getGoods().getGoodsChannelTypeSet())) {
             throw new SbcRuntimeException("K-030010");
+        }
+        if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
+            throw new SbcRuntimeException("K-030011");
         }
         request.setUpdatePerson(commonUtil.getOperatorId());
         //todo 改为让前端传过来

@@ -435,8 +435,13 @@ public class GoodsDTO implements Serializable {
     @ApiModelProperty(value = "商品标签列表", hidden = true)
     private List<GoodsLabelDTO> goodsLabelList;
 
-    /*
+    /**
      * 商品渠道 1 H5 2、小程序 3、普通分类
      */
     private Set<String> goodsChannelTypeSet;
+
+    /**
+     * 发货说明
+     */
+    private String deliverNotice;
 }
