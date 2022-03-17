@@ -30,9 +30,9 @@ public class CommonEsSearchCriteriaBuilder {
 
         if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
             if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
-                boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             } else {
-                boolQb.must(termsQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+                boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
 
         }
@@ -52,9 +52,9 @@ public class CommonEsSearchCriteriaBuilder {
 
         if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
             if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
-                boolQb.must(termQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             } else {
-                boolQb.must(termsQuery("goodsChannelTypeSet", baseRequest.getGoodsChannelTypeSet()));
+                boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
 
         }
