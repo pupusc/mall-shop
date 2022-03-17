@@ -88,8 +88,10 @@ public class WxGoodsService {
             condition.append(" and tg.audit_status=:auditStatus");
             params.put("auditStatus", wxGoodsSearchRequest.getAuditStatus());
         }
-        String sql = select.append(condition).toString();
-        String countSql = new StringBuilder(128).append("select count(*) from (").append(sql).append(") t").toString();
+        StringBuilder sqlBuilder = select.append(condition);
+        String countSql = new StringBuilder(128).append("select count(*) from (").append(sqlBuilder).append(") t").toString();
+        String sql = sqlBuilder.append(" order by create_time desc").toString();
+
         Query nativeQuery = entityManager.createNativeQuery(sql, WxGoodsModel.class);
         Query countQuery = entityManager.createNativeQuery(countSql);
         if(!params.isEmpty()) {

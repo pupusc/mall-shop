@@ -83,6 +83,7 @@ public class GoodsController {
                     try {
                         Integer addedFlag = esGoodsVO.getAddedFlag();
                         wxGoodsVo.setStatus((addedFlag == null || addedFlag == 0) ? 3 : 2);
+                        wxGoodsVo.setSaleStatus((addedFlag != null && addedFlag ==1 && wxGoodsVo.getPlatformProductId() != null) ? 1 : 0);
                         wxGoodsVo.setGoodsNo(esGoodsVO.getGoodsNo());
                         wxGoodsVo.setGoodsName(esGoodsVO.getGoodsName());
                         wxGoodsVo.setGoodsImg(esGoodsVO.getGoodsInfos().get(0).getGoodsInfoImg());

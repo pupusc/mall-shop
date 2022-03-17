@@ -39,6 +39,8 @@ public class WxGoodsVo {
      */
     private String rejectReason;
 
+    private Long platformProductId;
+
     /**
      * isbn图片
      */

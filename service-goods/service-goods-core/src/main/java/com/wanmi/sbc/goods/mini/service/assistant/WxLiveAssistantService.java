@@ -138,6 +138,7 @@ public class WxLiveAssistantService {
         if (assistantId == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划id不能为空");
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(assistantId);
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        if(CollectionUtils.isEmpty(wxLiveAssistantGoodsCreateRequest.getGoods())) return;
 
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
         addGoods(wxLiveAssistantGoodsCreateRequest, wxLiveAssistantModel);
