@@ -37,6 +37,9 @@ public interface WxOrderApiController {
     @PostMapping("/order/delivery/send")
     BaseResponse<WxResponseBase> deliverySend(@RequestBody WxDeliverySendRequest request);
 
+    @PostMapping("/order/receive")
+    BaseResponse<WxResponseBase> receive(@RequestBody WxDeliveryReceiveRequest request);
+
     @PostMapping("/order/detail")
     BaseResponse getDetail(@RequestBody WxOrderDetailRequest request);
 

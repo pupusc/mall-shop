@@ -13,6 +13,7 @@ import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.thoughtworks.xstream.XStream;
@@ -4206,6 +4207,9 @@ public class TradeService {
                 .build();
         tradeFSMService.changeState(stateRequest);
 
+        if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            wxOrderApiController.receive(WxDeliveryReceiveRequest.builder().outOrderId(tid).openid(trade.getBuyer().getOpenId()).build());
+        }
         //将物流信息更新为结束
         logisticsLogService.modifyEndFlagByOrderNo(tid);
 
@@ -7983,6 +7987,9 @@ public class TradeService {
      * @param trade
      */
     private BaseResponse<WxResponseBase> syncWxOrderPay(WxPayResultResponse wxPayResultResponse, Trade trade){
+        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return null;
+        }
         WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
         wxOrderPayRequest.setOpenId(wxPayResultResponse.getOpenid());
         wxOrderPayRequest.setOutOrderId(trade.getId());

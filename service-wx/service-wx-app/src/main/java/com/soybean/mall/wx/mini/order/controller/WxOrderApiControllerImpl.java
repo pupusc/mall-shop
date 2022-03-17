@@ -33,6 +33,11 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     }
 
     @Override
+    public BaseResponse<WxResponseBase> receive(WxDeliveryReceiveRequest request) {
+        return BaseResponse.success(wxService.deliveryReceive(request));
+    }
+
+    @Override
     public BaseResponse getDetail(WxOrderDetailRequest request) {
         wxService.getOrder(request);
         return BaseResponse.SUCCESSFUL();
