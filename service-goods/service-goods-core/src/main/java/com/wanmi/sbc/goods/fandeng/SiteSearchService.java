@@ -59,11 +59,17 @@ public class SiteSearchService {
     @Value("${site.search.pkg.jump.url}")
     private String packageJumpUrl;
 
+    @Value("${site.search.goods.sync.cate}")
+    private Integer goodsSyncCate;
+
     @Value("${site.search.pkg.sync.type}")
     private Integer packageSyncType;
 
-    private String syncBookResUrl = "/search/v100/syncPaperBookData";
-    private String syncBookPkgUrl = "/search/v100/syncBookListData";
+    @Value("${site.search.goods.sync.url}")
+    private String syncBookResUrl;
+
+    @Value("${site.search.pkg.sync.url}")
+    private String syncBookPkgUrl;
 
     @Autowired
     private FddsOpenPlatformService fddsOpenPlatformService;
@@ -223,11 +229,16 @@ public class SiteSearchService {
             return 0;
         }
 
+        if (goodsSyncCate <= 0 || !goodsSyncCate.equals(goods.getCateId())) {
+            return 0;
+        }
+
         Optional<GoodsCate> goodsCate = goodsCateRepository.findById(goods.getCateId());
         //不是书籍分类
         if (!goodsCate.isPresent() || !Integer.valueOf(1).equals(goodsCate.get().getBookFlag())) {
             return 0;
         }
+
         return 1;
     }
 
