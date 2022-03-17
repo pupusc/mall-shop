@@ -16,6 +16,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
+import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
@@ -495,6 +496,27 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
 
+        //主播推荐标签
+        List<AnchorPushEnum> anchorPushEnumList = new ArrayList<>();
+        if (!StringUtils.isEmpty(goodsVO.getAnchorPushs())) {
+            for (String anchorPushParam : goodsVO.getAnchorPushs().split(" ")) {
+                AnchorPushEnum byCode = AnchorPushEnum.getByCode(anchorPushParam);
+                if (byCode == null) {
+                    continue;
+                }
+                anchorPushEnumList.add(byCode);
+            }
+        }
+        //排序获取
+        if (!CollectionUtils.isEmpty(anchorPushEnumList)) {
+            anchorPushEnumList.sort(new Comparator<AnchorPushEnum>() {
+                @Override
+                public int compare(AnchorPushEnum o1, AnchorPushEnum o2) {
+                    return o1.getOrder() - o2.getOrder();
+                }
+            });
+            esGoodsCustomResponse.setAnchorPush(anchorPushEnumList.get(0).getMessage());
+        }
         return esGoodsCustomResponse;
     }
 
