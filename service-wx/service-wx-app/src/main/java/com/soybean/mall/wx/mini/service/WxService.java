@@ -128,7 +128,7 @@ public class WxService {
         String requestUrl = ACCESS_TOKEN_URL.concat("?grant_type=client_credential").concat("&appid=").concat(wxAppid)
                 .concat("&secret=").concat(wxAppsecret);
         WxAccessTokenResponse wxAccessTokenResponse = sendRequest(requestUrl, HttpMethod.GET, null, WxAccessTokenResponse.class);
-        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), 3500, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ACCESS_TOKEN_REDIS_KEY, wxAccessTokenResponse.getAccessToken(), 1800, TimeUnit.SECONDS);
         return wxAccessTokenResponse.getAccessToken();
     }
 

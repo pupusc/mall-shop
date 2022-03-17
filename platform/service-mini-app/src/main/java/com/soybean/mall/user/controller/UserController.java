@@ -119,8 +119,10 @@ public class UserController {
         response.setNickName(resData.getNickName());
         response.setProfilePhoto(resData.getProfilePhoto());
         response.setUserNo(resData.getUserNo());
-        response.setVipEndTime(Timestamp.valueOf(resData.getVipEndTime()).getTime());
-        response.setVipStartTime(Timestamp.valueOf(resData.getVipStartTime()).getTime());
+        if(resData.getVipEndTime() != null && resData.getVipStartTime() != null){
+            response.setVipEndTime(Timestamp.valueOf(resData.getVipEndTime()).getTime());
+            response.setVipStartTime(Timestamp.valueOf(resData.getVipStartTime()).getTime());
+        }
         CustomerVO customerVO = extractLogin(response);
 
         LoginResponse loginResponse = LoginResponse.builder().build();
@@ -298,12 +300,14 @@ public class UserController {
                 .customerId(customer.getCustomerId()).build();
         externalProvider.modifyCustomerNameAndImg(loginTimeRequest);
 
-        FanDengModifyPaidCustomerRequest paidCustomerRequest = FanDengModifyPaidCustomerRequest.builder()
-                .userStatus(response.getUserStatus())
-                .vipEndTime(response.getVipEndTime())
-                .vipStartTime(response.getVipStartTime())
-                .customerId(customer.getCustomerId()).build();
-        externalProvider.modifyPaidCustomer(paidCustomerRequest);
+        if(response.getVipEndTime() != null && response.getVipStartTime() != null){
+            FanDengModifyPaidCustomerRequest paidCustomerRequest = FanDengModifyPaidCustomerRequest.builder()
+                    .userStatus(response.getUserStatus())
+                    .vipEndTime(response.getVipEndTime())
+                    .vipStartTime(response.getVipStartTime())
+                    .customerId(customer.getCustomerId()).build();
+            externalProvider.modifyPaidCustomer(paidCustomerRequest);
+        }
         return customer;
     }
 }
