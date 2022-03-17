@@ -255,7 +255,7 @@ public class StoreGoodsController {
 
             //商品是否在视频号商品池
             if(queryRequest.getWxAudit() != null && queryRequest.getWxAudit() == 0){
-                goodses.forEach(g -> g.setGoodsInWxGoodsPool(true));
+//                goodses.forEach(g -> g.setGoodsInWxGoodsPool(true));
             }else {
                 BaseResponse<List<String>> wxGoodsListRes = wxMiniGoodsProvider.findByGoodsIds(goodsIds);
                 if(CollectionUtils.isNotEmpty(wxGoodsListRes.getContext())){

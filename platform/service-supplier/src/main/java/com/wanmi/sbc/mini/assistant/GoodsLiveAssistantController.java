@@ -185,7 +185,7 @@ public class GoodsLiveAssistantController {
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
             queryRequest.setPageSize(50);
-            queryRequest.setMatchGoodsName(wxLiveAssistantSearchRequest.getGoodsName());
+            queryRequest.setLikeGoodsName(wxLiveAssistantSearchRequest.getGoodsName());
             queryRequest.setQueryGoods(true);
             queryRequest.setAddedFlag(AddedFlag.YES.toValue());
             queryRequest.setDelFlag(DeleteFlag.NO.toValue());

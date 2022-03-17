@@ -55,7 +55,7 @@ public class GoodsController {
             EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
             queryRequest.setPageNum(0);
             queryRequest.setPageSize(50);
-            queryRequest.setMatchGoodsName(wxGoodsSearchRequest.getGoodsName());
+            queryRequest.setLikeGoodsName(wxGoodsSearchRequest.getGoodsName());
             queryRequest.setQueryGoods(true);
             queryRequest.setAddedFlag(AddedFlag.YES.toValue());
             queryRequest.setDelFlag(DeleteFlag.NO.toValue());
