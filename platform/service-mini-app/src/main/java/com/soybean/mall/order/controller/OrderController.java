@@ -392,7 +392,10 @@ public class OrderController {
             // 订单原始总金额
             tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(originalPrice));
             //优惠金额=定价-原价
-            tradePrice.setDiscountsPrice(totalPrice.subtract(originalPrice));
+            tradePrice.setDiscountsPrice(new BigDecimal(0));
+            if(totalPrice.compareTo(originalPrice) > 0){
+                tradePrice.setDiscountsPrice(totalPrice.subtract(originalPrice));
+            }
             //会员优惠
             tradePrice.setVipDiscountPrice(originalPrice.subtract(buyItemPrice));
         });
