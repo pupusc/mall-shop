@@ -234,6 +234,14 @@ public class OpenDeliverController extends OpenBaseController {
         consigneeDTO.setName(params.getConsignee().getName());
         consigneeDTO.setPhone(params.getConsignee().getPhone());
         consigneeDTO.setProvinceId(params.getConsignee().getProvinceId());
+        consigneeDTO.setProvinceName(params.getConsignee().getProvinceName());
+        consigneeDTO.setCityName(params.getConsignee().getCityName());
+        consigneeDTO.setAreaName(params.getConsignee().getAreaName());
+        consigneeDTO.setDetailAddress(""
+                + params.getConsignee().getProvinceName()
+                + params.getConsignee().getCityName()
+                + params.getConsignee().getAreaName()
+                + params.getConsignee().getAddress());
         //consigneeDTO.setStreetId(params.getConsignee().getStreetId());
 
         //订单信息
