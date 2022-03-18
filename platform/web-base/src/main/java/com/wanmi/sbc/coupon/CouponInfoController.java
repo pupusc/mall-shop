@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -256,6 +257,7 @@ public class CouponInfoController {
         esGoodsInfoQueryRequest.setContractStartDate(now);
         esGoodsInfoQueryRequest.setContractEndDate(now);
         esGoodsInfoQueryRequest.setVendibility(Constants.yes);
+        esGoodsInfoQueryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
 
         esGoodsInfoQueryRequest.setSortFlag(request.getSortFlag());
         if (CollectionUtils.isNotEmpty(request.getCateIds())) {

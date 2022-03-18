@@ -305,6 +305,7 @@ public class GoodsInfoBaseController {
         queryRequest = wrapEsGoodsInfoQueryRequest(queryRequest);
         queryRequest.setCustomerLevelId(null);
         queryRequest.setCustomerLevelDiscount(null);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         EsGoodsInfoResponse response =
                 esGoodsInfoElasticQueryProvider.distributorGoodsListByCustomerId(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
@@ -391,6 +392,7 @@ public class GoodsInfoBaseController {
         queryRequest = wrapEsGoodsInfoQueryRequest(queryRequest);
         queryRequest.setCustomerLevelId(null);
         queryRequest.setCustomerLevelDiscount(null);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         EsGoodsInfoResponse response =
                 esGoodsInfoElasticQueryProvider.distributorGoodsListByCustomerId(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
@@ -479,6 +481,7 @@ public class GoodsInfoBaseController {
         queryRequest.setCustomerLevelId(null);
         queryRequest.setCustomerLevelDiscount(null);
         queryRequest.setDistributionGoodsInfoIds(goodsIdList);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         EsDistributorGoodsListQueryRequest esDistributorGoodsListQueryRequest =
                 new EsDistributorGoodsListQueryRequest();
         esDistributorGoodsListQueryRequest.setRequest(queryRequest);
@@ -721,6 +724,7 @@ public class GoodsInfoBaseController {
         queryRequest.setCustomerLevelDiscount(null);
         queryRequest.setPageSize(10);
         queryRequest.setSortFlag(4);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
 
         EsDistributorGoodsListQueryRequest request = new EsDistributorGoodsListQueryRequest();
         request.setRequest(queryRequest);
@@ -922,6 +926,7 @@ public class GoodsInfoBaseController {
         queryRequest.setContractEndDate(now);
         queryRequest.setCustomerLevelId(0L);
         queryRequest.setCustomerLevelDiscount(BigDecimal.ONE);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         if(CYCLE_BUY.equals(queryRequest.getKeywords())) {
             queryRequest.setGoodsType(GoodsType.CYCLE_BUY);
             queryRequest.setKeywords(null);

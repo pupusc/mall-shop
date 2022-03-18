@@ -1,6 +1,7 @@
 package com.wanmi.sbc.elastic.api.common;
 
 import com.wanmi.sbc.common.base.BaseRequest;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -38,7 +39,8 @@ public class CommonEsSearchCriteriaBuilder {
                 log.info("CommonEsSearchCriteriaBuilder getSkuCommonSearchCriterialBuilder two channelTypeSet");
                 boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
-
+        } else {
+            boolQb.must(termQuery("goodsChannelTypeList", TerminalSource.H5.getMessage()));
         }
         return boolQb;
     }
@@ -64,6 +66,8 @@ public class CommonEsSearchCriteriaBuilder {
                 boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
 
+        } else {
+            boolQb.must(termQuery("goodsChannelTypeList", TerminalSource.H5.getMessage()));
         }
         return boolQb;
     }
