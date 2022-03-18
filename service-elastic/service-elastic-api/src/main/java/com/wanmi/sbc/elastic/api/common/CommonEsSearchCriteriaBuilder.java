@@ -1,6 +1,7 @@
 package com.wanmi.sbc.elastic.api.common;
 
 import com.wanmi.sbc.common.base.BaseRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -15,6 +16,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
  * Date       : 2022/3/11 2:48 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
+@Slf4j
 public class CommonEsSearchCriteriaBuilder {
 
 
@@ -30,8 +32,10 @@ public class CommonEsSearchCriteriaBuilder {
 
         if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
             if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
-                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
+                log.info("CommonEsSearchCriteriaBuilder getSkuCommonSearchCriterialBuilder single channelTypeSet");
+                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet().get(0).toString()));
             } else {
+                log.info("CommonEsSearchCriteriaBuilder getSkuCommonSearchCriterialBuilder two channelTypeSet");
                 boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
 
@@ -52,8 +56,11 @@ public class CommonEsSearchCriteriaBuilder {
 
         if (!CollectionUtils.isEmpty(baseRequest.getGoodsChannelTypeSet())) {
             if (baseRequest.getGoodsChannelTypeSet().size() == 1) {
-                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
+                log.info("CommonEsSearchCriteriaBuilder getSpuCommonSearchCriterialBuilder single channelTypeSet");
+                boolQb.must(termQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet().get(0).toString()));
             } else {
+                log.info("CommonEsSearchCriteriaBuilder getSpuCommonSearchCriterialBuilder two channelTypeSet");
+
                 boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
             }
 
