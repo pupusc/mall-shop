@@ -30,7 +30,7 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
     @Query(value = "select * from t_wx_goods where audit_status=1 and TIMESTAMPDIFF(HOUR, upload_time, now()) > 3 and del_flag=0", nativeQuery = true)
     List<WxGoodsModel> findNotAuditGoods();
 
-    @Query(value = "select * from t_wx_goods where audit_status=1 and TIMESTAMPDIFF(HOUR, upload_time, now()) > 3 and del_flag=0 and goods_id=?", nativeQuery = true)
+    @Query(value = "select * from t_wx_goods where del_flag=0 and goods_id=?", nativeQuery = true)
     List<WxGoodsModel> findNotAuditGoods(String goodsId);
 
     default Specification<WxGoodsModel> buildSearchCondition(WxGoodsSearchRequest wxGoodsSearchRequest){
