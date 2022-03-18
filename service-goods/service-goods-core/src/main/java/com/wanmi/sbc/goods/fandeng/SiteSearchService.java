@@ -54,7 +54,7 @@ public class SiteSearchService {
     @Value("${site.search.goods.jump.url}")
     private String goodsJumpUrl;
 
-    @Value("${site.search.goods.heart.url}")
+    @Value("${site.search.goods.heart.url:null}")
     private String heartJumpUrl;
 
     @Value("${site.search.pkg.jump.url}")
@@ -182,7 +182,7 @@ public class SiteSearchService {
             resMeta.setTitle(goods.getGoodsName());
             resMeta.setSubtitle(goods.getGoodsSubtitle());
             //resMeta.setRankAndDec(null);
-            resMeta.setJumpUrl(goodsJumpUrl);
+            resMeta.setJumpUrl(goodsJumpUrl + goods.getGoodsId());
 
             resMeta.setLabels(Lists.newArrayList());
             resMeta.setContent(null);
@@ -297,7 +297,7 @@ public class SiteSearchService {
         pkgMeta.setSubTitle(null);
         pkgMeta.setCoverImage(pkgDto.getHeadImgUrl()); //headSquareImgUrl
         pkgMeta.setBookCount(CollectionUtils.isEmpty(publishList) ? null : publishList.size());
-        pkgMeta.setJumpUrl(packageJumpUrl);
+        pkgMeta.setJumpUrl(packageJumpUrl + pkgDto.getId());
         pkgMeta.setContent(pkgDto.getDesc());
         pkgMeta.setPayCount(null);
         pkgMeta.setPublishStatus(getBookPkgPublishStatus(pkgDto));
