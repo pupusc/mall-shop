@@ -489,6 +489,8 @@ public class TradeQueryController implements TradeQueryProvider {
             return BaseResponse.success(TradeGetByIdResponse.builder().tradeVO(new TradeVO()).build());
         }
         TradeVO tradeVO = KsBeanUtil.convert(trade, TradeVO.class);
+        tradeVO.setGiftFlag(CollectionUtils.isNotEmpty(tradeVO.getTags()) && tradeVO.getTags().contains(OrderTagEnum.GIFT.getCode()));
+
         List<ProviderTrade> providerTrades =
                 providerTradeService.findListByParentId(trade.getId());
         List<TradeVO> providerTradeVOS = KsBeanUtil.convert(providerTrades, TradeVO.class);
