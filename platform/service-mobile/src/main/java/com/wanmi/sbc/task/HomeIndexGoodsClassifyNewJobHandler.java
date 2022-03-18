@@ -111,7 +111,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
             //按照销售数量排序
             sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
             esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-            esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{TerminalSource.getTerminalSource(channelName).getCode()}).collect(Collectors.toSet()));
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(channelName).getCode()));
             //获取分类下的商品列表
             BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
             MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
