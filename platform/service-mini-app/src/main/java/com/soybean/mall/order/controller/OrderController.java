@@ -292,14 +292,20 @@ public class OrderController {
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
-    //@GlobalTransactional
+   // @GlobalTransactional
     public BaseResponse<OrderConfirmResponse> getPurchaseItems(@RequestBody TradeItemConfirmRequest request) {
 
         OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
-        String customerId = commonUtil.getOperatorId();
-        //验证用户
-        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
-                (customerId)).getContext();
+        Operator operator = commonUtil.getOperator();
+        CustomerGetByIdResponse customer =null;
+        if(operator!=null && StringUtils.isNotEmpty(operator.getUserId())){
+            String customerId = commonUtil.getOperatorId();
+            //验证用户
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest
+                    (customerId)).getContext();
+        }
+
+
         //入参是商品sku和num，返回商品信息和价格信息
         List<TradeItemDTO> tradeItems = KsBeanUtil.convertList(request.getTradeItems(), TradeItemDTO.class);
         List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
@@ -355,7 +361,7 @@ public class OrderController {
         GoodsInfoViewByIdsResponse response = goodsInfoQueryProvider.listViewByIds(goodsInfoRequest).getContext();
 
         //获取客户的等级
-        if (StringUtils.isNotBlank(customer.getCustomerId())) {
+        if (customer!=null && StringUtils.isNotBlank(customer.getCustomerId())) {
             //计算会员价
             List<GoodsInfoVO> goodsInfoVOList = marketingLevelPluginProvider.goodsListFilter(MarketingLevelGoodsListFilterRequest.builder()
                     .goodsInfos(KsBeanUtil.convertList(response.getGoodsInfos(), GoodsInfoDTO.class))
