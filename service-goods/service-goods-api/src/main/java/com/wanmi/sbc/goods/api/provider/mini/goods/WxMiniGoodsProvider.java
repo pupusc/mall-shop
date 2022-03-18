@@ -41,6 +41,9 @@ public interface WxMiniGoodsProvider {
     @PostMapping("/goods/${application.goods.version}/wx/find-by-goods-ids")
     BaseResponse<List<String>> findByGoodsIds(@RequestBody List<String> goodsIds);
 
+    @PostMapping("/goods/${application.goods.version}/wx/audit-sync")
+    BaseResponse goodsAuditSync(@RequestParam(value = "goodsId", required = false) String goodsId);
+
     @PostMapping("/${application.goods.version}/wx/audit/callback")
     BaseResponse<Boolean> auditCallback(@RequestBody Map<String, Object> paramMap);
 }

@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.mini.repository.goods;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
+import org.apache.catalina.LifecycleState;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,6 +22,16 @@ public interface WxGoodsRepository extends JpaRepository<WxGoodsModel, Long>, Jp
     Integer getOnShelfCount(String goodsId);
 
     WxGoodsModel findByGoodsIdAndDelFlag(String goodsId, DeleteFlag Flag);
+
+    /**
+     * 超过3小时未审核通过的商品
+     * @return
+     */
+    @Query(value = "select * from t_wx_goods where audit_status=1 and TIMESTAMPDIFF(HOUR, upload_time, now()) > 3 and del_flag=0", nativeQuery = true)
+    List<WxGoodsModel> findNotAuditGoods();
+
+    @Query(value = "select * from t_wx_goods where audit_status=1 and TIMESTAMPDIFF(HOUR, upload_time, now()) > 3 and del_flag=0 and goods_id=?", nativeQuery = true)
+    List<WxGoodsModel> findNotAuditGoods(String goodsId);
 
     default Specification<WxGoodsModel> buildSearchCondition(WxGoodsSearchRequest wxGoodsSearchRequest){
         return (Specification<WxGoodsModel>) (root, criteriaQuery, criteriaBuilder) -> {

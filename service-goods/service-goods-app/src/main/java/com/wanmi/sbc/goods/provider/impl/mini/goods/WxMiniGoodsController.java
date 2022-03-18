@@ -119,6 +119,12 @@ public class WxMiniGoodsController implements WxMiniGoodsProvider {
     }
 
     @Override
+    public BaseResponse goodsAuditSync(String goodsId){
+        wxGoodsService.goodsAuditSync(goodsId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
     public BaseResponse<Boolean> auditCallback(Map<String, Object> paramMap) {
         return BaseResponse.success(wxGoodsService.auditCallback(paramMap));
     }

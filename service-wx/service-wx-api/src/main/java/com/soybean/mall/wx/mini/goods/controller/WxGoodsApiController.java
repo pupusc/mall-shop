@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxCateNodeResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -39,6 +40,9 @@ public interface WxGoodsApiController {
 
     @PostMapping("/goods/update-without-audit")
     BaseResponse<WxResponseBase> updateGoodsWithoutAudit(@RequestBody WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest);
+
+    @PostMapping("/goods/geet-product-detail")
+    BaseResponse<WxGetProductDetailResponse.Spu> getProductDetail(@RequestParam("goodsId") String goodsId);
 
     @PostMapping("/goods/upload-image")
     BaseResponse<WxUploadImageResponse> uploadImg(@RequestBody WxUploadImageRequest wxUploadImageRequest);

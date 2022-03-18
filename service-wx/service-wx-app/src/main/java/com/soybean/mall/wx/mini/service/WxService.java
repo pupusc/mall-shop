@@ -33,6 +33,7 @@ public class WxService {
 
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     private static final String ADD_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/add";
+    private static final String GET_PRODUCT_DETAIL_URL = "https://api.weixin.qq.com/shop/spu/get";
     private static final String UPDATE_PRODUCT_URL = "https://api.weixin.qq.com/shop/spu/update";
     private static final String GET_ALL_CATE_URL = "https://api.weixin.qq.com/shop/cat/get";
     private static final String CANCEL_AUDIT_URL = "https://api.weixin.qq.com/shop/spu/del_audit";
@@ -119,6 +120,17 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(wxUpdateProductWithoutAuditRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    public WxGetProductDetailResponse.Spu getProductDetail(String goodsId){
+        String url = GET_PRODUCT_DETAIL_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = "{\"out_product_id\":\"" + goodsId + "\"}";
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        WxGetProductDetailResponse wxGetProductDetailResponse = sendRequest(url, HttpMethod.POST, entity, WxGetProductDetailResponse.class);
+        if(wxGetProductDetailResponse.isSuccess()){
+            return wxGetProductDetailResponse.getSpu();
+        }
+        return null;
     }
 
     public String getAccessToken(){

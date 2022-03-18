@@ -12,6 +12,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -23,6 +24,7 @@ import java.util.*;
 
 @Slf4j
 @Component
+@RefreshScope
 public class WxAuditCallbackParser implements CommandLineRunner {
 
     @Value("${wx.mini.appid:}")

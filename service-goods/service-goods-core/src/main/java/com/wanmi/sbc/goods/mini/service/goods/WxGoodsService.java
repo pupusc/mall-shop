@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.WxAddProductResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -43,7 +44,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RefreshScope
 @Service
@@ -249,13 +249,17 @@ public class WxGoodsService {
     @Transactional
     public boolean auditCallback(Map<String, Object> paramMap){
         Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
-        String wxStatus = auditResult.get("status");
         String goodsId = auditResult.get("out_product_id");
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
+        return auditCallback(auditResult, wxGoodsModel);
+    }
+
+    public boolean auditCallback(Map<String, String> auditResult, WxGoodsModel wxGoodsModel){
+        String wxStatus = auditResult.get("status");
         String productId = auditResult.get("product_id");
         String spuStatus = auditResult.get("spu_status"); //上下架状态 5-上架 11、13-下架
         if("4".equals(wxStatus)){
             //成功
-            WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.ON_SHELF);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_SUCCESS);
             wxGoodsModel.setPlatformProductId(Long.parseLong(productId));
@@ -273,12 +277,10 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewResult(WxReviewResult.SUCCESS);
             wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
-
             return true;
         }else if("3".equals(wxStatus)){
             //失败
             String rejectReason = auditResult.get("reject_reason");
-            WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
             wxGoodsModel.setStatus(WxGoodsStatus.UPLOAD);
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
             if("11".equals(spuStatus) || "13".equals(spuStatus)) wxGoodsModel.setStatus(WxGoodsStatus.OFF_SHELF);
@@ -294,6 +296,11 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
             return false;
+        }else{
+            wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
+            wxGoodsModel.setNeedToAudit(1);
+            wxGoodsModel.setRejectReason("未知的审核失败结果: " + wxStatus);
+            wxGoodsRepository.save(wxGoodsModel);
         }
         return false;
     }
@@ -311,6 +318,30 @@ public class WxGoodsService {
         WxGoodsSearchRequest wxGoodsSearchRequest = new WxGoodsSearchRequest();
         wxGoodsSearchRequest.setGoodsIds(goodsIds);
         return wxGoodsRepository.findAll(wxGoodsRepository.buildSearchCondition(wxGoodsSearchRequest));
+    }
+
+    public void goodsAuditSync(String goodsId){
+        List<WxGoodsModel> notAuditGoods;
+        if(goodsId == null){
+            notAuditGoods = wxGoodsRepository.findNotAuditGoods();
+        }else {
+            notAuditGoods = wxGoodsRepository.findNotAuditGoods(goodsId);
+        }
+        log.info("同步视频号商品审核结果数量: {}", notAuditGoods.size());
+        for (WxGoodsModel notAuditGood : notAuditGoods) {
+            BaseResponse<WxGetProductDetailResponse.Spu> productDetail = wxGoodsApiController.getProductDetail(notAuditGood.getGoodsId());
+            if(productDetail.getContext() != null){
+                WxGetProductDetailResponse.Spu spu = productDetail.getContext();
+                Map<String, String> auditResult = new HashMap<>();
+                auditResult.put("status", spu.getEditStatus().toString());
+                auditResult.put("product_id", spu.getProductId().toString());
+                auditResult.put("spu_status", spu.getStatus().toString());
+                auditResult.put("reject_reason", spu.getAuditInfo().getRejectReason());
+                auditCallback(auditResult, notAuditGood);
+            }else {
+                log.error("同步商品审核状态错误: {}", notAuditGood.getGoodsId());
+            }
+        }
     }
 
     public WxAddProductRequest createWxAddProductRequestByGoods(Goods goods, List<GoodsInfo> goodsInfos, WxGoodsModel wxGoodsModel){
