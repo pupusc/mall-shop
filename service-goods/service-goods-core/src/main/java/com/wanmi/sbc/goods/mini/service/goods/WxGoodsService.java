@@ -322,7 +322,7 @@ public class WxGoodsService {
 
     public void goodsAuditSync(String goodsId){
         List<WxGoodsModel> notAuditGoods;
-        if(goodsId == null){
+        if(StringUtils.isEmpty(goodsId)){
             notAuditGoods = wxGoodsRepository.findNotAuditGoods();
         }else {
             notAuditGoods = wxGoodsRepository.findNotAuditGoods(goodsId);
