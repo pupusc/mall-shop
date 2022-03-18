@@ -77,6 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -134,7 +135,7 @@ public class OpenDeliverController extends OpenBaseController {
         queryRequest.setLikeGoodsName(params.getGoodsName());
         queryRequest.setPageNum(pageNo < 1 ? 0 : pageNo-1);
         queryRequest.setPageSize(pageSize > 100 ? 100 : pageSize);
-        queryRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{TerminalSource.FDDS_DELIVER.getCode()}).collect(Collectors.toSet())); //商品销售渠道
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.FDDS_DELIVER.getCode())); //商品销售渠道
 
         //按创建时间倒序、ID升序
         queryRequest.putSort("addedTime", SortType.DESC.toValue());

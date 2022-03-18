@@ -373,5 +373,5 @@ public class EsGoods implements Serializable {
      * 商品渠道 1 h5 2小程序
      */
     @Field(name = "goodsChannelTypeList", type = FieldType.Integer)
-    private Set<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeSet;
 }

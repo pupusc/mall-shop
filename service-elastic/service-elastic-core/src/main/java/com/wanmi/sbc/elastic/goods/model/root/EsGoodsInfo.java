@@ -181,5 +181,5 @@ public class EsGoodsInfo implements Serializable {
      * 商品渠道 1 h5 2小程序 4 主站
      */
     @Field(name = "goodsChannelTypeList", type = FieldType.Integer)
-    private Set<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeSet;
 }

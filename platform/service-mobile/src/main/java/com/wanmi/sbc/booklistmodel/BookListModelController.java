@@ -389,7 +389,7 @@ public class BookListModelController {
         Collection<String> goodsIdCollection = listClassifyGoodsAllChildOfParent.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toSet());
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
 
-        esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         esGoodsCustomRequest.setPageNum(seePageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(seePageRequest.getPageSize());
         esGoodsCustomRequest.setGoodIdList(goodsIdCollection);

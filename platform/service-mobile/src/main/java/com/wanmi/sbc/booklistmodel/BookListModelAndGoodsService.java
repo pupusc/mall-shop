@@ -257,7 +257,7 @@ public class BookListModelAndGoodsService {
         esGoodsCustomRequest.setPageNum(pageNum);
         esGoodsCustomRequest.setPageSize(Math.min(spuIdSet.size(), maxSize)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
         esGoodsCustomRequest.setGoodIdList(spuIdSet);
-        esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
             esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
         }
@@ -602,7 +602,7 @@ public class BookListModelAndGoodsService {
             //根据书单模版获取商品列表
             Set<String> spuIdSet = goodsContext.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-            esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             esGoodsCustomRequest.setPageNum(0);
             int esPageSize = spuIdSet.size();
             if (maxSize != null) {

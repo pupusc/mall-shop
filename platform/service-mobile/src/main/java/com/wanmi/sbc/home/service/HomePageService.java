@@ -394,7 +394,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
-            esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getNewBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList());
@@ -449,7 +449,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
-            esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList());
@@ -502,7 +502,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setScriptSpecialOffer("0.5");
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
-            esGoodsCustomRequest.setGoodsChannelTypeSet(Arrays.stream(new Integer[]{commonUtil.getTerminal().getCode()}).collect(Collectors.toSet()));
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList());

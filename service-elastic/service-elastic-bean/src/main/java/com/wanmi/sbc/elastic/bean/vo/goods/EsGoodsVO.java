@@ -326,5 +326,5 @@ public class EsGoodsVO implements Serializable {
     /**
      * 销售渠道
      */
-    private Set<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeSet;
 }

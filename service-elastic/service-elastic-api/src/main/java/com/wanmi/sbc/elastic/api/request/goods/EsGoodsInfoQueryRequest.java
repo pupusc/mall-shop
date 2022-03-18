@@ -346,7 +346,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     /*
      * 商品渠道类型 1H5 2小程序 3 樊登赠品
      */
-    private Set<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeSet;
 
     /**
      * 封装公共条件
