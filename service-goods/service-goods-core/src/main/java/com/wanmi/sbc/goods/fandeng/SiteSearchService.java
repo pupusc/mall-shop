@@ -8,7 +8,6 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
-import com.wanmi.sbc.goods.booklistgoodspublish.repository.BookListGoodsPublishRepository;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.booklistmodel.repository.BookListModelRepository;
@@ -27,6 +26,8 @@ import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.mq.ProducerService;
+import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +37,11 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,13 +92,13 @@ public class SiteSearchService {
     private GoodsPropDetailRelRepository goodsPropDetailRelRepository;
 
     @Autowired
+    private GoodsPropRepository goodsPropRepository;
+
+    @Autowired
     private GoodsCateRepository goodsCateRepository;
 
     @Autowired
     private BookListModelRepository bookListModelRepository;
-
-    @Autowired
-    private BookListGoodsPublishRepository bookListGoodsPublishRepository;
 
     @Autowired
     private BookListGoodsPublishService bookListGoodsPublishService;
@@ -177,7 +181,7 @@ public class SiteSearchService {
 
             resMeta.setBookId(goods.getGoodsId());
             resMeta.setIcon(goods.getGoodsImg());
-            resMeta.setSmallIcon(goods.getGoodsImg());
+            resMeta.setSmallIcon(null);
             resMeta.setGoodsName(goods.getGoodsName());
             resMeta.setTitle(goods.getGoodsName());
             resMeta.setSubtitle(goods.getGoodsSubtitle());
@@ -204,6 +208,17 @@ public class SiteSearchService {
 
             //查询出版信息
             List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.queryByGoodsId(goods.getGoodsId());
+            Map<Long, List<GoodsPropDetailRel>> idRel = goodsPropDetailRels.stream().collect(Collectors.groupingBy(GoodsPropDetailRel::getPropId));
+            List<GoodsProp> props = goodsPropRepository.findAllByPropIdIn(new ArrayList<>(idRel.keySet()));
+            if(CollectionUtils.isNotEmpty(props)){
+                for (GoodsProp prop : props) {
+                    List<GoodsPropDetailRel> goodsPropDetailRelVos = idRel.get(prop.getPropId());
+                    for (GoodsPropDetailRel goodsPropDetailRelVo : goodsPropDetailRelVos) {
+                        goodsPropDetailRelVo.setPropName(prop.getPropName());
+                        goodsPropDetailRelVo.setPropType(prop.getPropType());
+                    }
+                }
+            }
             for (GoodsPropDetailRel rel : goodsPropDetailRels) {
                 if ("作者".equals(rel.getPropName())) {
                     resMeta.setAuthorName(rel.getPropValue());
@@ -215,23 +230,56 @@ public class SiteSearchService {
                     resMeta.setHeartPick(Double.valueOf(rel.getPropValue()));
                     resMeta.setHeartJumpUrl(heartJumpUrl);
                 }
+                if ("定价".equals(rel.getPropName())) {
+                    resMeta.setReservePrice(Double.valueOf(rel.getPropValue()));
+                }
             }
-
             //查询SKU列表
             GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
             infoQueryRequest.setGoodsId(goods.getGoodsId());
             infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
             List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-            if (CollectionUtils.isNotEmpty(goodsInfos)) {
+            if (CollectionUtils.isNotEmpty(goodsInfos) && Objects.nonNull(goodsInfos.get(0).getMarketPrice())) {
                 GoodsInfo sku = goodsInfos.get(0);
-                resMeta.setPromotePrice(Objects.nonNull(sku.getSalePrice()) ? sku.getSalePrice().doubleValue() : null);
-                resMeta.setMemberPrice(Objects.nonNull(sku.getSalePrice()) ? sku.getSalePrice().doubleValue() : null);
-                resMeta.setSellPrice(Objects.nonNull(sku.getSalePrice()) ? sku.getSalePrice().doubleValue() : null);
-                resMeta.setReservePrice(Objects.nonNull(sku.getMarketPrice()) ? sku.getMarketPrice().doubleValue() : null);
+                resMeta.setSellPrice(sku.getMarketPrice().doubleValue());
+                resMeta.setPromotePrice(sku.getMarketPrice().doubleValue());
+                resMeta.setMemberPrice(sku.getMarketPrice().multiply(new BigDecimal(0.96)).doubleValue());
             }
         }
 
         syncBookResData(resReqVO);
+    }
+
+    private void sendBookPkgData(Integer pkgId) {
+        if (Objects.isNull(pkgId)) {
+            log.error("书单id参数为空");
+            return;
+        }
+
+        BookListModelDTO pkgDto = bookListModelRepository.findById(pkgId).get();
+        if (Objects.isNull(pkgDto)) {
+            log.error("书单信息没有找到, id = {}", pkgId);
+            return;
+        }
+
+        List<BookListGoodsPublishDTO> publishList = bookListGoodsPublishService.list(null, pkgId, CategoryEnum.BOOK_LIST_MODEL.getCode(), null, "xxoo");
+
+        SyncBookPkgMetaReq pkgMeta = new SyncBookPkgMetaReq();
+        pkgMeta.setPackageId(pkgDto.getId().toString());
+        pkgMeta.setTitle(pkgDto.getName());
+        pkgMeta.setSubTitle(null);
+        pkgMeta.setCoverImage(pkgDto.getHeadImgUrl()); //headSquareImgUrl
+        pkgMeta.setBookCount(CollectionUtils.isEmpty(publishList) ? null : publishList.size());
+        pkgMeta.setJumpUrl(packageJumpUrl + pkgDto.getId());
+        pkgMeta.setContent(pkgDto.getDesc());
+        pkgMeta.setPayCount(null);
+        pkgMeta.setPublishStatus(getBookPkgPublishStatus(pkgDto));
+        pkgMeta.setResPublishStart(null);
+        pkgMeta.setResPublishEnd(null);
+
+        SyncBookPkgReqVO reqVO = new SyncBookPkgReqVO();
+        reqVO.setBookPackages(Arrays.asList(pkgMeta));
+        syncBookPkgData(reqVO);
     }
 
     /**
@@ -275,38 +323,6 @@ public class SiteSearchService {
         }
 
         return 1;
-    }
-
-    private void sendBookPkgData(Integer pkgId) {
-        if (Objects.isNull(pkgId)) {
-            log.error("书单id参数为空");
-            return;
-        }
-
-        BookListModelDTO pkgDto = bookListModelRepository.findById(pkgId).get();
-        if (Objects.isNull(pkgDto)) {
-            log.error("书单信息没有找到, id = {}", pkgId);
-            return;
-        }
-
-        List<BookListGoodsPublishDTO> publishList = bookListGoodsPublishService.list(null, pkgId, CategoryEnum.BOOK_LIST_MODEL.getCode(), null, "xxoo");
-
-        SyncBookPkgMetaReq pkgMeta = new SyncBookPkgMetaReq();
-        pkgMeta.setPackageId(pkgDto.getId().toString());
-        pkgMeta.setTitle(pkgDto.getName());
-        pkgMeta.setSubTitle(null);
-        pkgMeta.setCoverImage(pkgDto.getHeadImgUrl()); //headSquareImgUrl
-        pkgMeta.setBookCount(CollectionUtils.isEmpty(publishList) ? null : publishList.size());
-        pkgMeta.setJumpUrl(packageJumpUrl + pkgDto.getId());
-        pkgMeta.setContent(pkgDto.getDesc());
-        pkgMeta.setPayCount(null);
-        pkgMeta.setPublishStatus(getBookPkgPublishStatus(pkgDto));
-        pkgMeta.setResPublishStart(null);
-        pkgMeta.setResPublishEnd(null);
-
-        SyncBookPkgReqVO reqVO = new SyncBookPkgReqVO();
-        reqVO.setBookPackages(Arrays.asList(pkgMeta));
-        syncBookPkgData(reqVO);
     }
 
     /**
