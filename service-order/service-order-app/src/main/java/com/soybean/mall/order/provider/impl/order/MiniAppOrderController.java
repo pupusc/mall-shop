@@ -5,6 +5,7 @@ import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.api.request.order.TradeOrderReportRequest;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -25,6 +26,9 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
     @Autowired
     private TradeOrderService tradeOrderService;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
     /**
      * 同步订单到微信
@@ -50,12 +54,12 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
     @Override
     public BaseResponse addOrderReportCache(@RequestBody TradeOrderReportRequest request) {
-        tradeOrderService.orderReportCache(request.getTid());
+        wxOrderService.orderReportCache(request.getTid());
         return BaseResponse.SUCCESSFUL();
     }
 
     @Override
     public BaseResponse<MiniProgramOrderReportVO> getOrderReportCache() {
-        return BaseResponse.success(tradeOrderService.getMiniProgramOrderReportCache());
+        return BaseResponse.success(wxOrderService.getMiniProgramOrderReportCache());
     }
 }

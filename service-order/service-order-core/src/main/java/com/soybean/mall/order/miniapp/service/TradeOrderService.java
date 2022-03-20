@@ -6,12 +6,16 @@ import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
+import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
@@ -58,8 +62,6 @@ public class TradeOrderService {
     @Autowired
     private RedissonClient redissonClient;
 
-    private final String BATCH_UPDATE_DELIVERY_STATUS_TO_WECHAT_LOCKS = "syncDeliveryStatusToWechat";
-
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -69,37 +71,24 @@ public class TradeOrderService {
     @Autowired
     private TradeRepository tradeRepository;
 
-    @Value("${wx.order.delivery.send.message.templateId}")
-    private String orderDeliveryMsgTemplateId;
-
-    @Value("${wx.create.order.send.message.link.url}")
-    private String createOrderSendMsgLinkUrl;
-
-    @Value("${wx.create.order.send.message.templateId}")
-    private String createOrderSendMsgTemplateId;
-
     @Autowired
-    private CommonController wxCommonController;
-
-    @Value("${wx.logistics}")
-    private String wxLogisticsStr;
+    private WxOrderService wxOrderService;
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
 
     @Value("${wx.goods.detail.url}")
     private String goodsDetailUrl;
+
     @Value("${wx.order.detail.url}")
     private String orderDetailUrl;
 
-    @Autowired
-    private RedisService redisService;
+    @Value("${wx.logistics}")
+    private String wxLogisticsStr;
 
-    private static  final String MINI_PROGRAM_ORDER_REPORT_PRICE = "mini:ord:report:price:";
+    private final String BATCH_UPDATE_DELIVERY_STATUS_TO_WECHAT_LOCKS = "syncDeliveryStatusToWechat";
 
-    private static  final String MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE = "mini:ord:report:hour:price:";
 
-    private static  final String MINI_PROGRAM_ORDER_REPORT_LIST = "mini:ord:list:";
     /**
      * 批量同步发货状态到微信-查询本地
      *
@@ -180,105 +169,42 @@ public class TradeOrderService {
               log.info("没有需要同步的物流信息，trade：{}",trade);
               return;
         }
-        WxDeliverySendRequest request = new WxDeliverySendRequest();
-        request.setOpenid(trade.getBuyer().getOpenId());
-        request.setOutOrderId(trade.getId());
-        request.setFinishAllDelivery(Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)?1:0);
-        List<WxDeliverySendRequest.WxDeliveryInfo>  deliveryInfos = new ArrayList<>();
-        unSyncDelivery.forEach(delivery->{
-            WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
-            deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(),delivery.getLogistics().getLogisticCompanyName()));
-            deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
-            List<WxProductDTO> productDTS = new ArrayList<>();
-            delivery.getShippingItems().forEach(item->{
-                WxProductDTO wxProductDTO = new WxProductDTO();
-                wxProductDTO.setOutProductId(trade.getTradeItems().stream().filter(p->p.getSkuId().equals(item.getSkuId())).findFirst().get().getSpuId());
-                wxProductDTO.setOutSkuId(item.getSkuId());
-                wxProductDTO.setPrroductNum(item.getItemNum().intValue());
-                productDTS.add(wxProductDTO);
+        try {
+            WxDeliverySendRequest request = new WxDeliverySendRequest();
+            request.setOpenid(trade.getBuyer().getOpenId());
+            request.setOutOrderId(trade.getId());
+            request.setFinishAllDelivery(Objects.equals(trade.getTradeState().getDeliverStatus(), DeliverStatus.SHIPPED) ? 1 : 0);
+            List<WxDeliverySendRequest.WxDeliveryInfo> deliveryInfos = new ArrayList<>();
+            unSyncDelivery.forEach(delivery -> {
+                WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
+                deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(), delivery.getLogistics().getLogisticCompanyName()));
+                deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
+                List<WxProductDTO> productDTS = new ArrayList<>();
+                delivery.getShippingItems().forEach(item -> {
+                    WxProductDTO wxProductDTO = new WxProductDTO();
+                    wxProductDTO.setOutProductId(trade.getTradeItems().stream().filter(p -> p.getSkuId().equals(item.getSkuId())).findFirst().get().getSpuId());
+                    wxProductDTO.setOutSkuId(item.getSkuId());
+                    wxProductDTO.setPrroductNum(item.getItemNum().intValue());
+                    productDTS.add(wxProductDTO);
+                });
+                deliveryInfo.setProductInfoList(productDTS);
+                deliveryInfos.add(deliveryInfo);
             });
-            deliveryInfo.setProductInfoList(productDTS);
-            deliveryInfos.add(deliveryInfo);
-        });
-        request.setDeliveryList(deliveryInfos);
-        BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
-        if(result!=null && result.getContext().isSuccess()){
-            //全部发货且已经全部同步
-            if(Objects.equals(trade.getTradeState().getDeliverStatus(),DeliverStatus.SHIPPED)) {
-                trade.getMiniProgram().setSyncStatus(1);
+            request.setDeliveryList(deliveryInfos);
+            BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
+            if (result != null && result.getContext().isSuccess()) {
+                //全部发货且已经全部同步
+                if (Objects.equals(trade.getTradeState().getDeliverStatus(), DeliverStatus.SHIPPED)) {
+                    trade.getMiniProgram().setSyncStatus(1);
+                }
+                trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
+                tradeRepository.save(trade);
+                wxOrderService.sendWxDeliveryMessage(trade);
             }
-            trade.getMiniProgram().setDelivery(trade.getTradeDelivers());
-            tradeRepository.save(trade);
-            sendWxDeliveryMessage(trade);
+        }catch (Exception e){
+            log.warn("微信小程序同步发货状态失败，trade:{}",trade,e);
         }
 
-    }
-
-
-    private BaseResponse<WxResponseBase> sendWxDeliveryMessage(Trade trade){
-        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            return null;
-        }
-        WxSendMessageRequest request =new WxSendMessageRequest();
-        request.setOpenId(trade.getBuyer().getOpenId());
-        request.setTemplateId(orderDeliveryMsgTemplateId);
-        request.setUrl(createOrderSendMsgLinkUrl);
-        Map<String, Map<String,String>> map = new HashMap<>();
-       map.put("character_string1",new HashMap<String,String>(){{
-            put("value", trade.getId());
-        }});
-        map.put("thing2",new HashMap<String,String>(){{
-            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
-        }});
-        map.put("phrase3",new HashMap<String,String>(){{
-            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticCompanyName());
-        }});
-        map.put("character_string4",new HashMap<String,String>(){{
-            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticNo());
-        }});
-        map.put("thing9",new HashMap<String,String>(){{
-            put("value", StringUtils.isNotEmpty(trade.getBuyerRemark())?trade.getBuyerRemark():"无");
-        }});
-        request.setData(map);
-        return wxCommonController.sendMessage(request);
-    }
-
-
-    public BaseResponse<WxResponseBase> sendWxCreateOrderMessage(Trade trade){
-        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            return null;
-        }
-        WxSendMessageRequest request =new WxSendMessageRequest();
-        request.setOpenId(trade.getBuyer().getOpenId());
-        request.setTemplateId(createOrderSendMsgTemplateId);
-        request.setUrl(createOrderSendMsgLinkUrl);
-        Map<String,Map<String,String>> map = new HashMap<>();
-        String address =StringUtils.isNotEmpty(trade.getConsignee().getDetailAddress()) && trade.getConsignee().getDetailAddress().length()>20?trade.getConsignee().getDetailAddress().substring(0,20):trade.getConsignee().getDetailAddress();
-        map.put("character_string1",new HashMap<String,String>(){{
-            put("value", trade.getId());
-        }});
-        map.put("amount2",new HashMap<String,String>(){{
-            put("value", String.valueOf(trade.getTradePrice().getTotalPrice()));
-        }});
-        map.put("thing3",new HashMap<String,String>(){{
-            put("value", address);
-        }});
-        map.put("name4",new HashMap<String,String>(){{
-            put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
-        }});
-        map.put("phrase5",new HashMap<String,String>(){{
-            put("value", "待发货");
-        }});
-        request.setData(map);
-        return wxCommonController.sendMessage(request);
-    }
-
-    private String filterChineseAndAlp(String str){
-        String goodsName = str.replaceAll("[^(a-zA-Z\\u4e00-\\u9fa5)]","");
-        if(StringUtils.isEmpty(goodsName)){
-            goodsName ="购买的商品";
-        }
-        return goodsName;
     }
 
     private String getWxLogisticsCode(String code,String name){
@@ -298,29 +224,35 @@ public class TradeOrderService {
             return optional.get().getLogisticCode();
         }
         return "OTHERS";
-
     }
 
     public void createWxOrderAndPay(String tid){
         Trade trade = tradeRepository.findById(tid).orElse(null);
-        if(trade == null){
+        if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
         }
-        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
             return;
         }
-        //先创建订单
-        BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(buildRequest(trade));
-        //支付同步
-        WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
-        wxOrderPayRequest.setOpenId(trade.getBuyer().getOpenId());
-        wxOrderPayRequest.setOutOrderId(trade.getId());
-        wxOrderPayRequest.setActionId(1);
-        wxOrderPayRequest.setPayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
-        wxOrderPayRequest.setTransactionId(trade.getId());
-        BaseResponse<WxResponseBase> payResult = wxOrderApiController.orderPay(wxOrderPayRequest);
-        this.sendWxCreateOrderMessage(trade);
-        orderReportCache(trade.getId());
+        log.info("微信小程序0元订单创建并支付start,tid:{}",tid);
+        WxCreateOrderRequest wxCreateOrderRequest = null;
+        try {
+            //先创建订单
+            wxCreateOrderRequest = this.buildRequest(trade);
+            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
+            log.info("微信小程序0元订单创建，requet:{},response:{}", wxCreateOrderRequest, orderResult);
+            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
+                wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+                return;
+            }
+        } catch (Exception e) {
+            log.error("微信小程序创建订单失败，tid：{}", tid, e);
+            wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+            return;
+        }
+        log.info("微信小程序0元订单创建成功，同步支付结果start,tid:{}",tid);
+        wxOrderService.syncWxOrderPay(trade,trade.getId());
+
     }
 
     private WxCreateOrderRequest buildRequest(Trade trade) {
@@ -369,77 +301,9 @@ public class TradeOrderService {
         return result;
     }
 
-    /**
-     * 小程序实时报表
-     * @param tid
-     */
-    public void orderReportCache(String tid){
-        Trade trade = tradeRepository.findById(tid).orElse(null);
-        if(trade == null){
-            throw new SbcRuntimeException("K-050100", new Object[]{tid});
-        }
-        if(!trade.getChannelType().equals(ChannelType.MINIAPP)){
-            return;
-        }
-        try {
 
-            String date = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1);
-            //总金额
-            String cachePrice = redisService.getString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date));
-            BigDecimal lastPrice =new BigDecimal(0);
-            if (StringUtils.isNotEmpty(cachePrice)) {
-                lastPrice = new BigDecimal(cachePrice);
-            }
-            BigDecimal totalPrice = trade.getTradePrice().getGoodsPrice().add(lastPrice).setScale(2, RoundingMode.HALF_UP);
-            redisService.setString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date), totalPrice.toString(), 86400);
-            log.info("小程序实时报表设置付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
-            //分时金额
-            Integer hour = LocalDateTime.now().getHour();
-            Map<Integer,BigDecimal> cacheHourPrice = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date),Map.class);
-            if(cacheHourPrice == null || cacheHourPrice.isEmpty()){
-                cacheHourPrice = new HashMap<>();
-            }
-            BigDecimal lastHourPrice =new BigDecimal(0);
-            if (cacheHourPrice.containsKey(hour) && cacheHourPrice.get(hour) !=null) {
-                lastHourPrice = cacheHourPrice.get(hour);
-            }
-            BigDecimal totalHourPrice = trade.getTradePrice().getGoodsPrice().add(lastHourPrice).setScale(2, RoundingMode.HALF_UP);
-            cacheHourPrice.put(hour,totalHourPrice);
-            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), cacheHourPrice, 86400);
-            log.info("小程序实时报表设置分时付款金额，trade:{},now price:{},last price:{}",trade,totalPrice,lastPrice);
-            //只保存20条数据
-            OrderReportDetailDTO orderReportDetailDTO = OrderReportDetailDTO.builder()
-                    .createTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1))
-                    .goodsName(trade.getTradeItems().get(0).getSpuName())
-                    .orderId(trade.getId())
-                    .pic(trade.getTradeItems().get(0).getPic())
-                    .price(trade.getTradePrice().getGoodsPrice()).build();
-            List<OrderReportDetailDTO> newList = new ArrayList<>(20);
-            List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),OrderReportDetailDTO.class);
-            newList.add(0,orderReportDetailDTO);
-            if(CollectionUtils.isNotEmpty(list)){
-                newList.addAll(list.stream().limit(list.size()>19 ? 19 :list.size()).collect(Collectors.toList()));
-            }
-            redisService.setObj(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date),newList,86400);
 
-        }catch(Exception e){
-            log.warn("小程序实时数据报表报错，trade:{}",new Gson().toJson(trade),e);
-        }
 
-    }
 
-    public MiniProgramOrderReportVO getMiniProgramOrderReportCache(){
-        MiniProgramOrderReportVO result = new MiniProgramOrderReportVO();
-        String date = DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1);
-        //总金额
-        String cachePrice = redisService.getString(MINI_PROGRAM_ORDER_REPORT_PRICE.concat(date));
-        if(StringUtils.isNotEmpty(cachePrice)){
-            result.setTotalPrice(new BigDecimal(cachePrice));
-        }
-        //分时金额
-        result.setHourPrice(redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date),Map.class));
-        //订单数据
-        result.setOrders(redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), MiniProgramOrderReportVO.OrderReportDetailVO.class));
-        return result;
-    }
+   
 }

@@ -9,7 +9,11 @@ import com.google.common.collect.Lists;
 //import com.sensorsdata.analytics.javasdk.SensorsAnalytics;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
 //import com.sensorsdata.analytics.javasdk.bean.EventRecord;
+import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
+import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -647,6 +651,12 @@ public class TradeService {
 
     @Autowired
     private TradeOrderService tradeOrderService;
+
+    @Autowired
+    private MiniOrderOperateResultRepository miniOrderOperateResultRepository;
+
+    @Autowired
+    private WxOrderService wxOrderService;
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -4206,10 +4216,7 @@ public class TradeService {
                 .event(event)
                 .build();
         tradeFSMService.changeState(stateRequest);
-
-        if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            wxOrderApiController.receive(WxDeliveryReceiveRequest.builder().outOrderId(tid).openid(trade.getBuyer().getOpenId()).build());
-        }
+        wxOrderService.syncWxOrderReceive(trade);
         //将物流信息更新为结束
         logisticsLogService.modifyEndFlagByOrderNo(tid);
 
@@ -6843,10 +6850,8 @@ public class TradeService {
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, isMergePay);
-        //微信支付同步支付结果,失败处理todo
-        syncWxOrderPay(wxPayResultResponse,trades.get(0));
-        tradeOrderService.sendWxCreateOrderMessage(trades.get(0));
-        tradeOrderService.orderReportCache(trades.get(0).getId());
+        //微信支付同步支付结果,失败处理
+        wxOrderService.syncWxOrderPay(trades.get(0),wxPayResultResponse.getTransaction_id());
     }
 
     /**
@@ -7982,21 +7987,7 @@ public class TradeService {
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
     }
 
-    /**
-     * 同步订单支付状态
-     * @param trade
-     */
-    private BaseResponse<WxResponseBase> syncWxOrderPay(WxPayResultResponse wxPayResultResponse, Trade trade){
-        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            return null;
-        }
-        WxOrderPayRequest wxOrderPayRequest =new WxOrderPayRequest();
-        wxOrderPayRequest.setOpenId(wxPayResultResponse.getOpenid());
-        wxOrderPayRequest.setOutOrderId(trade.getId());
-        wxOrderPayRequest.setActionId(1);
-        wxOrderPayRequest.setPayTime(DateUtil.format(trade.getTradeState().getPayTime(),DateUtil.FMT_TIME_1));
-        wxOrderPayRequest.setTransactionId(wxPayResultResponse.getTransaction_id());
-        return wxOrderApiController.orderPay(wxOrderPayRequest);
-    }
 
+
+    
 }

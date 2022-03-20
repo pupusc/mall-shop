@@ -7,6 +7,7 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateAfterSaleRequest;
@@ -4810,6 +4811,11 @@ public class ReturnOrderService {
             products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());
         });
         request.setProductInfos(products);
-        wxOrderApiController.createAfterSale(request);
+        try {
+            BaseResponse<WxResponseBase> response = wxOrderApiController.createAfterSale(request);
+            log.info("微信小程序创建售后request:{},response:{}",request,response);
+        }catch (Exception e){
+            log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
+        }
     }
 }
