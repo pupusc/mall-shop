@@ -236,12 +236,21 @@ public class OpenDeliverController extends OpenBaseController {
         consigneeDTO.setPhone(params.getConsignee().getPhone());
         consigneeDTO.setProvinceId(params.getConsignee().getProvinceId());
         //consigneeDTO.setStreetId(params.getConsignee().getStreetId());
+        consigneeDTO.setProvinceName(params.getConsignee().getProvinceName());
+        consigneeDTO.setCityName(params.getConsignee().getCityName());
+        consigneeDTO.setAreaName(params.getConsignee().getAreaName());
+        //详细地址：省+市+区+地址
+        consigneeDTO.setDetailAddress(""
+                + params.getConsignee().getProvinceName()
+                + params.getConsignee().getCityName()
+                + params.getConsignee().getAreaName()
+                + params.getConsignee().getAddress());
 
         //订单信息
         TradeCreateDTO tradeCreateParam = new TradeCreateDTO();
         tradeCreateParam.setBuyerRemark(params.getBuyerRemark());
         tradeCreateParam.setConsignee(consigneeDTO);  //收件人
-        tradeCreateParam.setConsigneeAddress(params.getConsignee().getAddress());
+        tradeCreateParam.setConsigneeAddress(consigneeDTO.getDetailAddress());
         tradeCreateParam.setDeliverWay(DeliverWay.EXPRESS);
         tradeCreateParam.setForceCommit(false); //是否强制提交，用于营销活动有效性校验，true: 无效依然提交， false: 无效做异常返回
         tradeCreateParam.setInvoice(InvoiceDTO.builder().type(-1).build());

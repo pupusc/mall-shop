@@ -98,7 +98,7 @@ public class OpenDeliverController implements OpenDeliverProvider {
 
     @Override
     public BusinessResponse<TradeCommitResultVO> createOrder(TradeWrapperBackendCommitRequest param) {
-        Operator operator = Operator.builder().platform(Platform.FDDS).build();
+        Operator operator = Operator.builder().platform(Platform.FDDS).name("system").build();
 
         //包装验证下单参数
         Trade trade = tradeService.wrapperBackendCommitTrade(
