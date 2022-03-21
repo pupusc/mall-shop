@@ -194,6 +194,7 @@ public class SiteSearchService {
             resMeta.setPublishStatus(getBookPublishStatus(goods));
             //下架商品不再填充信息
             if (!Integer.valueOf(1).equals(resMeta.getPublishStatus())) {
+                log.info("同步书籍单本为下架状态，goodsId = {}, goodsInfo = {}", goods.getGoodsId(), JSON.toJSONString(goods));
                 continue;
             }
 
@@ -276,6 +277,10 @@ public class SiteSearchService {
         pkgMeta.setPublishStatus(getBookPkgPublishStatus(pkgDto));
         pkgMeta.setResPublishStart(null);
         pkgMeta.setResPublishEnd(null);
+        //下架商品不再填充信息
+        if (!Integer.valueOf(1).equals(pkgMeta.getPublishStatus())) {
+            log.info("同步书籍书单为下架状态，goodsId = {}, goodsInfo = {}", pkgDto.getId(), JSON.toJSONString(pkgDto));
+        }
 
         SyncBookPkgReqVO reqVO = new SyncBookPkgReqVO();
         reqVO.setBookPackages(Arrays.asList(pkgMeta));
