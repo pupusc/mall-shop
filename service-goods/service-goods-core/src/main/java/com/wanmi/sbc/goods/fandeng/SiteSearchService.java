@@ -247,9 +247,9 @@ public class SiteSearchService {
             List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
             if (CollectionUtils.isNotEmpty(goodsInfos) && Objects.nonNull(goodsInfos.get(0).getMarketPrice())) {
                 GoodsInfo sku = goodsInfos.get(0);
-                resMeta.setSellPrice(sku.getMarketPrice().doubleValue());
-                resMeta.setPromotePrice(sku.getMarketPrice().doubleValue());
-                resMeta.setMemberPrice(sku.getMarketPrice().multiply(new BigDecimal(0.96)).doubleValue());
+                resMeta.setSellPrice(priceFormat(sku.getMarketPrice()));
+                resMeta.setPromotePrice(priceFormat(sku.getMarketPrice()));
+                resMeta.setMemberPrice(priceFormat(sku.getMarketPrice().multiply(new BigDecimal(0.96))));
             }
 
             //查询标签信息
@@ -362,5 +362,15 @@ public class SiteSearchService {
             return 0;
         }
         return 1;
+    }
+
+    /**
+     * 金额格式化
+     */
+    private Double priceFormat(BigDecimal price) {
+        if (Objects.isNull(price)) {
+            return null;
+        }
+        return price.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 }
