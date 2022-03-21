@@ -296,7 +296,7 @@ public class WxGoodsService {
             wxReviewLogModel.setReviewType(0);
             wxReviewLogRepository.save(wxReviewLogModel);
             return false;
-        }else{
+        }else if(!"2".equals(wxStatus)){
             wxGoodsModel.setAuditStatus(WxGoodsEditStatus.CHECK_FAILED);
             wxGoodsModel.setNeedToAudit(1);
             wxGoodsModel.setRejectReason("未知的审核失败结果: " + wxStatus);
@@ -322,7 +322,7 @@ public class WxGoodsService {
 
     public void goodsAuditSync(String goodsId){
         List<WxGoodsModel> notAuditGoods;
-        if(goodsId == null){
+        if(StringUtils.isEmpty(goodsId)){
             notAuditGoods = wxGoodsRepository.findNotAuditGoods();
         }else {
             notAuditGoods = wxGoodsRepository.findNotAuditGoods(goodsId);
