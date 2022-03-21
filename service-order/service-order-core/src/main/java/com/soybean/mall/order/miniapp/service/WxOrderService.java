@@ -149,7 +149,7 @@ public class WxOrderService {
         WxSendMessageRequest request =new WxSendMessageRequest();
         request.setOpenId(trade.getBuyer().getOpenId());
         request.setTemplateId(orderDeliveryMsgTemplateId);
-        request.setUrl(createOrderSendMsgLinkUrl);
+        request.setUrl(createOrderSendMsgLinkUrl+trade.getId());
         Map<String, Map<String,String>> map = new HashMap<>();
         map.put("character_string1",new HashMap<String,String>(){{
             put("value", trade.getId());
@@ -179,7 +179,7 @@ public class WxOrderService {
             WxSendMessageRequest request = new WxSendMessageRequest();
             request.setOpenId(trade.getBuyer().getOpenId());
             request.setTemplateId(createOrderSendMsgTemplateId);
-            request.setUrl(createOrderSendMsgLinkUrl);
+            request.setUrl(createOrderSendMsgLinkUrl+trade.getId());
             Map<String, Map<String, String>> map = new HashMap<>();
             String address = StringUtils.isNotEmpty(trade.getConsignee().getDetailAddress()) && trade.getConsignee().getDetailAddress().length() > 20 ? trade.getConsignee().getDetailAddress().substring(0, 20) : trade.getConsignee().getDetailAddress();
             map.put("character_string1", new HashMap<String, String>() {{

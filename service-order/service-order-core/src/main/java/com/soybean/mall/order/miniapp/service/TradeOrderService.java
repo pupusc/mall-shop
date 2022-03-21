@@ -80,8 +80,8 @@ public class TradeOrderService {
     @Value("${wx.goods.detail.url}")
     private String goodsDetailUrl;
 
-    @Value("${wx.order.detail.url}")
-    private String orderDetailUrl;
+    @Value("${wx.order.list.url}")
+    private String orderListUrl;
 
     @Value("${wx.logistics}")
     private String wxLogisticsStr;
@@ -260,7 +260,7 @@ public class TradeOrderService {
         result.setOutOrderId(trade.getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         result.setOpenid(trade.getBuyer().getOpenId());
-        result.setPath(orderDetailUrl);
+        result.setPath(orderListUrl);
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
