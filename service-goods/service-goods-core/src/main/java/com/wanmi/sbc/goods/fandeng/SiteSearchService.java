@@ -58,14 +58,14 @@ public class SiteSearchService {
     @Value("${site.search.goods.jump.url}")
     private String goodsJumpUrl;
 
-    @Value("${site.search.goods.heart.url:null}")
+    @Value("${site.search.goods.heart.url:#{null}}")
     private String heartJumpUrl;
 
     @Value("${site.search.pkg.jump.url}")
     private String packageJumpUrl;
 
-    @Value("${site.search.goods.sync.cate:null}")
-    private Integer goodsSyncCate;
+    @Value("${site.search.goods.sync.cate:#{null}}")
+    private List<Integer> goodsSyncCate;
 
     @Value("${site.search.pkg.sync.type}")
     private List<Integer> packageSyncType;
@@ -186,7 +186,7 @@ public class SiteSearchService {
             resMeta.setTitle(goods.getGoodsName());
             resMeta.setSubtitle(goods.getGoodsSubtitle());
             //resMeta.setRankAndDec(null);
-            resMeta.setJumpUrl(goodsJumpUrl + goods.getGoodsId());
+            resMeta.setJumpUrl(String.format(goodsJumpUrl, goods.getGoodsId()));
 
             resMeta.setLabels(Lists.newArrayList());
             resMeta.setContent(null);
@@ -271,7 +271,7 @@ public class SiteSearchService {
         pkgMeta.setSubTitle(null);
         pkgMeta.setCoverImage(pkgDto.getHeadImgUrl()); //headSquareImgUrl
         pkgMeta.setBookCount(CollectionUtils.isEmpty(publishList) ? null : publishList.size());
-        pkgMeta.setJumpUrl(packageJumpUrl + pkgDto.getId());
+        pkgMeta.setJumpUrl(String.format(packageJumpUrl, pkgDto.getId()));
         pkgMeta.setContent(pkgDto.getDesc());
         pkgMeta.setPayCount(null);
         pkgMeta.setPublishStatus(getBookPkgPublishStatus(pkgDto));
@@ -317,7 +317,7 @@ public class SiteSearchService {
             return 0;
         }
 
-        if (Objects.nonNull(goodsSyncCate) && !goodsSyncCate.equals(goods.getCateId())) {
+        if (Objects.nonNull(goodsSyncCate) && !goodsSyncCate.contains(goods.getCateId())) {
             return 0;
         }
 
@@ -343,7 +343,7 @@ public class SiteSearchService {
         if (!Integer.valueOf(2).equals(pkgDto.getPublishState())) {
             return 0;
         }
-        if (!packageSyncType.contains(pkgDto.getBusinessType())) {
+        if (Objects.nonNull(packageSyncType) && !packageSyncType.contains(pkgDto.getBusinessType())) {
             return 0;
         }
         return 1;
