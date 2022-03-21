@@ -111,4 +111,8 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      */
     private Double esSortPrice;
 
+    /**
+     * 过滤销售渠道
+     */
+    private String notChannelType;
 }

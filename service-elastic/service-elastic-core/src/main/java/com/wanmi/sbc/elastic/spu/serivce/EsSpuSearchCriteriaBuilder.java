@@ -1,14 +1,14 @@
 package com.wanmi.sbc.elastic.spu.serivce;
 
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
+import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
+import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.marketing.bean.enums.RangeDayType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -23,14 +23,17 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.ObjectUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.idsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
 
 /**
  * <p>EsGoods表动态查询条件构建器</p>
@@ -45,7 +48,14 @@ public class EsSpuSearchCriteriaBuilder {
      * @return
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
-        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+//        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        CommonEsSearchCriteriaRequest commonEsSearchCriteriaRequest = new CommonEsSearchCriteriaRequest();
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(commonEsSearchCriteriaRequest);
+
+        if (Objects.nonNull(request.getGoodsChannelType())) {
+            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
+        }
+
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
             boolQb.must(idsQuery().addIds(request.getGoodsIds().toArray(new String[]{})));
@@ -54,61 +64,72 @@ public class EsSpuSearchCriteriaBuilder {
         if (CollectionUtils.isNotEmpty(request.getStoreCateGoodsIds())) {
             boolQb.must(idsQuery().addIds(request.getStoreCateGoodsIds().toArray(new String[]{})));
         }
+
         if (Objects.nonNull(request.getGroupSearch())) {
-
             boolQb.mustNot(QueryBuilders.termQuery("goodsType", GoodsType.VIRTUAL_COUPON.toValue()));
-
             boolQb.mustNot(QueryBuilders.termQuery("goodsType", GoodsType.VIRTUAL_GOODS.toValue()));
-
         }
+
         //查询SPU编码
         if (StringUtils.isNotBlank(request.getGoodsNo())) {
             boolQb.must(termQuery("goodsNo", request.getGoodsNo()));
         }
+
         //批量查询SPU编码
         if (CollectionUtils.isNotEmpty(request.getGoodsNos())) {
             boolQb.must(termsQuery("goodsNo", request.getGoodsNos()));
         }
+
         //查询品牌编号
         if (request.getBrandId() != null && request.getBrandId() > 0) {
             boolQb.must(termQuery("goodsBrand.brandId", request.getBrandId()));
         }
+
         //查询分类编号
         if (request.getCateId() != null && request.getCateId() > 0) {
             boolQb.must(termQuery("goodsCate.cateId", request.getCateId()));
         }
+
         //批量查询分类编号
         if (CollectionUtils.isNotEmpty(request.getCateIds())) {
             boolQb.must(termsQuery("goodsCate.cateId", request.getCateIds()));
         }
+
         //批量查询分类编号
         if (CollectionUtils.isNotEmpty(request.getBrandIds())) {
             boolQb.must(termsQuery("goodsBrand.brandId", request.getBrandIds()));
         }
+
         //公司信息ID
         if (request.getCompanyInfoId() != null) {
             boolQb.must(termQuery("companyInfoId", request.getCompanyInfoId()));
         }
+
         //店铺ID
         if (Objects.nonNull(request.getStoreId())) {
             boolQb.must(termQuery("storeId", request.getStoreId()));
         }
+
         //模糊查询SPU编码
         if (StringUtils.isNotEmpty(request.getLikeGoodsNo())) {
             boolQb.must(wildcardQuery("goodsNo", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeGoodsNo().trim())));
         }
+
         //模糊查询SKU编码
         if (StringUtils.isNotEmpty(request.getLikeGoodsInfoNo())) {
             boolQb.must(wildcardQuery("goodsInfos.goodsInfoNo", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeGoodsInfoNo().trim())));
         }
+
         //模糊查询名称
         if (StringUtils.isNotEmpty(request.getLikeGoodsName())) {
             boolQb.must(wildcardQuery("goodsName", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeGoodsName().trim())));
         }
+
         //模糊查询商家名称
         if (StringUtils.isNotBlank(request.getLikeSupplierName())) {
             boolQb.must(wildcardQuery("supplierName", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeSupplierName().trim())));
         }
+
         //模糊查询供应商名称
         if (StringUtils.isNotBlank(request.getLikeProviderName())) {
             boolQb.must(wildcardQuery("providerName", ElasticCommonUtil.replaceEsLikeWildcard(request.getLikeProviderName().trim())));

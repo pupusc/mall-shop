@@ -15,7 +15,7 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Enumerated;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -321,4 +321,9 @@ public class GoodsPageSimpleVO implements Serializable {
         }
         return Constants.yes;
     }
+
+    /**
+     * 销售qudao
+     */
+    private List<String> goodsChannelTypeList;
 }

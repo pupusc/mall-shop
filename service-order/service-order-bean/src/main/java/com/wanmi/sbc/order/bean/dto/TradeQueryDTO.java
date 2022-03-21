@@ -10,7 +10,12 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.marketing.bean.vo.TradeGrouponVO;
-import com.wanmi.sbc.order.bean.enums.*;
+import com.wanmi.sbc.order.bean.enums.BookingType;
+import com.wanmi.sbc.order.bean.enums.FlowState;
+import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.enums.PaymentOrder;
+import com.wanmi.sbc.order.bean.enums.QueryOrderType;
+import com.wanmi.sbc.order.bean.enums.QueryPayType;
 import com.wanmi.sbc.order.bean.util.XssUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -341,6 +346,12 @@ public class TradeQueryDTO extends BaseQueryRequest {
 
     @ApiModelProperty("虚拟全部发货，0否1是")
     private Integer virtualAllDelivery;
+
+    /**
+     * 订单标签
+     */
+    private String tag;
+
     /**
      * 封装公共条件
      *

@@ -10,7 +10,6 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Proxy;
@@ -517,4 +516,18 @@ public class Goods {
      */
     @Transient
     private Long cateTopId;
+
+    /**
+     * 商品渠道 1 H5 2、小程序 3、普通分类 多个以,分割
+     */
+    @Column(name = "channel_type")
+    private String goodsChannelType;
+
+
+
+    /**
+     * 发货说明
+     */
+    @Column(name = "deliver_notice")
+    private String deliverNotice;
 }

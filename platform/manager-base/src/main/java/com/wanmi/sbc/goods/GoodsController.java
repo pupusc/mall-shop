@@ -1,6 +1,5 @@
 package com.wanmi.sbc.goods;
 
-import com.alibaba.fastjson.JSONArray;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -53,7 +52,6 @@ import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsByIdResponse
 import com.wanmi.sbc.goods.api.response.goods.*;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
-import com.wanmi.sbc.goods.api.response.storecate.StoreCateListByGoodsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -76,7 +74,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -89,7 +86,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -195,6 +191,12 @@ public class GoodsController {
     @ApiOperation(value = "新增商品")
     @RequestMapping(value = "/spu", method = RequestMethod.POST)
     public BaseResponse<String> add(@RequestBody @Valid GoodsAddRequest request) {
+        if (CollectionUtils.isEmpty(request.getGoods().getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-030010");
+        }
+        if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
+            throw new SbcRuntimeException("K-030011");
+        }
         request.setUpdatePerson(commonUtil.getOperatorId());
         request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
@@ -378,6 +380,12 @@ public class GoodsController {
     @ApiOperation(value = "编辑商品")
     @RequestMapping(value = "/spu", method = RequestMethod.PUT)
     public BaseResponse edit(@RequestBody @Valid GoodsModifyRequest request) {
+        if (CollectionUtils.isEmpty(request.getGoods().getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-030010");
+        }
+        if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
+            throw new SbcRuntimeException("K-030011");
+        }
         request.setUpdatePerson(commonUtil.getOperatorId());
         //todo 改为让前端传过来
         //request.getGoods().setProviderId(defaultProviderId);

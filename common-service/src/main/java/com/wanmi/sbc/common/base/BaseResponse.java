@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * 响应基类

@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -246,4 +246,9 @@ public class EsSpuPageRequest extends BaseQueryRequest implements Serializable {
      * 微信审核状态 0-非视频号商品 1-微信审核通过
      */
     private Integer wxAudit;
+
+    /**
+     * 商品销售平台
+     */
+    private String goodsChannelType;
 }

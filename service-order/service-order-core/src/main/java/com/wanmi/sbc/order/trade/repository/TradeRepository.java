@@ -3,7 +3,6 @@ package com.wanmi.sbc.order.trade.repository;
 
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.trade.model.root.Trade;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -44,5 +43,6 @@ public interface TradeRepository extends MongoRepository<Trade, String> {
 
     Optional<Trade> findByYzTid(String yzTid);
 
+    List<Trade> findListByOutTradeNo(String outTradeNo);
 }
 

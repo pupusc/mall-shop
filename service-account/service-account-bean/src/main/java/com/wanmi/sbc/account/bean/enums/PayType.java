@@ -15,7 +15,10 @@ public enum  PayType {
     ONLINE("在线支付"),
 
     @ApiEnumProperty("线下支付")
-    OFFLINE("线下支付");
+    OFFLINE("线下支付"),
+
+    @ApiEnumProperty("内部结算")
+    INNER_SETTLE("内部结算");
 
     private String desc;
 
