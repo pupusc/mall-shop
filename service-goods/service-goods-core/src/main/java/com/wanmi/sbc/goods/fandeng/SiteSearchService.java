@@ -15,6 +15,7 @@ import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookPkgMetaReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookPkgReqVO;
+import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaLabelReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResMetaReq;
 import com.wanmi.sbc.goods.fandeng.model.SyncBookResReqVO;
 import com.wanmi.sbc.goods.images.GoodsImageRepository;
@@ -28,6 +29,7 @@ import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.mq.ProducerService;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
+import com.wanmi.sbc.goods.tag.repository.TagRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,6 +107,9 @@ public class SiteSearchService {
 
     @Autowired
     private ProducerService producerService;
+
+    @Autowired
+    private TagRepository tagRepository;
 
 
     public void siteSearchBookResNotify(List<String> ids) {
@@ -246,6 +251,16 @@ public class SiteSearchService {
                 resMeta.setPromotePrice(sku.getMarketPrice().doubleValue());
                 resMeta.setMemberPrice(sku.getMarketPrice().multiply(new BigDecimal(0.96)).doubleValue());
             }
+
+            //查询标签信息
+            List<SyncBookResMetaLabelReq> labelReqs = tagRepository.findByGoods(goods.getGoodsId())
+                    .stream().filter(item -> DeleteFlag.NO.equals(item.getDelFlag())).map(item -> {
+                SyncBookResMetaLabelReq labelReq = new SyncBookResMetaLabelReq();
+                labelReq.setType(3);
+                labelReq.setName(item.getTagName());
+                return labelReq;
+            }).collect(Collectors.toList());
+            resMeta.setLabels(labelReqs);
         }
 
         syncBookResData(resReqVO);
