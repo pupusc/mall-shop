@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -18,6 +19,7 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortMode;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.ObjectUtils;
@@ -39,6 +41,7 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
  * @author dyt
  * @date 2020-12-04 10:39:15
  */
+@Slf4j
 public class EsSpuSearchCriteriaBuilder {
 
     /**
@@ -267,6 +270,8 @@ public class EsSpuSearchCriteriaBuilder {
         if (CollectionUtils.isNotEmpty(sortBuilders)) {
             sortBuilders.forEach(builder::withSort);
         }
-        return builder.build();
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsSpuSearchCriteriaBuilder.getWhereCriteria DSL: {}", build.getQuery().toString());
+        return build;
     }
 }
