@@ -64,7 +64,7 @@ public class SiteSearchService {
     @Value("${site.search.pkg.jump.url}")
     private String packageJumpUrl;
 
-    @Value("${site.search.goods.sync.cate}")
+    @Value("${site.search.goods.sync.cate:null}")
     private Integer goodsSyncCate;
 
     @Value("${site.search.pkg.sync.type}")
@@ -317,7 +317,7 @@ public class SiteSearchService {
             return 0;
         }
 
-        if (goodsSyncCate > 0 && !goodsSyncCate.equals(goods.getCateId())) {
+        if (Objects.nonNull(goodsSyncCate) && !goodsSyncCate.equals(goods.getCateId())) {
             return 0;
         }
 
