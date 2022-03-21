@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.common.util.StringUtil;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.elastic.bean.dto.goods.EsGoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
@@ -352,7 +353,7 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
     /*
      * 商品渠道类型 1H5 2小程序 3 樊登赠品
      */
-    private Set<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeSet;
 
     /**
      * 封装公共条件
@@ -378,8 +379,10 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
 
     public QueryBuilder getWhereCriteria() {
         String queryName = isQueryGoods ? "goodsInfos" : "goodsInfo";
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-
+//        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        BoolQueryBuilder boolQueryBuilder = isQueryGoods ?
+                CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(this) :
+                CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(this);
         //批量商品ID
         if (saleStatus != null) {
             if(saleStatus == 0){
@@ -429,10 +432,6 @@ public class EsGoodsInfoQueryRequest extends BaseQueryRequest {
         //批量商品分类ID
         if (CollectionUtils.isNotEmpty(cateIds)) {
             boolQueryBuilder.must(termsQuery("goodsCate.cateId", cateIds));
-        }
-
-        if (CollectionUtils.isNotEmpty(goodsChannelTypeSet)) {
-            boolQueryBuilder.must(termsQuery("goodsChannelTypeList", goodsChannelTypeSet));
         }
 
         //店铺ID

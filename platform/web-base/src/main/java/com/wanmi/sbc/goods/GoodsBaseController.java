@@ -451,7 +451,7 @@ public class GoodsBaseController {
     private EsGoodsResponse list(EsGoodsInfoQueryRequest queryRequest, CustomerVO customer) {
 
         //获取商品渠道
-        queryRequest.setGoodsChannelTypeSet(new HashSet<>(Collections.singletonList(commonUtil.getTerminal().getCode())));
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
 
 
         if (queryRequest.getIsFix()) {

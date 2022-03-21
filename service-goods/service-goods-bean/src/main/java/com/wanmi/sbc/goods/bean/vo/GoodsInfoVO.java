@@ -756,5 +756,5 @@ public class GoodsInfoVO implements Serializable {
     /**
      * 商品渠道 1 H5 2、小程序 3、普通分类
      */
-    private Set<String> goodsChannelTypeSet;
+    private List<String> goodsChannelTypeSet;
 }

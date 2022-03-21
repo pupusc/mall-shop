@@ -9,6 +9,7 @@ import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -107,20 +108,17 @@ public class EsGoodsCustomService {
     /**
      * 基础条件
      */
-    private BoolQueryBuilder packageBaseWhere(boolean isUseBase) {
-        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+    private BoolQueryBuilder packageBaseWhere(boolean isUseBase, EsGoodsCustomQueryProviderRequest request) {
+//        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+        BoolQueryBuilder boolQueryBuilder = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
         if (isUseBase) {
             //只返回有效规格
             boolQueryBuilder.must(termQuery("goodsInfos.delFlag", DeleteFlag.NO.toValue()));
-            //只是返回有效标签 该标签当前无效
-//            boolQueryBuilder.must(termQuery("goodsLabelList.delFlag", DeleteFlag.NO.toValue()));
             // 已上架
             boolQueryBuilder.must(termQuery("addedFlag", AddedFlag.YES.toValue()));
             boolQueryBuilder.must(termQuery("goodsInfos.addedFlag", AddedFlag.YES.toValue()));
             // 已经审核
             boolQueryBuilder.must(termQuery("auditStatus", AuditStatus.CHECKED.toValue()));
-            //当前字段没有索引，所以要注释掉
-//            boolQueryBuilder.must(termQuery("goodsInfos.auditStatus", AuditStatus.CHECKED.toValue()));
 
             //店铺开启状态
             boolQueryBuilder.must(termQuery("storeState", StoreState.OPENING.toValue()));
@@ -140,11 +138,9 @@ public class EsGoodsCustomService {
      */
     private BoolQueryBuilder packageWhere(EsGoodsCustomQueryProviderRequest request) {
 
-        BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true);
+        BoolQueryBuilder boolQueryBuilder = this.packageBaseWhere(true, request);
 
-        if (!StringUtils.isEmpty(request.getNotChannelType())) {
-            boolQueryBuilder.mustNot(termQuery("goodsChannelTypeList", request.getNotChannelType()));
-        }
+
         if (!CollectionUtils.isEmpty(request.getGoodIdList())) {
             boolQueryBuilder.must(termsQuery("id", request.getGoodIdList()));
         }

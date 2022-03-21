@@ -49,6 +49,7 @@ import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.home.response.ImageResponse;
 import com.wanmi.sbc.home.response.NoticeResponse;
 import com.wanmi.sbc.redis.RedisListService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RandomUtil;
 import com.wanmi.sbc.util.RedisKeyUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -101,6 +102,9 @@ public class HomePageService {
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    private CommonUtil commonUtil;
 
     /**
      * 基础失效时间
@@ -379,7 +383,7 @@ public class HomePageService {
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
 
-        List<JSONObject> newBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST, 0, pageSize);
+        List<JSONObject> newBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), 0, pageSize);
         if (!CollectionUtils.isEmpty(newBookList)) {
             for (JSONObject goodStr : newBookList) {
                 resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
@@ -390,6 +394,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getNewBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getNewBooksBlackListModel().getGoodsIdList());
@@ -407,7 +412,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisService.putAll(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST, resultTmp, expire);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_NEW_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), resultTmp, expire);
             }
         }
 
@@ -433,7 +438,7 @@ public class HomePageService {
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
 
-        List<JSONObject> sellWellBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST, 0, pageSize);
+        List<JSONObject> sellWellBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), 0, pageSize);
         if (!CollectionUtils.isEmpty(sellWellBookList)) {
             for (JSONObject goodStr : sellWellBookList) {
                 resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
@@ -444,6 +449,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageNum(0);
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSellWellBooksBlackListModel().getGoodsIdList());
@@ -460,7 +466,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisService.putAll(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST, resultTmp, expire);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_SELL_WELL_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), resultTmp, expire);
             }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);
@@ -484,7 +490,7 @@ public class HomePageService {
         HomeGoodsListSubResponse homeGoodsListSubResponse = new HomeGoodsListSubResponse();
 
         List<EsGoodsVO> resultTmp = new ArrayList<>();
-        List<JSONObject> specialOfferBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST, 0, pageSize);
+        List<JSONObject> specialOfferBookList = redisService.findByRange(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), 0, pageSize);
         if (!CollectionUtils.isEmpty(specialOfferBookList)) {
             for (JSONObject goodStr : specialOfferBookList) {
                 resultTmp.add(JSONObject.toJavaObject(goodStr, EsGoodsVO.class));
@@ -496,6 +502,7 @@ public class HomePageService {
             esGoodsCustomRequest.setPageSize(200);
             esGoodsCustomRequest.setScriptSpecialOffer("0.5");
             esGoodsCustomRequest.setBookFlag(BookFlagEnum.Book.getCode());
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             if (goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel() != null) {
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList())) {
                     esGoodsCustomRequest.setUnGoodIdList(goodsBlackListPageProviderResponse.getSpecialOfferBooksBlackListModel().getGoodsIdList());
@@ -509,7 +516,7 @@ public class HomePageService {
             if (!CollectionUtils.isEmpty(resultTmp)) {
                 //存在缓存击穿的问题，如果经常击穿可以考虑 双key模式
                 int expire = EXPIRE_BASE_TIME + RandomUtil.getRandomRange(EXPIRE_BASE_TIME_RANGE_MIN, EXPIRE_BASE_TIME_RANGE_MAX);
-                redisService.putAll(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST, resultTmp, expire);
+                redisService.putAll(RedisKeyUtil.KEY_HOME_SPECIAL_OFFER_BOOK_LIST + "_" + commonUtil.getTerminal().getMessage(), resultTmp, expire);
             }
         }
         List<GoodsCustomResponse> result = bookListModelAndGoodsService.listGoodsCustom(resultTmp);

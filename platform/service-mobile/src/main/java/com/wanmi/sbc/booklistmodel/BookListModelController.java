@@ -34,6 +34,7 @@ import com.wanmi.sbc.home.response.HomeGoodsListSubResponse;
 import com.wanmi.sbc.home.response.HomeTopicResponse;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
 import com.wanmi.sbc.topic.service.AtmosphereService;
+import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.sort.SortOrder;
@@ -53,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +87,7 @@ public class BookListModelController {
     private EsGoodsCustomQueryProvider esGoodsCustomQueryProvider;
 
     @Autowired
-    private AtmosphereService atmosphereService;
+    private CommonUtil commonUtil;
 
 
 
@@ -439,6 +441,8 @@ public class BookListModelController {
 
         Collection<String> goodsIdCollection = listClassifyGoodsAllChildOfParent.stream().map(ClassifyGoodsProviderResponse::getGoodsId).collect(Collectors.toSet());
         EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         esGoodsCustomRequest.setPageNum(seePageRequest.getPageNum());
         esGoodsCustomRequest.setPageSize(seePageRequest.getPageSize());
         esGoodsCustomRequest.setGoodIdList(goodsIdCollection);

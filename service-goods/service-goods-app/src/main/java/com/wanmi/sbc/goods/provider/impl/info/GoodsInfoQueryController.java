@@ -184,7 +184,7 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         if (CollectionUtils.isNotEmpty(response.getGoodses())) {
             for (GoodsVO item : response.getGoodses()) {
                 if (StringUtils.isNotBlank(item.getGoodsChannelType())) {
-                    item.setGoodsChannelTypeSet(Arrays.stream(item.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+                    item.setGoodsChannelTypeSet(Arrays.asList(item.getGoodsChannelType().split(",")));
                 }
             }
         }

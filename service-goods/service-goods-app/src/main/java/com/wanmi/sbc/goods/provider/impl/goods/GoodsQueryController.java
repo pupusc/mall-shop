@@ -236,7 +236,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
             List<GoodsVO> result = new ArrayList<>();
             for (Goods goodsParam : goodsPage.getContent()) {
                 GoodsVO goodsVO = KsBeanUtil.convert(goodsParam, GoodsVO.class);
-                goodsVO.setGoodsChannelTypeSet(Arrays.stream(goodsParam.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+                goodsVO.setGoodsChannelTypeSet(Arrays.asList(goodsParam.getGoodsChannelType().split(",")));
                 result.add(goodsVO);
             }
 
@@ -413,7 +413,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
         GoodsVO goods = goodsByIdResponse.getGoods();
 
         if (Objects.nonNull(goods) && StringUtils.isNotBlank(goods.getGoodsChannelType())) {
-            goods.setGoodsChannelTypeSet(Arrays.stream(goods.getGoodsChannelType().split(",")).collect(Collectors.toSet()));
+            goods.setGoodsChannelTypeSet(Arrays.asList(goods.getGoodsChannelType().split(",")));
         }
 
         if (StringUtils.isNotBlank(goods.getProviderGoodsId()) && Objects.nonNull(goods.getProviderId())) {

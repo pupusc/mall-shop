@@ -5,11 +5,11 @@ import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsInfoSelectStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +21,7 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 
@@ -42,6 +43,7 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
  * @author dyt
  * @date 2020-12-04 10:39:15
  */
+@Slf4j
 public class EsSkuSearchCriteriaBuilder {
 
     /**
@@ -50,13 +52,7 @@ public class EsSkuSearchCriteriaBuilder {
      * @return
      */
     private static QueryBuilder getWhereCriteria(EsSkuPageRequest request) {
-        CommonEsSearchCriteriaRequest commonRequest = new CommonEsSearchCriteriaRequest();
-        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(commonRequest);
-
-        //查询赠品
-        if (Objects.nonNull(request.getGoodsChannelType())){
-            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
-        }
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSkuCommonSearchCriterialBuilder(request);
 
         //批量SKU编号
         if(CollectionUtils.isNotEmpty(request.getGoodsInfoIds())){
@@ -282,6 +278,8 @@ public class EsSkuSearchCriteriaBuilder {
         if (CollectionUtils.isNotEmpty(sortBuilders)) {
             sortBuilders.forEach(builder::withSort);
         }
-        return builder.build();
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsSkuSearchCriteriaBuilder.getWhereCriteria DSL: {}", build.getQuery().toString());
+        return build;
     }
 }

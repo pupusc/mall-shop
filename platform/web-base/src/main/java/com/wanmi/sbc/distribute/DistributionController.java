@@ -195,6 +195,7 @@ public class DistributionController {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setPageSize(goodsInfoIds.size());
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //如果是linkedmall商品，实时查库存
         List<Long> itemIds = response.getEsGoods().stream().flatMap(v -> v.getGoodsInfos().stream())
@@ -245,6 +246,7 @@ public class DistributionController {
         queryRequest.setDelFlag(DeleteFlag.NO.toValue());
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         EsGoodsResponse response = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext();
         //sku信息
         GoodsInfoNestVO goodsInfo = response.getEsGoods().getContent().stream().map(EsGoodsVO::getGoodsInfos)
