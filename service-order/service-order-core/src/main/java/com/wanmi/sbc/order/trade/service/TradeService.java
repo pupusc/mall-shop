@@ -200,11 +200,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.GeneralInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.SpecialInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeUpdateDTO;
+import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.AuditState;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -619,6 +615,9 @@ public class TradeService {
 
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
+
+    @Value("${goods.coupon}")
+    private String goodsCouponStr;
 
     /**
      * 新增文档
@@ -4479,7 +4478,7 @@ public class TradeService {
      */
     @Transactional
     @GlobalTransactional
-    public void payCallBack(String tid, BigDecimal payOrderPrice, Operator operator, PayWay payWay) {
+    public void                    payCallBack(String tid, BigDecimal payOrderPrice, Operator operator, PayWay payWay) {
         Trade trade = detail(tid);
         TradePrice tradePrice = trade.getTradePrice();
         BigDecimal shouldPayPrice = tradePrice.getTotalPrice();
@@ -7971,5 +7970,23 @@ public class TradeService {
         log.info("===========查询对账积分金额：{}===============",pointsPrice);
 
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
+    }
+
+    /**
+     * 订单支付成功发放优惠券
+     */
+    private void sendCoupon(Trade trade){
+        if(StringUtils.isEmpty(goodsCouponStr)){
+            return;
+        }
+        List<GoodsCouponDTO> couponList = JSON.parseArray(goodsCouponStr,GoodsCouponDTO.class);
+        List<String> goodsIds = trade.getTradeItems().stream().map(TradeItem::getSpuId).distinct().collect(Collectors.toList());
+        List<GoodsCouponDTO> newCouponList = couponList.stream().filter(p->goodsIds.contains(p.getGoodsId())).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(newCouponList)){
+            return;
+        }
+        List<String> couponCodes = newCouponList.stream().flatMap(coupon -> coupon.getCouponCodes().stream()).distinct().collect(Collectors.toList());
+        //发放优惠券
+
     }
 }
