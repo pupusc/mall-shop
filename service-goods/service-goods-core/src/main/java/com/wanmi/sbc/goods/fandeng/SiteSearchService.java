@@ -68,7 +68,7 @@ public class SiteSearchService {
     private Integer goodsSyncCate;
 
     @Value("${site.search.pkg.sync.type}")
-    private Integer packageSyncType;
+    private List<Integer> packageSyncType;
 
     @Value("${site.search.goods.sync.url}")
     private String syncBookResUrl;
@@ -343,7 +343,7 @@ public class SiteSearchService {
         if (!Integer.valueOf(2).equals(pkgDto.getPublishState())) {
             return 0;
         }
-        if (!packageSyncType.equals(pkgDto.getBusinessType())) {
+        if (!packageSyncType.contains(pkgDto.getBusinessType())) {
             return 0;
         }
         return 1;
