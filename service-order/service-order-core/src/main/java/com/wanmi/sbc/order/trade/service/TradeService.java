@@ -616,8 +616,7 @@ public class TradeService {
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
-    @Value("${goods.coupon}")
-    private String goodsCouponStr;
+
 
     /**
      * 新增文档
@@ -7976,17 +7975,7 @@ public class TradeService {
      * 订单支付成功发放优惠券
      */
     private void sendCoupon(Trade trade){
-        if(StringUtils.isEmpty(goodsCouponStr)){
-            return;
-        }
-        List<GoodsCouponDTO> couponList = JSON.parseArray(goodsCouponStr,GoodsCouponDTO.class);
         List<String> goodsIds = trade.getTradeItems().stream().map(TradeItem::getSpuId).distinct().collect(Collectors.toList());
-        List<GoodsCouponDTO> newCouponList = couponList.stream().filter(p->goodsIds.contains(p.getGoodsId())).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(newCouponList)){
-            return;
-        }
-        List<String> couponCodes = newCouponList.stream().flatMap(coupon -> coupon.getCouponCodes().stream()).distinct().collect(Collectors.toList());
-        //发放优惠券
 
     }
 }

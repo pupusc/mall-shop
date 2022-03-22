@@ -1,15 +1,11 @@
 package com.wanmi.sbc.marketing.provider.impl.coupon;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.ares.base.BaseResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchSendCouponRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCustomizeProviderRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByFileCustomizeProviderRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.*;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
@@ -30,6 +26,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.yaml.snakeyaml.representer.BaseRepresenter;
 
 import javax.validation.Valid;
 import java.io.BufferedReader;
@@ -273,4 +270,9 @@ public class CouponCodeController implements CouponCodeProvider {
 //    }
 
 
+    @Override
+    public BaseResponse sendCouponCodeByGoodsIds(CouponCodeByGoodsIdsRequest couponCodeByGoodsIdsRequest) {
+        couponCodeService.sendCouponByGoodsIds(couponCodeByGoodsIdsRequest.getGoodsIds(),couponCodeByGoodsIdsRequest.getCustomerId());
+        return BaseResponse.SUCCESSFUL();
+    }
 }
