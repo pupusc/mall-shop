@@ -29,6 +29,7 @@ import com.wanmi.sbc.goods.classify.model.root.ClassifyDTO;
 import com.wanmi.sbc.goods.classify.request.BookListModelClassifyRelRequest;
 import com.wanmi.sbc.goods.classify.service.BookListModelClassifyRelService;
 import com.wanmi.sbc.goods.classify.service.ClassifyService;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -92,7 +94,8 @@ public class BookListModelService {
     @Autowired
     private ClassifyService classifyService;
 
-
+    @Autowired
+    private SiteSearchService siteSearchService;
 
     /**
      * 新增 书单模板
@@ -137,7 +140,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.add(chooseRuleGoodsListModel, bookListMixProviderRequest.getOperator());
         }
 
-
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelParam.getId()));
     }
 
     /**
@@ -238,8 +241,7 @@ public class BookListModelService {
             chooseRuleGoodsListService.update(bookListMixProviderRequest.getChooseRuleGoodsListModel(), bookListMixProviderRequest.getOperator());
         }
 
-
-
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelRequest.getId()));
     }
 
     /**
@@ -268,9 +270,7 @@ public class BookListModelService {
             throw new SbcRuntimeException("书单" + bookListModelId + "删除中异常");
         }
 
-        //todo  删除控件和商品列表
-
-
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelId));
     }
 
     /**
@@ -295,6 +295,7 @@ public class BookListModelService {
         bookListModelObj.setUpdateTime(new Date());
         bookListModelRepository.save(bookListModelObj);
 
+        siteSearchService.siteSearchBookPkgNotify(Arrays.asList(bookListModelId));
     }
 
     /**

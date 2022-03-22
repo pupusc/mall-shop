@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.google.common.collect.Lists;
-import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
@@ -17,11 +15,9 @@ import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.customer.api.constant.SigningClassErrorCode;
 import com.wanmi.sbc.customer.api.constant.StoreCateErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsCateErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
-import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
@@ -51,8 +47,6 @@ import com.wanmi.sbc.goods.bean.enums.UnAddedFlagReason;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
-import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
-import com.wanmi.sbc.goods.booklistmodel.request.BookListModelPageRequest;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
@@ -70,6 +64,7 @@ import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
 import com.wanmi.sbc.goods.freight.repository.FreightTemplateGoodsRepository;
 import com.wanmi.sbc.goods.images.GoodsImage;
@@ -100,7 +95,6 @@ import com.wanmi.sbc.goods.info.request.GoodsSyncQueryRequest;
 import com.wanmi.sbc.goods.mini.enums.goods.WxGoodsEditStatus;
 import com.wanmi.sbc.goods.mini.model.goods.WxGoodsModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxGoodsRepository;
-import com.wanmi.sbc.goods.mini.service.goods.WxGoodsService;
 import com.wanmi.sbc.goods.pointsgoods.model.root.PointsGoods;
 import com.wanmi.sbc.goods.pointsgoods.repository.PointsGoodsRepository;
 import com.wanmi.sbc.goods.pointsgoods.service.PointsGoodsWhereCriteriaBuilder;
@@ -144,9 +138,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.checkerframework.checker.units.qual.A;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -347,6 +338,9 @@ public class GoodsService {
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
 
+    @Autowired
+    private SiteSearchService siteSearchService;
+
 
     /**
      * 供应商商品删除
@@ -393,6 +387,9 @@ public class GoodsService {
 
         //ares埋点-商品-后台批量删除商品spu
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
+
+        //删除主站搜素
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -450,6 +447,7 @@ public class GoodsService {
             }
         }
 
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -1908,6 +1906,8 @@ public class GoodsService {
             goodsSyncRelationRepository.save(goodsSyncRelation);
 
         }
+        //商品推送到站内搜索
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(goods.getGoodsId()));
         return goodsId;
     }
 
@@ -2577,6 +2577,8 @@ public class GoodsService {
         returnMap.put("oldGoodsInfos", oldGoodsInfos);
         returnMap.put("oldGoods", oldGoods);
         returnMap.put("isDealGoodsVendibility", isDealGoodsVendibility);
+
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(newGoods.getGoodsId()));
         return returnMap;
     }
 
@@ -2652,6 +2654,8 @@ public class GoodsService {
 //        goodsInfoRepository.save(goodsInfos);
 
         this.saveGoodsPrice(goodsInfos, newGoods, saveRequest);
+
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(newGoods.getGoodsId()));
     }
 
     /**
@@ -2761,6 +2765,7 @@ public class GoodsService {
                 }
             }
         }
+        siteSearchService.siteSearchBookResNotify(Arrays.asList(goods.getGoodsId()));
     }
 
     /**
@@ -2805,6 +2810,8 @@ public class GoodsService {
 
         //ares埋点-商品-后台批量删除商品spu
         goodsAresService.dispatchFunction("delGoodsSpu", goodsIds);
+
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -2826,6 +2833,8 @@ public class GoodsService {
                 distributiorGoodsInfoRepository.deleteByGoodsId(goodsID);
             });
         }
+
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -2849,6 +2858,7 @@ public class GoodsService {
 
         storeCateGoodsRelaRepository.saveAll(relas);
 
+        siteSearchService.siteSearchBookResNotify(goodsIds);
     }
 
     /**
@@ -3282,7 +3292,6 @@ public class GoodsService {
                 goodsInfoRepository.updateGoodsInfoVendibility(Constants.no, goodsInfoIds);
             }
         }
-
     }
 
     /**
