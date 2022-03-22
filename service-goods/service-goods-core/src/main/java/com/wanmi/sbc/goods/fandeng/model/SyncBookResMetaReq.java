@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -89,6 +88,11 @@ public class SyncBookResMetaReq implements Serializable {
      * 标签列表（顺序商城控制）
      */
     private List<SyncBookResMetaLabelReq> labels;
+
+    /**
+     * 拓展的预留标签--仅用于搜索
+     */
+    private List<String> extendLabels;
 
     /**
      * 发布状态1发布，0不发布

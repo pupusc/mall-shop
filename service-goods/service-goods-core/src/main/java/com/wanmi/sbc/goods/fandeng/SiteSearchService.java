@@ -261,6 +261,7 @@ public class SiteSearchService {
                 return labelReq;
             }).collect(Collectors.toList());
             resMeta.setLabels(labelReqs);
+            resMeta.setExtendLabels(null);
         }
 
         syncBookResData(resReqVO);
