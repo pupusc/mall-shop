@@ -78,8 +78,6 @@ public class ExternalService {
 
     @Value("${fandeng.host}")
     private String host;
-    @Value("${fandeng.host.new}")
-    private String hostNew;
     @Value("${fandeng.appid}")
     private String appid;
     @Value("${fandeng.appsecret}")
@@ -711,7 +709,7 @@ public class ExternalService {
     private String getUrlNew(String url, String body) {
         try {
             log.info("ExternalService getUrl appId: {} , url:{} , param: {}", appid, url, body);
-            HttpResponse httpResponse = HttpUtils.doPost(hostNew, url, getMap(), null, body);
+            HttpResponse httpResponse = HttpUtils.doPost(host, url, getMap(), null, body);
             if (HttpStatus.SC_UNAUTHORIZED ==  httpResponse.getStatusLine().getStatusCode()) {
                 redisService.delete(appid);
                 httpResponse = HttpUtils.doPost(host, url, getMap(), null, body);
