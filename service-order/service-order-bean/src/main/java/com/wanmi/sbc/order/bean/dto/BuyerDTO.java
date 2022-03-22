@@ -63,4 +63,9 @@ public class BuyerDTO implements Serializable {
     @ApiModelProperty(value = "买家关联的业务员id")
     private String employeeId;
 
+    /**
+     * openId
+     */
+    private String openId;
+
 }

@@ -267,4 +267,6 @@ public class TradeParams {
      */
     private Integer suitScene;
 
+    private MiniProgram miniProgram;
+
 }

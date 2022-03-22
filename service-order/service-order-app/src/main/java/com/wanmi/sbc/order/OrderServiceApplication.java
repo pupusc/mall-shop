@@ -5,27 +5,31 @@ import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.net.InetAddress;
 
 
 
-@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc","com.soybean.mall"})
 
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
 @EnableJpaAuditing
 @EnableCaching
+@EnableJpaRepositories(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@EntityScan(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 public class OrderServiceApplication {
 
     public static void main(String[] args) throws Exception {

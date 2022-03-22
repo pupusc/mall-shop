@@ -44,4 +44,9 @@ public class TradePayOnlineCallBackRequest {
      */
     @ApiModelProperty(value = "支付方式0: 微信支付，1: 支付宝支付，2: 银联支付")
     private PayCallBackType payCallBackType;
+
+    /**
+     * 店铺ID
+     */
+    private Long storeId = -1L;
 }

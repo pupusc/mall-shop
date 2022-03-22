@@ -142,6 +142,8 @@ public class ProviderTradeService {
      */
     private final String BATCH_UPDATE_DELIVERY_STATUS_LOCKS = "autoSyncDeliveryStatus";
 
+
+
     /**
      * 重置扫描次数
      */
@@ -1582,4 +1584,7 @@ public class ProviderTradeService {
         Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
         return new Query(newCriteria).limit(request.getPageSize());
     }
+
+
+
 }

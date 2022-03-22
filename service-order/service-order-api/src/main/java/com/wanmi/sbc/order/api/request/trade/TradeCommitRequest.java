@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
 import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.OrderSource;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -197,4 +198,14 @@ public class TradeCommitRequest extends BaseRequest {
      * 埋点
      */
     private String emallSessionId;
+
+    /**
+     * 商品信息
+     */
+    private List<TradeItemDTO> tradeItems;
+
+    /**
+     * openId
+     */
+    private String openId;
 }

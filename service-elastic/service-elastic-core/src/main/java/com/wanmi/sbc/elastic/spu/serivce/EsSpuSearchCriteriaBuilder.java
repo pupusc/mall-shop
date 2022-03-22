@@ -3,12 +3,12 @@ package com.wanmi.sbc.elastic.spu.serivce;
 import com.wanmi.sbc.common.util.ElasticCommonUtil;
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.elastic.api.request.spu.EsSpuPageRequest;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaBuilder;
-import com.wanmi.sbc.elastic.common.CommonEsSearchCriteriaRequest;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsSelectStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -19,6 +19,7 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortMode;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.util.ObjectUtils;
@@ -40,6 +41,7 @@ import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
  * @author dyt
  * @date 2020-12-04 10:39:15
  */
+@Slf4j
 public class EsSpuSearchCriteriaBuilder {
 
     /**
@@ -49,12 +51,7 @@ public class EsSpuSearchCriteriaBuilder {
      */
     private static QueryBuilder getWhereCriteria(EsSpuPageRequest request) {
 //        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        CommonEsSearchCriteriaRequest commonEsSearchCriteriaRequest = new CommonEsSearchCriteriaRequest();
-        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(commonEsSearchCriteriaRequest);
-
-        if (Objects.nonNull(request.getGoodsChannelType())) {
-            boolQb.must(QueryBuilders.termQuery("goodsChannelTypeList", request.getGoodsChannelType()));
-        }
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
 
         //批量商品编号
         if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
@@ -266,13 +263,16 @@ public class EsSpuSearchCriteriaBuilder {
     public static SearchQuery getSearchCriteria(EsSpuPageRequest request) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(EsConstants.DOC_GOODS_TYPE);
-        builder.withQuery(getWhereCriteria(request));
-        System.out.println("where===>" + getWhereCriteria(request).toString());
+        QueryBuilder whereCriteria = getWhereCriteria(request);
+        builder.withQuery(whereCriteria);
+        System.out.println("where===>" + whereCriteria.toString());
         builder.withPageable(request.getPageable());
         List<SortBuilder> sortBuilders = getSorts(request);
         if (CollectionUtils.isNotEmpty(sortBuilders)) {
             sortBuilders.forEach(builder::withSort);
         }
-        return builder.build();
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsSpuSearchCriteriaBuilder.getWhereCriteria DSL: {}", build.getQuery().toString());
+        return build;
     }
 }

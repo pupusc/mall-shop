@@ -1,3 +1,4 @@
+
 //package com.wanmi.sbc;
 //
 //import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
@@ -24,3 +25,4 @@
 //            SpringApplication.run(OrderTestApplication.class, args);
 //    }
 //}
+

@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.trade.model.root;
 import com.wanmi.sbc.order.trade.model.entity.Discounts;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -11,8 +12,9 @@ import java.util.List;
  * Created by of628-wenzhi on 2018-03-08-下午6:09.
  */
 @Data
-public class TradeConfirmResponse {
+public class TradeConfirmResponse implements Serializable {
 
+    private static final long serialVersionUID = 4284532298468891637L;
     /**
      * 按商家拆分后的订单项
      */

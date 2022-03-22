@@ -5,6 +5,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
+import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
+import com.soybean.mall.order.miniapp.service.TradeOrderService;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
+import com.soybean.mall.wx.mini.common.controller.CommonController;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -613,10 +624,28 @@ public class TradeService {
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
+
+    @Autowired
+    private CommonController wxCommonController;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
+    
+    @Value("${wx.create.order.send.message.templateId}")
+    private String createOrderSendMsgTemplateId;
 
+    @Value("${wx.create.order.send.message.link.url}")
+    private String createOrderSendMsgLinkUrl;
 
+    @Autowired
+    private TradeOrderService tradeOrderService;
+
+    @Autowired
+    private MiniOrderOperateResultRepository miniOrderOperateResultRepository;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
     /**
      * 新增文档
@@ -4199,7 +4228,7 @@ public class TradeService {
                 .event(event)
                 .build();
         tradeFSMService.changeState(stateRequest);
-
+        wxOrderService.syncWxOrderReceive(trade);
         //将物流信息更新为结束
         logisticsLogService.modifyEndFlagByOrderNo(tid);
 
@@ -6576,7 +6605,7 @@ public class TradeService {
         String businessId = "";
         try {
             PayGatewayConfigResponse payGatewayConfig = payQueryProvider.getGatewayConfigByGateway(new
-                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, Constants.BOSS_DEFAULT_STORE_ID)).getContext();
+                    GatewayConfigByGatewayRequest(PayGatewayEnum.WECHAT, tradePayOnlineCallBackRequest.getStoreId())).getContext();
             String apiKey = payGatewayConfig.getApiKey();
             XStream xStream = new XStream(new XppDriver(new XmlFriendlyNameCoder("_-", "_")));
             xStream.alias("xml", WxPayResultResponse.class);
@@ -6662,7 +6691,7 @@ public class TradeService {
                                     .getPayState() == PayState.PAID
                                     && !recordResponse.getTradeNo().equals(wxPayResultResponse.getTransaction_id()))) {
                                 //同一批订单重复支付或过期作废，直接退款
-                                wxRefundHandle(wxPayResultResponse, businessId, -1L);
+                                wxRefundHandle(wxPayResultResponse, businessId,tradePayOnlineCallBackRequest.getStoreId());
                             } else if (payCallBackResult.getResultStatus() != PayCallBackResultStatus.SUCCESS) {
                                 wxPayCallbackHandle(payGatewayConfig, wxPayResultResponse, businessId, trades, false);
                             }
@@ -6833,6 +6862,8 @@ public class TradeService {
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, isMergePay);
+        //微信支付同步支付结果,失败处理
+        wxOrderService.syncWxOrderPay(trades.get(0),wxPayResultResponse.getTransaction_id());
     }
 
     /**
@@ -7055,7 +7086,7 @@ public class TradeService {
      *
      * @param trades todo 入限售记录
      */
-    protected void insertRestrictedRecord(List<Trade> trades) {
+    public void insertRestrictedRecord(List<Trade> trades) {
         if (CollectionUtils.isEmpty(trades)) {
             return;
         }

@@ -538,6 +538,11 @@ public class TradeVO implements Serializable {
     private String deliveryOrderId;
 
     /**
+     * 小程序相关信息，有时间单独建表处理
+     */
+    private MiniProgramVO miniProgram;
+
+    /**
      * 外部交易编号
      */
     private String outTradeNo;

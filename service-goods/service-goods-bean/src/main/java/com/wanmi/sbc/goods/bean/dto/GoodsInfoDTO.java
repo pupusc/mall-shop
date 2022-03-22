@@ -237,6 +237,11 @@ public class GoodsInfoDTO implements Serializable {
     private List<Long> specDetailRelIds;
 
     /**
+     * 商品分页，扁平化多个商品规格值名称
+     */
+    private List<String> mockSpecDetailName;
+
+    /**
      * 购买量
      */
     @ApiModelProperty(value = "购买量")

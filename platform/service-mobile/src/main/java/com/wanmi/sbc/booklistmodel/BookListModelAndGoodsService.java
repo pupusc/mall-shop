@@ -16,6 +16,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
+import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
@@ -257,6 +258,7 @@ public class BookListModelAndGoodsService {
         esGoodsCustomRequest.setPageNum(pageNum);
         esGoodsCustomRequest.setPageSize(Math.min(spuIdSet.size(), maxSize)); //这里主要是为啦防止书单里面的数量过分的多的情况，限制最多100个
         esGoodsCustomRequest.setGoodIdList(spuIdSet);
+        esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         if (!CollectionUtils.isEmpty(unSpuIdCollection)) {
             esGoodsCustomRequest.setUnGoodIdList(unSpuIdCollection);
         }
@@ -495,6 +497,27 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
 
+        //主播推荐标签
+        List<AnchorPushEnum> anchorPushEnumList = new ArrayList<>();
+        if (!StringUtils.isEmpty(goodsVO.getAnchorPushs())) {
+            for (String anchorPushParam : goodsVO.getAnchorPushs().split(" ")) {
+                AnchorPushEnum byCode = AnchorPushEnum.getByCode(anchorPushParam);
+                if (byCode == null) {
+                    continue;
+                }
+                anchorPushEnumList.add(byCode);
+            }
+        }
+        //排序获取
+        if (!CollectionUtils.isEmpty(anchorPushEnumList)) {
+            anchorPushEnumList.sort(new Comparator<AnchorPushEnum>() {
+                @Override
+                public int compare(AnchorPushEnum o1, AnchorPushEnum o2) {
+                    return o1.getOrder() - o2.getOrder();
+                }
+            });
+            esGoodsCustomResponse.setAnchorPush(anchorPushEnumList.get(0).getMessage());
+        }
         return esGoodsCustomResponse;
     }
 
@@ -601,6 +624,7 @@ public class BookListModelAndGoodsService {
             //根据书单模版获取商品列表
             Set<String> spuIdSet = goodsContext.stream().map(BookListGoodsPublishProviderResponse::getSpuId).collect(Collectors.toSet());
             EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             esGoodsCustomRequest.setPageNum(0);
             int esPageSize = spuIdSet.size();
             if (maxSize != null) {

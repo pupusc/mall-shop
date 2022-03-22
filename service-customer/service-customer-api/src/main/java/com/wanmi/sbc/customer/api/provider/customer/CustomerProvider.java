@@ -91,6 +91,8 @@ public interface CustomerProvider {
     @PostMapping("/customer/${application.customer.version}/customer/modify-customer-fandeng-time")
     BaseResponse<CustomerAccountModifyResponse> modifyCustomerFanDengIdTime(@RequestBody @Valid CustomerFandengModifyRequest request);
 
+    @PostMapping("/customer/${application.customer.version}/customer/modify-customer-openid")
+    BaseResponse modifyCustomerOpenIdAndUnionId(@RequestParam("customerId") String customerId, @RequestParam("openId") String openId, @RequestParam("unionId") String unionId);
     /**
      * 修改已有的业务员
      *

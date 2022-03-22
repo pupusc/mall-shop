@@ -2,6 +2,9 @@ package com.wanmi.sbc.customer;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.code.kaptcha.Producer;
+import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest;
+import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
+import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.ms.autoconfigure.JwtProperties;
 import com.wanmi.sbc.common.annotation.MultiSubmit;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -40,10 +43,7 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
 import com.wanmi.sbc.customer.api.response.employee.EmployeeByIdResponse;
 import com.wanmi.sbc.customer.api.response.enterpriseinfo.EnterpriseInfoByCustomerIdResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengLoginResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengPrepositionResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengSengCodeResponse;
-import com.wanmi.sbc.customer.api.response.fandeng.FanDengVerifyResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.*;
 import com.wanmi.sbc.customer.api.response.loginregister.*;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.enums.*;
@@ -59,6 +59,7 @@ import com.wanmi.sbc.customer.service.DistributionInviteNewService;
 import com.wanmi.sbc.customer.service.LoginBaseService;
 import com.wanmi.sbc.customer.validGroups.*;
 import com.wanmi.sbc.distribute.DistributionCacheService;
+import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponActivityProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.GetCouponGroupRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.GetRegisterOrStoreCouponResponse;
@@ -102,6 +103,7 @@ import javax.imageio.ImageIO;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -125,6 +127,7 @@ public class LoginBaseController {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
     @Autowired
     private CustomerProvider customerProvider;
 
@@ -184,6 +187,8 @@ public class LoginBaseController {
     private TradeQueryProvider tradeQueryProvider;
     @Autowired
     private DistributionCustomerSaveProvider distributionCustomerSaveProvider;
+    @Autowired
+    private WxUserApiController wxUserApiController;
 
     /**
      * 注册用户
@@ -1296,6 +1301,7 @@ public class LoginBaseController {
             loginResponse = commonUtil.getLoginResponse(customerVO, jwtSecretKey);
             loginResponse.setNewFlag(Boolean.FALSE);
             if (Objects.isNull(customerVO.getLoginTime())) {
+                webBaseProducerService.sendUserRegisterEvent(customerVO.getFanDengUserNo(), "H5");
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
@@ -1370,9 +1376,7 @@ public class LoginBaseController {
                         deleteRequest.setCustomerIds(customerIdList);
                         customerProvider.deleteCustomers(deleteRequest);
 
-                        webBaseProducerService
-                                .sendMQForModifyCustomerAccount(customer.getCustomerId()
-                                        ,response.getMobile());
+                        webBaseProducerService.sendMQForModifyCustomerAccount(customer.getCustomerId(),response.getMobile());
 
                         webBaseProducerService.sendMQForDelCustomerInfo(newCustomerVO.getCustomerId());
 
@@ -1473,6 +1477,34 @@ public class LoginBaseController {
         return customer;
     }
 
+    public LoginResponse afterWxAuthLogin(FanDengWxAuthLoginResponse.WxAuthLoginData resData, String mobile, String openId, String unionId){
+        FanDengLoginResponse response = new FanDengLoginResponse();
+        response.setMobile(mobile);
+        response.setNickName(resData.getNickName());
+        response.setProfilePhoto(resData.getProfilePhoto());
+        response.setUserNo(resData.getUserNo());
+        response.setVipEndTime(Timestamp.valueOf(resData.getVipEndTime()).getTime());
+        response.setVipStartTime(Timestamp.valueOf(resData.getVipStartTime()).getTime());
+        CustomerVO customerVO = extractLogin(response);
+
+        LoginResponse loginResponse = LoginResponse.builder().build();
+        if (Objects.nonNull(customerVO)) {
+            //返回值
+            loginResponse = commonUtil.getLoginResponse(customerVO, jwtSecretKey);
+            loginResponse.setNewFlag(Boolean.FALSE);
+            loginResponse.setFanDengUserStates(resData.getUserStatus());
+            if (Objects.isNull(customerVO.getLoginTime())) {
+                customerProvider.modifyCustomerOpenIdAndUnionId(customerVO.getCustomerId(), openId, unionId);
+                //todo 发送埋点
+                webBaseProducerService.sendMQForCustomerRegister(customerVO);
+                loginResponse.setNewFlag(Boolean.TRUE);
+            }
+        }
+        loginResponse.setPhoto(resData.getProfilePhoto());
+        loginResponse.setOpenId(openId);
+        return loginResponse;
+    }
+
     /**
      * 樊登授权登陆接口
      *
@@ -1485,8 +1517,7 @@ public class LoginBaseController {
     @GlobalTransactional
     public BaseResponse<LoginResponse> authLogin(@Valid @RequestBody FanDengAuthLoginRequest loginRequest) {
         log.info("enter autoLogin method ......");
-        BaseResponse<FanDengLoginResponse> authLogin
-                = externalProvider.authLogin(loginRequest);
+        BaseResponse<FanDengLoginResponse> authLogin = externalProvider.authLogin(loginRequest);
         authLogin.getContext().setMobile(loginRequest.getMobile());
         CustomerVO customerVO = extractLogin(authLogin.getContext());
         LoginResponse loginResponse = LoginResponse.builder().build();
@@ -1496,11 +1527,58 @@ public class LoginBaseController {
             loginResponse.setNewFlag(Boolean.FALSE);
             loginResponse.setFanDengUserStates(authLogin.getContext().getUserStatus());
             if (Objects.isNull(customerVO.getLoginTime())) {
+                webBaseProducerService.sendUserRegisterEvent(customerVO.getFanDengUserNo(), "H5");
                 webBaseProducerService.sendMQForCustomerRegister(customerVO);
                 loginResponse.setNewFlag(Boolean.TRUE);
             }
         }
         log.info("autoLogin success ......");
+        return BaseResponse.success(loginResponse);
+    }
+
+    /**
+     * 微信小程序授权登录
+     */
+    @ApiOperation(value = "微信授权登陆接口")
+    @RequestMapping(value = "/wxAuthLogin", method = RequestMethod.POST)
+//    @MultiSubmit
+//    @GlobalTransactional
+    public BaseResponse<LoginResponse> wxAuthLogin(@RequestBody WxGetUserPhoneAndOpenIdRequest wxGetUserPhoneAndOpenIdRequest) {
+        String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
+        wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
+        BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+
+        NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
+        accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
+        NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
+
+        String openId, unionId;
+        boolean newUser = false;
+        if(newCustomerVO == null){
+            //如果是新用户，就调微信接口获取opeid
+            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
+            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
+            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+            unionId = phoneAndOpenid2.getContext().getUnionId();
+            openId = phoneAndOpenid2.getContext().getOpenId();
+            newUser = true;
+        }else {
+            unionId = newCustomerVO.getWxMiniUnionId();
+            openId = newCustomerVO.getWxMiniOpenId();
+        }
+        if(!newUser && (openId == null || unionId == null)){
+            // 如果不是新用户，但是没有openid，先调微信获取，再保存到用户信息中
+            wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
+            wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
+            BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid2 = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+            unionId = phoneAndOpenid2.getContext().getUnionId();
+            openId = phoneAndOpenid2.getContext().getOpenId();
+            customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
+        }
+        FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
+                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
+        BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
+        LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
         return BaseResponse.success(loginResponse);
     }
 

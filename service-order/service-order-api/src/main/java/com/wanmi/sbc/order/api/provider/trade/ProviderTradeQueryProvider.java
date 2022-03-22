@@ -113,4 +113,7 @@ public interface ProviderTradeQueryProvider {
      */
     @PostMapping("/order/${application.order.version}/trade/batch-sync-history-order-status")
     BaseResponse batchSyncHistoryOrderStatus(@RequestBody @Valid ProviderTradeErpRequest request);
+
+
+
 }

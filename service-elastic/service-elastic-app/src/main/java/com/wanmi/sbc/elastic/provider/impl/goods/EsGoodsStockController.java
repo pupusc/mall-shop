@@ -66,4 +66,10 @@ public class EsGoodsStockController implements EsGoodsStockProvider {
         esGoodsStockService.batchResetGoodsInfoStockBySpuId(request.getSpusMap());
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse updateWxAuditStatus(String goodsId) {
+        esGoodsStockService.updateWxAuditStatus(goodsId);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

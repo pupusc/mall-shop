@@ -2,12 +2,12 @@ package com.wanmi.sbc.task;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsCustomQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsCustomQueryProviderRequest;
 import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
-import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.request.classify.BookListModelClassifyLinkPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
@@ -24,6 +24,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,8 +59,12 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
 
     @Override
     public ReturnT<String> execute(String param) throws Exception {
-        //校验参数
-//        List<ClassifyNoChildResponse> classifyNoChildResult = new ArrayList<>();
+        long beginTime = System.currentTimeMillis();
+        log.info("HomeIndexGoodsClassifyNewJobHandler job beginTime ");
+        List<String> channelNameList = new ArrayList<>();
+        if (!StringUtils.isEmpty(param)) {
+            Collections.addAll(channelNameList, param.split(","));
+        }
         Long refreshCount = redis.incrKey(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT);
         ClassifyCollectionProviderRequest classifyCollectionParent = new ClassifyCollectionProviderRequest();
         classifyCollectionParent.setParentIdColl(Collections.singleton(0));
@@ -76,7 +81,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
                 continue;
             }
             Set<Integer> childClassifySet = listBaseResponse.getContext().stream().map(ClassifyProviderResponse::getId).collect(Collectors.toSet());
-            classifyGoods(childClassifySet, classifyProviderResponseParam.getId(), refreshCount); //默认300
+            classifyGoods(childClassifySet, classifyProviderResponseParam.getId(), refreshCount, channelNameList); //默认300
             classifyBookListModel(childClassifySet, classifyProviderResponseParam.getId(), refreshCount); //默认60
             log.info("HomeIndexGoodsClassifyNewJobHandler execute classifyId: {} classifyName: {} end",
                     classifyProviderResponseParam.getId(), classifyProviderResponseParam.getClassifyName());
@@ -84,6 +89,7 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
         if (refreshCount >= 1000) {
             redis.setString(RedisKeyUtil.KEY_LIST_PREFIX_INDEX_REFRESH_COUNT, "1");
         }
+        log.info("HomeIndexGoodsClassifyNewJobHandler job end cost {}", System.currentTimeMillis() - beginTime);
         return SUCCESS;
     }
 
@@ -92,32 +98,35 @@ public class HomeIndexGoodsClassifyNewJobHandler  extends IJobHandler {
      * @param childClassifySet
      * @param classifyId
      */
-    private void classifyGoods(Set<Integer> childClassifySet, Integer classifyId, Long refreshCount) {
+    private void classifyGoods(Set<Integer> childClassifySet, Integer classifyId, Long refreshCount, List<String> channelNameList) {
 
-        //根据分类id 获取销量前300的商品列表
-        EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
-        esGoodsCustomRequest.setPageNum(0);
-        esGoodsCustomRequest.setPageSize(300);
-        esGoodsCustomRequest.setClassifyIdList(childClassifySet);
-        List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
-        //按照销售数量排序
-        sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
-        esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
-        esGoodsCustomRequest.setNotChannelType(GoodsChannelTypeEnum.FDDS_DELIVER.getCode());
-        //获取分类下的商品列表
-        BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
-        MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
-        List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
-        if (CollectionUtils.isEmpty(content)) {
-            log.info("HomeIndexGoodsClassifyNewJobHandler classifyGoods content is empty");
-            return;
+        for (String channelName : channelNameList) {
+            log.info("HomeIndexGoodsClassifyNewJobHandler job classifyGoods channelName:{} begin", channelName);
+            //根据分类id 获取销量前300的商品列表
+            EsGoodsCustomQueryProviderRequest esGoodsCustomRequest = new EsGoodsCustomQueryProviderRequest();
+            esGoodsCustomRequest.setPageNum(0);
+            esGoodsCustomRequest.setPageSize(300);
+            esGoodsCustomRequest.setClassifyIdList(childClassifySet);
+            List<SortCustomBuilder> sortBuilderList = new ArrayList<>();
+            //按照销售数量排序
+            sortBuilderList.add(new SortCustomBuilder("goodsSalesNum", SortOrder.DESC));
+            esGoodsCustomRequest.setSortBuilderList(sortBuilderList);
+            esGoodsCustomRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(channelName).getCode()));
+            //获取分类下的商品列表
+            BaseResponse<MicroServicePage<EsGoodsVO>> esGoodsVOMicroServiceResponse = esGoodsCustomQueryProvider.listEsGoodsNormal(esGoodsCustomRequest);
+            MicroServicePage<EsGoodsVO> esGoodsVOMicroServicePage = esGoodsVOMicroServiceResponse.getContext();
+            List<EsGoodsVO> content = esGoodsVOMicroServicePage.getContent();
+            if (CollectionUtils.isEmpty(content)) {
+                log.info("HomeIndexGoodsClassifyNewJobHandler classifyGoods channelName:{} content is empty", channelName);
+                continue;
+            }
+            //简化goodsVo
+            List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
+            Collections.shuffle(goodsIdList);
+            String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + "_" + channelName + ":" + refreshCount + ":" + classifyId;
+            redisService.putAllStr(key, goodsIdList, 40);
+            log.info("HomeIndexGoodsClassifyNewJobHandler job classifyGoods channelName:{} complete", channelName);
         }
-        //简化goodsVo
-        List<String> goodsIdList = content.stream().map(EsGoodsVO::getId).collect(Collectors.toList());
-        Collections.shuffle(goodsIdList);
-        String key = RedisKeyUtil.KEY_LIST_PREFIX_INDEX_CLASSIFY_GOODS + ":" + refreshCount + ":" + classifyId;
-        redisService.putAllStr(key, goodsIdList, 40);
-
     }
 
     /**

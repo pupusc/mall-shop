@@ -1,5 +1,6 @@
 package com.wanmi.sbc.order.api.provider.trade;
 
+import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.CycleBuyPostponementRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
@@ -502,4 +503,11 @@ public interface TradeProvider {
      */
     @GetMapping("/order/${application.order.version}/trade/add-fix-pay-order/{oid}")
     BaseResponse<String> addFixPayOrder(@PathVariable("oid") String oid);
+
+    @PostMapping("/order/${application.order.version}/trade/commit-new")
+    BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
+
+
+
+
 }

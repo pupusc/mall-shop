@@ -1,6 +1,10 @@
 package com.wanmi.sbc.order.provider.impl.trade;
-import com.wanmi.sbc.common.util.UUIDUtil;
-import com.wanmi.sbc.order.bean.vo.TradeStateVO;
+import com.soybean.mall.order.api.response.OrderCommitResponse;
+import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.miniapp.service.TradeOrderService;
+import com.soybean.mall.order.trade.model.OrderCommitResult;
+import com.soybean.mall.order.trade.service.OrderService;
+import com.wanmi.sbc.order.bean.vo.*;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.BoolFlag;
@@ -14,9 +18,6 @@ import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.*;
 import com.wanmi.sbc.order.bean.enums.CycleDeliverStatus;
 import com.wanmi.sbc.order.bean.enums.PayCallBackType;
-import com.wanmi.sbc.order.bean.vo.PointsTradeCommitResultVO;
-import com.wanmi.sbc.order.bean.vo.TradeCommitResultVO;
-import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.payorder.model.root.PayOrder;
 import com.wanmi.sbc.order.receivables.request.ReceivableAddRequest;
 import com.wanmi.sbc.order.trade.model.entity.*;
@@ -32,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,6 +69,13 @@ public class TradeController implements TradeProvider {
 
     @Autowired
     private TradePushERPService tradePushERPService;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private TradeOrderService tradeOrderService;
+
 
     /**
      * 新增交易单
@@ -153,7 +160,7 @@ public class TradeController implements TradeProvider {
 
 
     /**
-     * 补单 根据trade 生成 payOrder
+     * 补单 根据trade 生成 papayOrder
      * @param oid
      */
     @Override
@@ -802,4 +809,18 @@ public class TradeController implements TradeProvider {
     public BaseResponse syncProviderTradeDeliveryStatus(ProviderTradeDeliveryStatusSyncRequest request) {
         return tradePushERPService.syncProviderTradeDeliveryStatus(request);
     }
+
+    /**
+     * C端提交订单-新,不用快照，无优惠信息
+     * @param tradeCommitRequest 提交订单请求对象
+     * @return 提交订单结果
+     */
+    @Override
+    public BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+        List<OrderCommitResult> results = orderService.commitTrade(tradeCommitRequest);
+        return BaseResponse.success(new OrderCommitResponse(KsBeanUtil.convert(results, OrderCommitResultVO.class)));
+    }
+
+
+
 }

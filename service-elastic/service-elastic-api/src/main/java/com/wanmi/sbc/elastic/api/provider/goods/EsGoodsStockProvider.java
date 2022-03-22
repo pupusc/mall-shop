@@ -6,6 +6,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -37,5 +38,8 @@ public interface EsGoodsStockProvider {
 
     @PostMapping("/elastic/${application.elastic.version}/goods/goodsinfo/batchReset/stock")
     BaseResponse batchResetGoodsInfoStockBySpuId(@RequestBody @Valid EsGoodsSpuStockSubRequest request);
+
+    @PostMapping("/elastic/${application.elastic.version}/goods/audit-status")
+    BaseResponse updateWxAuditStatus(@RequestParam("goodsId") String goodsId);
 
 }

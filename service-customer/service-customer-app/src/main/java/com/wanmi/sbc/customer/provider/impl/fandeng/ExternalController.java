@@ -38,6 +38,11 @@ public class ExternalController implements ExternalProvider {
     }
 
     @Override
+    public BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLogin(FanDengWxAuthLoginRequest request) {
+        return externalService.wxAuthLogin(request);
+    }
+
+    @Override
     public BaseResponse<FanDengPrepositionResponse> preposition( @Valid FanDengPrepositionRequest request) {
         return externalService.preposition(request);
     }

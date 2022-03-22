@@ -438,6 +438,7 @@ public class VerifyService {
         tradeItem.setVirtualCouponId(goodsInfo.getVirtualCouponId());
         tradeItem.setCycleNum(goodsInfo.getCycleNum());
         tradeItem.setCostPrice(goodsInfo.getCostPrice());
+        tradeItem.setStock(goodsInfo.getStock());
         log.info("set costprice");
         //tradeItem.setPrice(goodsInfo.getMarketPrice());
         if (StringUtils.isBlank(tradeItem.getSpecDetails())) {
