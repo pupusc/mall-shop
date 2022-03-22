@@ -329,7 +329,7 @@ public class SiteSearchService {
             return 0;
         }
         String[] channelArr = goods.getGoodsChannelType().split(",");
-        if (!Arrays.stream(channelArr).filter(item -> GoodsChannelTypeEnum.FDDS_DELIVER.getCode().equals(item)).findFirst().isPresent()) {
+        if (!Arrays.stream(channelArr).filter(item -> GoodsChannelTypeEnum.MALL_H5.getCode().equals(item)).findFirst().isPresent()) {
             return 0;
         }
 
