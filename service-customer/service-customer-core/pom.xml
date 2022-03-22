@@ -23,10 +23,6 @@
                     <artifactId>jsr305</artifactId>
                     <groupId>com.google.code.findbugs</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>commons-io</artifactId>
-                    <groupId>commons-io</groupId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

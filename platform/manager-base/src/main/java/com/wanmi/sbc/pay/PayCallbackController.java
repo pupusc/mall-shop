@@ -458,7 +458,7 @@ public class PayCallbackController {
                 retXml.append(line);
             }
             //微信支付异步回调结果xml
-            log.info("微信支付异步通知回调结果xml====" + retXml);
+            log.info("异步通知回调结果微信支付xml====" + retXml);
             String retXmlStr = retXml.toString();
             retXmlStr = retXmlStr.replaceAll("<coupon_id_[0-9]{0,11}[^>]*>(.*?)</coupon_id_[0-9]{0,11}>", "");
             retXmlStr = retXmlStr.replaceAll("<coupon_type_[0-9]{0,11}[^>]*>(.*?)</coupon_type_[0-9]{0,11}>", "");
@@ -661,6 +661,7 @@ public class PayCallbackController {
                 }else{
                     payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(PayCallBackType.WECAHT)
                             .wxPayCallBackResultStr(retXmlStr)
+                            .storeId(storeId)
                             .wxPayCallBackResultXmlStr(retXml.toString())
                             .build());
                 }

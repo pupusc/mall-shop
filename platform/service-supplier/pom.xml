@@ -26,6 +26,25 @@
 
         <dependency>
             <groupId>com.wanmi.b2b</groupId>
+            <artifactId>bff-manager-base</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>servlet-api</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.wanmi.b2b</groupId>
             <artifactId>bff-manager-store-base</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -152,6 +171,7 @@
 <!--                </executions>-->
 <!--            </plugin>-->
 
+
 <!--            <plugin>-->
 <!--                <groupId>org.apache.maven.plugins</groupId>-->
 <!--                <artifactId>maven-dependency-plugin</artifactId>-->
@@ -192,10 +212,12 @@
 <!--                </executions>-->
 <!--            </plugin>-->
 
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+
 <!--                    <includes>-->
 <!--                        <include>-->
 <!--                            <groupId>${project.groupId}</groupId>-->

@@ -61,6 +61,8 @@ public class Buyer implements Serializable {
      */
     private boolean isIepCustomer;
 
+    private String openId;
+
     /**
      * @param customer
      * @param level
@@ -80,6 +82,7 @@ public class Buyer implements Serializable {
             b.setLevelName(commonLevelVO.getLevelName());
         }
         b.setCustomerFlag(customerFlag);
+        b.setOpenId(customer.getOpenId());
         return b;
     }
 

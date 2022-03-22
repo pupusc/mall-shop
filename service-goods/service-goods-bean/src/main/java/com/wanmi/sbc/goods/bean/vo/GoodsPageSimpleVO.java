@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 商品实体类
@@ -300,6 +301,14 @@ public class GoodsPageSimpleVO implements Serializable {
      */
     @ApiModelProperty(value = "运费模板ID")
     private Long freightTempId;
+    /**
+     * 是否在直播助手中
+     */
+    private Boolean goodsInLive;
+    /**
+     * 是否在视频号商品池
+     */
+    private Boolean goodsInWxGoodsPool;
 
     public Integer getVendibility(){
         if (Objects.nonNull(providerGoodsId)) {
@@ -317,5 +326,5 @@ public class GoodsPageSimpleVO implements Serializable {
     /**
      * 销售qudao
      */
-    private List<String> goodsChannelTypeList;
+    private List<Integer> goodsChannelTypeSet;
 }

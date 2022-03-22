@@ -175,7 +175,9 @@ public interface CustomerRepository extends JpaRepository<Customer, String>, Jpa
             "where e.customerId =?1")
     int updateLoginTimeAndFanDengUserNo(String customerId, LocalDateTime loginTime, String loginIp,String fanDengUserNo);
 
-
+    @Modifying
+    @Query("update Customer e set e.wxMiniOpenId = ?2, e.wxMiniUnionId = ?3 where e.customerId =?1")
+    int updateOpenIdAndUnionId(String customerId, String openId, String unionId);
 
     /**
      * 修改绑定手机号

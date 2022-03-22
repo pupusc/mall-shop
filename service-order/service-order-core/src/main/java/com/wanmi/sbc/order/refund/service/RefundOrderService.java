@@ -9,8 +9,10 @@ import com.wanmi.sbc.account.api.response.offline.OfflineAccountGetByIdResponse;
 import com.wanmi.sbc.account.bean.enums.PayType;
 import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.customer.api.request.company.CompanyListRequest;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
@@ -758,7 +760,7 @@ public class RefundOrderService {
             }
             refundRequest.setDescription(body);
             refundRequest.setClientIp("127.0.0.1");
-            refundRequest.setStoreId(trade.getSupplier().getStoreId());
+            refundRequest.setStoreId(Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)?-2L:  Constants.BOSS_DEFAULT_STORE_ID);
             if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods()
                     && trade.getBookingType() == BookingType.EARNEST_MONEY && StringUtils.isNotEmpty(trade.getTailOrderNo())) {
                 BigDecimal needBackAmount = returnOrder.getReturnPrice().getApplyStatus() ? returnOrder.getReturnPrice()

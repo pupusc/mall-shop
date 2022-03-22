@@ -353,7 +353,7 @@ public class TradeGoodsService {
      *
      * @param tradeItemGroupVO
      */
-    void validateRestrictedGoods(TradeItemGroup tradeItemGroupVO, CustomerSimplifyOrderCommitVO customer) {
+    public void validateRestrictedGoods(TradeItemGroup tradeItemGroupVO, CustomerSimplifyOrderCommitVO customer) {
         Boolean openGroup = false;
         if (Objects.nonNull(tradeItemGroupVO.getGrouponForm()) && Objects.nonNull(tradeItemGroupVO.getGrouponForm().getOpenGroupon())) {
             openGroup = tradeItemGroupVO.getGrouponForm().getOpenGroupon();
@@ -382,7 +382,7 @@ public class TradeGoodsService {
      * @param customer
      * @return
      */
-    protected GoodsInfoResponse getGoodsResponse(List<String> skuIds, CustomerSimplifyOrderCommitVO customer) {
+    public GoodsInfoResponse getGoodsResponse(List<String> skuIds, CustomerSimplifyOrderCommitVO customer) {
 
         GoodsInfoViewByIdsResponse response = tradeCacheService.getGoodsInfoViewByIds(skuIds);
         List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();

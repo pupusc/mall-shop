@@ -2,11 +2,16 @@ package com.wanmi.sbc.elastic.goods.service;
 
 import com.wanmi.sbc.common.util.EsConstants;
 import com.wanmi.sbc.common.util.StringUtil;
+import com.wanmi.sbc.elastic.goods.model.root.EsGoods;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -17,12 +22,12 @@ import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQueryBuilder;
 import org.springframework.stereotype.Service;
+import sun.rmi.runtime.Log;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
@@ -31,6 +36,7 @@ import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
  * ES商品信息数据源操作
  * Created by daiyitian on 2017/4/21.
  */
+@Slf4j
 @Service
 public class EsGoodsStockService {
 
@@ -205,5 +211,20 @@ public class EsGoodsStockService {
                 }
             }
         }
+    }
+
+    public void updateWxAuditStatus(String goodsId){
+        Map<String, Integer> params = new HashMap<>();
+        params.put("wxAudit", 1);
+        UpdateRequest updateRequest = new UpdateRequest();
+        updateRequest.doc(params);
+        UpdateQueryBuilder updateQueryBuilder = new UpdateQueryBuilder();
+        updateQueryBuilder.withId(goodsId);
+        updateQueryBuilder.withUpdateRequest(updateRequest);
+        updateQueryBuilder.withClass(EsGoods.class);
+        UpdateQuery build = updateQueryBuilder.build();
+        UpdateResponse response = elasticsearchTemplate.update(build);
+        DocWriteResponse.Result result = response.getResult();
+        log.info("updateWxAuditStatus {}", result.getOp());
     }
 }

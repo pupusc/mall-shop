@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsVoteVo;
 import com.wanmi.sbc.redis.RedisService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.vote.bean.VoteBean;
 import com.wanmi.sbc.vote.bean.VoteConfig;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,6 +40,8 @@ public class GoodsVoteService {
     private RedisService redisService;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private CommonUtil commonUtil;
 
     public String getImage(){
         return headimage;
@@ -64,6 +67,7 @@ public class GoodsVoteService {
                     queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
                     queryRequest.setStoreState(StoreState.OPENING.toValue());
                     queryRequest.setVendibility(Constants.yes);
+                    queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
                     //查询商品
                     List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
 

@@ -246,4 +246,6 @@ public class ProviderTradeQueryController implements ProviderTradeQueryProvider 
         providerTradeService.batchSyncHistoryOrderStatus(request.getStartTime(),request.getEndTime(),request.getPageSize(),request.getPageNum());
         return BaseResponse.SUCCESSFUL();
     }
+
+
 }

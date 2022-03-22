@@ -277,4 +277,16 @@ public class Customer implements Serializable {
     @Column(name = "wx_union_id")
     private String wxUnionId;
 
+    /**
+     * 微信小程序openid
+     */
+    @Column(name = "wx_mini_open_id")
+    private String wxMiniOpenId;
+
+    /**
+     * 微信小程序unionId
+     */
+    @Column(name = "wx_mini_union_id")
+    private String wxMiniUnionId;
+
 }

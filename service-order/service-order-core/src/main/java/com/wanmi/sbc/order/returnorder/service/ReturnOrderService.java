@@ -7,6 +7,11 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
+import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateAfterSaleRequest;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.account.api.provider.finance.record.AccountRecordProvider;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordAddRequest;
 import com.wanmi.sbc.account.api.request.finance.record.AccountRecordDeleteByReturnOrderCodeAndTypeRequest;
@@ -18,19 +23,10 @@ import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MessageMQRequest;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.CompanySourceType;
-import com.wanmi.sbc.common.enums.NodeType;
-import com.wanmi.sbc.common.enums.Platform;
-import com.wanmi.sbc.common.enums.StoreType;
-import com.wanmi.sbc.common.enums.ThirdPlatformType;
+import com.wanmi.sbc.common.enums.*;
 import com.wanmi.sbc.common.enums.node.ReturnOrderProcessType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.GeneratorService;
-import com.wanmi.sbc.common.util.IteratorUtils;
-import com.wanmi.sbc.common.util.KsBeanUtil;
-import com.wanmi.sbc.common.util.UUIDUtil;
+import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountProvider;
 import com.wanmi.sbc.customer.api.provider.account.CustomerAccountQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -364,6 +360,13 @@ public class ReturnOrderService {
 
     @Autowired
     private RedissonClient redissonClient;
+
+    @Value("${wx.create.order.send.message.link.url}")
+    private String orderDetailUrl;
+
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
+
 
     /**
      * 新增文档
@@ -2091,6 +2094,7 @@ public class ReturnOrderService {
             returnFSMService.changeState(request);
             //自动发货
             autoDeliver(returnOrderId, operator);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.WAIT_RETURN:WxAfterSaleStatus.REFUNDING);
 
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
@@ -2363,7 +2367,7 @@ public class ReturnOrderService {
             // 更新子单状态
             updateProviderTrade(returnOrder);
         }
-
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING);
         Trade trade = tradeService.detail(returnOrder.getTid());
 
         //周期购订单部分发货退货退款
@@ -2460,9 +2464,9 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN);
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
@@ -2471,6 +2475,7 @@ public class ReturnOrderService {
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
         log.info("ReturnOrderService rejectReceive 拒绝收货 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+
         //退货物品拒收通知发送MQ消息
         if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
                 || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
@@ -2521,6 +2526,7 @@ public class ReturnOrderService {
                 .data(price)
                 .build();
         returnFSMService.changeState(request);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED);
 
 
         Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
@@ -3373,7 +3379,7 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
         // 拒绝退款时，发送MQ消息
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
@@ -3441,6 +3447,7 @@ public class ReturnOrderService {
                     .data(refundOrderResponse.getRefuseReason())
                     .build();
             returnFSMService.changeState(request);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
         });
     }
 
@@ -3493,6 +3500,7 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
 
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
@@ -4642,7 +4650,9 @@ public class ReturnOrderService {
     }
 
 
-    /**
+
+
+     /**
      * 获取子单的退单列表
      * @param request
      * @return
@@ -4777,5 +4787,35 @@ public class ReturnOrderService {
             result.add(providerTradeSimpleVO);
         }
         return result;
+    }
+    /**
+     * 微信退款单
+     * @param returnOrder
+     */
+    private void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status){
+        if(!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)){
+            return;
+        }
+        WxCreateAfterSaleRequest request = new WxCreateAfterSaleRequest();
+        request.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        request.setFinishAllAftersale(0);
+        request.setOutOrderId(returnOrder.getTid());
+        request.setOutAftersaleId(returnOrder.getId());
+        request.setOpenid(returnOrder.getBuyer().getOpenId());
+        request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
+        request.setPath(orderDetailUrl+returnOrder.getTid());
+        request.setStatus(status.getId());
+        request.setRefund(returnOrder.getReturnPrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+        List<WxProductDTO> products = new ArrayList<>();
+        returnOrder.getReturnItems().forEach(item->{
+            products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());
+        });
+        request.setProductInfos(products);
+        try {
+            BaseResponse<WxResponseBase> response = wxOrderApiController.createAfterSale(request);
+            log.info("微信小程序创建售后request:{},response:{}",request,response);
+        }catch (Exception e){
+            log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
+        }
     }
 }

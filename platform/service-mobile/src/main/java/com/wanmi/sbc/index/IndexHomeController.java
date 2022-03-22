@@ -30,6 +30,7 @@ import com.wanmi.sbc.index.response.ProductConfigResponse;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.redis.RedisListService;
 import com.wanmi.sbc.redis.RedisService;
+import com.wanmi.sbc.util.CommonUtil;
 import com.xxl.job.core.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateUtils;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -90,6 +92,9 @@ public class IndexHomeController {
     @Value("${stock.size:5}")
     private Long stockSize;
 
+    @Autowired
+    private CommonUtil commonUtil;
+
     /**
      * @description 获取首页配置数据
      * @menu 商城首页
@@ -115,11 +120,12 @@ public class IndexHomeController {
         if (versionRequest.getPageNum() == 0) {
             versionRequest.setPageNum(1);
         }
-        Long refreshHotCount = getRefreshHotCount(versionRequest.getPageNum());
+        String goodsChannelTypeName = commonUtil.getTerminal().getMessage();
+        Long refreshHotCount = getRefreshHotCount(versionRequest.getPageNum(), goodsChannelTypeName);
         List<JSONObject> objectList = redisService
-                .findByRange("hotGoods" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
+                .findByRange("hotGoods:" + goodsChannelTypeName + ":" + refreshHotCount, (versionRequest.getPageNum() - 1) * GOODS_SIZE, versionRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
-                .findByRange("hotBooks" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
+                .findByRange("hotBooks:" + goodsChannelTypeName + ":" + refreshHotCount, (versionRequest.getPageNum() - 1) * BOOKS_SIZE, versionRequest.getPageNum() * BOOKS_SIZE - 1));
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (JSONObject goodStr : objectList) {
             goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
@@ -256,13 +262,14 @@ public class IndexHomeController {
         if (branchVenueIdRequest.getPageNum() == 0) {
             branchVenueIdRequest.setPageNum(1);
         }
-        Long refreshHotCount = getRefreshHotCount(branchVenueIdRequest.getPageNum());
+        String goodsChannelTypeName = commonUtil.getTerminal().getMessage();
+        Long refreshHotCount = getRefreshHotCount(branchVenueIdRequest.getPageNum(), goodsChannelTypeName);
 
         List<JSONObject> objectList = redisService
-                .findByRange("activityBranch:hot:" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(),
+                .findByRange("activityBranch:hot:" + goodsChannelTypeName + ":" + refreshHotCount + ":" + branchVenueIdRequest.getBranchVenueId(),
                         (branchVenueIdRequest.getPageNum() - 1) * GOODS_SIZE, branchVenueIdRequest.getPageNum() * GOODS_SIZE - 1);
         objectList.addAll(redisService
-                .findByRange("hotBooks" + refreshHotCount, (branchVenueIdRequest.getPageNum() - 1) * BOOKS_SIZE, branchVenueIdRequest.getPageNum() * BOOKS_SIZE - 1));
+                .findByRange("hotBooks:" + goodsChannelTypeName + ":" + refreshHotCount, (branchVenueIdRequest.getPageNum() - 1) * BOOKS_SIZE, branchVenueIdRequest.getPageNum() * BOOKS_SIZE - 1));
         List<SortGoodsCustomResponse> goodsCustomResponseList = new ArrayList<>();
         for (JSONObject goodStr : objectList) {
             goodsCustomResponseList.add(JSONObject.toJavaObject(goodStr, SortGoodsCustomResponse.class));
@@ -290,6 +297,7 @@ public class IndexHomeController {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         CustomerVO customer = bookListModelAndGoodsService.getCustomerVo();
         List<GoodsInfoVO> goodsInfoVOList = bookListModelAndGoodsService.packageGoodsInfoList(esGoodsVOS, customer);
@@ -317,7 +325,7 @@ public class IndexHomeController {
      * @param pageNum
      * @return
      */
-    private Long getRefreshHotCount(Integer pageNum) {
+    private Long getRefreshHotCount(Integer pageNum, String goodsChannelTypeName) {
         Long refreshHotCount;
         String ip = HttpUtil.getIpAddr();
         if (pageNum > 1) {
@@ -327,16 +335,16 @@ public class IndexHomeController {
             if (refresObject != null) {
                 refreshHotCount = Long.valueOf(refresObject);
             } else {
-                refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
-                if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
+                refreshHotCount = Long.valueOf(redis.getString("refreshHotCount:" + goodsChannelTypeName));
+                if (!redis.hasKey("hotGoods:" + goodsChannelTypeName + ":" + refreshHotCount) && !redis.hasKey("hotBooks:" + goodsChannelTypeName + ":" + refreshHotCount)) {
                     refreshHotCount = refreshHotCount - 1;
                 }
                 redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
             }
         } else {
             //首页浏览，获取缓存最新队列，缓存用户浏览队列
-            refreshHotCount = Long.valueOf(redis.getString("refreshHotCount"));
-            if (!redis.hasKey("hotGoods" + refreshHotCount) && !redis.hasKey("hotBooks" + refreshHotCount)) {
+            refreshHotCount = Long.valueOf(redis.getString("refreshHotCount:" + goodsChannelTypeName));
+            if (!redis.hasKey("hotGoods:" + goodsChannelTypeName + ":" + refreshHotCount) && !redis.hasKey("hotBooks:" + goodsChannelTypeName + ":" + refreshHotCount)) {
                 refreshHotCount = refreshHotCount - 1;
             }
             redis.setString("ip:" + ip, refreshHotCount.toString(), 30 * 60);
