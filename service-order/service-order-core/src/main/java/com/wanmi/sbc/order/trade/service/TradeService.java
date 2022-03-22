@@ -631,7 +631,7 @@ public class TradeService {
     private CommonController wxCommonController;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
-    
+
     @Value("${wx.create.order.send.message.templateId}")
     private String createOrderSendMsgTemplateId;
 
@@ -6321,6 +6321,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+        //小程序发送取消消息
+        wxOrderService.sendWxCancelOrderMessage(trade);
     }
 
     /**

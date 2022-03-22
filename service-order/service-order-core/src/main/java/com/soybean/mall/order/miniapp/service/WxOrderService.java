@@ -18,7 +18,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.redis.RedisService;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +63,12 @@ public class WxOrderService {
 
     @Value("${wx.create.order.send.message.templateId}")
     private String createOrderSendMsgTemplateId;
+
+    @Value("${wx.cancel.order.send.message.templateId}")
+    private String cancelOrderSendMsgTemplateId;
+
+    @Value("${wx.aftersale.order.send.message.templateId}")
+    private String afterSaleSendMsgTemplateId;
 
     private static  final String MINI_PROGRAM_ORDER_REPORT_PRICE = "mini:ord:report:price:";
 
@@ -287,5 +295,71 @@ public class WxOrderService {
         return result;
     }
 
+    public void sendWxCancelOrderMessage(Trade trade){
+        if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return;
+        }
+        try {
+            WxSendMessageRequest request = new WxSendMessageRequest();
+            request.setOpenId(trade.getBuyer().getOpenId());
+            request.setTemplateId(cancelOrderSendMsgTemplateId);
+            request.setUrl(createOrderSendMsgLinkUrl+trade.getId());
+            Map<String, Map<String, String>> map = new HashMap<>();
+           map.put("character_string2", new HashMap<String, String>() {{
+                put("value", trade.getId());
+            }});
+            map.put("thing1", new HashMap<String, String>() {{
+                put("value", "超时未付款");
+            }});
+            map.put("time3", new HashMap<String, String>() {{
+                put("value", DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1));
+            }});
+            map.put("thing4", new HashMap<String, String>() {{
+                put("value", "普通订单");
+            }});
+            request.setData(map);
+            BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
+            log.info("微信小程序取消订单发送消息request:{},response:{}",request,response);
+        }catch (Exception e){
+            log.error("微信小程序取消订单发送消息失败,trade:{}",trade,e);
+      }
+    }
 
+
+    /**
+     * 售后状态通知
+     * @param returnOrder
+     */
+    public void sendWxAfterSaleMessage(ReturnOrder returnOrder){
+        if(!Objects.equals(returnOrder.getChannelType(),ChannelType.MINIAPP)){
+            return;
+        }
+        try {
+            WxSendMessageRequest request = new WxSendMessageRequest();
+            request.setOpenId(returnOrder.getBuyer().getOpenId());
+            request.setTemplateId(afterSaleSendMsgTemplateId);
+            request.setUrl(createOrderSendMsgLinkUrl+returnOrder.getTid());
+            Map<String, Map<String, String>> map = new HashMap<>();
+            map.put("character_string1", new HashMap<String, String>() {{
+                put("value", returnOrder.getTid());
+            }});
+            map.put("thing6", new HashMap<String, String>() {{
+                put("value", filterChineseAndAlp(returnOrder.getReturnItems().get(0).getSpuName()));
+            }});
+            map.put("amount2", new HashMap<String, String>() {{
+                put("value", String.valueOf(returnOrder.getReturnPrice().getTotalPrice()));
+            }});
+            map.put("phrase4", new HashMap<String, String>() {{
+                put("value", returnOrder.getReturnFlowState().getDesc());
+            }});
+            map.put("thing5", new HashMap<String, String>() {{
+                put("value", Objects.equals(returnOrder.getReturnFlowState(), ReturnFlowState.REJECT_REFUND)?returnOrder.getRejectReason():"");
+            }});
+            request.setData(map);
+            BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
+            log.info("微信小程序售后通知发送消息request:{},response:{}",request,response);
+        }catch (Exception e){
+            log.error("微信小程序售后通知发送消息失败,trade:{}",returnOrder,e);
+        }
+    }
 }
