@@ -1,44 +1,26 @@
 package com.wanmi.sbc.job;
 
-import com.sun.corba.se.impl.oa.toa.TOA;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
-import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
-import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoCountByConditionRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPageRequest;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoCountByConditionResponse;
-import com.wanmi.sbc.goods.bean.enums.AuditStatus;
-import com.wanmi.sbc.goods.bean.enums.CheckStatus;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
