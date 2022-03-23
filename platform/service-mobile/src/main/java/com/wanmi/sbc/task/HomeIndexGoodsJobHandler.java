@@ -6,6 +6,7 @@ import com.wanmi.sbc.booklistmodel.response.GoodsCustomResponse;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.enums.StoreState;
@@ -40,10 +41,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -87,34 +90,42 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
      */
     @Override
     public ReturnT<String> execute(String paramStr) throws Exception {
-        //刷新排序
-        hotGoodsProvider.updateSort();
-        List<HotGoodsDto> hotGoods = hotGoodsProvider.selectAllBySort().getContext();
-        Map<String, Integer> sortMap = hotGoods.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, HotGoodsDto::getSort, (a1, a2) -> a1));
-
-        List<String> goodIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 1).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
-        List<Integer> bookIds = bookListModelProvider.findPublishBook().getContext();
-        List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds);
-        packageBookModelMsg(goodList);
-        for (SortGoodsCustomResponse goodsVo : goodList) {
-            goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()));
+        long beginTime = System.currentTimeMillis();
+        log.info("HomeIndexGoodsJobHandler job beginTime ");
+        List<String> channelNameList = new ArrayList<>();
+        if (!StringUtils.isEmpty(paramStr)) {
+            Collections.addAll(channelNameList, paramStr.split(","));
         }
-        goodList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
-        List<SortGoodsCustomResponse> bookList = new ArrayList<>();
-        for (Integer bookId : bookIds) {
-            BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
-            bookListModelProviderRequest.setId(Integer.valueOf(bookId));
-            BookListModelProviderResponse bookListModelProviderResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest).getContext();
-            SortGoodsCustomResponse goodsCustomResponse = packageGoodsCustomResponse(bookListModelProviderResponse);
-            goodsCustomResponse.setType(2);
-            bookList.add(goodsCustomResponse);
+
+        for (String channelName : channelNameList) {
+            //刷新排序
+            hotGoodsProvider.updateSort();
+            List<HotGoodsDto> hotGoods = hotGoodsProvider.selectAllBySort().getContext();
+            Map<String, Integer> sortMap = hotGoods.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, HotGoodsDto::getSort, (a1, a2) -> a1));
+
+            List<String> goodIds = hotGoods.stream().filter(hotGood -> hotGood.getType() == 1).map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
+            List<Integer> bookIds = bookListModelProvider.findPublishBook().getContext();
+            List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds, channelName);
+            packageBookModelMsg(goodList);
+            for (SortGoodsCustomResponse goodsVo : goodList) {
+                goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()));
+            }
+            goodList.sort(Comparator.comparing(SortGoodsCustomResponse::getSort).reversed());
+            List<SortGoodsCustomResponse> bookList = new ArrayList<>();
+            for (Integer bookId : bookIds) {
+                BookListModelProviderRequest bookListModelProviderRequest = new BookListModelProviderRequest();
+                bookListModelProviderRequest.setId(Integer.valueOf(bookId));
+                BookListModelProviderResponse bookListModelProviderResponse = bookListModelProvider.findSimpleById(bookListModelProviderRequest).getContext();
+                SortGoodsCustomResponse goodsCustomResponse = packageGoodsCustomResponse(bookListModelProviderResponse);
+                goodsCustomResponse.setType(2);
+                bookList.add(goodsCustomResponse);
+            }
+            Long refreshHotCount = redis.incrKey("refreshHotCount:" + channelName);
+            redisService.putAll("hotGoods:" + channelName + ":" + refreshHotCount, goodList, 45);
+            redisService.putAll("hotBooks:" + channelName + ":" +  refreshHotCount, bookList, 45);
+            fenHuiChangRedis(refreshHotCount, channelName);
         }
-        Long refreshHotCount = redis.incrKey("refreshHotCount");
-
-
-        redisService.putAll("hotGoods" + refreshHotCount, goodList, 45);
-        redisService.putAll("hotBooks" + refreshHotCount, bookList, 45);
-        fenHuiChangRedis(refreshHotCount);
+        log.info("HomeIndexGoodsJobHandler job end cost {}", System.currentTimeMillis() - beginTime);
         return SUCCESS;
     }
 
@@ -150,7 +161,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
     /**
      * 分会场缓存数据
      */
-    private void fenHuiChangRedis(Long refreshHotCount) {
+    private void fenHuiChangRedis(Long refreshHotCount, String goodsChannelTypeName) {
         List<ActivityBranchConfigResponse> branchConfigResponseList = JSONArray.parseArray(refreshConfig.getShopActivityBranchConfig(), ActivityBranchConfigResponse.class);
         List<ActivityBranchContentResponse> branchVenueContents = new ArrayList<>();
         List<Integer> types = new ArrayList<>();
@@ -166,10 +177,11 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         List<String> goodIds = hotGoodsDtos.stream().map(hotGood -> hotGood.getSpuId()).collect(Collectors.toList());
         Map<String, HotGoodsDto> sortMap = hotGoodsDtos.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, Function.identity(), (a1, a2) -> a1));
 
-        List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds);
-        for (SortGoodsCustomResponse goodsVo : goodList) {
+        List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds, goodsChannelTypeName);
+        for (SortGoodsCustomResponse goodsVo : goodList) { //这里有问题，等后续修改数据
             goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()).getSort());
-            goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()).getType());
+            goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()) == null ? -1 : sortMap.get(goodsVo.getGoodsInfoId()).getType());
+            log.info("HomeIndexGoodsJobHandler fenHuiChangRedis goodsInfoId:{} sort:{} hotType:{}", goodsVo.getGoodsInfoId(), goodsVo.getSort(), goodsVo.getHotType());
         }
         packageBookModelMsg(goodList);
         for (ActivityBranchConfigResponse activityBranchConfigResponse : branchConfigResponseList) {
@@ -191,12 +203,12 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
             );
             activityBranchResponse.setBranchVenueContents(branchVenueContentList);
             //缓存分分场配置信息
-            redis.setObj("activityBranch:" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
+            redis.setObj("activityBranch:" + goodsChannelTypeName + ":" + activityBranchConfigResponse.getBranchVenueId(), activityBranchResponse, 30 * 60);
             List<SortGoodsCustomResponse> hots = goodList.stream().filter(good -> good.getHotType().equals(activityBranchConfigResponse.getBranchVenueId()))
                     .sorted(Comparator.comparing(SortGoodsCustomResponse::getSort)).collect(Collectors.toList());
             packageBookModelMsg(goodList);
             //缓存分分场热榜信息
-            redisService.putAll("activityBranch:hot:" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 45);
+            redisService.putAll("activityBranch:hot:" + goodsChannelTypeName + ":" + refreshHotCount + ":" + activityBranchConfigResponse.getBranchVenueId(), hots, 45);
         }
     }
 
@@ -206,7 +218,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
      * @param goodIds
      * @return
      */
-    private List<SortGoodsCustomResponse> traneserSortGoodsCustomResponseByHotGoodsDto(List<String> goodIds) {
+    private List<SortGoodsCustomResponse> traneserSortGoodsCustomResponseByHotGoodsDto(List<String> goodIds, String goodsChannelTypeName) {
         List<SortGoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
         EsGoodsInfoQueryRequest queryRequest = new EsGoodsInfoQueryRequest();
@@ -220,6 +232,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(goodsChannelTypeName).getCode()));
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));

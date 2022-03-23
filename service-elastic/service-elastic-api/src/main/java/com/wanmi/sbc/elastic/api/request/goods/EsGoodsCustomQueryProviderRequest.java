@@ -2,6 +2,7 @@ package com.wanmi.sbc.elastic.api.request.goods;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -19,7 +20,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsGoodsCustomQueryProviderRequest implements Serializable {
+public class EsGoodsCustomQueryProviderRequest extends BaseRequest implements Serializable {
 
     private int pageNum = 1;
 
@@ -111,8 +112,8 @@ public class EsGoodsCustomQueryProviderRequest implements Serializable {
      */
     private Double esSortPrice;
 
-    /**
-     * 过滤销售渠道
-     */
-    private String notChannelType;
+//    /**
+//     * 过滤销售渠道
+//     */
+//    private String notChannelType;
 }

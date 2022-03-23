@@ -499,10 +499,17 @@ public class TradeItemVO implements Serializable, Cloneable {
     @ApiModelProperty(name = "是否是组合商品，0：否，1：是")
     private Boolean combinedCommodity;
 
-    /**
+
+     /**
      * 退款信息
      */
     private TradeReturnVO tradeReturn;
+
+    /**
+     * 库存
+     */
+    @ApiModelProperty(value = "库存")
+    private Long stock;
 
     /**
      * 营销优惠商品结算Bean

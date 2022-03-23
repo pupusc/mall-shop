@@ -2,10 +2,12 @@ package com.wanmi.sbc.goods.blacklist.repository;
 
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
+import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentResult;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -45,5 +47,9 @@ public interface GoodsBlackListRepository extends JpaRepository<GoodsBlackListDT
         };
     }
 
+    @Query(value = "update PriceAdjustmentRecordDetail d set d.adjustResult = ?2, d.failReason = ?3 where d.priceAdjustmentNo = ?1")
+    void executeFail(String adjustNo, PriceAdjustmentResult result, String failReason);
 
+    @Query(value = "select * from t_goods_blacklist where del_flag = 0 and business_id = ?1  and business_type = ?2 and business_category = ?3", nativeQuery = true)
+    List<GoodsBlackListDTO> selectBackListByBusiness(String businessId, Integer businessType, Integer businessCategory);
 }

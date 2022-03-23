@@ -270,4 +270,8 @@ public class CustomerVO implements Serializable {
      */
     @ApiModelProperty(name = "有赞微信unionId")
     private String wxUnionId;
+
+    private String wxMiniOpenId;
+
+    private String wxMiniUnionId;
 }

@@ -1,6 +1,5 @@
 package com.wanmi.sbc;
 
-
 import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -23,17 +22,19 @@ import java.net.UnknownHostException;
  * Created by of628-wenzhi on 2017-07-04-下午4:00.
  */
 
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
+
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableWithStateMachine
 @EnableAsync
 @EnableDiscoveryClient
 @EnableTransactionManagement
 @Slf4j
 @PropertySource(value = {"web-base-application.properties","application.properties", "api-application.properties"}, factory = CompositePropertySourceFactory.class)
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableJpaAuditing
 @EnableCaching
 public class MobileApplication {
+
     public static void main(String[] args) throws UnknownHostException {
         System.setProperty("nacos.logging.default.config.enabled","false");
         System.setProperty("es.set.netty.runtime.available.processors", "false");

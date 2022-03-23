@@ -252,13 +252,13 @@ public class GoodsBaseController {
 
     @Autowired
     private CustomerProvider customerProvider;
-    @Value("${know.ordinary.good.ids}")
+    @Value("${know.ordinary.good.ids:}")
     private String goodIds;
 
-    @Value("${search.unshow.goodsIds}")
+    @Value("${search.unshow.goodsIds:}")
     private String searchUnShowGoodsIds;
 
-    @Value("${search.all.unshow.goodsIds}")
+    @Value("${search.all.unshow.goodsIds:}")
     private String searchAllUnShowGoodsIds;
 
     @Autowired
@@ -451,7 +451,7 @@ public class GoodsBaseController {
     private EsGoodsResponse list(EsGoodsInfoQueryRequest queryRequest, CustomerVO customer) {
 
         //获取商品渠道
-        queryRequest.setGoodsChannelTypeSet(new HashSet<>(Collections.singletonList(commonUtil.getTerminal().getCode())));
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
 
 
         if (queryRequest.getIsFix()) {

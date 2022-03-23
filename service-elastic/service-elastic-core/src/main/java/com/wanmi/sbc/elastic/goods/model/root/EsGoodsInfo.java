@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ES商品实体类
@@ -177,8 +178,8 @@ public class EsGoodsInfo implements Serializable {
 
 
     /**
-     * 商品渠道 1 h5 2小程序
+     * 商品渠道 1 h5 2小程序 4 主站
      */
-    @Field(type = FieldType.Integer)
+    @Field(name = "goodsChannelTypeList", type = FieldType.Integer)
     private List<Integer> goodsChannelTypeList;
 }

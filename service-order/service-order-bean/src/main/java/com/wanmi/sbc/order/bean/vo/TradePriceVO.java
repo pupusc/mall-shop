@@ -216,6 +216,8 @@ public class TradePriceVO implements Serializable {
     @ApiModelProperty(value = "活动优惠总额")
     private BigDecimal marketingDiscountPrice;
 
+    @ApiModelProperty(value = "会员优惠")
+    private BigDecimal vipDiscountPrice;
 
     /**
      * 根据供应商拆分后的运费
@@ -235,4 +237,5 @@ public class TradePriceVO implements Serializable {
      * 实际知豆
      */
     private Long actualKnowledge;
+
 }

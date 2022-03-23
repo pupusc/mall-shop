@@ -38,6 +38,12 @@
         </dependency>
 
         <dependency>
+            <artifactId>service-wx-api</artifactId>
+            <groupId>com.soybean.mall</groupId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
             <optional>true</optional>

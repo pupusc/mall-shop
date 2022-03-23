@@ -399,7 +399,7 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * @param goodsId
      * @return
      */
-    Goods findByGoodsId(String goodsId);
+    Goods findByGoodsIdAndDelFlag(String goodsId, DeleteFlag delFlag);
 
     /**
      * 根据goodsNumber找到goodsId

@@ -92,6 +92,19 @@ public class GoodsInfoStockService {
 //        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
     }
 
+    /**
+     * 更新商品库存
+     * @param stock
+     * @param goodsInfoId
+     */
+    public void resetGoodsInfoStock(Long stock, String goodsInfoId){
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
+        goodsInfoRepository.resetStockById(stock, goodsInfoId);
+    }
+
     public void decryLastStock(Map<String, Long> datas){
         redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
             datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));

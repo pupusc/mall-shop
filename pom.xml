@@ -209,6 +209,7 @@
         <module>service-vas</module>
         <module>service-perseus</module>
         <module>service-ares</module>
+        <module>service-wx</module>
         <module>service-erp</module>
         <module>service-customer</module>
         <module>service-account</module>
@@ -222,7 +223,7 @@
         <module>service-order</module>
         <module>platform</module>
         <module>service-dock</module>
-        <module>mall-common</module>
+<!--        <module>mall-common</module>-->
 
     </modules>
 

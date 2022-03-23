@@ -18,6 +18,12 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>service-wx-api</artifactId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-vas-api</artifactId>
             <version>${wm.micro.service.version}</version>
@@ -104,6 +110,12 @@
                     <groupId>commons-logging</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
         </dependency>
 
         <!-- 验证码 -->

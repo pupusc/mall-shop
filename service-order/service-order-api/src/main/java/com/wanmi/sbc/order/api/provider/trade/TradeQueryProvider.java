@@ -289,4 +289,5 @@ public interface TradeQueryProvider {
     BaseResponse<TradeAccountRecordResponse> getTradeAccountRecord(@RequestBody @Valid TradeAccountRecordRequest tradeAccountRecordRequest);
 
 
+
 }

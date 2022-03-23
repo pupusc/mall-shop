@@ -32,6 +32,8 @@ import com.wanmi.sbc.goods.api.provider.excel.GoodsSupplierExcelProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
+import com.wanmi.sbc.goods.api.provider.mini.goods.WxMiniGoodsProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.ares.DispatcherFunctionRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
@@ -50,6 +52,7 @@ import com.wanmi.sbc.goods.api.response.storecate.StoreCateListGoodsRelByStoreCa
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
 import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
 import com.wanmi.sbc.goods.request.GoodsSupplierExcelImportRequest;
 import com.wanmi.sbc.goods.service.GoodsExportService;
 import com.wanmi.sbc.goods.service.SupplierGoodsExcelService;
@@ -152,6 +155,12 @@ public class StoreGoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+    @Autowired
+    private WxLiveAssistantProvider wxLiveAssistantProvider;
+
+    @Autowired
+    private WxMiniGoodsProvider wxMiniGoodsProvider;
+
     /**
      * 查询商品
      *
@@ -189,11 +198,38 @@ public class StoreGoodsController {
             }
         }
         queryRequest.setShowVendibilityFlag(Boolean.TRUE);//显示可售性
+
+        if(queryRequest.getWxAudit() != null){
+            if(queryRequest.getWxAudit() == 0){
+                //不在视频号商品池的
+                BaseResponse<List<String>> wxGoodsList = wxMiniGoodsProvider.findAllId(new WxGoodsSearchRequest());
+                List<String> wxGoodsIds = wxGoodsList.getContext();
+                List<String> notGoodsIdList = queryRequest.getNotGoodsIdList();
+                if(notGoodsIdList != null){
+                    notGoodsIdList.addAll(wxGoodsIds);
+                }else {
+                    queryRequest.setNotGoodsIdList(wxGoodsIds);
+                }
+            }else if(queryRequest.getWxAudit() == 1){
+                //微信视频号至少一次审核通过的
+                WxGoodsSearchRequest wxGoodsSearchRequest = new WxGoodsSearchRequest();
+                wxGoodsSearchRequest.setAuditPassedOnce(true);
+                BaseResponse<List<String>> wxGoodsList = wxMiniGoodsProvider.findAllId(wxGoodsSearchRequest);
+                List<String> wxGoodsIds = wxGoodsList.getContext();
+                List<String> goodsIds = queryRequest.getGoodsIds();
+                if(goodsIds != null){
+                    goodsIds.addAll(wxGoodsIds);
+                }else {
+                    queryRequest.setGoodsIds(wxGoodsIds);
+                }
+            }
+        }
         BaseResponse<EsSpuPageResponse> pageResponse = esSpuQueryProvider.page(queryRequest);
         EsSpuPageResponse response = pageResponse.getContext();
         List<GoodsPageSimpleVO> goodses = response.getGoodsPage().getContent();
         if(CollectionUtils.isNotEmpty(goodses)) {
-            List<String> goodsIds = goodses.stream().map(GoodsPageSimpleVO::getGoodsId).collect(Collectors.toList());
+            Map<String, List<GoodsPageSimpleVO>> goodsGroup = goodses.stream().collect(Collectors.groupingBy(GoodsPageSimpleVO::getGoodsId));
+            List<String> goodsIds = new ArrayList<>(goodsGroup.keySet());
             BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds);
             if(mapBaseResponse.getContext() != null){
                 Map<String, List<Integer>> storeCateMap = mapBaseResponse.getContext();
@@ -203,6 +239,31 @@ public class StoreGoodsController {
                         goods.setStoreCateIds(new ArrayList<>());
                     }else{
                         goods.setStoreCateIds(classifies.stream().map(Integer::longValue).collect(Collectors.toList()));
+                    }
+                }
+            }
+            // 商品是否在直播助手中
+//            BaseResponse<List<String>> goodsInLiveRes = wxLiveAssistantProvider.ifGoodsInLive(goodsIds);
+//            if(CollectionUtils.isNotEmpty(goodsInLiveRes.getContext())){
+//                for (String goodsId : goodsInLiveRes.getContext()) {
+//                    List<GoodsPageSimpleVO> goodsPageSimpleVOS = goodsGroup.get(goodsId);
+//                    if(goodsPageSimpleVOS != null){
+//                        goodsPageSimpleVOS.get(0).setGoodsInLive(true);
+//                    }
+//                }
+//            }
+
+            //商品是否在视频号商品池
+            if(queryRequest.getWxAudit() != null && queryRequest.getWxAudit() == 0){
+//                goodses.forEach(g -> g.setGoodsInWxGoodsPool(true));
+            }else {
+                BaseResponse<List<String>> wxGoodsListRes = wxMiniGoodsProvider.findByGoodsIds(goodsIds);
+                if(CollectionUtils.isNotEmpty(wxGoodsListRes.getContext())){
+                    for (String goodsId : wxGoodsListRes.getContext()) {
+                        List<GoodsPageSimpleVO> goodsPageSimpleVOS = goodsGroup.get(goodsId);
+                        if(goodsPageSimpleVOS != null){
+                            goodsPageSimpleVOS.get(0).setGoodsInWxGoodsPool(true);
+                        }
                     }
                 }
             }

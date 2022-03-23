@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.mq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.constant.MQConstant;
+import com.wanmi.sbc.goods.api.constant.GoodsJmsDestinationConstants;
+import com.wanmi.sbc.goods.fandeng.SiteSearchNotifyModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -46,5 +48,13 @@ public class ProducerService {
         Map<String,List<String>> map = new HashMap<>();
         map.put("skuIds", skuIds);
         resolver.resolveDestination(MQConstant.Q_ES_GOODS_INIT).send(new GenericMessage<>(JSONObject.toJSONString(map)));
+    }
+
+
+    /**
+     * 站内搜索内容推送
+     */
+    public void siteSearchDataNotify(SiteSearchNotifyModel model) {
+        resolver.resolveDestination(GoodsJmsDestinationConstants.Q_SITE_SEARCH_SYNC_PRODUCER).send(new GenericMessage<>(model));
     }
 }

@@ -154,7 +154,7 @@ public class GoodsController implements GoodsProvider {
     @Override
     public BaseResponse<GoodsAddResponse> add(@RequestBody @Valid GoodsAddRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
-        Set<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
+        List<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
         if (CollectionUtils.isEmpty(goodsChannelTypeSet)) {
             throw new SbcRuntimeException("K-0400001");
         }
@@ -364,7 +364,7 @@ public class GoodsController implements GoodsProvider {
     @Transactional
     public BaseResponse<GoodsModifyResponse> modify(@RequestBody @Valid GoodsModifyRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
-        Set<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
+        List<String> goodsChannelTypeSet = request.getGoods().getGoodsChannelTypeSet();
         if (CollectionUtils.isEmpty(goodsChannelTypeSet)) {
             throw new SbcRuntimeException("K-0400001");
         }

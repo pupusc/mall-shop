@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ES商品实体类
@@ -369,8 +370,15 @@ public class EsGoods implements Serializable {
     private String providerGoodsId;
 
     /*
-     * 商品渠道 1 h5 2小程序
+     * 微信是否审核通过 0-非视频号商品 1-微信审核通过
      */
     @Field(type = FieldType.Integer)
+    private Integer wxAudit;
+
+    /**
+     * 商品渠道 1 h5 2小程序
+     */
+    @Field(name = "goodsChannelTypeList", type = FieldType.Integer)
     private List<Integer> goodsChannelTypeList;
+
 }

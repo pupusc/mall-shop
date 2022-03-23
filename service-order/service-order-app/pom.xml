@@ -147,7 +147,6 @@
 <!--                    <outputDirectory>${project.build.directory}</outputDirectory>-->
 <!--                </configuration>-->
 <!--            </plugin>-->
-
 <!--            <plugin>-->
 <!--                <groupId>org.apache.maven.plugins</groupId>-->
 <!--                <artifactId>maven-dependency-plugin</artifactId>-->
@@ -182,6 +181,7 @@
 <!--                </executions>-->
 <!--            </plugin>-->
 
+
 <!--            <plugin>-->
 <!--                <groupId>org.apache.maven.plugins</groupId>-->
 <!--                <artifactId>maven-resources-plugin</artifactId>-->
@@ -207,6 +207,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+
 <!--                <configuration>-->
 <!--                    <includes>-->
 <!--                        <include>-->

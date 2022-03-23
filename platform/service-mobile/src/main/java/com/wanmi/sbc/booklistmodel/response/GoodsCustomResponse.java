@@ -120,4 +120,9 @@ public class GoodsCustomResponse implements Serializable{
     @ApiModelProperty("商品库存")
     private Long stock;
 
+    /**
+     * 樊登读书、非凡精度、樊登直播、李雷慢读
+     */
+    private String anchorPush;
+
 }
