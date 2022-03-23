@@ -211,4 +211,9 @@ public class CouponCodeVO implements Serializable {
      */
     @ApiModelProperty(value = "参与成功通知描述")
     private String activityDesc;
+
+    /**
+     * 用户
+     */
+    private String customerId;
 }

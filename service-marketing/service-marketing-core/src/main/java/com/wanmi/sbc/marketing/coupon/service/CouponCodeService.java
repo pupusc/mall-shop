@@ -54,6 +54,7 @@ import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.repository.CouponMarketingScopeRepository;
 import com.wanmi.sbc.marketing.coupon.request.CouponCodeListForUseRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCodePageRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponCodeWillExpireRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeCountResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeQueryResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponLeftResponse;
@@ -1347,5 +1348,18 @@ public class CouponCodeService {
         List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
         log.info("customerId all: {} result: {}", customerId, JSON.toJSONString(couponCodeListResult));
         log.info("订单支付完成发券插入数据完成 activityId: {} customerId:{}", couponActivityId, customerId);
+    }
+
+    /**
+     * 获取还有n天过期的优惠券
+     * @return
+     */
+    public List<CouponCodeVO> getWillExpireCouponCode(CouponCodeWillExpireRequest request){
+        Query query = entityManager.createNativeQuery(request.getQuerySql());
+        query.setParameter("customerId", request.getCustomerId());
+        query.setParameter("willExpireDate",request.getWillExpireDate());
+        query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        return CouponCodeWillExpireRequest.converter(query.getResultList());
+
     }
 }

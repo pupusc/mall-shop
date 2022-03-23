@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.provider.impl.coupon;
 
+import com.wanmi.ares.base.BaseResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
@@ -10,6 +11,7 @@ import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import com.wanmi.sbc.marketing.common.mapper.TradeItemInfoMapper;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponCode;
 import com.wanmi.sbc.marketing.coupon.request.CouponCodeListForUseRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponCodeWillExpireRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeQueryResponse;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,5 +142,16 @@ public class CouponCodeQueryController implements CouponCodeQueryProvider {
     public BaseResponse<CouponCodeValidOrderCommitResponse> validOrderCommit(@Valid CouponCodeValidOrderCommitRequest request) {
         CouponCodeValidOrderCommitResponse response = couponCodeService.validOrderCommit(request);
         return BaseResponse.success(response);
+    }
+
+    /**
+     * 根据customerId查询用户临期优惠券
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse<List<CouponCodeVO>> listWillExpireByCustomerIds(CouponCodeByCustomerIdsRequest request) {
+        return BaseResponse.success(couponCodeService.getWillExpireCouponCode(KsBeanUtil.convert(request, CouponCodeWillExpireRequest.class)))
+        return null;
     }
 }

@@ -86,4 +86,6 @@ public interface CouponCodeProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-goodsIds")
     BaseResponse sendCouponCodeByGoodsIds(@RequestBody CouponCodeByGoodsIdsRequest couponCodeByGoodsIdsRequest);
+
+
 }
