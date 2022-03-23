@@ -178,12 +178,10 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         Map<String, HotGoodsDto> sortMap = hotGoodsDtos.stream().collect(Collectors.toMap(HotGoodsDto::getSpuId, Function.identity(), (a1, a2) -> a1));
 
         List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds, goodsChannelTypeName);
-        for (SortGoodsCustomResponse goodsVo : goodList) {
-            if (sortMap.get(goodsVo.getGoodsInfoId()) == null) {
-                continue;
-            }
+        for (SortGoodsCustomResponse goodsVo : goodList) { //这里有问题，等后续修改数据
             goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()).getSort());
-            goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()).getType());
+            goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()) == null ? -1 : sortMap.get(goodsVo.getGoodsInfoId()).getType());
+            log.info("HomeIndexGoodsJobHandler fenHuiChangRedis goodsInfoId:{} sort:{} hotType:{}", goodsVo.getGoodsInfoId(), goodsVo.getSort(), goodsVo.getHotType());
         }
         packageBookModelMsg(goodList);
         for (ActivityBranchConfigResponse activityBranchConfigResponse : branchConfigResponseList) {
