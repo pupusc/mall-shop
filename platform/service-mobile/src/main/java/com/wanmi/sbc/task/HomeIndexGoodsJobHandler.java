@@ -179,6 +179,9 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
 
         List<SortGoodsCustomResponse> goodList = traneserSortGoodsCustomResponseByHotGoodsDto(goodIds, goodsChannelTypeName);
         for (SortGoodsCustomResponse goodsVo : goodList) {
+            if (sortMap.get(goodsVo.getGoodsInfoId()) == null) {
+                continue;
+            }
             goodsVo.setSort(sortMap.get(goodsVo.getGoodsInfoId()) == null ? 0 : sortMap.get(goodsVo.getGoodsInfoId()).getSort());
             goodsVo.setHotType(sortMap.get(goodsVo.getGoodsInfoId()).getType());
         }
