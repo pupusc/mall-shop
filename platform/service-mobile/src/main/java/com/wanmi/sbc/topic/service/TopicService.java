@@ -239,7 +239,7 @@ public class TopicService {
                    content.setSkuId(map.get("skuId"));
                }
                if(map.containsKey("spuId")){
-                   content.setSkuId(map.get("spuId"));
+                   content.setSpuId(map.get("spuId"));
                }
            });
         });
