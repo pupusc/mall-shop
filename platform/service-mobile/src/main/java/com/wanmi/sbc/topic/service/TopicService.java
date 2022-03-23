@@ -225,12 +225,8 @@ public class TopicService {
     }
 
     private void initSpuId(List<TopicStoreyResponse> storeyList){
-        List<TopicStoreyResponse> imageStorey = storeyList.stream().filter(p->Arrays.asList(TopicStoreyType.ONEIMAGEONEGOODS.getId(),TopicStoreyType.TWOIMAGEONEGOODS.getId()).contains(p.getStoreyType())).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(imageStorey)){
-            return;
-        }
-        storeyList.forEach(storey->{
-           List<TopicStoreyContentReponse> contents = storey.getContents().stream().filter(p->Objects.equals(p.getType(),2)&& !StringUtils.isEmpty(p.getLinkUrl())).collect(Collectors.toList());
+        storeyList.stream().filter(p->CollectionUtils.isNotEmpty(p.getContents())).forEach(storey->{
+            List<TopicStoreyContentReponse> contents = storey.getContents().stream().filter(p->Objects.equals(p.getType(),2)&& !StringUtils.isEmpty(p.getLinkUrl())).collect(Collectors.toList());
            if(CollectionUtils.isEmpty(contents)){
                return;
            }
