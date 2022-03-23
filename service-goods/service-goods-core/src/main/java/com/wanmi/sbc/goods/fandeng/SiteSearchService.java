@@ -5,8 +5,12 @@ import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListTypeEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsChannelTypeEnum;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
+import com.wanmi.sbc.goods.blacklist.repository.GoodsBlackListRepository;
 import com.wanmi.sbc.goods.booklistgoodspublish.model.root.BookListGoodsPublishDTO;
 import com.wanmi.sbc.goods.booklistgoodspublish.service.BookListGoodsPublishService;
 import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
@@ -46,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -111,6 +116,9 @@ public class SiteSearchService {
     @Autowired
     private TagRepository tagRepository;
 
+    @Autowired
+    private GoodsBlackListRepository goodsBlackListRepository;
+
 
     public void siteSearchBookResNotify(List<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
@@ -138,6 +146,13 @@ public class SiteSearchService {
     public void siteSearchDataConsumer(SiteSearchNotifyModel model) {
         if (Objects.isNull(model)) {
             log.info("站内搜索同步消息内容为空");
+        }
+
+        try {
+            //适当延时
+            TimeUnit.MILLISECONDS.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         if ("BOOK_RES".equals(model.getType())) {
@@ -240,17 +255,8 @@ public class SiteSearchService {
                     resMeta.setReservePrice(Double.valueOf(rel.getPropValue()));
                 }
             }
-            //查询SKU列表
-            GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
-            infoQueryRequest.setGoodsId(goods.getGoodsId());
-            infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-            List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
-            if (CollectionUtils.isNotEmpty(goodsInfos) && Objects.nonNull(goodsInfos.get(0).getMarketPrice())) {
-                GoodsInfo sku = goodsInfos.get(0);
-                resMeta.setSellPrice(priceFormat(sku.getMarketPrice()));
-                resMeta.setPromotePrice(priceFormat(sku.getMarketPrice()));
-                resMeta.setMemberPrice(priceFormat(sku.getMarketPrice().multiply(new BigDecimal(0.96))));
-            }
+            //填充商品价格
+            fillBookResPrice(resMeta, goods);
 
             //查询标签信息
             List<SyncBookResMetaLabelReq> labelReqs = tagRepository.findByGoods(goods.getGoodsId())
@@ -265,6 +271,33 @@ public class SiteSearchService {
         }
 
         syncBookResData(resReqVO);
+    }
+
+    private void fillBookResPrice(SyncBookResMetaReq resMeta, Goods goods) {
+        if (Objects.isNull(resMeta) || Objects.isNull(goods)) {
+            return;
+        }
+        //查询SKU列表
+        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+        infoQueryRequest.setGoodsId(goods.getGoodsId());
+        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        List<GoodsInfo> goodsInfos = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+        if (CollectionUtils.isNotEmpty(goodsInfos) && Objects.nonNull(goodsInfos.get(0).getMarketPrice())) {
+            GoodsInfo sku = goodsInfos.get(0);
+            resMeta.setSellPrice(priceFormat(sku.getMarketPrice()));
+            resMeta.setPromotePrice(priceFormat(sku.getMarketPrice()));
+            resMeta.setMemberPrice(priceFormat(sku.getMarketPrice().multiply(new BigDecimal(0.96))));
+        }
+
+        //价格黑名单
+        List<GoodsBlackListDTO> blackList = goodsBlackListRepository.selectBackListByBusiness(
+                goods.getGoodsId(),
+                GoodsBlackListTypeEnum.SPU_ID.getCode(),
+                GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode());
+        if (CollectionUtils.isNotEmpty(blackList)) {
+            resMeta.setPromotePrice(resMeta.getSellPrice());
+            resMeta.setMemberPrice(resMeta.getSellPrice());
+        }
     }
 
     private void sendBookPkgData(Integer pkgId) {
