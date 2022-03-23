@@ -629,4 +629,20 @@ public class QueryConditionsUtil {
             return cbuild.and(predicates.toArray(new Predicate[]{}));
         };
     }
+
+    public static Specification<Customer> getWhereCriteria(CustomerWithOpenIdRequest request) {
+
+        return (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cbuild.equal(root.get("checkState"), CheckState.CHECKED));
+            predicates.add(cbuild.equal(root.get("delFlag"), DeleteFlag.NO));
+            predicates.add(cbuild.notEqual(root.get("wxMiniOpenId"),""));
+            if(request.getStartId()!=null){
+                predicates.add(cbuild.greaterThan(root.get("id"),request.getStartId()));
+            }
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
+        };
+    }
 }

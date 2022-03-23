@@ -1640,4 +1640,9 @@ public class CustomerService {
     public Customer findCustomerByYzUid(Long yzUids){
         return customerRepository.findByYzUid(yzUids);
     }
+
+    public List<Customer> listHasOpenId(){
+        Page<Customer> customerPage = customerRepository.findAll(QueryConditionsUtil.getWhereCriteria(request),
+                request.getPageRequest());
+    }
 }
