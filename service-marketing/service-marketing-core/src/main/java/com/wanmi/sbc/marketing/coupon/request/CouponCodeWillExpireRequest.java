@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.usermodel.DateUtil;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+
+import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.util.DateUtil;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 
 @Data
 public class CouponCodeWillExpireRequest implements Serializable {

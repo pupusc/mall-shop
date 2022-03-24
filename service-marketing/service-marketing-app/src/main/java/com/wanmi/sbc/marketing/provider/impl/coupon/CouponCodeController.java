@@ -1,7 +1,6 @@
 package com.wanmi.sbc.marketing.provider.impl.coupon;
 
 import com.alibaba.fastjson.JSONObject;
-import com.wanmi.ares.base.BaseResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;

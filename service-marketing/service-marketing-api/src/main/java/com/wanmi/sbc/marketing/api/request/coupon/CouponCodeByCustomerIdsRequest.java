@@ -3,6 +3,7 @@ package com.wanmi.sbc.marketing.api.request.coupon;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,7 +16,7 @@ public class CouponCodeByCustomerIdsRequest implements Serializable {
     /**
      * 临期时间
      */
-    @JsonSerialize(using = CustomLocalDateTimeDeserializer.class)
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime willExpireDate;
 
