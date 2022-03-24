@@ -356,8 +356,7 @@ public class WxPayService {
 //            log.info("解析xml：{}",refundResultMap);
             wxPayRefundResponse = (WxPayRefundResponse) WXPayUtil.mapToObject(refundResultMap, WxPayRefundResponse.class);
         } catch (Exception e) {
-            e.printStackTrace();
-            log.info("微信退款调用失败：{},{}",refundXmlStr,wxPayRefundResponse);
+            log.error("WxPayService wxPayRefund 微信退款调用失败：{},{}",refundXmlStr,wxPayRefundResponse, e);
         }
         return wxPayRefundResponse;
     }
@@ -481,7 +480,7 @@ public class WxPayService {
             keyStore.load(instream, key.toCharArray());
         }catch (Exception e){
             e.printStackTrace();
-            log.info("指定PKCS12的密码失败");
+            log.error("WxPayService initCert 指定PKCS12的密码失败", e);
         }finally {
             instream.close();
         }

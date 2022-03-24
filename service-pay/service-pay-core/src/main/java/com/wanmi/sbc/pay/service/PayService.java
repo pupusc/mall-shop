@@ -1,5 +1,6 @@
 package com.wanmi.sbc.pay.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
@@ -199,6 +200,7 @@ public class PayService {
         Long storeId = request.getStoreId();
         request.setStoreId(storeId);
         PayChannelItem item = getPayChannelItem(payRecord.getChannelItemId(),storeId);
+        log.info("PayService refund payRecord :{} item: {}", JSON.toJSONString(payRecord), JSON.toJSONString(item));
         if (payRecord.getChannelItemId().equals(11L)) {
             //银联企业支付退款
             PayValidates.verifyGateway(item.getGateway());
@@ -231,6 +233,7 @@ public class PayService {
             aliPayRefundRequest.setAppPrivateKey(item.getGateway().getConfig().getPrivateKey());
             aliPayRefundRequest.setAliPayPublicKey(item.getGateway().getConfig().getPublicKey());
             AlipayTradeRefundResponse refundResponse = alipayService.tradeRefund(aliPayRefundRequest);
+            log.info("PayService refund refundResponse: {}", JSON.toJSONString(refundResponse));
             AliPayRefundResponse aliPayRefundResponse = new AliPayRefundResponse();
             aliPayRefundResponse.setPayType("ALIPAY");
             aliPayRefundResponse.setAlipayTradeRefundResponse(refundResponse);
@@ -376,15 +379,17 @@ public class PayService {
         refundRequest.setRefund_fee(request.getAmount().multiply(new BigDecimal(100)).
                 setScale(0, BigDecimal.ROUND_DOWN).toString());
         refundRequest.setNotify_url(gatewayConfig.getBossBackUrl() + "/tradeCallback/WXPayRefundSuccessCallBack/"+request.getStoreId());
+        log.info("PayService wxPayRefundForApp refundRequest :{}", JSON.toJSONString(refundRequest));
         try {
             Map<String, String> refundMap = WXPayUtil.objectToMap(refundRequest);
             //获取签名
             String sign = WXPayUtil.generateSignature(refundMap, gatewayConfig.getOpenPlatformApiKey());
             refundRequest.setSign(sign);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("PayService wxPayRefundForApp singin exception", e);
         }
         WxPayRefundResponse wxPayRefundResponse = wxPayService.wxPayRefund(refundRequest, WXPAYAPPTYPE, request.getStoreId());
+        log.info("PayService wxPayRefundForApp wxPayRefundResponse :{}", JSON.toJSONString(wxPayRefundResponse));
         if (Objects.nonNull(wxPayRefundResponse) && wxPayRefundResponse.getResult_code().equals(WXPayConstants.SUCCESS)) {
             record.setTradeNo(wxPayRefundResponse.getTransaction_id());
             recordRepository.save(record);

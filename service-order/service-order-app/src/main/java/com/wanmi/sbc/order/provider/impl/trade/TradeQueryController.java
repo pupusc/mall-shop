@@ -180,6 +180,9 @@ public class TradeQueryController implements TradeQueryProvider {
         }
         Page<Trade> page = tradeService.page(criteria, tradeQueryRequest);
         MicroServicePage<TradeVO> tradeVOS = KsBeanUtil.convertPage(page, TradeVO.class);
+
+
+
         return BaseResponse.success(TradePageCriteriaResponse.builder().tradePage(tradeVOS).build());
     }
 

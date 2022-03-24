@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.goods.api.constant.GoodsJmsDestinationConstants;
 import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyAlreadyGrouponNumRequest;
 import com.wanmi.sbc.goods.api.request.groupongoodsinfo.GrouponGoodsInfoModifyStatisticsNumRequest;
+import com.wanmi.sbc.goods.fandeng.SiteSearchNotifyModel;
+import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.groupongoodsinfo.service.GrouponGoodsInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,8 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableBinding(GoodsSink.class)
 public class GoodsConsumerService {
-
+    @Autowired
+    private SiteSearchService siteSearchService;
     @Autowired
     private GrouponGoodsInfoService grouponGoodsInfoService;
 
@@ -56,4 +59,12 @@ public class GoodsConsumerService {
         }
     }
 
+    /**
+     * 站内搜索内容推送
+     */
+    @StreamListener(GoodsJmsDestinationConstants.Q_SITE_SEARCH_SYNC_CONSUMER)
+    public void onMessageForSiteSearchData(SiteSearchNotifyModel model) {
+        log.info("收到站内搜索同步消息：content = {}", model);
+        siteSearchService.siteSearchDataConsumer(model);
+    }
 }

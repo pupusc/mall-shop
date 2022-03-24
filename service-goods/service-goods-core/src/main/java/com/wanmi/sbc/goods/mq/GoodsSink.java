@@ -28,4 +28,10 @@ public interface GoodsSink {
 
 	@Input(GoodsJmsDestinationConstants.Q_GOODS_MODIFY_PROVIDER_STATUS)
 	SubscribableChannel updateGoodsProviderStatus();
+
+	/**
+	 * 订单发货状态变更
+	 * */
+	@Input(GoodsJmsDestinationConstants.Q_SITE_SEARCH_SYNC_CONSUMER)
+	SubscribableChannel siteSearchSync();
 }
