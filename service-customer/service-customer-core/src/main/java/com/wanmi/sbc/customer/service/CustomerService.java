@@ -15,10 +15,7 @@ import com.wanmi.sbc.customer.api.request.customer.*;
 import com.wanmi.sbc.customer.api.request.growthvalue.CustomerGrowthValueAddRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
-import com.wanmi.sbc.customer.api.response.customer.CustomerAddResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerDetailPageForSupplierResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerDetailPageResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetForSupplierResponse;
+import com.wanmi.sbc.customer.api.response.customer.*;
 import com.wanmi.sbc.customer.api.response.employee.EmployeeAccountResponse;
 import com.wanmi.sbc.customer.ares.CustomerAresService;
 import com.wanmi.sbc.customer.bean.dto.CustomerDetailFromEsDTO;
@@ -1641,8 +1638,9 @@ public class CustomerService {
         return customerRepository.findByYzUid(yzUids);
     }
 
-    public List<Customer> listHasOpenId(){
+    public CustomerWithOpenIdResponse listHasOpenId(CustomerWithOpenIdRequest request){
         Page<Customer> customerPage = customerRepository.findAll(QueryConditionsUtil.getWhereCriteria(request),
                 request.getPageRequest());
+        return pageHelper(customerPage, request.getPageNum());
     }
 }
