@@ -22,5 +22,5 @@ public class CouponCodeByCustomerIdsRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime willExpireDate;
 
-    private List<CustomerAndOpenIdDTO> customerInfo;
+    private List<String> customerId;
 }

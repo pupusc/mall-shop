@@ -45,10 +45,10 @@ public class CouponCodeWillExpireRequest implements Serializable {
         sb.append(" AND couponCode.use_status = 0 ");
         sb.append(" AND couponCode.end_time > now() ");
         if (Objects.nonNull(willExpireDate)){
-            sb.append("  AND couponCode.end_time > :willExpireDate");
+            sb.append("  AND couponCode.end_time < :willExpireDate");
         }
         if(CollectionUtils.isNotEmpty(customerId)){
-            sb.append(" AND couponCode.customerId in (:customerId) ");
+            sb.append(" AND couponCode.customer_id in (:customerId) ");
         }
         return sb.toString();
     }
