@@ -1,9 +1,11 @@
 package com.wanmi.sbc.customer.api.provider.customer;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.customer.api.request.customer.*;
 import com.wanmi.sbc.customer.api.request.growthvalue.CustomerByGrowthValueRequest;
 import com.wanmi.sbc.customer.api.response.customer.*;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplerVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -314,5 +316,14 @@ public interface CustomerQueryProvider {
      */
     @PostMapping("/customer/${application.customer.version}/customer/get-yz-uid-not-exist")
     BaseResponse<List<Long>> findYzUidNotExist(@RequestBody @Valid CustomerYzUidListRequest request);
+
+    /**
+     * 查询openId
+     *
+     * @param request {@link CustomerIdsListRequest}
+     * @return {@link }
+     */
+    @PostMapping("/customer/${application.customer.version}/customer/get-customer-with-openId")
+    BaseResponse<MicroServicePage<CustomerSimplerVO>> listCustomerWithOpenId(@RequestBody CustomerWithOpenIdPageRequest request);
 
 }

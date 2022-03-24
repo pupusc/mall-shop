@@ -13,7 +13,6 @@ import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.detail.model.root.CustomerDetail;
 import com.wanmi.sbc.customer.distribution.model.root.DistributionCustomer;
 import com.wanmi.sbc.customer.distribution.model.root.InviteNewRecord;
-import com.wanmi.sbc.customer.enterpriseinfo.model.root.EnterpriseInfo;
 import com.wanmi.sbc.customer.model.root.Customer;
 import com.wanmi.sbc.customer.storecustomer.root.StoreCustomerRela;
 import org.apache.commons.collections4.CollectionUtils;
@@ -630,7 +629,7 @@ public class QueryConditionsUtil {
         };
     }
 
-    public static Specification<Customer> getWhereCriteria(CustomerWithOpenIdRequest request) {
+    public static Specification<Customer> getWhereCriteria(CustomerWithOpenIdPageRequest request) {
 
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();

@@ -1,14 +1,16 @@
 package com.wanmi.sbc.customer.provider.impl.customer;
 
+
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.customer.api.constant.CustomerErrorCode;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.*;
-import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.growthvalue.CustomerByGrowthValueRequest;
 import com.wanmi.sbc.customer.api.response.customer.*;
+import com.wanmi.sbc.customer.api.response.level.CustomerLevelPageResponse;
 import com.wanmi.sbc.customer.bean.enums.CheckState;
 import com.wanmi.sbc.customer.bean.enums.CustomerStatus;
 import com.wanmi.sbc.customer.bean.enums.ThirdLoginType;
@@ -17,14 +19,17 @@ import com.wanmi.sbc.customer.detail.model.root.CustomerDetail;
 import com.wanmi.sbc.customer.enterpriseinfo.model.root.EnterpriseInfo;
 import com.wanmi.sbc.customer.enterpriseinfo.service.EnterpriseInfoService;
 import com.wanmi.sbc.customer.fandeng.ExternalService;
+import com.wanmi.sbc.customer.level.model.root.CustomerLevel;
 import com.wanmi.sbc.customer.model.root.Customer;
 import com.wanmi.sbc.customer.model.root.CustomerBase;
 import com.wanmi.sbc.customer.quicklogin.model.root.ThirdLoginRelation;
 import com.wanmi.sbc.customer.quicklogin.service.ThirdLoginRelationService;
+import com.wanmi.sbc.customer.request.CustomerWithOpenIdRequest;
 import com.wanmi.sbc.customer.service.CustomerService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -577,4 +582,12 @@ public class CustomerQueryController implements CustomerQueryProvider {
         List<Long> ids = customerService.findYzUidNotExist(request.getYzUids());
         return BaseResponse.success(ids);
     }
+
+    @Override
+    public BaseResponse<MicroServicePage<CustomerSimplerVO>> listCustomerWithOpenId(CustomerWithOpenIdPageRequest request) {
+        MicroServicePage<CustomerSimplerVO> page = customerService.listCustomerWithOpenId(KsBeanUtil.convert(request, CustomerWithOpenIdRequest.class));
+        return  BaseResponse.success(page);
+    }
+
+
 }

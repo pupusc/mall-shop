@@ -7,7 +7,7 @@ import lombok.Data;
 
 @ApiModel
 @Data
-public class CustomerWithOpenIdRequest extends BaseQueryRequest {
+public class CustomerWithOpenIdPageRequest extends BaseQueryRequest {
 
     /**
      * 下次开始id
