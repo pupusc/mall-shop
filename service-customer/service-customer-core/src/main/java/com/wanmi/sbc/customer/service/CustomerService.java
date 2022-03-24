@@ -1641,6 +1641,7 @@ public class CustomerService {
     public CustomerWithOpenIdResponse listHasOpenId(CustomerWithOpenIdRequest request){
         Page<Customer> customerPage = customerRepository.findAll(QueryConditionsUtil.getWhereCriteria(request),
                 request.getPageRequest());
-        return pageHelper(customerPage, request.getPageNum());
+        MicroServicePage<FdPaidCastVO> microPage = new MicroServicePage<>(customerPage, request.getPageable());
+
     }
 }
