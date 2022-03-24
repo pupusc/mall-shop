@@ -1650,6 +1650,7 @@ public class CustomerService {
 
     }
 
+
     private List<CustomerSimplerVO> wrapperVOS(List<Customer> list){
         if(CollectionUtils.isEmpty(list)){
             return new ArrayList<>();
@@ -1662,5 +1663,10 @@ public class CustomerService {
             customerVOS.add(customerVO);
         });
         return customerVOS;
+    }
+
+    public Long countCustomerWithOpenId(){
+        return customerRepository.count(QueryConditionsUtil.getWhereCriteria(new CustomerWithOpenIdRequest()));
+
     }
 }

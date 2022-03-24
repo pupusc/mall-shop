@@ -8,6 +8,7 @@ import com.wanmi.sbc.customer.api.response.customer.*;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplerVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -325,5 +326,8 @@ public interface CustomerQueryProvider {
      */
     @PostMapping("/customer/${application.customer.version}/customer/get-customer-with-openId")
     BaseResponse<MicroServicePage<CustomerSimplerVO>> listCustomerWithOpenId(@RequestBody CustomerWithOpenIdPageRequest request);
+
+    @GetMapping("/customer/${application.customer.version}/customer/count-customer-with-openId")
+    BaseResponse<Long> countCustomerWithOpenId();
 
 }

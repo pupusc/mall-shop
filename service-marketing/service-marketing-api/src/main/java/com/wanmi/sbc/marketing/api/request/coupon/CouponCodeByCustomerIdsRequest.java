@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
+import com.wanmi.sbc.marketing.bean.dto.CustomerAndOpenIdDTO;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Data
 public class CouponCodeByCustomerIdsRequest implements Serializable {
@@ -20,5 +22,5 @@ public class CouponCodeByCustomerIdsRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime willExpireDate;
 
-    private List<String> customerId;
+    private List<CustomerAndOpenIdDTO> customerInfo;
 }

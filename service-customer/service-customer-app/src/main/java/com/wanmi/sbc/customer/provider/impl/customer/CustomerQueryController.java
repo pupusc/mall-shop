@@ -589,5 +589,8 @@ public class CustomerQueryController implements CustomerQueryProvider {
         return  BaseResponse.success(page);
     }
 
-
+    @Override
+    public BaseResponse<Long> countCustomerWithOpenId() {
+        return BaseResponse.success(customerService.countCustomerWithOpenId());
+    }
 }

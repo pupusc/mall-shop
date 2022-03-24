@@ -631,7 +631,6 @@ public class QueryConditionsUtil {
     }
 
     public static Specification<Customer> getWhereCriteria(CustomerWithOpenIdRequest request) {
-
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cbuild.equal(root.get("checkState"), CheckState.CHECKED));
