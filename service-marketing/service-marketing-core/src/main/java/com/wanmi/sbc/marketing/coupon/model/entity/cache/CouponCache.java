@@ -75,4 +75,9 @@ public class CouponCache extends BaseBean {
      */
     private List<String> couponCateIds;
 
+    /**
+     * 一天限领一次的券今日是否已领取
+     */
+    private Boolean hasFetchToday;
+
 }

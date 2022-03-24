@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.handler.aop.MasterRouteOnly;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -87,10 +88,12 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -711,6 +714,7 @@ public class CouponCodeService {
             throw new SbcRuntimeException(CouponErrorCode.CUSTOMER_HAS_FETCHED_COUPON);
         }
         //判断领取次数
+        Object fetchThisDay = null;
         if (Objects.equals(couponActivity.getReceiveType(), DefaultFlag.YES)) {
             int countCustomerHasFetchedCoupon =
                     couponCodeRepository.countCustomerHasFetchedCoupon(couponFetchRequest.getCustomerId(),
@@ -718,47 +722,65 @@ public class CouponCodeService {
             if (couponActivity.getReceiveCount() - countCustomerHasFetchedCoupon <= 0) {
                 throw new SbcRuntimeException(CouponErrorCode.CUSTOMER_FETCHED_ALL);
             }
-        }
-        String redisKey = getCouponBankKey(couponActivityConfig.getActivityId(), couponActivityConfig.getCouponId());
-
-        // 获取剩余优惠券
-        long leftCount = refreshCouponLeftCount(couponActivityConfig);
-        if (leftCount == 0) {
-            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-        }
-
-        SessionCallback<List<Object>> callback = new SessionCallback<List<Object>>() {
-            @Override
-            public List<Object> execute(RedisOperations operations)
-                    throws DataAccessException {
-                int retryLimit = 10;
-                List<Object> results = null;
-                int i = 0;
-                while ((results == null || results.isEmpty()) && i < retryLimit) {
-                    operations.watch(redisKey);
-                    // Read
-                    String origin = (String) operations.opsForValue().get(redisKey);
-                    if (Long.parseLong(origin) <= 0) {
-                        couponNoLeft(couponActivityConfig);
-                        throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-                    }
-                    operations.multi();
-                    // Write
-                    operations.opsForValue().increment(redisKey, -1);
-                    results = operations.exec();
-                    if (results != null && !results.isEmpty()) {
-                        //领券业务代码
-                        sendCouponCode(couponInfo, couponFetchRequest);
-                    } else {
-                        throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-                    }
-                    i++;
-                }
-                return results;
+        }else if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+            //一天限领一次的券
+            String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+            fetchThisDay = redisTemplate.opsForValue().get(key);
+            if(fetchThisDay == null){
+                //可以领
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime tomorrow = now.plusDays(1).withHour(0).withMinute(0).withSecond(0);
+                redisTemplate.opsForValue().set(key, "1", Duration.between(now, tomorrow).toMillis(), TimeUnit.MILLISECONDS);
+            }else {
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已领取");
             }
-        };
-        redisTemplate.execute(callback);
+        }
+        try {
+            String redisKey = getCouponBankKey(couponActivityConfig.getActivityId(), couponActivityConfig.getCouponId());
+            // 获取剩余优惠券
+            long leftCount = refreshCouponLeftCount(couponActivityConfig);
+            if (leftCount == 0) {
+                throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+            }
 
+            SessionCallback<List<Object>> callback = new SessionCallback<List<Object>>() {
+                @Override
+                public List<Object> execute(RedisOperations operations)
+                        throws DataAccessException {
+                    int retryLimit = 10;
+                    List<Object> results = null;
+                    int i = 0;
+                    while ((results == null || results.isEmpty()) && i < retryLimit) {
+                        operations.watch(redisKey);
+                        // Read
+                        String origin = (String) operations.opsForValue().get(redisKey);
+                        if (Long.parseLong(origin) <= 0) {
+                            couponNoLeft(couponActivityConfig);
+                            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+                        }
+                        operations.multi();
+                        // Write
+                        operations.opsForValue().increment(redisKey, -1);
+                        results = operations.exec();
+                        if (results != null && !results.isEmpty()) {
+                            //领券业务代码
+                            sendCouponCode(couponInfo, couponFetchRequest);
+                        } else {
+                            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+                        }
+                        i++;
+                    }
+                    return results;
+                }
+            };
+            redisTemplate.execute(callback);
+        }catch (Exception e) {
+            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY) && fetchThisDay == null){
+                String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+                redisTemplate.delete(key);
+            }
+            throw e;
+        }
     }
 
 

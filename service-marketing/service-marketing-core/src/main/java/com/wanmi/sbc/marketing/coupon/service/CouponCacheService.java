@@ -236,6 +236,19 @@ public class CouponCacheService {
         List<Long> storeIds =
                 couponCacheList.stream().filter(item -> item.getCouponInfo().getPlatformFlag() == DefaultFlag.NO)
                         .map(item -> item.getCouponInfo().getStoreId()).distinct().collect(Collectors.toList());
+
+        for (CouponCache couponCache : couponCacheList) {
+            if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+                String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                Object o = redisService.get(key);
+                if(o == null){
+                    couponCache.setHasFetchToday(false);
+                }else {
+                    couponCache.setHasFetchToday(true);
+                }
+            }
+        }
+
         return CouponListResponse.builder()
                 //券详情
                 .couponViews(CouponView.converter(couponCacheList

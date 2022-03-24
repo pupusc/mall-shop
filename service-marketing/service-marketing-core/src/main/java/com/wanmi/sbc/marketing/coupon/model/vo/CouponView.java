@@ -107,6 +107,11 @@ public class CouponView {
     private boolean hasFetched;
 
     /**
+     * 一天限领一次的券今日是否已领取
+     */
+    private Boolean hasFetchToday;
+
+    /**
      * 优惠券是否开始
      */
     private Boolean couponStarted;
@@ -232,6 +237,7 @@ public class CouponView {
                     .effectiveDays(item.getCouponInfo().getEffectiveDays())
                     .couponStarted(couponStarted)
                     .hasFetched(hasFetched)
+                    .hasFetchToday(item.getHasFetchToday())
                     .leftFlag(leftFlag)
                     .fetchPercent(fetchPercent)
                     .couponWillEnd(couponWillEnd)
