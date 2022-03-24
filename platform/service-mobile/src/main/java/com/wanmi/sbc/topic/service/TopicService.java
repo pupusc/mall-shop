@@ -111,6 +111,8 @@ public class TopicService {
             });
 
         }
+        //图片+链接解析spuId
+        initSpuId(response.getStoreyList());
         initCoupon(response.getStoreyList());
         return BaseResponse.success(response);
     }
@@ -220,6 +222,50 @@ public class TopicService {
         }
         return goodList;
 
+    }
+
+    private void initSpuId(List<TopicStoreyResponse> storeyList){
+        storeyList.stream().filter(p->CollectionUtils.isNotEmpty(p.getContents())).forEach(storey->{
+            List<TopicStoreyContentReponse> contents = storey.getContents().stream().filter(p->Objects.equals(p.getType(),2)&& !StringUtils.isEmpty(p.getLinkUrl())).collect(Collectors.toList());
+           if(CollectionUtils.isEmpty(contents)){
+               return;
+           }
+           contents.stream().forEach(content->{
+               Map<String,String> map = getUrlParams(content.getLinkUrl());
+               if(map.isEmpty()){
+                   return;
+               }
+               if(map.containsKey("skuId")){
+                   content.setSkuId(map.get("skuId"));
+               }
+               if(map.containsKey("spuId")){
+                   content.setSpuId(map.get("spuId"));
+               }
+           });
+        });
+
+    }
+
+    private Map<String, String> getUrlParams(String url) {
+        Map<String, String> map = new HashMap<>();
+        if (StringUtils.isEmpty(url)) {
+            return map;
+        }
+        try {
+            Integer index = url.indexOf("?");
+            if (index == -1) {
+                return map;
+            }
+            String paramsUrl = url.substring(index + 1, url.length());
+            String[] params = paramsUrl.split("&");
+            for (String param : params) {
+                String[] pair = param.split("=");
+                map.put(pair[0], pair[1]);
+            }
+        } catch (Exception e) {
+            log.warn("获取url参数失败,url:{}", url, e);
+        }
+        return map;
     }
 
 }
