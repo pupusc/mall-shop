@@ -53,10 +53,10 @@ public class CouponCodeWillExpireMessageJobHandler extends IJobHandler {
     @Autowired
     private CommonController wxCommonController;
 
-    @Value("{$wx.coupon.will.expire.send.message.templateId}")
+    @Value("${wx.coupon.will.expire.send.message.templateId}")
     private String couponSendMessageTemplateId;
 
-    @Value("{$coupon.list.url}")
+    @Value("${coupon.list.url}")
     private String couponListUrl;
 
     @Override
