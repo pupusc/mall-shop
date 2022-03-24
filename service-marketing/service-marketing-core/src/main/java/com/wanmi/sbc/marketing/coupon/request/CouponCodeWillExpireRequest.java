@@ -35,7 +35,7 @@ public class CouponCodeWillExpireRequest implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT couponCode.coupon_code_id AS `couponCodeId`, ");
         sb.append("      couponCode.coupon_code AS `couponCode`, ");
-        sb.append("      couponCode.customer_id AS `CustomerId`, ");
+        sb.append("      couponCode.customer_id AS `customerId`, ");
         sb.append("      couponInfo.coupon_name AS `couponName`, ");
         sb.append("      couponInfo.coupon_id AS `couponId`, ");
         sb.append("      couponCode.end_time AS `endTime`");
