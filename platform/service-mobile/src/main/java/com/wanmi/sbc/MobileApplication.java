@@ -45,7 +45,7 @@ public class MobileApplication {
         log.info("Access URLs:\n----------------------------------------------------------\n\t"
                         + "Local: \t\thttp://127.0.0.1:{}\n\t"
                         + "External: \thttp://{}:{}\n\t"
-                        + "health: \thttp://{}:{}/act/health\n----------------------------------------------------------",
+                        + "health: \thttp://{}:{}/act/health.\n----------------------------------------------------------",
                 port,
                 InetAddress.getLocalHost().getHostAddress(),
                 port,
