@@ -28,5 +28,9 @@ public class TopicHeadImageDTO implements Serializable {
 
     @ApiModelProperty("排序序号")
     private Integer sorting;
+
+    private String  skuId;
+
+    private String spuId;
     
 }
