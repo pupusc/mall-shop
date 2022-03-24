@@ -653,19 +653,26 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncERPGoodsStock(
-                goodsInfoListByIdRequest.getGoodsInfoNo(),
-                goodsInfoListByIdRequest.getPageNum(),
-                goodsInfoListByIdRequest.getPageSize());
-        return BaseResponse.success(resultMap);
-    }
+//    @Override
+//    public BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+//        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncERPGoodsStock(
+//                goodsInfoListByIdRequest.getGoodsInfoNo(),
+//                goodsInfoListByIdRequest.getPageNum(),
+//                goodsInfoListByIdRequest.getPageSize());
+//        return BaseResponse.success(resultMap);
+//    }
+
+//    @Override
+//    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo, String lastSyncTime, String pageNum, String pageSize){
+//        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo, lastSyncTime, pageNum, pageSize);
+//        return BaseResponse.success(resultMap);
+//    }
+
 
     @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo, String lastSyncTime, String pageNum, String pageSize){
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo, lastSyncTime, pageNum, pageSize);
-        return BaseResponse.success(resultMap);
+    public BaseResponse guanYiSyncGoodsStock(List<String> goodsIdList, String startTime, int pageSize){
+        goodsStockService.batchUpdateStock(goodsIdList, startTime, pageSize);
+        return BaseResponse.SUCCESSFUL();
     }
 
     @Override

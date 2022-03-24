@@ -1504,19 +1504,19 @@ public class TradeController {
         return baseResponse;
     }
 
-    /**
-     * 推送订单至ERP系统(测试)
-     */
-    @ApiOperation(value = "同步商品库存")
-    @RequestMapping(value = "/erpGoods/syncGoodsStock", method = RequestMethod.GET)
-    public BaseResponse syncGoodsStock(String skuNo) {
-        GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                .goodsInfoNo(skuNo)
-                .pageNum(0)
-                .build();
-        goodsProvider.syncERPStock(goodsInfoListByIdRequest);
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 推送订单至ERP系统(测试)
+//     */
+//    @ApiOperation(value = "同步商品库存")
+//    @RequestMapping(value = "/erpGoods/syncGoodsStock", method = RequestMethod.GET)
+//    public BaseResponse syncGoodsStock(String skuNo) {
+//        GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
+//                .goodsInfoNo(skuNo)
+//                .pageNum(0)
+//                .build();
+//        goodsProvider.syncERPStock(goodsInfoListByIdRequest);
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
     /**
      * 推送订单至ERP系统

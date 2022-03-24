@@ -225,7 +225,7 @@ public class GuanyierpService {
                 log.info("#商品SKU:{}库存查询接口调用成功,返回值显示为空!", request.getItemSkuCode());
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, new Object[]{"ERP返回数据为空"});
             }else{
-                log.info("#库存查询接口调用成功,返回值:{}", goodsStockResponse.toString());
+                log.info("#库存查询接口调用成功,返回值:{}", goodsStockResponse);
                 List<ERPGoodsInfoVO> erpGoodsInfoVOList = KsBeanUtil.convert(goodsStockResponse.getStocks(),
                         ERPGoodsInfoVO.class);
                 return Optional.of(erpGoodsInfoVOList);
@@ -236,49 +236,126 @@ public class GuanyierpService {
         }
     }
 
-    public ErpStockVo getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
-        log.info("getUpdatedStock获取库存,参数:{},{}", startTime, erpGoodInfoNo);
+
+    /**
+     * TEST20211224001
+     *  获取多仓库存 cancel
+     */
+    public ErpStockVo listWareHoseStock(String startTime, String erpGoodsNo) {
+        Integer pageNum = 1;
+        Integer pageSize = 100;
+        log.info("GuanyierpService listWareHoseStock begin startTime:{} erpGoodsNo: {}, pageNum:{}, pageSize: {}", startTime, erpGoodsNo, pageNum, pageSize);
+        long beginTime = System.currentTimeMillis();
         Map<String, String> request = new HashMap<>();
         request.put("appkey", appkey);
         request.put("sessionkey", sessionkey);
         request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
-        request.put("warehouse_code", stockwarehouseCode);
-        if(StringUtils.isNotEmpty(pageNum)) request.put("page_no", pageNum);
-        if(StringUtils.isNotEmpty(pageSize)) request.put("page_size", pageSize);
-        if(StringUtils.isNotEmpty(erpGoodInfoNo)){
-            request.put("item_sku_code", erpGoodInfoNo);
-        }else {
-            request.put("start_date", startTime);
-        }
-        String paramStr;
+        request.put("page_size", pageSize.toString());
+        request.put("item_code",erpGoodsNo); //商品
+        request.put("cancel", "1"); //不返回停用的库存
+
         try {
-            paramStr = objectMapper.writeValueAsString(request);
+            String paramStr = objectMapper.writeValueAsString(request);
             String buildSign = guanyierpUtil.buildSign(paramStr);
             request.put("sign", buildSign);
             paramStr = objectMapper.writeValueAsString(request);
-        }catch (Exception e) {
-            log.error("getUpdatedStock获取库存生成签名错误", e);
-            return new ErpStockVo();
-        }
-        String response = guanyierpUtil.execute(path, paramStr);
-        ERPGoodsStockQueryResponse goodsStockResponse = JSONObject.parseObject(response, ERPGoodsStockQueryResponse.class);
-        if (goodsStockResponse.isSuccess()){
-            if (goodsStockResponse.getStocks() == null) {
-                log.info("getUpdatedStock获取库存返回为空,参数:{}", startTime);
-                return new ErpStockVo();
-            }else{
+            log.info("GuanyierpService listWareHoseStock request param: {}", paramStr);
+            String response = guanyierpUtil.execute(path, paramStr);
+            log.info("GuanyierpService listWareHoseStock response: {}", response);
+            ERPGoodsStockQueryResponse goodsStockResponse = JSONObject.parseObject(response, ERPGoodsStockQueryResponse.class);
+            if (goodsStockResponse.isSuccess() && goodsStockResponse.getTotal() > 0){
                 return KsBeanUtil.convert(goodsStockResponse, ErpStockVo.class);
-//                List<ERPGoodsInfoVO> list = KsBeanUtil.convert(goodsStockResponse.getStocks(), ERPGoodsInfoVO.class);
-//                ErpStockVo erpStockVo = new ErpStockVo();
-//                erpStockVo.setTotal(goodsStockResponse.getTotal());
-//                erpStockVo.setErpGoodsInfoVOList(list);
-//                return erpStockVo;
             }
-        }else {
-            log.error("getUpdatedStock获取库存报错,参数:{},返回状态码:{}", startTime, goodsStockResponse.getErrorCode());
-            return new ErpStockVo();
+        } catch (Exception ex) {
+            log.error("GuanyierpService listWareHoseStock error", ex);
         }
+        log.info("GuanyierpService listWareHoseStock end erpGoodsNo: {} cost:{} ms", erpGoodsNo, (System.currentTimeMillis() - beginTime));
+        return new ErpStockVo();
     }
+
+
+    /**
+     * 批量获取虚仓库存状态
+     */
+    public ErpStockVo listWareHouseStockStatus(String erpGoodsNo, String erpGoodsInfoNo, String wareHouseCode) {
+        Integer pageNum = 1;
+        Integer pageSize = 100;
+        log.info("GuanyierpService listWareHouseStockStatus begin erpGoodsNo:{} erpGoodsInfoNo: {}, wareHouseCode:{} pageNum:{}, pageSize: {}", erpGoodsNo, erpGoodsInfoNo, wareHouseCode, pageNum, pageSize);
+        long beginTime = System.currentTimeMillis();
+        Map<String, String> request = new HashMap<>();
+        request.put("appkey", appkey);
+        request.put("sessionkey", sessionkey);
+        request.put("method", GuanyierpContants.WAREHOUSE_STOCK_STATUS_METHOD);
+        request.put("page_size", pageSize.toString());
+        request.put("item_code", erpGoodsNo);
+        request.put("sku_code", erpGoodsInfoNo);
+        request.put("warehouse_code", wareHouseCode);
+
+        try {
+            String paramStr = objectMapper.writeValueAsString(request);
+            String buildSign = guanyierpUtil.buildSign(paramStr);
+            request.put("sign", buildSign);
+            paramStr = objectMapper.writeValueAsString(request);
+            log.info("GuanyierpService listWareHouseStockStatus request param: {}", paramStr);
+            String response = guanyierpUtil.execute(path, paramStr);
+            log.info("GuanyierpService listWareHouseStockStatus response: {}", response);
+            ERPGoodsStockQueryStatusResponse goodsStockQueryStatusResponse = JSONObject.parseObject(response, ERPGoodsStockQueryStatusResponse.class);
+            if (goodsStockQueryStatusResponse.isSuccess() && goodsStockQueryStatusResponse.getTotal() > 0){
+                return KsBeanUtil.convert(goodsStockQueryStatusResponse, ErpStockVo.class);
+            }
+        } catch (Exception ex) {
+            log.error("GuanyierpService listWareHouseStockStatus error", ex);
+        }
+        log.info("GuanyierpService listWareHouseStockStatus end erpGoodsNo: {} erpGoodsInfoNo:{} cost:{} ms", erpGoodsNo, erpGoodsInfoNo, (System.currentTimeMillis() - beginTime));
+        return new ErpStockVo();
+    }
+
+
+
+//    public ErpStockVo getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
+//        log.info("GuanyierpService getUpdatedStock startTime: {} erpGoodsInfoNo: {}, pageNum:{}, pageSize:{}",
+//                startTime, erpGoodInfoNo, pageNum, pageSize);
+//        Map<String, String> request = new HashMap<>();
+//        request.put("appkey", appkey);
+//        request.put("sessionkey", sessionkey);
+//        request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
+//        request.put("warehouse_code", stockwarehouseCode);
+//        if(StringUtils.isNotEmpty(pageNum)) request.put("page_no", pageNum);
+//        if(StringUtils.isNotEmpty(pageSize)) request.put("page_size", pageSize);
+//        if(StringUtils.isNotEmpty(erpGoodInfoNo)){
+//            request.put("item_sku_code", erpGoodInfoNo);
+//        }else {
+//            request.put("start_date", startTime);
+//        }
+//        String paramStr;
+//        try {
+//            paramStr = objectMapper.writeValueAsString(request);
+//            String buildSign = guanyierpUtil.buildSign(paramStr);
+//            request.put("sign", buildSign);
+//            paramStr = objectMapper.writeValueAsString(request);
+//        }catch (Exception e) {
+//            log.error("getUpdatedStock获取库存生成签名错误", e);
+//            return new ErpStockVo();
+//        }
+//        String response = guanyierpUtil.execute(path, paramStr);
+//        ERPGoodsStockQueryResponse goodsStockResponse = JSONObject.parseObject(response, ERPGoodsStockQueryResponse.class);
+//        if (goodsStockResponse.isSuccess()){
+//            if (goodsStockResponse.getStocks() == null) {
+//                log.info("getUpdatedStock获取库存返回为空,参数:{}", startTime);
+//                return new ErpStockVo();
+//            }else{
+//                return KsBeanUtil.convert(goodsStockResponse, ErpStockVo.class);
+////                List<ERPGoodsInfoVO> list = KsBeanUtil.convert(goodsStockResponse.getStocks(), ERPGoodsInfoVO.class);
+////                ErpStockVo erpStockVo = new ErpStockVo();
+////                erpStockVo.setTotal(goodsStockResponse.getTotal());
+////                erpStockVo.setErpGoodsInfoVOList(list);
+////                return erpStockVo;
+//            }
+//        }else {
+//            log.error("getUpdatedStock获取库存报错,参数:{},返回状态码:{}", startTime, goodsStockResponse.getErrorCode());
+//            return new ErpStockVo();
+//        }
+//    }
 
     /**
      * ERP商品基础信息查询接口

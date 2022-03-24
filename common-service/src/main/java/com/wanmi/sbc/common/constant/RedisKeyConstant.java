@@ -78,7 +78,7 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
-    public static final String STOCK_SYNC_TIME_PREFIX = "STOCK_SYNC_TIME_";
+//    public static final String STOCK_SYNC_TIME_PREFIX = "STOCK_SYNC_TIME";
 
     /**
      * LinkedMall---验证支付并自动退款， 后缀为订单id

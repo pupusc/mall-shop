@@ -19,7 +19,8 @@ public enum GoodsBlackListCategoryEnum {
     NEW_BOOKS(1, "新品榜"),
     SELL_WELL_BOOKS(2, "畅销排行榜"),
     SPECIAL_OFFER_BOOKS(3, "特价书榜"),
-    UN_SHOW_VIP_PRICE(4, "不享受会员优惠商品");
+    UN_SHOW_VIP_PRICE(4, "不享受会员优惠商品"),
+    UN_SHOW_WAREHOUSE(5, "查询的虚拟仓库");
 
     private final Integer code;
     private final String message;

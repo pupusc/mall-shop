@@ -34,6 +34,11 @@ public class GuanyierpContants {
     public static final String WAREHOUSE_QUERY_METHOD= "gy.erp.warehouse.get";
 
     /**
+     * 获取虚仓库存状态
+     */
+    public static final String WAREHOUSE_STOCK_STATUS_METHOD = "gy.erp.stock.batch.uniquecode.get";
+
+    /**
      * 管易云ERP-订单退款状态修改接口名
      */
     public static final String REFUND_UPDATE_METHOD= "gy.erp.trade.refund.update";
@@ -72,5 +77,6 @@ public class GuanyierpContants {
      * 管易云ERP-历史订单查询接口
      */
     public static final String TRADE_HISTORY_GET_METHOD = "gy.erp.trade.history.get";
+
 
 }

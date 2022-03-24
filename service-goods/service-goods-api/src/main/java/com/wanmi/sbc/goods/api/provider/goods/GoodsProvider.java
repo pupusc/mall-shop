@@ -262,22 +262,25 @@ public interface GoodsProvider {
 //    @PostMapping("/goods/${application.goods.version}/del-all-linkedmall-goods")
 //    BaseResponse delAllLinkedMallGoods();
 
-    /**
-     * 同步商品库存
-     * @return
-     */
-    @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+//    /**
+//     * 同步商品库存
+//     * @return
+//     */
+//    @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
+//    BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
-    /**
-     * 增量更新库存
-     * @param erpGoodInfoNo
-     * @return
-     */
-    @PostMapping("/goods/${application.goods.version}/partial-update-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo, @RequestParam("lastSyncTime") String lastSyncTime,
-                                                                       @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
-                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
+//    /**
+//     * 增量更新库存
+//     * @param erpGoodInfoNo
+//     * @return
+//     */
+//    @PostMapping("/goods/${application.goods.version}/partial-update-stock")
+//    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo, @RequestParam("lastSyncTime") String lastSyncTime,
+//                                                                       @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+//                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
+
+    @PostMapping("/goods/${application.goods.version}/guanyiyun/batch-sync-goods-stock")
+     BaseResponse guanYiSyncGoodsStock (@RequestParam("goodsIdList") List<String> goodsIdList, @RequestParam("startTime") String startTime, @RequestParam("pageSize") int pageSize);
 
     /**
      * 同步商品库存
@@ -294,6 +297,7 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
     BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody  GoodsPriceSyncRequest goodsPriceSyncRequest);
+
 
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);

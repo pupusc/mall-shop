@@ -29,14 +29,17 @@ public interface GuanyierpProvider {
     @PostMapping("/erp/${application.erp.version}/guanyierp/sync-goods-stock")
     BaseResponse<SyncGoodsInfoResponse> syncGoodsStock(@RequestBody @Valid SynGoodsInfoRequest erpSynGoodsStockRequest);
 
-    /**
-     * 获取商品库存
-     * @return
-     */
-    @PostMapping("/erp/${application.erp.version}/guanyierp/get-updated-stock")
-    BaseResponse<ErpStockVo> getUpdatedStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodInfoNo") String erpGoodInfoNo,
-                                             @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
-                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
+//    /**
+//     * 获取商品库存
+//     * @return
+//     */
+//    @PostMapping("/erp/${application.erp.version}/guanyierp/get-updated-stock")
+//    BaseResponse<ErpStockVo> getUpdatedStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodInfoNo") String erpGoodInfoNo,
+//                                             @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+//                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
+
+    @PostMapping("/erp/${application.erp.version}/guanyierp/list-ware-hose-stock")
+    BaseResponse<ErpStockVo> listWareHoseStock(String startTime, String erpGoodNo);
 
     /**
      * 获取Goods信息
