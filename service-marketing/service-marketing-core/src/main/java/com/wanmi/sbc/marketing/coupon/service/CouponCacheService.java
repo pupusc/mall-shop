@@ -240,11 +240,15 @@ public class CouponCacheService {
         for (CouponCache couponCache : couponCacheList) {
             if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
                 String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
-                Object o = redisService.get(key);
+                String o = redisService.getString(key);
                 if(o == null){
                     couponCache.setHasFetchToday(false);
                 }else {
-                    couponCache.setHasFetchToday(true);
+                    if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
+                        couponCache.setHasFetchToday(true);
+                    }else{
+                        couponCache.setHasFetchToday(false);
+                    }
                 }
             }
         }

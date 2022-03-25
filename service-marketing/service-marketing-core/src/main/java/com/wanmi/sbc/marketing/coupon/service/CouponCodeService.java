@@ -732,7 +732,10 @@ public class CouponCodeService {
                 LocalDateTime tomorrow = now.plusDays(1).withHour(0).withMinute(0).withSecond(0);
                 redisTemplate.opsForValue().set(key, "1", Duration.between(now, tomorrow).toMillis(), TimeUnit.MILLISECONDS);
             }else {
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已领取");
+                if(couponActivity.getReceiveCount() - Integer.parseInt(fetchThisDay.toString()) <= 0){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已领取");
+                }
+                redisTemplate.opsForValue().increment(key);
             }
         }
         try {
@@ -775,9 +778,13 @@ public class CouponCodeService {
             };
             redisTemplate.execute(callback);
         }catch (Exception e) {
-            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY) && fetchThisDay == null){
+            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
                 String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
-                redisTemplate.delete(key);
+                if(fetchThisDay == null){
+                    redisTemplate.delete(key);
+                }else {
+                    redisTemplate.opsForValue().decrement(key);
+                }
             }
             throw e;
         }
