@@ -97,4 +97,19 @@ public class OrderCouponService {
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
         };
     }
+
+    /**
+     * 根据订单商品判断是否下发优惠券
+     * @param trade
+     * @return
+     */
+    public Boolean checkSendCoupon(Trade trade){
+        List<String> goodsIds = trade.getTradeItems().stream().map(TradeItem::getSpuId).distinct().collect(Collectors.toList());
+        String couponStr = Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)?wxGoodsCouponStr:goodsCouponStr;
+        if(StringUtils.isEmpty(couponStr)){
+            return false;
+        }
+        List<GoodsCouponDTO> couponList = JSON.parseArray(couponStr, GoodsCouponDTO.class);
+        return couponList.stream().anyMatch(p->goodsIds.contains(p.getGoodsId()));
+    }
 }

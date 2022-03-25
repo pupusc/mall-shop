@@ -3283,13 +3283,13 @@ public class TradeService {
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getEarnestPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         } else {
                             resultList.add(new TradeCommitResult(result.getId(),
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getTotalPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         }
                     } catch (Exception e) {
                         log.error("commit trade error,trade={}，错误信息：{}", trade, e);

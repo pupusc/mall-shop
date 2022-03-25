@@ -67,6 +67,11 @@ public class TradeCommitResult {
      */
     private BigDecimal originPrice;
 
+    /**
+     * 优惠券标记
+     */
+    private Boolean couponFlag;
+
     public TradeCommitResult(String tid, String parentTid, TradeState tradeState, PaymentOrder paymentOrder,
                              BigDecimal price, LocalDateTime orderTimeOut, String storeName, Boolean isSelf) {
         this.tid = tid;
@@ -80,7 +85,7 @@ public class TradeCommitResult {
     }
 
     public TradeCommitResult(String tid, String parentTid, TradeState tradeState, PaymentOrder paymentOrder,
-                             BigDecimal price, LocalDateTime orderTimeOut, String storeName, Boolean isSelf, BigDecimal originPrice) {
+                             BigDecimal price, LocalDateTime orderTimeOut, String storeName, Boolean isSelf, BigDecimal originPrice,Boolean couponFlag) {
         this.tid = tid;
         this.parentTid = parentTid;
         this.tradeState = tradeState;
@@ -90,5 +95,6 @@ public class TradeCommitResult {
         this.storeName = storeName;
         this.isSelf = isSelf;
         this.originPrice = originPrice;
+        this.couponFlag = couponFlag;
     }
 }
