@@ -12,9 +12,7 @@ public class CouponCodeByGoodsIdsRequest implements Serializable {
     /**
      * 商品Id
      */
-    private List<String> goodsIds;
+    private List<String> couponIds;
 
     private String customerId;
-
-    private ChannelType channelType;
 }

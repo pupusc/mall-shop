@@ -271,7 +271,7 @@ public class CouponCodeController implements CouponCodeProvider {
 
     @Override
     public BaseResponse sendCouponCodeByGoodsIds(CouponCodeByGoodsIdsRequest couponCodeByGoodsIdsRequest) {
-        couponCodeService.sendCouponByGoodsIds(couponCodeByGoodsIdsRequest.getGoodsIds(),couponCodeByGoodsIdsRequest.getCustomerId(),couponCodeByGoodsIdsRequest.getChannelType());
+        couponCodeService.sendCouponByGoodsIds(couponCodeByGoodsIdsRequest.getCouponIds(),couponCodeByGoodsIdsRequest.getCustomerId(),couponCodeByGoodsIdsRequest.getChannelType());
         return BaseResponse.SUCCESSFUL();
     }
 }

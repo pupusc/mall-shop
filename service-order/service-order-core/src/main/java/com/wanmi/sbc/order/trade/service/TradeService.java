@@ -10,6 +10,7 @@ import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -646,6 +647,9 @@ public class TradeService {
 
     @Autowired
     private WxOrderService wxOrderService;
+
+    @Autowired
+    private OrderCouponService orderCouponService;
 
     /**
      * 新增文档
@@ -4763,6 +4767,8 @@ public class TradeService {
             //推送ERP订单
             this.pushTradeToErp(trade.getId());
         }
+        //支付成功发放优惠券
+        orderCouponService.sendCoupon(trade);
     }
 
     /**
@@ -8004,11 +8010,4 @@ public class TradeService {
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
     }
 
-    /**
-     * 订单支付成功发放优惠券
-     */
-    private void sendCoupon(Trade trade){
-        List<String> goodsIds = trade.getTradeItems().stream().map(TradeItem::getSpuId).distinct().collect(Collectors.toList());
-
-    }
 }

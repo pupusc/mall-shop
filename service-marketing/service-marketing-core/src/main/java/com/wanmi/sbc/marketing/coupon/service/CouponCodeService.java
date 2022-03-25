@@ -1312,21 +1312,11 @@ public class CouponCodeService {
     /**
      * 订单支付成功发放优惠券
      */
-    public void sendCouponByGoodsIds(List<String> goodsIds,String customerId,ChannelType channelType){
-        String couponStr = Objects.equals(channelType, ChannelType.MINIAPP)?wxGoodsCouponStr:goodsCouponStr;
-        if(StringUtils.isEmpty(couponStr)){
-            return;
-        }
-        List<GoodsCouponDTO> couponList = JSON.parseArray(couponStr, GoodsCouponDTO.class);
-        List<GoodsCouponDTO> newCouponList = couponList.stream().filter(p->goodsIds.contains(p.getGoodsId())).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(newCouponList)){
-            return;
-        }
-        List<String> couponCodes = newCouponList.stream().flatMap(coupon -> coupon.getCouponCodes().stream()).distinct().collect(Collectors.toList());
-        //发放优惠券
+    public void sendCouponByGoodsIds(List<String> couponIds,String customerId){
+       //发放优惠券
         List<CouponCode> couponCodeList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        List<CouponInfo> couponInfos = couponInfoRepository.queryByIds(couponCodes);
+        List<CouponInfo> couponInfos = couponInfoRepository.queryByIds(couponIds);
         couponInfos.forEach(item -> {
                 CouponCode couponCode = new CouponCode();
                 couponCode.setCouponCode(CodeGenUtil.toSerialCode(RandomUtils.nextInt(1, 10000)).toUpperCase());
