@@ -5269,6 +5269,7 @@ public class TradeService {
                 providerTradeService.defalutPayOrderAsycToERP(tid);
             }
             sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+            orderCouponService.addCouponRecord(trade);
             return true;
         }
 
