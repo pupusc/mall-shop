@@ -25,6 +25,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -71,6 +72,10 @@ public class CouponCodeWillExpireMessageJobHandler extends IJobHandler {
         log.info("优惠券即将过期通知start");
         int pageSize = 500;
         LocalDateTime now = LocalDateTime.now();
+        Long day = 2L;
+        if(!StringUtils.isEmpty(s)){
+            day = Long.valueOf(s);
+        }
         try {
             //查询数量
             BaseResponse<Long> countResponse = customerQueryProvider.countCustomerWithOpenId();
@@ -94,7 +99,7 @@ public class CouponCodeWillExpireMessageJobHandler extends IJobHandler {
                 List<String> customerIds = customerPage.getContext().getContent().stream().map(CustomerSimplerVO::getCustomerId).collect(Collectors.toList());
                 CouponCodeByCustomerIdsRequest customerIdsRequest = new CouponCodeByCustomerIdsRequest();
                 customerIdsRequest.setCustomerId(customerIds);
-                customerIdsRequest.setWillExpireDate(now.plusDays(3L));
+                customerIdsRequest.setWillExpireDate(now.plusDays(day));
                 BaseResponse<List<CouponCodeVO>> couponResponse = couponCodeQueryProvider.listWillExpireByCustomerIds(customerIdsRequest);
                 if (couponResponse == null || CollectionUtils.isEmpty(couponResponse.getContext())) {
                     continue;
