@@ -84,6 +84,8 @@ public class OrderCouponService {
             request.setCustomerId(customer);
             request.setCouponIds(list.stream().map(OrderCouponRecord::getCouponId).collect(Collectors.toList()));
             couponCodeProvider.sendCouponCodeByCouponIds(request);
+            //更新状态
+            orderCouponRecordRepository.updateStatus(list.stream().map(OrderCouponRecord::getId).collect(Collectors.toList()));
 
         });
     }
