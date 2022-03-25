@@ -9,7 +9,7 @@ public enum BookuuDeliveryStatus {
 
     WAIT_DELIVERY(3, "准备发货",0),
 
-    SALED(4, "已销售",0),
+    SALED(4, "已销售",1),
 
     DELIVERYED(5, "已发货",1),
     REFUND(6, "退换货",0),
