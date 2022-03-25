@@ -62,7 +62,14 @@ public class SendCouponAfterPaidJobHandler extends IJobHandler {
         }
         lock.lock();
         log.info("支付完成发放优惠券start");
-        orderCouponProvider.sendCouponAfterPaid();
+        try {
+            orderCouponProvider.sendCouponAfterPaid();
+        }catch (Exception e){
+            log.error("支付完成发放优惠券失败",e);
+
+        }finally {
+            lock.unlock();
+        }
         return SUCCESS;
 
     }
