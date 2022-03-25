@@ -3,6 +3,7 @@ package com.wanmi.sbc.marketing.coupon.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -169,6 +170,9 @@ public class CouponCodeService {
 
     @Value("${goods.coupon}")
     private String goodsCouponStr;
+
+    @Value("${mini.program.goods.coupon}")
+    private String wxGoodsCouponStr;
 
     @Value("${default.coupon.activityId}")
     private String couponActivityId;
@@ -1308,11 +1312,12 @@ public class CouponCodeService {
     /**
      * 订单支付成功发放优惠券
      */
-    public void sendCouponByGoodsIds(List<String> goodsIds,String customerId){
-        if(StringUtils.isEmpty(goodsCouponStr)){
+    public void sendCouponByGoodsIds(List<String> goodsIds,String customerId,ChannelType channelType){
+        String couponStr = Objects.equals(channelType, ChannelType.MINIAPP)?wxGoodsCouponStr:goodsCouponStr;
+        if(StringUtils.isEmpty(couponStr)){
             return;
         }
-        List<GoodsCouponDTO> couponList = JSON.parseArray(goodsCouponStr, GoodsCouponDTO.class);
+        List<GoodsCouponDTO> couponList = JSON.parseArray(couponStr, GoodsCouponDTO.class);
         List<GoodsCouponDTO> newCouponList = couponList.stream().filter(p->goodsIds.contains(p.getGoodsId())).collect(Collectors.toList());
         if(CollectionUtils.isEmpty(newCouponList)){
             return;
@@ -1360,6 +1365,5 @@ public class CouponCodeService {
         query.setParameter("willExpireDate",request.getWillExpireDate());
         query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
         return CouponCodeWillExpireRequest.converter(query.getResultList());
-
-    }
+   }
 }

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.api.request.coupon;
 
+import com.wanmi.sbc.common.enums.ChannelType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,4 +15,6 @@ public class CouponCodeByGoodsIdsRequest implements Serializable {
     private List<String> goodsIds;
 
     private String customerId;
+
+    private ChannelType channelType;
 }
