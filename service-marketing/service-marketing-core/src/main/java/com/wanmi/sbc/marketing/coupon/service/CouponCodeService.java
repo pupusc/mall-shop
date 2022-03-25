@@ -1317,20 +1317,24 @@ public class CouponCodeService {
         List<CouponCode> couponCodeList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         List<CouponInfo> couponInfos = couponInfoRepository.queryByIds(couponIds);
-        couponInfos.forEach(item -> {
+        couponIds.forEach(item -> {
+                Optional<CouponInfo> couponInfo = couponInfos.stream().filter(p->p.getCouponId().equals(item)).findFirst();
+                if(!couponInfo.isPresent()){
+                    return;
+                }
                 CouponCode couponCode = new CouponCode();
                 couponCode.setCouponCode(CodeGenUtil.toSerialCode(RandomUtils.nextInt(1, 10000)).toUpperCase());
-                couponCode.setCouponId(item.getCouponId());
+                couponCode.setCouponId(couponInfo.get().getCouponId());
                 couponCode.setActivityId(couponActivityId);
                 couponCode.setCustomerId(customerId);
                 couponCode.setUseStatus(DefaultFlag.NO);
                 couponCode.setAcquireTime(LocalDateTime.now());
-                if (Objects.equals(RangeDayType.RANGE_DAY, item.getRangeDayType())) {//优惠券的起止时间
-                    couponCode.setStartTime(item.getStartTime());
-                    couponCode.setEndTime(item.getEndTime());
+                if (Objects.equals(RangeDayType.RANGE_DAY, couponInfo.get().getRangeDayType())) {//优惠券的起止时间
+                    couponCode.setStartTime(couponInfo.get().getStartTime());
+                    couponCode.setEndTime(couponInfo.get().getEndTime());
                 } else {//领取生效
                     couponCode.setStartTime(now);
-                    couponCode.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusDays(item.getEffectiveDays()).minusSeconds(1));
+                    couponCode.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusDays(couponInfo.get().getEffectiveDays()).minusSeconds(1));
                 }
                 couponCode.setDelFlag(DeleteFlag.NO);
                 couponCode.setCreateTime(LocalDateTime.now());

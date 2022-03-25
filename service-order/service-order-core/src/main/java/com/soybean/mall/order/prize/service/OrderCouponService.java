@@ -84,6 +84,7 @@ public class OrderCouponService {
             request.setCustomerId(customer);
             request.setCouponIds(list.stream().map(OrderCouponRecord::getCouponId).collect(Collectors.toList()));
             couponCodeProvider.sendCouponCodeByCouponIds(request);
+
         });
     }
 
