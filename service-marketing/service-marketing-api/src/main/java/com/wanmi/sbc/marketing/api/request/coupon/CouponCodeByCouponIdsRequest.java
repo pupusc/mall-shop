@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class CouponCodeByGoodsIdsRequest implements Serializable {
+public class CouponCodeByCouponIdsRequest implements Serializable {
     private static final long serialVersionUID = 4413953748731762194L;
     /**
      * 商品Id

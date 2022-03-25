@@ -1312,7 +1312,7 @@ public class CouponCodeService {
     /**
      * 订单支付成功发放优惠券
      */
-    public void sendCouponByGoodsIds(List<String> couponIds,String customerId){
+    public void sendCouponByCouponIds(List<String> couponIds,String customerId){
        //发放优惠券
         List<CouponCode> couponCodeList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();

@@ -4768,7 +4768,7 @@ public class TradeService {
             this.pushTradeToErp(trade.getId());
         }
         //支付成功发放优惠券
-        orderCouponService.sendCoupon(trade);
+        orderCouponService.addCouponRecord(trade);
     }
 
     /**

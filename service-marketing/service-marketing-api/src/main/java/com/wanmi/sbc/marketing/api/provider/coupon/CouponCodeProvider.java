@@ -84,8 +84,8 @@ public interface CouponCodeProvider {
      * 根据商品ID发放优惠券
      * @return
      */
-    @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-goodsIds")
-    BaseResponse sendCouponCodeByGoodsIds(@RequestBody CouponCodeByGoodsIdsRequest couponCodeByGoodsIdsRequest);
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-couponIds")
+    BaseResponse sendCouponCodeByCouponIds(@RequestBody CouponCodeByCouponIdsRequest couponCodeByCouponIdsRequest);
 
 
 }
