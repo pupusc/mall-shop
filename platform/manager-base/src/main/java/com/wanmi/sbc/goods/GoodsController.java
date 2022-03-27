@@ -129,7 +129,7 @@ public class GoodsController {
     private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
     @Autowired
-    GoodsAresProvider goodsAresProvider;
+    private GoodsAresProvider goodsAresProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -179,8 +179,11 @@ public class GoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+
 
     /**
      * @description 新增商品
@@ -246,6 +249,11 @@ public class GoodsController {
         String goodsId = Optional.ofNullable(response)
                 .map(GoodsAddResponse::getResult)
                 .orElse(null);
+
+        //同步库存 不判断是否自动同步，交给同步方法处理
+        goodsProvider.guanYiSyncGoodsStock(Collections.singletonList(goodsId), "", 0, 0);
+
+
         //ares埋点-商品-后台添加商品sku
         goodsAresProvider.dispatchFunction(new DispatcherFunctionRequest("addGoodsSpu", new String[]{goodsId}));
         esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
@@ -456,6 +464,10 @@ public class GoodsController {
             }
         }
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
+
+        //同步库存 不判断是否自动同步，交给同步方法处理
+        goodsProvider.guanYiSyncGoodsStock(Collections.singletonList(request.getGoods().getGoodsId()), "", 0, 0);
+
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {
             esGoodsInfoElasticProvider.delete(EsGoodsDeleteByIdsRequest.builder()
@@ -1166,6 +1178,8 @@ public class GoodsController {
             }
 
         goodsProvider.modifyAddedStatus(request);
+        //批量库存和价格同步
+        goodsProvider.guanYiSyncGoodsStock(request.getGoodsIds(), "", 0, 0);
         //更新ES
         esGoodsInfoElasticProvider.updateAddedStatus(EsGoodsInfoModifyAddedStatusRequest.builder().
                 addedFlag(AddedFlag.YES.toValue()).goodsIds(request.getGoodsIds()).goodsInfoIds(null).build());

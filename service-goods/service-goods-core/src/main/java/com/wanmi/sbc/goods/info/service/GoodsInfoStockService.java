@@ -156,13 +156,11 @@ public class GoodsInfoStockService {
             //表示同步库存
             if (Objects.equals(goodsInfoParam.getStockSyncFlag(),1)) {
                 goodsInfoStockSyncResponse.setCanSyncStock(true); //表示同步库存
-
                 if (goodsInfoStockSyncRequestParam.getIsCalculateStock()) {
                     actualStockQty = getActualStock(Long.valueOf(goodsInfoStockSyncRequestParam.getErpStockQty()), goodsInfoParam.getGoodsInfoId()).intValue();
                 } else {
                     actualStockQty = goodsInfoStockSyncRequestParam.getErpStockQty();
                 }
-
             }
 
 
@@ -171,21 +169,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setCanSyncCostPrice(true); //表示同步成本价
             }
 
-            goodsInfoStockSyncResponse.setErpSpuCode(goodsInfoStockSyncRequestParam.getErpSpuCode());
-            goodsInfoStockSyncResponse.setErpSkuCode(goodsInfoStockSyncRequestParam.getErpSkuCode());
-            goodsInfoStockSyncResponse.setSkuName(goodsInfoParam.getGoodsInfoName());
-            goodsInfoStockSyncResponse.setActualStockQty(actualStockQty);
-            goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
-            goodsInfoStockSyncResponse.setCurrentStockQty(goodsInfoParam.getStock().intValue());
-            goodsInfoStockSyncResponse.setCurrentCostPrice(goodsInfoParam.getCostPrice());
-            goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getCostPrice());
-            goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
-            goodsInfoStockSyncResponse.setSpuId(goodsInfoParam.getGoodsId());
-            goodsInfoStockSyncResponse.setSkuId(goodsInfoParam.getGoodsInfoId());
-            goodsInfoStockSyncResponse.setSkuNo(goodsInfoParam.getGoodsInfoNo());
-            goodsInfoStockSyncResponse.setIsCalculateStock(goodsInfoStockSyncRequestParam.getIsCalculateStock());
-            log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsInfoStockSyncResponse: {}", JSON.toJSONString(goodsInfoStockSyncResponse));
-            result.add(goodsInfoStockSyncResponse);
+            boolean isAddResult = true;
 
             if (goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新库存和成本价
@@ -196,11 +180,30 @@ public class GoodsInfoStockService {
                 this.resetStockByGoodsInfoId(goodsInfoStockSyncRequestParam.getErpStockQty().longValue(), goodsInfoParam.getGoodsInfoId(), Long.parseLong(actualStockQty+""));
             } else if (!goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新成本价不更新库存
-                if (goodsInfoStockSyncResponse.getErpCostPrice().compareTo(goodsInfoStockSyncResponse.getCurrentCostPrice()) == 0) {
-                    continue;
+                if (goodsInfoStockSyncResponse.getErpCostPrice().compareTo(goodsInfoStockSyncResponse.getCurrentCostPrice()) != 0) {
+                    //成本不一致
+                    goodsInfoRepository.updateCostPriceById(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncResponse.getErpCostPrice());
                 }
-                //成本不一致
-                goodsInfoRepository.updateCostPriceById(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncResponse.getErpCostPrice());
+            } else {
+                isAddResult = false;
+            }
+
+            if (isAddResult) {
+                goodsInfoStockSyncResponse.setErpSpuCode(goodsInfoStockSyncRequestParam.getErpSpuCode());
+                goodsInfoStockSyncResponse.setErpSkuCode(goodsInfoStockSyncRequestParam.getErpSkuCode());
+                goodsInfoStockSyncResponse.setSkuName(goodsInfoParam.getGoodsInfoName());
+                goodsInfoStockSyncResponse.setActualStockQty(actualStockQty);
+                goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
+                goodsInfoStockSyncResponse.setCurrentStockQty(goodsInfoParam.getStock().intValue());
+                goodsInfoStockSyncResponse.setCurrentCostPrice(goodsInfoParam.getCostPrice());
+                goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getCostPrice());
+                goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
+                goodsInfoStockSyncResponse.setSpuId(goodsInfoParam.getGoodsId());
+                goodsInfoStockSyncResponse.setSkuId(goodsInfoParam.getGoodsInfoId());
+                goodsInfoStockSyncResponse.setSkuNo(goodsInfoParam.getGoodsInfoNo());
+                goodsInfoStockSyncResponse.setIsCalculateStock(goodsInfoStockSyncRequestParam.getIsCalculateStock());
+                log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsInfoStockSyncResponse: {}", JSON.toJSONString(goodsInfoStockSyncResponse));
+                result.add(goodsInfoStockSyncResponse);
             }
         }
         return result;

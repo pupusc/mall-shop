@@ -85,16 +85,16 @@ public class S2bGoodsService {
         response.setStandardIds(dealProviderGoodsEdit(checkRequest));
 
         //更新商家代销商品可售性
-        Boolean checkFlag = null;
-        if(CheckStatus.FORBADE.equals(checkRequest.getAuditStatus())){
-            checkFlag = Boolean.FALSE;
-        } else if(CheckStatus.CHECKED.equals(checkRequest.getAuditStatus())) {
-            checkFlag = Boolean.TRUE;
-        }
-        if(checkFlag != null){
-            ProviderGoodsNotSellRequest request = ProviderGoodsNotSellRequest.builder().goodsIds(checkRequest.getGoodsIds()).checkFlag(checkFlag).build();
-            goodsService.dealGoodsVendibility(request);
-        }
+//        Boolean checkFlag = null;
+//        if(CheckStatus.FORBADE.equals(checkRequest.getAuditStatus())){
+//            checkFlag = Boolean.FALSE;
+//        } else if(CheckStatus.CHECKED.equals(checkRequest.getAuditStatus())) {
+//            checkFlag = Boolean.TRUE;
+//        }
+//        if(checkFlag != null){
+//            ProviderGoodsNotSellRequest request = ProviderGoodsNotSellRequest.builder().goodsIds(checkRequest.getGoodsIds()).checkFlag(checkFlag).build();
+//            goodsService.dealGoodsVendibility(request);
+//        }
 
 
         //商品禁售删除分销员分销商品
