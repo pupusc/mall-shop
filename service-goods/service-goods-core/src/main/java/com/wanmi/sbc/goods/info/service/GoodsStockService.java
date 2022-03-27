@@ -82,6 +82,9 @@ public class GoodsStockService {
     @Autowired
     private GoodsBlackListService goodsBlackListService;
 
+    @Value("${default.providerId}")
+    private String defaultProviderId;
+
     /**
      * 批量加库存
      *
@@ -250,7 +253,7 @@ public class GoodsStockService {
      */
     public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, String startTime, long maxTmpId, int pageSize) {
         long beginTime = System.currentTimeMillis();
-        String providerId = ""; //管易云
+        String providerId = defaultProviderId; //管易云
         List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
         long tmpMaxTmpId = maxTmpId;
         List<Goods> goodsList;

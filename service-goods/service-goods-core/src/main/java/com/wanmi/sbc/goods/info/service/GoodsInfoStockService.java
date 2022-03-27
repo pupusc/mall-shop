@@ -170,7 +170,8 @@ public class GoodsInfoStockService {
             }
 
             boolean isAddResult = true;
-
+            log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsId:{} goodsInfoStockSyncResponse:{} ",
+                    goodsInfoParam.getGoodsId(), JSON.toJSONString(goodsInfoStockSyncResponse));
             if (goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新库存和成本价
                 this.resetStockCostPriceByGoodsInfoId(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncRequestParam.getErpStockQty().longValue(),
