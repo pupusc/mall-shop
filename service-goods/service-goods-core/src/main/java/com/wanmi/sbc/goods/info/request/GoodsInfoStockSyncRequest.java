@@ -2,6 +2,8 @@ package com.wanmi.sbc.goods.info.request;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -14,6 +16,21 @@ import lombok.Data;
 public class GoodsInfoStockSyncRequest {
 
     /**
+     * spuId
+     */
+    private String spuId;
+
+    /**
+     * spuNo
+     */
+    private String spuNo;
+
+    /**
+     * erpSpuCode
+     */
+    private String erpSpuCode;
+
+    /**
      * erpSkuCode
      */
     private String erpSkuCode;
@@ -22,10 +39,15 @@ public class GoodsInfoStockSyncRequest {
      * true 表示 直接使用库存传递的库存数量
      * false 表示 不需要重制 计算真实库存
      */
-    private Boolean resetSync;
+    private Boolean isCalculateStock;
 
     /**
      * 库存数量
      */
-    private Integer stockQty;
+    private Integer erpStockQty;
+
+    /**
+     * 成本价
+     */
+    private BigDecimal costPrice;
 }

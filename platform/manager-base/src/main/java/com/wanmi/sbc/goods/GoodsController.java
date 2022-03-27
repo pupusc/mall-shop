@@ -1346,10 +1346,10 @@ public class GoodsController {
         goodsExcelService.downErrExcel(commonUtil.getOperatorId(), ext);
     }
 
-    @PostMapping("/decryLastStock")
-    public String decryLastStock(@RequestBody Map<String, Long> datas) {
-        goodsProvider.decryLastStock(datas);
-        return "ok";
-    }
+//    @PostMapping("/decryLastStock")
+//    public String decryLastStock(@RequestBody Map<String, Long> datas) {
+//        goodsProvider.decryLastStock(datas);
+//        return "ok";
+//    }
 
 }

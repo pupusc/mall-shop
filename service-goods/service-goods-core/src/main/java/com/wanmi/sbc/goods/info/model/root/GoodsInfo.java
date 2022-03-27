@@ -615,6 +615,9 @@ public class GoodsInfo implements Serializable {
     @Transient
     private BigDecimal enterPriseMaxPrice;
 
+    /**
+     * 库存同步 0否 1是
+     */
     @Column(name = "stock_sync_flag")
     private Integer stockSyncFlag;
 

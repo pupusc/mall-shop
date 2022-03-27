@@ -382,7 +382,7 @@ public class GoodsService {
 
         ProviderGoodsNotSellRequest providerGoodsNotSellRequest = ProviderGoodsNotSellRequest.builder()
                 .checkFlag(Boolean.FALSE).goodsIds(goodsIds).build();
-        this.dealGoodsVendibility(providerGoodsNotSellRequest);
+//        this.dealGoodsVendibility(providerGoodsNotSellRequest);
 
 
         //ares埋点-商品-后台批量删除商品spu
@@ -413,7 +413,7 @@ public class GoodsService {
                 distributiorGoodsInfoRepository.deleteByGoodsId(goodsID);
             });
             ProviderGoodsNotSellRequest request = ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.FALSE).goodsIds(goodsIds).build();
-            this.dealGoodsVendibility(request);
+//            this.dealGoodsVendibility(request);
         } else {
 //          上架
             List<StandardGoodsRel> goodsIdIn = standardGoodsRelRepository.findByDelFlagAndGoodsIdIn(DeleteFlag.YES, goodsIds);
@@ -423,7 +423,7 @@ public class GoodsService {
                 goodsRepository.updateAddedFlagByGoodsIds(addedFlag, goodsIds);
                 goodsInfoRepository.updateAddedFlagByGoodsIds(addedFlag, goodsIds);
                 ProviderGoodsNotSellRequest request = ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.TRUE).goodsIds(goodsIds).build();
-                this.dealGoodsVendibility(request);
+//                this.dealGoodsVendibility(request);
             }
         }
 
@@ -1692,6 +1692,7 @@ public class GoodsService {
             }
         }
         //goods.setAddedTimingFlag(false);
+        //同步库存和市场价 duanlsh TODO
         final String goodsId = goodsRepository.save(goods).getGoodsId();
 
         //新增图片
@@ -1800,6 +1801,7 @@ public class GoodsService {
             if (sku.getStock() == null) {
                 sku.setStock(0L);
             }
+            // 同步更新库存状态 duanlsh TODO
             sku.setCateTopId(goods.getCateTopId());
             sku.setCateId(goods.getCateId());
             sku.setBrandId(goods.getBrandId());
@@ -2435,7 +2437,7 @@ public class GoodsService {
                     //被删除的sku需被更新为不可售
                     ProviderGoodsNotSellRequest providerGoodsNotSellRequest = ProviderGoodsNotSellRequest.builder()
                             .checkFlag(Boolean.FALSE).goodsInfoIds(delInfoIds).build();
-                    this.dealGoodsVendibility(providerGoodsNotSellRequest);
+//                    this.dealGoodsVendibility(providerGoodsNotSellRequest);
                 }
             }
 
@@ -3235,64 +3237,64 @@ public class GoodsService {
      * 部分上架 -> 下架  修改当前sku和spu
      * 部分上架 -> 部分上架 修改当前sku
      */
-    @Transactional
-    public void dealGoodsVendibility(ProviderGoodsNotSellRequest request) {
-
-        List<String> goodsInfoIds = new ArrayList<>();
-        //处理spu
-        if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
-            List<Goods> goods = goodsRepository.findAllByGoodsIdIn(request.getGoodsIds());
-            if (CollectionUtils.isNotEmpty(goods)) {
-                //上架、禁售后重新编辑的时候要综合情况看
-                if (Boolean.TRUE.equals(request.getCheckFlag())) {
-                    goods.stream().forEach(g -> {
-                        Integer goodsVendibility = Constants.no;
-                        //未下架、未删除、已审核视为商品可售（商品维度）
-                        if (AddedFlag.NO.toValue() != g.getAddedFlag()
-                                && DeleteFlag.NO.equals(g.getDelFlag())
-                                && CheckStatus.CHECKED.equals(g.getAuditStatus()))
-                            goodsVendibility = Constants.yes;
-                        goodsRepository.updateGoodsVendibility(goodsVendibility, Lists.newArrayList(g.getGoodsId()));
-                    });
-                } else {
-                    goodsRepository.updateGoodsVendibility(Constants.no, request.getGoodsIds());
-                }
-
-                //同步库存
-                if (Boolean.TRUE.equals(request.getStockFlag())) {
-                    goods.forEach(g -> goodsRepository.updateStockByProviderGoodsIds(g.getStock(), Lists.newArrayList(g.getGoodsId())));
-                }
-            }
-
-            List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsIdIn(request.getGoodsIds());
-            if (CollectionUtils.isNotEmpty(goodsInfos) && CollectionUtils.isEmpty(request.getGoodsInfoIds())) {
-                goodsInfoIds = goodsInfos.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
-            }
-        }
-
-        //传入goodsInfoIds时，说明指定修改sku
-        if (CollectionUtils.isNotEmpty(request.getGoodsInfoIds())) {
-            goodsInfoIds = request.getGoodsInfoIds();
-        }
-
-        //处理sku
-        List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(goodsInfoIds);
-        if (CollectionUtils.isNotEmpty(goodsInfos)) {
-            if (Boolean.TRUE.equals(request.getCheckFlag())) {
-                goodsInfos.stream().forEach(g -> {
-                    Integer goodsVendibility = Constants.no;
-                    //上架、未删除、已审核视为商品可售（商品维度）
-                    if (AddedFlag.YES.toValue() == g.getAddedFlag()
-                            && DeleteFlag.NO.equals(g.getDelFlag())
-                            && CheckStatus.CHECKED.equals(g.getAuditStatus()))
-                        goodsVendibility = Constants.yes;
-                    goodsInfoRepository.updateGoodsInfoVendibility(goodsVendibility, Lists.newArrayList(g.getGoodsInfoId()));
-                });
-            } else {
-                goodsInfoRepository.updateGoodsInfoVendibility(Constants.no, goodsInfoIds);
-            }
-        }
-    }
+//    @Transactional
+//    public void dealGoodsVendibility(ProviderGoodsNotSellRequest request) {
+//
+//        List<String> goodsInfoIds = new ArrayList<>();
+//        //处理spu
+//        if (CollectionUtils.isNotEmpty(request.getGoodsIds())) {
+//            List<Goods> goods = goodsRepository.findAllByGoodsIdIn(request.getGoodsIds());
+//            if (CollectionUtils.isNotEmpty(goods)) {
+//                //上架、禁售后重新编辑的时候要综合情况看
+//                if (Boolean.TRUE.equals(request.getCheckFlag())) {
+//                    goods.stream().forEach(g -> {
+//                        Integer goodsVendibility = Constants.no;
+//                        //未下架、未删除、已审核视为商品可售（商品维度）
+//                        if (AddedFlag.NO.toValue() != g.getAddedFlag()
+//                                && DeleteFlag.NO.equals(g.getDelFlag())
+//                                && CheckStatus.CHECKED.equals(g.getAuditStatus()))
+//                            goodsVendibility = Constants.yes;
+//                        goodsRepository.updateGoodsVendibility(goodsVendibility, Lists.newArrayList(g.getGoodsId()));
+//                    });
+//                } else {
+//                    goodsRepository.updateGoodsVendibility(Constants.no, request.getGoodsIds());
+//                }
+//
+//                //同步库存
+//                if (Boolean.TRUE.equals(request.getStockFlag())) {
+//                    goods.forEach(g -> goodsRepository.updateStockByProviderGoodsIds(g.getStock(), Lists.newArrayList(g.getGoodsId())));
+//                }
+//            }
+//
+//            List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsIdIn(request.getGoodsIds());
+//            if (CollectionUtils.isNotEmpty(goodsInfos) && CollectionUtils.isEmpty(request.getGoodsInfoIds())) {
+//                goodsInfoIds = goodsInfos.stream().map(GoodsInfo::getGoodsInfoId).collect(Collectors.toList());
+//            }
+//        }
+//
+//        //传入goodsInfoIds时，说明指定修改sku
+//        if (CollectionUtils.isNotEmpty(request.getGoodsInfoIds())) {
+//            goodsInfoIds = request.getGoodsInfoIds();
+//        }
+//
+//        //处理sku
+//        List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(goodsInfoIds);
+//        if (CollectionUtils.isNotEmpty(goodsInfos)) {
+//            if (Boolean.TRUE.equals(request.getCheckFlag())) {
+//                goodsInfos.stream().forEach(g -> {
+//                    Integer goodsVendibility = Constants.no;
+//                    //上架、未删除、已审核视为商品可售（商品维度）
+//                    if (AddedFlag.YES.toValue() == g.getAddedFlag()
+//                            && DeleteFlag.NO.equals(g.getDelFlag())
+//                            && CheckStatus.CHECKED.equals(g.getAuditStatus()))
+//                        goodsVendibility = Constants.yes;
+//                    goodsInfoRepository.updateGoodsInfoVendibility(goodsVendibility, Lists.newArrayList(g.getGoodsInfoId()));
+//                });
+//            } else {
+//                goodsInfoRepository.updateGoodsInfoVendibility(Constants.no, goodsInfoIds);
+//            }
+//        }
+//    }
 
     /**
      * 更改商家代销商品的供应商店铺状态

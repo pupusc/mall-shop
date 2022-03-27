@@ -5,14 +5,24 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoAdjustPriceRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.feishu.constant.FeiShuMessageConstant;
+import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
+import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentType;
+import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -20,13 +30,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @program: sbc-background
@@ -41,12 +55,24 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
 
     @Autowired
     private GoodsProvider goodsProvider;
+
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
+
     @Autowired
     private RedissonClient redissonClient;
+
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private FeiShuSendMessageService feiShuSendMessageService;
+
+    @Autowired
+    private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
     //分布式锁名称
     private static final String BATCH_GET_GOODS_STOCK_LOCKS = "BATCH_GET_GOODS_STOCK_LOCKS";
@@ -64,41 +90,115 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
         long startTime = System.currentTimeMillis();
         log.info("ERPGoodsStockSyncJobHandler running begin param:{}", param);
         try {
-//            boolean updateLastSyncTime = false;
-//            Date currentDate = new Date();
-//            String startSyncTime;
-//            String erpGoodsInfoNo = "";
-//            if (StringUtils.isEmpty(param)) {
-//                startSyncTime = stringRedisTemplate.opsForValue().get(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX);
-//                //默认获取一周前的数据
-//                if(StringUtils.isEmpty(startSyncTime)) {
-//                    Calendar c = Calendar.getInstance();
-//                    c.setTime(new Date());
-//                    c.add(Calendar.DATE, - 7);
-//                    Date d = c.getTime();
-//                    startSyncTime = sdf.format(d);
-//                }
-//            } else if ("initial".equals(param)) {
-//                startSyncTime = "2020-01-01 20:00:00";
-//            } else {
-//                startSyncTime = "";
-//                erpGoodsInfoNo = param;
-//            }
             List<String> goodsIdList = new ArrayList<>();
-            Integer pageSize = 1000;
+            Integer pageSize = 80;
+            long maxTmpId = 0;
             try {
                 if (!StringUtils.isEmpty(param)) {
                     String[] split = param.split(",");
-                    pageSize = Integer.valueOf(split[0]);
-                    if (split.length > 1) {
-                        Collections.addAll(goodsIdList, split[1].split("\\|"));
+                    maxTmpId = Long.parseLong(split[0]);
+                    pageSize = Integer.valueOf(split[1]);
+                    if (split.length > 2) {
+                        Collections.addAll(goodsIdList, split[2].split("\\|"));
                     }
                 }
             } catch (Exception ex) {
                 log.error("ERPGoodsStockSyncJobHandler param error ", ex);
             }
-            log.info("ERPGoodsStockSyncJobHandler param goodsIdList {} pageSize:{}", JSON.toJSONString(goodsIdList), pageSize);
-            goodsProvider.guanYiSyncGoodsStock(goodsIdList, "", pageSize);
+            String maxTmpIdRedis = stringRedisTemplate.opsForValue().get(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID);
+            if (!StringUtils.isEmpty(maxTmpIdRedis)) {
+                maxTmpId = Long.parseLong(maxTmpIdRedis);
+            }
+            log.info("ERPGoodsStockSyncJobHandler param goodsIdList {} pageSize:{} maxId: {}", JSON.toJSONString(goodsIdList), pageSize, maxTmpId);
+            BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> result = goodsProvider.guanYiSyncGoodsStock(goodsIdList, "", maxTmpId, pageSize);
+            GoodsInfoStockSyncMaxIdProviderResponse context = result.getContext();
+            if (!CollectionUtils.isEmpty(context.getGoodsInfoStockSyncList())) {
+
+                Map<String, Integer> skuId2StockQtySumMap = new HashMap<>();
+                Map<String, Integer> spuId2StockQtySumMap = new HashMap<>();
+                List<GoodsInfoStockSyncProviderResponse> stockSendMessageList = new ArrayList<>();
+                List<GoodsInfoStockSyncProviderResponse> costPriceList = new ArrayList<>();
+                for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : context.getGoodsInfoStockSyncList()) {
+                    //只是处理需要同步库存商品
+                    if (goodsInfoStockSyncParam.isCanSyncStock()) {
+                        //计算skuCode 数量
+                        Integer stockSumQtyTmp = skuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSkuId());
+                        stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
+                        skuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSkuId(), stockSumQtyTmp);
+
+                        //计算spuCode 数量
+                        stockSumQtyTmp = spuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSpuId());
+                        stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
+                        spuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSpuId(), stockSumQtyTmp);
+
+                        //发送消息
+                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= 30) {
+                            stockSendMessageList.add(goodsInfoStockSyncParam);
+                        }
+                    }
+
+                    //只是处理需要同步 成本价的商品
+                    if (goodsInfoStockSyncParam.isCanSyncCostPrice()) {
+                        if (goodsInfoStockSyncParam.getErpCostPrice().compareTo(goodsInfoStockSyncParam.getCurrentCostPrice()) != 0) {
+                            costPriceList.add(goodsInfoStockSyncParam);
+                        }
+                    }
+
+                }
+
+                if (!skuId2StockQtySumMap.isEmpty()) {
+                    //更新库存
+                    EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skuId2StockQtySumMap).build();
+                    esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
+
+                    EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spuId2StockQtySumMap).build();
+                    esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
+                }
+
+                if (CollectionUtils.isNotEmpty(costPriceList)) {
+                    List<String> skuIdCostPriceList = new ArrayList<>();
+                    for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : costPriceList) {
+                        //删除缓存
+                        String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
+                        if (StringUtils.isNotBlank(goodsDetailInfo)) {
+                            redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
+                        }
+                        skuIdCostPriceList.add(goodsInfoStockSyncParam.getSkuId());
+                    }
+                    //更新成本价
+                    EsGoodsInfoAdjustPriceRequest costPrice = new EsGoodsInfoAdjustPriceRequest();
+                    costPrice.setGoodsInfoIds(skuIdCostPriceList);
+                    costPrice.setType(PriceAdjustmentType.MARKET);
+                    esGoodsInfoElasticProvider.adjustPrice(costPrice);
+                }
+
+                //发送库存消息
+                for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
+                    String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(), sdf.format(new Date()) , p.getActualStockQty());
+                    feiShuSendMessageService.sendMessage(content);
+                }
+
+                //发送成本价消息
+                for (GoodsInfoStockSyncProviderResponse p : costPriceList) {
+                    //计算毛利率
+                    BigDecimal oldRate = new BigDecimal(0);
+                    BigDecimal newRate = new BigDecimal(0);
+                    if(p.getCurrentMarketPrice() != null && p.getCurrentMarketPrice().compareTo(new BigDecimal(0)) != 0){
+                        oldRate = (p.getCurrentMarketPrice().subtract(p.getCurrentCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
+                        newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
+                    }
+                    if (newRate.compareTo(new BigDecimal("10")) <0) {
+                        String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(),
+                                p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
+                        feiShuSendMessageService.sendMessage(content);
+                    }
+                }
+
+                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, String.valueOf(context.getMaxTmpId()));
+            } else {
+                //重制redis
+                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, "0");
+            }
 
             //更新ES库存 TODO
 

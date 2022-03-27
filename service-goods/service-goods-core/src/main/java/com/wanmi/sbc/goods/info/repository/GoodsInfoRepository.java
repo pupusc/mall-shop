@@ -148,7 +148,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      */
     @Transactional
     @Modifying
-    @Query("update GoodsInfo w set w.stock = ?1, w.updateTime = now() where w.goodsInfoId = ?2")
+    @Query("update GoodsInfo w set w.stock = ?1 where w.goodsInfoId = ?2")
     int resetStockById(Long stock, String goodsInfoId);
 
     /**
@@ -543,9 +543,14 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     @Modifying
     @Transactional
-    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ," +
-            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
-    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,
-                             @Param("costPrice") BigDecimal costPrice
-    );
+    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice where gi.goodsInfoId = :goodsInfoId")
+    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,@Param("costPrice") BigDecimal costPrice);
+
+    /**
+     * 更新库存和成本价
+     * @return
+     */
+    @Modifying
+    @Query(value = "update GoodsInfo gi set gi.costPrice=?1, gi.stock=?2 where gi.goodsInfoId=?3")
+    int updateCostPriceAndStockById(BigDecimal costPrice, Long stock, String goodsInfoId);
 }

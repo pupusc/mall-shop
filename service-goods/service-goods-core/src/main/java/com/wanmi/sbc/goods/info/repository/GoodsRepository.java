@@ -17,6 +17,7 @@ import org.w3c.dom.stylesheets.LinkStyle;
 import sun.awt.SunHints;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -247,13 +248,13 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Modifying
     @Query("update Goods g set g.sortNo = :sortNo, g.updateTime = now()  where g.goodsId = :goodsId")
     void updateSortNo(@Param("sortNo") Long sortNo,@Param("goodsId") String goodsId);
-    /**
-     * 根据供应商商品id查询关联商品
-     * @param goodsIds
-     * @return
-     */
-    @Query
-    List<Goods> findAllByProviderGoodsIdIn(List<String> goodsIds);
+//    /**
+//     * 根据供应商商品id查询关联商品
+//     * @param goodsIds
+//     * @return
+//     */
+//    @Query
+//    List<Goods> findAllByProviderGoodsIdIn(List<String> goodsIds);
 
     /**
      * 根据供应商商品id查询关联商品
@@ -289,14 +290,18 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     void updateStockByProviderGoodsIds(Long stock, List<String> providerGoodsIds);
 
     @Modifying
+    @Query("update Goods set stock=?1 where erpGoodsNo = ?2")
+    void updateStockByErpGoodsNo(Long stock, String erpGoodsNo);
+
+    @Modifying
     @Query(value = "UPDATE goods SET cate_id=:cateId WHERE goods_source=:source AND third_cate_id=:thirdCateId",nativeQuery = true)
     void updateThirdCateMap(@Param("source") int source, @Param("thirdCateId") long thirdCateId, @Param("cateId") long cateId);
 
-    @Modifying
-    @Query("UPDATE Goods SET cateId=?4 WHERE goodsSource=?1 and thirdPlatformType=?2 AND thirdCateId=?3")
-    void updateStoreThirdCateMap( Integer goodsSource,ThirdPlatformType thirdPlatformType, Long thirdCateId, Long cateId);
-
-    Goods findByThirdPlatformSpuIdAndGoodsSource(String thirdPlatformSpuId, Integer goodsSource);
+//    @Modifying
+//    @Query("UPDATE Goods SET cateId=?4 WHERE goodsSource=?1 and thirdPlatformType=?2 AND thirdCateId=?3")
+//    void updateStoreThirdCateMap( Integer goodsSource,ThirdPlatformType thirdPlatformType, Long thirdCateId, Long cateId);
+//
+//    Goods findByThirdPlatformSpuIdAndGoodsSource(String thirdPlatformSpuId, Integer goodsSource);
 
     @Modifying
     @Query("update Goods set delFlag=1,updateTime=now() where goodsSource=?1 and thirdPlatformSpuId=?2")
@@ -369,7 +374,6 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
 
     /**
      * 查询商品
-     * @param goodsId
      * @param storeId
      * @param deleteFlag
      * @return
@@ -408,13 +412,22 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Query(value = "select goods_id,goods_no from goods where goods_no in ?1 and del_flag=0", nativeQuery = true)
     List<Object[]> findIdByNumber(List<String> numbers);
 
-    /**
-     * 查找所有书籍
-     */
-    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
-    List<Goods> findBooks();
+//    /**
+//     * 查找所有书籍
+//     */
+//    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
+//    List<Goods> findBooks();
 
     @Modifying
     @Query("update Goods w set w.costPrice = ?2 where w.goodsId = ?1")
     void resetGoodsPriceById(String goodsId, BigDecimal costPrice);
+
+
+    /**
+     * 根据最大id
+     * @param providerId
+     * @return
+     */
+    @Query(value = "select * from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 limit ?3", nativeQuery = true)
+    List<Goods> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }

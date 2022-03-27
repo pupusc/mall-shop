@@ -392,13 +392,13 @@ public class GoodsController implements GoodsProvider {
                     response.setStandardIds(standardImportService.importStandard(synRequest));
                 }
             }
-            //更改商家代销商品的可售性
-            Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
-            if(isDealGoodsVendibility != null && isDealGoodsVendibility){
-                goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder()
-                        .checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
-                        .goodsIds(Lists.newArrayList(goods.getGoodsId())).build());
-            }
+//            //更改商家代销商品的可售性
+//            Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
+//            if(isDealGoodsVendibility != null && isDealGoodsVendibility){
+//                goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder()
+//                        .checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
+//                        .goodsIds(Lists.newArrayList(goods.getGoodsId())).build());
+//            }
         } else {
             //同步代码
             /*商家商品编辑
@@ -473,11 +473,11 @@ public class GoodsController implements GoodsProvider {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
         Map<String, Object> map = goodsService.editAll(goodsSaveRequest);
         //更改商家代销商品的可售性
-        Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
-        if(isDealGoodsVendibility != null && isDealGoodsVendibility){
-            goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
-                    .goodsIds(Lists.newArrayList(request.getGoods().getGoodsId())).build());
-        }
+//        Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
+//        if(isDealGoodsVendibility != null && isDealGoodsVendibility){
+//            goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
+//                    .goodsIds(Lists.newArrayList(request.getGoods().getGoodsId())).build());
+//        }
         //ares埋点-商品-后台修改商品sku
         goodsAresService.dispatchFunction("editGoodsSku",
                 new Object[]{map.get("newGoodsInfo"), map.get("delInfoIds"), map.get("oldGoodsInfos")});
@@ -670,9 +670,8 @@ public class GoodsController implements GoodsProvider {
 
 
     @Override
-    public BaseResponse guanYiSyncGoodsStock(List<String> goodsIdList, String startTime, int pageSize){
-        goodsStockService.batchUpdateStock(goodsIdList, startTime, pageSize);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(List<String> goodsIdList, String startTime, long maxTmpId, int pageSize){
+        return BaseResponse.success(goodsStockService.batchUpdateStock(goodsIdList, startTime, maxTmpId, pageSize));
     }
 
     @Override
@@ -710,10 +709,10 @@ public class GoodsController implements GoodsProvider {
 
     }
 
-    @Override
-    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
-        return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
-    }
+//    @Override
+//    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
+//        return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
+//    }
 
 
     @Override

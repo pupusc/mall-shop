@@ -280,7 +280,8 @@ public interface GoodsProvider {
 //                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
 
     @PostMapping("/goods/${application.goods.version}/guanyiyun/batch-sync-goods-stock")
-     BaseResponse guanYiSyncGoodsStock (@RequestParam("goodsIdList") List<String> goodsIdList, @RequestParam("startTime") String startTime, @RequestParam("pageSize") int pageSize);
+     BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock (@RequestParam("goodsIdList") List<String> goodsIdList, @RequestParam("startTime") String startTime,
+                                        @RequestParam("maxTmpId") long maxTmpId, @RequestParam("pageSize") int pageSize);
 
     /**
      * 同步商品库存
@@ -308,8 +309,8 @@ public interface GoodsProvider {
      * @param goodsPriceSyncRequest
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
-    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+//    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
+//    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
 
 
     /**

@@ -45,6 +45,7 @@ import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +100,9 @@ public class BookListModelAndGoodsService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RedisService redisService;
 
     @Value("${stock.size:5}")
     private Long stockSize;
@@ -212,7 +216,7 @@ public class BookListModelAndGoodsService {
         if (Objects.nonNull(filterResponse) && org.apache.commons.collections4.CollectionUtils.isNotEmpty(filterResponse.getGoodsInfoVOList())) {
             result = filterResponse.getGoodsInfoVOList();
         }
-        this.initGoodsInfoStock(filterResponse.getGoodsInfoVOList());
+//        this.initGoodsInfoStock(filterResponse.getGoodsInfoVOList());
         return result;
     }
 
@@ -366,7 +370,7 @@ public class BookListModelAndGoodsService {
         BigDecimal currentSalePrice = new BigDecimal("100000");
         BigDecimal currentMarketingPrice = new BigDecimal("100000");
         BigDecimal lineSalePrice = null;
-        Long stock = 0L;
+
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
                 Map<String, List<GoodsInfoVO>> goodsId2GoodsInfoListMap = new HashMap<>();
@@ -423,17 +427,6 @@ public class BookListModelAndGoodsService {
                         }
                     }
                 }
-                //多规格，要过滤
-                Map<String,List<GoodsInfoVO>> goodsInfoMap = goodsInfoVoListLast.stream().collect(Collectors.groupingBy(GoodsInfoVO::getGoodsInfoId));
-                if(!goodsInfoMap.isEmpty()){
-                    for(String key:goodsInfoMap.keySet()){//keySet获取map集合key的集合  然后在遍历key即可
-                        stock += goodsInfoMap.get(key).get(0).getStock();
-                    }
-                }
-                //商品<5个不销售
-                if(stock.compareTo(stockSize) <=0){
-                    stock = 0L;
-                }
             }
 
             List<GoodsLabelNestVO> goodsLabelList = esGoodsVO.getGoodsLabelList();
@@ -442,9 +435,6 @@ public class BookListModelAndGoodsService {
             } else {
                 esGoodsCustomResponse.setGoodsLabelList(new ArrayList<>());
             }
-
-            //库存
-            esGoodsCustomResponse.setStock(stock);
             if (esGoodsVO.getGoodsExtProps() != null) {
                 esGoodsCustomResponse.setGoodsScore(esGoodsVO.getGoodsExtProps().getScore() == null ? 100 + "" : esGoodsVO.getGoodsExtProps().getScore()+"");
 
@@ -480,6 +470,13 @@ public class BookListModelAndGoodsService {
             }
         }
 
+        //获取库存
+        String stockRedis = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+        Long stock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
+        //商品<5个不销售
+        if(stock.compareTo(stockSize) <=0){
+            stock = 0L;
+        }
 
         //商品展示价格
 
@@ -496,7 +493,7 @@ public class BookListModelAndGoodsService {
         esGoodsCustomResponse.setLinePrice(lineSalePrice == null ? currentMarketingPrice : lineSalePrice);
         esGoodsCustomResponse.setCpsSpecial(goodsVO.getCpsSpecial());
         esGoodsCustomResponse.setCouponLabelList(CollectionUtils.isEmpty(couponLabelNameList) ? new ArrayList<>() : couponLabelNameList);
-
+        esGoodsCustomResponse.setStock(stock);
         //主播推荐标签
         List<AnchorPushEnum> anchorPushEnumList = new ArrayList<>();
         if (!StringUtils.isEmpty(goodsVO.getAnchorPushs())) {
@@ -721,37 +718,5 @@ public class BookListModelAndGoodsService {
         List<BookListModelGoodsIdProviderResponse> listBookListModelNoPageBySpuIdColl = listBookListModelNoPageBySpuIdCollResponse.getContext();
         //list转化成map
         return listBookListModelNoPageBySpuIdColl.stream().collect(Collectors.toMap(BookListModelGoodsIdProviderResponse::getSpuId, Function.identity(), (k1, k2) -> k1));
-    }
-
-    /**
-     * 初始化sku库存，以redis为准
-     * @param goodsInfoVOList
-     */
-    private void initGoodsInfoStock(List<GoodsInfoVO> goodsInfoVOList){
-         if(CollectionUtils.isEmpty(goodsInfoVOList)){
-            return;
-        }
-        List<String> goodsInfoIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
-        try {
-            redisTemplate.setKeySerializer(new StringRedisSerializer());
-            redisTemplate.setValueSerializer(new StringRedisSerializer());
-            List<Object> objects = redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-                for (String  key : goodsInfoIds) {
-                    redisConnection.get((RedisKeyConstant.GOODS_INFO_STOCK_PREFIX+key).getBytes());
-                }
-                return null;
-            });
-            if(CollectionUtils.isEmpty(objects)){
-                return;
-            }
-            for(int i = 0; i < goodsInfoVOList.size();i++){
-                if(objects.get(i)!=null){
-                    goodsInfoVOList.get(i).setStock(NumberUtils.toLong(objects.get(i).toString()));
-                }
-            }
-        } catch (Exception e) {
-           log.warn("获取redis库存失败");
-        }
-
     }
 }

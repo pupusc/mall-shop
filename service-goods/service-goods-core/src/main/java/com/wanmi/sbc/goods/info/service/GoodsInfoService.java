@@ -958,6 +958,7 @@ public class GoodsInfoService {
         }
         KsBeanUtil.copyProperties(newGoodsInfo, oldGoodsInfo);
         goodsInfoRepository.save(oldGoodsInfo);
+        goodsInfoStockService.initCacheStock(oldGoodsInfo.getStock(), oldGoodsInfo.getGoodsInfoId());
 
         //重新计算库存
         Long newStock = goodsInfos.stream().filter(s -> Objects.nonNull(s.getStock()) && (!s.getGoodsInfoId().equals(newGoodsInfo.getGoodsInfoId()))).mapToLong(GoodsInfo::getStock).sum();
@@ -965,7 +966,6 @@ public class GoodsInfoService {
         goods.setStock(newStock);
         goodsRepository.save(goods);
 
-        goodsInfoStockService.initCacheStock(oldGoodsInfo.getStock(), oldGoodsInfo.getGoodsInfoId());
         //更新标准库商品库供货价
         String goodsId = oldGoodsInfo.getGoodsId();
         StandardGoodsRel standardGoodsRel = standardGoodsRelRepository.findByGoodsId(goodsId);
@@ -1009,7 +1009,7 @@ public class GoodsInfoService {
             request.setCheckFlag(checkFlag);
             request.setGoodsInfoIds(Lists.newArrayList(newGoodsInfo.getGoodsInfoId()));
         }
-        goodsService.dealGoodsVendibility(request);
+//        goodsService.dealGoodsVendibility(request);
         return oldGoodsInfo;
     }
 
@@ -2769,52 +2769,52 @@ public class GoodsInfoService {
     /**
      * 同步管易成本价
      */
-    public MicroServicePage<GoodsInfoPriceChangeDTO> syncGoodsCostPrice(GoodsCostPriceChangeQueryRequest request){
-        request.setSortColumn("erpGoodsNo");
-        request.setSortRole("asc");
-        Page<GoodsInfo> goodsInfoPage = goodsInfoRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
-        MicroServicePage page = new MicroServicePage<>(
-                Collections.emptyList(),
-                PageRequest.of(request.getPageNum(), request.getPageSize(), request.getSort()),
-                0
-        );
-        if(goodsInfoPage == null || CollectionUtils.isEmpty(goodsInfoPage.getContent())){
-            return page;
-        }
-        page.setTotal(goodsInfoPage.getTotalElements());
-        List<GoodsInfoPriceChangeDTO> list = new ArrayList<>(request.getPageSize());
-        List<String> erpGoodsNo = goodsInfoPage.getContent().stream().map(GoodsInfo::getErpGoodsNo).distinct().collect(Collectors.toList());
-        erpGoodsNo.forEach(g->{
-            try {
-                BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(g);
-                if (erpGoodsInfoWithoutStock == null || CollectionUtils.isEmpty(erpGoodsInfoWithoutStock.getContext())) {
-                    return;
-                }
-                List<GoodsInfo> items = goodsInfoPage.getContent().stream().filter(p -> p.getErpGoodsNo().equals(g)).collect(Collectors.toList());
-                items.forEach(goodsInfo -> {
-                    Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p -> p.getSkuCode().equals(goodsInfo.getErpGoodsInfoNo())).findFirst();
-                    if (!erpGoodsInfoVO.isPresent()) {
-                        return;
-                    }
-                    if (erpGoodsInfoVO.get().getCostPrice().compareTo(goodsInfo.getCostPrice()) == 0) {
-                        return;
-                    }
-                    //成本不一致
-                    goodsInfoRepository.updateCostPriceById(goodsInfo.getGoodsInfoId(), erpGoodsInfoVO.get().getCostPrice());
-                    list.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(goodsInfo.getGoodsInfoId())
-                            .goodsId(goodsInfo.getGoodsId())
-                            .time(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()))
-                            .oldPrice(goodsInfo.getCostPrice())
-                            .newPrice(erpGoodsInfoVO.get().getCostPrice())
-                            .name(goodsInfo.getGoodsInfoName())
-                            .skuNo(goodsInfo.getGoodsInfoNo())
-                            .marketPrice(goodsInfo.getMarketPrice()).build());
-                });
-            }catch (Exception e){
-                log.warn("syncGoodsCostPrice error,goodsId:{}",g,e);
-            }
-        });
-        page.setContent(list);
-        return page;
-    }
+//    public MicroServicePage<GoodsInfoPriceChangeDTO> syncGoodsCostPrice(GoodsCostPriceChangeQueryRequest request){
+//        request.setSortColumn("erpGoodsNo");
+//        request.setSortRole("asc");
+//        Page<GoodsInfo> goodsInfoPage = goodsInfoRepository.findAll(request.getWhereCriteria(),request.getPageRequest());
+//        MicroServicePage page = new MicroServicePage<>(
+//                Collections.emptyList(),
+//                PageRequest.of(request.getPageNum(), request.getPageSize(), request.getSort()),
+//                0
+//        );
+//        if(goodsInfoPage == null || CollectionUtils.isEmpty(goodsInfoPage.getContent())){
+//            return page;
+//        }
+//        page.setTotal(goodsInfoPage.getTotalElements());
+//        List<GoodsInfoPriceChangeDTO> list = new ArrayList<>(request.getPageSize());
+//        List<String> erpGoodsNo = goodsInfoPage.getContent().stream().map(GoodsInfo::getErpGoodsNo).distinct().collect(Collectors.toList());
+//        erpGoodsNo.forEach(g->{
+//            try {
+//                BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(g);
+//                if (erpGoodsInfoWithoutStock == null || CollectionUtils.isEmpty(erpGoodsInfoWithoutStock.getContext())) {
+//                    return;
+//                }
+//                List<GoodsInfo> items = goodsInfoPage.getContent().stream().filter(p -> p.getErpGoodsNo().equals(g)).collect(Collectors.toList());
+//                items.forEach(goodsInfo -> {
+//                    Optional<ERPGoodsInfoVO> erpGoodsInfoVO = erpGoodsInfoWithoutStock.getContext().stream().filter(p -> p.getSkuCode().equals(goodsInfo.getErpGoodsInfoNo())).findFirst();
+//                    if (!erpGoodsInfoVO.isPresent()) {
+//                        return;
+//                    }
+//                    if (erpGoodsInfoVO.get().getCostPrice().compareTo(goodsInfo.getCostPrice()) == 0) {
+//                        return;
+//                    }
+//                    //成本不一致
+//                    goodsInfoRepository.updateCostPriceById(goodsInfo.getGoodsInfoId(), erpGoodsInfoVO.get().getCostPrice());
+//                    list.add(GoodsInfoPriceChangeDTO.builder().goodsInfoId(goodsInfo.getGoodsInfoId())
+//                            .goodsId(goodsInfo.getGoodsId())
+//                            .time(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()))
+//                            .oldPrice(goodsInfo.getCostPrice())
+//                            .newPrice(erpGoodsInfoVO.get().getCostPrice())
+//                            .name(goodsInfo.getGoodsInfoName())
+//                            .skuNo(goodsInfo.getGoodsInfoNo())
+//                            .marketPrice(goodsInfo.getMarketPrice()).build());
+//                });
+//            }catch (Exception e){
+//                log.warn("syncGoodsCostPrice error,goodsId:{}",g,e);
+//            }
+//        });
+//        page.setContent(list);
+//        return page;
+//    }
 }
