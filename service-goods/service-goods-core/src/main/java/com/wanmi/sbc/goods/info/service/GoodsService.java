@@ -315,11 +315,11 @@ public class GoodsService {
     @Autowired
     private GoodsSyncRepository goodsSyncRepository;
 
-    @Autowired
-    private GoodsStockSyncRepository goodsStockSyncRepository;
-
-    @Autowired
-    private GoodsPriceSyncRepository goodsPriceSyncRepository;
+//    @Autowired
+//    private GoodsStockSyncRepository goodsStockSyncRepository;
+//
+//    @Autowired
+//    private GoodsPriceSyncRepository goodsPriceSyncRepository;
     @Autowired
     private ClassifyGoodsRelRepository classifyGoodsRelRepository;
 
