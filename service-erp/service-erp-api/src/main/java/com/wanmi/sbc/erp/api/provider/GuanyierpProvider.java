@@ -39,7 +39,7 @@ public interface GuanyierpProvider {
 //                                             @RequestParam(value = "pageSize",defaultValue = "20") String pageSize);
 
     @PostMapping("/erp/${application.erp.version}/guanyierp/list-ware-hose-stock")
-    BaseResponse<ErpStockVo> listWareHoseStock(String startTime, String erpGoodNo);
+    BaseResponse<ErpStockVo> listWareHoseStock(@RequestParam("startTime") String startTime, @RequestParam("erpGoodNo") String erpGoodNo);
 
     /**
      * 获取Goods信息
