@@ -325,7 +325,7 @@ public class GoodsStockService {
 
             BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoVo.getSkuCode());
             erpCostPrice = erpCostPrice == null ? BigDecimal.ZERO : erpCostPrice;
-            if (erpGoodsInfoVo.getCostPrice().compareTo(erpCostPrice) > 0) {
+            if (erpGoodsInfoVo.getCostPrice() != null && erpGoodsInfoVo.getCostPrice().compareTo(erpCostPrice) > 0) {
                 erpSkuCode2ErpCostPriceQtyMap.put(erpGoodsInfoVo.getSkuCode(), erpGoodsInfoVo.getCostPrice());
             }
         }
