@@ -107,6 +107,8 @@ public class GoodsBlackListService {
             } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode())) {
                 BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getUnVipPriceBlackListModel());
                 result.setUnVipPriceBlackListModel(blackListCategoryProviderResponse);
+            } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode())) {
+                this.packageBlackList(commonBlackListParam, result.getPointNotSplitBlackListModel());
             } else {
                 log.error("===>>> CommonBlackListService flushBlackListCache 参数有误 {}", JSON.toJSONString(goodsBlackListCacheProviderRequest));
             }
@@ -150,6 +152,12 @@ public class GoodsBlackListService {
             }
             if (!CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getUnVipPriceBlackListModel().getSecondClassifyIdList());
+            }
+        }
+
+        if (result.getPointNotSplitBlackListModel() != null) {
+            if (!CollectionUtils.isEmpty(result.getPointNotSplitBlackListModel().getGoodsIdList())) {
+                redisService.putHashStrValueList(RedisKeyConstant.KEY_POINT_NOT_SPLIT, RedisKeyConstant.KEY_SPU_ID, result.getPointNotSplitBlackListModel().getGoodsIdList());
             }
         }
 
@@ -210,6 +218,14 @@ public class GoodsBlackListService {
                 unVipPriceBlackListModel.setGoodsIdList(goodsIdList);
                 unVipPriceBlackListModel.setSecondClassifyIdList(classifyIdList);
                 result.setUnVipPriceBlackListModel(unVipPriceBlackListModel);
+            } else if (Objects.equals(businessCateGoryId, GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode())) {
+                List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_POINT_NOT_SPLIT, RedisKeyConstant.KEY_SPU_ID);
+                BlackListCategoryProviderResponse pointNotSplitBlackListModel = result.getPointNotSplitBlackListModel();
+                if (pointNotSplitBlackListModel == null) {
+                    pointNotSplitBlackListModel = new BlackListCategoryProviderResponse();
+                }
+                pointNotSplitBlackListModel.setGoodsIdList(goodsIdList);
+                result.setPointNotSplitBlackListModel(pointNotSplitBlackListModel);
             } else {
                 log.error("===>>> CommonBlackListService listNoPage 参数有误 {}", JSON.toJSONString(goodsBlackListPageProviderRequest));
             }

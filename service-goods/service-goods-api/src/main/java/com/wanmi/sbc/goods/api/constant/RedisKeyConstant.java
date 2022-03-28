@@ -31,6 +31,11 @@ public class RedisKeyConstant {
     public static final String KEY_UN_SHOW_VIP_PRICE = "KEY_BLACK_LIST_UN_SHOW_VIP_PRICE";
 
     /**
+     * 不能使用积分商品 黑名单KEY
+     */
+    public static final String KEY_POINT_NOT_SPLIT = "KEY_BLACK_LIST_POINT_NOT_SPLIT";
+
+    /**
      * SPU_ID hashKey
      */
     public static final String KEY_SPU_ID = "KEY_BLACK_LIST_SPU_ID";
