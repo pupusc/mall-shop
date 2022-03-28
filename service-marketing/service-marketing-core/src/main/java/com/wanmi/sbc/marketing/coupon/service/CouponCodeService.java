@@ -617,7 +617,7 @@ public class CouponCodeService {
                     couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
                 }
             }else if (ScopeType.ALL.equals(couponCodeVo.getScopeType())){
-                BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(null);
+                BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
                 couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
             }else if (ScopeType.SKU.equals(couponCodeVo.getScopeType())){
                 if(CollectionUtils.isNotEmpty(scopeList)){
