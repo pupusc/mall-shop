@@ -96,6 +96,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -661,5 +662,15 @@ public class GoodsQueryController implements GoodsQueryProvider {
             return BaseResponse.success(Collections.emptyList());
         }
         return BaseResponse.success(KsBeanUtil.convert(list, GoodsCateSyncVO.class));
+    }
+
+    @Override
+    public BaseResponse<String> getGoodsId(@RequestBody List<String> goodsInfoIds) {
+        return BaseResponse.success(goodsService.getGoodsId(goodsInfoIds));
+    }
+
+    @Override
+    public BaseResponse<String> getGoodsIdByClassify(@RequestParam Integer classifyId){
+        return BaseResponse.success(goodsService.getByClassidyId(classifyId));
     }
 }

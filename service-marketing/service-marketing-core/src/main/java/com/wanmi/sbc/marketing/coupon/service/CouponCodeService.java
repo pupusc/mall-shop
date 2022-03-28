@@ -23,6 +23,8 @@ import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
@@ -176,6 +178,9 @@ public class CouponCodeService {
 
     @Value("${default.coupon.activityId}")
     private String couponActivityId;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     /**
      * 根据条件查询优惠券码列表
@@ -601,17 +606,26 @@ public class CouponCodeService {
             //适用品牌
             if (ScopeType.BRAND.equals(couponCodeVo.getScopeType())) {
                 couponBrandName(couponCodeVo, scopeList);
-            }
-
-            //适用平台分类
-            if (ScopeType.BOSS_CATE.equals(couponCodeVo.getScopeType())) {
+            }else if (ScopeType.BOSS_CATE.equals(couponCodeVo.getScopeType())) {
+                //适用平台分类
                 couponGoodsCateName(couponCodeVo, scopeList);
+            }else if (ScopeType.STORE_CATE.equals(couponCodeVo.getScopeType())) {
+                //适用店铺分类
+                couponStoreCateName(couponCodeVo, scopeList);
+                if(CollectionUtils.isNotEmpty(scopeList)){
+                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(scopeList.get(0).getScopeId()));
+                    couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+                }
+            }else if (ScopeType.ALL.equals(couponCodeVo.getScopeType())){
+                BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(null);
+                couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+            }else if (ScopeType.SKU.equals(couponCodeVo.getScopeType())){
+                if(CollectionUtils.isNotEmpty(scopeList)){
+                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(scopeList.stream().map(CouponMarketingScope::getScopeId).collect(Collectors.toList()));
+                    couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+                }
             }
 
-            //适用店铺分类
-            if (ScopeType.STORE_CATE.equals(couponCodeVo.getScopeType())) {
-                couponStoreCateName(couponCodeVo, scopeList);
-            }
         });
         couponCodeVoList = couponCodeVoList.stream().sorted(Comparator.comparing(CouponCodeVO::getDenomination).reversed()).collect(Collectors.toList());
         return new PageImpl<>(couponCodeVoList, request.getPageable(), totalCount);
@@ -1305,6 +1319,10 @@ public class CouponCodeService {
         //优惠券类型
         if (Objects.nonNull(request.getCouponType())) {
             query.setParameter("couponType", request.getCouponType().toValue());
+        }
+
+        if(CollectionUtils.isNotEmpty(request.getCouponIds())){
+            query.setParameter("couponIds", request.getCouponIds());
         }
     }
 

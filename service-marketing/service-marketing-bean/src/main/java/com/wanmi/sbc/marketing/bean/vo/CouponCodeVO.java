@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: chenli
@@ -216,4 +217,9 @@ public class CouponCodeVO implements Serializable {
      * 用户
      */
     private String customerId;
+
+    /**
+     * goods和goodsInfo的id
+     */
+    private String goodsAndInfoId;
 }

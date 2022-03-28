@@ -3500,6 +3500,21 @@ public class GoodsService {
         return goodsCateSyncRepository.query();
     }
 
+    public String getGoodsId(List<String> goodsInfoIds){
+        if(CollectionUtils.isEmpty(goodsInfoIds)) {
+            List<Goods> goods = goodsRepository.findSpuId();
+            return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+        }else {
+            List<Goods> goods = goodsRepository.findSpuId(goodsInfoIds);
+            return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+        }
+    }
+
+    public String getByClassidyId(Integer classifyId){
+        List<Goods> goods = goodsRepository.findFirstByClassify(classifyId);
+        return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+    }
+
     @Transactional
     public void syncGoodsVoteNumber(){
         Map<String, String> voteCacheMap = redisService.hgetAll(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER);

@@ -40,6 +40,12 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     Optional<GoodsInfo> findByGoodsInfoIdAndStoreIdAndDelFlag(String goodsInfoId, Long storeId, DeleteFlag deleteFlag);
 
+    @Query(value = "select spu.* from goods_info as sku join goods as spu on sku.goods_id=spu.goods_id where spu.del_flag=0 and spu.added_flag=1 limit 1", nativeQuery=true)
+    List<GoodsInfo> findSpuId();
+
+    @Query(value = "select spu.* from goods_info as sku join goods as spu on sku.goods_id=spu.goods_id where sku.goods_info_id in ?1 and spu.del_flag=0 and spu.added_flag=1 limit 1", nativeQuery=true)
+    List<GoodsInfo> findSpuId(List<String> goodsInfoIds);
+
     /**
      * 根据spuIdList查询sku(不包含已删除的)
      *
