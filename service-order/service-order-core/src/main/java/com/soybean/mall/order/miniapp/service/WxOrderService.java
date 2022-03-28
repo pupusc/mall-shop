@@ -342,9 +342,9 @@ public class WxOrderService {
                     .outProductId(tradeItem.getSpuId())
                     .outSkuId(tradeItem.getSkuId())
                     .productNum(tradeItem.getNum())
-                    .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
+                    .salePrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
                     .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
-                    .skuRealPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
+                    .skuRealPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).multiply(new BigDecimal(tradeItem.getNum())).intValue())
                     .title(tradeItem.getSkuName())
                     .path(goodsDetailUrl+tradeItem.getSpuId())
                     .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());
