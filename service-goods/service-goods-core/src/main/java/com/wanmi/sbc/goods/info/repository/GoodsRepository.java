@@ -35,11 +35,11 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Query("update Goods w set w.delFlag = '1', w.updateTime = now() where w.goodsId in ?1")
     void deleteByGoodsIds(List<String> goodsIds);
 
-    @Query(value = "select spu.* from goods_info as sku join goods as spu on sku.goods_id=spu.goods_id where spu.del_flag=0 and spu.added_flag=1 limit 1", nativeQuery=true)
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
     Goods findSpuId();
 
-    @Query(value = "select spu.* from goods_info as sku join goods as spu on sku.goods_id=spu.goods_id where sku.goods_info_id in ?1 and spu.del_flag=0 and spu.added_flag=1 limit 1", nativeQuery=true)
-    Goods findSpuId(List<String> goodsInfoIds);
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where gi.goods_info_id in ?1 and goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
+    Goods findSpuId2(List<String> goodsInfoIds);
 
     @Query(value = "select g.* from t_classify_goods_rel as rel join goods as g on rel.goods_id=g.goods_id where rel.classify_id=?1 and g.del_flag=0 and g.added_flag=1 limit 1", nativeQuery=true)
     Goods findFirstByClassify(Integer classifyId);

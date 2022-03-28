@@ -3501,11 +3501,12 @@ public class GoodsService {
     }
 
     public String getGoodsId(List<String> goodsInfoIds){
+        log.info("goodsInfoIds: " + Arrays.toString(goodsInfoIds.toArray()));
         if(CollectionUtils.isEmpty(goodsInfoIds)) {
             Goods goods = goodsRepository.findSpuId();
             return goods != null ? goods.getGoodsId() : "";
         }else {
-            Goods goods = goodsRepository.findSpuId(goodsInfoIds);
+            Goods goods = goodsRepository.findSpuId2(goodsInfoIds);
             return goods != null ? goods.getGoodsId() : "";
         }
     }
