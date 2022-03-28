@@ -26,6 +26,12 @@ public class WxProductInfoDTO implements Serializable {
     private Integer salePrice;
     @JSONField(name ="real_price")
     private Integer realPrice;
+
+    /**
+     * 新加字段，重要参数，验证价格时使用
+     */
+    @JSONField(name ="sku_real_price")
+    private Integer skuRealPrice;
     private String path;
     private String title;
     @JSONField(name ="head_img")

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -332,6 +333,8 @@ public class WxOrderService {
         result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         result.setOpenid(trade.getBuyer().getOpenId());
         result.setPath(orderListUrl);
+        result.setFundType(1);
+        result.setExpireTime(LocalDateTime.now().plusHours(2).toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
@@ -341,6 +344,7 @@ public class WxOrderService {
                     .productNum(tradeItem.getNum())
                     .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
                     .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
+                    .skuRealPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
                     .title(tradeItem.getSkuName())
                     .path(goodsDetailUrl+tradeItem.getSpuId())
                     .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());

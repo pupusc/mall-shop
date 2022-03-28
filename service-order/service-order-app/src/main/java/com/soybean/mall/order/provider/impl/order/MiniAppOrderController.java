@@ -71,7 +71,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
     @Override
     public BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(GetPaymentParamsRequest request) {
-        PaymentParamsDTO paymentParamsDTO = tradeOrderService.createWxOrderAndGetPaymentsParmas(request.getTid())
+        PaymentParamsDTO paymentParamsDTO = tradeOrderService.createWxOrderAndGetPaymentsParams(request.getTid());
         return BaseResponse.success(KsBeanUtil.convert(paymentParamsDTO,WxOrderPaymentParamsVO.class));
     }
 }

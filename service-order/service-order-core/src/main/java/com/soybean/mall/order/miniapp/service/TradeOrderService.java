@@ -249,7 +249,7 @@ public class TradeOrderService {
 
     }
 
-    public PaymentParamsDTO createWxOrderAndGetPaymentsParmas(String tid){
+    public PaymentParamsDTO createWxOrderAndGetPaymentsParams(String tid){
         Trade trade = tradeRepository.findById(tid).orElse(null);
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
