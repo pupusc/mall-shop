@@ -3501,19 +3501,39 @@ public class GoodsService {
     }
 
     public String getGoodsId(List<String> goodsInfoIds){
-        log.info("goodsInfoIds: " + Arrays.toString(goodsInfoIds.toArray()));
         if(CollectionUtils.isEmpty(goodsInfoIds)) {
-            Goods goods = goodsRepository.findSpuId();
-            return goods != null ? goods.getGoodsId() : "";
+            Map goods = goodsRepository.findSpuId();
+            if(goods != null){
+                log.info("map content : \n");
+                goods.forEach((k, v) -> {
+                    log.info("key: " + k + ", value: " + v);
+                });
+                return goods.get("goods_id").toString();
+            }
+            return "";
         }else {
-            Goods goods = goodsRepository.findSpuId2(goodsInfoIds);
-            return goods != null ? goods.getGoodsId() : "";
+            Map goods = goodsRepository.findSpuId2(goodsInfoIds);
+            if(goods != null){
+                log.info("map content : \n");
+                goods.forEach((k, v) -> {
+                    log.info("key: " + k + ", value: " + v);
+                });
+                return goods.get("goods_id").toString();
+            }
+            return "";
         }
     }
 
     public String getByClassidyId(Integer classifyId){
-        Goods goods = goodsRepository.findFirstByClassify(classifyId);
-        return goods != null ? goods.getGoodsId() : "";
+        Map goods = goodsRepository.findFirstByClassify(classifyId);
+        if(goods != null){
+            log.info("map content : \n");
+            goods.forEach((k, v) -> {
+                log.info("key: " + k + ", value: " + v);
+            });
+            return goods.get("goods_id").toString();
+        }
+        return "";
     }
 
     @Transactional

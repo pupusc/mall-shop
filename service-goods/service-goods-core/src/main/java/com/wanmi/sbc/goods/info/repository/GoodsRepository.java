@@ -19,6 +19,7 @@ import sun.awt.SunHints;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品数据源
@@ -36,13 +37,13 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     void deleteByGoodsIds(List<String> goodsIds);
 
     @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
-    Goods findSpuId();
+    Map findSpuId();
 
     @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where gi.goods_info_id in ?1 and goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
-    Goods findSpuId2(List<String> goodsInfoIds);
+    Map findSpuId2(List<String> goodsInfoIds);
 
     @Query(value = "select g.* from t_classify_goods_rel as rel join goods as g on rel.goods_id=g.goods_id where rel.classify_id=?1 and g.del_flag=0 and g.added_flag=1 limit 1", nativeQuery=true)
-    Goods findFirstByClassify(Integer classifyId);
+    Map findFirstByClassify(Integer classifyId);
 
     /**
      * 根据多个商品ID编号进行删除供应商商品
