@@ -11,8 +11,13 @@ import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.order.bean.dto.*;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -68,7 +73,14 @@ public class WxOrderService {
 
     private static  final String MINI_PROGRAM_ORDER_REPORT_LIST = "mini:ord:list:";
 
+    @Value("${wx.default.image.url}")
+    private String defaultImageUrl;
 
+    @Value("${wx.goods.detail.url}")
+    private String goodsDetailUrl;
+
+    @Value("${wx.order.list.url}")
+    private String orderListUrl;
     /**
      * 小程序订单同步确认收货
      * @param trade
@@ -287,5 +299,89 @@ public class WxOrderService {
         return result;
     }
 
+
+    public void createWxOrder(String tid){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+        }
+        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+            return;
+        }
+        log.info("微信小程序订单创建start,tid:{}",tid);
+        WxCreateOrderRequest wxCreateOrderRequest = null;
+        try {
+            //先创建订单
+            wxCreateOrderRequest = this.buildRequest(trade);
+            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
+            log.info("微信小程序0元订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
+            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
+                addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+                return;
+            }
+        } catch (Exception e) {
+            log.error("微信小程序创建订单失败，tid：{}", tid, e);
+            addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+            return;
+        }
+    }
+
+    public WxCreateOrderRequest buildRequest(Trade trade) {
+        WxCreateOrderRequest result = new WxCreateOrderRequest();
+        result.setOutOrderId(trade.getId());
+        result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+        result.setOpenid(trade.getBuyer().getOpenId());
+        result.setPath(orderListUrl);
+        WxOrderDetailDTO detail = new WxOrderDetailDTO();
+        List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
+        trade.getTradeItems().forEach(tradeItem -> {
+            productInfoDTOS.add(WxProductInfoDTO.builder()
+                    .outProductId(tradeItem.getSpuId())
+                    .outSkuId(tradeItem.getSkuId())
+                    .productNum(tradeItem.getNum())
+                    .salePrice(tradeItem.getOriginalPrice().multiply(new BigDecimal(100)).intValue())
+                    .realPrice(tradeItem.getSplitPrice().multiply(new BigDecimal(100)).intValue())
+                    .title(tradeItem.getSkuName())
+                    .path(goodsDetailUrl+tradeItem.getSpuId())
+                    .headImg(StringUtils.isEmpty(tradeItem.getPic())?defaultImageUrl:tradeItem.getPic()).build());
+        });
+        detail.setProductInfos(productInfoDTOS);
+
+        detail.setPayInfo(WxPayInfoDTO.builder().payMethodType(0)
+                .prepayId(trade.getId())
+                .prepayTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1)).build());
+
+        WxPriceInfoDTO priceInfo = new WxPriceInfoDTO();
+        if(trade.getTradePrice().getTotalPrice()!=null) {
+            priceInfo.setOrderPrice(trade.getTradePrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        if(trade.getTradePrice().getDeliveryPrice()!=null) {
+            priceInfo.setFreight(trade.getTradePrice().getDeliveryPrice().multiply(new BigDecimal(100)).intValue());
+        }
+        detail.setPriceInfo(priceInfo);
+
+        WxAddressInfoDTO addressInfo = new WxAddressInfoDTO();
+        addressInfo.setCity(trade.getConsignee().getCityName());
+        addressInfo.setReceiverName(trade.getConsignee().getName());
+        addressInfo.setDetailedAddress(trade.getConsignee().getDetailAddress());
+        addressInfo.setProvince(trade.getConsignee().getProvinceName());
+        addressInfo.setTown(trade.getConsignee().getAreaName());
+        addressInfo.setTelNumber(trade.getConsignee().getPhone());
+        result.setAddressInfo(addressInfo);
+        result.setOrderDetail(detail);
+        return result;
+    }
+
+
+    public PaymentParamsDTO getPaymentParams(Trade trade){
+        WxOrderDetailRequest  request =new WxOrderDetailRequest();
+        request.setOpenid(trade.getBuyer().getOpenId());
+        request.setOutOrderId(trade.getId());
+        BaseResponse<GetPaymentParamsResponse> response = wxOrderApiController.getPaymentParams(request);
+        if(response == null ||  response.getContext().getPaymentParams() == null){
+            return null;
+        }
+        return response.getContext().getPaymentParams();
+    }
 
 }

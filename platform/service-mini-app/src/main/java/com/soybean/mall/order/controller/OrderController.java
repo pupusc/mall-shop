@@ -3,7 +3,9 @@ package com.soybean.mall.order.controller;
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
+import com.soybean.mall.order.api.request.order.GetPaymentParamsRequest;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
+import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.order.common.DefaultPayBatchRequest;
 import com.soybean.mall.order.common.PayServiceHelper;
 import com.soybean.mall.order.request.TradeItemConfirmRequest;
@@ -12,6 +14,7 @@ import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
+import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -120,6 +123,7 @@ public class OrderController {
     @Autowired
     private WxPayProvider wxPayProvider;
 
+
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
 
@@ -187,23 +191,30 @@ public class OrderController {
             return wxOrderPaymentVO;
         }
         //生成预支付订单
-        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
-        req.setAppid(appId);
-        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
-        if(prepayResult == null || prepayResult.getContext().isEmpty()){
+        GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
+        getPaymentParamsRequest.setTid(trades.get(0).getId());
+        BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
+        if(response== null && response.getContext() == null){
             return wxOrderPaymentVO;
         }
-        wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
-        wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
+        wxOrderPaymentVO = KsBeanUtil.convert(response.getContext(),WxOrderPaymentVO.class);
+//        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
+//        req.setAppid(appId);
+//        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+//        if(prepayResult == null || prepayResult.getContext().isEmpty()){
+//            return wxOrderPaymentVO;
+//        }
+//        wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+//        wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
         wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-        String prepayId = prepayResult.getContext().get("package");
+        String prepayId = wxOrderPaymentVO.getPrepayId();
         String ppid = "";
         if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
             ppid = prepayId.substring(10,prepayId.length());
         }
-        wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+        //wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
         wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
-        wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
+        //wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
         wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         return wxOrderPaymentVO;
     }

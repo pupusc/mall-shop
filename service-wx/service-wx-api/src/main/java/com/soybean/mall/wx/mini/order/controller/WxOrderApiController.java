@@ -2,6 +2,7 @@ package com.soybean.mall.wx.mini.order.controller;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
+import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -54,5 +55,5 @@ public interface WxOrderApiController {
 
 
     @PostMapping("/order/getpaymentparams")
-    BaseResponse<WxResponseBase> getPaymentParams(@RequestBody WxOrderDetailRequest request);
+    BaseResponse<GetPaymentParamsResponse> getPaymentParams(@RequestBody WxOrderDetailRequest request);
 }

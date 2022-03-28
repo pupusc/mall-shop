@@ -10,6 +10,7 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
 import com.soybean.mall.wx.mini.goods.bean.response.*;
 import com.soybean.mall.wx.mini.order.bean.request.*;
+import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -283,12 +284,12 @@ public class WxService {
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
-    public WxResponseBase getPaymentParams(WxOrderDetailRequest request){
+    public GetPaymentParamsResponse getPaymentParams(WxOrderDetailRequest request){
         String accessToken = getAccessToken();
         String url = GET_PAYMENT_PARAMS_URL.concat("?access_token=").concat(accessToken);
 
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+        return sendRequest(url, HttpMethod.POST, entity, GetPaymentParamsResponse.class);
     }
 }

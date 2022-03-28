@@ -1,8 +1,10 @@
 package com.soybean.mall.order.api.provider.order;
 
 import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
+import com.soybean.mall.order.api.request.order.GetPaymentParamsRequest;
 import com.soybean.mall.order.api.request.order.TradeOrderReportRequest;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
+import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
@@ -50,5 +52,8 @@ public interface MiniAppOrderProvider {
      */
     @GetMapping("/order/${application.order.version}/trade/get-wx-order-report-cache")
     BaseResponse<MiniProgramOrderReportVO> getOrderReportCache();
+
+    @PostMapping("/order/${application.order.version}/trade/get-wx-order-payment-params")
+    BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(@RequestBody GetPaymentParamsRequest request);
 
 }

@@ -2,10 +2,13 @@ package com.soybean.mall.order.provider.impl.order;
 
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
 import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
+import com.soybean.mall.order.api.request.order.GetPaymentParamsRequest;
 import com.soybean.mall.order.api.request.order.TradeOrderReportRequest;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
+import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.wx.mini.order.bean.dto.PaymentParamsDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -29,6 +32,8 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
     @Autowired
     private WxOrderService wxOrderService;
+
+
 
     /**
      * 同步订单到微信
@@ -61,5 +66,12 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
     @Override
     public BaseResponse<MiniProgramOrderReportVO> getOrderReportCache() {
         return BaseResponse.success(wxOrderService.getMiniProgramOrderReportCache());
+    }
+
+
+    @Override
+    public BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(GetPaymentParamsRequest request) {
+        PaymentParamsDTO paymentParamsDTO = tradeOrderService.createWxOrderAndGetPaymentsParmas(request.getTid())
+        return BaseResponse.success(KsBeanUtil.convert(paymentParamsDTO,WxOrderPaymentParamsVO.class));
     }
 }

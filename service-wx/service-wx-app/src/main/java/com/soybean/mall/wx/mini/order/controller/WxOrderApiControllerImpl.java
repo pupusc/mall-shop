@@ -2,6 +2,7 @@ package com.soybean.mall.wx.mini.order.controller;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
+import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -49,7 +50,7 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     }
 
     @Override
-    public BaseResponse<WxResponseBase> getPaymentParams(WxOrderDetailRequest request) {
+    public BaseResponse<GetPaymentParamsResponse> getPaymentParams(WxOrderDetailRequest request) {
         return BaseResponse.success(wxService.getPaymentParams(request));
     }
 }
