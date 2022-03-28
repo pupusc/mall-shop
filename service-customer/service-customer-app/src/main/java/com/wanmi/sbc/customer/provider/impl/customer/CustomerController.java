@@ -1,7 +1,6 @@
 package com.wanmi.sbc.customer.provider.impl.customer;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAddRequest;
@@ -19,8 +18,7 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerModifyResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomersDeleteResponse;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailToEsVO;
-import com.wanmi.sbc.customer.counselor.model.root.Counselor;
-import com.wanmi.sbc.customer.counselor.repository.CounselorRepository;
+import com.wanmi.sbc.customer.redis.RedisService;
 import com.wanmi.sbc.customer.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,8 +34,10 @@ public class CustomerController implements CustomerProvider {
     @Autowired
     private CustomerService customerService;
 
+//    @Autowired
+//    private  CounselorRepository counselorRepository;
     @Autowired
-    private  CounselorRepository counselorRepository;
+    private RedisService redisService;
     /**
      * 审核客户状态
      *
@@ -170,11 +170,13 @@ public class CustomerController implements CustomerProvider {
      */
     @Override
     public BaseResponse isCounselor(@RequestParam Integer userId) {
+        redisService.hset()
+
         Counselor counselor = counselorRepository.getCounselorByUserId(userId);
         if (counselor == null) {
             return BaseResponse.SUCCESSFUL();
         }
-        CounselorDto counselorDto = KsBeanUtil.copyPropertiesThird(counselor, CounselorDto.class);
+        CounselorDto counselorDto = new CounselorDto();
         return BaseResponse.success(counselorDto);
     }
 
