@@ -29,4 +29,6 @@ public class WxOrderPaymentVO implements Serializable {
 
     private String orderInfoStr;
 
+    private Boolean couponFlag;
+
 }
