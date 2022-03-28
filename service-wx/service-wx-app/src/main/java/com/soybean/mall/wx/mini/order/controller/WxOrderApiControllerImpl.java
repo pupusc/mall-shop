@@ -48,4 +48,8 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
         return BaseResponse.success(wxService.createAfterSale(request));
     }
 
+    @Override
+    public BaseResponse<WxResponseBase> getPaymentParams(WxOrderDetailRequest request) {
+        return BaseResponse.success(wxService.getPaymentParams(request));
+    }
 }

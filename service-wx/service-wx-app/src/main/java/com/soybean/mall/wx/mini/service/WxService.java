@@ -48,6 +48,8 @@ public class WxService {
     private static final String AFTER_SALE_URL="https://api.weixin.qq.com/shop/aftersale/add";
     private static final String UPLOAD_IMG_URL="https://api.weixin.qq.com/shop/img/upload";
     private static final String SEND_MESSAGE_URL="https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
+    private static final String GET_PAYMENT_PARAMS_URL=" https://api.weixin.qq.com/shop/order/getpaymentparams";
+
     private static final HttpHeaders defaultHeader;
     static {
         defaultHeader = new HttpHeaders();
@@ -281,4 +283,12 @@ public class WxService {
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
+    public WxResponseBase getPaymentParams(WxOrderDetailRequest request){
+        String accessToken = getAccessToken();
+        String url = GET_PAYMENT_PARAMS_URL.concat("?access_token=").concat(accessToken);
+
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
 }

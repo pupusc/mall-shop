@@ -52,4 +52,7 @@ public interface WxOrderApiController {
     @PostMapping("/aftersale/add")
     BaseResponse<WxResponseBase> createAfterSale(@RequestBody WxCreateAfterSaleRequest request);
 
+
+    @PostMapping("/order/getpaymentparams")
+    BaseResponse<WxResponseBase> getPaymentParams(@RequestBody WxOrderDetailRequest request);
 }
