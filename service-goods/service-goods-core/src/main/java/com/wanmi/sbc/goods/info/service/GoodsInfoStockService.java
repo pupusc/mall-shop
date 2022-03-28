@@ -131,7 +131,7 @@ public class GoodsInfoStockService {
      * 批量更新库存
      * @param goodsInfoStockSyncRequestList
      */
-    @Transactional
+//    @Transactional
     public List<GoodsInfoStockSyncProviderResponse> batchUpdateGoodsInfoStock(List<GoodsInfoStockSyncRequest> goodsInfoStockSyncRequestList){
         List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(goodsInfoStockSyncRequestList)) {
