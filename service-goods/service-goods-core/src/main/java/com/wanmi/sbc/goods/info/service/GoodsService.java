@@ -3502,17 +3502,17 @@ public class GoodsService {
 
     public String getGoodsId(List<String> goodsInfoIds){
         if(CollectionUtils.isEmpty(goodsInfoIds)) {
-            List<Goods> goods = goodsRepository.findSpuId();
-            return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+            Goods goods = goodsRepository.findSpuId();
+            return goods != null ? goods.getGoodsId() : "";
         }else {
-            List<Goods> goods = goodsRepository.findSpuId(goodsInfoIds);
-            return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+            Goods goods = goodsRepository.findSpuId(goodsInfoIds);
+            return goods != null ? goods.getGoodsId() : "";
         }
     }
 
     public String getByClassidyId(Integer classifyId){
-        List<Goods> goods = goodsRepository.findFirstByClassify(classifyId);
-        return CollectionUtils.isNotEmpty(goods) ? goods.get(0).getGoodsId() : "";
+        Goods goods = goodsRepository.findFirstByClassify(classifyId);
+        return goods != null ? goods.getGoodsId() : "";
     }
 
     @Transactional

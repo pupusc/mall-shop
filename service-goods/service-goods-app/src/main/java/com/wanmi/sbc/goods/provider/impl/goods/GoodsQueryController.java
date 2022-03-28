@@ -665,7 +665,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
     }
 
     @Override
-    public BaseResponse<String> getGoodsId(@RequestBody List<String> goodsInfoIds) {
+    public BaseResponse<String> getGoodsId(List<String> goodsInfoIds) {
         return BaseResponse.success(goodsService.getGoodsId(goodsInfoIds));
     }
 
