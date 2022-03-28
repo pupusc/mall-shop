@@ -1,4 +1,5 @@
 package com.wanmi.sbc.job;
+import com.google.common.collect.Lists;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -13,6 +14,7 @@ import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
 import com.wanmi.sbc.feishu.constant.FeiShuMessageConstant;
 import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
@@ -110,7 +112,13 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 maxTmpId = Long.parseLong(maxTmpIdRedis);
             }
             log.info("ERPGoodsStockSyncJobHandler param goodsIdList {} pageSize:{} maxId: {}", JSON.toJSONString(goodsIdList), pageSize, maxTmpId);
-            BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> result = goodsProvider.guanYiSyncGoodsStock(goodsIdList, "", maxTmpId, pageSize);
+            GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+            guanYiSyncGoodsStockRequest.setGoodsIdList(goodsIdList);
+            guanYiSyncGoodsStockRequest.setStartTime("");
+            guanYiSyncGoodsStockRequest.setMaxTmpId(maxTmpId);
+            guanYiSyncGoodsStockRequest.setPageSize(pageSize);
+            
+            BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> result = goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
             GoodsInfoStockSyncMaxIdProviderResponse context = result.getContext();
             if (!CollectionUtils.isEmpty(context.getGoodsInfoStockSyncList())) {
 

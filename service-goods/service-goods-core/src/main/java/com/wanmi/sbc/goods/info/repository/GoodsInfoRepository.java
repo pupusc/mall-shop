@@ -10,7 +10,6 @@ import com.wanmi.sbc.goods.info.model.entity.GoodsInfoParams;
 import com.wanmi.sbc.goods.info.model.entity.GoodsMarketingPrice;
 import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import io.swagger.models.auth.In;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -551,6 +550,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      * @return
      */
     @Modifying
+    @Transactional
     @Query(value = "update GoodsInfo gi set gi.costPrice=?1, gi.stock=?2 where gi.goodsInfoId=?3")
     int updateCostPriceAndStockById(BigDecimal costPrice, Long stock, String goodsInfoId);
 }

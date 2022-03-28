@@ -144,7 +144,7 @@ public class GoodsInfoStockService {
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
-        infoQueryRequest.setErpGoodsNos(new ArrayList<>(skuCode2GoodsInfoStockSyncMap.keySet()));
+        infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(skuCode2GoodsInfoStockSyncMap.keySet()));
         List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
         for (GoodsInfo goodsInfoParam : goodsInfoList) {
             GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam = skuCode2GoodsInfoStockSyncMap.get(goodsInfoParam.getErpGoodsInfoNo());

@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
@@ -280,8 +281,7 @@ public interface GoodsProvider {
 //                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
 
     @PostMapping("/goods/${application.goods.version}/guanyiyun/batch-sync-goods-stock")
-     BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock (@RequestParam("goodsIdList") List<String> goodsIdList, @RequestParam("startTime") String startTime,
-                                        @RequestParam("maxTmpId") long maxTmpId, @RequestParam("pageSize") int pageSize);
+     BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock (@RequestBody GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest);
 
     /**
      * 同步商品库存

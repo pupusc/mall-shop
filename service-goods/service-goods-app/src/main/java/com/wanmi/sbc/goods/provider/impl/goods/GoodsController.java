@@ -18,6 +18,7 @@ import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
@@ -670,8 +671,8 @@ public class GoodsController implements GoodsProvider {
 
 
     @Override
-    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(List<String> goodsIdList, String startTime, long maxTmpId, int pageSize){
-        return BaseResponse.success(goodsStockService.batchUpdateStock(goodsIdList, startTime, maxTmpId, pageSize));
+    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
+        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.getStartTime(), guanYiSyncGoodsStockRequest.getMaxTmpId(), guanYiSyncGoodsStockRequest.getPageSize()));
     }
 
     @Override

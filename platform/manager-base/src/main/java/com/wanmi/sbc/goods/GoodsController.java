@@ -1,4 +1,5 @@
 package com.wanmi.sbc.goods;
+import com.google.common.collect.Lists;
 
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -40,6 +41,7 @@ import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
@@ -251,7 +253,13 @@ public class GoodsController {
                 .orElse(null);
 
         //同步库存 不判断是否自动同步，交给同步方法处理
-        goodsProvider.guanYiSyncGoodsStock(Collections.singletonList(goodsId), "", 0, 0);
+        GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+        guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
+        guanYiSyncGoodsStockRequest.setStartTime("");
+        guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+        guanYiSyncGoodsStockRequest.setPageSize(0);
+        
+        goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
 
 
         //ares埋点-商品-后台添加商品sku
@@ -466,7 +474,13 @@ public class GoodsController {
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
 
         //同步库存 不判断是否自动同步，交给同步方法处理
-        goodsProvider.guanYiSyncGoodsStock(Collections.singletonList(request.getGoods().getGoodsId()), "", 0, 0);
+        GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+        guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(request.getGoods().getGoodsId()));
+        guanYiSyncGoodsStockRequest.setStartTime("");
+        guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+        guanYiSyncGoodsStockRequest.setPageSize(0);
+
+        goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
 
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {
@@ -1179,7 +1193,13 @@ public class GoodsController {
 
         goodsProvider.modifyAddedStatus(request);
         //批量库存和价格同步
-        goodsProvider.guanYiSyncGoodsStock(request.getGoodsIds(), "", 0, 0);
+        GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+        guanYiSyncGoodsStockRequest.setGoodsIdList(request.getGoodsIds());
+        guanYiSyncGoodsStockRequest.setStartTime("");
+        guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+        guanYiSyncGoodsStockRequest.setPageSize(0);
+
+        goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
         //更新ES
         esGoodsInfoElasticProvider.updateAddedStatus(EsGoodsInfoModifyAddedStatusRequest.builder().
                 addedFlag(AddedFlag.YES.toValue()).goodsIds(request.getGoodsIds()).goodsInfoIds(null).build());
