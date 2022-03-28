@@ -226,5 +226,5 @@ public interface GoodsQueryProvider {
     BaseResponse<String> getGoodsId(@RequestBody List<String> goodsInfoIds);
 
     @PostMapping("/goods/${application.goods.version}/get-by-classify")
-    BaseResponse<String> getGoodsIdByClassify(@RequestParam Integer classifyId);
+    BaseResponse<String> getGoodsIdByClassify(@RequestParam("classifyId") Integer classifyId);
 }
