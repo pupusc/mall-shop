@@ -190,35 +190,28 @@ public class OrderController {
             wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
             return wxOrderPaymentVO;
         }
-        //生成预支付订单
+
         GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
         getPaymentParamsRequest.setTid(trades.get(0).getId());
         BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
-        if(response== null || response.getContext() == null){
+        //生成预支付订单
+        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
+        req.setAppid(appId);
+        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+        if(prepayResult == null || prepayResult.getContext().isEmpty()){
             return wxOrderPaymentVO;
         }
-        wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
-        wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
-        wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
-        wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
-        wxOrderPaymentVO.setSignType(response.getContext().getSignType());
-//        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
-//        req.setAppid(appId);
-//        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
-//        if(prepayResult == null || prepayResult.getContext().isEmpty()){
-//            return wxOrderPaymentVO;
-//        }
-//        wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
-//        wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
+        wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+        wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
         wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
         String prepayId = wxOrderPaymentVO.getPrepayId();
         String ppid = "";
         if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
             ppid = prepayId.substring(10,prepayId.length());
         }
-        //wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+        wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
         wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
-        //wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
+        wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
         wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         return wxOrderPaymentVO;
     }
