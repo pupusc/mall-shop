@@ -290,6 +290,7 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     void updateStockByProviderGoodsIds(Long stock, List<String> providerGoodsIds);
 
     @Modifying
+    @Transactional
     @Query("update Goods set stock=?1 where erpGoodsNo = ?2")
     void updateStockByErpGoodsNo(Long stock, String erpGoodsNo);
 
