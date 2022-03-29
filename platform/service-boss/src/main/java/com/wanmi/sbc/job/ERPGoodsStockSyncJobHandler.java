@@ -94,7 +94,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
         try {
             List<String> goodsIdList = new ArrayList<>();
             Integer pageSize = 80;
-            long maxTmpId = 0;
+            Long maxTmpId = -1L;
             try {
                 if (!StringUtils.isEmpty(param)) {
                     String[] split = param.split(",");
@@ -107,10 +107,14 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
             } catch (Exception ex) {
                 log.error("ERPGoodsStockSyncJobHandler param error ", ex);
             }
-            String maxTmpIdRedis = stringRedisTemplate.opsForValue().get(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID);
-            if (!StringUtils.isEmpty(maxTmpIdRedis)) {
-                maxTmpId = Long.parseLong(maxTmpIdRedis);
+            if (maxTmpId == -1) {
+                String maxTmpIdRedis = stringRedisTemplate.opsForValue().get(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID);
+                if (!StringUtils.isEmpty(maxTmpIdRedis)) {
+                    maxTmpId = Long.parseLong(maxTmpIdRedis);
+                }
             }
+
+
             log.info("ERPGoodsStockSyncJobHandler param goodsIdList {} pageSize:{} maxId: {}", JSON.toJSONString(goodsIdList), pageSize, maxTmpId);
             GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
             guanYiSyncGoodsStockRequest.setGoodsIdList(goodsIdList);
@@ -196,19 +200,21 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
                     if (newRate.compareTo(new BigDecimal("10")) <0) {
-                        String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(),
+                        String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
                                 p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
                         feiShuSendMessageService.sendMessage(content);
                     }
                 }
-
-                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, String.valueOf(context.getMaxTmpId()));
-            } else {
-                //重制redis
-                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, "0");
             }
 
-            //更新ES库存 TODO
+            if (maxTmpId == context.getMaxTmpId() && context.getMaxTmpId() > 0) {
+                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, "0");
+            } else {
+                stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, String.valueOf(context.getMaxTmpId()));
+            }
+
+
+
 
 //            Map<String, Map<String, Integer>> context = baseResponse.getContext();
 //            if(!baseResponse.getContext().isEmpty()){

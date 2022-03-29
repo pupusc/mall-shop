@@ -478,7 +478,7 @@ public class GoodsStockService {
         stockSyncQueryRequest.setPageSize(pageSize);
         Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(),
                 stockSyncQueryRequest.getPageRequest());
-        if(stockPage == null || CollectionUtils.isEmpty(stockPage.getContent())){
+        if(CollectionUtils.isEmpty(stockPage.getContent())){
             return resultMap;
         }
         List<GoodsStockSync> goodsStockList = stockPage.getContent();
