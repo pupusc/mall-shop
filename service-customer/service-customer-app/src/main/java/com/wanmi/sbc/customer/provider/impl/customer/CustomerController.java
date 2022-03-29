@@ -177,19 +177,19 @@ public class CustomerController implements CustomerProvider {
      * @return
      */
     @Override
-    public BaseResponse isCounselor(@RequestParam Integer userNo) {
-        String isKnowledgeUser = redisService.getString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userNo);
+    public BaseResponse isCounselor(Integer userId) {
+        String isKnowledgeUser = redisService.getString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId);
         if (StringUtils.isBlank(isKnowledgeUser) || "true".equals(isKnowledgeUser)) {
             FanDengKnowledgeRequest request = new FanDengKnowledgeRequest();
-            request.setUserNo(userNo.toString());
+            request.setUserNo(userId.toString());
             BaseResponse<FanDengKnowledgeResponse> response = externalService.getKnowledgeByFanDengNo(request);
             if (response.getContext() == null) {
-                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userNo, "false", 24 * 60 * 60);
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "false", 24 * 60 * 60);
                 return BaseResponse.SUCCESSFUL();
             } else {
                 CounselorDto counselorDto = new CounselorDto();
                 counselorDto.setProfit(response.getContext().getBeans().intValue());
-                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userNo, "true", 24 * 60 * 60);
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "true", 24 * 60 * 60);
                 return BaseResponse.success(counselorDto);
             }
         } else {
