@@ -182,7 +182,7 @@ public class GoodsInfoStockService {
                 this.resetStockByGoodsInfoId(goodsInfoStockSyncRequestParam.getErpStockQty().longValue(), goodsInfoParam.getGoodsInfoId(), Long.parseLong(actualStockQty+""));
             } else if (!goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新成本价不更新库存
-                if (goodsInfoStockSyncResponse.getErpCostPrice().compareTo(goodsInfoStockSyncResponse.getCurrentCostPrice()) != 0) {
+                if (goodsInfoStockSyncRequestParam.getErpCostPrice().compareTo(goodsInfoParam.getCostPrice()) != 0) {
                     //成本不一致
                     goodsInfoRepository.updateCostPriceById(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncResponse.getErpCostPrice());
                 }
