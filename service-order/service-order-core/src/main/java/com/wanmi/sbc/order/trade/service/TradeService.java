@@ -4599,7 +4599,7 @@ public class TradeService {
                     .payWay(payWay)
                     .storeId(trade.getSupplier().getStoreId())
                     .supplierId(trade.getSupplier().getSupplierId())
-                    .tradeTime(payOrder.getReceiveTime())
+                    .tradeTime(payOrder!=null && payOrder.getReceiveTime()!=null?payOrder.getReceiveTime():LocalDateTime.now())
                     .type((byte) 0)
                     .build();
             accountRecordProvider.add(record);
@@ -8003,6 +8003,29 @@ public class TradeService {
         log.info("===========查询对账积分金额：{}===============",pointsPrice);
 
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
+    }
+
+    /**
+     * s视频号微信支付回调
+     * @param tid
+     */
+    public void wxPayCallBack(String tid){
+        List<Trade> trades =new ArrayList<>();
+        Trade trade = tradeService.detail(tid);
+        if(trade == null || !Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+            return;
+        }
+        trades.add(trade);
+        if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
+                .getPayState() == PayState.PAID)){
+            //同一批订单重复支付或过期作废，直接退款
+            //wxRefundHandle(wxPayResultResponse, businessId,tradePayOnlineCallBackRequest.getStoreId());
+        } else {
+            Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
+                    .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
+            payCallBack(tid,trade.getTradePrice().getTotalPrice(),operator,PayWay.WECHAT);
+        }
+
     }
 
 

@@ -821,6 +821,9 @@ public class TradeController implements TradeProvider {
         return BaseResponse.success(new OrderCommitResponse(KsBeanUtil.convert(results, OrderCommitResultVO.class)));
     }
 
-
-
+    @Override
+    public BaseResponse wxPayCallBack(WxTradePayCallBackRequest request) {
+        tradeService.wxPayCallBack(request.getOrderId());
+        return BaseResponse.SUCCESSFUL();
+    }
 }
