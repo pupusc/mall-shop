@@ -291,8 +291,8 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
 
     @Modifying
     @Transactional
-    @Query("update Goods set stock=?1 where erpGoodsNo = ?2")
-    void updateStockByErpGoodsNo(Long stock, String erpGoodsNo);
+    @Query("update Goods set stock=?1 where goodsId = ?2")
+    void updateStockByErpGoodsId(Long stock, String goodsId);
 
     @Modifying
     @Query(value = "UPDATE goods SET cate_id=:cateId WHERE goods_source=:source AND third_cate_id=:thirdCateId",nativeQuery = true)

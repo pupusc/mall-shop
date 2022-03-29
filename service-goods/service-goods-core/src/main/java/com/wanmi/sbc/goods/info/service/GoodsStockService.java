@@ -279,9 +279,9 @@ public class GoodsStockService {
         if (CollectionUtils.isNotEmpty(tmpResult)) {
             //更新goods库存
             Map<String, Integer> erpSpuCode2ActualStockQtyMap =
-                    tmpResult.stream().collect(Collectors.groupingBy(GoodsInfoStockSyncProviderResponse::getErpSpuCode, Collectors.summingInt(GoodsInfoStockSyncProviderResponse::getActualStockQty)));
+                    tmpResult.stream().collect(Collectors.groupingBy(GoodsInfoStockSyncProviderResponse::getSkuId, Collectors.summingInt(GoodsInfoStockSyncProviderResponse::getActualStockQty)));
             erpSpuCode2ActualStockQtyMap.forEach((K, V) -> {
-                goodsRepository.updateStockByErpGoodsNo(Long.valueOf(V), K);
+                goodsRepository.updateStockByErpGoodsId(Long.valueOf(V), K);
             });
         }
         GoodsInfoStockSyncMaxIdProviderResponse result = new GoodsInfoStockSyncMaxIdProviderResponse();
