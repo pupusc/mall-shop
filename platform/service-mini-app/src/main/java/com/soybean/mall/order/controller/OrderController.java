@@ -194,7 +194,7 @@ public class OrderController {
         GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
         getPaymentParamsRequest.setTid(trades.get(0).getId());
         BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
-        if(response== null && response.getContext() == null){
+        if(response== null || response.getContext() == null){
             return wxOrderPaymentVO;
         }
         wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
