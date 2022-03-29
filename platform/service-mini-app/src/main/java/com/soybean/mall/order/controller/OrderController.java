@@ -197,7 +197,11 @@ public class OrderController {
         if(response== null && response.getContext() == null){
             return wxOrderPaymentVO;
         }
-        wxOrderPaymentVO = KsBeanUtil.convert(response.getContext(),WxOrderPaymentVO.class);
+        wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
+        wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
+        wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
+        wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
+        wxOrderPaymentVO.setSignType(response.getContext().getSignType());
 //        WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
 //        req.setAppid(appId);
 //        BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
