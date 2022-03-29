@@ -531,6 +531,6 @@ public class Goods {
     @Column(name = "deliver_notice")
     private String deliverNotice;
     
-    @Column(name = "tmp_id")
-    private long tmpId;
+//    @Column(name = "tmp_id")
+//    private Long tmpId;
 }

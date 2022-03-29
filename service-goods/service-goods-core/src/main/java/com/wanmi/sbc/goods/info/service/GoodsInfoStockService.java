@@ -138,6 +138,7 @@ public class GoodsInfoStockService {
             return result;
         }
         Map<String, GoodsInfoStockSyncRequest> skuCode2GoodsInfoStockSyncMap = new HashMap<>();
+//        Map<String, GoodsInfoStockSyncRequest> skuCode2GoodsInfoCostPriceSyncMap = new HashMap<>();
         for (GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam : goodsInfoStockSyncRequestList) {
             skuCode2GoodsInfoStockSyncMap.put(goodsInfoStockSyncRequestParam.getErpSkuCode(), goodsInfoStockSyncRequestParam);
         }
@@ -175,7 +176,7 @@ public class GoodsInfoStockService {
             if (goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新库存和成本价
                 this.resetStockCostPriceByGoodsInfoId(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncRequestParam.getErpStockQty().longValue(),
-                        Long.parseLong(actualStockQty+""), goodsInfoStockSyncResponse.getErpCostPrice());
+                        Long.parseLong(actualStockQty+""), goodsInfoStockSyncRequestParam.getErpCostPrice());
             } else if (goodsInfoStockSyncResponse.isCanSyncStock() && !goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新库存但不更新成本价
                 this.resetStockByGoodsInfoId(goodsInfoStockSyncRequestParam.getErpStockQty().longValue(), goodsInfoParam.getGoodsInfoId(), Long.parseLong(actualStockQty+""));
@@ -197,7 +198,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
                 goodsInfoStockSyncResponse.setCurrentStockQty(goodsInfoParam.getStock().intValue());
                 goodsInfoStockSyncResponse.setCurrentCostPrice(goodsInfoParam.getCostPrice());
-                goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getCostPrice());
+                goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getErpCostPrice());
                 goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
                 goodsInfoStockSyncResponse.setSpuId(goodsInfoParam.getGoodsId());
                 goodsInfoStockSyncResponse.setSkuId(goodsInfoParam.getGoodsInfoId());

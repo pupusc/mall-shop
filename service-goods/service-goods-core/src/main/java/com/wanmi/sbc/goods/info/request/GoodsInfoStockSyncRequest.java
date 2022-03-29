@@ -49,5 +49,5 @@ public class GoodsInfoStockSyncRequest {
     /**
      * 成本价
      */
-    private BigDecimal costPrice;
+    private BigDecimal erpCostPrice;
 }

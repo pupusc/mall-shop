@@ -13,14 +13,12 @@ import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderReque
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
@@ -255,8 +253,6 @@ public class GoodsStockService {
         long beginTime = System.currentTimeMillis();
         String providerId = defaultProviderId; //管易云
         List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
-        long tmpMaxTmpId = maxTmpId;
-        List<Goods> goodsList;
         if (!CollectionUtils.isEmpty(goodsIdList)) {
             GoodsQueryRequest goodsQueryRequest = new GoodsQueryRequest();
             goodsQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
@@ -265,17 +261,32 @@ public class GoodsStockService {
             if (StringUtils.isNotBlank(providerId)) {
                 goodsQueryRequest.setProviderId(providerId);
             }
-            goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
+            List<Goods> goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
+
+            for (Goods goodsParam : goodsList) {
+                tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getErpGoodsNo(), startTime));
+            }
         } else {
-            goodsList = goodsRepository.listByMaxAutoId(providerId, maxTmpId, pageSize);
+            List<Map<String, Object>> goodsList = goodsRepository.listByMaxAutoId(providerId, maxTmpId, pageSize);
+            for (Map<String, Object> goodsParam : goodsList) {
+                String erpGoodsNo = "";
+                Long tmpId = null;
+                for (Map.Entry<String, Object> entry : goodsParam.entrySet()) {
+                    if ("erp_goods_no".equals(entry.getKey())) {
+                        erpGoodsNo = entry.getValue().toString();
+                    }
+                    if ("tmp_id".equals(entry.getKey())) {
+                        tmpId = Long.parseLong(entry.getValue().toString());
+                    }
+                }
+                tmpResult.addAll(this.executeBatchUpdateStock(erpGoodsNo, startTime));
+                if (tmpId!= null && maxTmpId < tmpId) {
+                    maxTmpId = tmpId;
+                }
+            }
+
         }
 
-        for (Goods goodsParam : goodsList) {
-            tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getErpGoodsNo(), startTime));
-            if (tmpMaxTmpId < goodsParam.getTmpId()) {
-                tmpMaxTmpId = goodsParam.getTmpId();
-            }
-        }
         if (CollectionUtils.isNotEmpty(tmpResult)) {
             //更新goods库存
             Map<String, Integer> erpSpuCode2ActualStockQtyMap =
@@ -309,12 +320,12 @@ public class GoodsStockService {
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(
                 Collections.singletonList(GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode()));
         GoodsBlackListPageProviderResponse goodsBlackListPageProviderResponse = goodsBlackListService.listNoPage(goodsBlackListPageProviderRequest);
-        if (goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel().getGoodsIdList())) {
-            unStaticsKey.addAll(goodsBlackListPageProviderResponse.getUnVipPriceBlackListModel().getNormalList());
+        if (goodsBlackListPageProviderResponse.getWareHouseListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList())) {
+            unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
         }
 
         Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
-        Map<String, BigDecimal> erpSkuCode2ErpCostPriceQtyMap = new HashMap<>();
+//        Map<String, BigDecimal> erpSkuCode2ErpCostPriceQtyMap = new HashMap<>();
         for (ERPGoodsInfoVO erpGoodsInfoVo : erpStockInfo.getStocks()) {
             if (erpGoodsInfoVo.getDel() || unStaticsKey.contains(erpGoodsInfoVo.getWarehouseCode())) {
                 log.info("GoodsStockService batchUpdateStock  itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
@@ -326,11 +337,11 @@ public class GoodsStockService {
             int tmpStockQty = stockQty == null ? erpGoodsInfoVo.getQty() : stockQty + erpGoodsInfoVo.getQty();
             erpSkuCode2ErpStockQtyMap.put(erpGoodsInfoVo.getSkuCode(), tmpStockQty);
 
-            BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoVo.getSkuCode());
-            erpCostPrice = erpCostPrice == null ? BigDecimal.ZERO : erpCostPrice;
-            if (erpGoodsInfoVo.getCostPrice() != null && erpGoodsInfoVo.getCostPrice().compareTo(erpCostPrice) > 0) {
-                erpSkuCode2ErpCostPriceQtyMap.put(erpGoodsInfoVo.getSkuCode(), erpGoodsInfoVo.getCostPrice());
-            }
+//            BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoVo.getSkuCode());
+//            erpCostPrice = erpCostPrice == null ? BigDecimal.ZERO : erpCostPrice;
+//            if (erpGoodsInfoVo.getCostPrice() != null && erpGoodsInfoVo.getCostPrice().compareTo(erpCostPrice) > 0) {
+//                erpSkuCode2ErpCostPriceQtyMap.put(erpGoodsInfoVo.getSkuCode(), erpGoodsInfoVo.getCostPrice());
+//            }
         }
 
         //获取sku 库存状态
@@ -352,7 +363,8 @@ public class GoodsStockService {
 
             int erpStockQty = 9999;
             if (Arrays.asList("1", "3").contains(erpGoodsInfoParam.getStockStatusCode())) {
-                erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode());
+                erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
+                        ? 0 : erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode());
             } else if (Arrays.asList("0", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
                 isCalculateStock = false;
             } else {
@@ -365,9 +377,9 @@ public class GoodsStockService {
             goodsInfoStockSyncRequest.setErpSkuCode(erpGoodsInfoParam.getSkuCode());
             goodsInfoStockSyncRequest.setIsCalculateStock(isCalculateStock);
             goodsInfoStockSyncRequest.setErpStockQty(erpStockQty);
-            BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null ?
-                    BigDecimal.ZERO : erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoParam.getSkuCode());
-            goodsInfoStockSyncRequest.setCostPrice(erpCostPrice);
+//            BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null ?
+//                    BigDecimal.ZERO : erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoParam.getSkuCode());
+            goodsInfoStockSyncRequest.setErpCostPrice(erpGoodsInfoParam.getCostPrice() == null ? BigDecimal.ZERO : erpGoodsInfoParam.getCostPrice());
             goodsInfoStockSyncRequestList.add(goodsInfoStockSyncRequest);
         }
         return goodsInfoStockService.batchUpdateGoodsInfoStock(goodsInfoStockSyncRequestList);

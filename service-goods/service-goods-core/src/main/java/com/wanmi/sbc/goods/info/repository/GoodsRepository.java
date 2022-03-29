@@ -429,6 +429,6 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * @param providerId
      * @return
      */
-    @Query(value = "select * from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 limit ?3", nativeQuery = true)
-    List<Goods> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
+    @Query(value = "select tmp_id, erp_goods_no from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
+    List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }
