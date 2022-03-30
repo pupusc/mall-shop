@@ -164,6 +164,8 @@ public class GoodsInfoStockService {
                 } else {
                     actualStockQty = goodsInfoStockSyncRequestParam.getErpStockQty();
                 }
+            } else {
+                actualStockQty = goodsInfoParam.getStock().intValue();
             }
 
 
