@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.order.enums.MiniProgramSceneType;
 import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
@@ -15,6 +16,7 @@ import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -403,8 +405,12 @@ public class WxOrderService {
      *
      * @param returnOrder
      */
-    public void addECAfterSale(ReturnOrder returnOrder, Integer miniProgramScene) {
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene, 2)) {
+    public void addEcAfterSale(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             return;
         }
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
@@ -422,7 +428,7 @@ public class WxOrderService {
             productInfo.setProductCnt(item.getNum());
             request.setProductInfo(productInfo);
             try {
-                BaseResponse<WxResponseBase> response = wxOrderApiController.createNewAfterSale(request);
+                BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
                 log.info("微信小程序创建售后request:{},response:{}", request, response);
             } catch (Exception e) {
                 log.error("微信小程序创建售后失败，returnOrder:{},item:{}", returnOrder, item, e);
@@ -434,8 +440,12 @@ public class WxOrderService {
     /**
      * 同意退款
      */
-    public void acceptRefundAfterSale(ReturnOrder returnOrder, Integer miniProgramScene) {
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene, 2)) {
+    public void acceptRefundAfterSale(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             return;
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
@@ -452,8 +462,12 @@ public class WxOrderService {
     /**
      * 同意退款
      */
-    public void cancelAfterSale(ReturnOrder returnOrder, Integer miniProgramScene) {
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene, 2)) {
+    public void cancelAfterSale(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             return;
         }
         WxDealAftersaleNeedOpenidRequest request = new WxDealAftersaleNeedOpenidRequest();
@@ -472,8 +486,12 @@ public class WxOrderService {
     /**
      * 售后-同意退货
      */
-    public void acceptReturnAfterSale(ReturnOrder returnOrder, Integer miniProgramScene) {
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene, 2)) {
+    public void acceptReturnAfterSale(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             return;
         }
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
@@ -490,8 +508,12 @@ public class WxOrderService {
     /**
      * 售后-同意退货
      */
-    public void rejectAfterSale(ReturnOrder returnOrder, Integer miniProgramScene) {
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene, 2)) {
+    public void rejectAfterSale(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             return;
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
