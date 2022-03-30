@@ -152,6 +152,8 @@ public class GoodsInfoStockService {
             if (goodsInfoStockSyncRequestParam == null) {
                 continue;
             }
+            //设置价格默认值
+            goodsInfoParam.setCostPrice(goodsInfoParam.getCostPrice() == null ? BigDecimal.ZERO : goodsInfoParam.getCostPrice());
             int actualStockQty = 0;
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
             //表示同步库存
@@ -184,7 +186,7 @@ public class GoodsInfoStockService {
                 //更新成本价不更新库存
                 if (goodsInfoStockSyncRequestParam.getErpCostPrice().compareTo(goodsInfoParam.getCostPrice()) != 0) {
                     //成本不一致
-                    goodsInfoRepository.updateCostPriceById(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncResponse.getErpCostPrice());
+                    goodsInfoRepository.updateCostPriceById(goodsInfoParam.getGoodsInfoId(), goodsInfoStockSyncRequestParam.getErpCostPrice());
                 }
             } else {
                 isAddResult = false;
