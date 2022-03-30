@@ -733,7 +733,7 @@ public class CouponCodeService {
                 redisTemplate.opsForValue().set(key, "1", Duration.between(now, tomorrow).toMillis(), TimeUnit.MILLISECONDS);
             }else {
                 if(couponActivity.getReceiveCount() - Integer.parseInt(fetchThisDay.toString()) <= 0){
-                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已领取");
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已达领取上限咯~");
                 }
                 redisTemplate.opsForValue().increment(key);
             }

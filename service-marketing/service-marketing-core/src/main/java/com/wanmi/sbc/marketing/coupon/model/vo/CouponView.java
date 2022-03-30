@@ -109,7 +109,7 @@ public class CouponView {
     /**
      * 一天限领一次的券今日是否已领取
      */
-    private Boolean hasFetchToday;
+    private Boolean canFetchMore;
 
     /**
      * 优惠券是否开始
@@ -237,7 +237,7 @@ public class CouponView {
                     .effectiveDays(item.getCouponInfo().getEffectiveDays())
                     .couponStarted(couponStarted)
                     .hasFetched(hasFetched)
-                    .hasFetchToday(item.getHasFetchToday())
+                    .canFetchMore(item.getCanFetchMore())
                     .leftFlag(leftFlag)
                     .fetchPercent(fetchPercent)
                     .couponWillEnd(couponWillEnd)
@@ -257,9 +257,6 @@ public class CouponView {
                     .activityCountDown(activityCountDown)
                     .activityWillEnd(activityWillEnd)
                     .build();
-            if(item.getHasFetchToday() != null){
-                build.setHasFetched(item.getHasFetchToday());
-            }
             return build;
         }).collect(Collectors.toList());
     }

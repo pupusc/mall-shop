@@ -242,12 +242,12 @@ public class CouponCacheService {
                 String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
                 String o = redisService.getString(key);
                 if(o == null){
-                    couponCache.setHasFetchToday(false);
+                    couponCache.setCanFetchMore(true);
                 }else {
                     if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
-                        couponCache.setHasFetchToday(true);
+                        couponCache.setCanFetchMore(false);
                     }else{
-                        couponCache.setHasFetchToday(false);
+                        couponCache.setCanFetchMore(true);
                     }
                 }
             }
