@@ -131,6 +131,13 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 List<GoodsInfoStockSyncProviderResponse> stockSendMessageList = new ArrayList<>();
                 List<GoodsInfoStockSyncProviderResponse> costPriceList = new ArrayList<>();
                 for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : context.getGoodsInfoStockSyncList()) {
+
+                    //删除缓存
+                    String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
+                    if (StringUtils.isNotBlank(goodsDetailInfo)) {
+                        redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
+                    }
+
                     //只是处理需要同步库存商品
                     if (goodsInfoStockSyncParam.isCanSyncStock()) {
                         //计算skuCode 数量
@@ -170,11 +177,6 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 if (CollectionUtils.isNotEmpty(costPriceList)) {
                     List<String> skuIdCostPriceList = new ArrayList<>();
                     for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : costPriceList) {
-                        //删除缓存
-                        String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
-                        if (StringUtils.isNotBlank(goodsDetailInfo)) {
-                            redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
-                        }
                         skuIdCostPriceList.add(goodsInfoStockSyncParam.getSkuId());
                     }
                     //更新成本价
