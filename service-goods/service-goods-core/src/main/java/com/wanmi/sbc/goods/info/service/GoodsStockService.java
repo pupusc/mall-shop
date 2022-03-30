@@ -333,8 +333,8 @@ public class GoodsStockService {
                 continue;
             }
 
-            Integer stockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoVo.getSkuCode());
-            int tmpStockQty = stockQty == null ? erpGoodsInfoVo.getQty() : stockQty + erpGoodsInfoVo.getQty();
+            Integer saleableStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoVo.getSkuCode());
+            int tmpStockQty = saleableStockQty == null ? erpGoodsInfoVo.getSalableQty() : saleableStockQty + erpGoodsInfoVo.getSalableQty();
             erpSkuCode2ErpStockQtyMap.put(erpGoodsInfoVo.getSkuCode(), tmpStockQty);
 
 //            BigDecimal erpCostPrice = erpSkuCode2ErpCostPriceQtyMap.get(erpGoodsInfoVo.getSkuCode());
