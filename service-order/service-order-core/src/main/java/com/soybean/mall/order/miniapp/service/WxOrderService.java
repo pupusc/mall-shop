@@ -333,7 +333,10 @@ public class WxOrderService {
         result.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
         result.setOpenid(trade.getBuyer().getOpenId());
         result.setPath(orderListUrl);
-        result.setFundType(1);
+        result.setFundType(0);
+        if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(),2)){
+            result.setFundType(1);
+        }
         result.setExpireTime(LocalDateTime.now().plusHours(2).toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();

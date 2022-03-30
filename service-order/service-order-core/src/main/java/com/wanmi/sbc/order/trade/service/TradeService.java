@@ -1403,6 +1403,7 @@ public class TradeService {
                                     .cycleBuyInfo(group.getCycleBuyInfo())
                                     .promoteUserId(tradeCommitRequest.getPromoteUserId())
                                     .source(tradeCommitRequest.getSource())
+                                    .miniProgramScene(tradeCommitRequest.getMiniProgramScene())
                                     .build()));
                 }
         );
@@ -2009,6 +2010,7 @@ public class TradeService {
         // 推广人用户id
         trade.setPromoteUserId(tradeParams.getPromoteUserId());
         trade.setSource(tradeParams.getSource());
+        trade.setMiniProgramScene(tradeParams.getMiniProgramScene());
         log.info("==================周期购订单1：{}===============",trade);
 
 
