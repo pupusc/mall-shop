@@ -206,7 +206,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                     }
                 }
             }
-
+            log.info("ERPGoodsStockSyncJobHandler result maxTmpId: {}, content.MaxTmpId: {}", maxTmpId, context.getMaxTmpId());
             if (maxTmpId == context.getMaxTmpId() && context.getMaxTmpId() > 0) {
                 stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, "0");
             } else {
