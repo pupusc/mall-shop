@@ -53,6 +53,7 @@ public class WxService {
     private static final String AFTER_SALE_CANCEL_URL="https://api.weixin.qq.com/shop/ecaftersale/cancel";
     private static final String AFTER_SALE_ACCEPT_REFUND_URL="https://api.weixin.qq.com/shop/ecaftersale/acceptrefund";
     private static final String AFTER_SALE_ACCEPT_RETURN_URL="https://api.weixin.qq.com/shop/ecaftersale/acceptreturn";
+    private static final String AFTER_SALE_REJECT_URL="https://api.weixin.qq.com/shop/ecaftersale/reject";
     private static final String AFTER_SALE_DETAIL_URL="https://api.weixin.qq.com/shop/ecaftersale/get";
     private static final String UPLOAD_IMG_URL="https://api.weixin.qq.com/shop/img/upload";
     private static final String SEND_MESSAGE_URL="https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
@@ -294,29 +295,39 @@ public class WxService {
     /**
      * 售后单-同意退款🤮
      */
-    public WxResponseBase acceptRefundAfterSale(String returnOrder){
+    public WxResponseBase acceptRefundAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
         String url = AFTER_SALE_ACCEPT_REFUND_URL.concat("?access_token=").concat(getAccessToken());
-        String reqJsonStr = "{\"out_aftersale_id\":\""+returnOrder+"\"}";
+        String reqJsonStr = JSONObject.toJSONString(wxDealAftersaleRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
     /**
-     * 售后单-售后详情🤮
+     * 售后单-同意退货🤮
      */
-    public WxDetailAfterSaleResponse acceptReturnAfterSale(String returnOrder){
+    public WxResponseBase acceptReturnAfterSale(WxAcceptReturnAftersaleRequest wxAcceptReturnAftersaleRequest){
         String url = AFTER_SALE_ACCEPT_RETURN_URL.concat("?access_token=").concat(getAccessToken());
-        String reqJsonStr = "{\"out_aftersale_id\":\""+returnOrder+"\"}";
+        String reqJsonStr = JSONObject.toJSONString(wxAcceptReturnAftersaleRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        return sendRequest(url, HttpMethod.POST, entity, WxDetailAfterSaleResponse.class);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 售后单-拒绝售后🤮
+     */
+    public WxResponseBase rejectAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
+        String url = AFTER_SALE_REJECT_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(wxDealAftersaleRequest);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
     /**
      * 售后单-取消售后🤮
      */
-    public WxResponseBase cancelAfterSale(String openid, String returnOrder){
+    public WxResponseBase cancelAfterSale(WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest){
         String url = AFTER_SALE_CANCEL_URL.concat("?access_token=").concat(getAccessToken());
-        String reqJsonStr = "{\"out_aftersale_id\":\""+returnOrder+"\",\"openid\":\""+openid+"\"}";
+        String reqJsonStr = JSONObject.toJSONString(wxDealAftersaleNeedOpenidRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
@@ -324,9 +335,9 @@ public class WxService {
     /**
      * 售后单-售后详情🤮
      */
-    public WxDetailAfterSaleResponse detailAfterSale(String returnOrder){
+    public WxDetailAfterSaleResponse detailAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
         String url = AFTER_SALE_DETAIL_URL.concat("?access_token=").concat(getAccessToken());
-        String reqJsonStr = "{\"out_aftersale_id\":\""+returnOrder+"\"}";
+        String reqJsonStr = JSONObject.toJSONString(wxDealAftersaleRequest);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxDetailAfterSaleResponse.class);
     }

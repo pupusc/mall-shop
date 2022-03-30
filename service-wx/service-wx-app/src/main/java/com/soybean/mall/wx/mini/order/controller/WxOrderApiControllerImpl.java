@@ -3,7 +3,9 @@ package com.soybean.mall.wx.mini.order.controller;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -57,22 +59,32 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     }
 
     @Override
-    public BaseResponse<WxResponseBase> createNewAfterSale(@RequestBody WxCreateNewAfterSaleRequest request){
+    public BaseResponse<WxCreateNewAfterSaleResponse> createNewAfterSale(@RequestBody WxCreateNewAfterSaleRequest request){
         return BaseResponse.success(wxService.createNewAfterSale(request));
     }
 
     @Override
-    public BaseResponse<WxResponseBase> acceptRefundAfterSale(String returnOrder){
-        return BaseResponse.success(wxService.acceptRefundAfterSale(returnOrder));
+    public BaseResponse<WxResponseBase> acceptRefundAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
+        return BaseResponse.success(wxService.acceptRefundAfterSale(wxDealAftersaleRequest));
     }
 
     @Override
-    public BaseResponse<WxResponseBase> cancelAfterSale(String openid, String returnOrder){
-        return BaseResponse.success(wxService.cancelAfterSale(openid, returnOrder));
+    public BaseResponse<WxResponseBase> cancelAfterSale(WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest){
+        return BaseResponse.success(wxService.cancelAfterSale(wxDealAftersaleNeedOpenidRequest));
     }
 
     @Override
-    public BaseResponse<WxResponseBase> detailAfterSale(String returnOrder){
-        return BaseResponse.success(wxService.detailAfterSale(returnOrder));
+    public BaseResponse<WxDetailAfterSaleResponse> detailAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
+        return BaseResponse.success(wxService.detailAfterSale(wxDealAftersaleRequest));
+    }
+
+    @Override
+    public BaseResponse<WxResponseBase> acceptReturnAfterSale(WxAcceptReturnAftersaleRequest wxAcceptReturnAftersaleRequest){
+        return BaseResponse.success(wxService.acceptReturnAfterSale(wxAcceptReturnAftersaleRequest));
+    }
+
+    @Override
+    public BaseResponse<WxResponseBase> rejectAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
+        return BaseResponse.success(wxService.rejectAfterSale(wxDealAftersaleRequest));
     }
 }
