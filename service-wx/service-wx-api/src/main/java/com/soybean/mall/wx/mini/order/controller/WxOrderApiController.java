@@ -9,6 +9,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/wx/mini")
 @FeignClient(value = "${application.wx.name}", contextId = "WxOrderApiController")
@@ -53,7 +54,25 @@ public interface WxOrderApiController {
     @PostMapping("/aftersale/add")
     BaseResponse<WxResponseBase> createAfterSale(@RequestBody WxCreateAfterSaleRequest request);
 
-
     @PostMapping("/order/getpaymentparams")
     BaseResponse<GetPaymentParamsResponse> getPaymentParams(@RequestBody WxOrderDetailRequest request);
+
+    /****** 新售后 ******/
+    /**
+     * 创建售后单
+     * @param request
+     * @return
+     */
+    @PostMapping("/aftersale/create")
+    BaseResponse<WxResponseBase> createNewAfterSale(@RequestBody WxCreateNewAfterSaleRequest request);
+
+    /**
+     * 同意退款
+     * @param request
+     * @return
+     */
+    @PostMapping("/aftersale/acceptRefund")
+    BaseResponse<WxResponseBase> acceptRefundAfterSale(@RequestParam("returnOrder") String returnOrder);
+
+
 }
