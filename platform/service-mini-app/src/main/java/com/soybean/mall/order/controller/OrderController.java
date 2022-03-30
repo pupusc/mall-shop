@@ -170,6 +170,9 @@ public class OrderController {
         try {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
+            DistributeChannel channel = new DistributeChannel();
+            channel.setChannelType(ChannelType.MINIAPP);
+            tradeCommitRequest.setDistributeChannel(channel);
             successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {
@@ -177,10 +180,10 @@ public class OrderController {
         } finally {
             rLock.unlock();
         }
-        return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getDistributeChannel().getChannelType()));
+        return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
     }
 
-    private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,ChannelType channelType){
+    private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
         //0元支付不需要生成预支付单
         if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
@@ -188,7 +191,7 @@ public class OrderController {
             return wxOrderPaymentVO;
         }
         //小程序订单
-        if(Objects.equals(channelType,ChannelType.MINIAPP)){
+        if(Objects.equals(miniProgramScene,1)){
             //生成预支付订单
             WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
             req.setAppid(appId);
