@@ -352,9 +352,6 @@ public class WxOrderService {
             map.put("phrase4", new HashMap<String, String>() {{
                 put("value", returnOrder.getReturnFlowState().getDesc());
             }});
-            map.put("thing5", new HashMap<String, String>() {{
-                put("value", Objects.equals(returnOrder.getReturnFlowState(), ReturnFlowState.REJECT_REFUND)?returnOrder.getRejectReason():"");
-            }});
             request.setData(map);
             BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
             log.info("微信小程序售后通知发送消息request:{},response:{}",request,response);
