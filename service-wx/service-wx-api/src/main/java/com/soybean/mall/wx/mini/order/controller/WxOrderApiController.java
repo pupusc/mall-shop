@@ -60,19 +60,27 @@ public interface WxOrderApiController {
     /****** 新售后 ******/
     /**
      * 创建售后单
-     * @param request
-     * @return
      */
     @PostMapping("/aftersale/create")
     BaseResponse<WxResponseBase> createNewAfterSale(@RequestBody WxCreateNewAfterSaleRequest request);
 
     /**
      * 同意退款
-     * @param request
-     * @return
      */
     @PostMapping("/aftersale/acceptRefund")
     BaseResponse<WxResponseBase> acceptRefundAfterSale(@RequestParam("returnOrder") String returnOrder);
+
+    /**
+     * 取消售后
+     */
+    @PostMapping("/aftersale/cancel")
+    BaseResponse<WxResponseBase> cancelAfterSale(@RequestParam("openid") String openid, @RequestParam("returnOrder") String returnOrder);
+
+    /**
+     * 售后单详情
+     */
+    @PostMapping("/aftersale/detail")
+    BaseResponse<WxResponseBase> detailAfterSale(@RequestParam("returnOrder") String returnOrder);
 
 
 }

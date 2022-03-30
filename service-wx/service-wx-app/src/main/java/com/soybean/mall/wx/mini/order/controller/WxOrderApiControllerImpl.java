@@ -65,4 +65,14 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     public BaseResponse<WxResponseBase> acceptRefundAfterSale(String returnOrder){
         return BaseResponse.success(wxService.acceptRefundAfterSale(returnOrder));
     }
+
+    @Override
+    public BaseResponse<WxResponseBase> cancelAfterSale(String openid, String returnOrder){
+        return BaseResponse.success(wxService.cancelAfterSale(openid, returnOrder));
+    }
+
+    @Override
+    public BaseResponse<WxResponseBase> detailAfterSale(String returnOrder){
+        return BaseResponse.success(wxService.detailAfterSale(returnOrder));
+    }
 }
