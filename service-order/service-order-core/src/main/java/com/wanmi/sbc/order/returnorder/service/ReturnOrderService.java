@@ -173,6 +173,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -366,6 +367,9 @@ public class ReturnOrderService {
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
 
     /**
@@ -1272,6 +1276,7 @@ public class ReturnOrderService {
                         newReturnOrder.getBuyer().getAccount()
                 );
             }
+            wxOrderService.addECAfterSale(newReturnOrder,trade.getMiniProgramScene());
 
         }
         return returnOrderId;
