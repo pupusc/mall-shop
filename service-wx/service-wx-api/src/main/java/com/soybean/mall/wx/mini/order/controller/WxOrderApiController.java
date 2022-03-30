@@ -93,7 +93,7 @@ public interface WxOrderApiController {
     /**
      * 售后-拒绝售后
      */
-    @PostMapping("/aftersale/accept-return")
+    @PostMapping("/aftersale/reject")
     BaseResponse<WxResponseBase> rejectAfterSale(@RequestBody WxDealAftersaleRequest wxDealAftersaleRequest);
 
 }
