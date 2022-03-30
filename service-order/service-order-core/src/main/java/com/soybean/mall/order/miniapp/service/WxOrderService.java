@@ -12,10 +12,8 @@ import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
-import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
+import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
+import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
@@ -23,7 +21,9 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.redis.RedisService;
+import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -389,6 +390,38 @@ public class WxOrderService {
             return null;
         }
         return response.getContext().getPaymentParams();
+    }
+
+
+    /**
+     * 创建售后单-视频号
+     * @param returnOrder
+     */
+    public void addECAfterSale(ReturnOrder returnOrder,Integer miniProgramScene){
+        if(!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(miniProgramScene,2)){
+            return;
+        }
+        WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
+        request.setOutOrderId(returnOrder.getTid());
+        request.setOutAftersaleId(returnOrder.getId());
+        request.setOpenid(returnOrder.getBuyer().getOpenId());
+        request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
+        request.setRefundReason(returnOrder.getReturnReason().getDesc());
+        request.setRefundReasonType(2);
+        returnOrder.getReturnItems().forEach(item->{
+            request.setOrderamt(item.getSplitPrice().multiply(new BigDecimal(item.getNum())).multiply(new BigDecimal(100)).longValue());
+            WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
+            productInfo.setOutProductId(item.getSpuId());
+            productInfo.setOutSkuId(item.getSkuId());
+            productInfo.setProductCnt(item.getNum());
+            request.setProductInfo(productInfo);
+            try {
+                BaseResponse<WxResponseBase> response = wxOrderApiController.createNewAfterSale(request);
+                log.info("微信小程序创建售后request:{},response:{}",request,response);
+            }catch (Exception e){
+                log.error("微信小程序创建售后失败，returnOrder:{},item:{}",returnOrder,item,e);
+            }
+        });
     }
 
 }
