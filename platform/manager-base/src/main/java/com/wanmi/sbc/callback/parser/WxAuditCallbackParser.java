@@ -50,7 +50,7 @@ public class WxAuditCallbackParser implements CommandLineRunner {
                 }
             }
         }catch (Exception e){
-            log.error("解析微信审核回调失败:" + encryptStr, e);
+            log.error("解析微信回调失败:" + encryptStr);
         }
     }
 
@@ -74,7 +74,6 @@ public class WxAuditCallbackParser implements CommandLineRunner {
                 paramMap.put(next.getName(), next.getText());
             }
         }
-        log.info("wx callback params: {}", JSONObject.toJSONString(paramMap));
         return paramMap;
     }
 
