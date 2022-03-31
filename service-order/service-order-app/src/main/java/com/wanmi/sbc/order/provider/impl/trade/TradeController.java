@@ -823,7 +823,7 @@ public class TradeController implements TradeProvider {
 
     @Override
     public BaseResponse wxPayCallBack(WxTradePayCallBackRequest request) {
-        tradeService.wxPayCallBack(request.getOrderId());
+        tradeService.wxPayCallBack(request.getOrderId(),request.getTransationId());
         return BaseResponse.SUCCESSFUL();
     }
 }

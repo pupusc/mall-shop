@@ -8008,27 +8008,89 @@ public class TradeService {
     }
 
     /**
-     * s视频号微信支付回调
+     * s视频号微信支付回调，
      * @param tid
      */
-    public void wxPayCallBack(String tid){
-        List<Trade> trades =new ArrayList<>();
-        Trade trade = tradeService.detail(tid);
-        if(trade == null || !Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
-            return;
-        }
-        trades.add(trade);
-        if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState()
-                .getPayState() == PayState.PAID)){
-            //同一批订单重复支付或过期作废，直接退款
-            //wxRefundHandle(wxPayResultResponse, businessId,tradePayOnlineCallBackRequest.getStoreId());
-        } else {
-            Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
-                    .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
-            payCallBack(tid,trade.getTradePrice().getTotalPrice(),operator,PayWay.WECHAT);
+    @Transactional
+    @GlobalTransactional
+    public void wxPayCallBack(String tid,String transationId) throws Exception{
+        try {
+            log.info("-------------微信支付成功回调,tid：{},transationId:{}------------", tid,transationId);
+            Trade trade = tradeService.detail(tid);
+            if(trade == null || !Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+                return;
+            }
+            // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
+            String lockName = trade.getParentId();
+            //redis锁，防止同一订单重复回调
+            RLock rLock = redissonClient.getFairLock(lockName);
+            rLock.lock();
+            //执行回调
+            try {
+                List<Trade> trades =new ArrayList<>();
+                trades.add(trade);
+                if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState().getPayState() == PayState.PAID)) {
+                    //同一批订单重复支付或过期作废，直接退款
+                    //wxRefundHandle(wxPayResultResponse, businessId, -1L);
+                } else {
+                    wxNewPayCallbackHandle(transationId, tid, trades);
+                }
+                //支付回调处理成功
+                //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+                sensorsDataService.sendPaySuccessEvent(trades);
+                log.info("微信支付异步通知回调end---------");
+            } catch (Exception e) {
+                log.error("微信支付异步通知回调end2---------", e);
+                //支付处理结果回写回执支付结果表
+               // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
+            } finally {
+                //解锁
+                rLock.unlock();
+            }
+        } catch (Exception ex) {
+            //失败回执表更新
+            log.error(ex.getMessage());
         }
 
     }
+
+    /**
+     * 视频号支付回调
+     * @param businessId
+     * @param trades
+     */
+    private void wxNewPayCallbackHandle(String transactionId,String businessId, List<Trade> trades) {
+        //异步回调添加交易数据
+        PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
+        //微信支付订单号--及流水号
+        payTradeRecordRequest.setTradeNo(transactionId);
+        //商户订单号或父单号
+        payTradeRecordRequest.setBusinessId(businessId);
+        payTradeRecordRequest.setResult_code("success");
+        payTradeRecordRequest.setPracticalPrice(trades.get(0).getTradePrice().getTotalPrice());
+        ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
+        channelItemByGatewayRequest.setGatewayName(PayGatewayEnum.WECHAT);
+        PayChannelItemListResponse payChannelItemListResponse =
+                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
+        List<PayChannelItemVO> payChannelItemVOList =
+                payChannelItemListResponse.getPayChannelItemVOList();
+        ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
+        channelItemSaveRequest.setCode("wx_app");
+        payChannelItemVOList.forEach(payChannelItemVO -> {
+            if (channelItemSaveRequest.getCode().equals(payChannelItemVO.getCode())) {
+                //更新支付项
+                payTradeRecordRequest.setChannelItemId(payChannelItemVO.getId());
+            }
+        });
+        //微信支付异步回调添加交易数据
+        payProvider.wxPayCallBack(payTradeRecordRequest);
+        //        //订单 支付单 操作信息
+        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
+                .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
+        payCallbackOnline(trades, operator, false);
+    }
+
+
 
 
 
