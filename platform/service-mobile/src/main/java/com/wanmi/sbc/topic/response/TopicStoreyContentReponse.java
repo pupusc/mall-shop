@@ -30,5 +30,10 @@ public class TopicStoreyContentReponse extends TopicStoreyContentDTO {
 
         @ApiModelProperty(value = "优惠券活动Id",hidden = true)
         private String activityId;
+
+        /**
+         * 一天限领一次的券今日是否已领取
+         */
+        private Boolean canFetchMore;
     }
 }
