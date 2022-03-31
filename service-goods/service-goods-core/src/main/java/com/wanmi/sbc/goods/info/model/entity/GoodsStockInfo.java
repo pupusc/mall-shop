@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 public class GoodsStockInfo implements Serializable {
     private static final long serialVersionUID = 2046269360192727492L;
 
-    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo, BigDecimal costPrice, Integer costPriceSyncFlag, String goodsInfoName, String goodsInfoNo, BigDecimal marketPrice,Integer stockSyncFlag, Integer stockQty) {
+    public GoodsStockInfo(String goodsInfoId, String goodsId, String goodsNo, BigDecimal costPrice, Integer costPriceSyncFlag, String goodsInfoName, String goodsInfoNo, BigDecimal marketPrice,Integer stockSyncFlag, Long stockQty) {
         this.goodsInfoId = goodsInfoId;
         this.goodsId = goodsId;
         this.goodsNo = goodsNo;
@@ -47,5 +47,5 @@ public class GoodsStockInfo implements Serializable {
 
     private BigDecimal marketPrice;
 
-    private Integer stockQty;
+    private Long stockQty;
 }

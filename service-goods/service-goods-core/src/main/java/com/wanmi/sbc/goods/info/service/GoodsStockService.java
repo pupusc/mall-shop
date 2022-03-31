@@ -529,7 +529,7 @@ public class GoodsStockService {
 //        goodsInfoStockSyncProviderResponse.setIsCalculateStock(false);
         goodsInfoStockSyncProviderResponse.setActualStockQty(actualStock.intValue());
         goodsInfoStockSyncProviderResponse.setErpStockQty(stock.getStock());
-        goodsInfoStockSyncProviderResponse.setCurrentStockQty(goodsInfo.getStockQty());
+        goodsInfoStockSyncProviderResponse.setCurrentStockQty(goodsInfo.getStockQty().intValue());
 //        goodsInfoStockSyncProviderResponse.setCanSyncCostPrice(false);
 //        goodsInfoStockSyncProviderResponse.setErpCostPrice(new BigDecimal("0"));
 //        goodsInfoStockSyncProviderResponse.setCurrentMarketPrice(new BigDecimal("0"));
