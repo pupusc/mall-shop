@@ -12,6 +12,8 @@ import com.fangdeng.server.mapper.GoodsCateSyncMapper;
 import com.fangdeng.server.mapper.TagMapper;
 import com.fangdeng.server.mq.ProviderTradeHandler;
 import com.fangdeng.server.service.GoodsService;
+import jdk.nashorn.internal.runtime.regexp.RegExp;
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.ibatis.annotations.Param;
@@ -188,5 +190,17 @@ public class TestController {
         queryDTO.setStime(startTime);
         queryDTO.setEtime(endTime);
         goodsService.syncSpecialPrice(queryDTO);
+    }
+
+    @GetMapping("/url")
+    public Map<String,String> getParam(@RequestParam("url")String url) {
+        String paramsUrl = url.substring(url.indexOf("?"),url.length());
+        String[] params = paramsUrl.split("&");
+        Map<String,String> map = new HashMap<>();
+        for(String param:params){
+            String[] pair = param.split("=");
+            map.put(pair[0],pair[1]);
+        }
+        return map;
     }
 }
