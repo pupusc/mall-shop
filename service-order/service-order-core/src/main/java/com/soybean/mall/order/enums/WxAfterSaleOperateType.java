@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.annotation.ApiEnum;
 @ApiEnum
 public enum WxAfterSaleOperateType {
 
+
     ADD_AFTER_SALE(1,"生成售后单"),
 
     CANCEL(2,"取消售后单"),
@@ -15,7 +16,9 @@ public enum WxAfterSaleOperateType {
 
     REFUND(4,"同意退款"),
 
-    RETURN(5,"同意退货");
+    RETURN(5,"同意退货"),
+
+    OTHER(6,"其他");
 
 
 
