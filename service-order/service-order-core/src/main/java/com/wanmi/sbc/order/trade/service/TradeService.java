@@ -8013,7 +8013,7 @@ public class TradeService {
      */
     @Transactional
     @GlobalTransactional
-    public void wxPayCallBack(String tid,String transationId) throws Exception{
+    public void wxPayCallBack(String tid,String transationId){
         try {
             log.info("-------------微信支付成功回调,tid：{},transationId:{}------------", tid,transationId);
             Trade trade = tradeService.detail(tid);
