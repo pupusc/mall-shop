@@ -696,10 +696,9 @@ public class GoodsController implements GoodsProvider {
 
 
     @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncGoodsStock(goodsInfoListByIdRequest.getPageNum(),
-                goodsInfoListByIdRequest.getPageSize());
-        return BaseResponse.success(resultMap);
+    public BaseResponse<List<GoodsInfoStockSyncProviderResponse>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+        return BaseResponse.success(goodsStockService.syncGoodsStock(goodsInfoListByIdRequest.getPageNum(),
+                goodsInfoListByIdRequest.getPageSize()));
     }
 
     @Override

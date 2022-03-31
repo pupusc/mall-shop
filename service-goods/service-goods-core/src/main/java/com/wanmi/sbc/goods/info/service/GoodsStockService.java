@@ -476,8 +476,8 @@ public class GoodsStockService {
      * @param pageSize
      * @return
      */
-    public Map<String, Map<String, Integer>> syncGoodsStock(int pageNum, int pageSize) {
-        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
+    public List<GoodsInfoStockSyncProviderResponse> syncGoodsStock(int pageNum, int pageSize) {
+        List<GoodsInfoStockSyncProviderResponse> result = new ArrayList<>();
         GoodsStockSyncQueryRequest stockSyncQueryRequest = new GoodsStockSyncQueryRequest();
         stockSyncQueryRequest.setStatus(0);
         if (pageNum >= 0) {
@@ -486,37 +486,55 @@ public class GoodsStockService {
         stockSyncQueryRequest.setPageSize(pageSize);
         Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(), stockSyncQueryRequest.getPageRequest());
         if(CollectionUtils.isEmpty(stockPage.getContent())){
-            return resultMap;
+            return result;
         }
         List<GoodsStockSync> goodsStockList = stockPage.getContent();
         // 3 遍历商品列表并更新sku库存
-        Map<String, Integer> skuStockMap = new HashMap<>();
-        Map<String, Integer> spuStockMap = new HashMap<>();
-        goodsStockList.forEach(stock -> {
-            goodsStockService.updateGoodsStockSingle(stock,skuStockMap,spuStockMap);
-        });
-        resultMap.put("skus", skuStockMap);
-        resultMap.put("spus", spuStockMap);
-        return resultMap;
+        for (GoodsStockSync goodsStockSyncParam : goodsStockList) {
+            GoodsInfoStockSyncProviderResponse goodsInfoStockSync = goodsStockService.updateGoodsStockSingle(goodsStockSyncParam);
+            if (goodsInfoStockSync == null) {
+                continue;
+            }
+            result.add(goodsInfoStockSync);
+        }
+        return result;
     }
 
     @Transactional
-    public void updateGoodsStockSingle(GoodsStockSync stock,Map<String, Integer> skuStockMap,Map<String, Integer> spuStockMap){
+    public GoodsInfoStockSyncProviderResponse updateGoodsStockSingle(GoodsStockSync stock){
         //查询sku信息
         GoodsStockInfo goodsInfo = goodsInfoRepository.findGoodsInfoId(stock.getGoodsNo());
         if (goodsInfo ==null || Objects.equals(goodsInfo.getStockSyncFlag(),0)) {
             goodsStockSyncRepository.updateStatus(stock.getId());
             log.info("updateGoodsStockSingle there is no sku or stock,stockSyncFlag is false, goods:{},goodsInfo:{}", stock,goodsInfo);
-            return;
+            return null;
         }
         Long actualStock = goodsInfoStockService.getActualStock(stock.getStock().longValue(), goodsInfo.getGoodsInfoId());
         goodsInfoStockService.resetStockByGoodsInfoId(stock.getStock().longValue(), goodsInfo.getGoodsInfoId(),actualStock);
-        skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
+//        skuStockMap.put(goodsInfo.getGoodsInfoId(), actualStock.intValue());
         //更新spu库存
         goodsRepository.resetGoodsStockById(actualStock, goodsInfo.getGoodsId());
-        spuStockMap.put(goodsInfo.getGoodsId(), actualStock.intValue());
+//        spuStockMap.put(goodsInfo.getGoodsId(), actualStock.intValue());
         //更新状态
         goodsStockSyncRepository.updateStatus(stock.getId());
+
+        GoodsInfoStockSyncProviderResponse goodsInfoStockSyncProviderResponse = new GoodsInfoStockSyncProviderResponse();
+        goodsInfoStockSyncProviderResponse.setSpuId(goodsInfo.getGoodsId());
+        goodsInfoStockSyncProviderResponse.setSkuId(goodsInfo.getGoodsInfoId());
+//        goodsInfoStockSyncProviderResponse.setErpSpuCode(goodsInfo.getGoodsNo());
+//        goodsInfoStockSyncProviderResponse.setErpSkuCode(goodsInfo.ge);
+        goodsInfoStockSyncProviderResponse.setSkuNo(goodsInfo.getGoodsInfoNo());
+        goodsInfoStockSyncProviderResponse.setSkuName(goodsInfo.getGoodsInfoName());
+//        goodsInfoStockSyncProviderResponse.setCanSyncStock(false);
+//        goodsInfoStockSyncProviderResponse.setIsCalculateStock(false);
+        goodsInfoStockSyncProviderResponse.setActualStockQty(actualStock.intValue());
+        goodsInfoStockSyncProviderResponse.setErpStockQty(stock.getStock());
+        goodsInfoStockSyncProviderResponse.setCurrentStockQty(goodsInfo.getStockQty());
+//        goodsInfoStockSyncProviderResponse.setCanSyncCostPrice(false);
+//        goodsInfoStockSyncProviderResponse.setErpCostPrice(new BigDecimal("0"));
+//        goodsInfoStockSyncProviderResponse.setCurrentMarketPrice(new BigDecimal("0"));
+//        goodsInfoStockSyncProviderResponse.setCurrentCostPrice(new BigDecimal("0"));
+        return goodsInfoStockSyncProviderResponse;
     }
 
 

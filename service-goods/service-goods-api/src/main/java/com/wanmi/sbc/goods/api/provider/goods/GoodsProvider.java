@@ -289,7 +289,7 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+    BaseResponse<List<GoodsInfoStockSyncProviderResponse>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
     /**
      * 同步商品价格

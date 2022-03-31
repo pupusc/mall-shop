@@ -522,7 +522,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     List<String> findExistsErpGoodsInfoNo(List<String> erpGoodsInfoNos);
 
 
-    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag) " +
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag,g.stock) " +
             " from GoodsInfo g where g.erpGoodsNo = ?1 and g.delFlag = 0 ")
     GoodsStockInfo findGoodsInfoId(String erpGoodsNo);
 
