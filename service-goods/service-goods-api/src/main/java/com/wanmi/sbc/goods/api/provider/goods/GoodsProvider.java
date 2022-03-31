@@ -300,6 +300,15 @@ public interface GoodsProvider {
     BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody  GoodsPriceSyncRequest goodsPriceSyncRequest);
 
 
+    /**
+     * 同步商品库存和成本价
+     * @param goodsIdList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-stock-and-cost-price")
+    BaseResponse syncGoodsStockAndCostPrice(@RequestBody List<String> goodsIdList);
+
+
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
 

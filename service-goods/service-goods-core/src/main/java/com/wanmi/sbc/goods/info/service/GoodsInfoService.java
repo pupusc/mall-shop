@@ -2798,10 +2798,43 @@ public class GoodsInfoService {
         List<GoodsSpecialPriceSync> specialPrice = goodsSpecialPriceSyncRepository.findByGoodsNo(new ArrayList<>(erpGoodsNo2GoodsCostPriceMap.keySet()));
         Map<String, GoodsSpecialPriceSync> erpGoodsNo2GoodsSpecailPriceMap
                 = specialPrice.stream().collect(Collectors.toMap(GoodsSpecialPriceSync::getGoodsNo, Function.identity(), (k1, k2) -> k1));
+
+
         for (GoodsInfo goodsInfoParam : goodsInfoList) {
             if (Objects.equals(goodsInfoParam.getCostPriceSyncFlag(), 0)) {
                 continue;
             }
+            BigDecimal costPrice = null;
+            LocalDateTime startTime = null;
+            LocalDateTime endTime =null;
+
+            GoodsSpecialPriceSync goodsSpecialPriceSync = erpGoodsNo2GoodsSpecailPriceMap.get(goodsInfoParam.getErpGoodsNo());
+            if (goodsSpecialPriceSync != null) {
+                costPrice = goodsSpecialPriceSync.getSpecialprice();
+                startTime = goodsSpecialPriceSync.getStartTime();
+                endTime = goodsSpecialPriceSync.getEndTime();
+            }
+
+            if(costPrice == null) {
+                GoodsCostPriceResponse goodsCostPrice = erpGoodsNo2GoodsCostPriceMap.get(goodsInfoParam.getErpGoodsNo());
+                if (goodsCostPrice == null) {
+                    continue;
+                }
+                costPrice = goodsCostPrice.getCostPrice();
+            }
+            log.info("GoodsInfoService bookuuSyncGoodsPrice goodsInfoId:{} erpGoodsNo:{} costPrice:{} goodsInfoParam.costPrice:{}",
+                    goodsInfoParam.getGoodsInfoId(), goodsInfoParam.getErpGoodsNo(), costPrice, goodsInfoParam.getCostPrice());
+            if (costPrice == null) {
+                continue;
+            }
+
+            if (goodsInfoParam.getCostPrice().compareTo(costPrice) == 0) {
+                continue;
+            }
+
+            goodsInfoRepository.updateGoodsPriceById(goodsInfoParam.getGoodsInfoId(),costPrice,startTime,endTime);
+            //更新spu价格
+            goodsRepository.resetGoodsPriceById(goodsInfoParam.getGoodsId(),costPrice);
 
 
         }
