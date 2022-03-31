@@ -4831,26 +4831,27 @@ public class ReturnOrderService {
             }catch (Exception e){
                 log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
             }
-        }
-        //视频号售后
-        switch(operateType){
-            case 1 :
-                wxOrderService.addEcAfterSale(returnOrder);
-                break;
-            case 2:
-                wxOrderService.cancelAfterSale(returnOrder);
-                break;
-            case 3:
-                wxOrderService.rejectAfterSale(returnOrder);
-                break;
-            case 4:
-                wxOrderService.acceptRefundAfterSale(returnOrder);
-                break;
-            case 5:
-                wxOrderService.acceptReturnAfterSale(returnOrder);
-                break;
-            default :
-                break;
+        }else if(Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            //视频号售后
+            switch (operateType) {
+                case 1:
+                    wxOrderService.addEcAfterSale(returnOrder);
+                    break;
+                case 2:
+                    wxOrderService.cancelAfterSale(returnOrder);
+                    break;
+                case 3:
+                    wxOrderService.rejectAfterSale(returnOrder);
+                    break;
+                case 4:
+                    wxOrderService.acceptRefundAfterSale(returnOrder);
+                    break;
+                case 5:
+                    wxOrderService.acceptReturnAfterSale(returnOrder);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
