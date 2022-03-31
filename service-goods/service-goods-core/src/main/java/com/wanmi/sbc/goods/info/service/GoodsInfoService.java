@@ -47,6 +47,10 @@ import com.wanmi.sbc.goods.bean.vo.GoodsCustomerPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bookuu.BooKuuSupplierClient;
+import com.wanmi.sbc.goods.bookuu.request.GoodsCostPriceRequest;
+import com.wanmi.sbc.goods.bookuu.response.GoodsCostPriceResponse;
+import com.wanmi.sbc.goods.bookuu.response.GoodsStockResponse;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
 import com.wanmi.sbc.goods.brand.request.GoodsBrandQueryRequest;
@@ -120,6 +124,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -225,7 +230,7 @@ public class GoodsInfoService {
     private GoodsSpecialPriceSyncRepository goodsSpecialPriceSyncRepository;
 
     @Autowired
-    private GuanyierpProvider guanyierpProvider;
+    private BooKuuSupplierClient booKuuSupplierClient;
     /**
      * SKU分页
      *
@@ -2694,13 +2699,10 @@ public class GoodsInfoService {
     public MicroServicePage<GoodsInfoPriceChangeDTO> syncGoodsPrice(GoodsPriceSyncQueryRequest priceSyncQueryRequest) {
         Page<GoodsPriceSync> pricePage = goodsPriceSyncRepository.findAll(priceSyncQueryRequest.getWhereCriteria(),
                 priceSyncQueryRequest.getPageRequest());
-        MicroServicePage page = new MicroServicePage<>(
-                Collections.emptyList(),
-                PageRequest.of(priceSyncQueryRequest.getPageNum(), priceSyncQueryRequest.getPageSize(), priceSyncQueryRequest.getSort()),
-                0
-        );
+        MicroServicePage<GoodsInfoPriceChangeDTO> page = new MicroServicePage<>(
+                new ArrayList<>(), PageRequest.of(priceSyncQueryRequest.getPageNum(), priceSyncQueryRequest.getPageSize(), priceSyncQueryRequest.getSort()),0);
 
-        if(pricePage == null || CollectionUtils.isEmpty(pricePage.getContent())){
+        if(CollectionUtils.isEmpty(pricePage.getContent())){
              return page;
         }
         page.setTotal(pricePage.getTotalElements());
@@ -2764,6 +2766,52 @@ public class GoodsInfoService {
                 .marketPrice(goodsInfo.getMarketPrice()).build());
         //更新状态
         goodsPriceSyncRepository.updateStatus(price.getId());
+    }
+
+
+    /**
+     * 更新商品价格
+     * @return
+     */
+    public void bookuuSyncGoodsPrice(List<String> goodsIdList) {
+        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+        infoQueryRequest.setGoodsIds(goodsIdList);
+        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            return;
+        }
+
+        GoodsCostPriceRequest request = new GoodsCostPriceRequest();
+        request.setGoodsIdList(goodsIdList);
+        BaseResponse<List<GoodsCostPriceResponse>> goodsCostPriceResponse = booKuuSupplierClient.getGoodsCostPrice(request);
+        List<GoodsCostPriceResponse> context = goodsCostPriceResponse.getContext();
+        if (CollectionUtils.isEmpty(context)) {
+            return;
+        }
+
+        Map<String, GoodsCostPriceResponse> erpGoodsNo2GoodsCostPriceMap =
+                context.stream().collect(Collectors.toMap(GoodsCostPriceResponse::getErpGoodsNo, Function.identity(), (k1, k2) -> k1));
+
+        //促销价
+        List<GoodsSpecialPriceSync> specialPrice = goodsSpecialPriceSyncRepository.findByGoodsNo(new ArrayList<>(erpGoodsNo2GoodsCostPriceMap.keySet()));
+        Map<String, GoodsSpecialPriceSync> erpGoodsNo2GoodsSpecailPriceMap
+                = specialPrice.stream().collect(Collectors.toMap(GoodsSpecialPriceSync::getGoodsNo, Function.identity(), (k1, k2) -> k1));
+        for (GoodsInfo goodsInfoParam : goodsInfoList) {
+            if (Objects.equals(goodsInfoParam.getCostPriceSyncFlag(), 0)) {
+                continue;
+            }
+
+
+        }
+
+
+
+        //查询促销价
+        List<String> erpGoodsNoList = new ArrayList<>();
+
+
     }
 
     /**

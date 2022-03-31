@@ -167,4 +167,17 @@
     </foreach>
 
   </select>
+
+
+  <select id="listByCondition" resultType="com.fangdeng.server.entity.GoodsSyncRelation" >
+    select id, goods_no as goodsNo
+    from goods_sync_relation
+    where deleted = 0
+    <if test="goodsIds != null and goodsIds.size()>0" >
+      and goods_id in
+      <foreach collection="goodsIds" item="item" separator="," open="(" close=")">
+        #{item}
+      </foreach>
+    </if>
+  </select>
 </mapper>

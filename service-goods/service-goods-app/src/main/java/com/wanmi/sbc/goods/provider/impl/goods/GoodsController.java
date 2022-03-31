@@ -298,6 +298,19 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.success(response);
     }
 
+    private String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
+        String path = "0";
+        if (grade == 1) {
+            return path;
+        } else {
+
+            for (int i = 0; i < grade - 1; i++) {
+                path += "|" + categoryChain.get(i).getCategoryId().toString();
+            }
+            return path;
+        }
+    }
+
     @Override
     public BaseResponse<LinkedMallGoodsModifyResponse> linkedmallModify(@Valid LinkedMallGoodsModifyRequest request) {
         List<String> esGoodsInfoIds = new ArrayList<>();
@@ -669,38 +682,24 @@ public class GoodsController implements GoodsProvider {
 //        return BaseResponse.success(resultMap);
 //    }
 
-
-    @Override
-    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
-        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.getStartTime(), guanYiSyncGoodsStockRequest.getMaxTmpId(), guanYiSyncGoodsStockRequest.getPageSize()));
-    }
-
     @Override
     public BaseResponse<Map<String,String>> decryLastStock(Map<String, Long> datas){
         goodsInfoStockService.decryLastStock(datas);
         return BaseResponse.SUCCESSFUL();
     }
 
-    public String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
-        String path = "0";
-        if (grade == 1) {
-            return path;
-        } else {
-
-            for (int i = 0; i < grade - 1; i++) {
-                path += "|" + categoryChain.get(i).getCategoryId().toString();
-            }
-            return path;
-        }
+    @Override
+    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
+        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.getStartTime(), guanYiSyncGoodsStockRequest.getMaxTmpId(), guanYiSyncGoodsStockRequest.getPageSize()));
     }
+
+
 
     @Override
     public BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncGoodsStock(
-                goodsInfoListByIdRequest.getPageNum(),
+        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncGoodsStock(goodsInfoListByIdRequest.getPageNum(),
                 goodsInfoListByIdRequest.getPageSize());
         return BaseResponse.success(resultMap);
-
     }
 
     @Override
@@ -709,6 +708,20 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.success(result);
 
     }
+
+    /**
+     * 同步库存和成本价
+     * @param goodsIdList
+     * @return
+     */
+    public BaseResponse syncGoodsStockAndCostPrice(List<String> goodsIdList){
+        //更新库存
+        goodsStockService.bookuuSyncGoodsStock(goodsIdList);
+        //同步成本价
+
+    }
+
+
 
 //    @Override
 //    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {

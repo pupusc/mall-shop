@@ -44,6 +44,9 @@ public class GoodsStockSyncQueryRequest extends BaseQueryRequest {
             if (status != null) {
                 predicates.add(cbuild.equal(root.get("status"), status));
             }
+            if(CollectionUtils.isNotEmpty(goodsNos)){
+                predicates.add(root.get("goodsNo").in(goodsNos));
+            }
             predicates.add(cbuild.equal(root.get("deleted"), deleted));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
             return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);

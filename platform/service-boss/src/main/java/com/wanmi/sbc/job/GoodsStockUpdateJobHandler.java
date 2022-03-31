@@ -72,10 +72,7 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
             int pageNum = 0;
             for (int i = 0; i < countResponse.getContext(); i += 20) {
                 log.info("同步商品库存,共{}条数据,当前第{}页", countResponse.getContext(), pageNum);
-                GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                        .pageNum(pageNum)
-                        .pageSize(pageSize)
-                        .build();
+                GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder().pageNum(pageNum).pageSize(pageSize).build();
                 BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncGoodsStock(goodsInfoListByIdRequest);
                 Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
                 ++pageNum;

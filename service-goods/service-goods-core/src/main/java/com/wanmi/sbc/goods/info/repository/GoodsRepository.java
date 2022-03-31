@@ -5,7 +5,6 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.info.model.root.Goods;
-import com.wanmi.sbc.goods.standard.model.root.StandardGoods;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,12 +12,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.w3c.dom.stylesheets.LinkStyle;
-import sun.awt.SunHints;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品数据源
@@ -292,7 +289,7 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Modifying
     @Transactional
     @Query("update Goods set stock=?1 where goodsId = ?2")
-    void updateStockByErpGoodsId(Long stock, String goodsId);
+    void updateStockByGoodsId(Long stock, String goodsId);
 
     @Modifying
     @Query(value = "UPDATE goods SET cate_id=:cateId WHERE goods_source=:source AND third_cate_id=:thirdCateId",nativeQuery = true)

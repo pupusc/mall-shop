@@ -17,12 +17,17 @@ import com.wanmi.sbc.goods.bean.dto.GoodsMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
+import com.wanmi.sbc.goods.bookuu.BooKuuSupplierClient;
+import com.wanmi.sbc.goods.bookuu.request.GoodsStockRequest;
+import com.wanmi.sbc.goods.bookuu.response.GoodsStockResponse;
 import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
+import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsInfoStockSyncRequest;
 import com.wanmi.sbc.goods.info.request.GoodsQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
@@ -42,9 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,8 +83,13 @@ public class GoodsStockService {
     @Autowired
     private GoodsBlackListService goodsBlackListService;
 
+    @Autowired
+    private BooKuuSupplierClient booKuuSupplierClient;
+
     @Value("${default.providerId}")
     private String defaultProviderId;
+
+
 
     /**
      * 批量加库存
@@ -289,10 +297,10 @@ public class GoodsStockService {
 
         if (CollectionUtils.isNotEmpty(tmpResult)) {
             //更新goods库存
-            Map<String, Integer> erpSpuCode2ActualStockQtyMap =
+            Map<String, Integer> spuId2ActualStockQtyMap =
                     tmpResult.stream().collect(Collectors.groupingBy(GoodsInfoStockSyncProviderResponse::getSpuId, Collectors.summingInt(GoodsInfoStockSyncProviderResponse::getActualStockQty)));
-            erpSpuCode2ActualStockQtyMap.forEach((K, V) -> {
-                goodsRepository.updateStockByErpGoodsId(Long.valueOf(V), K);
+            spuId2ActualStockQtyMap.forEach((K, V) -> {
+                goodsRepository.updateStockByGoodsId(Long.valueOf(V), K);
             });
         }
         GoodsInfoStockSyncMaxIdProviderResponse result = new GoodsInfoStockSyncMaxIdProviderResponse();
@@ -476,8 +484,7 @@ public class GoodsStockService {
             stockSyncQueryRequest.setPageNum(pageNum);
         }
         stockSyncQueryRequest.setPageSize(pageSize);
-        Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(),
-                stockSyncQueryRequest.getPageRequest());
+        Page<GoodsStockSync> stockPage = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria(), stockSyncQueryRequest.getPageRequest());
         if(CollectionUtils.isEmpty(stockPage.getContent())){
             return resultMap;
         }
@@ -490,7 +497,6 @@ public class GoodsStockService {
         });
         resultMap.put("skus", skuStockMap);
         resultMap.put("spus", spuStockMap);
-        log.info("resultMap====================>:{}", resultMap);
         return resultMap;
     }
 
@@ -511,6 +517,105 @@ public class GoodsStockService {
         spuStockMap.put(goodsInfo.getGoodsId(), actualStock.intValue());
         //更新状态
         goodsStockSyncRepository.updateStatus(stock.getId());
+    }
+
+
+    /**
+     * 指定商品同步库存
+     */
+    public void bookuuSyncGoodsStock(List<String> goodsIdList) {
+
+        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+        infoQueryRequest.setGoodsIds(goodsIdList);
+        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            return;
+        }
+
+        //获取库存
+        GoodsStockRequest request = new GoodsStockRequest();
+        request.setGoodsIdList(goodsIdList);
+        BaseResponse<List<GoodsStockResponse>> goodsStock = booKuuSupplierClient.getGoodsStock(request);
+        List<GoodsStockResponse> context = goodsStock.getContext();
+        if (CollectionUtils.isEmpty(context)) {
+            return;
+        }
+
+        Map<String, Integer> erpGoodsNo2StockQtyMap = new HashMap<>();
+        for (GoodsStockResponse goodsStockResponse : context) {
+            erpGoodsNo2StockQtyMap.put(goodsStockResponse.getErpGoodsNo(), goodsStockResponse.getStockQty());
+        }
+
+
+        for (GoodsInfo goodsInfoParam : goodsInfoList) {
+            if (Objects.equals(goodsInfoParam.getStockSyncFlag(),0)) {
+                continue;
+            }
+            Integer stockQty = erpGoodsNo2StockQtyMap.get(goodsInfoParam.getErpGoodsNo());
+            stockQty = stockQty == null ? 0 : stockQty;
+
+            Long actualStock = goodsInfoStockService.getActualStock(stockQty.longValue(), goodsInfoParam.getGoodsInfoId());
+            goodsInfoStockService.resetStockByGoodsInfoId(stockQty.longValue(), goodsInfoParam.getGoodsInfoId(), actualStock);
+            //更新状态
+            goodsStockSyncRepository.updateStatusByErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+
+            goodsRepository.updateStockByGoodsId(actualStock, goodsInfoParam.getGoodsId());
+        }
+
+//        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
+//        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+//        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
+//        infoQueryRequest.setGoodsIds(goodsIdList);
+//        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
+//
+//        List<GoodsInfo> filterGoodsInfoList = new ArrayList<>();
+//        List<String> filterErpGoodsInfoNoList = new ArrayList<>();
+//        Map<String, Long> goodsId2StockQtyMap = new HashMap<>();
+//        for (GoodsInfo goodsInfoParam : goodsInfoList) {
+//            if (Objects.equals(goodsInfoParam.getStockSyncFlag(),0)) {
+//                Long goodsIdStockQty = goodsId2StockQtyMap.get(goodsInfoParam.getGoodsId());
+//                goodsIdStockQty = goodsIdStockQty == null ? 0 : goodsIdStockQty + goodsInfoParam.getStock();
+//                goodsId2StockQtyMap.put(goodsInfoParam.getGoodsId(), goodsIdStockQty);
+//                goodsStockSyncRepository.updateStatusByErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+//                log.info("bookuuSyncGoodsStock goodsInfoId:{} erpGoodsInfoNo:{} stockSyncFlag : 0 continue", JSON.toJSONString(goodsIdList), goodsInfoParam.getErpGoodsInfoNo());
+//                continue;
+//            }
+//            filterErpGoodsInfoNoList.add(goodsInfoParam.getErpGoodsInfoNo());
+//            filterGoodsInfoList.add(goodsInfoParam);
+//        }
+//
+//        //同步库存
+//        GoodsStockSyncQueryRequest stockSyncQueryRequest = new GoodsStockSyncQueryRequest();
+////        stockSyncQueryRequest.setStatus(0);
+//        stockSyncQueryRequest.setDeleted(0);
+//        stockSyncQueryRequest.setGoodsNos(filterErpGoodsInfoNoList);
+//        List<GoodsStockSync> goodsStockSyncList = goodsStockSyncRepository.findAll(stockSyncQueryRequest.getWhereCriteria());
+//        Map<String, GoodsStockSync> erpGoodsInfoNo2GoodsStockSyncMap = new HashMap<>();
+//        for (GoodsStockSync goodsStockSync : goodsStockSyncList) {
+//            erpGoodsInfoNo2GoodsStockSyncMap.put(goodsStockSync.getGoodsNo(), goodsStockSync);
+//        }
+//
+//        for (GoodsInfo goodsInfoParam : filterGoodsInfoList) {
+//            GoodsStockSync goodsStockSync = erpGoodsInfoNo2GoodsStockSyncMap.get(goodsInfoParam.getErpGoodsInfoNo());
+//            if (goodsStockSync == null) {
+//                log.info("bookuuSyncGoodsStock goodsInfoId:{} goodsStockSync is null continue", JSON.toJSONString(goodsInfoIdList));
+//                continue;
+//            }
+//
+//            Long actualStock = goodsInfoStockService.getActualStock(goodsStockSync.getStock().longValue(), goodsInfoParam.getGoodsInfoId());
+//            goodsInfoStockService.resetStockByGoodsInfoId(goodsStockSync.getStock().longValue(), goodsInfoParam.getGoodsInfoId(), actualStock);
+//            //更新状态
+//            goodsStockSyncRepository.updateStatusByErpGoodsInfoNo(goodsInfoParam.getErpGoodsInfoNo());
+//
+//            Long goodsIdStockQty = goodsId2StockQtyMap.get(goodsInfoParam.getGoodsId());
+//            goodsIdStockQty = goodsIdStockQty == null ? actualStock : goodsIdStockQty + actualStock;
+//            goodsId2StockQtyMap.put(goodsInfoParam.getGoodsId(), goodsIdStockQty);
+//        }
+//        goodsId2StockQtyMap.forEach((K, V) -> {
+//            goodsRepository.updateStockByGoodsId(Long.valueOf(V), K);
+//        });
     }
 
 }
