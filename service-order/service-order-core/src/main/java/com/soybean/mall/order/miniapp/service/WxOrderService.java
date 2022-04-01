@@ -13,6 +13,7 @@ import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
+import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleReasonType;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
@@ -23,6 +24,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -418,8 +420,8 @@ public class WxOrderService {
         request.setOutAftersaleId(returnOrder.getId());
         request.setOpenid(returnOrder.getBuyer().getOpenId());
         request.setType(Objects.equals(ReturnType.RETURN, returnOrder.getReturnType()) ? 2 : 1);
-        request.setRefundReason(returnOrder.getReturnReason().getDesc());
-        request.setRefundReasonType(2);
+        request.setRefundReason(returnOrder.getDescription());
+        request.setRefundReasonType(getReasonType(returnOrder.getReturnReason()));
         returnOrder.getReturnItems().forEach(item -> {
             request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
             WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
@@ -434,6 +436,16 @@ public class WxOrderService {
                 log.error("微信小程序创建售后失败，returnOrder:{},item:{}", returnOrder, item, e);
             }
         });
+    }
+
+    private Integer getReasonType(ReturnReason returnReason){
+        if(Objects.equals(returnReason,ReturnReason.ERRORGOODS)){
+            return WxAfterSaleReasonType.INCORRECT_SELECTION.getId();
+        }
+        if(Objects.equals(returnReason,ReturnReason.WRONGGOODS)){
+            return WxAfterSaleReasonType.NO_LONGER_WANT.getId();
+        }
+        return WxAfterSaleReasonType.OTHERS.getId();
     }
 
 
