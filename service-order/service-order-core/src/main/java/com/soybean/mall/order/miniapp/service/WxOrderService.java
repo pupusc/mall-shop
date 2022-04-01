@@ -457,7 +457,7 @@ public class WxOrderService {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
@@ -479,7 +479,7 @@ public class WxOrderService {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
         WxDealAftersaleNeedOpenidRequest request = new WxDealAftersaleNeedOpenidRequest();
@@ -503,7 +503,7 @@ public class WxOrderService {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
@@ -525,7 +525,7 @@ public class WxOrderService {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
