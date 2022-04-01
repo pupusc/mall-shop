@@ -412,7 +412,7 @@ public class WxOrderService {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) || returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
