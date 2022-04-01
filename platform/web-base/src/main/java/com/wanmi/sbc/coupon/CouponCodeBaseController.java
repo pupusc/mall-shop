@@ -2,6 +2,7 @@ package com.wanmi.sbc.coupon;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.coupon.request.CouponCheckoutBaseRequest;
 import com.wanmi.sbc.coupon.request.CouponFetchBaseRequest;
@@ -19,12 +20,15 @@ import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  *
@@ -33,8 +37,11 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/coupon-code")
 @Api(tags = "CouponCodeBaseController", description = "S2B web公用-我的优惠券API")
+@RefreshScope
 public class CouponCodeBaseController {
 
+    @Value("${coupon.mini.ids:[]}")
+    private List<String> couponIds;
 
     @Autowired
     private CouponCodeQueryProvider couponCodeQueryProvider;
@@ -54,7 +61,10 @@ public class CouponCodeBaseController {
     @RequestMapping(value = "/my-coupon", method = RequestMethod.POST)
     public BaseResponse<CouponCodePageResponse> listMyCouponList(@RequestBody CouponCodePageRequest request){
         request.setCustomerId(commonUtil.getOperatorId());
-
+        String terminal = HttpUtil.getRequest().getHeader("terminal");
+        if("MINIPROGRAM".equals(terminal)){
+            request.setCouponIds(couponIds);
+        }
         return couponCodeQueryProvider.page(request);
     }
 

@@ -159,6 +159,12 @@ public class OrderService {
             List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
             //返回订单信息
             results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
+            results.forEach(result->{
+                Optional<TradeCommitResult> tradeCommitResult = successResults.stream().filter(p->p.getTid().equals(result.getId())).findFirst();
+                if(tradeCommitResult.isPresent()) {
+                    result.setCouponFlag(tradeCommitResult.get().getCouponFlag());
+                }
+            });
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {

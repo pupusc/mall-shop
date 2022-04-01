@@ -198,7 +198,10 @@ public class CouponVO implements Serializable {
     @ApiModelProperty(value = "总数量")
     private Long totalCount;
 
-
+    /**
+     * 一天限领一次的券今日是否已领取
+     */
+    private Boolean canFetchMore;
 }
 
 

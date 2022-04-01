@@ -13,9 +13,11 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider
@@ -214,4 +216,15 @@ public interface GoodsQueryProvider {
 
     @GetMapping("/goods/${application.goods.version}/list-goods-cate-sync")
     BaseResponse<List<GoodsCateSyncVO>> listGoodsCateSync();
+
+    /**
+     * 根据skuid查询spuid
+     * @param goodsInfoIds
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/get-goods-id")
+    BaseResponse<String> getGoodsId(@RequestBody List<String> goodsInfoIds);
+
+    @PostMapping("/goods/${application.goods.version}/get-by-classify")
+    BaseResponse<String> getGoodsIdByClassify(@RequestParam("classifyId") Integer classifyId);
 }

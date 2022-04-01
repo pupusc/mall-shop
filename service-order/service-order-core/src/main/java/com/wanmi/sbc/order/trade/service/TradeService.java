@@ -10,6 +10,7 @@ import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -211,11 +212,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.GeneralInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.SpecialInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeUpdateDTO;
+import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.AuditState;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -650,6 +647,10 @@ public class TradeService {
 
     @Autowired
     private WxOrderService wxOrderService;
+
+    @Autowired
+    private OrderCouponService orderCouponService;
+
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -3284,13 +3285,13 @@ public class TradeService {
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getEarnestPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         } else {
                             resultList.add(new TradeCommitResult(result.getId(),
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getTotalPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         }
                     } catch (Exception e) {
                         log.error("commit trade error,trade={}，错误信息：{}", trade, e);
@@ -4768,6 +4769,8 @@ public class TradeService {
             //推送ERP订单
             this.pushTradeToErp(trade.getId());
         }
+        //支付成功发放优惠券
+        orderCouponService.addCouponRecord(trade);
     }
 
     /**
@@ -5268,6 +5271,7 @@ public class TradeService {
                 providerTradeService.defalutPayOrderAsycToERP(tid);
             }
             sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+            orderCouponService.addCouponRecord(trade);
             return true;
         }
 
@@ -6326,6 +6330,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+        //小程序发送取消消息
+        wxOrderService.sendWxCancelOrderMessage(trade);
     }
 
     /**
@@ -8007,6 +8013,7 @@ public class TradeService {
         return TradeAccountRecordResponse.builder().points(points).pointsPrice(pointsPrice).build();
     }
 
+
     /**
      * s视频号微信支付回调，
      * @param tid
@@ -8090,9 +8097,4 @@ public class TradeService {
         payCallbackOnline(trades, operator, false);
     }
 
-
-
-
-
-    
 }

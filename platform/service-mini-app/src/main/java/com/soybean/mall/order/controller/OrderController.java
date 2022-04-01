@@ -185,6 +185,7 @@ public class OrderController {
 
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+        wxOrderPaymentVO.setCouponFlag(trades.get(0).getCouponFlag());
         //0元支付不需要生成预支付单
         if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
             wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));

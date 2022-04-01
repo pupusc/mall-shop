@@ -91,6 +91,11 @@ public class TradeCommitResultVO {
      */
     private BigDecimal originPrice;
 
+    /**
+     * 下发优惠券标记
+     */
+    private Boolean couponFlag;
+
     public TradeCommitResultVO(String tid, String parentTid, TradeStateVO tradeState, PaymentOrder paymentOrder, BigDecimal price, BigDecimal totalPrice,
                                LocalDateTime orderTimeOut, Boolean isBookingSaleGoods, String storeName, Boolean isSelf) {
         this.tid = tid;

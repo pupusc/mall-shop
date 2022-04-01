@@ -64,13 +64,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -281,6 +279,11 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         //在设置未开启商品抵扣下清零buyPoint
         systemPointsConfigService.clearBuyPoinsForSku(response);
         return BaseResponse.success(response);
+    }
+
+    @Override
+    public BaseResponse<Map<String, Object>> getSimpleById(List<String> goodsInfoIds) {
+        return BaseResponse.success(goodsInfoService.findSimpleGoods(goodsInfoIds));
     }
 
     /**

@@ -28,4 +28,6 @@ public class OrderCommitResult implements Serializable {
 
     private TradePrice tradePrice;
 
+    private Boolean couponFlag;
+
 }

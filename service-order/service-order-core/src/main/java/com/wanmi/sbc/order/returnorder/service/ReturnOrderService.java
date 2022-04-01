@@ -9,6 +9,7 @@ import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
 import com.soybean.mall.order.enums.MiniProgramSceneType;
 import com.soybean.mall.order.enums.WxAfterSaleOperateType;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
@@ -4853,6 +4854,8 @@ public class ReturnOrderService {
                     break;
             }
         }
+        //通知
+        wxOrderService.sendWxAfterSaleMessage(returnOrder);
     }
 
 

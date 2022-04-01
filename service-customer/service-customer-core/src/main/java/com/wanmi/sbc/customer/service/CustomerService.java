@@ -7,6 +7,9 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.handler.aop.MasterRouteOnly;
 import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.CustomerDetailQueryRequest;
 import com.wanmi.sbc.customer.account.repository.CustomerAccountRepository;
 import com.wanmi.sbc.customer.api.constant.CustomerErrorCode;
@@ -15,10 +18,7 @@ import com.wanmi.sbc.customer.api.request.customer.*;
 import com.wanmi.sbc.customer.api.request.growthvalue.CustomerGrowthValueAddRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
-import com.wanmi.sbc.customer.api.response.customer.CustomerAddResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerDetailPageForSupplierResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerDetailPageResponse;
-import com.wanmi.sbc.customer.api.response.customer.CustomerGetForSupplierResponse;
+import com.wanmi.sbc.customer.api.response.customer.*;
 import com.wanmi.sbc.customer.api.response.employee.EmployeeAccountResponse;
 import com.wanmi.sbc.customer.ares.CustomerAresService;
 import com.wanmi.sbc.customer.bean.dto.CustomerDetailFromEsDTO;
@@ -45,6 +45,7 @@ import com.wanmi.sbc.customer.mq.ProducerService;
 import com.wanmi.sbc.customer.paidcardcustomerrel.service.PaidCardCustomerRelService;
 import com.wanmi.sbc.customer.points.service.CustomerPointsDetailService;
 import com.wanmi.sbc.customer.repository.CustomerRepository;
+import com.wanmi.sbc.customer.request.CustomerWithOpenIdRequest;
 import com.wanmi.sbc.customer.sms.SmsSendUtil;
 import com.wanmi.sbc.customer.storecustomer.repository.StoreCustomerRepository;
 import com.wanmi.sbc.customer.storecustomer.root.StoreCustomerRela;
@@ -1639,5 +1640,33 @@ public class CustomerService {
 
     public Customer findCustomerByYzUid(Long yzUids){
         return customerRepository.findByYzUid(yzUids);
+    }
+
+    public MicroServicePage<CustomerSimplerVO> listCustomerWithOpenId(CustomerWithOpenIdRequest request){
+        Page<Customer> customerPage = customerRepository.findAll(QueryConditionsUtil.getWhereCriteria(request),
+                request.getPageRequest());
+        List<CustomerSimplerVO> voList = wrapperVOS(customerPage.getContent());
+        return new MicroServicePage<>(voList, request.getPageable(),customerPage.getTotalElements());
+
+    }
+
+
+    private List<CustomerSimplerVO> wrapperVOS(List<Customer> list){
+        if(CollectionUtils.isEmpty(list)){
+            return new ArrayList<>();
+        }
+        List<CustomerSimplerVO> customerVOS = new ArrayList<>(list.size());
+        list.forEach(customer -> {
+            CustomerSimplerVO customerVO =new CustomerSimplerVO();
+            customerVO.setCustomerId(customer.getCustomerId());
+            customerVO.setWxMiniOpenId(customer.getWxMiniOpenId());
+            customerVOS.add(customerVO);
+        });
+        return customerVOS;
+    }
+
+    public Long countCustomerWithOpenId(){
+        return customerRepository.count(QueryConditionsUtil.getWhereCriteria(new CustomerWithOpenIdRequest()));
+
     }
 }
