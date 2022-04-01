@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.info.service;
 
 
 
+import com.alibaba.fastjson.JSON;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.sbc.wanmi.erp.bean.vo.ErpStockVo;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -543,7 +544,8 @@ public class GoodsStockService {
      */
     @Transactional
     public void bookuuSyncGoodsStock(List<String> goodsIdList) {
-
+        log.info("GoodsStockService bookuuSyncGoodsStock begin param: {}", JSON.toJSONString(goodsIdList));
+        long beginTime = System.currentTimeMillis();
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
@@ -582,7 +584,7 @@ public class GoodsStockService {
 
             goodsRepository.updateStockByGoodsId(actualStock, goodsInfoParam.getGoodsId());
         }
-
+        log.info("GoodsStockService bookuuSyncGoodsStock end param: {} cost: {}", JSON.toJSONString(goodsIdList), (System.currentTimeMillis() - beginTime));
 //        GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
 //        infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
 //        infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
