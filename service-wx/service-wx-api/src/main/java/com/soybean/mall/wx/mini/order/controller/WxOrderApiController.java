@@ -2,12 +2,16 @@ package com.soybean.mall.wx.mini.order.controller;
 
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
+import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/wx/mini")
 @FeignClient(value = "${application.wx.name}", contextId = "WxOrderApiController")
@@ -51,5 +55,45 @@ public interface WxOrderApiController {
      */
     @PostMapping("/aftersale/add")
     BaseResponse<WxResponseBase> createAfterSale(@RequestBody WxCreateAfterSaleRequest request);
+
+    @PostMapping("/order/getpaymentparams")
+    BaseResponse<GetPaymentParamsResponse> getPaymentParams(@RequestBody WxOrderDetailRequest request);
+
+    /****** 新售后 ******/
+    /**
+     * 创建售后单
+     */
+    @PostMapping("/aftersale/create")
+    BaseResponse<WxCreateNewAfterSaleResponse> createNewAfterSale(@RequestBody WxCreateNewAfterSaleRequest request);
+
+    /**
+     * 同意退款
+     */
+    @PostMapping("/aftersale/accept-refund")
+    BaseResponse<WxResponseBase> acceptRefundAfterSale(@RequestBody WxDealAftersaleRequest wxDealAftersaleRequest);
+
+    /**
+     * 取消售后
+     */
+    @PostMapping("/aftersale/cancel")
+    BaseResponse<WxResponseBase> cancelAfterSale(@RequestBody WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest);
+
+    /**
+     * 售后单详情
+     */
+    @PostMapping("/aftersale/detail")
+    BaseResponse<WxDetailAfterSaleResponse> detailAfterSale(@RequestBody WxDealAftersaleRequest wxDealAftersaleRequest);
+
+    /**
+     * 售后-同意退货
+     */
+    @PostMapping("/aftersale/accept-return")
+    BaseResponse<WxResponseBase> acceptReturnAfterSale(@RequestBody WxAcceptReturnAftersaleRequest wxAcceptReturnAftersaleRequest);
+
+    /**
+     * 售后-拒绝售后
+     */
+    @PostMapping("/aftersale/reject")
+    BaseResponse<WxResponseBase> rejectAfterSale(@RequestBody WxDealAftersaleRequest wxDealAftersaleRequest);
 
 }

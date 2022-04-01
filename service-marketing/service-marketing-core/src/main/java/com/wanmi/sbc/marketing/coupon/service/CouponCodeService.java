@@ -172,12 +172,7 @@ public class CouponCodeService {
 
     @Autowired
     private ClassifyProvider classifyProvider;
-
-    @Value("${goods.coupon}")
-    private String goodsCouponStr;
-
-    @Value("${mini.program.goods.coupon}")
-    private String wxGoodsCouponStr;
+    
 
     @Value("${default.coupon.activityId}")
     private String couponActivityId;

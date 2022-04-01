@@ -2,6 +2,7 @@ package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -93,6 +94,9 @@ public class OrderService {
 
     @Autowired
     private StoreQueryProvider storeQueryProvider;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
 
 

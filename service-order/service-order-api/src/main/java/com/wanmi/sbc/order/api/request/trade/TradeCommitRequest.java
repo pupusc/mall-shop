@@ -208,4 +208,9 @@ public class TradeCommitRequest extends BaseRequest {
      * openId
      */
     private String openId;
+
+    /**
+     * 小程序订单场景1小程序2视频号
+     */
+    private Integer miniProgramScene;
 }

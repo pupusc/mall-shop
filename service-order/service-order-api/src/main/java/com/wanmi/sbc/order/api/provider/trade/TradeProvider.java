@@ -2,49 +2,7 @@ package com.wanmi.sbc.order.api.provider.trade;
 
 import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.order.api.request.trade.CycleBuyPostponementRequest;
-import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
-import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
-import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
-import com.wanmi.sbc.order.api.request.trade.ProviderTradeStatusSyncRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddBatchWithGroupRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddInvoiceRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddReceivableRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAddWithOpRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAuditBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeAuditRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeBatchDeliverRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeCancelRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeConfirmPayOrderRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeConfirmReceiveRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeDeliverRecordObsoleteRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeDeliverRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeFinalTimeUpdateRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeModifyPriceRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeModifyRemedyRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePayCallBackOnlineBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePayCallBackOnlineRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePayCallBackRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePayOnlineCallBackRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePayRecordObsoleteRequest;
-import com.wanmi.sbc.order.api.request.trade.TradePushRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeRemedyPartRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeRemedySellerRemarkRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeRetrialRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeReturnOrderNumUpdateRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeReturnOrderRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeReverseRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateCommissionFlagRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateEmployeeIdRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeUpdateSettlementStatusRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeVoidedRequest;
+import com.wanmi.sbc.order.api.request.trade.*;
 import com.wanmi.sbc.order.api.response.trade.PointsTradeCommitResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeAddBatchResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeAddBatchWithGroupResponse;
@@ -507,7 +465,13 @@ public interface TradeProvider {
     @PostMapping("/order/${application.order.version}/trade/commit-new")
     BaseResponse<OrderCommitResponse> commitTrade(@RequestBody @Valid TradeCommitRequest tradeCommitRequest);
 
-
+    /**
+     * 微信支付回调
+     * @param WxTradePayCallBackRequest
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/wx-pay-call-back")
+    BaseResponse wxPayCallBack(@RequestBody  WxTradePayCallBackRequest request);
 
 
 }
