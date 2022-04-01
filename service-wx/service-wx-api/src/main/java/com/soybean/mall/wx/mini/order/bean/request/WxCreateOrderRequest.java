@@ -39,7 +39,7 @@ public class WxCreateOrderRequest implements Serializable {
      * 确认收货之后多久禁止发起售后，单位：天，需>=5天，default=5天
      */
     @JSONField(name="aftersale_duration")
-    private Integer aftersaleDuration;
+    private Integer aftersaleDuration ;
 
     @Data
     public static class DeliveryDetail {

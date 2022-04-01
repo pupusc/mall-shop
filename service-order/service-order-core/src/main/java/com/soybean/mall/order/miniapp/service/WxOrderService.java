@@ -381,10 +381,11 @@ public class WxOrderService {
         result.setOpenid(trade.getBuyer().getOpenId());
         result.setPath(orderListUrl);
         result.setFundType(0);
+        result.setAftersaleDuration(7);
         if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), 2)) {
             result.setFundType(1);
         }
-        result.setExpireTime(LocalDateTime.now().plusHours(2).toEpochSecond(ZoneOffset.of("+8")));
+        result.setExpireTime(LocalDateTime.now().plusHours(1).toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
