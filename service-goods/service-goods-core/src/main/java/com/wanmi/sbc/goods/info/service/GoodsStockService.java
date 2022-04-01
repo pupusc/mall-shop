@@ -541,6 +541,7 @@ public class GoodsStockService {
     /**
      * 指定商品同步库存
      */
+    @Transactional
     public void bookuuSyncGoodsStock(List<String> goodsIdList) {
 
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
