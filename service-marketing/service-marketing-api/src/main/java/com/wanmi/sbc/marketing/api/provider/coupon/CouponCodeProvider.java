@@ -78,4 +78,14 @@ public interface CouponCodeProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-file-customize")
     BaseResponse sendCouponCodeByFileCustomize(@RequestBody CouponCodeByFileCustomizeProviderRequest couponCodeByFileCustomizeProviderRequest);
+
+
+    /**
+     * 根据商品ID发放优惠券
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/send-by-couponIds")
+    BaseResponse sendCouponCodeByCouponIds(@RequestBody CouponCodeByCouponIdsRequest couponCodeByCouponIdsRequest);
+
+
 }

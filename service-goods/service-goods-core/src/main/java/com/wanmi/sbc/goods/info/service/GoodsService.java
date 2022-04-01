@@ -3500,6 +3500,42 @@ public class GoodsService {
         return goodsCateSyncRepository.query();
     }
 
+    public String getGoodsId(List<String> goodsInfoIds){
+        if(CollectionUtils.isEmpty(goodsInfoIds)) {
+            Map goods = goodsRepository.findSpuId();
+            if(goods != null){
+                log.info("map content : \n");
+                goods.forEach((k, v) -> {
+                    log.info("key: " + k + ", value: " + v);
+                });
+                return goods.get("goods_id").toString();
+            }
+            return "";
+        }else {
+            Map goods = goodsRepository.findSpuId2(goodsInfoIds);
+            if(goods != null){
+                log.info("map content : \n");
+                goods.forEach((k, v) -> {
+                    log.info("key: " + k + ", value: " + v);
+                });
+                return goods.get("goods_id").toString();
+            }
+            return "";
+        }
+    }
+
+    public String getByClassidyId(Integer classifyId){
+        Map goods = goodsRepository.findFirstByClassify(classifyId);
+        if(goods != null){
+            log.info("map content : \n");
+            goods.forEach((k, v) -> {
+                log.info("key: " + k + ", value: " + v);
+            });
+            return goods.get("goods_id").toString();
+        }
+        return "";
+    }
+
     @Transactional
     public void syncGoodsVoteNumber(){
         Map<String, String> voteCacheMap = redisService.hgetAll(RedisKeyConstant.KEY_GOODS_VOTE_NUMBER);

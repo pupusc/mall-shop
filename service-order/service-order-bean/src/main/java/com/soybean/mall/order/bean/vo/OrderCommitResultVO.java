@@ -28,6 +28,7 @@ public class OrderCommitResultVO implements Serializable {
 
     private TradePriceVO tradePrice;
 
+    private Boolean couponFlag;
 
     
 }

@@ -46,6 +46,8 @@ public class CouponCodePageRequest extends BaseQueryRequest {
 
     private Long storeId;
 
+    private List<String> couponIds;
+
     /**
      * request构建查询我的优惠券对象
      * @return
@@ -111,6 +113,10 @@ public class CouponCodePageRequest extends BaseQueryRequest {
         if (Objects.nonNull(storeId)){
             sb.append("  AND couponInfo.store_id = :storeId");
             sb.append("  AND activity.store_id = :activityStoreId");
+        }
+
+        if(CollectionUtils.isNotEmpty(couponIds)){
+            sb.append(" AND couponCode.coupon_id in :couponIds");
         }
 
         //使用状态
@@ -187,6 +193,10 @@ public class CouponCodePageRequest extends BaseQueryRequest {
             sb.append(" AND couponInfo.coupon_type = :couponType");
         }
 
+        if(CollectionUtils.isNotEmpty(couponIds)){
+            sb.append(" AND couponCode.coupon_id in :couponIds");
+        }
+
         return sb.toString();
     }
 
@@ -215,6 +225,10 @@ public class CouponCodePageRequest extends BaseQueryRequest {
         //优惠券类型
         if (Objects.nonNull(couponType)) {
             sb.append(" AND couponInfo.coupon_type = :couponType");
+        }
+
+        if(CollectionUtils.isNotEmpty(couponIds)){
+            sb.append(" AND couponCode.coupon_id in :couponIds");
         }
 
         return sb.toString();
@@ -246,6 +260,10 @@ public class CouponCodePageRequest extends BaseQueryRequest {
         //优惠券类型
         if (Objects.nonNull(couponType)) {
             sb.append(" AND couponInfo.coupon_type = :couponType");
+        }
+
+        if(CollectionUtils.isNotEmpty(couponIds)){
+            sb.append(" AND couponCode.coupon_id in :couponIds");
         }
 
         return sb.toString();

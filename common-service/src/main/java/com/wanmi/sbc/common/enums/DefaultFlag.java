@@ -14,7 +14,10 @@ public enum DefaultFlag {
     @ApiEnumProperty("否")
     NO,
     @ApiEnumProperty("是")
-    YES;
+    YES,
+    @ApiEnumProperty("每天一次")
+    ONCE_PER_DAY;
+
     @JsonCreator
     public static DefaultFlag fromValue(int value) {
         return values()[value];
