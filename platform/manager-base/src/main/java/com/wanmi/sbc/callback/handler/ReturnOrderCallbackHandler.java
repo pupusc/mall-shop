@@ -98,7 +98,7 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
         TradeVO tradeVO = tradeGetById.getTradeVO();
 
         RefundOrderByReturnCodeResponse refundOrder =
-                refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrder.getTid())).getContext();
+                refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrder.getId())).getContext();
 
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name("UNIONB2B")
                 .platform(Platform.THIRD).build();
