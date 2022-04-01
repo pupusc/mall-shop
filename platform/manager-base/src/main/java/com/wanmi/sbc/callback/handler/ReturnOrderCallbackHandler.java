@@ -78,9 +78,13 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
             log.error("回调参数异常");
             return;
         }
-        JSONObject returnOrderObjJson = JSON.parseObject(returnOrderObj.toString());
-        String returnOrderId = returnOrderObjJson.getString("out_aftersale_id");
-        String returnOrderTradeNo = returnOrderObjJson.getString("aftersale_id"); //退单流水
+//        if (!(returnOrderObj instanceof Map)) {
+//            log.error("回调参数异常 returnOrderObj is not map");
+//            return;
+//        }
+        Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
+        String returnOrderId = returnOrderMap.get("out_aftersale_id").toString();
+        String returnOrderTradeNo = returnOrderMap.get("aftersale_id").toString(); //退单流水
 
         log.info("ReturnOrderCallbackHandler handle out_aftersale_id: {}, aftersale_id: {}", returnOrderObj, returnOrderTradeNo);
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
