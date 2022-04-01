@@ -180,6 +180,22 @@ public class CouponCacheService {
                     couponCacheList.stream().filter(item -> item.getCouponInfo().getScopeType() == ScopeType.BRAND)
                             .flatMap(item -> item.getScopes().stream().map(CouponMarketingScope::getScopeId)).map(Long::valueOf).distinct().sorted().collect(Collectors.toList());
 
+            for (CouponCache couponCache : couponCacheList) {
+                if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+                    String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                    String o = redisService.getString(key);
+                    if(o == null){
+                        couponCache.setCanFetchMore(true);
+                    }else {
+                        if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
+                            couponCache.setCanFetchMore(false);
+                        }else{
+                            couponCache.setCanFetchMore(true);
+                        }
+                    }
+                }
+            }
+
             return CouponCenterPageResponse.builder()
                     //券详情
                     .couponViews(
@@ -236,6 +252,23 @@ public class CouponCacheService {
         List<Long> storeIds =
                 couponCacheList.stream().filter(item -> item.getCouponInfo().getPlatformFlag() == DefaultFlag.NO)
                         .map(item -> item.getCouponInfo().getStoreId()).distinct().collect(Collectors.toList());
+
+        for (CouponCache couponCache : couponCacheList) {
+            if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+                String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                String o = redisService.getString(key);
+                if(o == null){
+                    couponCache.setCanFetchMore(true);
+                }else {
+                    if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
+                        couponCache.setCanFetchMore(false);
+                    }else{
+                        couponCache.setCanFetchMore(true);
+                    }
+                }
+            }
+        }
+
         return CouponListResponse.builder()
                 //券详情
                 .couponViews(CouponView.converter(couponCacheList

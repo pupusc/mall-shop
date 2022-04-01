@@ -65,7 +65,7 @@ public class CouponActivity {
     private CouponActivityType couponActivityType;
 
     /**
-     * 领取类型，0 每人限领次数不限，1 每人限领N次
+     * 领取类型，0 每人限领次数不限，1 每人限领N次 2 没人每天限领N次
      */
     @Column(name = "receive_type")
     @Enumerated

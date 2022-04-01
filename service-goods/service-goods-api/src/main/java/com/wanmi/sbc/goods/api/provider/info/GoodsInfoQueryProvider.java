@@ -8,8 +8,11 @@ import com.wanmi.sbc.goods.api.response.info.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>对商品sku查询接口</p>
@@ -65,12 +68,19 @@ public interface GoodsInfoQueryProvider {
 
     /**
      * 根据商品skuId查询商品sku
-     *
      * @param request 根据商品skuId查询结构 {@link GoodsInfoByIdRequest}
      * @return 商品sku {@link GoodsInfoByIdResponse}
      */
     @PostMapping("/goods/${application.goods.version}/info/get-by-id")
     BaseResponse<GoodsInfoByIdResponse> getById(@RequestBody @Valid GoodsInfoByIdRequest request);
+
+    /**
+     * 根据skuid查询spuid和所有skuid
+     * @param request
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/info/get-simple-by-id")
+    BaseResponse<Map<String, Object>> getSimpleById(@RequestBody List<String> goodsInfoIds);
 
     /**
      * 根据动态条件查询商品sku列表

@@ -13,8 +13,8 @@ import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.detail.model.root.CustomerDetail;
 import com.wanmi.sbc.customer.distribution.model.root.DistributionCustomer;
 import com.wanmi.sbc.customer.distribution.model.root.InviteNewRecord;
-import com.wanmi.sbc.customer.enterpriseinfo.model.root.EnterpriseInfo;
 import com.wanmi.sbc.customer.model.root.Customer;
+import com.wanmi.sbc.customer.request.CustomerWithOpenIdRequest;
 import com.wanmi.sbc.customer.storecustomer.root.StoreCustomerRela;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -627,6 +627,21 @@ public class QueryConditionsUtil {
             }
 
             return cbuild.and(predicates.toArray(new Predicate[]{}));
+        };
+    }
+
+    public static Specification<Customer> getWhereCriteria(CustomerWithOpenIdRequest request) {
+        return (root, cquery, cbuild) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cbuild.equal(root.get("checkState"), CheckState.CHECKED));
+            predicates.add(cbuild.equal(root.get("delFlag"), DeleteFlag.NO));
+            predicates.add(cbuild.notEqual(root.get("wxMiniOpenId"),""));
+            if(request.getStartId()!=null){
+                predicates.add(cbuild.greaterThan(root.get("id"),request.getStartId()));
+            }
+            Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);
+
+            return p.length == 0 ? null : p.length == 1 ? p[0] : cbuild.and(p);
         };
     }
 }
