@@ -421,7 +421,7 @@ public class WxOrderService {
         request.setRefundReason(returnOrder.getReturnReason().getDesc());
         request.setRefundReasonType(2);
         returnOrder.getReturnItems().forEach(item -> {
-            request.setOrderamt(item.getSplitPrice().multiply(new BigDecimal(item.getNum())).multiply(new BigDecimal(100)).longValue());
+            request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
             WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
             productInfo.setOutProductId(item.getSpuId());
             productInfo.setOutSkuId(item.getSkuId());
