@@ -26,15 +26,22 @@ import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
+import com.wanmi.sbc.pay.api.request.ChannelItemByGatewayRequest;
+import com.wanmi.sbc.pay.api.request.ChannelItemSaveRequest;
 import com.wanmi.sbc.pay.api.request.PayTradeRecordRequest;
 import com.wanmi.sbc.pay.api.request.TradeRecordByOrderCodeRequest;
+import com.wanmi.sbc.pay.api.response.PayChannelItemListResponse;
 import com.wanmi.sbc.pay.api.response.PayTradeRecordResponse;
+import com.wanmi.sbc.pay.bean.enums.PayGatewayEnum;
+import com.wanmi.sbc.pay.bean.vo.PayChannelItemVO;
 import com.wanmi.sbc.pay.weixinpaysdk.WXPayConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.K;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +71,9 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
     @Autowired
     private RefundOrderQueryProvider refundOrderQueryProvider;
 
+    @Autowired
+    private PayQueryProvider payQueryProvider;
+
     @Override
     public boolean support(String eventType) {
         return "aftersale_refund_success".equals(eventType);
@@ -90,6 +100,22 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
                     .rid(returnOrderId).build()).getContext();
 
+        Long channelId = 20L;
+        ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
+        channelItemByGatewayRequest.setGatewayName(PayGatewayEnum.WECHAT);
+        PayChannelItemListResponse payChannelItemListResponse =
+                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
+        List<PayChannelItemVO> payChannelItemVOList =
+                payChannelItemListResponse.getPayChannelItemVOList();
+        ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
+        channelItemSaveRequest.setCode("wx_app");
+        for (PayChannelItemVO payChannelItemParam : payChannelItemVOList) {
+            if (channelItemSaveRequest.getCode().equals(payChannelItemParam.getCode())) {
+                //更新支付项
+                channelId = payChannelItemParam.getId();
+            }
+        }
+
         //获取订单信息
         TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
         tradeGetByIdRequest.setTid(returnOrder.getTid());
@@ -107,7 +133,7 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
         payTradeRecordRequest.setTradeNo(returnOrderTradeNo);
         payTradeRecordRequest.setBusinessId(returnOrderId);
         payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
-
+        payTradeRecordRequest.setChannelItemId(channelId);
         payTradeRecordRequest.setApplyPrice(returnOrder.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payTradeRecordRequest.setPracticalPrice(tradeVO.getTradePrice().getTotalPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payProvider.wxPayCallBack(payTradeRecordRequest);
