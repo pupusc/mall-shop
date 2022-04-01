@@ -2773,6 +2773,7 @@ public class GoodsInfoService {
      * 更新商品价格
      * @return
      */
+    @Transactional
     public void bookuuSyncGoodsPrice(List<String> goodsIdList) {
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
