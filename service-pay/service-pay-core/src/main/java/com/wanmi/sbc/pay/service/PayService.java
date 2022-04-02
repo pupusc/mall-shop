@@ -548,7 +548,6 @@ public class PayService {
      * @param record
      */
     public void wxPayCallBack(PayTradeRecordRequest request, PayTradeRecord record) {
-        record.setTradeNo(request.getTradeNo());
         if (request.getResult_code().equals(WXPayConstants.SUCCESS)) {
             record.setStatus(TradeStatus.SUCCEED);
         } else {
