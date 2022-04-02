@@ -2108,7 +2108,6 @@ public class ReturnOrderService {
             if (StringUtils.isNotBlank(addressId)) {
                 // 定制不需要 供应商地址
                 returnAddress = wapperReturnAddress(addressId, returnOrder.getCompany().getStoreId());
-                returnOrder.setReturnAddress(returnAddress);
             } else {
                 if (Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)) {
                     //设置默认退款地址
@@ -2124,6 +2123,8 @@ public class ReturnOrderService {
                     }
                 }
             }
+            log.info("ReturnOrderService audit returnAddress: {} returnOrder.getReturnType(): {}", JSON.toJSONString(returnAddress), returnOrder.getReturnType());
+            returnOrder.setReturnAddress(returnAddress);
 
 
             //修改退单状态
