@@ -20,7 +20,7 @@ public class FeiShuMessageConstant {
     /**
      * 成本价 阀值
      */
-    public static String FEI_SHU_COST_PRICE_LIMIT = 10;
+    public static String FEI_SHU_COST_PRICE_LIMIT = "10";
 
     /**
      * 库存小于飞书通知
