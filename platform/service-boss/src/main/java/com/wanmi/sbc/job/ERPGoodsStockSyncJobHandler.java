@@ -151,7 +151,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         spuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSpuId(), stockSumQtyTmp);
 
                         //发送消息
-                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= 30) {
+                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
                             stockSendMessageList.add(goodsInfoStockSyncParam);
                         }
                     }
@@ -201,7 +201,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         oldRate = (p.getCurrentMarketPrice().subtract(p.getCurrentCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
                         newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
-                    if (newRate.compareTo(new BigDecimal("10")) <0) {
+                    if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <0) {
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
                                 p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
                         feiShuSendMessageService.sendMessage(content);

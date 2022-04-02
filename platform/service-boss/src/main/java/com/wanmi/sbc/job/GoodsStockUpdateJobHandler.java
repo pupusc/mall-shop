@@ -104,7 +104,7 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
                         skuId2StockQtyMap.put(goodsInfoStockSyncParam.getSkuId(), goodsInfoStockSyncParam.getActualStockQty());
                         spuId2StockQtyMap.put(goodsInfoStockSyncParam.getSpuId(), goodsInfoStockSyncParam.getActualStockQty());
                         //发送消息
-                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= 30) {
+                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
                             stockSendMessageList.add(goodsInfoStockSyncParam);
                         }
                     }

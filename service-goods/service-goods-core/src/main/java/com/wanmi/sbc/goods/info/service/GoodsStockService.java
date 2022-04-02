@@ -378,7 +378,8 @@ public class GoodsStockService {
                 isCalculateStock = false;
             } else {
                 log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} stockStatusCode is not 1、2、3、4 continue", erpGoodsCodeNo);
-                continue;
+                isCalculateStock = false;
+                erpStockQty = 0;
             }
 
             GoodsInfoStockSyncRequest goodsInfoStockSyncRequest = new GoodsInfoStockSyncRequest();
