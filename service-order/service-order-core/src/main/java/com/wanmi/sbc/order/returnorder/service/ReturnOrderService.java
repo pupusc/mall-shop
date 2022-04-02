@@ -1224,7 +1224,13 @@ public class ReturnOrderService {
                         .build());
             }*/
 
-
+            //视频号只能一次售后，判断是否有未作废的售后单
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
+                    && CollectionUtils.isNotEmpty(returnOrderList) && returnOrderList.stream().anyMatch(p->!p.getId().equals(returnOrder.getId())
+                    && Arrays.asList(ReturnFlowState.AUDIT,ReturnFlowState.RECEIVED,ReturnFlowState.COMPLETED,ReturnFlowState.DELIVERED,ReturnFlowState.INIT,ReturnFlowState.COMPLETED,ReturnFlowState.REFUNDED).contains(p.getReturnFlowState())
+                    && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
+                throw new SbcRuntimeException("K-050416");
+            }
             //保存退单
             newReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
             returnOrderService.addReturnOrder(newReturnOrder);
@@ -1232,7 +1238,7 @@ public class ReturnOrderService {
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
 
             wxOrderService.addEcAfterSale(newReturnOrder);
-            
+
             Boolean auditFlag = true;
             //linkedMall退单，不可以自动审核
             if (ThirdPlatformType.LINKED_MALL.equals(newReturnOrder.getThirdPlatformType())) {
@@ -1281,13 +1287,7 @@ public class ReturnOrderService {
                         newReturnOrder.getBuyer().getAccount()
                 );
             }
-            //视频号只能一次售后，判断是否有未作废的售后单
-            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
-                    && CollectionUtils.isNotEmpty(returnOrderList) && returnOrderList.stream().anyMatch(p->!p.getId().equals(returnOrder.getId())
-                    && Arrays.asList(ReturnFlowState.AUDIT,ReturnFlowState.RECEIVED,ReturnFlowState.COMPLETED,ReturnFlowState.DELIVERED,ReturnFlowState.INIT,ReturnFlowState.COMPLETED,ReturnFlowState.REFUNDED).contains(p.getReturnFlowState())
-                    && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
-                throw new SbcRuntimeException("K-050416");
-            }
+
 
 
         }
