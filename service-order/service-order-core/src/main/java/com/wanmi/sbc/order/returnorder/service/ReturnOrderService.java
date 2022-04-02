@@ -854,7 +854,6 @@ public class ReturnOrderService {
 
         //根据订单id获取退单列表
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(returnOrder.getTid());
-
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
         Map<String, Boolean> providerDeliveryMap = new HashMap<>();
@@ -1279,6 +1278,13 @@ public class ReturnOrderService {
                         pic,
                         newReturnOrder.getBuyer().getAccount()
                 );
+            }
+            //视频号只能一次售后，判断是否有未作废的售后单
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
+                    && CollectionUtils.isNotEmpty(returnOrderList) && returnOrderList.stream().anyMatch(p->!p.getId().equals(returnOrder.getId())
+                    && Arrays.asList(ReturnFlowState.AUDIT,ReturnFlowState.RECEIVED,ReturnFlowState.COMPLETED,ReturnFlowState.DELIVERED,ReturnFlowState.INIT,ReturnFlowState.COMPLETED,ReturnFlowState.REFUNDED).contains(p.getReturnFlowState())
+                    && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
+                throw new SbcRuntimeException("K-050416");
             }
             wxOrderService.addEcAfterSale(newReturnOrder);
 
