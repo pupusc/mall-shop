@@ -467,12 +467,12 @@ public class WxOrderService {
             productInfo.setOutSkuId(item.getSkuId());
             productInfo.setProductCnt(item.getNum());
             request.setProductInfo(productInfo);
-            try {
-                BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
-                log.info("微信小程序创建售后request:{},response:{}", request, response);
-            } catch (Exception e) {
-                log.error("微信小程序创建售后失败，returnOrder:{},item:{}", returnOrder, item, e);
+            BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
+            log.info("微信小程序创建售后request:{},response:{}", request, response);
+            if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
+                throw new SbcRuntimeException("050415");
             }
+
         });
     }
 
@@ -500,11 +500,10 @@ public class WxOrderService {
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
-        try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
-            log.info("微信小程序同意退款request:{},response:{}", request, response);
-        } catch (Exception e) {
-            log.error("微信小程序同意退款失败，returnOrder:{},", returnOrder, e);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
+        log.info("微信小程序同意退款request:{},response:{}", request, response);
+        if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+            throw new SbcRuntimeException("050415");
         }
 
     }
@@ -523,11 +522,10 @@ public class WxOrderService {
         WxDealAftersaleNeedOpenidRequest request = new WxDealAftersaleNeedOpenidRequest();
         request.setOutAftersaleId(returnOrder.getId());
         request.setOpenid(returnOrder.getBuyer().getOpenId());
-        try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.cancelAfterSale(request);
-            log.info("微信小程序取消售后request:{},response:{}", request, response);
-        } catch (Exception e) {
-            log.error("微信小程序取消售后失败，returnOrder:{},", returnOrder, e);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.cancelAfterSale(request);
+        log.info("微信小程序取消售后request:{},response:{}", request, response);
+        if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+            throw new SbcRuntimeException("050415");
         }
 
     }
@@ -546,11 +544,10 @@ public class WxOrderService {
         }
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
-        try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
-            log.info("微信小程序同意退货request:{},response:{}", request, response);
-        } catch (Exception e) {
-            log.error("微信小程序同意退货失败，returnOrder:{},", returnOrder, e);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
+        log.info("微信小程序同意退货request:{},response:{}", request, response);
+        if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+            throw new SbcRuntimeException("050415");
         }
 
     }
@@ -568,11 +565,10 @@ public class WxOrderService {
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
-        try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.rejectAfterSale(request);
-            log.info("微信小程序拒绝售后request:{},response:{}", request, response);
-        } catch (Exception e) {
-            log.error("微信小程序拒绝售后失败，returnOrder:{},", returnOrder, e);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.rejectAfterSale(request);
+        log.info("微信小程序拒绝售后request:{},response:{}", request, response);
+        if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+            throw new SbcRuntimeException("050415");
         }
 
     }
