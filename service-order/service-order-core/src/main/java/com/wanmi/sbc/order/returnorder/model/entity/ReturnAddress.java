@@ -28,14 +28,25 @@ public class ReturnAddress implements Serializable {
     private Long provinceId;
 
     /**
+     * 省名称
+     */
+    private String provinceName;
+
+    /**
      * 市
      */
     private Long cityId;
 
     /**
+     * 市名称
+     */
+    private String cityName;
+
+    /**
      * 区
      */
     private Long areaId;
+
 
     /**
      * 街道

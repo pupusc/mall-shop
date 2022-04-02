@@ -25,6 +25,7 @@ import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.redis.RedisService;
+import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
@@ -537,15 +538,20 @@ public class WxOrderService {
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
+        ReturnAddress returnAddress = returnOrder.getReturnAddress();
+        if (returnAddress == null) {
+            throw new SbcRuntimeException("K-050417");
+        }
+        //获取公司收货地址
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
         WxAcceptReturnAftersaleRequest.AddressInfo addressInfo = new WxAcceptReturnAftersaleRequest.AddressInfo();
-        addressInfo.setDetailedAddress("测试地址");
-        addressInfo.setCity("上海");
+        addressInfo.setDetailedAddress(returnAddress.getDetailAddress());
+        addressInfo.setCity(returnAddress.getCityName());
         addressInfo.setCountry("中国");
-        addressInfo.setProvince("上海");
-        addressInfo.setTelNumber("13111111111");
-        addressInfo.setReceiverName("lx");
+        addressInfo.setProvince(returnAddress.getProvinceName());
+        addressInfo.setTelNumber(returnAddress.getPhone());
+        addressInfo.setReceiverName(returnAddress.getName());
         request.setAddressInfo(addressInfo);
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
         log.info("微信小程序同意退货request:{},response:{}", request, response);
