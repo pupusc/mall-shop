@@ -549,21 +549,21 @@ public class TradeItemService {
         Long splitPointsTotal = 0L;
 
         // 积分和名单商品不能使用积分，也不参与分摊
-        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-            for (TradeItem tradeItem : tradeItems) {
-                if(blackListGoodsId.contains(tradeItem.getSpuId())) {
-                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
-                }
-            }
-        }
-        if(pointsPriceTotal.compareTo(totalPrice) > 0){
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
-        }
+//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+//        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+//        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+//            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+//            for (TradeItem tradeItem : tradeItems) {
+//                if(blackListGoodsId.contains(tradeItem.getSpuId())) {
+//                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+//                }
+//            }
+//        }
+//        if(pointsPriceTotal.compareTo(totalPrice) > 0){
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
+//        }
 
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);
