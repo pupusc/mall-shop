@@ -552,6 +552,7 @@ public class WxOrderService {
         addressInfo.setProvince(returnAddress.getProvinceName());
         addressInfo.setTelNumber(returnAddress.getPhone());
         addressInfo.setReceiverName(returnAddress.getName());
+        addressInfo.setTown(returnAddress.getAreaName());
         request.setAddressInfo(addressInfo);
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
         log.info("微信小程序同意退货request:{},response:{}", request, response);

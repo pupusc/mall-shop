@@ -47,6 +47,11 @@ public class ReturnAddress implements Serializable {
      */
     private Long areaId;
 
+    /**
+     * 区域名称
+     */
+    private String areaName;
+
 
     /**
      * 街道
