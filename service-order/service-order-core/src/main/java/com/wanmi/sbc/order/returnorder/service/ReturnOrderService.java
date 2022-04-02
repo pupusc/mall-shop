@@ -40,10 +40,12 @@ import com.wanmi.sbc.customer.api.request.account.CustomerAccountOptionalRequest
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
 import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
 import com.wanmi.sbc.customer.api.request.storereturnaddress.StoreReturnAddressByIdRequest;
+import com.wanmi.sbc.customer.api.request.storereturnaddress.StoreReturnAddressListRequest;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountAddResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountByCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountOptionalResponse;
 import com.wanmi.sbc.customer.api.response.storereturnaddress.StoreReturnAddressByIdResponse;
+import com.wanmi.sbc.customer.api.response.storereturnaddress.StoreReturnAddressListResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerAccountAddOrModifyDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
@@ -368,9 +370,6 @@ public class ReturnOrderService {
 
     @Value("${wx.create.order.send.message.link.url}")
     private String orderDetailUrl;
-
-    @Value("${default.receive.address.id}")
-    private String defaultReciveAddressId;
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
@@ -2014,12 +2013,6 @@ public class ReturnOrderService {
         //查询退单详情
         ReturnOrder returnOrder = findById(returnOrderId);
 
-        if (Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) && StringUtils.isNotBlank(defaultReciveAddressId)) {
-            //设置默认退款地址
-            Map map = JSON.parseObject(defaultReciveAddressId, Map.class);
-            addressId = map.get(returnOrder.getProviderId()) == null ? "" : map.get(returnOrder.getProviderId()).toString();
-        }
-
         // 查询订单相关的所有退单
         List<ReturnOrder> returnOrderAllList = returnOrderRepository.findByTid(returnOrder.getTid());
 
@@ -2116,7 +2109,22 @@ public class ReturnOrderService {
                 // 定制不需要 供应商地址
                 returnAddress = wapperReturnAddress(addressId, returnOrder.getCompany().getStoreId());
                 returnOrder.setReturnAddress(returnAddress);
+            } else {
+                if (Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)) {
+                    //设置默认退款地址
+                    StoreReturnAddressListRequest storeReturnAddressListRequest = new StoreReturnAddressListRequest();
+                    storeReturnAddressListRequest.setDelFlag(DeleteFlag.NO);
+                    storeReturnAddressListRequest.setIsDefaultAddress(Boolean.TRUE);
+                    storeReturnAddressListRequest.setShowAreaNameFlag(Boolean.TRUE);
+                    storeReturnAddressListRequest.setStoreId(returnOrder.getCompany().getStoreId());
+                    BaseResponse<StoreReturnAddressListResponse> listResponse = returnAddressQueryProvider.list(storeReturnAddressListRequest);
+                    List<StoreReturnAddressVO> storeReturnAddressVOList = listResponse.getContext().getStoreReturnAddressVOList();
+                    if (CollectionUtils.isNotEmpty(storeReturnAddressVOList)) {
+                        returnAddress = this.packageReturnAddress(storeReturnAddressVOList.get(0));
+                    }
+                }
             }
+
 
             //修改退单状态
             ReturnStateRequest request = ReturnStateRequest
@@ -4634,29 +4642,37 @@ public class ReturnOrderService {
                         .showAreaName(Boolean.TRUE)
                         .build()).getContext();
         if (Objects.nonNull(address) && Objects.nonNull(address.getStoreReturnAddressVO())) {
-            StoreReturnAddressVO addressVO = address.getStoreReturnAddressVO();
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.defaultString(addressVO.getProvinceName()));
-            sb.append(StringUtils.defaultString(addressVO.getCityName()));
-            sb.append(StringUtils.defaultString(addressVO.getAreaName()));
-            sb.append(StringUtils.defaultString(addressVO.getStreetName()));
-            sb.append(StringUtils.defaultString(addressVO.getReturnAddress()));
-            return ReturnAddress.builder()
-                    .id(addressVO.getAddressId())
-                    .name(addressVO.getConsigneeName())
-                    .phone(addressVO.getConsigneeNumber())
-                    .provinceId(addressVO.getProvinceId())
-                    .provinceName(addressVO.getProvinceName())
-                    .cityId(addressVO.getCityId())
-                    .cityName(addressVO.getCityName())
-                    .areaId(addressVO.getAreaId())
-                    .areaName(addressVO.getAreaName())
-                    .streetId(addressVO.getStreetId())
-                    .address(addressVO.getReturnAddress())
-                    .detailAddress(sb.toString())
-                    .build();
+            return this.packageReturnAddress(address.getStoreReturnAddressVO());
         }
         return null;
+    }
+
+    /**
+     * 封装对象
+     * @param addressVO
+     * @return
+     */
+    private ReturnAddress packageReturnAddress(StoreReturnAddressVO addressVO) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(StringUtils.defaultString(addressVO.getProvinceName()));
+        sb.append(StringUtils.defaultString(addressVO.getCityName()));
+        sb.append(StringUtils.defaultString(addressVO.getAreaName()));
+        sb.append(StringUtils.defaultString(addressVO.getStreetName()));
+        sb.append(StringUtils.defaultString(addressVO.getReturnAddress()));
+        return ReturnAddress.builder()
+                .id(addressVO.getAddressId())
+                .name(addressVO.getConsigneeName())
+                .phone(addressVO.getConsigneeNumber())
+                .provinceId(addressVO.getProvinceId())
+                .provinceName(addressVO.getProvinceName())
+                .cityId(addressVO.getCityId())
+                .cityName(addressVO.getCityName())
+                .areaId(addressVO.getAreaId())
+                .areaName(addressVO.getAreaName())
+                .streetId(addressVO.getStreetId())
+                .address(addressVO.getReturnAddress())
+                .detailAddress(sb.toString())
+                .build();
     }
 
     /**
