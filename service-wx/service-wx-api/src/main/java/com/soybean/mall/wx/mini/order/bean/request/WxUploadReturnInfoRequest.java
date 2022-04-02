@@ -12,7 +12,7 @@ public class WxUploadReturnInfoRequest implements Serializable {
     @JSONField(name = "out_aftersale_id")
     private String outAftersaleId;
 
-    private String openId;
+    private String openid;
 
     /**
      * 快递公司code，eg:SF

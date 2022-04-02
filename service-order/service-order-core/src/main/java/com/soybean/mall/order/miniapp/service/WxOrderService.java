@@ -623,7 +623,7 @@ public class WxOrderService {
         }
         WxUploadReturnInfoRequest request = new WxUploadReturnInfoRequest();
         request.setOutAftersaleId(returnOrder.getId());
-        request.setOpenId(returnOrder.getBuyer().getOpenId());
+        request.setOpenid(returnOrder.getBuyer().getOpenId());
         request.setWayBillId(returnOrder.getReturnLogistics().getNo());
         request.setDeliveryName(returnOrder.getReturnLogistics().getCompany());
         request.setDeliveryId(returnOrder.getReturnLogistics().getCode());
