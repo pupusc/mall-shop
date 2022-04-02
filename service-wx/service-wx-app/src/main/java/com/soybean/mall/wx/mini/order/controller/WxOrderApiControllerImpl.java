@@ -87,4 +87,9 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     public BaseResponse<WxResponseBase> rejectAfterSale(WxDealAftersaleRequest wxDealAftersaleRequest){
         return BaseResponse.success(wxService.rejectAfterSale(wxDealAftersaleRequest));
     }
+
+    @Override
+    public BaseResponse<WxResponseBase> uploadReturnInfo(WxUploadReturnInfoRequest request) {
+        return BaseResponse.success(wxService.uploadReturnInfo(request));
+    }
 }

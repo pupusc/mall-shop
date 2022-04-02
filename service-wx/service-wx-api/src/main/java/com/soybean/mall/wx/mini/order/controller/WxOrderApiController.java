@@ -96,4 +96,11 @@ public interface WxOrderApiController {
     @PostMapping("/aftersale/reject")
     BaseResponse<WxResponseBase> rejectAfterSale(@RequestBody WxDealAftersaleRequest wxDealAftersaleRequest);
 
+
+    /**
+     * 售后-用户上传物流信息
+     */
+    @PostMapping("/aftersale/uploadreturninfo")
+    BaseResponse<WxResponseBase> uploadReturnInfo(@RequestBody WxUploadReturnInfoRequest request);
+
 }
