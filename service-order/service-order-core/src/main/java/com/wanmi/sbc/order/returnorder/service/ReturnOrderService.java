@@ -1231,6 +1231,8 @@ public class ReturnOrderService {
 
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
 
+            wxOrderService.addEcAfterSale(newReturnOrder);
+            
             Boolean auditFlag = true;
             //linkedMall退单，不可以自动审核
             if (ThirdPlatformType.LINKED_MALL.equals(newReturnOrder.getThirdPlatformType())) {
@@ -1286,7 +1288,7 @@ public class ReturnOrderService {
                     && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
                 throw new SbcRuntimeException("K-050416");
             }
-            wxOrderService.addEcAfterSale(newReturnOrder);
+
 
         }
         return returnOrderId;
