@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
@@ -19,9 +20,13 @@ import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
@@ -106,6 +111,9 @@ public class TradeItemService {
 
     @Autowired
     private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
 
     /**
@@ -539,6 +547,23 @@ public class TradeItemService {
         BigDecimal splitPriceTotal = BigDecimal.ZERO;
         //累积积分数量，将剩余扣给最后一个元素
         Long splitPointsTotal = 0L;
+
+        // 积分和名单商品不能使用积分，也不参与分摊
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+            for (TradeItem tradeItem : tradeItems) {
+                if(blackListGoodsId.contains(tradeItem.getSpuId())) {
+                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+                }
+            }
+        }
+        if(pointsPriceTotal.compareTo(totalPrice) > 0){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
+        }
 
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);

@@ -35,6 +35,11 @@ public class GoodsBlackListPageProviderResponse implements Serializable {
     private BlackListCategoryProviderResponse unVipPriceBlackListModel;
 
     /**
+     * 不能使用积分商品 黑名单
+     */
+    private BlackListCategoryProviderResponse pointNotSplitBlackListModel;
+
+    /*
      * 虚拟库存码 黑名单
      */
     private BlackListCategoryProviderResponse wareHouseListModel;
