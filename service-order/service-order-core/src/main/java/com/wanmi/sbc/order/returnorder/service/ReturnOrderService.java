@@ -2541,7 +2541,7 @@ public class ReturnOrderService {
                 .data(price)
                 .build();
         returnFSMService.changeState(request);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED,WxAfterSaleOperateType.REFUND.getIndex());
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED,WxAfterSaleOperateType.OTHER.getIndex());
 
 
         Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
