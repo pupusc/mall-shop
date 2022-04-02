@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
@@ -262,22 +263,25 @@ public interface GoodsProvider {
 //    @PostMapping("/goods/${application.goods.version}/del-all-linkedmall-goods")
 //    BaseResponse delAllLinkedMallGoods();
 
-    /**
-     * 同步商品库存
-     * @return
-     */
-    @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+//    /**
+//     * 同步商品库存
+//     * @return
+//     */
+//    @PostMapping("/goods/${application.goods.version}/sync-erp-stock")
+//    BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
-    /**
-     * 增量更新库存
-     * @param erpGoodInfoNo
-     * @return
-     */
-    @PostMapping("/goods/${application.goods.version}/partial-update-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo, @RequestParam("lastSyncTime") String lastSyncTime,
-                                                                       @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
-                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
+//    /**
+//     * 增量更新库存
+//     * @param erpGoodInfoNo
+//     * @return
+//     */
+//    @PostMapping("/goods/${application.goods.version}/partial-update-stock")
+//    BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(@RequestParam("erpGoodInfoNo") String erpGoodInfoNo, @RequestParam("lastSyncTime") String lastSyncTime,
+//                                                                       @RequestParam(value = "pageNum", defaultValue = "1") String pageNum,
+//                                                                       @RequestParam(value = "pageSize", defaultValue = "20") String pageSize);
+
+    @PostMapping("/goods/${application.goods.version}/guanyiyun/batch-sync-goods-stock")
+     BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock (@RequestBody GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest);
 
     /**
      * 同步商品库存
@@ -285,7 +289,7 @@ public interface GoodsProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-stock")
-    BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
+    BaseResponse<List<GoodsInfoStockSyncProviderResponse>> syncGoodsStock(@RequestBody @Valid GoodsInfoListByIdRequest goodsInfoListByIdRequest);
 
     /**
      * 同步商品价格
@@ -294,6 +298,16 @@ public interface GoodsProvider {
      */
     @PostMapping("/goods/${application.goods.version}/sync-goods-price")
     BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsPrice(@RequestBody  GoodsPriceSyncRequest goodsPriceSyncRequest);
+
+
+    /**
+     * 同步商品库存和成本价
+     * @param goodsIdList
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/sync-goods-stock-and-cost-price")
+    BaseResponse syncGoodsStockAndCostPrice(@RequestBody List<String> goodsIdList);
+
 
     @PostMapping("/goods/${application.goods.version}/decry-last-stock")
     BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
@@ -304,8 +318,8 @@ public interface GoodsProvider {
      * @param goodsPriceSyncRequest
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
-    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
+//    @PostMapping("/goods/${application.goods.version}/sync-goods-cost-price")
+//    BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(@RequestBody @Valid GoodsPriceSyncRequest goodsPriceSyncRequest);
 
 
     /**

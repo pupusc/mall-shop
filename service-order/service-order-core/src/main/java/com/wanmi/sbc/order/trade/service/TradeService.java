@@ -7430,6 +7430,10 @@ public class TradeService {
                 //运费
                 if(tradePrice.getSplitDeliveryPrice()!=null && !tradePrice.getSplitDeliveryPrice().isEmpty() && tradePrice.getSplitDeliveryPrice().containsKey(providerId)){
                     tradePrice.setDeliveryPrice(tradePrice.getSplitDeliveryPrice().get(providerId));
+
+                    Map<Long, BigDecimal> splitDeliverPriceMap = new HashMap<>();
+                    splitDeliverPriceMap.put(providerId, tradePrice.getDeliveryPrice());
+                    tradePrice.setSplitDeliveryPrice(splitDeliverPriceMap);
                 }
 
                 providerTrade.setTradePrice(tradePrice);

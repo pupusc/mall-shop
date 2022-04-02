@@ -19,7 +19,8 @@ public enum GoodsBlackListTypeEnum {
     SKU_ID(1, "商品skuId"),
     SPU_ID(2, "商品spuId"),
     CLASSIFY_ID_FIRST(3, "一级分类id"),
-    CLASSIFY_ID_SECOND(4, "二级分类id");
+    CLASSIFY_ID_SECOND(4, "二级分类id"),
+    NONE(5, "无效");
 
     private final Integer code;
     private final String message;

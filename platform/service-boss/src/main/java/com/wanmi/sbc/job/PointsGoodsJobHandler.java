@@ -3,12 +3,12 @@ package com.wanmi.sbc.job;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.pointsgoods.PointsGoodsSaveProvider;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoPlusStockByIdRequest;
+//import com.wanmi.sbc.goods.api.request.info.GoodsInfoPlusStockByIdRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
-import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
+//import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
+//import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
 import com.wanmi.sbc.goods.bean.vo.PointsGoodsVO;
-import com.wanmi.sbc.goods.service.GoodsStockService;
+//import com.wanmi.sbc.goods.service.GoodsStockService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHandler;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 /**
  * @author yang
@@ -33,14 +33,14 @@ public class PointsGoodsJobHandler extends IJobHandler {
     @Autowired
     private PointsGoodsQueryProvider pointsGoodsQueryProvider;
 
-    @Autowired
-    private GoodsInfoProvider goodsInfoProvider;
+//    @Autowired
+//    private GoodsInfoProvider goodsInfoProvider;
 
     @Autowired
     private PointsGoodsSaveProvider pointsGoodsSaveProvider;
 
-    @Autowired
-    private GoodsStockService goodsStockService;
+//    @Autowired
+//    private GoodsStockService goodsStockService;
 
     @Override
     public ReturnT<String> execute(String param) throws Exception {

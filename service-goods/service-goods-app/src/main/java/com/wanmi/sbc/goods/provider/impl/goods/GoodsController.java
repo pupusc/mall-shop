@@ -18,6 +18,7 @@ import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.*;
@@ -297,6 +298,19 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.success(response);
     }
 
+    private String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
+        String path = "0";
+        if (grade == 1) {
+            return path;
+        } else {
+
+            for (int i = 0; i < grade - 1; i++) {
+                path += "|" + categoryChain.get(i).getCategoryId().toString();
+            }
+            return path;
+        }
+    }
+
     @Override
     public BaseResponse<LinkedMallGoodsModifyResponse> linkedmallModify(@Valid LinkedMallGoodsModifyRequest request) {
         List<String> esGoodsInfoIds = new ArrayList<>();
@@ -392,13 +406,13 @@ public class GoodsController implements GoodsProvider {
                     response.setStandardIds(standardImportService.importStandard(synRequest));
                 }
             }
-            //更改商家代销商品的可售性
-            Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
-            if(isDealGoodsVendibility != null && isDealGoodsVendibility){
-                goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder()
-                        .checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
-                        .goodsIds(Lists.newArrayList(goods.getGoodsId())).build());
-            }
+//            //更改商家代销商品的可售性
+//            Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
+//            if(isDealGoodsVendibility != null && isDealGoodsVendibility){
+//                goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder()
+//                        .checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
+//                        .goodsIds(Lists.newArrayList(goods.getGoodsId())).build());
+//            }
         } else {
             //同步代码
             /*商家商品编辑
@@ -473,11 +487,11 @@ public class GoodsController implements GoodsProvider {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
         Map<String, Object> map = goodsService.editAll(goodsSaveRequest);
         //更改商家代销商品的可售性
-        Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
-        if(isDealGoodsVendibility != null && isDealGoodsVendibility){
-            goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
-                    .goodsIds(Lists.newArrayList(request.getGoods().getGoodsId())).build());
-        }
+//        Boolean isDealGoodsVendibility = StringUtil.cast(map.get("isDealGoodsVendibility"), Boolean.class);
+//        if(isDealGoodsVendibility != null && isDealGoodsVendibility){
+//            goodsService.dealGoodsVendibility(ProviderGoodsNotSellRequest.builder().checkFlag(Boolean.TRUE).stockFlag(Boolean.TRUE)
+//                    .goodsIds(Lists.newArrayList(request.getGoods().getGoodsId())).build());
+//        }
         //ares埋点-商品-后台修改商品sku
         goodsAresService.dispatchFunction("editGoodsSku",
                 new Object[]{map.get("newGoodsInfo"), map.get("delInfoIds"), map.get("oldGoodsInfos")});
@@ -653,20 +667,20 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncERPGoodsStock(
-                goodsInfoListByIdRequest.getGoodsInfoNo(),
-                goodsInfoListByIdRequest.getPageNum(),
-                goodsInfoListByIdRequest.getPageSize());
-        return BaseResponse.success(resultMap);
-    }
+//    @Override
+//    public BaseResponse<Map<String, Map<String, Integer>>> syncERPStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+//        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncERPGoodsStock(
+//                goodsInfoListByIdRequest.getGoodsInfoNo(),
+//                goodsInfoListByIdRequest.getPageNum(),
+//                goodsInfoListByIdRequest.getPageSize());
+//        return BaseResponse.success(resultMap);
+//    }
 
-    @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo, String lastSyncTime, String pageNum, String pageSize){
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo, lastSyncTime, pageNum, pageSize);
-        return BaseResponse.success(resultMap);
-    }
+//    @Override
+//    public BaseResponse<Map<String, Map<String, Integer>>> partialUpdateStock(String erpGoodInfoNo, String lastSyncTime, String pageNum, String pageSize){
+//        Map<String, Map<String, Integer>> resultMap = goodsStockService.partialUpdateStock(erpGoodInfoNo, lastSyncTime, pageNum, pageSize);
+//        return BaseResponse.success(resultMap);
+//    }
 
     @Override
     public BaseResponse<Map<String,String>> decryLastStock(Map<String, Long> datas){
@@ -674,26 +688,17 @@ public class GoodsController implements GoodsProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    public String catePath(int grade,List<GetCategoryChainResponse.Category> categoryChain) {
-        String path = "0";
-        if (grade == 1) {
-            return path;
-        } else {
-
-            for (int i = 0; i < grade - 1; i++) {
-                path += "|" + categoryChain.get(i).getCategoryId().toString();
-            }
-            return path;
-        }
+    @Override
+    public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){
+        return BaseResponse.success(goodsStockService.batchUpdateStock(guanYiSyncGoodsStockRequest.getGoodsIdList(), guanYiSyncGoodsStockRequest.getStartTime(), guanYiSyncGoodsStockRequest.getMaxTmpId(), guanYiSyncGoodsStockRequest.getPageSize()));
     }
 
-    @Override
-    public BaseResponse<Map<String, Map<String, Integer>>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
-        Map<String, Map<String, Integer>> resultMap = goodsStockService.syncGoodsStock(
-                goodsInfoListByIdRequest.getPageNum(),
-                goodsInfoListByIdRequest.getPageSize());
-        return BaseResponse.success(resultMap);
 
+
+    @Override
+    public BaseResponse<List<GoodsInfoStockSyncProviderResponse>> syncGoodsStock(GoodsInfoListByIdRequest goodsInfoListByIdRequest) {
+        return BaseResponse.success(goodsStockService.syncGoodsStock(goodsInfoListByIdRequest.getPageNum(),
+                goodsInfoListByIdRequest.getPageSize()));
     }
 
     @Override
@@ -703,10 +708,26 @@ public class GoodsController implements GoodsProvider {
 
     }
 
+    /**
+     * 同步库存和成本价
+     * @param goodsIdList
+     * @return
+     */
     @Override
-    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
-        return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
+    public BaseResponse syncGoodsStockAndCostPrice(List<String> goodsIdList){
+        //更新库存
+        goodsStockService.bookuuSyncGoodsStock(goodsIdList);
+        //同步成本价
+        goodsInfoService.bookuuSyncGoodsPrice(goodsIdList);
+        return BaseResponse.SUCCESSFUL();
     }
+
+
+
+//    @Override
+//    public BaseResponse<MicroServicePage<GoodsInfoPriceChangeDTO>> syncGoodsInfoCostPrice(GoodsPriceSyncRequest goodsPriceSyncRequest) {
+//        return BaseResponse.success(goodsInfoService.syncGoodsCostPrice(KsBeanUtil.convert(goodsPriceSyncRequest, GoodsCostPriceChangeQueryRequest.class)));
+//    }
 
 
     @Override

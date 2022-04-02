@@ -46,6 +46,6 @@ public class GoodsBlackListJobHandler extends IJobHandler{
         GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
         goodsBlackListCacheProviderRequest.setBusinessCategoryColl(businessCateGoryColl);
         goodsBlackListProvider.flushBlackListCache(goodsBlackListCacheProviderRequest);
-        return null;
+        return ReturnT.SUCCESS;
     }
 }

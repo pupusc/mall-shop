@@ -78,6 +78,16 @@ public class ERPGoodsInfoVO implements Serializable {
     private BigDecimal costPrice;
 
     /**
+     * 仓库代码
+     */
+    private String warehouseCode;
+
+    /**
+     * 在途数
+     */
+    private int roadQty;
+
+    /**
      * 库存状态
      */
     private String stockStatusCode;

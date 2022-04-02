@@ -52,14 +52,14 @@ public interface GoodsInfoProvider {
     @PostMapping("/goods/${application.goods.version}/info/modify-added-status")
     BaseResponse modifyAddedStatus(@RequestBody @Valid GoodsInfoModifyAddedStatusRequest request);
 
-    /**
-     * 根据商品skuId增加商品sku库存
-     *
-     * @param request 包含skuId的商品sku库存增量结构 {@link GoodsInfoPlusStockByIdRequest}
-     * @return 操作结果 {@link BaseResponse}
-     */
-    @PostMapping("/goods/${application.goods.version}/info/plus-stock-by-id")
-    BaseResponse plusStockById(@RequestBody @Valid GoodsInfoPlusStockByIdRequest request);
+//    /**
+//     * 根据商品skuId增加商品sku库存
+//     *
+//     * @param request 包含skuId的商品sku库存增量结构 {@link GoodsInfoPlusStockByIdRequest}
+//     * @return 操作结果 {@link BaseResponse}
+//     */
+//    @PostMapping("/goods/${application.goods.version}/info/plus-stock-by-id")
+//    BaseResponse plusStockById(@RequestBody @Valid GoodsInfoPlusStockByIdRequest request);
 
     /**
      * 批量增量商品sku库存

@@ -109,6 +109,9 @@ public class GoodsBlackListService {
                 result.setUnVipPriceBlackListModel(blackListCategoryProviderResponse);
             } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode())) {
                 this.packageBlackList(commonBlackListParam, result.getPointNotSplitBlackListModel());
+            } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode())) {
+                BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getWareHouseListModel());
+                result.setWareHouseListModel(blackListCategoryProviderResponse);
             } else {
                 log.error("===>>> CommonBlackListService flushBlackListCache 参数有误 {}", JSON.toJSONString(goodsBlackListCacheProviderRequest));
             }
@@ -152,6 +155,13 @@ public class GoodsBlackListService {
             }
             if (!CollectionUtils.isEmpty(result.getUnVipPriceBlackListModel().getSecondClassifyIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE, RedisKeyConstant.KEY_CLASSIFY_ID_SECOND, result.getUnVipPriceBlackListModel().getSecondClassifyIdList());
+            }
+        }
+        //存入redis
+        if (result.getWareHouseListModel() != null) {
+            //存入redis
+            if (!CollectionUtils.isEmpty(result.getWareHouseListModel().getNormalList())) {
+                redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_WARE_HOUSE, RedisKeyConstant.KEY_NORMAL_KEY, result.getWareHouseListModel().getNormalList());
             }
         }
 
@@ -226,6 +236,14 @@ public class GoodsBlackListService {
                 }
                 pointNotSplitBlackListModel.setGoodsIdList(goodsIdList);
                 result.setPointNotSplitBlackListModel(pointNotSplitBlackListModel);
+            } else if (Objects.equals(businessCateGoryId, GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode())) {
+                List<String> wareHouseCodeList = redisService.getHashStrValueList(RedisKeyConstant.KEY_UN_WARE_HOUSE, RedisKeyConstant.KEY_NORMAL_KEY);
+                BlackListCategoryProviderResponse wareHouseListModel = result.getWareHouseListModel();
+                if (wareHouseListModel == null) {
+                    wareHouseListModel = new BlackListCategoryProviderResponse();
+                }
+                wareHouseListModel.setNormalList(wareHouseCodeList);
+                result.setWareHouseListModel(wareHouseListModel);
             } else {
                 log.error("===>>> CommonBlackListService listNoPage 参数有误 {}", JSON.toJSONString(goodsBlackListPageProviderRequest));
             }
@@ -267,6 +285,18 @@ public class GoodsBlackListService {
                 blackListCategoryProviderResponse.setSecondClassifyIdList(secondClassifyIdList);
             }
             secondClassifyIdList.add(commonBlackListParam.getBusinessId());
+        }
+
+        /**
+         * 无
+         */
+        if (Objects.equals(commonBlackListParam.getBusinessType(), GoodsBlackListTypeEnum.NONE.getCode())) {
+            List<String> normalList = blackListCategoryProviderResponse.getNormalList();
+            if (CollectionUtils.isEmpty(normalList)) {
+                normalList = new ArrayList<>();
+                blackListCategoryProviderResponse.setNormalList(normalList);
+            }
+            normalList.add(commonBlackListParam.getBusinessId());
         }
         return blackListCategoryProviderResponse;
     }

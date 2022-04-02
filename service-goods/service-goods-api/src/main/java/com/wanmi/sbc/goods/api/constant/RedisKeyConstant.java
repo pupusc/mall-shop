@@ -30,6 +30,12 @@ public class RedisKeyConstant {
      */
     public static final String KEY_UN_SHOW_VIP_PRICE = "KEY_BLACK_LIST_UN_SHOW_VIP_PRICE";
 
+
+    /**
+     * 库存黑名单
+     */
+    public static final String KEY_UN_WARE_HOUSE = "KEY_BLACK_LIST_WARE_HOUSE";
+
     /**
      * 不能使用积分商品 黑名单KEY
      */
@@ -44,4 +50,10 @@ public class RedisKeyConstant {
      * CLASSIFY_ID_SECOND hashKey
      */
     public static final String KEY_CLASSIFY_ID_SECOND = "KEY_BLACK_LIST_CLASSIFY_ID_SECOND";
+
+
+    /**
+     * NORMAL hashKey
+     */
+    public static final String KEY_NORMAL_KEY = "KEY_BLACK_LIST_NORMAL_KEY";
 }
