@@ -42,6 +42,7 @@ public class WxAuditCallbackParser implements CommandLineRunner {
         String decrypt = decrypt(encryptStr, timestamp, nonce, msgSignature);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(decrypt.getBytes());
         Map<String, Object> paramMap = parseXML(inputStream);
+        log.info("WxAuditCallBackParser dealCallback paramMap: {}", paramMap);
         for (CallbackHandler handler : handlers) {
             if(handler.support((String) paramMap.get("Event"))){
                 handler.handle(paramMap);
