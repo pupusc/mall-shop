@@ -108,7 +108,8 @@ public class GoodsBlackListService {
                 BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getUnVipPriceBlackListModel());
                 result.setUnVipPriceBlackListModel(blackListCategoryProviderResponse);
             } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode())) {
-                this.packageBlackList(commonBlackListParam, result.getPointNotSplitBlackListModel());
+                BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getPointNotSplitBlackListModel());
+                result.setPointNotSplitBlackListModel(blackListCategoryProviderResponse);
             } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode())) {
                 BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getWareHouseListModel());
                 result.setWareHouseListModel(blackListCategoryProviderResponse);
