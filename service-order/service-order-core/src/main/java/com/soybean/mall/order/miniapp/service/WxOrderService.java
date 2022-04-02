@@ -470,7 +470,7 @@ public class WxOrderService {
             BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
             log.info("微信小程序创建售后request:{},response:{}", request, response);
             if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
-                throw new SbcRuntimeException("050415");
+                throw new SbcRuntimeException("K-050415");
             }
 
         });
@@ -503,7 +503,7 @@ public class WxOrderService {
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
         log.info("微信小程序同意退款request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
-            throw new SbcRuntimeException("050415");
+            throw new SbcRuntimeException("K-050415");
         }
 
     }
@@ -525,7 +525,7 @@ public class WxOrderService {
         BaseResponse<WxResponseBase> response = wxOrderApiController.cancelAfterSale(request);
         log.info("微信小程序取消售后request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
-            throw new SbcRuntimeException("050415");
+            throw new SbcRuntimeException("K-050415");
         }
 
     }
@@ -547,7 +547,7 @@ public class WxOrderService {
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
         log.info("微信小程序同意退货request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
-            throw new SbcRuntimeException("050415");
+            throw new SbcRuntimeException("K-050415");
         }
 
     }
@@ -568,7 +568,7 @@ public class WxOrderService {
         BaseResponse<WxResponseBase> response = wxOrderApiController.rejectAfterSale(request);
         log.info("微信小程序拒绝售后request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
-            throw new SbcRuntimeException("050415");
+            throw new SbcRuntimeException("K-050415");
         }
 
     }
