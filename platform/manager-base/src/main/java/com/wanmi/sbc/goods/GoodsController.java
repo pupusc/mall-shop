@@ -1203,12 +1203,12 @@ public class GoodsController {
 
         Map<Long, List<String>> providerId2GoodsIdListMap = new HashMap<>();
         for (GoodsVO goodsVO : goodsVOList) {
-            List<String> goodsVoList = providerId2GoodsIdListMap.get(goodsVO.getProviderId());
-            if (CollectionUtils.isEmpty(goodsVOList)) {
-                goodsVoList = new ArrayList<>();
-                providerId2GoodsIdListMap.put(goodsVO.getProviderId(), goodsVoList);
+            List<String> goodsIdList = providerId2GoodsIdListMap.get(goodsVO.getProviderId());
+            if (CollectionUtils.isEmpty(goodsIdList)) {
+                goodsIdList = new ArrayList<>();
+                providerId2GoodsIdListMap.put(goodsVO.getProviderId(), goodsIdList);
             }
-            goodsVoList.add(goodsVO.getGoodsId());
+            goodsIdList.add(goodsVO.getGoodsId());
         }
 
         //同步库存
