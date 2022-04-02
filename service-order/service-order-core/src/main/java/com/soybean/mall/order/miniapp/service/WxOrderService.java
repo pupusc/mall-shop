@@ -539,6 +539,14 @@ public class WxOrderService {
         }
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
+        WxAcceptReturnAftersaleRequest.AddressInfo addressInfo = new WxAcceptReturnAftersaleRequest.AddressInfo();
+        addressInfo.setDetailedAddress("测试地址");
+        addressInfo.setCity("上海");
+        addressInfo.setCountry("中国");
+        addressInfo.setProvince("上海");
+        addressInfo.setTelNumber("13111111111");
+        addressInfo.setReceiverName("lx");
+        request.setAddressInfo(addressInfo);
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
         log.info("微信小程序同意退货request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {

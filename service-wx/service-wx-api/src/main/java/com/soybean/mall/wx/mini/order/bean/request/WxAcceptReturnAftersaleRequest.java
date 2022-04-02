@@ -12,7 +12,7 @@ public class WxAcceptReturnAftersaleRequest {
     private AddressInfo addressInfo;
 
     @Data
-    public class AddressInfo {
+    public static class AddressInfo {
 
         @JSONField(name = "receiver_name")
         private String receiverName;
