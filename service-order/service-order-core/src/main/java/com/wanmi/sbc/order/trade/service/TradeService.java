@@ -7434,6 +7434,7 @@ public class TradeService {
                     Map<Long, BigDecimal> splitDeliverPriceMap = new HashMap<>();
                     splitDeliverPriceMap.put(providerId, tradePrice.getDeliveryPrice());
                     tradePrice.setSplitDeliveryPrice(splitDeliverPriceMap);
+                    
                 }
 
                 providerTrade.setTradePrice(tradePrice);
