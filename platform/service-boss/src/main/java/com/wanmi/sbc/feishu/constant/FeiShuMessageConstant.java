@@ -12,6 +12,17 @@ import java.text.MessageFormat;
 public class FeiShuMessageConstant {
 
     /**
+     * 库存阀值
+     */
+    public static Integer FEI_SHU_STOCK_LIMIT = 20;
+
+
+    /**
+     * 成本价 阀值
+     */
+    public static String FEI_SHU_COST_PRICE_LIMIT = 10;
+
+    /**
      * 库存小于飞书通知
      */
     public static String FEI_SHU_STOCK_NOTIFY = "{0} {1}库存于{2}变为{3}";

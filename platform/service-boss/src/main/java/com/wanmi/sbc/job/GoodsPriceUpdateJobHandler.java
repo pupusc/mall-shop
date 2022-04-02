@@ -138,7 +138,7 @@ public class GoodsPriceUpdateJobHandler extends IJobHandler {
                 oldRate = (change.getMarketPrice().subtract(change.getOldPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
                 newRate = (change.getMarketPrice().subtract(change.getNewPrice())).multiply(new BigDecimal(100)).divide(change.getMarketPrice(),2,RoundingMode.HALF_UP);
             }
-            if (newRate.compareTo(new BigDecimal("10")) <0) {
+            if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <0) {
                 String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, change.getSkuNo(), change.getName(),
                         change.getMarketPrice(), change.getTime() ,change.getOldPrice(), change.getNewPrice(), oldRate, newRate);
                 feiShuSendMessageService.sendMessage(content);
