@@ -206,7 +206,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
                 goodsInfoStockSyncResponse.setSpuId(goodsInfoParam.getGoodsId());
                 goodsInfoStockSyncResponse.setSkuId(goodsInfoParam.getGoodsInfoId());
-                goodsInfoStockSyncResponse.setSkuNo(goodsInfoStockSyncRequestParam.getErpSpuCode());
+                goodsInfoStockSyncResponse.setSkuNo(goodsInfoParam.getGoodsInfoNo());
                 goodsInfoStockSyncResponse.setIsCalculateStock(goodsInfoStockSyncRequestParam.getIsCalculateStock());
                 log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsInfoStockSyncResponse: {}", JSON.toJSONString(goodsInfoStockSyncResponse));
                 result.add(goodsInfoStockSyncResponse);
