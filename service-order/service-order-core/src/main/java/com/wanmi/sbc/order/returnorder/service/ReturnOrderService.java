@@ -2345,6 +2345,7 @@ public class ReturnOrderService {
                 .data(logistics)
                 .build();
         returnFSMService.changeState(request);
+        wxOrderService.uploadReturnInfo(findById(rid));
     }
 
 
@@ -4855,6 +4856,9 @@ public class ReturnOrderService {
                     break;
                 case 5:
                     wxOrderService.acceptReturnAfterSale(returnOrder);
+                    break;
+                case 6:
+                    wxOrderService.uploadReturnInfo(returnOrder);
                     break;
                 default:
                     break;

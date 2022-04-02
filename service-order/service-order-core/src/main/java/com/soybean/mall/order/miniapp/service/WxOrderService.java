@@ -601,4 +601,29 @@ public class WxOrderService {
             log.error("微信小程序售后通知发送消息失败,trade:{}",returnOrder,e);
         }
     }
+
+    /**
+     * 售后-上传物流信息
+     */
+    public void uploadReturnInfo(ReturnOrder returnOrder) {
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null || returnOrder == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
+            return;
+        }
+        WxUploadReturnInfoRequest request = new WxUploadReturnInfoRequest();
+        request.setOutAftersaleId(returnOrder.getId());
+        request.setOpenId(returnOrder.getBuyer().getOpenId());
+        request.setWayBillId(returnOrder.getReturnLogistics().getNo());
+        request.setDeliveryName(returnOrder.getReturnLogistics().getCompany());
+        request.setDeliveryId(returnOrder.getReturnLogistics().getCode());
+        BaseResponse<WxResponseBase> response = wxOrderApiController.uploadReturnInfo(request);
+        log.info("微信小程序上传物流信息request:{},response:{}", request, response);
+        if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
+            throw new SbcRuntimeException("K-050415");
+        }
+
+    }
 }
