@@ -369,6 +369,9 @@ public class ReturnOrderService {
     @Value("${wx.create.order.send.message.link.url}")
     private String orderDetailUrl;
 
+    @Value("${default.receive.address.id}")
+    private String defaultReciveAddressId;
+
     @Autowired
     private WxOrderApiController wxOrderApiController;
 
@@ -933,6 +936,14 @@ public class ReturnOrderService {
 
         //此处变更 订单的金额、积分、知豆等信息，此处储存的是 订单总共可退金额
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
+
+        //当前如果为视频号、退货退款， 则不可以发起退差价和运费
+        if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)  &&  Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) ) {
+            if (Objects.equals(returnOrder.getReturnReason(),ReturnReason.PRICE_DIFF) || Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+                throw new SbcRuntimeException("K-050462");
+            }
+        }
+
         //查看是否需要退还运费
         if (providerDeliveryMap.isEmpty()) {
             Map<String, List<TradeItem>> tradeItemMap = new HashMap<>();
@@ -2002,6 +2013,12 @@ public class ReturnOrderService {
     public void audit(String returnOrderId, Operator operator, String addressId) {
         //查询退单详情
         ReturnOrder returnOrder = findById(returnOrderId);
+
+        if (Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) && StringUtils.isNotBlank(defaultReciveAddressId)) {
+            //设置默认退款地址
+            Map map = JSON.parseObject(defaultReciveAddressId, Map.class);
+            addressId = map.get(returnOrder.getProviderId()) == null ? "" : map.get(returnOrder.getProviderId()).toString();
+        }
 
         // 查询订单相关的所有退单
         List<ReturnOrder> returnOrderAllList = returnOrderRepository.findByTid(returnOrder.getTid());
