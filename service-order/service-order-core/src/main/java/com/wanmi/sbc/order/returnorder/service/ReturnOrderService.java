@@ -2512,7 +2512,7 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
-        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN,WxAfterSaleOperateType.CANCEL.getIndex());
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN,WxAfterSaleOperateType.REJECT.getIndex());
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
