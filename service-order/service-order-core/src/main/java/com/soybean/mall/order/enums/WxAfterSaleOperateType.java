@@ -18,7 +18,9 @@ public enum WxAfterSaleOperateType {
 
     RETURN(5,"同意退货"),
 
-    OTHER(6,"其他");
+    UPLOAD_RETURN_INFO(6,"上传退货信息"),
+
+    OTHER(7,"其他"),;
 
 
 

@@ -7435,6 +7435,8 @@ public class TradeService {
                 if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
                     tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
                 }
+                //复制运费过来
+                tradePrice.setSplitDeliveryPrice(trade.getTradePrice().getSplitDeliveryPrice());
                 //运费
                 if(tradePrice.getSplitDeliveryPrice()!=null && !tradePrice.getSplitDeliveryPrice().isEmpty() && tradePrice.getSplitDeliveryPrice().containsKey(providerId)){
                     tradePrice.setDeliveryPrice(tradePrice.getSplitDeliveryPrice().get(providerId));
