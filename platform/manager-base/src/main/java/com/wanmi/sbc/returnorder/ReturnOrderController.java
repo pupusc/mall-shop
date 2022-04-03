@@ -56,6 +56,7 @@ import com.wanmi.sbc.pay.api.provider.PayProvider;
 import com.wanmi.sbc.pay.api.provider.PayQueryProvider;
 import com.wanmi.sbc.pay.api.request.RefundResultByOrdercodeRequest;
 import com.wanmi.sbc.pay.bean.enums.TradeStatus;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.returnorder.convert.Remedy2ReturnOrder;
 import com.wanmi.sbc.returnorder.request.RejectRequest;
 import com.wanmi.sbc.returnorder.request.RemedyReturnRequest;
@@ -159,6 +160,9 @@ public class ReturnOrderController {
 
     @Autowired
     private TradeProvider tradeProvider;
+
+    @Autowired
+    private RedisService redisService;
 
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -490,6 +494,13 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<Object> refundOnline(@PathVariable String rid) {
+        String onlineRefundKey = "BOSS_REFUND_ONLINE_RATE_LIMIT_" + rid;
+        String rateLimitStr = redisService.getString(onlineRefundKey);
+        if (StringUtils.isNotBlank(rateLimitStr)) {
+            throw new SbcRuntimeException("K-050414");
+        }
+        redisService.setNx(onlineRefundKey, "true", 10L);
+
         Operator operator = commonUtil.getOperatorWithNull();
         BaseResponse<Object> res = returnOrderProvider.refundOnlineByTid(ReturnOrderOnlineRefundByTidRequest.builder().returnOrderCode(rid)
                 .operator(operator).build());
