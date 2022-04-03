@@ -2512,7 +2512,7 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
-        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN,WxAfterSaleOperateType.REJECT.getIndex());
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN,WxAfterSaleOperateType.CANCEL.getIndex());
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
@@ -3425,7 +3425,7 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.REJECT.getIndex());
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         // 拒绝退款时，发送MQ消息
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
@@ -3493,7 +3493,7 @@ public class ReturnOrderService {
                     .data(refundOrderResponse.getRefuseReason())
                     .build();
             returnFSMService.changeState(request);
-            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.REJECT.getIndex());
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         });
     }
 
