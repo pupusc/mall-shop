@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.order.controller;
 
+import com.soybean.mall.wx.mini.goods.bean.response.WxListAfterSaleResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @RequestMapping("/wx/mini")
 @FeignClient(value = "${application.wx.name}", contextId = "WxOrderApiController")
@@ -102,5 +105,12 @@ public interface WxOrderApiController {
      */
     @PostMapping("/aftersale/uploadreturninfo")
     BaseResponse<WxResponseBase> uploadReturnInfo(@RequestBody WxUploadReturnInfoRequest request);
+
+    /**
+     * 售后单列表
+     */
+    @PostMapping("/aftersale/detail")
+    BaseResponse<WxListAfterSaleResponse> listAfterSale(@RequestBody WxAfterSaleListRequest wxDealAftersaleRequest);
+
 
 }

@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.order.controller;
 
+import com.soybean.mall.wx.mini.goods.bean.response.WxListAfterSaleResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -91,5 +94,10 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     @Override
     public BaseResponse<WxResponseBase> uploadReturnInfo(WxUploadReturnInfoRequest request) {
         return BaseResponse.success(wxService.uploadReturnInfo(request));
+    }
+
+    @Override
+    public BaseResponse<WxListAfterSaleResponse> listAfterSale(WxAfterSaleListRequest request) {
+        return BaseResponse.success(wxService.listAfterSale(request));
     }
 }

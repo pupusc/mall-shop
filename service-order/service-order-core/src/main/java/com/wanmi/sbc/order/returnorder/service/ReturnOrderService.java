@@ -1246,7 +1246,8 @@ public class ReturnOrderService {
             returnOrderService.addReturnOrder(newReturnOrder);
 
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
-
+            //先取消之前的售后单
+            wxOrderService.cancelAfterSaleByOrderId(trade.getId(),newReturnOrder);
             wxOrderService.addEcAfterSale(newReturnOrder);
 
             Boolean auditFlag = true;
@@ -4906,6 +4907,9 @@ public class ReturnOrderService {
         //通知
         wxOrderService.sendWxAfterSaleMessage(returnOrder);
     }
+
+
+
 
 
 }

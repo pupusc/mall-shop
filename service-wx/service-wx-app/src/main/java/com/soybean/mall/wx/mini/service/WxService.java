@@ -59,6 +59,7 @@ public class WxService {
     private static final String SEND_MESSAGE_URL="https://api.weixin.qq.com/cgi-bin/message/subscribe/send";
     private static final String GET_PAYMENT_PARAMS_URL="https://api.weixin.qq.com/shop/order/getpaymentparams";
     private static final String UPLOAD_RETURN_INFO="https://api.weixin.qq.com/shop/ecaftersale/uploadreturninfo";
+    private static final String LIST_AFTER_SALE="https://api.weixin.qq.com/shop/ecaftersale/get_list";
 
     private static final HttpHeaders defaultHeader;
     static {
@@ -368,5 +369,15 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+    /**
+     * 售后单-获取售后单列表
+     */
+    public WxListAfterSaleResponse listAfterSale(WxAfterSaleListRequest request){
+        String url = LIST_AFTER_SALE.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxListAfterSaleResponse.class);
     }
 }

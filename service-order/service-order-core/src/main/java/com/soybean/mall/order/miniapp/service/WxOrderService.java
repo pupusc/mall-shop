@@ -10,6 +10,7 @@ import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepositor
 import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
+import com.soybean.mall.wx.mini.goods.bean.response.WxListAfterSaleResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleReasonType;
@@ -17,6 +18,7 @@ import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -640,5 +642,47 @@ public class WxOrderService {
             throw new SbcRuntimeException("K-050415");
         }
 
+    }
+
+    /**
+     * 查询之前售后单并取消
+     * @param tid
+     */
+    public void cancelAfterSaleByOrderId(String tid,ReturnOrder returnOrder){
+        Trade trade = tradeRepository.findById(tid).orElse(null);
+        if (trade == null ) {
+            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+        }
+        if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
+            return;
+        }
+        WxAfterSaleListRequest wxAfterSaleListRequest = new WxAfterSaleListRequest();
+        wxAfterSaleListRequest.setLimit(50);
+        wxAfterSaleListRequest.setOffset(0);
+        wxAfterSaleListRequest.setOutOrderId(tid);
+        wxAfterSaleListRequest.setOpenid(trade.getBuyer().getOpenId());
+        BaseResponse<WxListAfterSaleResponse> list = wxOrderApiController.listAfterSale(wxAfterSaleListRequest);
+        log.info("微信视频号获取售后列表，requets:{},response:{}",wxAfterSaleListRequest,list);
+        if(list == null || list.getContext() == null || CollectionUtils.isEmpty(list.getContext().getAfterSalesOrders())){
+            return;
+        }
+        list.getContext().getAfterSalesOrders().forEach(p->{
+            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(p));
+            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+            log.info("微信视频号获取售后详情，request:{},response:{}",wxDealAftersaleRequest,wxDetailAfterSaleResponse);
+            if(wxDetailAfterSaleResponse!=null && wxDetailAfterSaleResponse.getContext()!=null && wxDetailAfterSaleResponse.getContext().getAfterSalesOrder()!=null &&
+                    Arrays.asList(2,23).contains(wxDetailAfterSaleResponse.getContext().getAfterSalesOrder().getStatus())){
+                //取消
+                WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest = new WxDealAftersaleNeedOpenidRequest();
+                wxDealAftersaleNeedOpenidRequest.setOpenid(trade.getBuyer().getOpenId());
+                wxDealAftersaleNeedOpenidRequest.setOutAftersaleId(wxDetailAfterSaleResponse.getContext().getAfterSalesOrder().getOutAftersaleId());
+                BaseResponse<WxResponseBase> cancelResponse = wxOrderApiController.cancelAfterSale(wxDealAftersaleNeedOpenidRequest);
+                log.info("微信视频号取消售后，request:{},response:{}",wxDealAftersaleNeedOpenidRequest,cancelResponse);
+                if(cancelResponse == null || cancelResponse.getContext() ==null || !cancelResponse.getContext().isSuccess()){
+                    throw  new SbcRuntimeException("K-050418");
+                }
+            }
+        });
     }
 }
