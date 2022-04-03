@@ -192,7 +192,7 @@ public class OrderController {
             return wxOrderPaymentVO;
         }
         //小程序订单
-        if(Objects.equals(miniProgramScene,1)){
+        if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
             //生成预支付订单
             WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
             req.setAppid(appId);
