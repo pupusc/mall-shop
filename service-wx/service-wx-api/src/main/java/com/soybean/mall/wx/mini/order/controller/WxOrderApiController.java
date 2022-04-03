@@ -109,7 +109,7 @@ public interface WxOrderApiController {
     /**
      * 售后单列表
      */
-    @PostMapping("/aftersale/detail")
+    @PostMapping("/aftersale/list")
     BaseResponse<WxListAfterSaleResponse> listAfterSale(@RequestBody WxAfterSaleListRequest wxDealAftersaleRequest);
 
 
