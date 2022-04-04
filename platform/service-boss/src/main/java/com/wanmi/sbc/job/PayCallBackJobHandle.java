@@ -1,5 +1,7 @@
 package com.wanmi.sbc.job;
 
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.order.api.provider.paycallbackresult.PayCallBackResultProvider;
@@ -169,16 +171,30 @@ public class PayCallBackJobHandle extends IJobHandler {
                             .build());
                     try{
                         if(payCallBackResultVO.getPayType()== PayCallBackType.WECAHT){
+                            //此处因为节假日，没有办法测试，为临时处理方案、TODO 正确的处理方案是：在回调的地方存入到 pay_call_back_result 表里
+                            TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
+                            tradeGetByIdRequest.setTid(payCallBackResultVO.getBusinessId());
+                            BaseResponse<TradeGetByIdResponse> orderById = tradeQueryProvider.getOrderById(tradeGetByIdRequest);
+                            TradeVO tradeVO = orderById.getContext().getTradeVO();
+                            if (tradeVO == null) {
+                                log.error("PayCallBackJobHandler payCallBackHandle businessId: {} tradeVO is null return", payCallBackResultVO.getBusinessId());
+                                return;
+                            }
+                            Long storeId = Constants.BOSS_DEFAULT_STORE_ID;
+                            if (Objects.equals(tradeVO.getChannelType(), ChannelType.MINIAPP)) {
+                                storeId = Constants.BOSS_MINIAPP_STORE_ID;
+                            }
                             //查询微信支付单报文，根据支付单支付的状态判断判断是否是已支付完成
                             WxPayOrderDetailReponse wxPayOrderDetailReponse = wxPayProvider.getWxPayOrderDetail(WxPayOrderDetailRequest.builder()
                                     .businessId(payCallBackResultVO.getBusinessId())
-                                    .storeId(Constants.BOSS_DEFAULT_STORE_ID)
+                                    .storeId(storeId)
                                     .build()).getContext();
                             if("SUCCESS".equals(wxPayOrderDetailReponse.getReturn_code())&&"SUCCESS".equals(wxPayOrderDetailReponse.getResult_code())
                                     &&"SUCCESS".equals(wxPayOrderDetailReponse.getTrade_state())){
                                 payCallBackTaskService.payCallBack(TradePayOnlineCallBackRequest.builder().payCallBackType(payCallBackResultVO.getPayType())
                                         .wxPayCallBackResultStr(payCallBackResultVO.getResultContext())
                                         .wxPayCallBackResultXmlStr(payCallBackResultVO.getResultXml())
+                                                .storeId(storeId)
                                         .build());
                             }
                         } else if(payCallBackResultVO.getPayType()== PayCallBackType.ALI) {
