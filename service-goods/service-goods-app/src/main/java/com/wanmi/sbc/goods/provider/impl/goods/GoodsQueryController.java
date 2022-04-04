@@ -66,6 +66,7 @@ import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCateSync;
 import com.wanmi.sbc.goods.cate.request.GoodsCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
+import com.wanmi.sbc.goods.common.GoodsPackService;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
 import com.wanmi.sbc.goods.goodsevaluate.service.GoodsEvaluateService;
 import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
@@ -87,7 +88,6 @@ import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsMapper;
-import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -142,9 +142,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
     private LinkedMallGoodsService linkedMallGoodsService;
 
     @Autowired
-    private LinkedMallStockQueryProvider linkedMallStockQueryProvider;
-
-    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -167,6 +164,9 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
     private GoodsStockService goodsStockService;
+
+    @Autowired
+    private GoodsPackService goodsPackService;
 
     /**
      * 分页查询商品信息
@@ -445,6 +445,12 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
         //未开启商品抵扣时，清零buyPoint
         systemPointsConfigService.clearBuyPoinsForSkus(goodsByIdResponse.getGoodsInfos());
+
+        //商品的打包信息
+        if (Boolean.TRUE.equals(request.getShowGoodsPackFlag())) {
+            goodsByIdResponse.setGoodsPackDetails(goodsPackService.listGoodsPackDetailByPackId(goodsId));
+        }
+
         return BaseResponse.success(goodsByIdResponse);
     }
     /**

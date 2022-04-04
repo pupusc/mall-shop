@@ -12,7 +12,12 @@ import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.provider.standard.EsStandardProvider;
-import com.wanmi.sbc.elastic.api.request.goods.*;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteByIdsRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoModifyAddedStatusRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInitProviderGoodsInfoRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySalesNumBySpuIdRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySortNoBySpuIdRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
@@ -39,23 +44,49 @@ import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAddedStatusRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyFreightTempRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyShamSalesNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifySortNoRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleNotEndResponse;
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleNotEndResponse;
 import com.wanmi.sbc.goods.api.response.brand.GoodsBrandByIdResponse;
 import com.wanmi.sbc.goods.api.response.cate.GoodsCateByIdResponse;
 import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsByIdResponse;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddAllResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyGiftVO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.service.GoodsExcelService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.operatedatalog.OperateDataLogQueryProvider;
@@ -80,7 +111,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletInputStream;
@@ -88,7 +125,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -198,7 +242,8 @@ public class GoodsController {
             throw new SbcRuntimeException("K-030011");
         }
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+        //前端传值
+        //request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
         &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
@@ -954,6 +999,8 @@ public class GoodsController {
         GoodsViewByIdRequest request = new GoodsViewByIdRequest();
         request.setGoodsId(goodsId);
         request.setShowLabelFlag(true);
+        request.setShowGoodsPackFlag(true);
+
         GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
 
         //周期购商品 封装周期购信息
