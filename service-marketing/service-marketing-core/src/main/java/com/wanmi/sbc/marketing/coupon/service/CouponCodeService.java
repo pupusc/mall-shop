@@ -745,7 +745,10 @@ public class CouponCodeService {
             }
         }else if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
             //一天限领一次的券
-            String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+            if(StringUtils.isEmpty(couponFetchRequest.getCustomerId())){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先登录");
+            }
+            String key = "COUPON_".concat(couponFetchRequest.getCustomerId()).concat("_").concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
             fetchThisDay = redisTemplate.opsForValue().get(key);
             if(fetchThisDay == null){
                 //可以领
@@ -799,8 +802,8 @@ public class CouponCodeService {
             };
             redisTemplate.execute(callback);
         }catch (Exception e) {
-            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
-                String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY) && StringUtils.isNotEmpty(couponFetchRequest.getCustomerId())){
+                String key = "COUPON_".concat(couponFetchRequest.getCustomerId()).concat("_").concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
                 if(fetchThisDay == null){
                     redisTemplate.delete(key);
                 }else {
