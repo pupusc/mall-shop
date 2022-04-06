@@ -98,33 +98,33 @@ public class RedisService {
         return false;
     }
 
-    public void decrPipeline(Map<String, Long> datas) {
-        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
-            return null;
-        });
-    }
+//    public void decrPipeline(Map<String, Long> datas) {
+//        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+//            return null;
+//        });
+//    }
 
-    public boolean hsetPipeline(final String key, final List<RedisHsetBean> fieldValues) {
-        try {
-            return redisTemplate.execute(new RedisCallback<Boolean>() {
-                @Override
-                public Boolean doInRedis(RedisConnection redisConnection) throws DataAccessException {
-                    redisConnection.openPipeline();
-                    for (RedisHsetBean bean : fieldValues) {
-                        redisConnection.hSet(redisTemplate.getStringSerializer().serialize(key),
-                            redisTemplate.getStringSerializer().serialize(bean.getField()),
-                            redisTemplate.getStringSerializer().serialize(bean.getValue()));
-                    }
-                    List<Object> objects = redisConnection.closePipeline();
-                    return !CollectionUtils.isEmpty(objects);
-                }
-            });
-        } catch (Exception e) {
-            LOGGER.error("hsetPipeline value to redis fail...", e);
-        }
-        return false;
-    }
+//    public boolean hsetPipeline(final String key, final List<RedisHsetBean> fieldValues) {
+//        try {
+//            return redisTemplate.execute(new RedisCallback<Boolean>() {
+//                @Override
+//                public Boolean doInRedis(RedisConnection redisConnection) throws DataAccessException {
+//                    redisConnection.openPipeline();
+//                    for (RedisHsetBean bean : fieldValues) {
+//                        redisConnection.hSet(redisTemplate.getStringSerializer().serialize(key),
+//                            redisTemplate.getStringSerializer().serialize(bean.getField()),
+//                            redisTemplate.getStringSerializer().serialize(bean.getValue()));
+//                    }
+//                    List<Object> objects = redisConnection.closePipeline();
+//                    return !CollectionUtils.isEmpty(objects);
+//                }
+//            });
+//        } catch (Exception e) {
+//            LOGGER.error("hsetPipeline value to redis fail...", e);
+//        }
+//        return false;
+//    }
 
     public boolean hincrPipeline(final String key, final List<RedisHIncrBean> fieldValues) {
         try {

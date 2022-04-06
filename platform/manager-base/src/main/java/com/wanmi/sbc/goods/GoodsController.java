@@ -1,4 +1,5 @@
 package com.wanmi.sbc.goods;
+import com.google.common.collect.Lists;
 
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -40,6 +41,7 @@ import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
@@ -129,7 +131,7 @@ public class GoodsController {
     private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
 
     @Autowired
-    GoodsAresProvider goodsAresProvider;
+    private GoodsAresProvider goodsAresProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -179,8 +181,11 @@ public class GoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
+
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+
 
     /**
      * @description 新增商品
@@ -246,6 +251,20 @@ public class GoodsController {
         String goodsId = Optional.ofNullable(response)
                 .map(GoodsAddResponse::getResult)
                 .orElse(null);
+
+        if(!Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
+            goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(goodsId));
+        }  else {
+            //同步库存 不判断是否自动同步，交给同步方法处理
+            GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+            guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
+            guanYiSyncGoodsStockRequest.setStartTime("");
+            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+            guanYiSyncGoodsStockRequest.setPageSize(0);
+            goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+        }
+
+
         //ares埋点-商品-后台添加商品sku
         goodsAresProvider.dispatchFunction(new DispatcherFunctionRequest("addGoodsSpu", new String[]{goodsId}));
         esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
@@ -456,6 +475,20 @@ public class GoodsController {
             }
         }
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
+
+        //同步库存 不判断是否自动同步，交给同步方法处理
+        if(!Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
+            goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(request.getGoods().getGoodsId()));
+        }  else {
+            //同步库存 不判断是否自动同步，交给同步方法处理
+            GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+            guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(request.getGoods().getGoodsId()));
+            guanYiSyncGoodsStockRequest.setStartTime("");
+            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+            guanYiSyncGoodsStockRequest.setPageSize(0);
+            goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+        }
+
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {
             esGoodsInfoElasticProvider.delete(EsGoodsDeleteByIdsRequest.builder()
@@ -1151,6 +1184,7 @@ public class GoodsController {
     @ApiOperation(value = "批量上架商品")
     @RequestMapping(value = "/spu/sale", method = RequestMethod.PUT)
     public BaseResponse onSale(@RequestBody GoodsModifyAddedStatusRequest request) {
+
         if (CollectionUtils.isEmpty(request.getGoodsIds())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
@@ -1159,13 +1193,39 @@ public class GoodsController {
                 GoodsByConditionRequest.builder().goodsIds(request.getGoodsIds()).build();
         List<GoodsVO> goodsVOList =
                 goodsQueryProvider.listByCondition(conditionRequest).getContext().getGoodsVOList();
-            for (GoodsVO goodsVO : goodsVOList) {
-                if (StringUtils.isBlank(goodsVO.getErpGoodsNo())) {
-                    throw new SbcRuntimeException("K-900001");
-                }
+        for (GoodsVO goodsVO : goodsVOList) {
+            if (StringUtils.isBlank(goodsVO.getErpGoodsNo())) {
+                throw new SbcRuntimeException("K-900001");
             }
+        }
 
         goodsProvider.modifyAddedStatus(request);
+
+        Map<Long, List<String>> providerId2GoodsIdListMap = new HashMap<>();
+        for (GoodsVO goodsVO : goodsVOList) {
+            List<String> goodsIdList = providerId2GoodsIdListMap.get(goodsVO.getProviderId());
+            if (CollectionUtils.isEmpty(goodsIdList)) {
+                goodsIdList = new ArrayList<>();
+                providerId2GoodsIdListMap.put(goodsVO.getProviderId(), goodsIdList);
+            }
+            goodsIdList.add(goodsVO.getGoodsId());
+        }
+
+        //同步库存
+        providerId2GoodsIdListMap.forEach((K, V) -> {
+            if(!Objects.equals(K, defaultProviderId)) {
+                goodsProvider.syncGoodsStockAndCostPrice(V);
+            }  else {
+                //同步库存 不判断是否自动同步，交给同步方法处理
+                GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+                guanYiSyncGoodsStockRequest.setGoodsIdList(V);
+                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+                guanYiSyncGoodsStockRequest.setPageSize(0);
+                goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+            }
+        });
+
         //更新ES
         esGoodsInfoElasticProvider.updateAddedStatus(EsGoodsInfoModifyAddedStatusRequest.builder().
                 addedFlag(AddedFlag.YES.toValue()).goodsIds(request.getGoodsIds()).goodsInfoIds(null).build());
@@ -1346,10 +1406,10 @@ public class GoodsController {
         goodsExcelService.downErrExcel(commonUtil.getOperatorId(), ext);
     }
 
-    @PostMapping("/decryLastStock")
-    public String decryLastStock(@RequestBody Map<String, Long> datas) {
-        goodsProvider.decryLastStock(datas);
-        return "ok";
-    }
+//    @PostMapping("/decryLastStock")
+//    public String decryLastStock(@RequestBody Map<String, Long> datas) {
+//        goodsProvider.decryLastStock(datas);
+//        return "ok";
+//    }
 
 }

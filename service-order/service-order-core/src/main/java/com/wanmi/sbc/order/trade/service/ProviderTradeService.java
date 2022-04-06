@@ -1220,6 +1220,7 @@ public class ProviderTradeService {
 
             if (CollectionUtils.isNotEmpty(providerTrades)) {
                 providerTrades.forEach(providerTrade -> {
+                    log.info("erpResetStatusSyncCountJobHandler ProviderTradeService tid: {} pid:{}", providerTrade.getParentId(), providerTrade.getId());
                     providerTrade.getTradeState().setScanCount(ScanCount.COUNT_ZERO.toValue());
                 });
                 this.updateProviderTradeList(providerTrades);

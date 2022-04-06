@@ -393,7 +393,9 @@ public class WxLiveAssistantService {
 //                change = true;
                 goodsInfo.setStockSyncFlag(1);
 //                Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
-                goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
+//                goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
+                goodsStockService.batchUpdateStock(Collections.singletonList(goodsInfo.getGoodsId()), "", 0, 80);
+//                goodsStockService.batchUpdateStock()
 //                Map<String, Integer> skus1 = map.get("skus");
 //                Map<String, Integer> spus1 = map.get("spus");
 //                skus1.forEach((k ,v) -> {

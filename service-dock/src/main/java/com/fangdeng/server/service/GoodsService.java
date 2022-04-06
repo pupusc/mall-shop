@@ -1,4 +1,5 @@
 package com.fangdeng.server.service;
+import java.math.BigDecimal;
 
 import com.fangdeng.server.assembler.GoodsAssembler;
 import com.fangdeng.server.client.BookuuClient;
@@ -12,6 +13,8 @@ import com.fangdeng.server.entity.RiskVerify;
 import com.fangdeng.server.enums.GoodsSyncStatusEnum;
 import com.fangdeng.server.mapper.*;
 import com.fangdeng.server.mapper.GoodsSpecialPriceSyncMapper;
+import com.fangdeng.server.vo.GoodsCostPriceVO;
+import com.fangdeng.server.vo.GoodsStockVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -277,6 +280,63 @@ public class GoodsService {
             }
 
         }
+    }
+
+
+    /**
+     * 实时获取库存信息
+     * @param goodsIdList
+     * @return
+     */
+    public List<GoodsStockVO> getGoodsStock(List<String> goodsIdList) {
+        List<GoodsStockVO> result = new ArrayList<>();
+        List<GoodsSyncRelation> goodsSyncRelationList = goodsSyncRelationMapper.listByCondition(goodsIdList);
+        if (CollectionUtils.isEmpty(goodsSyncRelationList)) {
+            return result;
+        }
+        BookuuStockQueryRequest request = new BookuuStockQueryRequest();
+        request.setBookID(String.join(",", goodsSyncRelationList.stream().map(GoodsSyncRelation::getGoodsNo).collect(Collectors.toList())));
+        BookuuStockQueryResponse response = bookuuClient.queryStock(request);
+        if (response == null || CollectionUtils.isEmpty(response.getBookList())) {
+            log.info("there is no stock change,queryDTO:{}", request);
+            return result;
+        }
+
+        for (BookuuStockQueryResponse.BookuuStock bookuuStock : response.getBookList()) {
+            GoodsStockVO goodsStockVO = new GoodsStockVO();
+            goodsStockVO.setStockQty(bookuuStock.getStock());
+            goodsStockVO.setErpGoodsNo(bookuuStock.getBookId());
+            result.add(goodsStockVO);
+        }
+        return result;
+    }
+
+    /**
+     * 实时获取成本价
+     * @param goodsIdList
+     */
+    public List<GoodsCostPriceVO> getGoodsCostPrice(List<String> goodsIdList) {
+        List<GoodsCostPriceVO> result = new ArrayList<>();
+        List<GoodsSyncRelation> goodsSyncRelationList = goodsSyncRelationMapper.listByCondition(goodsIdList);
+        if (CollectionUtils.isEmpty(goodsSyncRelationList)) {
+            return result;
+        }
+        BookuuPriceQueryRequest priceQueryRequest = new BookuuPriceQueryRequest();
+        priceQueryRequest.setBookID(String.join(",", goodsSyncRelationList.stream().map(GoodsSyncRelation::getGoodsNo).collect(Collectors.toList())));
+        BookuuPriceQueryResponse response = bookuuClient.queryPrice(priceQueryRequest);
+        if(response == null || CollectionUtils.isEmpty(response.getPriceList())){
+            return result;
+        }
+
+        for (BookuuPriceQueryResponse.BookuuPrice bookuuPrice : response.getPriceList()) {
+            GoodsCostPriceVO goodsCostPriceVO = new GoodsCostPriceVO();
+            goodsCostPriceVO.setErpGoodsNo(bookuuPrice.getBookID());
+            goodsCostPriceVO.setIsbn(bookuuPrice.getIsbn());
+            goodsCostPriceVO.setCostPrice(bookuuPrice.getPrice());
+            goodsCostPriceVO.setSellPrice(bookuuPrice.getSellPrice());
+            result.add(goodsCostPriceVO);
+        }
+        return result;
     }
 
     public void auditGoods(String goodsNo){

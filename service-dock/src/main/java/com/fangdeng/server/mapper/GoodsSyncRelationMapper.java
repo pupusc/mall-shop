@@ -61,4 +61,6 @@ public interface GoodsSyncRelationMapper {
     List<GoodsSyncRelation> list(@Param("id") Long id,@Param("goodsIds")List<String> goodsIds);
 
     List<String> listByGoodsNos(@Param("goodsNos") List<String> goodsNos);
+
+    List<GoodsSyncRelation> listByCondition(@Param("goodsIds")List<String> goodsIds);
 }

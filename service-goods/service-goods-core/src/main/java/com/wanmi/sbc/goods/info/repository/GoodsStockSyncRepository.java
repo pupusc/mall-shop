@@ -23,4 +23,9 @@ public interface GoodsStockSyncRepository extends JpaRepository<GoodsStockSync, 
     @Query("update GoodsStockSync set status = 1,updateTime = now() where id = ?1")
     int updateStatus(Long id);
 
+
+    @Modifying
+    @Query("update GoodsStockSync set status = 1,updateTime = now() where goodsNo = ?1")
+    int updateStatusByErpGoodsInfoNo(String erpGoodsInfoNo);
+
 }

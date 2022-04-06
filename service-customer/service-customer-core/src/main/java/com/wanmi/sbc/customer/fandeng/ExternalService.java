@@ -149,6 +149,11 @@ public class ExternalService {
     public static final String POINT_BALANCE_SEARCH_URL = "/point/balance/search";
 
     /**
+     * 通过用户编号查询用户积分余额
+     */
+    public static final String KNOWLEDGE_BALANCE_SEARCH_URL = "/open/findCounselorByUserId";
+
+    /**
      * 会员锁定积分
      */
     public static final String POINT_LOCK_URL = "/point/lock";
@@ -593,6 +598,16 @@ public class ExternalService {
         return BaseResponse.success(response);
     }
 
+    public BaseResponse<FanDengKnowledgeResponse> getKnowledgeByFanDengNo(@Valid FanDengKnowledgeRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_BALANCE_SEARCH_URL + PARAMETER, body),
+                body);
+        FanDengKnowledgeResponse response =
+                (FanDengKnowledgeResponse) exchangeAll(result, FanDengKnowledgeResponse.class);
+
+        return BaseResponse.success(response);
+    }
+
     public BaseResponse<FanDengLockResponse> pointLock(@Valid FanDengPointLockRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(POINT_LOCK_URL + PARAMETER, body),
@@ -808,6 +823,24 @@ public class ExternalService {
             return parseObject;
         }
         throw new SbcRuntimeException("K-120801", (String) object.get("msg"));
+    }
+
+    /**
+     * 转换成返回对象
+     *
+     * @param body
+     * @param t
+     * @return
+     */
+    private Object exchangeAll(String body, Class t) {
+        JSONObject object = JSONObject.parseObject(body);
+        String code = (String) object.get("status");
+        if (code == null || (code != null && code.equals("0000"))) {
+            JSONObject data = (JSONObject) object.get("data");
+            Object parseObject = JSON.parseObject(data.toString(), t);
+            return parseObject;
+        }
+        return null;
     }
 
     /**

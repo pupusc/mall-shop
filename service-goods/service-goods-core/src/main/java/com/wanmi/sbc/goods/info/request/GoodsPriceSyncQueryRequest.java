@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Predicate;
@@ -27,6 +28,8 @@ public class GoodsPriceSyncQueryRequest extends BaseQueryRequest {
 
      private Integer deleted = 0;
 
+    private List<String> goodsNos;
+
     /**
      * 封装公共条件
      *
@@ -38,6 +41,9 @@ public class GoodsPriceSyncQueryRequest extends BaseQueryRequest {
             //批量商品编号
             if (status != null) {
                 predicates.add(cbuild.equal(root.get("status"), status));
+            }
+            if(CollectionUtils.isNotEmpty(goodsNos)){
+                predicates.add(root.get("goodsNo").in(goodsNos));
             }
             predicates.add(cbuild.equal(root.get("deleted"), deleted));
             Predicate[] p = predicates.toArray(new Predicate[predicates.size()]);

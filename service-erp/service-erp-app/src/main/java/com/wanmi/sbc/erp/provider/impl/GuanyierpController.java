@@ -65,11 +65,22 @@ public class GuanyierpController implements GuanyierpProvider {
 
     /**
      * 获取商品库存
+     * @param startTime
+     * @param erpGoodNo
+     * @return
      */
     @Override
-    public BaseResponse<ErpStockVo> getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
-        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo, pageNum, pageSize));
+    public BaseResponse<ErpStockVo> listWareHoseStock(String startTime, String erpGoodNo){
+        return BaseResponse.success(guanyierpService.listWareHoseStock(startTime, erpGoodNo));
     }
+
+//    /**
+//     * 获取商品库存
+//     */
+//    @Override
+//    public BaseResponse<ErpStockVo> getUpdatedStock(String startTime, String erpGoodInfoNo, String pageNum, String pageSize) {
+//        return BaseResponse.success(guanyierpService.getUpdatedStock(startTime, erpGoodInfoNo, pageNum, pageSize));
+//    }
 
     /**
      * 同步ERP商品信息
@@ -115,6 +126,8 @@ public class GuanyierpController implements GuanyierpProvider {
         return BaseResponse.success(SyncGoodsInfoResponse.builder().erpGoodsInfoVOList(erpGoodsInfoVOList).build());
     }
 
+
+
     /**
      * 获取ERP商品信息,不带库存
      */
@@ -127,9 +140,12 @@ public class GuanyierpController implements GuanyierpProvider {
             ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
             erpGoods.getSkus().stream().forEach(erpGoodsInfo -> {
                 ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
-                        .itemSkuName(erpGoodsInfo.getName()).skuCode(erpGoodsInfo.getCode())
-                        .costPrice(erpGoodsInfo.getCostPrice()).stockStatusCode(erpGoodsInfo.getStockStatusCode())
-                        .itemCode(erpGoods.getCode()).itemName(erpGoods.getName())
+                        .itemSkuName(erpGoodsInfo.getName())
+                        .skuCode(erpGoodsInfo.getCode())
+                        .costPrice(erpGoodsInfo.getCostPrice())
+                        .stockStatusCode(erpGoodsInfo.getStockStatusCode())
+                        .itemCode(erpGoods.getCode())
+                        .itemName(erpGoods.getName())
                         .build();
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
             });

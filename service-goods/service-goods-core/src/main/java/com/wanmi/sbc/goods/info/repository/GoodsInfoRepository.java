@@ -10,7 +10,6 @@ import com.wanmi.sbc.goods.info.model.entity.GoodsInfoParams;
 import com.wanmi.sbc.goods.info.model.entity.GoodsMarketingPrice;
 import com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
-import io.swagger.models.auth.In;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -154,7 +153,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      */
     @Transactional
     @Modifying
-    @Query("update GoodsInfo w set w.stock = ?1, w.updateTime = now() where w.goodsInfoId = ?2")
+    @Query("update GoodsInfo w set w.stock = ?1 where w.goodsInfoId = ?2")
     int resetStockById(Long stock, String goodsInfoId);
 
     /**
@@ -529,11 +528,11 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     List<String> findExistsErpGoodsInfoNo(List<String> erpGoodsInfoNos);
 
 
-    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag) " +
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag,g.stock) " +
             " from GoodsInfo g where g.erpGoodsNo = ?1 and g.delFlag = 0 ")
     GoodsStockInfo findGoodsInfoId(String erpGoodsNo);
 
-    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag) " +
+    @Query(value = "select new com.wanmi.sbc.goods.info.model.entity.GoodsStockInfo(g.goodsInfoId, g.goodsId, g.erpGoodsNo,g.costPrice,g.costPriceSyncFlag,g.goodsInfoName,g.goodsInfoNo,g.marketPrice,g.stockSyncFlag,g.stock) " +
             " from GoodsInfo g where g.erpGoodsNo in ?1 and g.delFlag = 0 ")
     List<GoodsStockInfo> findGoodsInfoByGoodsNos(List<String> erpGoodsNos);
 
@@ -549,9 +548,15 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
 
     @Modifying
     @Transactional
-    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice ," +
-            "gi.updateTime = now() where gi.goodsInfoId = :goodsInfoId")
-    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,
-                             @Param("costPrice") BigDecimal costPrice
-    );
+    @Query(value = "update GoodsInfo gi set gi.costPrice = :costPrice where gi.goodsInfoId = :goodsInfoId")
+    int updateCostPriceById(@Param("goodsInfoId") String goodsInfoId,@Param("costPrice") BigDecimal costPrice);
+
+    /**
+     * 更新库存和成本价
+     * @return
+     */
+    @Modifying
+    @Transactional
+    @Query(value = "update GoodsInfo gi set gi.costPrice=?1, gi.stock=?2 where gi.goodsInfoId=?3")
+    int updateCostPriceAndStockById(BigDecimal costPrice, Long stock, String goodsInfoId);
 }
