@@ -81,7 +81,6 @@ public class CouponCodeBaseController {
         KsBeanUtil.copyProperties(baseRequest, request);
         request.setCustomerId(commonUtil.getOperatorId());
 
-
         couponCodeProvider.fetch(request);
         return BaseResponse.success(null);
     }
