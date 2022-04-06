@@ -1,11 +1,9 @@
 package com.wanmi.sbc.goods.prop.service;
 
-import com.wanmi.sbc.goods.prop.model.root.GoodsPropCateRel;
-import com.wanmi.sbc.goods.prop.repository.GoodsPropCateRelRepository;
-import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.goods.api.constant.GoodsPropErrorCode;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
@@ -15,11 +13,14 @@ import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
 import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
+import com.wanmi.sbc.goods.prop.model.root.GoodsPropCateRel;
 import com.wanmi.sbc.goods.prop.model.root.GoodsPropDetail;
+import com.wanmi.sbc.goods.prop.repository.GoodsPropCateRelRepository;
 import com.wanmi.sbc.goods.prop.repository.GoodsPropDetailRepository;
 import com.wanmi.sbc.goods.prop.repository.GoodsPropRepository;
 import com.wanmi.sbc.goods.prop.request.GoodsPropQueryRequest;
 import com.wanmi.sbc.goods.prop.request.GoodsPropRequest;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -471,6 +472,13 @@ public class GoodsPropService {
             });
         }
         return true;
+    }
+
+    public List<GoodsPropDetailRel> selectByGoodsIds(List<String> goodsIds) {
+        if (CollectionUtils.isEmpty(goodsIds)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+        return goodsPropDetailRelRepository.selectByGoodsIds(goodsIds.stream().distinct().collect(Collectors.toList()));
     }
 
 }

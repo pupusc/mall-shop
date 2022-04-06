@@ -27,6 +27,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsUnAuditCountRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
@@ -36,6 +37,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageByConditionResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageForXsiteResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageResponse;
@@ -47,6 +49,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsViewByPointsGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.appointmentsale.model.root.AppointmentSaleDO;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
@@ -667,5 +670,14 @@ public class GoodsQueryController implements GoodsQueryProvider {
             return BaseResponse.success(Collections.emptyList());
         }
         return BaseResponse.success(KsBeanUtil.convert(list, GoodsCateSyncVO.class));
+    }
+
+    @Override
+    public BaseResponse<List<GoodsPackDetailResponse>> listPackDetailByPackIds(PackDetailByPackIdsRequest request) {
+        if (request.getPackIds().size() > 100) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "单次查询参数条目过多，数量需小于100");
+        }
+        List<GoodsPackDetailDTO> list = goodsPackService.listGoodsPackDetailByPackIds(request.getPackIds());
+        return BaseResponse.success(KsBeanUtil.convert(list, GoodsPackDetailResponse.class));
     }
 }

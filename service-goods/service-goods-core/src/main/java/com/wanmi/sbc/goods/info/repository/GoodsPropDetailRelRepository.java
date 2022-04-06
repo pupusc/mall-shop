@@ -48,6 +48,18 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
     List<GoodsPropDetailRel> findByGoodsIds(List<String> goodsIds);
 
     /**
+     * 根据多个SpuID查询
+     *
+     * @param goodsIds 多SpuID
+     * @return
+     */
+    @Query(value =
+            "SELECT t1.*, t2.prop_name AS propName, t2.prop_type AS propType " +
+            "FROM goods_prop_detail_rel t1 LEFT JOIN goods_prop t2 ON t2.del_flag=0 AND t2.prop_id = t1.prop_id " +
+            "WHERE t1.del_flag=0 AND t1.goods_id IN (?1)", nativeQuery = true)
+    List<GoodsPropDetailRel> selectByGoodsIds(List<String> goodsIds);
+
+    /**
      * 根据多个商品ID编号进行删除
      *
      * @param goodsIds 商品ID

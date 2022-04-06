@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.open;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -9,9 +10,10 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.ShipperType;
-import com.wanmi.sbc.order.open.model.UserOrderCreateParam;
-import com.wanmi.sbc.order.open.model.UserOrderCreateResult;
-import com.wanmi.sbc.order.open.model.UserOrderCreateResultContent;
+import com.wanmi.sbc.order.open.model.FddsBaseResult;
+import com.wanmi.sbc.order.open.model.FddsOrderCreateParam;
+import com.wanmi.sbc.order.open.model.FddsOrderCreateResultData;
+import com.wanmi.sbc.order.open.model.FddsOrderQueryResultData;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
@@ -21,16 +23,26 @@ import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -44,7 +56,12 @@ public class FddsProviderService {
     /**
      * 开放平台商品下单地址
      */
-    private String orderCreateUrl = "/user/order/createV2";
+    private static String orderCreateUrl = "/user/order/createV2";
+    /**
+     * 开放平台订单查询地址
+     */
+    private static String orderQueryUrl = "/vip/order/detail";
+
     @Autowired
     private FddsOpenPlatformService fddsOpenPlatformService;
     @Autowired
@@ -53,6 +70,18 @@ public class FddsProviderService {
     private ProviderTradeRepository providerTradeRepository;
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${notice.send.message.url}")
+    private String noticeSendMsgUrl;
+
+    @Value("${notice.send.message.token}")
+    private String noticeSendMsgToken;
+
+    @Value("${notice.send.message.tenantId}")
+    private String noticeSendMsgTenantId;
+
+    @Value("${notice.send.message.noticeId}")
+    private Integer noticeSendMsgNoticeId;
 
     /**
      * 1.开放平台下单
@@ -64,18 +93,47 @@ public class FddsProviderService {
      */
     public BaseResponse createFddsTrade(ProviderTrade providerTrade) {
         //供应商下单
-        UserOrderCreateResult result = createOutOrder(providerTrade);
-
-        if (result.isRepeatOrder()) {
-            log.warn("重复下单，本次提交不做处理");
-            return BaseResponse.FAILED();
-        }
+        FddsBaseResult<FddsOrderCreateResultData> result = createOutOrder(providerTrade);
 
         if (!result.isSuccess()) {
             return createOutOrderFail(providerTrade, result);
         }
 
-        return createOutOrderSuccess(providerTrade, result.getData());
+        return createOutOrderSuccess(providerTrade, result.getData().getOrderNumber());
+    }
+
+    /**
+     * 创建樊登读书开放平台订单
+     */
+    private FddsBaseResult createOutOrder(ProviderTrade providerTrade) {
+        if (CollectionUtils.isEmpty(providerTrade.getTradeItems())) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品为空");
+        }
+        if (providerTrade.getTradeItems().size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品仅支持单一充值");
+        }
+
+        FddsOrderCreateParam createParam = new FddsOrderCreateParam();
+        createParam.setTradeNo(providerTrade.getId());
+        createParam.setMobile(providerTrade.getDirectChargeMobile());
+        createParam.setExternalProductNo(providerTrade.getTradeItems().get(0).getSkuId());
+        createParam.setPayType(convertPayType(providerTrade.getPayWay()));
+        createParam.setPayTime(providerTrade.getTradeState().getPayTime());
+
+        FddsBaseResult<FddsOrderCreateResultData> createResult;
+        try {
+            createResult = fddsOpenPlatformService.doRequest(orderCreateUrl, JSON.toJSONString(createParam), FddsBaseResult.class);
+        } catch (Exception e) {
+            Long orderNumber = queryUnknowOrder(providerTrade);
+            if (Objects.nonNull(orderNumber)) {
+                log.info("樊登读书下单失败，二次查询找到对应的订单, tradeNo = {}, orderNumber = {}", providerTrade.getId(), orderNumber);
+                return FddsBaseResult.success(new FddsOrderCreateResultData(providerTrade.getId(), orderNumber));
+            }
+
+            throw new SbcRuntimeException(e);
+        }
+
+        return createResult;
     }
 
     /**
@@ -83,7 +141,7 @@ public class FddsProviderService {
      * 1.更新订单号
      * 2.更新发货信息
      */
-    private BaseResponse createOutOrderSuccess(ProviderTrade providerTrade, UserOrderCreateResultContent createResult) {
+    private BaseResponse createOutOrderSuccess(ProviderTrade providerTrade, Long orderNumber) {
         //验证重复下单
         if (DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus()) && StringUtils.isNotBlank(providerTrade.getDeliveryOrderId())) {
             log.warn("该订单已经完成发货，本次提交不做处理，tradeId = {}, providerTradeId = {}, deliveryOrderId = {}",
@@ -112,7 +170,7 @@ public class FddsProviderService {
         List<TradeDeliver> tradeDeliverVOList = new ArrayList<>();
         TradeDeliver tradeDeliverVO = new TradeDeliver();
         tradeDeliverVO.setTradeId(providerTrade.getId());
-        tradeDeliverVO.setDeliverId(createResult.getOrderNumber().toString());
+        tradeDeliverVO.setDeliverId(orderNumber.toString());
         tradeDeliverVO.setDeliverTime(nowTime);
         tradeDeliverVO.setShippingItems(Lists.newArrayList()); //发货清单设空
         tradeDeliverVO.setProviderName(providerTrade.getSupplier().getSupplierName());
@@ -121,7 +179,7 @@ public class FddsProviderService {
         tradeDeliverVOList.add(tradeDeliverVO);
 
         //更新订单号
-        providerTrade.setDeliveryOrderId(createResult.getOrderNumber().toString());
+        providerTrade.setDeliveryOrderId(orderNumber.toString());
 
         //更新发货状态：
         //子单全部发货
@@ -195,7 +253,7 @@ public class FddsProviderService {
      * 2010	结算方式未配置
      * 2007	商品已下架
      */
-    private BaseResponse createOutOrderFail(ProviderTrade providerTrade, UserOrderCreateResult result) {
+    private BaseResponse createOutOrderFail(ProviderTrade providerTrade, FddsBaseResult result) {
         log.warn("开放平台商品下单失败, 响应编码 = {}, 响应信息 = {}", result.getStatus(), result.getMsg());
 
         String msg = "充值失败：" + result.getMsg();
@@ -210,28 +268,24 @@ public class FddsProviderService {
             throw new SbcRuntimeException(CommonErrorCode.FAILED, "订单主单备注信息更新失败");
         }
         //消息通知客服
-        // TODO: 2022/4/4 消息通知客服
+        noticeWaiter(providerTrade);
         return BaseResponse.FAILED();
     }
 
-    /**
-     * 创建樊登读书开放平台订单
-     */
-    private UserOrderCreateResult createOutOrder(ProviderTrade providerTrade) {
-        if (CollectionUtils.isEmpty(providerTrade.getTradeItems())) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品为空");
-        }
-        if (providerTrade.getTradeItems().size() > 1) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品仅支持单一充值");
-        }
+    private Long queryUnknowOrder(ProviderTrade providerTrade) {
+        Map<String, String> param = new HashMap<>();
+        param.put("tradeNo", providerTrade.getId());
+        FddsBaseResult<FddsOrderQueryResultData> queryResult = fddsOpenPlatformService.doRequest(orderQueryUrl, JSON.toJSONString(param), FddsBaseResult.class);
 
-        UserOrderCreateParam createParam = new UserOrderCreateParam();
-        createParam.setTradeNo(providerTrade.getId());
-        createParam.setMobile(providerTrade.getDirectChargeMobile());
-        createParam.setExternalProductNo(providerTrade.getTradeItems().get(0).getSkuId());
-        createParam.setPayType(convertPayType(providerTrade.getPayWay()));
-        createParam.setPayTime(providerTrade.getTradeState().getPayTime());
-        return fddsOpenPlatformService.doRequest(orderCreateUrl, JSON.toJSONString(createParam), UserOrderCreateResult.class);
+        if (queryResult.isSuccess()) {
+            return queryResult.getData().getOrderNumber();
+        }
+        if ("0006".equals(queryResult.getStatus())) {
+            log.info("开放平台查询订单信息不存在, 状态码={}", queryResult.getStatus());
+            return null;
+        }
+        log.warn("开放平台查询订单信息失败，返回值={}", JSON.toJSONString(queryResult));
+        return null;
     }
 
     /**
@@ -245,5 +299,38 @@ public class FddsProviderService {
             return "3";
         }
         return "99";
+    }
+
+    //子单号+sku编号+商品名称，充值失败；
+    private String NOTICE_SEND_MESSAGE = "{0}+{1}+{2}，充值失败；";
+    private void noticeWaiter(ProviderTrade providerTrade) {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(noticeSendMsgUrl);
+        JSONObject response = null;
+        try {
+            post.addHeader("Content-type", "application/json; charset=utf-8");
+            post.setHeader("Accept", "application/json");
+            post.setHeader("token",noticeSendMsgToken);
+            post.setHeader("tenantId",noticeSendMsgTenantId);
+            Map<String,Object> content = new HashMap<>();
+
+            content.put("content", MessageFormat
+                    .format(NOTICE_SEND_MESSAGE, providerTrade.getId(), providerTrade.getTradeItems().get(0).getSkuNo(), providerTrade.getTradeItems().get(0).getSkuName()));
+            Map<String,Object> map = new HashMap<>();
+            map.put("replaceParams",content);
+            map.put("noticeId",noticeSendMsgNoticeId);
+            StringEntity entity = new StringEntity(JSON.toJSONString(map),"UTF-8");
+            post.setEntity(entity);
+            HttpResponse res = httpClient.execute(post);
+            log.info("send message request:{},response:{}",post, res);
+        } catch (Exception e) {
+            log.error("开放平台充值失败，调用消息通知售后发生异常", e);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                log.error("httpClient关闭错误", e);
+            }
+        }
     }
 }

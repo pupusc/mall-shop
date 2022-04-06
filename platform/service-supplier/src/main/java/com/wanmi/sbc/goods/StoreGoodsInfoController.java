@@ -19,29 +19,33 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.provider.groupon.EsGrouponActivityQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.sku.EsSkuQueryProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteByIdsRequest;
-import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoListRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoModifyAddedStatusRequest;
 import com.wanmi.sbc.elastic.api.request.groupon.EsGrouponActivityPageRequest;
 import com.wanmi.sbc.elastic.api.request.sku.EsSkuPageRequest;
 import com.wanmi.sbc.elastic.api.response.sku.EsSkuPageResponse;
-import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
+import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
+import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
+import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsalegoods.BookingSaleGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.flashsaleactivity.FlashSaleActivityQueryProvider;
 import com.wanmi.sbc.goods.api.provider.flashsalegoods.FlashSaleGoodsQueryProvider;
-import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
-import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
-import com.wanmi.sbc.erp.api.response.SyncGoodsInfoResponse;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
-import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleListRequest;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSalePageRequest;
 import com.wanmi.sbc.goods.api.request.bookingsalegoods.BookingSaleGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.flashsaleactivity.FlashSaleActivityListRequest;
 import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsListRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
-import com.wanmi.sbc.goods.api.request.info.*;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoDeleteByIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoModifyAddedStatusRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.goodsrestrictedsale.GoodsRestrictedSalePurchaseResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
@@ -53,13 +57,18 @@ import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.PresellSaleStatus;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
+import com.wanmi.sbc.goods.bean.vo.FlashSaleActivityVO;
+import com.wanmi.sbc.goods.bean.vo.FlashSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedPurchaseVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsRestrictedValidateVO;
 import com.wanmi.sbc.intervalprice.GoodsIntervalPriceService;
 import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.market.MarketingIdRequest;
-import com.wanmi.sbc.marketing.api.request.markup.MarkupLevelByIdRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.bean.enums.AuditStatus;
@@ -75,8 +84,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -155,6 +164,11 @@ public class StoreGoodsInfoController {
     private  Integer pageSize=1000;
     @Autowired
     private GuanyierpProvider guanyierpProvider;
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
+
+    @Value("${fdds.provider.id}")
+    private Long fddsProviderId;
 
     /**
      * 根据erp Spu编码查询sku列表
@@ -298,11 +312,28 @@ public class StoreGoodsInfoController {
 
         for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
             goodsInfoParam.setGoodsNo(goodsInfoId2GoodsNoMap.get(goodsInfoParam.getGoodsInfoId()));
+            goodsInfoParam.setFddsGoodsFlag(goodsInfoParam.getProviderId().equals(fddsProviderId));
         }
+
+        //处理商品打包信息
+        handGoodsPackInfo(goodsInfoVOList);
 
         response.setGoodsInfoPage(new MicroServicePage<>(goodsInfoVOList, queryRequest.getPageRequest(),
                 response.getGoodsInfoPage().getTotalElements()));
         return BaseResponse.success(response);
+    }
+
+    private void handGoodsPackInfo(List<GoodsInfoVO> goodsInfoVOList) {
+        List<String> goodsIds = goodsInfoVOList.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(goodsIds));
+
+        if (CollectionUtils.isEmpty(packResponse.getContext())) {
+            return;
+        }
+        Map<String, List<GoodsPackDetailResponse>> collect = packResponse.getContext().stream().collect(Collectors.groupingBy(GoodsPackDetailResponse::getPackId));
+        for (GoodsInfoVO goodsInfoVO : goodsInfoVOList) {
+            goodsInfoVO.setPackGoodsFlag(collect.containsKey(goodsInfoVO.getGoodsId()));
+        }
     }
 
     /**

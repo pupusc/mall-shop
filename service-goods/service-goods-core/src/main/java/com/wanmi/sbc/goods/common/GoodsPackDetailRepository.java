@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 商品打包
  */
@@ -14,4 +16,7 @@ public interface GoodsPackDetailRepository extends JpaRepository<GoodsPackDetail
     @Modifying
     @Query(value = "delete from goods_pack_detail where pack_id = ?1", nativeQuery = true)
     int removeAllByPackId(String packId);
+
+    @Query(value = "select * from goods_pack_detail where del_flag = 0 and pack_id in (?1)", nativeQuery = true)
+    List<GoodsPackDetailDTO> listByPackIds(List<String> packIds);
 }

@@ -1,11 +1,25 @@
 package com.wanmi.sbc.goods.provider.impl.prop;
 
+import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.prop.GoodsPropQueryProvider;
-import com.wanmi.sbc.goods.api.request.prop.*;
-import com.wanmi.sbc.goods.api.response.prop.*;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListAllByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByGoodsIdsRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListIndexByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListInitSortRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropQueryIsChildNodeRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropQueryPropDetailsOverStepRequest;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListAllByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListByGoodsIdsResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListIndexByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListInitSortResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryIsChildNodeResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryPropDetailsOverStepResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.prop.model.root.GoodsPropDetail;
 import com.wanmi.sbc.goods.prop.request.GoodsPropRequest;
@@ -20,6 +34,8 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author: wanggang
@@ -119,6 +135,29 @@ public class GoodsPropQueryController implements GoodsPropQueryProvider{
     public BaseResponse<GoodsPropListByCateIdResponse> listByCateId(@RequestBody @Valid GoodsPropListByCateIdRequest goodsPropListByCateIdRequest){
         List<String> stringList = goodsPropService.findGoodsIdsByCateId(goodsPropListByCateIdRequest.getCateId());
         return BaseResponse.success(new GoodsPropListByCateIdResponse(stringList));
+    }
+
+
+    @Override
+    public BaseResponse<List<GoodsPropListByGoodsIdsResponse>> listByGoodsIds(GoodsPropListByGoodsIdsRequest goodsPropListByGoodsIdsRequest) {
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropService.selectByGoodsIds(goodsPropListByGoodsIdsRequest.getGoodsIds());
+
+        if (CollectionUtils.isEmpty(goodsPropDetailRels)) {
+            return BaseResponse.success(Lists.newArrayList());
+        }
+
+        Map<String, String> goodsPropGroup =
+                goodsPropDetailRels.stream().collect(Collectors.toMap(item -> item.getGoodsId() + "@" + item.getPropName(), GoodsPropDetailRel::getPropValue));
+
+        List<GoodsPropListByGoodsIdsResponse> boList = goodsPropListByGoodsIdsRequest.getGoodsIds().stream().map(goodsId -> {
+            GoodsPropListByGoodsIdsResponse bo = new GoodsPropListByGoodsIdsResponse();
+            bo.setGoodsId(goodsId);
+            bo.setGuideText(goodsPropGroup.get(goodsId + "@guide_text"));
+            bo.setGuideImg(goodsPropGroup.get(goodsId + "@guide_img"));
+            return bo;
+        }).collect(Collectors.toList());
+
+        return BaseResponse.success(boList);
     }
 
 }

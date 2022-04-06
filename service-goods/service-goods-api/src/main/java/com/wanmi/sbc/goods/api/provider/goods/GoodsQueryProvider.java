@@ -1,10 +1,40 @@
 package com.wanmi.sbc.goods.api.provider.goods;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsCountByStoreIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDetailSimpleRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsErpNoRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPageByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPageRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPropDetailRelByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsQueryNeedSynRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUnAuditCountRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsCountByStoreIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageByConditionResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageForXsiteResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPageResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPropDetailRelByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsUnAuditCountResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdAndSkuIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByPointsGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateSyncVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
@@ -214,4 +244,7 @@ public interface GoodsQueryProvider {
 
     @GetMapping("/goods/${application.goods.version}/list-goods-cate-sync")
     BaseResponse<List<GoodsCateSyncVO>> listGoodsCateSync();
+
+    @GetMapping("/goods/${application.goods.version}/list-pack-detail-by-packid")
+    BaseResponse<List<GoodsPackDetailResponse>> listPackDetailByPackIds(@RequestBody @Valid PackDetailByPackIdsRequest request);
 }

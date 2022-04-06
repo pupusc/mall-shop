@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,7 +22,6 @@ public class GoodsPackService {
 
     public List<GoodsPackDetailDTO> listGoodsPackDetailByPackId(String packId) {
         if (StringUtils.isBlank(packId)) {
-            log.info("params is error, packId = {}", packId);
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
 
@@ -28,5 +29,14 @@ public class GoodsPackService {
         query.setGoodsId(packId);
         query.setDelFlag(0);
         return goodsPackDetailRepository.findAll(Example.of(query));
+    }
+
+    public List<GoodsPackDetailDTO> listGoodsPackDetailByPackIds(List<String> packIds) {
+        if (CollectionUtils.isEmpty(packIds)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        packIds = packIds.stream().distinct().collect(Collectors.toList());
+        return goodsPackDetailRepository.listByPackIds(packIds);
     }
 }

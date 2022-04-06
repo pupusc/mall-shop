@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @date 2022-04-02 14:36:00
  */
 @Data
-public class UserOrderCreateParam {
+public class FddsOrderCreateParam {
     /**
      * 合作方订单号
      */
