@@ -802,8 +802,8 @@ public class CouponCodeService {
             };
             redisTemplate.execute(callback);
         }catch (Exception e) {
-            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
-                String key = "COUPON_".concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY) && StringUtils.isNotEmpty(couponFetchRequest.getCustomerId())){
+                String key = "COUPON_".concat(couponFetchRequest.getCustomerId()).concat("_").concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
                 if(fetchThisDay == null){
                     redisTemplate.delete(key);
                 }else {
