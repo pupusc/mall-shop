@@ -188,7 +188,7 @@ public class CouponCacheService {
                         couponCache.setCanFetchMore(false);
                         continue;
                     }
-                    String key = "COUPON_".concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                    String key = "COUPON_".concat(queryRequest.getCustomerId()).concat("_").concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
                     String o = redisService.getString(key);
                     if(o == null){
                         couponCache.setCanFetchMore(true);
