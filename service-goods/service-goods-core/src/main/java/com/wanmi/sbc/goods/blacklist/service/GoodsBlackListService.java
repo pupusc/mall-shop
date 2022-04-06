@@ -3,15 +3,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.constant.RedisKeyConstant;
 import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListTypeEnum;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListProviderRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.*;
 import com.wanmi.sbc.goods.api.response.blacklist.BlackListCategoryProviderResponse;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
@@ -75,16 +77,29 @@ public class GoodsBlackListService {
         goodsBlackListRepository.save(commonBlackListDTO);
     }
 
+    /**
+     * 更新黑名单
+     */
+    public void update(GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest){
+        Optional<GoodsBlackListDTO> opt = goodsBlackListRepository.findById(goodsBlackListCreateOrUpdateRequest.getId());
+        if(opt.isPresent()){
+            GoodsBlackListDTO goodsBlackListDTO = opt.get();
+            if(goodsBlackListDTO.getDelFlag().equals(DeleteFlag.YES.toValue())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "黑名单不存在");
+            if(goodsBlackListCreateOrUpdateRequest.getDelFlag() != null){
+                goodsBlackListDTO.setDelFlag(goodsBlackListCreateOrUpdateRequest.getDelFlag());
+            }
+            goodsBlackListRepository.save(goodsBlackListDTO);
+        }
+    }
 
     /**
      * 获取查询列表
      * @param goodsBlackListPageProviderRequest
      * @return
      */
-    private List<GoodsBlackListDTO> listSimpleNoPage(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
+    public List<GoodsBlackListDTO> listSimpleNoPage(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
         return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest));
     }
-
 
     /**
      * 获取黑名单列表

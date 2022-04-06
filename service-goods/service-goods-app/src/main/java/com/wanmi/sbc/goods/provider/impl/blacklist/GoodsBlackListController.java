@@ -2,14 +2,21 @@ package com.wanmi.sbc.goods.provider.impl.blacklist;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListProviderRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.*;
+import com.wanmi.sbc.goods.api.request.blacklist.response.GoodsBlackListData;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
+import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
 import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -46,6 +53,12 @@ public class GoodsBlackListController implements GoodsBlackListProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+    @Override
+    public BaseResponse update(GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest){
+        goodsBlackListService.update(goodsBlackListCreateOrUpdateRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
     /**
      * 刷新黑名单到缓存
      * @param goodsBlackListPageProviderRequest
@@ -58,6 +71,22 @@ public class GoodsBlackListController implements GoodsBlackListProvider {
         return BaseResponse.success(goodsBlackListPageProviderResponse);
     }
 
+    /**
+     * 获取黑名单列表
+     * @param goodsBlackListCacheProviderRequest
+     * @return
+     */
+    @Override
+    public BaseResponse<List<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
+        List<GoodsBlackListDTO> blackListModels = goodsBlackListService.listSimpleNoPage(goodsBlackListCacheProviderRequest);
+        List<GoodsBlackListData> dataList = blackListModels.stream().map(blackListModel -> {
+            GoodsBlackListData goodsBlackListData = new GoodsBlackListData();
+            BeanUtils.copyProperties(blackListModel, goodsBlackListData);
+//            goodsBlackListData.setCreateTime(blackListModel.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            return goodsBlackListData;
+        }).collect(Collectors.toList());
+        return BaseResponse.success(dataList);
+    }
 
     /**
      * 获取黑名单列表

@@ -27,4 +27,14 @@ public class GoodsBlackListCacheProviderRequest implements Serializable {
      * 业务类型 1、商品skuId 2、商品spuId 3、一级分类id 4、二级分类id
      */
     private Collection<Integer> businessTypeColl;
+
+    /**
+     * 业务主键
+     */
+    private Collection<String> businessIdColl;
+
+    /**
+     * true-删除和未删除的 false或者null-只查未删除的
+     */
+    private Boolean searchAll;
 }

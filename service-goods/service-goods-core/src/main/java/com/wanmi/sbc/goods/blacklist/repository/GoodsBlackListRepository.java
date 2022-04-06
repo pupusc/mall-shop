@@ -4,6 +4,7 @@ import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
 import com.wanmi.sbc.goods.bean.enums.PriceAdjustmentResult;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -31,8 +32,9 @@ public interface GoodsBlackListRepository extends JpaRepository<GoodsBlackListDT
             public Predicate toPredicate(Root<GoodsBlackListDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 final List<Predicate> conditionList = new ArrayList<>();
 
-                //只是获取有效的
-                conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
+                if(BooleanUtils.isFalse(goodsBlackListPageProviderRequest.getSearchAll())) {
+                    conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
+                }
                 if (goodsBlackListPageProviderRequest.getId() != null) {
                     conditionList.add(criteriaBuilder.equal(root.get("id"), goodsBlackListPageProviderRequest.getId()));
                 }
@@ -41,6 +43,9 @@ public interface GoodsBlackListRepository extends JpaRepository<GoodsBlackListDT
                 }
                 if (!CollectionUtils.isEmpty(goodsBlackListPageProviderRequest.getBusinessTypeColl())) {
                     conditionList.add(root.get("businessType").in(goodsBlackListPageProviderRequest.getBusinessTypeColl()));
+                }
+                if (!CollectionUtils.isEmpty(goodsBlackListPageProviderRequest.getBusinessIdColl())) {
+                    conditionList.add(root.get("businessId").in(goodsBlackListPageProviderRequest.getBusinessIdColl()));
                 }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }

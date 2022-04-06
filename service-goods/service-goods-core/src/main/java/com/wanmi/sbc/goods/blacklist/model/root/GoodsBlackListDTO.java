@@ -52,7 +52,6 @@ public class GoodsBlackListDTO {
     @Column(name = "business_type")
     private Integer businessType;
 
-
     /**
      * 版本号
      */
@@ -77,13 +76,5 @@ public class GoodsBlackListDTO {
      */
     @Column(name = "del_flag")
     private Integer delFlag;
-
-
-
-
-
-
-
-
 
 }
