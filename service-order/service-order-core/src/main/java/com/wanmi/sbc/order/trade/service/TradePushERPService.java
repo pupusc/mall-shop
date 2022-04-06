@@ -353,6 +353,7 @@ public class TradePushERPService {
                 .receiverAddress(consignee.getDetailAddress())
                 .sellerMemo((trade.getCycleBuyFlag() && Objects.isNull(cycleNum)) ? "周期购订单" : null)
                 .buyerMemo(Objects.nonNull(trade.getBuyerRemark()) ? trade.getBuyerRemark() : null)
+                .tagCode("duanlsh")
                 .build();
         return Optional.of(pushTradeRequest);
     }
