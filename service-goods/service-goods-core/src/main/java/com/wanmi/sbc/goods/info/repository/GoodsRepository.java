@@ -5,6 +5,8 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
+import com.wanmi.sbc.goods.standard.model.root.StandardGoods;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -32,7 +34,14 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Query("update Goods w set w.delFlag = '1', w.updateTime = now() where w.goodsId in ?1")
     void deleteByGoodsIds(List<String> goodsIds);
 
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
+    Map findSpuId();
 
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where gi.goods_info_id in ?1 and goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
+    Map findSpuId2(List<String> goodsInfoIds);
+
+    @Query(value = "select g.* from t_classify_goods_rel as rel join goods as g on rel.goods_id=g.goods_id where rel.classify_id=?1 and g.del_flag=0 and g.added_flag=1 limit 1", nativeQuery=true)
+    Map findFirstByClassify(Integer classifyId);
 
     /**
      * 根据多个商品ID编号进行删除供应商商品

@@ -1206,6 +1206,26 @@ public class GoodsInfoService {
         return goodsInfo;
     }
 
+    public Map<String, Object> findSimpleGoods(List<String> goodsInfoIds){
+        List<GoodsInfo> goodsInfos;
+        if(CollectionUtils.isEmpty(goodsInfoIds)) {
+            goodsInfos = goodsInfoRepository.findSpuId();
+        }else {
+            goodsInfos = goodsInfoRepository.findSpuId(goodsInfoIds);
+        }
+        if(CollectionUtils.isEmpty(goodsInfos)){
+            return new HashMap<>();
+        }
+        Map<String, Object> result = new HashMap<>();
+        List<String> goodsInfoIds2 = new ArrayList<>();
+        for (GoodsInfo goodsInfo : goodsInfos) {
+            goodsInfoIds2.add(goodsInfo.getGoodsInfoId());
+        }
+        result.put("goodsId", goodsInfos.get(0).getGoodsId());
+        result.put("goodsInfoIds", goodsInfoIds2);
+        return result;
+    }
+
     /**
      * 根据sku编号查询未删除的商品信息
      *

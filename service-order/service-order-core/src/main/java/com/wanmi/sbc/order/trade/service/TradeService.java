@@ -10,6 +10,7 @@ import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
+import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
@@ -211,11 +212,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.GeneralInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.SpecialInvoiceDTO;
-import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeUpdateDTO;
+import com.wanmi.sbc.order.bean.dto.*;
 import com.wanmi.sbc.order.bean.enums.AuditState;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -650,6 +647,10 @@ public class TradeService {
 
     @Autowired
     private WxOrderService wxOrderService;
+
+    @Autowired
+    private OrderCouponService orderCouponService;
+
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -1403,6 +1404,7 @@ public class TradeService {
                                     .cycleBuyInfo(group.getCycleBuyInfo())
                                     .promoteUserId(tradeCommitRequest.getPromoteUserId())
                                     .source(tradeCommitRequest.getSource())
+                                    .miniProgramScene(tradeCommitRequest.getMiniProgramScene())
                                     .build()));
                 }
         );
@@ -2009,6 +2011,7 @@ public class TradeService {
         // 推广人用户id
         trade.setPromoteUserId(tradeParams.getPromoteUserId());
         trade.setSource(tradeParams.getSource());
+        trade.setMiniProgramScene(tradeParams.getMiniProgramScene());
         log.info("==================周期购订单1：{}===============",trade);
 
 
@@ -3282,13 +3285,13 @@ public class TradeService {
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getEarnestPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         } else {
                             resultList.add(new TradeCommitResult(result.getId(),
                                     result.getParentId(), result.getTradeState(),
                                     result.getPaymentOrder(), result.getTradePrice().getTotalPrice(),
                                     result.getOrderTimeOut(), result.getSupplier().getStoreName(),
-                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice()));
+                                    result.getSupplier().getIsSelf(), result.getTradePrice().getOriginPrice(),orderCouponService.checkSendCoupon(trade)));
                         }
                     } catch (Exception e) {
                         log.error("commit trade error,trade={}，错误信息：{}", trade, e);
@@ -4599,7 +4602,7 @@ public class TradeService {
                     .payWay(payWay)
                     .storeId(trade.getSupplier().getStoreId())
                     .supplierId(trade.getSupplier().getSupplierId())
-                    .tradeTime(payOrder.getReceiveTime())
+                    .tradeTime(payOrder!=null && payOrder.getReceiveTime()!=null?payOrder.getReceiveTime():LocalDateTime.now())
                     .type((byte) 0)
                     .build();
             accountRecordProvider.add(record);
@@ -4766,6 +4769,8 @@ public class TradeService {
             //推送ERP订单
             this.pushTradeToErp(trade.getId());
         }
+        //支付成功发放优惠券
+        orderCouponService.addCouponRecord(trade);
     }
 
     /**
@@ -5266,6 +5271,7 @@ public class TradeService {
                 providerTradeService.defalutPayOrderAsycToERP(tid);
             }
             sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+            orderCouponService.addCouponRecord(trade);
             return true;
         }
 
@@ -6324,6 +6330,8 @@ public class TradeService {
 
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
+        //小程序发送取消消息
+        wxOrderService.sendWxCancelOrderMessage(trade);
     }
 
     /**
@@ -7427,6 +7435,8 @@ public class TradeService {
                 if(providerTradeItems.stream().anyMatch(p->p.getKnowledge()!=null)){
                     tradePrice.setActualKnowledge(providerTradeItems.stream().mapToLong(p->Objects.isNull(p.getKnowledge()) ? 0L : p.getKnowledge()).sum());
                 }
+                //复制运费过来
+                tradePrice.setSplitDeliveryPrice(trade.getTradePrice().getSplitDeliveryPrice());
                 //运费
                 if(tradePrice.getSplitDeliveryPrice()!=null && !tradePrice.getSplitDeliveryPrice().isEmpty() && tradePrice.getSplitDeliveryPrice().containsKey(providerId)){
                     tradePrice.setDeliveryPrice(tradePrice.getSplitDeliveryPrice().get(providerId));
@@ -8011,6 +8021,87 @@ public class TradeService {
     }
 
 
+    /**
+     * s视频号微信支付回调，
+     * @param tid
+     */
+    @Transactional
+    @GlobalTransactional
+    public void wxPayCallBack(String tid,String transationId){
+        try {
+            log.info("-------------微信支付成功回调,tid：{},transationId:{}------------", tid,transationId);
+            Trade trade = tradeService.detail(tid);
+            if(trade == null || !Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
+                return;
+            }
+            // 锁资源：无论是否组合支付，都锁父单号，确保串行回调
+            String lockName = trade.getParentId();
+            //redis锁，防止同一订单重复回调
+            RLock rLock = redissonClient.getFairLock(lockName);
+            rLock.lock();
+            //执行回调
+            try {
+                List<Trade> trades =new ArrayList<>();
+                trades.add(trade);
+                if (trade.getTradeState().getFlowState() == FlowState.VOID || (trade.getTradeState().getPayState() == PayState.PAID)) {
+                    //同一批订单重复支付或过期作废，直接退款
+                    //wxRefundHandle(wxPayResultResponse, businessId, -1L);
+                } else {
+                    wxNewPayCallbackHandle(transationId, tid, trades);
+                }
+                //支付回调处理成功
+                //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+                sensorsDataService.sendPaySuccessEvent(trades);
+                log.info("微信支付异步通知回调end---------");
+            } catch (Exception e) {
+                log.error("微信支付异步通知回调end2---------", e);
+                //支付处理结果回写回执支付结果表
+               // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
+            } finally {
+                //解锁
+                rLock.unlock();
+            }
+        } catch (Exception ex) {
+            //失败回执表更新
+            log.error(ex.getMessage());
+        }
 
-    
+    }
+
+    /**
+     * 视频号支付回调
+     * @param businessId
+     * @param trades
+     */
+    private void wxNewPayCallbackHandle(String transactionId,String businessId, List<Trade> trades) {
+        //异步回调添加交易数据
+        PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
+        //微信支付订单号--及流水号
+        payTradeRecordRequest.setTradeNo(transactionId);
+        //商户订单号或父单号
+        payTradeRecordRequest.setBusinessId(businessId);
+        payTradeRecordRequest.setResult_code("success");
+        payTradeRecordRequest.setPracticalPrice(trades.get(0).getTradePrice().getTotalPrice());
+        ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
+        channelItemByGatewayRequest.setGatewayName(PayGatewayEnum.WECHAT);
+        PayChannelItemListResponse payChannelItemListResponse =
+                payQueryProvider.listChannelItemByGatewayName(channelItemByGatewayRequest).getContext();
+        List<PayChannelItemVO> payChannelItemVOList =
+                payChannelItemListResponse.getPayChannelItemVOList();
+        ChannelItemSaveRequest channelItemSaveRequest = new ChannelItemSaveRequest();
+        channelItemSaveRequest.setCode("wx_app");
+        payChannelItemVOList.forEach(payChannelItemVO -> {
+            if (channelItemSaveRequest.getCode().equals(payChannelItemVO.getCode())) {
+                //更新支付项
+                payTradeRecordRequest.setChannelItemId(payChannelItemVO.getId());
+            }
+        });
+        //微信支付异步回调添加交易数据
+        payProvider.wxPayCallBack(payTradeRecordRequest);
+        //        //订单 支付单 操作信息
+        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
+                .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
+        payCallbackOnline(trades, operator, false);
+    }
+
 }

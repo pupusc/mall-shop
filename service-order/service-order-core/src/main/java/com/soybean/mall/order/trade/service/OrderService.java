@@ -2,6 +2,7 @@ package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -94,6 +95,9 @@ public class OrderService {
     @Autowired
     private StoreQueryProvider storeQueryProvider;
 
+    @Autowired
+    private WxOrderService wxOrderService;
+
 
 
     /**
@@ -155,6 +159,12 @@ public class OrderService {
             List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
             //返回订单信息
             results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
+            results.forEach(result->{
+                Optional<TradeCommitResult> tradeCommitResult = successResults.stream().filter(p->p.getTid().equals(result.getId())).findFirst();
+                if(tradeCommitResult.isPresent()) {
+                    result.setCouponFlag(tradeCommitResult.get().getCouponFlag());
+                }
+            });
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {

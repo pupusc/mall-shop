@@ -75,4 +75,9 @@ public class CouponCache extends BaseBean {
      */
     private List<String> couponCateIds;
 
+    /**
+     * 是否还能领
+     */
+    private Boolean canFetchMore;
+
 }

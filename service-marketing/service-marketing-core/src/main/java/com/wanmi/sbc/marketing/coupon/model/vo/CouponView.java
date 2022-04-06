@@ -107,6 +107,11 @@ public class CouponView {
     private boolean hasFetched;
 
     /**
+     * 一天限领一次的券今日是否已领取
+     */
+    private Boolean canFetchMore;
+
+    /**
      * 优惠券是否开始
      */
     private Boolean couponStarted;
@@ -213,7 +218,7 @@ public class CouponView {
                 }
             }
 
-            return CouponView.builder()
+            CouponView build = CouponView.builder()
                     .activityConfigId(item.getActivityConfigId())
                     .couponId(item.getCouponInfoId())
                     .activityId(item.getCouponActivityId())
@@ -226,31 +231,33 @@ public class CouponView {
                     .couponDesc(item.getCouponInfo().getCouponDesc())
                     .couponType(item.getCouponInfo().getCouponType())
                     .couponActivityType(item.getCouponActivity().getCouponActivityType())
-                    .couponStartTime(Objects.isNull(item.getCouponInfo().getStartTime())?null:DateUtil.format(item.getCouponInfo().getStartTime(), DateUtil.FMT_DATE_1))
-                    .couponEndTime(Objects.isNull(item.getCouponInfo().getEndTime())?null:DateUtil.format(item.getCouponInfo().getEndTime(), DateUtil.FMT_DATE_1))
+                    .couponStartTime(Objects.isNull(item.getCouponInfo().getStartTime()) ? null : DateUtil.format(item.getCouponInfo().getStartTime(), DateUtil.FMT_DATE_1))
+                    .couponEndTime(Objects.isNull(item.getCouponInfo().getEndTime()) ? null : DateUtil.format(item.getCouponInfo().getEndTime(), DateUtil.FMT_DATE_1))
                     .rangeDayType(item.getCouponInfo().getRangeDayType())
                     .effectiveDays(item.getCouponInfo().getEffectiveDays())
                     .couponStarted(couponStarted)
                     .hasFetched(hasFetched)
+                    .canFetchMore(item.getCanFetchMore())
                     .leftFlag(leftFlag)
                     .fetchPercent(fetchPercent)
                     .couponWillEnd(couponWillEnd)
                     .activityName(item.getCouponActivity().getActivityName())
                     .couponName(item.getCouponInfo().getCouponName())
-                    .activityStartTime(Objects.isNull(item.getCouponActivity().getStartTime())?null:DateUtil.format(item.getCouponActivity().getStartTime(), DateUtil.FMT_TIME_1))
-                    .activityEndTime(Objects.isNull(item.getCouponActivity().getEndTime())?null:DateUtil.format(item.getCouponActivity().getEndTime(), DateUtil.FMT_TIME_1))
+                    .activityStartTime(Objects.isNull(item.getCouponActivity().getStartTime()) ? null : DateUtil.format(item.getCouponActivity().getStartTime(), DateUtil.FMT_TIME_1))
+                    .activityEndTime(Objects.isNull(item.getCouponActivity().getEndTime()) ? null : DateUtil.format(item.getCouponActivity().getEndTime(), DateUtil.FMT_TIME_1))
                     .totalCount(item.getTotalCount())
                     .scopeIds(item.getScopes() != null ? item.getScopes().stream().sorted(
                             (o1, o2) -> {
-                                if(Objects.equals(ScopeType.SKU, o1.getScopeType())){
+                                if (Objects.equals(ScopeType.SKU, o1.getScopeType())) {
                                     return -1;
-                                }else{
+                                } else {
                                     return Long.valueOf(o1.getScopeId()).compareTo(Long.valueOf(o2.getScopeId()));
                                 }
-                            }).map(CouponMarketingScope::getScopeId) .collect(Collectors.toList()) : null)
+                            }).map(CouponMarketingScope::getScopeId).collect(Collectors.toList()) : null)
                     .activityCountDown(activityCountDown)
                     .activityWillEnd(activityWillEnd)
                     .build();
+            return build;
         }).collect(Collectors.toList());
     }
 }

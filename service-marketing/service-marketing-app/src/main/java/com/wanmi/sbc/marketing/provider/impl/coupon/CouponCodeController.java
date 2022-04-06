@@ -4,18 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchSendCouponRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByCustomizeProviderRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeByFileCustomizeProviderRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.*;
 import com.wanmi.sbc.marketing.api.response.coupon.GetCouponGroupResponse;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponActivityConfig;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponInfo;
 import com.wanmi.sbc.marketing.coupon.model.root.CouponMarketingCustomerScope;
-import com.wanmi.sbc.marketing.coupon.mq.PaidCouponsMqService;
 import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.service.CouponActivityConfigService;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeCopyService;
@@ -26,20 +20,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -273,4 +261,9 @@ public class CouponCodeController implements CouponCodeProvider {
 //    }
 
 
+    @Override
+    public BaseResponse sendCouponCodeByCouponIds(CouponCodeByCouponIdsRequest couponCodeByCouponIdsRequest) {
+        couponCodeService.sendCouponByCouponIds(couponCodeByCouponIdsRequest.getCouponIds(),couponCodeByCouponIdsRequest.getCustomerId());
+        return BaseResponse.SUCCESSFUL();
+    }
 }

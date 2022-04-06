@@ -3,11 +3,13 @@ package com.wanmi.sbc.marketing.api.provider.coupon;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.marketing.api.request.coupon.*;
 import com.wanmi.sbc.marketing.api.response.coupon.*;
+import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * <p>对优惠券码查询接口</p>
@@ -85,4 +87,11 @@ public interface CouponCodeQueryProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/code/page-coupon-code-by-condition")
     BaseResponse<CouponCodePageByConditionResponse> pageCouponCodeByCondition(@RequestBody @Valid CouponCodeQueryRequest request);
+
+    /**
+     * 查询临期优惠券
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/list-will-expire")
+    BaseResponse<List<CouponCodeVO>> listWillExpireByCustomerIds(@RequestBody CouponCodeByCustomerIdsRequest request);
 }

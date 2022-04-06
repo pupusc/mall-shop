@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: chenli
@@ -211,4 +212,14 @@ public class CouponCodeVO implements Serializable {
      */
     @ApiModelProperty(value = "参与成功通知描述")
     private String activityDesc;
+
+    /**
+     * 用户
+     */
+    private String customerId;
+
+    /**
+     * goods和goodsInfo的id
+     */
+    private String goodsAndInfoId;
 }
