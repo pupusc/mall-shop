@@ -245,6 +245,6 @@ public interface GoodsQueryProvider {
     @GetMapping("/goods/${application.goods.version}/list-goods-cate-sync")
     BaseResponse<List<GoodsCateSyncVO>> listGoodsCateSync();
 
-    @GetMapping("/goods/${application.goods.version}/list-pack-detail-by-packid")
+    @PostMapping("/goods/${application.goods.version}/list-pack-detail-by-packid")
     BaseResponse<List<GoodsPackDetailResponse>> listPackDetailByPackIds(@RequestBody @Valid PackDetailByPackIdsRequest request);
 }
