@@ -15,6 +15,10 @@ import java.util.Collection;
 @Data
 public class GoodsBlackListCacheProviderRequest implements Serializable {
 
+    private Integer pageNum = 0;
+
+    private Integer pageSize = 10;
+
     private Integer id;
 
     /**

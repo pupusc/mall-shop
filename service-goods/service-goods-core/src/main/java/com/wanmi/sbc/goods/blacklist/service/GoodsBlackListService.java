@@ -21,6 +21,8 @@ import com.wanmi.sbc.goods.blacklist.repository.GoodsBlackListRepository;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -99,6 +101,15 @@ public class GoodsBlackListService {
      */
     public List<GoodsBlackListDTO> listSimpleNoPage(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
         return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest));
+    }
+
+    /**
+     * 获取查询列表
+     * @param goodsBlackListPageProviderRequest
+     * @return
+     */
+    public Page<GoodsBlackListDTO> pageSimple(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
+        return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest), PageRequest.of(goodsBlackListPageProviderRequest.getPageNum(), goodsBlackListPageProviderRequest.getPageSize()));
     }
 
     /**

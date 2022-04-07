@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.api.provider.blacklist;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.blacklist.*;
 import com.wanmi.sbc.goods.api.request.blacklist.response.GoodsBlackListData;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
@@ -36,7 +37,7 @@ public interface GoodsBlackListProvider {
     /**
      * 启用停用黑名单
      */
-    @GetMapping("/goods/${application.goods.version}/goods-black-list/update")
+    @PostMapping("/goods/${application.goods.version}/goods-black-list/update")
     BaseResponse update(@RequestBody GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest);
 
     /**
@@ -53,7 +54,7 @@ public interface GoodsBlackListProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/goods-black-list/list")
-    BaseResponse<List<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest);
+    BaseResponse<MicroServicePage<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest);
 
     /**
      * 获取黑名单列表

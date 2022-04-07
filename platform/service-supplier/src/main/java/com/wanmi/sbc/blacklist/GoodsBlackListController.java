@@ -1,6 +1,7 @@
 package com.wanmi.sbc.blacklist;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCreateOrUpdateRequest;
@@ -68,7 +69,7 @@ public class GoodsBlackListController {
      * @status done
      */
     @PostMapping("/list")
-    public BaseResponse<List<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest){
+    public BaseResponse<MicroServicePage<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest){
         return goodsBlackListProvider.list(goodsBlackListCacheProviderRequest);
     }
 

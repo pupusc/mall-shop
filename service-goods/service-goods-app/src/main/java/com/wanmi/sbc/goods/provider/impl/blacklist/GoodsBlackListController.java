@@ -1,15 +1,18 @@
 package com.wanmi.sbc.goods.provider.impl.blacklist;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.*;
 import com.wanmi.sbc.goods.api.request.blacklist.response.GoodsBlackListData;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
+import com.wanmi.sbc.goods.api.response.index.IndexFeatureVo;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
 import com.wanmi.sbc.goods.blacklist.service.GoodsBlackListService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,15 +80,19 @@ public class GoodsBlackListController implements GoodsBlackListProvider {
      * @return
      */
     @Override
-    public BaseResponse<List<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
-        List<GoodsBlackListDTO> blackListModels = goodsBlackListService.listSimpleNoPage(goodsBlackListCacheProviderRequest);
+    public BaseResponse<MicroServicePage<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
+        Page<GoodsBlackListDTO> page = goodsBlackListService.pageSimple(goodsBlackListCacheProviderRequest);
+        List<GoodsBlackListDTO> blackListModels = page.getContent();
+        MicroServicePage<GoodsBlackListData> microServicePage = new MicroServicePage<>();
+        microServicePage.setTotal(page.getTotalElements());
         List<GoodsBlackListData> dataList = blackListModels.stream().map(blackListModel -> {
             GoodsBlackListData goodsBlackListData = new GoodsBlackListData();
             BeanUtils.copyProperties(blackListModel, goodsBlackListData);
 //            goodsBlackListData.setCreateTime(blackListModel.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             return goodsBlackListData;
         }).collect(Collectors.toList());
-        return BaseResponse.success(dataList);
+        microServicePage.setContent(dataList);
+        return BaseResponse.success(microServicePage);
     }
 
     /**
