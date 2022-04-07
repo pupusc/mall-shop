@@ -30,6 +30,16 @@ public class GoodsBlackListData {
     private Integer businessType;
 
     /**
+     * 编号
+     */
+    private String itemCode;
+
+    /**
+     * 名称
+     */
+    private String itemName;
+
+    /**
      * 创建时间
      */
     private String createTime;

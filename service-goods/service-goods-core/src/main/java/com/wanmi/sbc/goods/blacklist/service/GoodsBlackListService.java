@@ -86,7 +86,6 @@ public class GoodsBlackListService {
         Optional<GoodsBlackListDTO> opt = goodsBlackListRepository.findById(goodsBlackListCreateOrUpdateRequest.getId());
         if(opt.isPresent()){
             GoodsBlackListDTO goodsBlackListDTO = opt.get();
-            if(goodsBlackListDTO.getDelFlag().equals(DeleteFlag.YES.toValue())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "黑名单不存在");
             if(goodsBlackListCreateOrUpdateRequest.getDelFlag() != null){
                 goodsBlackListDTO.setDelFlag(goodsBlackListCreateOrUpdateRequest.getDelFlag());
             }
