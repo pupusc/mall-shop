@@ -140,15 +140,15 @@ public class GoodsInfoStockService {
         Map<String, GoodsInfoStockSyncRequest> skuCode2GoodsInfoStockSyncMap = new HashMap<>();
 //        Map<String, GoodsInfoStockSyncRequest> skuCode2GoodsInfoCostPriceSyncMap = new HashMap<>();
         for (GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam : goodsInfoStockSyncRequestList) {
-            skuCode2GoodsInfoStockSyncMap.put(goodsInfoStockSyncRequestParam.getErpSkuCode(), goodsInfoStockSyncRequestParam);
+            skuCode2GoodsInfoStockSyncMap.put(goodsInfoStockSyncRequestParam.getSpuId(), goodsInfoStockSyncRequestParam);
         }
         GoodsInfoQueryRequest infoQueryRequest = new GoodsInfoQueryRequest();
         infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
         infoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
-        infoQueryRequest.setErpGoodsInfoNos(new ArrayList<>(skuCode2GoodsInfoStockSyncMap.keySet()));
+        infoQueryRequest.setGoodsIds(new ArrayList<>(skuCode2GoodsInfoStockSyncMap.keySet()));
         List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(infoQueryRequest.getWhereCriteria());
         for (GoodsInfo goodsInfoParam : goodsInfoList) {
-            GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam = skuCode2GoodsInfoStockSyncMap.get(goodsInfoParam.getErpGoodsInfoNo());
+            GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam = skuCode2GoodsInfoStockSyncMap.get(goodsInfoParam.getGoodsId());
             if (goodsInfoStockSyncRequestParam == null) {
                 continue;
             }
