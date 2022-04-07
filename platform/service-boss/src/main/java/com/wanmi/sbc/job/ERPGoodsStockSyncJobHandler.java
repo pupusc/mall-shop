@@ -203,7 +203,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         oldRate = (p.getCurrentMarketPrice().subtract(p.getCurrentCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
                         newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
-                    if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <0) {
+                    if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <=0) {
                         log.info("ERPGoodsStockSyncJobHandler cost price send feishu message :{}", JSON.toJSONString(p));
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
                                 p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
