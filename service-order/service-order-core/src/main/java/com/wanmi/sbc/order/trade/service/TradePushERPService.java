@@ -159,7 +159,7 @@ public class TradePushERPService {
     @Value("${bookuu.providerId}")
     private Long bookuuProviderId;
 
-    @Value("${provider.code.fdds}")
+    @Value("${fdds.provider.code}")
     private String supplierCode;
 
 
