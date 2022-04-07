@@ -159,7 +159,7 @@ public class GoodsBlackListController implements GoodsBlackListProvider {
             classifyMap.keySet().forEach(i -> classifyIdList.add(Integer.parseInt(i)));
             List<ClassifyDTO> classifyList = classifyService.listNoPage(classifyIdList);
             for (ClassifyDTO classifyDTO : classifyList) {
-                List<GoodsBlackListData> datas = classifyMap.get(classifyDTO.getId());
+                List<GoodsBlackListData> datas = classifyMap.get(classifyDTO.getId().toString());
                 for (GoodsBlackListData data : datas) {
                     data.setItemCode(classifyDTO.getId().toString());
                     data.setItemName(classifyDTO.getClassifyName());
