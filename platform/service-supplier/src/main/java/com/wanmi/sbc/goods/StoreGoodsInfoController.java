@@ -312,7 +312,7 @@ public class StoreGoodsInfoController {
 
         for (GoodsInfoVO goodsInfoParam : goodsInfoVOList) {
             goodsInfoParam.setGoodsNo(goodsInfoId2GoodsNoMap.get(goodsInfoParam.getGoodsInfoId()));
-            goodsInfoParam.setFddsGoodsFlag(goodsInfoParam.getProviderId().equals(fddsProviderId));
+            goodsInfoParam.setFddsGoodsFlag(Objects.nonNull(goodsInfoParam.getProviderId()) && goodsInfoParam.getProviderId().equals(fddsProviderId));
         }
 
         //处理商品打包信息
