@@ -80,9 +80,11 @@ public class GoodsPropDetailRel {
     @Enumerated
     private DeleteFlag delFlag;
 
-    @Transient
+    @Column(name = "prop_type")
+//    @Transient
     private Integer propType;
 
-    @Transient
+    @Column(name = "prop_name")
+//    @Transient
     private String propName;
 }

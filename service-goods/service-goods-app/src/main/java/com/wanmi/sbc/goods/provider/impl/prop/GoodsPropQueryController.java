@@ -147,7 +147,7 @@ public class GoodsPropQueryController implements GoodsPropQueryProvider{
         }
 
         Map<String, String> goodsPropGroup =
-                goodsPropDetailRels.stream().collect(Collectors.toMap(item -> item.getGoodsId() + "@" + item.getPropName(), GoodsPropDetailRel::getPropValue));
+                goodsPropDetailRels.stream().collect(Collectors.toMap(item -> item.getGoodsId() + "@" + item.getPropName(), GoodsPropDetailRel::getPropValue, (a, b) -> a));
 
         List<GoodsPropListByGoodsIdsResponse> boList = goodsPropListByGoodsIdsRequest.getGoodsIds().stream().map(goodsId -> {
             GoodsPropListByGoodsIdsResponse bo = new GoodsPropListByGoodsIdsResponse();

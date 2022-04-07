@@ -225,6 +225,9 @@ public class GoodsController {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+    
+    @Value("${fdds.provider.id}")
+    private Long fddsProviderId;
 
     /**
      * @description 新增商品
@@ -249,22 +252,25 @@ public class GoodsController {
         &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
-        goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
-                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
-                    }
-                } else {
-                    throw new SbcRuntimeException("K-800003");
-                }
-            }
-        });
 
+        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
+        if (!fddsProviderId.equals(request.getGoods().getProviderId())) {
+            List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
+            goodsInfoDTOS.forEach(goodsInfoDTO -> {
+                if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
+                    }
+                }
+            });
+        }
+        
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
@@ -1068,6 +1074,16 @@ public class GoodsController {
             operateDataLogList = operateDataLogListResponse.getOperateDataLogVOList();
         }
         response.setOperateDataLogVOList(operateDataLogList);
+
+        //前端编辑类型：1普通商品；2直充商品；3打包商品；
+        if (CollectionUtils.isNotEmpty(response.getGoodsPackDetails())) {
+            response.setEditType(3);
+        } else if (fddsProviderId.equals(response.getGoods().getProviderId())) {
+            response.setEditType(2);
+        } else {
+            response.setEditType(1);
+        }
+
         return BaseResponse.success(response);
     }
 
