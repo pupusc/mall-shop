@@ -273,12 +273,13 @@ public class GoodsStockService {
             List<Goods> goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
 
             for (Goods goodsParam : goodsList) {
-                tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getErpGoodsNo(), startTime));
+                tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getGoodsId(), goodsParam.getErpGoodsNo(), startTime));
             }
         } else {
             List<Map<String, Object>> goodsList = goodsRepository.listByMaxAutoId(providerId, maxTmpId, pageSize);
             for (Map<String, Object> goodsParam : goodsList) {
                 String erpGoodsNo = "";
+                String goodsId = "";
                 Long tmpId = null;
                 for (Map.Entry<String, Object> entry : goodsParam.entrySet()) {
                     if ("erp_goods_no".equals(entry.getKey())) {
@@ -287,8 +288,11 @@ public class GoodsStockService {
                     if ("tmp_id".equals(entry.getKey())) {
                         tmpId = Long.parseLong(entry.getValue().toString());
                     }
+                    if ("goods_id".equals(entry.getKey()))  {
+                        goodsId = entry.getValue().toString();
+                    }
                 }
-                tmpResult.addAll(this.executeBatchUpdateStock(erpGoodsNo, startTime));
+                tmpResult.addAll(this.executeBatchUpdateStock(goodsId, erpGoodsNo, startTime));
                 if (tmpId!= null && maxTmpId < tmpId) {
                     maxTmpId = tmpId;
                 }
@@ -316,7 +320,7 @@ public class GoodsStockService {
      * @param erpGoodsCodeNo
      * @param startTime
      */
-    private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String erpGoodsCodeNo, String startTime) {
+    private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String goodsId, String erpGoodsCodeNo, String startTime) {
         BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(startTime, erpGoodsCodeNo);
         ErpStockVo erpStockInfo = listWareHoseStock.getContext();
         if (erpStockInfo.getTotal() <= 0) {
@@ -383,6 +387,7 @@ public class GoodsStockService {
             }
 
             GoodsInfoStockSyncRequest goodsInfoStockSyncRequest = new GoodsInfoStockSyncRequest();
+            goodsInfoStockSyncRequest.setSpuId(goodsId);
             goodsInfoStockSyncRequest.setErpSpuCode(erpGoodsInfoParam.getItemCode());
             goodsInfoStockSyncRequest.setErpSkuCode(erpGoodsInfoParam.getSkuCode());
             goodsInfoStockSyncRequest.setIsCalculateStock(isCalculateStock);
