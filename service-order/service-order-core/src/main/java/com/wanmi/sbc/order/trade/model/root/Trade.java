@@ -510,7 +510,7 @@ public class Trade implements Serializable {
     private List<String> tags;
 
     /**
-     * 小程序订单场景1小程序2视频号
+     * 小程序订单场景0普通订单，1小程序2视频号
      */
     private Integer miniProgramScene;
 }
