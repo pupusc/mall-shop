@@ -88,7 +88,7 @@ public class GoodsBlackListController implements GoodsBlackListProvider {
         List<GoodsBlackListData> dataList = blackListModels.stream().map(blackListModel -> {
             GoodsBlackListData goodsBlackListData = new GoodsBlackListData();
             BeanUtils.copyProperties(blackListModel, goodsBlackListData);
-//            goodsBlackListData.setCreateTime(blackListModel.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            goodsBlackListData.setCreateTime(blackListModel.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             return goodsBlackListData;
         }).collect(Collectors.toList());
         microServicePage.setContent(dataList);
