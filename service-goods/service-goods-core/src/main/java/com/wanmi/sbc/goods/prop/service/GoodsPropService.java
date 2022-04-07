@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.prop.service;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -9,6 +10,7 @@ import com.wanmi.sbc.goods.api.constant.GoodsPropErrorCode;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
 import com.wanmi.sbc.goods.cate.repository.GoodsCateRepository;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailDO;
 import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
 import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
@@ -30,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -474,11 +477,16 @@ public class GoodsPropService {
         return true;
     }
 
-    public List<GoodsPropDetailRel> selectByGoodsIds(List<String> goodsIds) {
+    public List<GoodsPropDetailDO> selectByGoodsIds(List<String> goodsIds) {
         if (CollectionUtils.isEmpty(goodsIds)) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        return goodsPropDetailRelRepository.selectByGoodsIds(goodsIds.stream().distinct().collect(Collectors.toList()));
+
+        List<Map<String, Object>> props = goodsPropDetailRelRepository.selectByGoodsIds(goodsIds.stream().distinct().collect(Collectors.toList()));
+        List<GoodsPropDetailDO> detailDOS = props.stream().map(item ->
+            JSON.parseObject(JSON.toJSONString(item), GoodsPropDetailDO.class)).collect(Collectors.toList());
+
+        return detailDOS;
     }
 
 }

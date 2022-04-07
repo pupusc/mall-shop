@@ -19,7 +19,7 @@ import com.wanmi.sbc.goods.api.response.prop.GoodsPropListInitSortResponse;
 import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryIsChildNodeResponse;
 import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryPropDetailsOverStepResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsPropVO;
-import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailRel;
+import com.wanmi.sbc.goods.info.model.root.GoodsPropDetailDO;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import com.wanmi.sbc.goods.prop.model.root.GoodsPropDetail;
 import com.wanmi.sbc.goods.prop.request.GoodsPropRequest;
@@ -140,14 +140,14 @@ public class GoodsPropQueryController implements GoodsPropQueryProvider{
 
     @Override
     public BaseResponse<List<GoodsPropListByGoodsIdsResponse>> listByGoodsIds(GoodsPropListByGoodsIdsRequest goodsPropListByGoodsIdsRequest) {
-        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropService.selectByGoodsIds(goodsPropListByGoodsIdsRequest.getGoodsIds());
+        List<GoodsPropDetailDO> goodsPropDetailRels = goodsPropService.selectByGoodsIds(goodsPropListByGoodsIdsRequest.getGoodsIds());
 
         if (CollectionUtils.isEmpty(goodsPropDetailRels)) {
             return BaseResponse.success(Lists.newArrayList());
         }
 
         Map<String, String> goodsPropGroup =
-                goodsPropDetailRels.stream().collect(Collectors.toMap(item -> item.getGoodsId() + "@" + item.getPropName(), GoodsPropDetailRel::getPropValue, (a, b) -> a));
+                goodsPropDetailRels.stream().collect(Collectors.toMap(item -> item.getGoodsId() + "@" + item.getPropName(), GoodsPropDetailDO::getPropValue, (a, b) -> a));
 
         List<GoodsPropListByGoodsIdsResponse> boList = goodsPropListByGoodsIdsRequest.getGoodsIds().stream().map(goodsId -> {
             GoodsPropListByGoodsIdsResponse bo = new GoodsPropListByGoodsIdsResponse();
