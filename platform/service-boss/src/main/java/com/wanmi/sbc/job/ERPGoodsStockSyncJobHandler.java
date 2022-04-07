@@ -11,6 +11,7 @@ import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoAdjustPriceRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.feishu.FeiShuNoticeEnum;
 import com.wanmi.sbc.feishu.constant.FeiShuMessageConstant;
 import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -188,8 +189,9 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
 
                 //发送库存消息
                 for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
+                    log.info("ERPGoodsStockSyncJobHandler stock send feishu message :{}", JSON.toJSONString(p));
                     String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(), sdf.format(new Date()) , p.getActualStockQty());
-                    feiShuSendMessageService.sendMessage(content);
+                    feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.STOCK);
                 }
 
                 //发送成本价消息
@@ -202,9 +204,10 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
                     if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <0) {
+                        log.info("ERPGoodsStockSyncJobHandler cost price send feishu message :{}", JSON.toJSONString(p));
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
                                 p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
-                        feiShuSendMessageService.sendMessage(content);
+                        feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.COST_PRICE);
                     }
                 }
             }
