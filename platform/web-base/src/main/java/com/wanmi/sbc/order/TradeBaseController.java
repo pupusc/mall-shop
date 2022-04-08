@@ -1737,13 +1737,13 @@ public class TradeBaseController {
 
 
         //获取商品下的打包信息
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
+
         List<String> mainGoodsIdList =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
                 .map(TradeItemVO::getSpuId).collect(Collectors.toList());
         BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
         List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
-
-
-        Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
+        
         if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
             GoodsListByIdsRequest request = new GoodsListByIdsRequest();
             request.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
