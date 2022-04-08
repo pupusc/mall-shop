@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.mini.service.assistant;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -14,7 +15,6 @@ import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
 import com.wanmi.sbc.goods.info.service.GoodsInfoService;
-import com.wanmi.sbc.goods.info.service.GoodsInfoStockService;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.info.service.GoodsStockService;
 import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantGoodsModel;
@@ -22,19 +22,15 @@ import com.wanmi.sbc.goods.mini.model.goods.WxLiveAssistantModel;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantGoodsRepository;
 import com.wanmi.sbc.goods.mini.repository.goods.WxLiveAssistantRepository;
 import com.wanmi.sbc.goods.mini.service.goods.WxGoodsService;
+import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.w3c.dom.stylesheets.MediaList;
-
-import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -63,6 +59,8 @@ public class WxLiveAssistantService {
     private GoodsStockService goodsStockService;
     @Autowired
     private WxGoodsService wxGoodsService;
+    @Autowired
+    private RedisService redisService;
 
     @Transactional
     public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
@@ -267,6 +265,7 @@ public class WxLiveAssistantService {
                     goods.setStock(newStock > 0 ? newStock : 0);
                 }
                 goodsInfo.setStock(stock.longValue());
+                redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
             }
             if(price != null){
                 if(!map.containsKey("price")) map.put("price", goodsInfo.getMarketPrice().toString());
