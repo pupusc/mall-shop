@@ -3814,7 +3814,9 @@ public class TradeBaseController {
             return;
         }
 
-        BaseResponse<List<GoodsPropListByGoodsIdsResponse>> goodsPropResponse = goodsPropQueryProvider.listByGoodsIds(new GoodsPropListByGoodsIdsRequest(goodsIds));
+        BaseResponse<List<GoodsPropListByGoodsIdsResponse>> goodsPropResponse =
+                goodsPropQueryProvider.listByGoodsIds(new GoodsPropListByGoodsIdsRequest(goodsIds.stream().distinct().collect(Collectors.toList())));
+
         if (CollectionUtils.isEmpty(goodsPropResponse.getContext())) {
             return;
         }

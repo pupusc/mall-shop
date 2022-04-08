@@ -92,6 +92,7 @@ public class FddsProviderService {
      *      补偿机制->失败->通知运营退款
      */
     public BaseResponse createFddsTrade(ProviderTrade providerTrade) {
+        log.info("樊登读书->开放平台订单创建, provideTradeId={}", providerTrade.getId());
         //供应商下单
         FddsBaseResult createResult = createOutOrder(providerTrade);
 
