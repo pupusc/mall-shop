@@ -17,10 +17,38 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddPriceRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsCheckRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAddedStatusRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCateRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyEvaluateNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyFreightTempRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifySalesNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyShamSalesNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifySortNoRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifySupplierNameRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsPriceSyncRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsProviderStatusRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsSynRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
+import com.wanmi.sbc.goods.api.request.goods.LinkedMallGoodsDelRequest;
+import com.wanmi.sbc.goods.api.request.goods.LinkedMallGoodsModifyRequest;
+import com.wanmi.sbc.goods.api.request.goods.ProviderGoodsNotSellRequest;
+import com.wanmi.sbc.goods.api.request.goods.ThirdGoodsVendibilityRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddAllResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsCheckResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsModifyAllResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsSynResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
@@ -36,7 +64,12 @@ import com.wanmi.sbc.goods.info.request.GoodsCostPriceChangeQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsPriceSyncQueryRequest;
 import com.wanmi.sbc.goods.info.request.GoodsRequest;
 import com.wanmi.sbc.goods.info.request.GoodsSaveRequest;
-import com.wanmi.sbc.goods.info.service.*;
+import com.wanmi.sbc.goods.info.service.GoodsInfoService;
+import com.wanmi.sbc.goods.info.service.GoodsInfoStockService;
+import com.wanmi.sbc.goods.info.service.GoodsService;
+import com.wanmi.sbc.goods.info.service.GoodsStockService;
+import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
+import com.wanmi.sbc.goods.info.service.S2bGoodsService;
 import com.wanmi.sbc.goods.mq.ProducerService;
 import com.wanmi.sbc.goods.standard.model.root.StandardGoodsRel;
 import com.wanmi.sbc.goods.standard.repository.StandardGoodsRelRepository;
@@ -61,13 +94,19 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -455,6 +494,10 @@ public class GoodsController implements GoodsProvider {
 
     public BaseResponse<GoodsAddAllResponse> addAll(@RequestBody @Valid GoodsAddAllRequest request) {
         GoodsSaveRequest goodsSaveRequest = KsBeanUtil.convert(request, GoodsSaveRequest.class);
+
+        if (CollectionUtils.isNotEmpty(request.getGoods().getGoodsChannelTypeSet())) {
+            goodsSaveRequest.getGoods().setGoodsChannelType(String.join(",", request.getGoods().getGoodsChannelTypeSet()));
+        }
         String goodsId = goodsService.addAll(goodsSaveRequest);
 
         GoodsAddAllResponse response = new GoodsAddAllResponse();
