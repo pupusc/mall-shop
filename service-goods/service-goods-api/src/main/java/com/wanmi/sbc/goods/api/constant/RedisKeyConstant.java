@@ -42,6 +42,21 @@ public class RedisKeyConstant {
     public static final String KEY_POINT_NOT_SPLIT = "KEY_BLACK_LIST_POINT_NOT_SPLIT";
 
     /**
+     * 底部分类 黑名单KEY
+     */
+    public static final String KEY_CLASSIFY_AT_BOTTOM = "KEY_BLACK_LIST_CLASSIFY_AT_BOTTOM";
+
+    /**
+     * 首页商品搜索H5和领阅不展示 黑名单KEY
+     */
+    public static final String KEY_GOODS_SEARCH_AT_INDEX = "KEY_BLACK_LIST_GOODS_SEARCH_AT_INDEX";
+
+    /**
+     * 首页商品搜索H5不展示 黑名单KEY
+     */
+    public static final String KEY_GOODS_SEARCH_H5_AT_INDEX = "KEY_BLACK_LIST_GOODS_SEARCH_H5_AT_INDEX";
+
+    /**
      * SPU_ID hashKey
      */
     public static final String KEY_SPU_ID = "KEY_BLACK_LIST_SPU_ID";

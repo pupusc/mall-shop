@@ -2100,22 +2100,22 @@ public class TradeBaseController {
                 .getCouponCodeList());
 
         // 积分和名单商品不能使用积分，也不参与分摊
-//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-//        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-//        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-//            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-//            List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
-//            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
-//                List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
-//                for (TradeItemVO tradeItem : tradeItems) {
-//                    if(blackListGoodsId.contains(tradeItem.getSpuId())){
-//                        tradeItem.setInPointBlackList(true);
-//                    }
-//                }
-//            }
-//        }
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+            List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
+            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
+                List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
+                for (TradeItemVO tradeItem : tradeItems) {
+                    if(blackListGoodsId.contains(tradeItem.getSpuId())){
+                        tradeItem.setInPointBlackList(true);
+                    }
+                }
+            }
+        }
         return BaseResponse.success(confirmResponse);
     }
 
