@@ -244,9 +244,13 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+        if (Objects.isNull(request.getEditType())) {
+            return BaseResponse.error("编辑类型不能为空");
+        }
+
         request.setUpdatePerson(commonUtil.getOperatorId());
-        //前端传值
-        //request.getGoods().setProviderId(defaultProviderId);
+        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
+
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
         &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
@@ -355,30 +359,34 @@ public class GoodsController {
     @ApiOperation(value = "同时新增商品基本和商品设价")
     @RequestMapping(value = "/spu/price", method = RequestMethod.POST)
     public BaseResponse<String> spuDetail(@RequestBody @Valid GoodsAddAllRequest request) {
+        if (Objects.isNull(request.getGoods().getProviderId())) {
+            return BaseResponse.error("供应商id不能为空");
+        }
+
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+        //request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
-        goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
-                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
+        if (!fddsProviderId.equals(request.getGoods().getProviderId())) {
+            List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
+            goodsInfoDTOS.forEach(goodsInfoDTO -> {
+                if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
                     }
-                } else {
-                    throw new SbcRuntimeException("K-800003");
                 }
-            }
-        });
-
-
+            });
+        }
 
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
@@ -954,7 +962,12 @@ public class GoodsController {
     @RequestMapping(value = "/spu/price", method = RequestMethod.PUT)
     public BaseResponse editSpuPrice(@RequestBody @Valid GoodsModifyAllRequest request) {
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+
+        if (Objects.isNull(request.getGoods().getProviderId())) {
+            return BaseResponse.error("供应商id不能为空");
+        }
+        //request.getGoods().setProviderId(defaultProviderId);
+
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
