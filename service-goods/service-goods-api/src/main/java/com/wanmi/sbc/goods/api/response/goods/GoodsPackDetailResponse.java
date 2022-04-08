@@ -1,5 +1,9 @@
 package com.wanmi.sbc.goods.api.response.goods;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.io.*;
@@ -45,11 +49,15 @@ public class GoodsPackDetailResponse implements Serializable {
     /**
      * 创建时间
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
     /**
