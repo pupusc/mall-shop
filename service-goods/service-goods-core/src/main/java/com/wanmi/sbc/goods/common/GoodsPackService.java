@@ -26,7 +26,7 @@ public class GoodsPackService {
         }
 
         GoodsPackDetailDTO query = new GoodsPackDetailDTO();
-        query.setGoodsId(packId);
+        query.setPackId(packId);
         query.setDelFlag(0);
         return goodsPackDetailRepository.findAll(Example.of(query));
     }
