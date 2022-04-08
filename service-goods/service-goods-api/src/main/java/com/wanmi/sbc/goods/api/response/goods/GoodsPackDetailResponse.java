@@ -64,4 +64,12 @@ public class GoodsPackDetailResponse implements Serializable {
      * 删除标志
      */
     private Integer delFlag;
+
+    private String goodsInfoName;
+
+    private BigDecimal marketPrice;
+
+    private Boolean fddsGoodsFlag;
+
+    private Long providerId;
 }

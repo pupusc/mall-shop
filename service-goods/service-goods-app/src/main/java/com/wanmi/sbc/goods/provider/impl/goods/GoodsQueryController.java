@@ -450,12 +450,35 @@ public class GoodsQueryController implements GoodsQueryProvider {
         systemPointsConfigService.clearBuyPoinsForSkus(goodsByIdResponse.getGoodsInfos());
 
         //商品的打包信息
-        if (Boolean.TRUE.equals(request.getShowGoodsPackFlag())) {
-            goodsByIdResponse.setGoodsPackDetails(goodsPackService.listGoodsPackDetailByPackId(goodsId));
-        }
+        fillGoodsPackInfo(request, goodsByIdResponse);
 
         return BaseResponse.success(goodsByIdResponse);
     }
+
+    private void fillGoodsPackInfo(GoodsViewByIdRequest request, GoodsViewByIdResponse goodsByIdResponse) {
+        if (!Boolean.TRUE.equals(request.getShowGoodsPackFlag())) {
+            return;
+        }
+        List<GoodsPackDetailDTO> goodsPackDetailDTOS = goodsPackService.listGoodsPackDetailByPackId(request.getGoodsId());
+        if (CollectionUtils.isEmpty(goodsPackDetailDTOS)) {
+            return ;
+        }
+        goodsByIdResponse.setGoodsPackDetails(KsBeanUtil.convert(goodsPackDetailDTOS, GoodsPackDetailResponse.class));
+
+        List<String> goodsInfoIds = goodsPackDetailDTOS.stream().map(GoodsPackDetailDTO::getGoodsInfoId).distinct().collect(Collectors.toList());
+        List<GoodsInfo> goodsInfos = goodsInfoService.findByIds(goodsInfoIds);
+
+        Map<String, GoodsInfo> goodsInfoMap = goodsInfos.stream().collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, item -> item));
+        for (GoodsPackDetailResponse item : goodsByIdResponse.getGoodsPackDetails()) {
+            if (!goodsInfoMap.containsKey(item.getGoodsInfoId())) {
+                continue;
+            }
+            item.setGoodsInfoName(goodsInfoMap.get(item.getGoodsInfoId()).getGoodsInfoName());
+            item.setMarketPrice(goodsInfoMap.get(item.getGoodsInfoId()).getMarketPrice());
+            item.setProviderId(goodsInfoMap.get(item.getGoodsInfoId()).getProviderId());
+        }
+    }
+
     /**
      * 根据SPU编号和SkuId集合查询商品视图信息
      *

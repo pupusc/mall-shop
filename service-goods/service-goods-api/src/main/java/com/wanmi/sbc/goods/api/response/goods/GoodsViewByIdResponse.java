@@ -148,7 +148,7 @@ public class GoodsViewByIdResponse implements Serializable {
     /**
      * 打包商品
      */
-    private List<GoodsPackDetailDTO> goodsPackDetails;
+    private List<GoodsPackDetailResponse> goodsPackDetails;
 
     /**
      * 编辑类型：1普通商品；2直充商品；3打包商品；
