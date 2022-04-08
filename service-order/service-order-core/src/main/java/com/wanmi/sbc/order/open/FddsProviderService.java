@@ -56,7 +56,7 @@ public class FddsProviderService {
     /**
      * 开放平台商品下单地址
      */
-    private static String orderCreateUrl = "/user/order/createV2";
+    private static String orderCreateUrl = "/user/order/createByThirdProductNo";
     /**
      * 开放平台订单查询地址
      */
