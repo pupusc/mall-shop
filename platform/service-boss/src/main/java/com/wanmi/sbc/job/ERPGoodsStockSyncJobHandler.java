@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -189,6 +190,10 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
 
                 //发送库存消息
                 for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
+
+                    if (Objects.equals(p.getCurrentStockQty(), p.getActualStockQty())) {
+                        continue;
+                    }
                     log.info("ERPGoodsStockSyncJobHandler stock send feishu message :{}", JSON.toJSONString(p));
                     String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(), sdf.format(new Date()) , p.getActualStockQty());
                     feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.STOCK);
@@ -203,7 +208,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         oldRate = (p.getCurrentMarketPrice().subtract(p.getCurrentCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
                         newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
-                    if (newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <=0) {
+                    if (p.getCurrentCostPrice().compareTo(p.getErpCostPrice()) != 0 && newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <=0) {
                         log.info("ERPGoodsStockSyncJobHandler cost price send feishu message :{}", JSON.toJSONString(p));
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
                                 p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);

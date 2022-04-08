@@ -152,7 +152,13 @@ public class GoodsInfoStockService {
         for (GoodsInfo goodsInfoParam : goodsInfoList) {
             GoodsInfoStockSyncRequest goodsInfoStockSyncRequestParam = skuCode2GoodsInfoStockSyncMap.get(goodsInfoParam.getGoodsId() + "_" + goodsInfoParam.getErpGoodsInfoNo());
             if (goodsInfoStockSyncRequestParam == null) {
-                continue;
+                goodsInfoStockSyncRequestParam = new GoodsInfoStockSyncRequest();
+                goodsInfoStockSyncRequestParam.setSpuId(goodsInfoParam.getGoodsId());
+                goodsInfoStockSyncRequestParam.setErpSpuCode(goodsInfoParam.getErpGoodsNo());
+                goodsInfoStockSyncRequestParam.setErpSkuCode(goodsInfoParam.getErpGoodsInfoNo());
+                goodsInfoStockSyncRequestParam.setIsCalculateStock(true);
+                goodsInfoStockSyncRequestParam.setErpStockQty(0);
+                goodsInfoStockSyncRequestParam.setErpCostPrice(BigDecimal.ZERO);
             }
             //设置价格默认值
             goodsInfoParam.setCostPrice(goodsInfoParam.getCostPrice() == null ? BigDecimal.ZERO : goodsInfoParam.getCostPrice());
@@ -197,8 +203,8 @@ public class GoodsInfoStockService {
             }
 
             if (isAddResult) {
-                goodsInfoStockSyncResponse.setErpSpuCode(goodsInfoStockSyncRequestParam.getErpSpuCode());
-                goodsInfoStockSyncResponse.setErpSkuCode(goodsInfoStockSyncRequestParam.getErpSkuCode());
+                goodsInfoStockSyncResponse.setErpSpuCode(goodsInfoParam.getErpGoodsNo());
+                goodsInfoStockSyncResponse.setErpSkuCode(goodsInfoParam.getErpGoodsInfoNo());
                 goodsInfoStockSyncResponse.setSkuName(goodsInfoParam.getGoodsInfoName());
                 goodsInfoStockSyncResponse.setActualStockQty(actualStockQty);
                 goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
