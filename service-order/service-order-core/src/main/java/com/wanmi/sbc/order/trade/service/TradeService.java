@@ -5285,7 +5285,10 @@ public class TradeService {
         @Transactional(rollbackFor = Exception.class)
         @GlobalTransactional
         public void tradeDefaultPayBatch(List<Trade> trades, PayWay payWay) {
-            trades.forEach(i -> this.tradeDefaultPay(i, payWay));
+//            trades.forEach(i -> this.tradeDefaultPay(i, payWay));
+            for (Trade trade : trades) {
+                this.tradeDefaultPay(trade, payWay);
+            }
         }
 
         /**
