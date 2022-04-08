@@ -117,7 +117,7 @@ public class FddsProviderService {
         FddsOrderCreateParam createParam = new FddsOrderCreateParam();
         createParam.setTradeNo(providerTrade.getId());
         createParam.setMobile(providerTrade.getDirectChargeMobile());
-        createParam.setExternalProductNo(providerTrade.getTradeItems().get(0).getSkuId());
+        createParam.setExternalProductNo(providerTrade.getTradeItems().get(0).getErpSkuNo());
         createParam.setPayType(convertPayType(providerTrade.getPayWay()));
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
 

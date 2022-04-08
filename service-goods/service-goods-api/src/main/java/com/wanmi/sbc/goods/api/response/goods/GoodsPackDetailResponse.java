@@ -65,6 +65,8 @@ public class GoodsPackDetailResponse implements Serializable {
      */
     private Integer delFlag;
 
+    private String goodsInfoNo;
+
     private String goodsInfoName;
 
     private BigDecimal marketPrice;

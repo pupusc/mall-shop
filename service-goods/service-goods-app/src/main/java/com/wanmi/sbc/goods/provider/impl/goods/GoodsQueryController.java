@@ -473,6 +473,7 @@ public class GoodsQueryController implements GoodsQueryProvider {
             if (!goodsInfoMap.containsKey(item.getGoodsInfoId())) {
                 continue;
             }
+            item.setGoodsInfoNo(goodsInfoMap.get(item.getGoodsInfoId()).getGoodsInfoNo());
             item.setGoodsInfoName(goodsInfoMap.get(item.getGoodsInfoId()).getGoodsInfoName());
             item.setMarketPrice(goodsInfoMap.get(item.getGoodsInfoId()).getMarketPrice());
             item.setProviderId(goodsInfoMap.get(item.getGoodsInfoId()).getProviderId());

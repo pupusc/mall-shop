@@ -1078,6 +1078,9 @@ public class GoodsController {
         //前端编辑类型：1普通商品；2直充商品；3打包商品；
         if (CollectionUtils.isNotEmpty(response.getGoodsPackDetails())) {
             response.getGoodsPackDetails().forEach(item -> item.setFddsGoodsFlag(fddsProviderId.equals(item.getProviderId())));
+            response.setGoodsPackDetails(response.getGoodsPackDetails().stream()
+                            .filter(item -> !item.getPackId().equals(item.getGoodsId())).collect(Collectors.toList())
+            );
             response.setEditType(3);
         } else if (fddsProviderId.equals(response.getGoods().getProviderId())) {
             response.setEditType(2);
