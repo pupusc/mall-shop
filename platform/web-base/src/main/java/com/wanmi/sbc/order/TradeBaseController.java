@@ -1735,45 +1735,9 @@ public class TradeBaseController {
         List<String> skuIds =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
                 .map(TradeItemVO::getSkuId).collect(Collectors.toList());
 
-
-        //获取商品下的打包信息
-        Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
-
         List<String> mainGoodsIdList =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
                 .map(TradeItemVO::getSpuId).collect(Collectors.toList());
-        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
-        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
-        
-        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
-            GoodsListByIdsRequest request = new GoodsListByIdsRequest();
-            request.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
-            BaseResponse<GoodsListByIdsResponse> childGoodsList = goodsQueryProvider.listByIds(request);
-            GoodsListByIdsResponse childGoodsResponse = childGoodsList.getContext();
-
-            Map<String, Boolean> childGoodsId2HasVirtualMap = new HashMap<>();
-            for (GoodsVO goodsVOParam : childGoodsResponse.getGoodsVOList()) {
-                Boolean hasGoodsType = childGoodsId2HasVirtualMap.get(goodsVOParam.getGoodsId());
-                if (hasGoodsType != null && hasGoodsType) {
-                    continue;
-                }
-                childGoodsId2HasVirtualMap.put(goodsVOParam.getGoodsId(), Objects.equals(goodsVOParam.getGoodsType(), GoodsType.VIRTUAL_GOODS.ordinal()));
-            }
-            
-            //根据主商品 确定当前是否存放 展示 电话输入框
-            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
-                Boolean hasGoodsType = mainGoodsId2HasVirtualMap.get(goodsPackDetailParam.getPackId());
-                if (hasGoodsType != null && hasGoodsType) {
-                    continue;
-                }
-                Boolean childHasGoodsType = childGoodsId2HasVirtualMap.get(goodsPackDetailParam.getGoodsId());
-                if (childHasGoodsType == null || !childHasGoodsType) {
-                    continue;
-                }
-                mainGoodsId2HasVirtualMap.put(goodsPackDetailParam.getPackId(), true);
-            }
-        }
-
-
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(mainGoodsIdList);
 
         //获取订单商品详情,包含区间价，会员级别价salePrice
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
@@ -2237,6 +2201,50 @@ public class TradeBaseController {
         confirmResponse.setMarkupLevel(markupLevelDetailVOList);
 
     }
+
+    /**
+     * 查看商品下是否有虚拟商品，是否显示 电话输入框
+     * @param spuIdList
+     * @return
+     */
+    private Map<String, Boolean> getGoodsIdHasVirtual(List<String> spuIdList) {
+        //获取商品下的打包信息
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
+        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(spuIdList));
+        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+
+        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+            GoodsListByIdsRequest request = new GoodsListByIdsRequest();
+            request.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
+            BaseResponse<GoodsListByIdsResponse> childGoodsList = goodsQueryProvider.listByIds(request);
+            GoodsListByIdsResponse childGoodsResponse = childGoodsList.getContext();
+
+            Map<String, Boolean> childGoodsId2HasVirtualMap = new HashMap<>();
+            for (GoodsVO goodsVOParam : childGoodsResponse.getGoodsVOList()) {
+                Boolean hasGoodsType = childGoodsId2HasVirtualMap.get(goodsVOParam.getGoodsId());
+                if (hasGoodsType != null && hasGoodsType) {
+                    continue;
+                }
+                childGoodsId2HasVirtualMap.put(goodsVOParam.getGoodsId(), Objects.equals(goodsVOParam.getGoodsType(), GoodsType.VIRTUAL_GOODS.ordinal()));
+            }
+
+            //根据主商品 确定当前是否存放 展示 电话输入框
+            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+                Boolean hasGoodsType = mainGoodsId2HasVirtualMap.get(goodsPackDetailParam.getPackId());
+                if (hasGoodsType != null && hasGoodsType) {
+                    continue;
+                }
+                Boolean childHasGoodsType = childGoodsId2HasVirtualMap.get(goodsPackDetailParam.getGoodsId());
+                if (childHasGoodsType == null || !childHasGoodsType) {
+                    continue;
+                }
+                mainGoodsId2HasVirtualMap.put(goodsPackDetailParam.getPackId(), true);
+            }
+        }
+        return mainGoodsId2HasVirtualMap;
+    }
+
+
 
     private BigDecimal dealDistribution(List<TradeItemGroupVO> tradeItemGroupVOS, TradeConfirmResponse tradeConfirmResponse) {
         BigDecimal totalCommission = BigDecimal.ZERO;
