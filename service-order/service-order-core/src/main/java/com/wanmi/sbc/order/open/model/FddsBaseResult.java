@@ -1,8 +1,10 @@
 package com.wanmi.sbc.order.open.model;
 
+import com.alibaba.fastjson.JSON;
 import lombok.Data;
 
 import java.io.*;
+import java.util.Objects;
 
 /**
  * @author Liang Jun
@@ -30,6 +32,13 @@ public class FddsBaseResult<T> implements Serializable {
      */
     public boolean isSuccess() {
         return "0000".equals(status);
+    }
+
+    public <D> D getDataByType(Class<D> clazz) {
+        if (Objects.isNull(data)) {
+            return null;
+        }
+        return JSON.parseObject(JSON.toJSONString(data), clazz);
     }
 
     public static <T> FddsBaseResult<T> success(T content) {

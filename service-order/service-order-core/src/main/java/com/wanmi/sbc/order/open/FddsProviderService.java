@@ -93,13 +93,14 @@ public class FddsProviderService {
      */
     public BaseResponse createFddsTrade(ProviderTrade providerTrade) {
         //供应商下单
-        FddsBaseResult<FddsOrderCreateResultData> result = createOutOrder(providerTrade);
+        FddsBaseResult createResult = createOutOrder(providerTrade);
 
-        if (!result.isSuccess()) {
-            return createOutOrderFail(providerTrade, result);
+        if (!createResult.isSuccess()) {
+            return createOutOrderFail(providerTrade, createResult);
         }
 
-        return createOutOrderSuccess(providerTrade, result.getData().getOrderNumber());
+        FddsOrderCreateResultData resultData = JSON.parseObject(JSON.toJSONString(createResult.getData()), FddsOrderCreateResultData.class);
+        return createOutOrderSuccess(providerTrade, resultData.getOrderNumber());
     }
 
     /**
@@ -275,10 +276,11 @@ public class FddsProviderService {
     private Long queryUnknowOrder(ProviderTrade providerTrade) {
         Map<String, String> param = new HashMap<>();
         param.put("tradeNo", providerTrade.getId());
-        FddsBaseResult<FddsOrderQueryResultData> queryResult = fddsOpenPlatformService.doRequest(orderQueryUrl, JSON.toJSONString(param), FddsBaseResult.class);
+        FddsBaseResult queryResult = fddsOpenPlatformService.doRequest(orderQueryUrl, JSON.toJSONString(param), FddsBaseResult.class);
 
         if (queryResult.isSuccess()) {
-            return queryResult.getData().getOrderNumber();
+            FddsOrderQueryResultData resultData = JSON.parseObject(JSON.toJSONString(queryResult.getData()), FddsOrderQueryResultData.class);
+            return resultData.getOrderNumber();
         }
         if ("0006".equals(queryResult.getStatus())) {
             log.info("开放平台查询订单信息不存在, 状态码={}", queryResult.getStatus());
