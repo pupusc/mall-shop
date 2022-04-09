@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
@@ -83,6 +84,12 @@ public class FddsProviderService {
     @Value("${notice.send.message.noticeId}")
     private Integer noticeSendMsgNoticeId;
 
+    @Value("${wx.applet.general.promoter}")
+    private String wxAppletGeneralPromoter;
+
+    @Value("${wx.applet.video.promoter}")
+    private String wxAppletVideoPromoter;
+
     /**
      * 1.开放平台下单
      * 2.下单成功：更新发货状态
@@ -93,8 +100,15 @@ public class FddsProviderService {
      */
     public BaseResponse createFddsTrade(ProviderTrade providerTrade) {
         log.info("樊登读书->开放平台订单创建, provideTradeId={}", providerTrade.getId());
+
+        Trade trade = tradeRepository.findById(providerTrade.getParentId()).get();
+        if (Objects.isNull(trade)) {
+            log.info("根据订单id查询主单结果不存在, tradeId = {}", providerTrade.getParentId());
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+
         //供应商下单
-        FddsBaseResult createResult = createOutOrder(providerTrade);
+        FddsBaseResult createResult = createOutOrder(providerTrade, trade);
 
         if (!createResult.isSuccess()) {
             return createOutOrderFail(providerTrade, createResult);
@@ -107,13 +121,24 @@ public class FddsProviderService {
     /**
      * 创建樊登读书开放平台订单
      */
-    private FddsBaseResult createOutOrder(ProviderTrade providerTrade) {
+    private FddsBaseResult createOutOrder(ProviderTrade providerTrade, Trade trade) {
         FddsOrderCreateParam createParam = new FddsOrderCreateParam();
         createParam.setTradeNo(providerTrade.getId());
         createParam.setMobile(providerTrade.getDirectChargeMobile());
         createParam.setExternalProductNo(getUniqueItem(providerTrade).getErpSkuNo());
         createParam.setPayType(convertPayType(providerTrade.getPayWay()));
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
+
+        if (ChannelType.MINIAPP.toString().equals(trade.getChannelType())) {
+            //小程序非视频号
+            if (Integer.valueOf(1).equals(trade.getMiniProgramScene())) {
+                createParam.setPromoterNo(wxAppletGeneralPromoter);
+            }
+            //小程序视频号
+            if (Integer.valueOf(2).equals(trade.getMiniProgramScene())) {
+                createParam.setPromoterNo(wxAppletVideoPromoter);
+            }
+        }
 
         FddsBaseResult<FddsOrderCreateResultData> createResult;
         try {
