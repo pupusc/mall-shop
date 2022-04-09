@@ -1814,10 +1814,17 @@ public class TradeService {
                         surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
 
                         TradeItem tradeItem = skuId2TradeItemMap.get(goodsPackDetailTmp.getGoodsInfoId());
+                        tradeItem.setSplitPrice(splitPriceTmp);
+                        tradeItem.setPoints(pointsTmp.longValue());
+                        tradeItem.setKnowledge(knowledgeTmp.longValue());
+                        tradeItem.setPrice(splitPrice);
+
                         PackRecord packRecord = tradeItem.getPackRecord();
                         if (packRecord == null) {
                             packRecord = new PackRecord();
                         }
+
+
                         packRecord.setPackId(tradeItemParam.getSpuId());
                         packRecord.setPackPoint(pointsTmp.longValue());
                         packRecord.setPackKnowLedge(knowledgeTmp.longValue());
