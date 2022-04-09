@@ -1787,7 +1787,7 @@ public class TradeService {
 
                 //优先计算 子商品的价格，最后计算主要商品的价格；
                 BigDecimal surplusSplitPrice = splitPrice;
-                BigDecimal surplusPoint = new BigDecimal(splitPrice + "");
+                BigDecimal surplusPoint = new BigDecimal(points + "");
                 BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
 
                 //获取子商品信息
@@ -1814,6 +1814,10 @@ public class TradeService {
                         surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
 
                         TradeItem tradeItem = skuId2TradeItemMap.get(goodsPackDetailTmp.getGoodsInfoId());
+                        tradeItem.setOid(generatorService.generateOid());
+//                        if (StringUtils.isBlank(tradeItem.getAdminId())) {
+//                            tradeItem.setAdminId(String.format("%d", goodsPackDetailTmp.getSupplier().getSupplierId()));
+//                        }
                         tradeItem.setSplitPrice(splitPriceTmp);
                         tradeItem.setPoints(pointsTmp.longValue());
                         tradeItem.setKnowledge(knowledgeTmp.longValue());
@@ -1881,28 +1885,26 @@ public class TradeService {
         }
 
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
-        List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null)
-                .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
-                .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+//        List<GoodsInfoVO> goodsInfoVOList = ;
+        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, Integer> cpsSpecialMap = response.getGoodsInfos().stream().collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
         //获取付费会员价
         if (Objects.nonNull(paidCardVO.getDiscountRate())) {
             for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
                 goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
             }
-            if (CollectionUtils.isNotEmpty(tradeItems)) {
-                for (TradeItem tradeItem : tradeItems) {
-                    if (Objects.nonNull(tradeItem.getPrice())) {
-                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
-                    }
-                }
-            }
+//            if (CollectionUtils.isNotEmpty(tradeItems)) {
+//                for (TradeItem tradeItem : tradeItems) {
+//                    if (Objects.nonNull(tradeItem.getPrice())) {
+//                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
+//                    }
+//                }
+//            }
         }
-        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, false, null);
+        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, true, null);
         verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
-        Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+        Map<String, GoodsInfoVO> goodsInfoVOMap = response.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
         tradeItems.stream().forEach(tradeItem -> {
             tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
             tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
@@ -1911,7 +1913,7 @@ public class TradeService {
             tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
         });
 
-        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
+        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, response.getGoodsInfos(), customerId);
         for (TradeItem tradeItem : tradeItems) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if (priceByGoodsId.getContext() != null) {
