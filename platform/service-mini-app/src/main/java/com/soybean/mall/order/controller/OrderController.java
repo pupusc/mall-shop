@@ -321,13 +321,14 @@ public class OrderController {
         List<TradeItemDTO> tradeItems = KsBeanUtil.convertList(request.getTradeItems(), TradeItemDTO.class);
         List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
 
-        List<String> spuIds = tradeItems.stream().map(TradeItemDTO::getSpuId).collect(Collectors.toList());
+        //获取订单商品详情和会员价salePrice
+        GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
+
+        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
         //设置是否展示输入电话输入框
         //获取商品下的打包信息 TODO 修改此处的时候，同时修改 h5的 purchase 接口
         Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
 
-        //获取订单商品详情和会员价salePrice
-        GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
         List<TradeConfirmItemVO> items = new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
         StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(skuResp.getGoodsInfos().get(0).getStoreId())
