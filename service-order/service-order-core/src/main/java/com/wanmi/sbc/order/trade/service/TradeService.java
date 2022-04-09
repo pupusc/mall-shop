@@ -2397,71 +2397,71 @@ public class TradeService {
         } else {
             tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
         }
-
-        //判断打包商品
-        //获取商品的打包信息，
-        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
-        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
-        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
-
-        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
-        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
-            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
-                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
-                goodsPackDetailListTmp.add(goodsPackDetailParam);
-            }
-        }
-
-        tradeParams.getTradeItems().forEach(t -> {
-            t.setOid(generatorService.generateOid());
-            if (StringUtils.isBlank(t.getAdminId())) {
-                t.setAdminId(String.format("%d", tradeParams.getSupplier().getSupplierId()));
-            }
-        });
-
-        List<TradeItem> tradeItemListTmp = new ArrayList<>();
-        for (TradeItem tradeItemParam : trade.getTradeItems()) {
-            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
-            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
-                //拆分
-                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
-                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
-                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
-                BigDecimal rateAll = new BigDecimal("100");
-
-                //优先计算 子商品的价格，最后计算主要商品的价格；
-                BigDecimal surplusSplitPrice = splitPrice;
-                BigDecimal surplusPoint = new BigDecimal(splitPrice + "");
-                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
-//                GoodsPackDetailResponse mainGoodsPackDetail;
-
-                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
-                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
-                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
-                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
-                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
-
-                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
-                        surplusPoint = surplusPoint.subtract(pointsTmp);
-                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
-                    } /*else {
-                        mainGoodsPackDetail = goodsPackDetailTmp;
-                    }*/
-                }
-
-                PackRecord packRecord = tradeItemParam.getPackRecord();
-                if (packRecord == null) {
-                    packRecord = new PackRecord();
-                }
-                packRecord.setPackId(tradeItemParam.getSpuId());
-                packRecord.setPackPoint(surplusPoint.longValue());
-                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
-                packRecord.setPackSplitPrice(surplusSplitPrice);
-                tradeItemParam.setPackRecord(packRecord);
-            } else {
-                tradeItemListTmp.add(tradeItemParam);
-            }
-        }
+//
+//        //判断打包商品
+//        //获取商品的打包信息，
+//        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+//        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+//        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+//
+//        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+//        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+//            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+//                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+//                goodsPackDetailListTmp.add(goodsPackDetailParam);
+//            }
+//        }
+//
+//        tradeParams.getTradeItems().forEach(t -> {
+//            t.setOid(generatorService.generateOid());
+//            if (StringUtils.isBlank(t.getAdminId())) {
+//                t.setAdminId(String.format("%d", tradeParams.getSupplier().getSupplierId()));
+//            }
+//        });
+//
+//        List<TradeItem> tradeItemListTmp = new ArrayList<>();
+//        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+//            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+//            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
+//                //拆分
+//                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
+//                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
+//                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
+//                BigDecimal rateAll = new BigDecimal("100");
+//
+//                //优先计算 子商品的价格，最后计算主要商品的价格；
+//                BigDecimal surplusSplitPrice = splitPrice;
+//                BigDecimal surplusPoint = new BigDecimal(splitPrice + "");
+//                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
+////                GoodsPackDetailResponse mainGoodsPackDetail;
+//
+//                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+//                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+//                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//
+//                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
+//                        surplusPoint = surplusPoint.subtract(pointsTmp);
+//                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
+//                    } /*else {
+//                        mainGoodsPackDetail = goodsPackDetailTmp;
+//                    }*/
+//                }
+//
+//                PackRecord packRecord = tradeItemParam.getPackRecord();
+//                if (packRecord == null) {
+//                    packRecord = new PackRecord();
+//                }
+//                packRecord.setPackId(tradeItemParam.getSpuId());
+//                packRecord.setPackPoint(surplusPoint.longValue());
+//                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
+//                packRecord.setPackSplitPrice(surplusSplitPrice);
+//                tradeItemParam.setPackRecord(packRecord);
+//            } else {
+//                tradeItemListTmp.add(tradeItemParam);
+//            }
+//        }
         return trade;
     }
 
