@@ -248,8 +248,8 @@ public class GoodsController {
             return BaseResponse.error("编辑类型不能为空");
         }
 
-        request.setUpdatePerson(commonUtil.getOperatorId());
         request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
+        request.setUpdatePerson(commonUtil.getOperatorId());
 
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
@@ -362,9 +362,14 @@ public class GoodsController {
         if (Objects.isNull(request.getGoods().getProviderId())) {
             return BaseResponse.error("供应商id不能为空");
         }
+        if (Objects.isNull(request.getEditType())) {
+            return BaseResponse.error("编辑类型不能为空");
+        }
+        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
+
+        //request.getGoods().setProviderId(defaultProviderId);
 
         request.setUpdatePerson(commonUtil.getOperatorId());
-        //request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
