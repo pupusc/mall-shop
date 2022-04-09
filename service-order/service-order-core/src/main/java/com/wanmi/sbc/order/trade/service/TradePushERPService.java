@@ -1416,6 +1416,9 @@ public class TradePushERPService {
             //子单 按照物流信息填充
             Map<String, TradeDeliver> providerTradeDeliverMap = new HashMap<>();
             for (TradeDeliver providerTradeDeliverParam : providerTrade.getTradeDelivers()) {
+                if (providerTradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 providerTradeDeliverMap.put(providerTradeDeliverParam.getLogistics().getLogisticNo(), providerTradeDeliverParam);
             }
 
@@ -1424,6 +1427,9 @@ public class TradePushERPService {
             Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
             Map<String, TradeDeliver> tradeDeliverMap = new HashMap<>();
             for (TradeDeliver tradeDeliverParam : trade.getTradeDelivers()) {
+                if (tradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 tradeDeliverMap.put(tradeDeliverParam.getLogistics().getLogisticNo(), tradeDeliverParam);
             }
 
@@ -1432,6 +1438,9 @@ public class TradePushERPService {
 
             List<TradeDeliver> tradeDelivers = KsBeanUtil.copyListProperties(tradeDeliverVOList, TradeDeliver.class);
             for (TradeDeliver tradeDeliverParam : tradeDelivers) {
+                if (tradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 String logisticNo = tradeDeliverParam.getLogistics().getLogisticNo(); //物流号
 
                 //子单信息
