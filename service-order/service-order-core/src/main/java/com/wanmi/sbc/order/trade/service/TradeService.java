@@ -667,7 +667,6 @@ public class TradeService {
 
     @Autowired
     private WxOrderService wxOrderService;
-
     @Autowired
     private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
