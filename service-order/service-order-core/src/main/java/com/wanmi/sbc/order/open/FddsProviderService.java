@@ -108,17 +108,10 @@ public class FddsProviderService {
      * 创建樊登读书开放平台订单
      */
     private FddsBaseResult createOutOrder(ProviderTrade providerTrade) {
-        if (CollectionUtils.isEmpty(providerTrade.getTradeItems())) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品为空");
-        }
-        if (providerTrade.getTradeItems().size() > 1) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品仅支持单一充值");
-        }
-
         FddsOrderCreateParam createParam = new FddsOrderCreateParam();
         createParam.setTradeNo(providerTrade.getId());
         createParam.setMobile(providerTrade.getDirectChargeMobile());
-        createParam.setExternalProductNo(providerTrade.getTradeItems().get(0).getErpSkuNo());
+        createParam.setExternalProductNo(getUniqueItem(providerTrade).getErpSkuNo());
         createParam.setPayType(convertPayType(providerTrade.getPayWay()));
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
 
@@ -188,7 +181,7 @@ public class FddsProviderService {
         //1.子单商品发货信息 tradeItems.deliveredNum、tradeItems.deliverStatus
         //2.子单订单发货信息 tradeState.deliverStatus、tradeState.deliverTime、tradeState.flowState
         providerTrade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-        providerTrade.getTradeState().setFlowState(FlowState.DELIVERED);
+        providerTrade.getTradeState().setFlowState(FlowState.COMPLETED);
         providerTrade.getTradeState().setDeliverTime(nowTime);
         providerTrade.getTradeDelivers().addAll(tradeDeliverVOList);
 
@@ -201,7 +194,7 @@ public class FddsProviderService {
         //3.主单商品发货信息 tradeItems.deliveredNum、tradeItems.deliverStatus
         //4.主单订单发货信息 tradeState.deliverStatus、tradeState.deliverTime、tradeState.flowState
         trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
-        trade.getTradeState().setFlowState(FlowState.DELIVERED);
+        trade.getTradeState().setFlowState(FlowState.COMPLETED);
         trade.getTradeState().setDeliverTime(nowTime);
         trade.getTradeDelivers().addAll(tradeDeliverVOList);
         //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
@@ -318,7 +311,7 @@ public class FddsProviderService {
             Map<String,Object> content = new HashMap<>();
 
             content.put("content", MessageFormat
-                    .format(NOTICE_SEND_MESSAGE, providerTrade.getId(), providerTrade.getTradeItems().get(0).getSkuNo(), providerTrade.getTradeItems().get(0).getSkuName()));
+                    .format(NOTICE_SEND_MESSAGE, providerTrade.getId(), getUniqueItem(providerTrade).getErpSkuNo(), getUniqueItem(providerTrade).getSkuName()));
             Map<String,Object> map = new HashMap<>();
             map.put("replaceParams",content);
             map.put("noticeId",noticeSendMsgNoticeId);
@@ -336,4 +329,15 @@ public class FddsProviderService {
             }
         }
     }
+
+    private TradeItem getUniqueItem(ProviderTrade providerTrade) {
+        if (CollectionUtils.isEmpty(providerTrade.getTradeItems())) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品为空");
+        }
+        if (providerTrade.getTradeItems().size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "樊登读书直冲商品仅支持单一充值");
+        }
+        return providerTrade.getTradeItems().get(0);
+    }
+
 }
