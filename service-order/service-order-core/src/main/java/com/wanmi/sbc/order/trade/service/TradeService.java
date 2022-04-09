@@ -1823,6 +1823,14 @@ public class TradeService {
                         tradeItem.setKnowledge(knowledgeTmp.longValue());
                         tradeItem.setPrice(splitPriceTmp);
 
+                        if (tradeItem.getPoints() > 0) {
+                            tradeItem.setPointsPrice(pointsTmp.divide(new BigDecimal("100")));
+                        } else if (tradeItem.getKnowledge() > 0) {
+                            tradeItem.setPointsPrice(knowledgeTmp.divide(new BigDecimal("100")));
+                        } else {
+                            tradeItem.setPointsPrice(BigDecimal.ZERO);
+                        }
+
                         PackRecord packRecord = tradeItem.getPackRecord();
                         if (packRecord == null) {
                             packRecord = new PackRecord();
@@ -1845,6 +1853,14 @@ public class TradeService {
                 tradeItemParam.setPoints(surplusPoint.longValue());
                 tradeItemParam.setKnowledge(surplusKnowledge.longValue());
                 tradeItemParam.setPrice(surplusSplitPrice);
+
+                if (tradeItemParam.getPoints() > 0) {
+                    tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100")));
+                } else if (tradeItemParam.getKnowledge() > 0) {
+                    tradeItemParam.setPointsPrice(surplusKnowledge.divide(new BigDecimal("100")));
+                } else {
+                    tradeItemParam.setPointsPrice(BigDecimal.ZERO);
+                }
 
                 PackRecord packRecord = tradeItemParam.getPackRecord();
                 if (packRecord == null) {
