@@ -377,14 +377,17 @@ public class OrderController {
      * @return
      */
     private Map<String, Boolean> getGoodsIdHasVirtual(List<String> spuIdList) {
+
+
+        //获取商品下的打包信息
         Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
         BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(spuIdList));
         List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
 
         if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
-            GoodsListByIdsRequest requestParam = new GoodsListByIdsRequest();
-            requestParam.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
-            BaseResponse<GoodsListByIdsResponse> childGoodsList = goodsQueryProvider.listByIds(requestParam);
+            GoodsListByIdsRequest request = new GoodsListByIdsRequest();
+            request.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
+            BaseResponse<GoodsListByIdsResponse> childGoodsList = goodsQueryProvider.listByIds(request);
             GoodsListByIdsResponse childGoodsResponse = childGoodsList.getContext();
 
             Map<String, Boolean> childGoodsId2HasVirtualMap = new HashMap<>();
@@ -407,6 +410,14 @@ public class OrderController {
                     continue;
                 }
                 mainGoodsId2HasVirtualMap.put(goodsPackDetailParam.getPackId(), true);
+            }
+        } else {
+            GoodsListByIdsRequest requestOuter = new GoodsListByIdsRequest();
+            requestOuter.setGoodsIds(spuIdList);
+            BaseResponse<GoodsListByIdsResponse> outGoodsList = goodsQueryProvider.listByIds(requestOuter);
+            List<GoodsVO> goodsVOList = outGoodsList.getContext().getGoodsVOList();
+            for (GoodsVO goodsVOParam : goodsVOList) {
+                mainGoodsId2HasVirtualMap.put(goodsVOParam.getGoodsId(), Objects.equals(goodsVOParam.getGoodsType(), GoodsType.VIRTUAL_GOODS.ordinal()));
             }
         }
         return mainGoodsId2HasVirtualMap;
