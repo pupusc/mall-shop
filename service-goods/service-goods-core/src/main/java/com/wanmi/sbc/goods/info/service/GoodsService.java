@@ -1906,20 +1906,24 @@ public class GoodsService {
         }
         //参数验证
         if (CollectionUtils.isEmpty(saveRequest.getGoodsInfos())) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku信息为空");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku信息不能为空");
         }
+
         for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
             if (Objects.isNull(item.getGoodsId())) {
-                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的spuId为空");
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的spuId不能为空");
             }
             if (Objects.isNull(item.getGoodsInfoId())) {
-                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的skuId为空");
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的skuId不能为空");
             }
             if (Objects.isNull(item.getCount())) {
-                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的组合数量为空");
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的组合数量不能为空");
             }
             if (Objects.isNull(item.getShareRate())) {
-                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例为空");
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例不能为空");
+            }
+            if (item.getShareRate().compareTo(BigDecimal.ZERO) < 0) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例不能为负");
             }
         }
 
@@ -1929,8 +1933,8 @@ public class GoodsService {
         //删除关联的打包数据
         goodsPackDetailRepository.removeAllByPackId(spuId);
 
+        BigDecimal sumRate = new BigDecimal(100);
         List<GoodsPackDetailDTO> insertList = new ArrayList<>();
-        BigDecimal sumRate = new BigDecimal(BigInteger.ONE);
         for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
             sumRate = sumRate.subtract(item.getShareRate());
             GoodsPackDetailDTO childGoods = new GoodsPackDetailDTO();
@@ -1940,6 +1944,9 @@ public class GoodsService {
             childGoods.setCount(item.getCount());
             childGoods.setShareRate(item.getShareRate());
             insertList.add(childGoods);
+        }
+        if (sumRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new SbcRuntimeException("组合商品拆分比例总和不能超出上限");
         }
 
         GoodsPackDetailDTO mainGoods = new GoodsPackDetailDTO();
