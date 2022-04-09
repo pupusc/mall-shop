@@ -1821,7 +1821,6 @@ public class TradeService {
                         tradeItem.setSplitPrice(splitPriceTmp);
                         tradeItem.setPoints(pointsTmp.longValue());
                         tradeItem.setKnowledge(knowledgeTmp.longValue());
-                        tradeItem.setPrice(splitPriceTmp);
 
                         if (tradeItem.getPoints() > 0) {
                             tradeItem.setPointsPrice(pointsTmp.divide(new BigDecimal("100")));
@@ -1830,6 +1829,9 @@ public class TradeService {
                         } else {
                             tradeItem.setPointsPrice(BigDecimal.ZERO);
                         }
+
+                        BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
+                        tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
 
                         PackRecord packRecord = tradeItem.getPackRecord();
                         if (packRecord == null) {
@@ -1852,7 +1854,6 @@ public class TradeService {
                 tradeItemParam.setSplitPrice(surplusSplitPrice);
                 tradeItemParam.setPoints(surplusPoint.longValue());
                 tradeItemParam.setKnowledge(surplusKnowledge.longValue());
-                tradeItemParam.setPrice(surplusSplitPrice);
 
                 if (tradeItemParam.getPoints() > 0) {
                     tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100")));
@@ -1861,6 +1862,9 @@ public class TradeService {
                 } else {
                     tradeItemParam.setPointsPrice(BigDecimal.ZERO);
                 }
+
+                BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
+                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
 
                 PackRecord packRecord = tradeItemParam.getPackRecord();
                 if (packRecord == null) {
