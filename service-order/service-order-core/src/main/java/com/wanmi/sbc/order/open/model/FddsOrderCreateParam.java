@@ -70,7 +70,7 @@ public class FddsOrderCreateParam {
      * 推广人编号类型
      * 1:站外推广人编号，2:openid，3:thrid，4:樊登用户编号 5:手机号
      */
-    private String promoterType = "4";
+    private String promoterType;
 
     /**
      * 推广人编号
