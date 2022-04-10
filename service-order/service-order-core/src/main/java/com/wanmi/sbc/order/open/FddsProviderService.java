@@ -207,6 +207,8 @@ public class FddsProviderService {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
         }
 
+        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update providerTrade:{}", trade.getId(), JSON.toJSONString(providerTrade));
+
         //当前时间
         LocalDateTime nowTime = LocalDateTime.now();
 
@@ -234,6 +236,14 @@ public class FddsProviderService {
         providerTrade.getTradeState().setDeliverTime(nowTime);
         providerTrade.getTradeDelivers().addAll(tradeDeliverVOList);
 
+        //此处重新赋值商品信息
+        for (ProviderTrade p : providerTrades) {
+            log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{}, p:{}", trade.getId(), JSON.toJSONString(p));
+            if (Objects.equals(p.getId(), providerTrade.getId())) {
+                providerTrade.setTradeItems(p.getTradeItems());
+            }
+        }
+
         for (TradeItem tradeItem : providerTrade.getTradeItems()) {
             tradeItem.setDeliveredNum(tradeItem.getNum());
             tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
@@ -248,8 +258,9 @@ public class FddsProviderService {
         trade.getTradeDelivers().addAll(tradeDeliverVOList);
         //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
         if (providerTrades.stream().anyMatch(p -> !providerTrade.getId().equals(p.getId())
-                && !DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus())
+                && !DeliverStatus.SHIPPED.equals(p.getTradeState().getDeliverStatus())
                 && !FlowState.VOID.equals(p.getTradeState().getFlowState()))) {
+            log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update part_shipped", trade.getId());
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
         }
@@ -260,6 +271,8 @@ public class FddsProviderService {
         List<String> itemOids = providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList());
         List<TradeItem> tradeItems = trade.getTradeItems().stream().filter(item -> !itemOids.contains(item.getOid())).collect(Collectors.toList());
         tradeItems.addAll(providerTrade.getTradeItems());
+
+        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update tradeItems:{}", trade.getId(), JSON.toJSONString(tradeItems));
         trade.setTradeItems(tradeItems);
 
         //如果全部发货，则更新发货数量

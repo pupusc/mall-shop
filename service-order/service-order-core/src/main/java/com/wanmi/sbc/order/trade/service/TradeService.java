@@ -7502,6 +7502,8 @@ public class TradeService {
      * @param trade
      */
     private void splitProvideTrade(Trade trade) {
+
+        log.info("TradeService splitProvideTrade trade:{} ", JSON.toJSONString(trade));
         List<TradeItem> tradeItemList = trade.getTradeItems();
         List<TradeItem> gifts = trade.getGifts();
 
@@ -7533,6 +7535,8 @@ public class TradeService {
                 tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
             }
         }));
+
+        log.info("TradeService splitProvideTrade tradeItemList {} ", JSON.toJSONString(tradeItemList));
 
         if (CollectionUtils.isNotEmpty(gifts)) {
             gifts.forEach(tradeItem -> goodsInfoVOList.forEach(goodsInfoVO -> {
@@ -7659,7 +7663,7 @@ public class TradeService {
                 // 筛选当前供应商的订单商品信息
                 List<TradeItem> providerTradeItems =
                         tradeItemList.stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList());
-
+                log.info("TradeService splitProvideTrade providerId:{} tradeItem:{}", providerId, JSON.toJSONString(providerTradeItems));
                 providerTrade.setTradeItems(providerTradeItems);
                 // 原订单所属商家名称
                 providerTrade.setSupplierName(trade.getSupplier().getSupplierName());
