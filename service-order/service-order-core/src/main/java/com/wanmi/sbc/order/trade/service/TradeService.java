@@ -1778,6 +1778,7 @@ public class TradeService {
                 List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
                 Map<String, TradeItem> skuId2TradeItemMap = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
 
+                GoodsPackDetailResponse mainGoodsPackDetailTmp = null;
                 for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
                     if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
                         BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
@@ -1807,9 +1808,11 @@ public class TradeService {
 
                         BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
                         tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
-                        tradeItem.setPackId(tradeItemParam.getSpuId());
+                        tradeItem.setPackId(goodsPackDetailTmp.getPackId());
                         tradeItemListTmp.add(tradeItem); // add1
-                        log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItem.getSpuId(), tradeItemParam.getPackId());
+                        log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItem.getSpuId(), tradeItem.getPackId());
+                    } else {
+                        mainGoodsPackDetailTmp = goodsPackDetailTmp;
                     }
                 }
 
@@ -1828,7 +1831,7 @@ public class TradeService {
 
                 BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
                 tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
-                tradeItemParam.setPackId(tradeItemParam.getSpuId());
+                tradeItemParam.setPackId(mainGoodsPackDetailTmp == null ? tradeItemParam.getSpuId() : mainGoodsPackDetailTmp.getPackId());
 
                 log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItemParam.getSpuId(), tradeItemParam.getPackId());
             }
@@ -7690,6 +7693,7 @@ public class TradeService {
                 //积分价
                 Long buyPoints = NumberUtils.LONG_ZERO;
                 for (TradeItem providerTradeItem : providerTradeItems) {
+                    log.info("TradeService.splitProvideTrade providerTradeItem packId:{}", providerTradeItem.getPackId());
                     if (!OrderType.POINTS_ORDER.equals(trade.getOrderType())) {
                         //积分
                         if (Objects.nonNull(providerTradeItem.getBuyPoint())) {
