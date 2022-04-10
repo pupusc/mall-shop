@@ -1778,7 +1778,6 @@ public class TradeService {
                 List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
                 Map<String, TradeItem> skuId2TradeItemMap = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
 
-                GoodsPackDetailResponse  mainGoodsPackDetail = null;
                 for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
                     if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
                         BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
@@ -1810,6 +1809,7 @@ public class TradeService {
                         tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
                         tradeItem.setPackId(tradeItemParam.getSpuId());
                         tradeItemListTmp.add(tradeItem); // add1
+                        log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItem.getSpuId(), tradeItemParam.getPackId());
                     }
                 }
 
@@ -1829,6 +1829,8 @@ public class TradeService {
                 BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
                 tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
                 tradeItemParam.setPackId(tradeItemParam.getSpuId());
+
+                log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItemParam.getSpuId(), tradeItemParam.getPackId());
             }
             tradeItemListTmp.add(tradeItemParam); // add2
         }
