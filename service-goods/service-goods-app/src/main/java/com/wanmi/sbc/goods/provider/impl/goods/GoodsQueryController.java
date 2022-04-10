@@ -99,6 +99,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -703,5 +704,14 @@ public class GoodsQueryController implements GoodsQueryProvider {
         }
         List<GoodsPackDetailDTO> list = goodsPackService.listGoodsPackDetailByPackIds(request.getPackIds());
         return BaseResponse.success(KsBeanUtil.convert(list, GoodsPackDetailResponse.class));
+    }
+
+    public BaseResponse<String> getGoodsId(List<String> goodsInfoIds) {
+        return BaseResponse.success(goodsService.getGoodsId(goodsInfoIds));
+    }
+
+    @Override
+    public BaseResponse<String> getGoodsIdByClassify(@RequestParam Integer classifyId){
+        return BaseResponse.success(goodsService.getByClassidyId(classifyId));
     }
 }

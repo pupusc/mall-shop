@@ -17,7 +17,7 @@ public class GoodsBlackListPageProviderRequest implements Serializable {
 
 
     /**
-     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品
+     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品 5、虚仓
      */
     private Collection<Integer> businessCategoryColl;
 

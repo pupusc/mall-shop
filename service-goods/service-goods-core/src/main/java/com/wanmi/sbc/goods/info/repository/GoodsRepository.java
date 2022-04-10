@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.info.model.root.Goods;
+import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.standard.model.root.StandardGoods;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,11 +14,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.w3c.dom.stylesheets.LinkStyle;
-import sun.awt.SunHints;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品数据源
@@ -34,7 +34,14 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Query("update Goods w set w.delFlag = '1', w.updateTime = now() where w.goodsId in ?1")
     void deleteByGoodsIds(List<String> goodsIds);
 
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
+    Map findSpuId();
 
+    @Query(value = "select goods.* from goods_info as gi join goods as goods on gi.goods_id=goods.goods_id where gi.goods_info_id in ?1 and goods.del_flag=0 and goods.added_flag=1 limit 1", nativeQuery=true)
+    Map findSpuId2(List<String> goodsInfoIds);
+
+    @Query(value = "select g.* from t_classify_goods_rel as rel join goods as g on rel.goods_id=g.goods_id where rel.classify_id=?1 and g.del_flag=0 and g.added_flag=1 limit 1", nativeQuery=true)
+    Map findFirstByClassify(Integer classifyId);
 
     /**
      * 根据多个商品ID编号进行删除供应商商品
@@ -247,13 +254,13 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Modifying
     @Query("update Goods g set g.sortNo = :sortNo, g.updateTime = now()  where g.goodsId = :goodsId")
     void updateSortNo(@Param("sortNo") Long sortNo,@Param("goodsId") String goodsId);
-    /**
-     * 根据供应商商品id查询关联商品
-     * @param goodsIds
-     * @return
-     */
-    @Query
-    List<Goods> findAllByProviderGoodsIdIn(List<String> goodsIds);
+//    /**
+//     * 根据供应商商品id查询关联商品
+//     * @param goodsIds
+//     * @return
+//     */
+//    @Query
+//    List<Goods> findAllByProviderGoodsIdIn(List<String> goodsIds);
 
     /**
      * 根据供应商商品id查询关联商品
@@ -289,14 +296,19 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     void updateStockByProviderGoodsIds(Long stock, List<String> providerGoodsIds);
 
     @Modifying
+    @Transactional
+    @Query("update Goods set stock=?1 where goodsId = ?2")
+    void updateStockByGoodsId(Long stock, String goodsId);
+
+    @Modifying
     @Query(value = "UPDATE goods SET cate_id=:cateId WHERE goods_source=:source AND third_cate_id=:thirdCateId",nativeQuery = true)
     void updateThirdCateMap(@Param("source") int source, @Param("thirdCateId") long thirdCateId, @Param("cateId") long cateId);
 
-    @Modifying
-    @Query("UPDATE Goods SET cateId=?4 WHERE goodsSource=?1 and thirdPlatformType=?2 AND thirdCateId=?3")
-    void updateStoreThirdCateMap( Integer goodsSource,ThirdPlatformType thirdPlatformType, Long thirdCateId, Long cateId);
-
-    Goods findByThirdPlatformSpuIdAndGoodsSource(String thirdPlatformSpuId, Integer goodsSource);
+//    @Modifying
+//    @Query("UPDATE Goods SET cateId=?4 WHERE goodsSource=?1 and thirdPlatformType=?2 AND thirdCateId=?3")
+//    void updateStoreThirdCateMap( Integer goodsSource,ThirdPlatformType thirdPlatformType, Long thirdCateId, Long cateId);
+//
+//    Goods findByThirdPlatformSpuIdAndGoodsSource(String thirdPlatformSpuId, Integer goodsSource);
 
     @Modifying
     @Query("update Goods set delFlag=1,updateTime=now() where goodsSource=?1 and thirdPlatformSpuId=?2")
@@ -369,7 +381,6 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
 
     /**
      * 查询商品
-     * @param goodsId
      * @param storeId
      * @param deleteFlag
      * @return
@@ -408,13 +419,22 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     @Query(value = "select goods_id,goods_no from goods where goods_no in ?1 and del_flag=0", nativeQuery = true)
     List<Object[]> findIdByNumber(List<String> numbers);
 
-    /**
-     * 查找所有书籍
-     */
-    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
-    List<Goods> findBooks();
+//    /**
+//     * 查找所有书籍
+//     */
+//    @Query(value = "select g.* from goods_cate as c join goods as g on g.cate_id=c.cate_id where c.book_flag = 1", nativeQuery = true)
+//    List<Goods> findBooks();
 
     @Modifying
     @Query("update Goods w set w.costPrice = ?2 where w.goodsId = ?1")
     void resetGoodsPriceById(String goodsId, BigDecimal costPrice);
+
+
+    /**
+     * 根据最大id
+     * @param providerId
+     * @return
+     */
+    @Query(value = "select tmp_id, erp_goods_no,goods_id from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
+    List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }

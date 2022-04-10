@@ -201,6 +201,11 @@ public final class Constants {
      */
     public static final Long BOSS_DEFAULT_STORE_ID = -1L;
 
+    /**
+     * 小程序
+     */
+    public static final Long BOSS_MINIAPP_STORE_ID = -2L;
+
 
     /**
      * 客户导入

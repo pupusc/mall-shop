@@ -59,8 +59,8 @@ public class GoodsInfoController implements GoodsInfoProvider {
     @Autowired
     private DistributorGoodsInfoService distributorGoodsInfoService;
 
-    @Autowired
-    private DistributionGoodsMatterService distributionGoodsMatterService;
+//    @Autowired
+//    private DistributionGoodsMatterService distributionGoodsMatterService;
 
     @Autowired
     private StandardGoodsRelRepository standardGoodsRelRepository;
@@ -174,18 +174,18 @@ public class GoodsInfoController implements GoodsInfoProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
-    /**
-     * 根据商品skuId增加商品sku库存
-     *
-     * @param request 包含skuId的商品sku库存增量结构 {@link GoodsInfoPlusStockByIdRequest}
-     * @return 操作结果 {@link BaseResponse}
-     */
-    @Override
-
-    public BaseResponse plusStockById(@RequestBody @Valid GoodsInfoPlusStockByIdRequest request) {
-        goodsInfoService.addStockById(request.getStock(), request.getGoodsInfoId());
-        return BaseResponse.SUCCESSFUL();
-    }
+//    /**
+//     * 根据商品skuId增加商品sku库存
+//     *
+//     * @param request 包含skuId的商品sku库存增量结构 {@link GoodsInfoPlusStockByIdRequest}
+//     * @return 操作结果 {@link BaseResponse}
+//     */
+//    @Override
+//
+//    public BaseResponse plusStockById(@RequestBody @Valid GoodsInfoPlusStockByIdRequest request) {
+//        goodsInfoService.addStockById(request.getStock(), request.getGoodsInfoId());
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
     /**
      * 批量增量商品sku库存

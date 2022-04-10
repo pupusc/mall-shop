@@ -44,6 +44,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private String oid;
 
     /**
+     * 是否在积分黑名单
+     */
+    private Boolean inPointBlackList;
+
+    /**
      * 商品所属的userId storeId?
      */
     @ApiModelProperty(value = "商品所属的userId storeId?")

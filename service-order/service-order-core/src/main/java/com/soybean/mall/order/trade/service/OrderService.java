@@ -1,50 +1,39 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
-import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.BoolFlag;
-import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
-import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
-import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
-import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
-import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
-import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
-import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
-import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.MiniProgram;
-import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.request.TradeWrapperListRequest;
-import com.wanmi.sbc.order.trade.service.*;
+import com.wanmi.sbc.order.trade.service.ProviderTradeService;
+import com.wanmi.sbc.order.trade.service.TradeCacheService;
+import com.wanmi.sbc.order.trade.service.TradeCustomerService;
+import com.wanmi.sbc.order.trade.service.TradeGoodsService;
+import com.wanmi.sbc.order.trade.service.TradeService;
+import com.wanmi.sbc.order.trade.service.VerifyService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -54,10 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -99,6 +90,9 @@ public class OrderService {
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
 
 
@@ -165,6 +159,12 @@ public class OrderService {
             List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
             //返回订单信息
             results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
+            results.forEach(result->{
+                Optional<TradeCommitResult> tradeCommitResult = successResults.stream().filter(p->p.getTid().equals(result.getId())).findFirst();
+                if(tradeCommitResult.isPresent()) {
+                    result.setCouponFlag(tradeCommitResult.get().getCouponFlag());
+                }
+            });
         }catch (Exception e){
             log.error("提交订单异常：{}",e);
             for (Trade trade : trades) {

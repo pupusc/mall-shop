@@ -9,9 +9,13 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.feishu.FeiShuNoticeEnum;
+import com.wanmi.sbc.feishu.constant.FeiShuMessageConstant;
+import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
 import com.wanmi.sbc.redis.RedisService;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -23,7 +27,15 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 /**
@@ -49,9 +61,15 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private FeiShuSendMessageService feiShuSendMessageService;
+
     //分布式锁名称
     private static final String BATCH_GET_GOODS_STOCK_AND_SYNC_LOCKS = "BATCH_GET_GOODS_STOCK_AND_SYNC_LOCKS";
 
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    
     @Override
     public ReturnT<String> execute(String params) throws Exception {
         RLock lock = redissonClient.getLock(BATCH_GET_GOODS_STOCK_AND_SYNC_LOCKS);
@@ -72,33 +90,49 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
             int pageNum = 0;
             for (int i = 0; i < countResponse.getContext(); i += 20) {
                 log.info("同步商品库存,共{}条数据,当前第{}页", countResponse.getContext(), pageNum);
-                GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder()
-                        .pageNum(pageNum)
-                        .pageSize(pageSize)
-                        .build();
-                BaseResponse<Map<String, Map<String, Integer>>> baseResponse = goodsProvider.syncGoodsStock(goodsInfoListByIdRequest);
-                Map<String, Map<String, Integer>> resultMap = baseResponse.getContext();
+                GoodsInfoListByIdRequest goodsInfoListByIdRequest = GoodsInfoListByIdRequest.builder().pageNum(pageNum).pageSize(pageSize).build();
+                BaseResponse<List<GoodsInfoStockSyncProviderResponse>> baseResponse = goodsProvider.syncGoodsStock(goodsInfoListByIdRequest);
+                List<GoodsInfoStockSyncProviderResponse> result = baseResponse.getContext();
                 ++pageNum;
                 //更新ES中的SPU和SKU库存数据
-                if (!resultMap.isEmpty()) {
-                    Map<String, Integer> skusMap = resultMap.get("skus");
-                    log.info("============Es更新sku的库存:{}==================", skusMap);
-                    EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
+                if (!result.isEmpty()) {
+                    //博库一个sku只针对一个spu，所以用原来的方式不进行计算
+                    Map<String, Integer> skuId2StockQtyMap = new HashMap<>();
+                    Map<String, Integer> spuId2StockQtyMap = new HashMap<>();
+
+                    List<GoodsInfoStockSyncProviderResponse> stockSendMessageList = new ArrayList<>();
+                    for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : result) {
+                        skuId2StockQtyMap.put(goodsInfoStockSyncParam.getSkuId(), goodsInfoStockSyncParam.getActualStockQty());
+                        spuId2StockQtyMap.put(goodsInfoStockSyncParam.getSpuId(), goodsInfoStockSyncParam.getActualStockQty());
+                        //发送消息
+                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
+                            stockSendMessageList.add(goodsInfoStockSyncParam);
+                        }
+                    }
+
+                    log.info("============Es更新sku的库存:{}==================", skuId2StockQtyMap);
+                    EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skuId2StockQtyMap).build();
                     esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-                    Map<String, Integer> spusMap = resultMap.get("spus");
-                    log.info("============Es更新spu的库存:{}==================", spusMap);
-                    EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+
+                    log.info("============Es更新spu的库存:{}==================", spuId2StockQtyMap);
+                    EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spuId2StockQtyMap).build();
                     esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-                    log.info("============Es更新spu中的goodsInfo的库存:{}==================", spusMap);
+                    log.info("============Es更新spu中的goodsInfo的库存:{}==================", spuId2StockQtyMap);
                     esGoodsStockProvider.batchResetGoodsInfoStockBySpuId(esGoodsSpuStockSubRequest);
                     //更新redis商品基本数据
-                    if (!skusMap.isEmpty()) {
-                        for (String key : spusMap.keySet()) {
+                    if (!skuId2StockQtyMap.isEmpty()) {
+                        for (String key : skuId2StockQtyMap.keySet()) {
                             String goodsDetailInfo = redisService.getString(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
                             if (StringUtils.isNotBlank(goodsDetailInfo)) {
                                 redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + key);
                             }
                         }
+                    }
+
+                    //发送库存消息
+                    for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
+                        String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(), sdf.format(new Date()) , p.getActualStockQty());
+                        feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.STOCK);
                     }
                 }
             }

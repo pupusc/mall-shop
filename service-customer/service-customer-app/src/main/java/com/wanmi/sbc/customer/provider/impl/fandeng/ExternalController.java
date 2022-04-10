@@ -10,6 +10,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.fandeng.ExternalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -60,6 +61,11 @@ public class ExternalController implements ExternalProvider {
     @Override
     public BaseResponse<FanDengPointResponse> getByUserNoPoint(@Valid FanDengPointRequest request) {
         return externalService.getByUserNoPoint(request);
+    }
+
+    @Override
+    public BaseResponse<FanDengKnowledgeResponse> getKnowledgeByFanDengNo(FanDengKnowledgeRequest request) {
+        return externalService.getKnowledgeByFanDengNo(request);
     }
 
     @Override

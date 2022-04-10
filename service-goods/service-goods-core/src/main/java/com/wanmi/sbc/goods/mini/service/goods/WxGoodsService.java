@@ -153,8 +153,12 @@ public class WxGoodsService {
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
-        if(wxGoodsModel.getWxCategory() == null || wxGoodsModel.getIsbnImg() == null || wxGoodsModel.getPublisherImg() == null)
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品类目、ISBN图、出版社图必填");
+        if(StringUtils.isEmpty(wxGoodsModel.getWxCategory())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "微信类目必填");
+        }
+        if(wxGoodsModel.getWxCategory().startsWith("135835", 7) && (StringUtils.isEmpty(wxGoodsModel.getIsbnImg()) || StringUtils.isEmpty(wxGoodsModel.getPublisherImg()))){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "图书类商品ISBN图、出版社图必填");
+        }
         if(wxGoodsModel.getNeedToAudit() == 0) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品无需审核");
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
@@ -350,10 +354,12 @@ public class WxGoodsService {
         addProductRequest.setTitle(goods.getGoodsName());
         addProductRequest.setPath(wxGoodsPath.concat("?spuId=").concat(goods.getGoodsId()));
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
-        List<String> qualificationics = new ArrayList<>();
-        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
-        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
-        addProductRequest.setQualificationics(qualificationics);
+        if(StringUtils.isNotEmpty(wxGoodsModel.getIsbnImg()) && StringUtils.isNotEmpty(wxGoodsModel.getPublisherImg())){
+            List<String> qualificationics = new ArrayList<>();
+            qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
+            qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
+            addProductRequest.setQualificationics(qualificationics);
+        }
         //商品详情截取图片
         String detail;
         if(StringUtils.isNotEmpty(goods.getGoodsMobileDetail())){

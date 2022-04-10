@@ -231,6 +231,11 @@ public class GoodsQueryRequest extends BaseQueryRequest {
      */
     private Long labelId;
 
+    /**
+     * 供应商id
+     */
+    private String providerId;
+
 
     /**
      * 封装公共条件
@@ -240,6 +245,9 @@ public class GoodsQueryRequest extends BaseQueryRequest {
     public Specification<Goods> getWhereCriteria() {
         return (root, cquery, cbuild) -> {
             List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.isNotBlank(providerId)) {
+                predicates.add(cbuild.equal(root.get("providerId"), providerId));
+            }
             //批量商品编号
             if (CollectionUtils.isNotEmpty(goodsIds)) {
                 predicates.add(root.get("goodsId").in(goodsIds));

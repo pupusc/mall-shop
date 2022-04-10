@@ -1,6 +1,8 @@
 package com.wanmi.sbc.order.refund.service;
 
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.enums.MiniProgramSceneType;
+import com.soybean.mall.order.enums.WxAfterSaleOperateType;
 import com.wanmi.sbc.account.api.provider.funds.CustomerFundsProvider;
 import com.wanmi.sbc.account.api.provider.offline.OfflineQueryProvider;
 import com.wanmi.sbc.account.api.request.funds.CustomerFundsAddAmountRequest;
@@ -799,7 +801,10 @@ public class RefundOrderService {
                     // 退款金额等于0 直接添加流水 修改退单状态
                     if (refundRequest.getAmount().compareTo(BigDecimal.ZERO) == 0) {
                         returnOrderService.refundOnline(returnOrder, refundOrder, operator);
-                    } else {
+                    } else if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())){
+                        //视频号订单直接调同意退款接口
+                        returnOrderService.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.REFUND.getIndex());
+                    }else {
                         BigDecimal totalPrice =
                                 payQueryProvider.getTradeRecordByOrderCode(new TradeRecordByOrderCodeRequest(refundRequest.getBusinessId()))
                                         .getContext().getPracticalPrice();

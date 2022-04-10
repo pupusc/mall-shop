@@ -3,10 +3,12 @@ package com.wanmi.sbc.marketing.coupon.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.handler.aop.MasterRouteOnly;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -22,6 +24,8 @@ import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
@@ -41,6 +45,7 @@ import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
 import com.wanmi.sbc.marketing.bean.dto.CouponActivityConfigAndCouponInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.CouponCodeBatchModifyDTO;
 import com.wanmi.sbc.marketing.bean.dto.CouponInfoDTO;
+import com.wanmi.sbc.marketing.bean.dto.GoodsCouponDTO;
 import com.wanmi.sbc.marketing.bean.enums.*;
 import com.wanmi.sbc.marketing.bean.vo.CheckGoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
@@ -53,6 +58,7 @@ import com.wanmi.sbc.marketing.coupon.repository.CouponInfoRepository;
 import com.wanmi.sbc.marketing.coupon.repository.CouponMarketingScopeRepository;
 import com.wanmi.sbc.marketing.coupon.request.CouponCodeListForUseRequest;
 import com.wanmi.sbc.marketing.coupon.request.CouponCodePageRequest;
+import com.wanmi.sbc.marketing.coupon.request.CouponCodeWillExpireRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeCountResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeQueryResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponLeftResponse;
@@ -69,6 +75,7 @@ import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.hibernate.SQLQuery;
 import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -87,10 +94,12 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -163,7 +172,13 @@ public class CouponCodeService {
 
     @Autowired
     private ClassifyProvider classifyProvider;
+    
 
+    @Value("${default.coupon.activityId}")
+    private String couponActivityId;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     /**
      * 根据条件查询优惠券码列表
@@ -589,17 +604,26 @@ public class CouponCodeService {
             //适用品牌
             if (ScopeType.BRAND.equals(couponCodeVo.getScopeType())) {
                 couponBrandName(couponCodeVo, scopeList);
-            }
-
-            //适用平台分类
-            if (ScopeType.BOSS_CATE.equals(couponCodeVo.getScopeType())) {
+            }else if (ScopeType.BOSS_CATE.equals(couponCodeVo.getScopeType())) {
+                //适用平台分类
                 couponGoodsCateName(couponCodeVo, scopeList);
+            }else if (ScopeType.STORE_CATE.equals(couponCodeVo.getScopeType())) {
+                //适用店铺分类
+                couponStoreCateName(couponCodeVo, scopeList);
+                if(CollectionUtils.isNotEmpty(scopeList)){
+                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(scopeList.get(0).getScopeId()));
+                    couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+                }
+            }else if (ScopeType.ALL.equals(couponCodeVo.getScopeType())){
+                BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+                couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+            }else if (ScopeType.SKU.equals(couponCodeVo.getScopeType())){
+                if(CollectionUtils.isNotEmpty(scopeList)){
+                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(scopeList.stream().map(CouponMarketingScope::getScopeId).collect(Collectors.toList()));
+                    couponCodeVo.setGoodsAndInfoId(goodsId.getContext());
+                }
             }
 
-            //适用店铺分类
-            if (ScopeType.STORE_CATE.equals(couponCodeVo.getScopeType())) {
-                couponStoreCateName(couponCodeVo, scopeList);
-            }
         });
         couponCodeVoList = couponCodeVoList.stream().sorted(Comparator.comparing(CouponCodeVO::getDenomination).reversed()).collect(Collectors.toList());
         return new PageImpl<>(couponCodeVoList, request.getPageable(), totalCount);
@@ -711,6 +735,7 @@ public class CouponCodeService {
             throw new SbcRuntimeException(CouponErrorCode.CUSTOMER_HAS_FETCHED_COUPON);
         }
         //判断领取次数
+        Object fetchThisDay = null;
         if (Objects.equals(couponActivity.getReceiveType(), DefaultFlag.YES)) {
             int countCustomerHasFetchedCoupon =
                     couponCodeRepository.countCustomerHasFetchedCoupon(couponFetchRequest.getCustomerId(),
@@ -718,47 +743,75 @@ public class CouponCodeService {
             if (couponActivity.getReceiveCount() - countCustomerHasFetchedCoupon <= 0) {
                 throw new SbcRuntimeException(CouponErrorCode.CUSTOMER_FETCHED_ALL);
             }
-        }
-        String redisKey = getCouponBankKey(couponActivityConfig.getActivityId(), couponActivityConfig.getCouponId());
-
-        // 获取剩余优惠券
-        long leftCount = refreshCouponLeftCount(couponActivityConfig);
-        if (leftCount == 0) {
-            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-        }
-
-        SessionCallback<List<Object>> callback = new SessionCallback<List<Object>>() {
-            @Override
-            public List<Object> execute(RedisOperations operations)
-                    throws DataAccessException {
-                int retryLimit = 10;
-                List<Object> results = null;
-                int i = 0;
-                while ((results == null || results.isEmpty()) && i < retryLimit) {
-                    operations.watch(redisKey);
-                    // Read
-                    String origin = (String) operations.opsForValue().get(redisKey);
-                    if (Long.parseLong(origin) <= 0) {
-                        couponNoLeft(couponActivityConfig);
-                        throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-                    }
-                    operations.multi();
-                    // Write
-                    operations.opsForValue().increment(redisKey, -1);
-                    results = operations.exec();
-                    if (results != null && !results.isEmpty()) {
-                        //领券业务代码
-                        sendCouponCode(couponInfo, couponFetchRequest);
-                    } else {
-                        throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
-                    }
-                    i++;
-                }
-                return results;
+        }else if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+            //一天限领一次的券
+            if(StringUtils.isEmpty(couponFetchRequest.getCustomerId())){
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先登录");
             }
-        };
-        redisTemplate.execute(callback);
+            String key = "COUPON_".concat(couponFetchRequest.getCustomerId()).concat("_").concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+            fetchThisDay = redisTemplate.opsForValue().get(key);
+            if(fetchThisDay == null){
+                //可以领
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime tomorrow = now.plusDays(1).withHour(0).withMinute(0).withSecond(0);
+                redisTemplate.opsForValue().set(key, "1", Duration.between(now, tomorrow).toMillis(), TimeUnit.MILLISECONDS);
+            }else {
+                if(couponActivity.getReceiveCount() - Integer.parseInt(fetchThisDay.toString()) <= 0){
+                    throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "今日已达领取上限咯~");
+                }
+                redisTemplate.opsForValue().increment(key);
+            }
+        }
+        try {
+            String redisKey = getCouponBankKey(couponActivityConfig.getActivityId(), couponActivityConfig.getCouponId());
+            // 获取剩余优惠券
+            long leftCount = refreshCouponLeftCount(couponActivityConfig);
+            if (leftCount == 0) {
+                throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+            }
 
+            SessionCallback<List<Object>> callback = new SessionCallback<List<Object>>() {
+                @Override
+                public List<Object> execute(RedisOperations operations)
+                        throws DataAccessException {
+                    int retryLimit = 10;
+                    List<Object> results = null;
+                    int i = 0;
+                    while ((results == null || results.isEmpty()) && i < retryLimit) {
+                        operations.watch(redisKey);
+                        // Read
+                        String origin = (String) operations.opsForValue().get(redisKey);
+                        if (Long.parseLong(origin) <= 0) {
+                            couponNoLeft(couponActivityConfig);
+                            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+                        }
+                        operations.multi();
+                        // Write
+                        operations.opsForValue().increment(redisKey, -1);
+                        results = operations.exec();
+                        if (results != null && !results.isEmpty()) {
+                            //领券业务代码
+                            sendCouponCode(couponInfo, couponFetchRequest);
+                        } else {
+                            throw new SbcRuntimeException(CouponErrorCode.COUPON_INFO_NO_LEFT);
+                        }
+                        i++;
+                    }
+                    return results;
+                }
+            };
+            redisTemplate.execute(callback);
+        }catch (Exception e) {
+            if(couponActivity.getReceiveType().equals(DefaultFlag.ONCE_PER_DAY) && StringUtils.isNotEmpty(couponFetchRequest.getCustomerId())){
+                String key = "COUPON_".concat(couponFetchRequest.getCustomerId()).concat("_").concat(couponFetchRequest.getCouponActivityId()).concat("_").concat(couponFetchRequest.getCouponInfoId());
+                if(fetchThisDay == null){
+                    redisTemplate.delete(key);
+                }else {
+                    redisTemplate.opsForValue().decrement(key);
+                }
+            }
+            throw e;
+        }
     }
 
 
@@ -1294,5 +1347,62 @@ public class CouponCodeService {
         if (Objects.nonNull(request.getCouponType())) {
             query.setParameter("couponType", request.getCouponType().toValue());
         }
+
+        if(CollectionUtils.isNotEmpty(request.getCouponIds())){
+            query.setParameter("couponIds", request.getCouponIds());
+        }
     }
+
+
+    /**
+     * 订单支付成功发放优惠券
+     */
+    public void sendCouponByCouponIds(List<String> couponIds,String customerId){
+       //发放优惠券
+        List<CouponCode> couponCodeList = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        List<CouponInfo> couponInfos = couponInfoRepository.queryByIds(couponIds);
+        couponIds.forEach(item -> {
+                Optional<CouponInfo> couponInfo = couponInfos.stream().filter(p->p.getCouponId().equals(item)).findFirst();
+                if(!couponInfo.isPresent()){
+                    return;
+                }
+                CouponCode couponCode = new CouponCode();
+                couponCode.setCouponCode(CodeGenUtil.toSerialCode(RandomUtils.nextInt(1, 10000)).toUpperCase());
+                couponCode.setCouponId(couponInfo.get().getCouponId());
+                couponCode.setActivityId(couponActivityId);
+                couponCode.setCustomerId(customerId);
+                couponCode.setUseStatus(DefaultFlag.NO);
+                couponCode.setAcquireTime(LocalDateTime.now());
+                if (Objects.equals(RangeDayType.RANGE_DAY, couponInfo.get().getRangeDayType())) {//优惠券的起止时间
+                    couponCode.setStartTime(couponInfo.get().getStartTime());
+                    couponCode.setEndTime(couponInfo.get().getEndTime());
+                } else {//领取生效
+                    couponCode.setStartTime(now);
+                    couponCode.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusDays(couponInfo.get().getEffectiveDays()).minusSeconds(1));
+                }
+                couponCode.setDelFlag(DeleteFlag.NO);
+                couponCode.setCreateTime(LocalDateTime.now());
+                couponCode.setCreatePerson(customerId);
+                couponCodeList.add(couponCode);
+                log.info("订单支付完成发券插入的数据是:{}", JSON.toJSONString(couponCode));
+
+        });
+        log.info("订单支付完成发券插入数据:{}", JSONArray.toJSONString(couponCodeList));
+        List<CouponCode> couponCodeListResult = couponCodeRepository.saveAll(couponCodeList);
+        log.info("customerId all: {} result: {}", customerId, JSON.toJSONString(couponCodeListResult));
+        log.info("订单支付完成发券插入数据完成 activityId: {} customerId:{}", couponActivityId, customerId);
+    }
+
+    /**
+     * 获取还有n天过期的优惠券
+     * @return
+     */
+    public List<CouponCodeVO> getWillExpireCouponCode(CouponCodeWillExpireRequest request){
+        Query query = entityManager.createNativeQuery(request.getQuerySql());
+        query.setParameter("customerId", request.getCustomerId());
+        query.setParameter("willExpireDate",request.getWillExpireDate());
+        query.unwrap(SQLQuery.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+        return CouponCodeWillExpireRequest.converter(query.getResultList());
+   }
 }

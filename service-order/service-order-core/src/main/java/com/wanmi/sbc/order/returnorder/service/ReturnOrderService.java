@@ -7,6 +7,9 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.order.enums.MiniProgramSceneType;
+import com.soybean.mall.order.enums.WxAfterSaleOperateType;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.WxProductDTO;
 import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleStatus;
@@ -37,10 +40,12 @@ import com.wanmi.sbc.customer.api.request.account.CustomerAccountOptionalRequest
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
 import com.wanmi.sbc.customer.api.request.store.StoreByIdRequest;
 import com.wanmi.sbc.customer.api.request.storereturnaddress.StoreReturnAddressByIdRequest;
+import com.wanmi.sbc.customer.api.request.storereturnaddress.StoreReturnAddressListRequest;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountAddResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountByCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.account.CustomerAccountOptionalResponse;
 import com.wanmi.sbc.customer.api.response.storereturnaddress.StoreReturnAddressByIdResponse;
+import com.wanmi.sbc.customer.api.response.storereturnaddress.StoreReturnAddressListResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerAccountAddOrModifyDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailVO;
@@ -171,8 +176,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -366,6 +373,9 @@ public class ReturnOrderService {
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
+
+    @Autowired
+    private WxOrderService wxOrderService;
 
 
     /**
@@ -846,7 +856,6 @@ public class ReturnOrderService {
 
         //根据订单id获取退单列表
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(returnOrder.getTid());
-
         //计算该订单下所有已完成退单的总金额
         BigDecimal allReturnCompletePrice = new BigDecimal("0");
         Map<String, Boolean> providerDeliveryMap = new HashMap<>();
@@ -926,6 +935,14 @@ public class ReturnOrderService {
 
         //此处变更 订单的金额、积分、知豆等信息，此处储存的是 订单总共可退金额
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
+
+        //当前如果为视频号、退货退款， 则不可以发起退差价和运费
+        if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)  &&  Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) ) {
+            if (Objects.equals(returnOrder.getReturnReason(),ReturnReason.PRICE_DIFF) || Objects.equals(returnOrder.getReturnReason(), ReturnReason.PRICE_DELIVERY)) {
+                throw new SbcRuntimeException("K-050462");
+            }
+        }
+
         //查看是否需要退还运费
         if (providerDeliveryMap.isEmpty()) {
             Map<String, List<TradeItem>> tradeItemMap = new HashMap<>();
@@ -1217,12 +1234,23 @@ public class ReturnOrderService {
                         .build());
             }*/
 
-
+            //视频号只能一次售后，判断是否有未作废的售后单,拒绝售后之后不能再次售后
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())
+                    && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
+                    && CollectionUtils.isNotEmpty(returnOrderList) && returnOrderList.stream().anyMatch(p->!p.getId().equals(returnOrder.getId())
+                    && (Arrays.asList(ReturnFlowState.AUDIT,ReturnFlowState.RECEIVED,ReturnFlowState.COMPLETED,ReturnFlowState.DELIVERED,ReturnFlowState.INIT,ReturnFlowState.COMPLETED,ReturnFlowState.REFUNDED,ReturnFlowState.REJECT_RECEIVE).contains(p.getReturnFlowState())
+                    || (Objects.equals(ReturnFlowState.REJECT_RECEIVE,p.getReturnFlowState()) && Objects.equals(p.getReturnType(),ReturnType.RETURN)))
+                    && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
+                throw new SbcRuntimeException("K-050416");
+            }
             //保存退单
             newReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
             returnOrderService.addReturnOrder(newReturnOrder);
 
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
+            //先取消之前的售后单
+            wxOrderService.cancelAfterSaleByOrderId(trade.getId(),newReturnOrder);
+            wxOrderService.addEcAfterSale(newReturnOrder);
 
             Boolean auditFlag = true;
             //linkedMall退单，不可以自动审核
@@ -1272,6 +1300,8 @@ public class ReturnOrderService {
                         newReturnOrder.getBuyer().getAccount()
                 );
             }
+
+
 
         }
         return returnOrderId;
@@ -2081,7 +2111,24 @@ public class ReturnOrderService {
             if (StringUtils.isNotBlank(addressId)) {
                 // 定制不需要 供应商地址
                 returnAddress = wapperReturnAddress(addressId, returnOrder.getCompany().getStoreId());
+            } else {
+                if (Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)) {
+                    //设置默认退款地址
+                    StoreReturnAddressListRequest storeReturnAddressListRequest = new StoreReturnAddressListRequest();
+                    storeReturnAddressListRequest.setDelFlag(DeleteFlag.NO);
+                    storeReturnAddressListRequest.setIsDefaultAddress(Boolean.TRUE);
+                    storeReturnAddressListRequest.setShowAreaNameFlag(Boolean.TRUE);
+                    storeReturnAddressListRequest.setStoreId(returnOrder.getCompany().getStoreId());
+                    BaseResponse<StoreReturnAddressListResponse> listResponse = returnAddressQueryProvider.list(storeReturnAddressListRequest);
+                    List<StoreReturnAddressVO> storeReturnAddressVOList = listResponse.getContext().getStoreReturnAddressVOList();
+                    if (CollectionUtils.isNotEmpty(storeReturnAddressVOList)) {
+                        returnAddress = this.packageReturnAddress(storeReturnAddressVOList.get(0));
+                    }
+                }
             }
+            log.info("ReturnOrderService audit returnAddress: {} returnOrder.getReturnType(): {}", JSON.toJSONString(returnAddress), returnOrder.getReturnType());
+            returnOrder.setReturnAddress(returnAddress);
+
 
             //修改退单状态
             ReturnStateRequest request = ReturnStateRequest
@@ -2094,7 +2141,7 @@ public class ReturnOrderService {
             returnFSMService.changeState(request);
             //自动发货
             autoDeliver(returnOrderId, operator);
-            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.WAIT_RETURN:WxAfterSaleStatus.REFUNDING);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.WAIT_RETURN:WxAfterSaleStatus.REFUNDING,WxAfterSaleOperateType.RETURN.getIndex());
 
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
@@ -2330,6 +2377,7 @@ public class ReturnOrderService {
                 .data(logistics)
                 .build();
         returnFSMService.changeState(request);
+        wxOrderService.uploadReturnInfo(findById(rid));
     }
 
 
@@ -2367,7 +2415,7 @@ public class ReturnOrderService {
             // 更新子单状态
             updateProviderTrade(returnOrder);
         }
-        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING);
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING,null);
         Trade trade = tradeService.detail(returnOrder.getTid());
 
         //周期购订单部分发货退货退款
@@ -2466,7 +2514,7 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
-        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN);
+        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN,WxAfterSaleOperateType.REJECT.getIndex());
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
@@ -2526,7 +2574,7 @@ public class ReturnOrderService {
                 .data(price)
                 .build();
         returnFSMService.changeState(request);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.RETURNED:WxAfterSaleStatus.REFUNDED,WxAfterSaleOperateType.OTHER.getIndex());
 
 
         Map<String, TradeReturn> skuIdTradeReturnMap = new HashMap<>();
@@ -3379,7 +3427,7 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         // 拒绝退款时，发送MQ消息
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
@@ -3447,7 +3495,7 @@ public class ReturnOrderService {
                     .data(refundOrderResponse.getRefuseReason())
                     .build();
             returnFSMService.changeState(request);
-            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         });
     }
 
@@ -3500,8 +3548,7 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND);
-
+        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
         if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
@@ -4599,26 +4646,37 @@ public class ReturnOrderService {
                         .showAreaName(Boolean.TRUE)
                         .build()).getContext();
         if (Objects.nonNull(address) && Objects.nonNull(address.getStoreReturnAddressVO())) {
-            StoreReturnAddressVO addressVO = address.getStoreReturnAddressVO();
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.defaultString(addressVO.getProvinceName()));
-            sb.append(StringUtils.defaultString(addressVO.getCityName()));
-            sb.append(StringUtils.defaultString(addressVO.getAreaName()));
-            sb.append(StringUtils.defaultString(addressVO.getStreetName()));
-            sb.append(StringUtils.defaultString(addressVO.getReturnAddress()));
-            return ReturnAddress.builder()
-                    .id(addressVO.getAddressId())
-                    .name(addressVO.getConsigneeName())
-                    .phone(addressVO.getConsigneeNumber())
-                    .provinceId(addressVO.getProvinceId())
-                    .cityId(addressVO.getCityId())
-                    .areaId(addressVO.getAreaId())
-                    .streetId(addressVO.getStreetId())
-                    .address(addressVO.getReturnAddress())
-                    .detailAddress(sb.toString())
-                    .build();
+            return this.packageReturnAddress(address.getStoreReturnAddressVO());
         }
         return null;
+    }
+
+    /**
+     * 封装对象
+     * @param addressVO
+     * @return
+     */
+    private ReturnAddress packageReturnAddress(StoreReturnAddressVO addressVO) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(StringUtils.defaultString(addressVO.getProvinceName()));
+        sb.append(StringUtils.defaultString(addressVO.getCityName()));
+        sb.append(StringUtils.defaultString(addressVO.getAreaName()));
+        sb.append(StringUtils.defaultString(addressVO.getStreetName()));
+        sb.append(StringUtils.defaultString(addressVO.getReturnAddress()));
+        return ReturnAddress.builder()
+                .id(addressVO.getAddressId())
+                .name(addressVO.getConsigneeName())
+                .phone(addressVO.getConsigneeNumber())
+                .provinceId(addressVO.getProvinceId())
+                .provinceName(addressVO.getProvinceName())
+                .cityId(addressVO.getCityId())
+                .cityName(addressVO.getCityName())
+                .areaId(addressVO.getAreaId())
+                .areaName(addressVO.getAreaName())
+                .streetId(addressVO.getStreetId())
+                .address(addressVO.getReturnAddress())
+                .detailAddress(sb.toString())
+                .build();
     }
 
     /**
@@ -4788,34 +4846,73 @@ public class ReturnOrderService {
         }
         return result;
     }
+
     /**
-     * 微信退款单
+     * 微信退款单-小程序场景
      * @param returnOrder
      */
-    private void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status){
+    public void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status,Integer operateType ){
         if(!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)){
             return;
         }
-        WxCreateAfterSaleRequest request = new WxCreateAfterSaleRequest();
-        request.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
-        request.setFinishAllAftersale(0);
-        request.setOutOrderId(returnOrder.getTid());
-        request.setOutAftersaleId(returnOrder.getId());
-        request.setOpenid(returnOrder.getBuyer().getOpenId());
-        request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
-        request.setPath(orderDetailUrl+returnOrder.getTid());
-        request.setStatus(status.getId());
-        request.setRefund(returnOrder.getReturnPrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
-        List<WxProductDTO> products = new ArrayList<>();
-        returnOrder.getReturnItems().forEach(item->{
-            products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());
-        });
-        request.setProductInfos(products);
-        try {
-            BaseResponse<WxResponseBase> response = wxOrderApiController.createAfterSale(request);
-            log.info("微信小程序创建售后request:{},response:{}",request,response);
-        }catch (Exception e){
-            log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
+        Trade trade = tradeService.detail(returnOrder.getTid());
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
+        //小程序售后
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.MINI_PROGRAM.getIndex())) {
+            WxCreateAfterSaleRequest request = new WxCreateAfterSaleRequest();
+            request.setCreateTime(DateUtil.format(LocalDateTime.now(),DateUtil.FMT_TIME_1));
+            request.setFinishAllAftersale(0);
+            request.setOutOrderId(returnOrder.getTid());
+            request.setOutAftersaleId(returnOrder.getId());
+            request.setOpenid(returnOrder.getBuyer().getOpenId());
+            request.setType(Objects.equals(ReturnType.RETURN,returnOrder.getReturnType())?2:1);
+            request.setPath(orderDetailUrl+returnOrder.getTid());
+            request.setStatus(status.getId());
+            request.setRefund(returnOrder.getReturnPrice().getTotalPrice().multiply(new BigDecimal(100)).intValue());
+            List<WxProductDTO> products = new ArrayList<>();
+            returnOrder.getReturnItems().forEach(item->{
+                products.add(WxProductDTO.builder().outProductId(item.getSpuId()).outSkuId(item.getSkuId()).prroductNum(item.getNum()).build());
+            });
+            request.setProductInfos(products);
+            try {
+                BaseResponse<WxResponseBase> response = wxOrderApiController.createAfterSale(request);
+                log.info("微信小程序创建售后request:{},response:{}",request,response);
+            }catch (Exception e){
+                log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
+            }
+        }else if(Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && operateType!=null) {
+            //视频号售后
+            switch (operateType) {
+                case 1:
+                    wxOrderService.addEcAfterSale(returnOrder);
+                    break;
+                case 2:
+                    wxOrderService.cancelAfterSale(returnOrder);
+                    break;
+                case 3:
+                    wxOrderService.rejectAfterSale(returnOrder);
+                    break;
+                case 4:
+                    wxOrderService.acceptRefundAfterSale(returnOrder);
+                    break;
+                case 5:
+                    wxOrderService.acceptReturnAfterSale(returnOrder);
+                    break;
+                case 6:
+                    wxOrderService.uploadReturnInfo(returnOrder);
+                    break;
+                default:
+                    break;
+            }
+        }
+        //通知
+        wxOrderService.sendWxAfterSaleMessage(returnOrder);
     }
+
+
+
+
+
 }

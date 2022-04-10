@@ -1,7 +1,7 @@
 package com.wanmi.sbc.customer.provider.impl.customer;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.customer.api.constant.RedisConstant;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAccountModifyRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerAddRequest;
@@ -12,16 +12,19 @@ import com.wanmi.sbc.customer.api.request.customer.CustomerModifyRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerSalesManModifyRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerToDistributorModifyRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomersDeleteRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengKnowledgeRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerAccountModifyResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerAddResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerCheckStateModifyResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerModifyResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomersDeleteResponse;
+import com.wanmi.sbc.customer.api.response.fandeng.FanDengKnowledgeResponse;
 import com.wanmi.sbc.customer.bean.dto.CounselorDto;
 import com.wanmi.sbc.customer.bean.vo.CustomerDetailToEsVO;
-import com.wanmi.sbc.customer.counselor.model.root.Counselor;
-import com.wanmi.sbc.customer.counselor.repository.CounselorRepository;
+import com.wanmi.sbc.customer.fandeng.ExternalService;
+import com.wanmi.sbc.customer.redis.RedisService;
 import com.wanmi.sbc.customer.service.CustomerService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,8 +39,14 @@ public class CustomerController implements CustomerProvider {
     @Autowired
     private CustomerService customerService;
 
+//    @Autowired
+//    private  CounselorRepository counselorRepository;
+
     @Autowired
-    private  CounselorRepository counselorRepository;
+    private ExternalService externalService;
+
+    @Autowired
+    private RedisService redisService;
     /**
      * 审核客户状态
      *
@@ -165,17 +174,27 @@ public class CustomerController implements CustomerProvider {
     /**
      * 获取知识顾问信息
      *
-     * @param userId
      * @return
      */
     @Override
-    public BaseResponse isCounselor(@RequestParam Integer userId) {
-        Counselor counselor = counselorRepository.getCounselorByUserId(userId);
-        if (counselor == null) {
+    public BaseResponse isCounselor(Integer userId) {
+        String isKnowledgeUser = redisService.getString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId);
+        if (StringUtils.isBlank(isKnowledgeUser) || "true".equals(isKnowledgeUser)) {
+            FanDengKnowledgeRequest request = new FanDengKnowledgeRequest();
+            request.setUserNo(userId.toString());
+            BaseResponse<FanDengKnowledgeResponse> response = externalService.getKnowledgeByFanDengNo(request);
+            if (response.getContext() == null) {
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "false", 24 * 60 * 60);
+                return BaseResponse.SUCCESSFUL();
+            } else {
+                CounselorDto counselorDto = new CounselorDto();
+                counselorDto.setProfit(response.getContext().getBeans().intValue());
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "true", 24 * 60 * 60);
+                return BaseResponse.success(counselorDto);
+            }
+        } else {
             return BaseResponse.SUCCESSFUL();
         }
-        CounselorDto counselorDto = KsBeanUtil.copyPropertiesThird(counselor, CounselorDto.class);
-        return BaseResponse.success(counselorDto);
     }
 
 }

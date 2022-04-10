@@ -38,19 +38,16 @@ public class WxAuditCallbackParser implements CommandLineRunner {
     DocumentBuilderFactory dbf;
     WXBizMsgCrypt pc;
 
-    public void dealCallback(String encryptStr, String timestamp, String nonce, String msgSignature) {
-        try {
-            String decrypt = decrypt(encryptStr, timestamp, nonce, msgSignature);
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(decrypt.getBytes());
-            Map<String, Object> paramMap = parseXML(inputStream);
-            for (CallbackHandler handler : handlers) {
-                if(handler.support((String) paramMap.get("Event"))){
-                    handler.handle(paramMap);
-                    break;
-                }
+    public void dealCallback(String encryptStr, String timestamp, String nonce, String msgSignature) throws Exception {
+        String decrypt = decrypt(encryptStr, timestamp, nonce, msgSignature);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(decrypt.getBytes());
+        Map<String, Object> paramMap = parseXML(inputStream);
+        log.info("WxAuditCallBackParser dealCallback paramMap: {}", paramMap);
+        for (CallbackHandler handler : handlers) {
+            if(handler.support((String) paramMap.get("Event"))){
+                handler.handle(paramMap);
+                break;
             }
-        }catch (Exception e){
-            log.error("解析微信审核回调失败:" + encryptStr, e);
         }
     }
 
@@ -74,7 +71,6 @@ public class WxAuditCallbackParser implements CommandLineRunner {
                 paramMap.put(next.getName(), next.getText());
             }
         }
-        log.info("wx callback params: {}", JSONObject.toJSONString(paramMap));
         return paramMap;
     }
 

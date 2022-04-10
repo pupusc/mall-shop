@@ -86,6 +86,15 @@ public interface ExternalProvider {
 
 
     /**
+     * 通过樊登用户编号 查询樊登用户知豆余额
+     * @param request
+     * @return
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/get-knowledge-by-fandeng-no")
+    BaseResponse<FanDengKnowledgeResponse> getKnowledgeByFanDengNo(@RequestBody @Valid FanDengKnowledgeRequest request);
+
+
+    /**
      * 樊登积分锁定接口
      *
      * @author tianzhengxin

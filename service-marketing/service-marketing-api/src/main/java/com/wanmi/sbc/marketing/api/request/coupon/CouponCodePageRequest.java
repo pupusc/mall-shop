@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 分页查询优惠券列表请求结构
@@ -55,4 +56,6 @@ public class CouponCodePageRequest extends BaseQueryRequest {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime acquireEndTime;
+
+    private List<String> couponIds;
 }

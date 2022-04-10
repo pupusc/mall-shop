@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -50,6 +51,7 @@ import com.wanmi.sbc.marketing.coupon.response.CouponGoodsQueryResponse;
 import com.wanmi.sbc.marketing.coupon.response.CouponListResponse;
 import com.wanmi.sbc.marketing.redis.RedisService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -180,6 +182,26 @@ public class CouponCacheService {
                     couponCacheList.stream().filter(item -> item.getCouponInfo().getScopeType() == ScopeType.BRAND)
                             .flatMap(item -> item.getScopes().stream().map(CouponMarketingScope::getScopeId)).map(Long::valueOf).distinct().sorted().collect(Collectors.toList());
 
+            for (CouponCache couponCache : couponCacheList) {
+                if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+                    if(StringUtils.isEmpty(queryRequest.getCustomerId())){
+                        couponCache.setCanFetchMore(false);
+                        continue;
+                    }
+                    String key = "COUPON_".concat(queryRequest.getCustomerId()).concat("_").concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                    String o = redisService.getString(key);
+                    if(o == null){
+                        couponCache.setCanFetchMore(true);
+                    }else {
+                        if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
+                            couponCache.setCanFetchMore(false);
+                        }else{
+                            couponCache.setCanFetchMore(true);
+                        }
+                    }
+                }
+            }
+
             return CouponCenterPageResponse.builder()
                     //券详情
                     .couponViews(
@@ -236,6 +258,27 @@ public class CouponCacheService {
         List<Long> storeIds =
                 couponCacheList.stream().filter(item -> item.getCouponInfo().getPlatformFlag() == DefaultFlag.NO)
                         .map(item -> item.getCouponInfo().getStoreId()).distinct().collect(Collectors.toList());
+
+        for (CouponCache couponCache : couponCacheList) {
+            if(couponCache.getCouponActivity().getReceiveType().equals(DefaultFlag.ONCE_PER_DAY)){
+                if(StringUtils.isEmpty(customerId)){
+                    couponCache.setCanFetchMore(false);
+                    continue;
+                }
+                String key = "COUPON_".concat(customerId).concat("_").concat(couponCache.getCouponActivityId()).concat("_").concat(couponCache.getCouponInfoId());
+                String o = redisService.getString(key);
+                if(o == null){
+                    couponCache.setCanFetchMore(true);
+                }else {
+                    if(couponCache.getCouponActivity().getReceiveCount() - Integer.parseInt(o) <= 0) {
+                        couponCache.setCanFetchMore(false);
+                    }else{
+                        couponCache.setCanFetchMore(true);
+                    }
+                }
+            }
+        }
+
         return CouponListResponse.builder()
                 //券详情
                 .couponViews(CouponView.converter(couponCacheList

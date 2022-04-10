@@ -134,7 +134,7 @@ public class CouponCacheInitRequest {
                                 .startTime(toDate(item, "couponActivity.startTime"))
                                 .endTime(toDate(item, "couponActivity.endTime"))
                                 .couponActivityType(toInteger(item, "couponActivity.activityType") != null ? CouponActivityType.fromValue(toInteger(item, "couponActivity.activityType")) : null)
-                                .receiveType(toInteger(item, "couponActivity.receiveType") != null ? (toInteger(item, "couponActivity.receiveType") == 0 ? DefaultFlag.NO : DefaultFlag.YES) : null)
+                                .receiveType(toInteger(item, "couponActivity.receiveType") != null ? DefaultFlag.fromValue(toInteger(item, "couponActivity.receiveType")) : null)
                                 .pauseFlag(toInteger(item, "couponActivity.pauseFlag") != null ? (toInteger(item, "couponActivity.pauseFlag") == 0 ? DefaultFlag.NO : DefaultFlag.YES) : null)
                                 .joinLevel(toStr(item, "couponActivity.joinLevel") != null ? toStr(item, "couponActivity.joinLevel").split(",") : null)
                                 .receiveCount(toInteger(item, "couponActivity.receiveCount"))
