@@ -1927,6 +1927,9 @@ public class TradeService {
                     .supplierName(store.getCompanyInfo().getSupplierName())
                     .freightTemplateType(freightTemplateType)
                     .build();
+            for (TradeItem tradeItem : value) {
+                tradeItem.setProviderName(store.getSupplierName());
+            }
             TradeItemGroup tradeItemGroup = new TradeItemGroup();
             tradeItemGroup.setTradeItems(value);
             tradeItemGroup.setSupplier(supplier);
