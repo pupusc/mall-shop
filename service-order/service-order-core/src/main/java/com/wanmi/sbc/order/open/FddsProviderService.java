@@ -228,16 +228,20 @@ public class FddsProviderService {
         if (providerTrades.stream().anyMatch(p -> !providerTrade.getId().equals(p.getId())
                 && !DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus())
                 && !FlowState.VOID.equals(p.getTradeState().getFlowState()))) {
+            log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update part_shipped", trade.getId());
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
         }
 
+        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update providerTrade:{}", trade.getId(), JSON.toJSONString(providerTrade));
         //更新子单信息
         providerTradeRepository.save(providerTrade);
 
         List<String> itemOids = providerTrade.getTradeItems().stream().map(TradeItem::getOid).collect(Collectors.toList());
         List<TradeItem> tradeItems = trade.getTradeItems().stream().filter(item -> !itemOids.contains(item.getOid())).collect(Collectors.toList());
         tradeItems.addAll(providerTrade.getTradeItems());
+
+        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update tradeItems:{}", trade.getId(), JSON.toJSONString(tradeItems));
         trade.setTradeItems(tradeItems);
 
         //如果全部发货，则更新发货数量
