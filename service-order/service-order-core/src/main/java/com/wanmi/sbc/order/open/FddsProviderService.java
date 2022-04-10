@@ -131,7 +131,7 @@ public class FddsProviderService {
         createParam.setExternalProductNo(tradeItem.getErpSkuNo());
         createParam.setPayType(convertPayType(providerTrade.getPayWay()));
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
-        createParam.setPlDiscontPrice(tradeItem.getPrice().divide(new BigDecimal(100)));
+        createParam.setPlDiscontPrice(tradeItem.getPrice().multiply(new BigDecimal(100)));
 
         if (ChannelType.MINIAPP.toString().equals(trade.getChannelType())) {
             //小程序非视频号
