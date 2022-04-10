@@ -7,24 +7,16 @@ import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.enums.EvaluateStatus;
-import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
-import com.soybean.mall.order.enums.MiniOrderOperateType;
-import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
 import com.soybean.mall.order.miniapp.service.TradeOrderService;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
-import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.controller.CommonController;
-import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
@@ -285,7 +277,6 @@ import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.Discounts;
 import com.wanmi.sbc.order.trade.model.entity.GrouponTradeValid;
-import com.wanmi.sbc.order.trade.model.entity.PackRecord;
 import com.wanmi.sbc.order.trade.model.entity.PayCallBackOnlineBatch;
 import com.wanmi.sbc.order.trade.model.entity.PayInfo;
 import com.wanmi.sbc.order.trade.model.entity.PointsTradeCommitResult;
@@ -462,8 +453,6 @@ public class TradeService {
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
     @Autowired
-    private CustomerQueryProvider customerQueryProvider;
-    @Autowired
     private PayOrderRepository payOrderRepository;
     @Autowired
     private ReceivableRepository receivableRepository;
@@ -473,8 +462,6 @@ public class TradeService {
     private OsUtil osUtil;
     @Autowired
     private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
-    @Autowired
-    private MarketingPluginProvider marketingPluginProvider;
     @Autowired
     private TradeItemService tradeItemService;
     @Autowired
@@ -645,11 +632,6 @@ public class TradeService {
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
-    @Autowired
-    private WxOrderApiController wxOrderApiController;
-
-    @Autowired
-    private CommonController wxCommonController;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -658,12 +640,6 @@ public class TradeService {
 
     @Value("${wx.create.order.send.message.link.url}")
     private String createOrderSendMsgLinkUrl;
-
-    @Autowired
-    private TradeOrderService tradeOrderService;
-
-    @Autowired
-    private MiniOrderOperateResultRepository miniOrderOperateResultRepository;
 
     @Autowired
     private WxOrderService wxOrderService;
@@ -1832,21 +1808,8 @@ public class TradeService {
 
                         BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
                         tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
-
-                        PackRecord packRecord = tradeItem.getPackRecord();
-                        if (packRecord == null) {
-                            packRecord = new PackRecord();
-                        }
-                        packRecord.setPackId(tradeItemParam.getSpuId());
-                        packRecord.setPackPoint(pointsTmp.longValue());
-                        packRecord.setPackKnowLedge(knowledgeTmp.longValue());
-                        packRecord.setPackSplitPrice(splitPriceTmp);
-                        packRecord.setCount(goodsPackDetailTmp.getCount());
-                        tradeItem.setPackRecord(packRecord);
-
+                        tradeItem.setPackId(tradeItemParam.getSpuId());
                         tradeItemListTmp.add(tradeItem); // add1
-                    } else {
-                        mainGoodsPackDetail = goodsPackDetailTmp;
                     }
                 }
 
@@ -1865,17 +1828,7 @@ public class TradeService {
 
                 BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
                 tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
-
-                PackRecord packRecord = tradeItemParam.getPackRecord();
-                if (packRecord == null) {
-                    packRecord = new PackRecord();
-                }
-                packRecord.setPackId(tradeItemParam.getSpuId());
-                packRecord.setPackPoint(surplusPoint.longValue());
-                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
-                packRecord.setPackSplitPrice(surplusSplitPrice);
-                packRecord.setCount(mainGoodsPackDetail.getCount());
-                tradeItemParam.setPackRecord(packRecord);
+                tradeItemParam.setPackId(tradeItemParam.getSpuId());
             }
             tradeItemListTmp.add(tradeItemParam); // add2
         }

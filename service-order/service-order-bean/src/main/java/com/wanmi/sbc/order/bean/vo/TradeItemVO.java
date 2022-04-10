@@ -506,6 +506,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private TradeReturnVO tradeReturn;
 
     /**
+     * 打包id
+     */
+    private String packId;
+
+    /**
      * 库存
      */
     @ApiModelProperty(value = "库存")
