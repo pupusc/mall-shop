@@ -44,6 +44,8 @@ import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddAllResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsCheckResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncMaxIdProviderResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsInfoStockSyncProviderResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsModifyAllResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsSynResponse;
