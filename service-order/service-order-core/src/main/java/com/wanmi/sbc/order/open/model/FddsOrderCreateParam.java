@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -47,6 +48,11 @@ public class FddsOrderCreateParam {
 //     */
 //    @NotBlank
 //    private String productNo;
+
+    /**
+     * 平台优惠价（单位分）
+     */
+    private BigDecimal plDiscontPrice;
 
     /**
      * 合作方支付方式：99-其他（无支付渠道费），1-IAP为苹果支付（支付渠道费30%），2-支付宝 3-微信（支付渠道费0.6%）
