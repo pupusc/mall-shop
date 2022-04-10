@@ -29,6 +29,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -91,6 +93,9 @@ public class FddsProviderService {
     @Value("${wx.applet.video.promoter}")
     private String wxAppletVideoPromoter;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     /**
      * 1.开放平台下单
      * 2.下单成功：更新发货状态
@@ -102,21 +107,40 @@ public class FddsProviderService {
     public BaseResponse createFddsTrade(ProviderTrade providerTrade) {
         log.info("樊登读书->开放平台订单创建, provideTradeId={}", providerTrade.getId());
 
-        Trade trade = tradeRepository.findById(providerTrade.getParentId()).get();
-        if (Objects.isNull(trade)) {
-            log.info("根据订单id查询主单结果不存在, tradeId = {}", providerTrade.getParentId());
-            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        //处理重复提交
+        RLock lock = redissonClient.getLock("LOCK:ORDER:CREATE-FDDS-ORDER:" + providerTrade.getId());
+        if (lock.isLocked()) {
+            log.warn("创建订单任务正在执行中，本次提交不做处理，tradeId = {}, providerTradeId = {}, deliveryOrderId = {}",
+                    providerTrade.getParentId(), providerTrade.getId(), providerTrade.getDeliveryOrderId());
+            return BaseResponse.FAILED();
         }
 
-        //供应商下单
-        FddsBaseResult createResult = createOutOrder(providerTrade, trade);
+        try {
+            lock.lock();
+            //验证重复下单
+            if (DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus()) && StringUtils.isNotBlank(providerTrade.getDeliveryOrderId())) {
+                log.warn("该订单已经完成发货，本次提交不做处理，tradeId = {}, providerTradeId = {}, deliveryOrderId = {}",
+                        providerTrade.getParentId(), providerTrade.getId(), providerTrade.getDeliveryOrderId());
+                return BaseResponse.FAILED();
+            }
 
-        if (!createResult.isSuccess()) {
-            return createOutOrderFail(providerTrade, createResult);
+            Trade trade = tradeRepository.findById(providerTrade.getParentId()).get();
+            if (Objects.isNull(trade)) {
+                log.info("根据订单id查询主单结果不存在, tradeId = {}", providerTrade.getParentId());
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+            }
+
+            //供应商下单
+            FddsBaseResult createResult = createOutOrder(providerTrade, trade);
+            if (!createResult.isSuccess()) {
+                return createOutOrderFail(providerTrade, createResult);
+            }
+
+            FddsOrderCreateResultData resultData = JSON.parseObject(JSON.toJSONString(createResult.getData()), FddsOrderCreateResultData.class);
+            return createOutOrderSuccess(providerTrade, resultData.getOrderNumber());
+        } finally {
+            lock.unlock();
         }
-
-        FddsOrderCreateResultData resultData = JSON.parseObject(JSON.toJSONString(createResult.getData()), FddsOrderCreateResultData.class);
-        return createOutOrderSuccess(providerTrade, resultData.getOrderNumber());
     }
 
     /**
@@ -168,13 +192,6 @@ public class FddsProviderService {
      * 2.更新发货信息
      */
     private BaseResponse createOutOrderSuccess(ProviderTrade providerTrade, Long orderNumber) {
-        //验证重复下单
-        if (DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus()) && StringUtils.isNotBlank(providerTrade.getDeliveryOrderId())) {
-            log.warn("该订单已经完成发货，本次提交不做处理，tradeId = {}, providerTradeId = {}, deliveryOrderId = {}",
-                    providerTrade.getParentId(), providerTrade.getId(), providerTrade.getDeliveryOrderId());
-            return BaseResponse.FAILED();
-        }
-
         //查询主单
         Trade trade = tradeRepository.findById(providerTrade.getParentId()).orElse(null);
         if (Objects.isNull(trade)) {
