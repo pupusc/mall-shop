@@ -242,7 +242,7 @@ public class FddsProviderService {
         if (providerTrades.stream().anyMatch(p -> !providerTrade.getId().equals(p.getId())
                 && !DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus())
 //                && !FlowState.VOID.equals(p.getTradeState().getFlowState()
-        ))) {
+        )) {
             log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update part_shipped", trade.getId());
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
