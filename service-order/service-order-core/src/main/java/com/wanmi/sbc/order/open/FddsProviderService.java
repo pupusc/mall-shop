@@ -189,6 +189,8 @@ public class FddsProviderService {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
         }
 
+        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update providerTrade:{}", trade.getId(), JSON.toJSONString(providerTrade));
+
         //当前时间
         LocalDateTime nowTime = LocalDateTime.now();
 
@@ -221,7 +223,6 @@ public class FddsProviderService {
             log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{}, p:{}", trade.getId(), JSON.toJSONString(p));
             if (Objects.equals(p.getId(), providerTrade.getId())) {
                 providerTrade.setTradeItems(p.getTradeItems());
-                break;
             }
         }
 
@@ -240,13 +241,13 @@ public class FddsProviderService {
         //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
         if (providerTrades.stream().anyMatch(p -> !providerTrade.getId().equals(p.getId())
                 && !DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus())
-                && !FlowState.VOID.equals(p.getTradeState().getFlowState()))) {
+//                && !FlowState.VOID.equals(p.getTradeState().getFlowState()
+        ))) {
             log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update part_shipped", trade.getId());
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
             trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
         }
 
-        log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update providerTrade:{}", trade.getId(), JSON.toJSONString(providerTrade));
         //更新子单信息
         providerTradeRepository.save(providerTrade);
 
