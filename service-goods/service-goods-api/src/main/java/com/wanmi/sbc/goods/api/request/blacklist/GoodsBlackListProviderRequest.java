@@ -28,7 +28,7 @@ public class GoodsBlackListProviderRequest implements Serializable {
     /**
      * 业务id
      */
-    @NotBlank
+    @NotNull
     private List<String> businessId;
 
     /**
