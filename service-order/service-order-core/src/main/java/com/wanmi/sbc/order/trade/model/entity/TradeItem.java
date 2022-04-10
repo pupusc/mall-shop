@@ -372,7 +372,7 @@ public class TradeItem implements Serializable, Cloneable {
     /**
      * 打包信息
      */
-    private PackRecord packRecord;
+    private String packId;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
