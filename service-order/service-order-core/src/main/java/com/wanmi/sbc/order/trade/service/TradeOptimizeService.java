@@ -356,6 +356,8 @@ public class TradeOptimizeService {
             tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             tradeService.dealTailPrice(trades, tradeCommitRequest);
+            //打包商品
+            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
             if (tradeGroup != null) {
                 successResults = tradeService.createBatchWithGroup(trades, tradeGroup, operator);
             } else {
@@ -607,6 +609,8 @@ public class TradeOptimizeService {
             //tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
+            //处理打包信息
+            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
             successResults = tradeService.createBatch(trades, null, operator);
         }catch (Exception e){
             log.error("提交订单异常：{}",e);

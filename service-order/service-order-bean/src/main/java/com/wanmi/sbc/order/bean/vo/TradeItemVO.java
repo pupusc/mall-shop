@@ -522,6 +522,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private String guideImg;
 
     /**
+     * 显示电话输入框
+     */
+    private Boolean showPhoneNum = false;
+
+    /**
      * 营销优惠商品结算Bean
      */
     @Data

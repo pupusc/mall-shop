@@ -1,4 +1,14 @@
 package com.wanmi.sbc.order.trade.service;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
+import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
+import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
+import com.wanmi.sbc.order.bean.enums.EvaluateStatus;
+import com.wanmi.sbc.order.trade.model.entity.TradeReturn;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -127,7 +137,10 @@ import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
@@ -135,6 +148,8 @@ import com.wanmi.sbc.goods.api.request.restrictedrecord.RestrictedRecordBatchAdd
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
@@ -270,6 +285,7 @@ import com.wanmi.sbc.order.trade.fsm.params.StateRequest;
 import com.wanmi.sbc.order.trade.model.entity.DeliverCalendar;
 import com.wanmi.sbc.order.trade.model.entity.Discounts;
 import com.wanmi.sbc.order.trade.model.entity.GrouponTradeValid;
+import com.wanmi.sbc.order.trade.model.entity.PackRecord;
 import com.wanmi.sbc.order.trade.model.entity.PayCallBackOnlineBatch;
 import com.wanmi.sbc.order.trade.model.entity.PayInfo;
 import com.wanmi.sbc.order.trade.model.entity.PointsTradeCommitResult;
@@ -387,6 +403,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -650,6 +667,9 @@ public class TradeService {
 
     @Autowired
     private WxOrderService wxOrderService;
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+
     /**
      * 新增文档
      * 专门用于数据新增服务,不允许数据修改的时候调用
@@ -852,6 +872,8 @@ public class TradeService {
         dealPoints(trades, tradeCommitRequest);
         // 预售补充尾款价格
         dealTailPrice(trades, tradeCommitRequest);
+        //打包价格
+        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
         // 3.批量提交订单
         List<TradeCommitResult> successResults;
         if (tradeGroup != null) {
@@ -984,6 +1006,8 @@ public class TradeService {
         TradeGroup tradeGroup = tradeGroupService.wrapperTradeGroup(trades, tradeCommitRequest, grouponForm);
         // 处理积分抵扣
         dealPoints(trades, tradeCommitRequest);
+
+        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
 
         // 3.批量提交订单
         List<TradeCommitResult> successResults = new ArrayList<>();
@@ -1316,96 +1340,185 @@ public class TradeService {
         List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
 
         // 2.遍历各个店铺下单信息
-        tradeCommitRequest.getStoreCommitInfoList().forEach(
-                i -> {
-                    TradeItemGroup group = tradeItemGroupsMap.get(i.getStoreId());
+        for (StoreCommitInfoDTO storeCommitInfoParam : tradeCommitRequest.getStoreCommitInfoList()) {
+            TradeItemGroup group = tradeItemGroupsMap.get(storeCommitInfoParam.getStoreId());
 
 //                    填充分销商品审核状态
-                    group.getTradeItems().forEach(item -> {
-                        GoodsInfoVO goodsInfoVO =
-                                goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
-                        if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
-                            item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
-                        }
-                        item.setProviderName(group.getSupplier().getStoreName());
-                    });
-                    // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
-                    Invoice invoice = Invoice.builder()
-                            .generalInvoice(KsBeanUtil.convert(i.getGeneralInvoice(), GeneralInvoice.class))
-                            .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
-                            .address(i.getInvoiceAddressDetail())
-                            .addressId(i.getInvoiceAddressId())
-                            .email(i.getInvoiceEmail())
-                            .projectId(i.getInvoiceProjectId())
-                            .projectName(i.getInvoiceProjectName())
-                            .projectUpdateTime(i.getInvoiceProjectUpdateTime())
-                            .type(i.getInvoiceType())
-                            .sperator(i.isSpecialInvoiceAddress())
-                            .updateTime(i.getInvoiceAddressUpdateTime())
-                            .taxNo(setInvoiceTaxNo(i.getInvoiceType(), i.getGeneralInvoice(), i.getSpecialInvoice()))
-                            .build();
-                    if (storeMap.get(group.getSupplier().getStoreId()) == null) {
-                        throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-                    }
-                    //周期购使用单品运费
-                    DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
-                            ? DefaultFlag.YES
-                            : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
-                    group.getSupplier().setFreightTemplateType(freightTemplateType);
-
-                    // 2.2.【公共方法】下单信息验证, 将信息包装成订单
-                    trades.add(this.validateAndWrapperTrade(new Trade(),
-                            TradeParams.builder()
-                                    .backendFlag(false) //表示前端操作
-                                    .commitFlag(true) //表示下单
-                                    .marketingList(group.getTradeMarketingList())
-                                    .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
-                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
-                                    .couponCodeId(i.getCouponCodeId())
-                                    .tradePrice(new TradePrice())
-                                    .tradeItems(group.getTradeItems())
-                                    .oldGifts(Collections.emptyList())//下单,非修改订单
-                                    .oldTradeItems(Collections.emptyList())//下单,非修改订单
-                                    .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
-                                    .customer(customer)
-                                    .supplier(group.getSupplier())
-                                    .seller(null) //客户下单
-                                    .consigneeId(tradeCommitRequest.getConsigneeId())
-                                    .detailAddress(tradeCommitRequest.getConsigneeAddress())
-                                    .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
-                                    .consignee(null) //客户下单,不可填写临时收货地址
-                                    .invoice(invoice)
-                                    .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
-                                    .deliverWay(i.getDeliverWay())
-                                    .payType(i.getPayType())
-                                    .buyerRemark(i.getBuyerRemark())
-                                    .sellerRemark(null) //客户下单,无卖家备注
-                                    .encloses(i.getEncloses())
-                                    .ip(tradeCommitRequest.getOperator().getIp())
-                                    .platform(Platform.CUSTOMER)
-                                    .forceCommit(tradeCommitRequest.isForceCommit())
-                                    .orderSource(tradeCommitRequest.getOrderSource())
-                                    .distributeChannel(tradeCommitRequest.getDistributeChannel())
-                                    .storeBagsFlag(group.getStoreBagsFlag())
-                                    .shopName(tradeCommitRequest.getShopName())
-                                    .isDistributor(tradeCommitRequest.getIsDistributor())
-                                    .storeOpenFlag(i.getStoreOpenFlag())
-                                    .openFlag(tradeCommitRequest.getOpenFlag())
-                                    .grouponForm(group.getGrouponForm())
-                                    .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
-                                            ? null : tradeCommitRequest.getShareUserId())
-                                    .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
-                                    .suitMarketingFlag(group.getSuitMarketingFlag())
-                                    .suitScene(group.getSuitScene())
-                                    .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
-                                    .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
-                                    .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
-                                    .cycleBuyInfo(group.getCycleBuyInfo())
-                                    .promoteUserId(tradeCommitRequest.getPromoteUserId())
-                                    .source(tradeCommitRequest.getSource())
-                                    .build()));
+            group.getTradeItems().forEach(item -> {
+                GoodsInfoVO goodsInfoVO =
+                        goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
+                if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
+                    item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
                 }
-        );
+                item.setProviderName(group.getSupplier().getStoreName());
+            });
+            // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
+            Invoice invoice = Invoice.builder()
+                    .generalInvoice(KsBeanUtil.convert(storeCommitInfoParam.getGeneralInvoice(), GeneralInvoice.class))
+                    .specialInvoice(KsBeanUtil.convert(storeCommitInfoParam.getSpecialInvoice(), SpecialInvoice.class))
+                    .address(storeCommitInfoParam.getInvoiceAddressDetail())
+                    .addressId(storeCommitInfoParam.getInvoiceAddressId())
+                    .email(storeCommitInfoParam.getInvoiceEmail())
+                    .projectId(storeCommitInfoParam.getInvoiceProjectId())
+                    .projectName(storeCommitInfoParam.getInvoiceProjectName())
+                    .projectUpdateTime(storeCommitInfoParam.getInvoiceProjectUpdateTime())
+                    .type(storeCommitInfoParam.getInvoiceType())
+                    .sperator(storeCommitInfoParam.isSpecialInvoiceAddress())
+                    .updateTime(storeCommitInfoParam.getInvoiceAddressUpdateTime())
+                    .taxNo(setInvoiceTaxNo(storeCommitInfoParam.getInvoiceType(), storeCommitInfoParam.getGeneralInvoice(), storeCommitInfoParam.getSpecialInvoice()))
+                    .build();
+            if (storeMap.get(group.getSupplier().getStoreId()) == null) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+            }
+            //周期购使用单品运费
+            DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
+                    ? DefaultFlag.YES
+                    : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
+            group.getSupplier().setFreightTemplateType(freightTemplateType);
+
+            // 2.2.【公共方法】下单信息验证, 将信息包装成订单
+            trades.add(this.validateAndWrapperTrade(new Trade(),
+                    TradeParams.builder()
+                            .backendFlag(false) //表示前端操作
+                            .commitFlag(true) //表示下单
+                            .marketingList(group.getTradeMarketingList())
+                            .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+                            .emallSessionId(tradeCommitRequest.getEmallSessionId())
+                            .couponCodeId(storeCommitInfoParam.getCouponCodeId())
+                            .tradePrice(new TradePrice())
+                            .tradeItems(group.getTradeItems())
+                            .oldGifts(Collections.emptyList())//下单,非修改订单
+                            .oldTradeItems(Collections.emptyList())//下单,非修改订单
+                            .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
+                            .customer(customer)
+                            .supplier(group.getSupplier())
+                            .seller(null) //客户下单
+                            .consigneeId(tradeCommitRequest.getConsigneeId())
+                            .detailAddress(tradeCommitRequest.getConsigneeAddress())
+                            .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
+                            .consignee(null) //客户下单,不可填写临时收货地址
+                            .invoice(invoice)
+                            .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
+                            .deliverWay(storeCommitInfoParam.getDeliverWay())
+                            .payType(storeCommitInfoParam.getPayType())
+                            .buyerRemark(storeCommitInfoParam.getBuyerRemark())
+                            .sellerRemark(null) //客户下单,无卖家备注
+                            .encloses(storeCommitInfoParam.getEncloses())
+                            .ip(tradeCommitRequest.getOperator().getIp())
+                            .platform(Platform.CUSTOMER)
+                            .forceCommit(tradeCommitRequest.isForceCommit())
+                            .orderSource(tradeCommitRequest.getOrderSource())
+                            .distributeChannel(tradeCommitRequest.getDistributeChannel())
+                            .storeBagsFlag(group.getStoreBagsFlag())
+                            .shopName(tradeCommitRequest.getShopName())
+                            .isDistributor(tradeCommitRequest.getIsDistributor())
+                            .storeOpenFlag(storeCommitInfoParam.getStoreOpenFlag())
+                            .openFlag(tradeCommitRequest.getOpenFlag())
+                            .grouponForm(group.getGrouponForm())
+                            .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
+                                    ? null : tradeCommitRequest.getShareUserId())
+                            .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
+                            .suitMarketingFlag(group.getSuitMarketingFlag())
+                            .suitScene(group.getSuitScene())
+                            .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
+                            .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
+                            .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
+                            .cycleBuyInfo(group.getCycleBuyInfo())
+                            .promoteUserId(tradeCommitRequest.getPromoteUserId())
+                            .source(tradeCommitRequest.getSource())
+                            .build()));
+        }
+
+//        tradeCommitRequest.getStoreCommitInfoList().forEach(
+//                i -> {
+//                    TradeItemGroup group = tradeItemGroupsMap.get(i.getStoreId());
+//
+////                    填充分销商品审核状态
+//                    group.getTradeItems().forEach(item -> {
+//                        GoodsInfoVO goodsInfoVO =
+//                                goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
+//                        if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
+//                            item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
+//                        }
+//                        item.setProviderName(group.getSupplier().getStoreName());
+//                    });
+//                    // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
+//                    Invoice invoice = Invoice.builder()
+//                            .generalInvoice(KsBeanUtil.convert(i.getGeneralInvoice(), GeneralInvoice.class))
+//                            .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
+//                            .address(i.getInvoiceAddressDetail())
+//                            .addressId(i.getInvoiceAddressId())
+//                            .email(i.getInvoiceEmail())
+//                            .projectId(i.getInvoiceProjectId())
+//                            .projectName(i.getInvoiceProjectName())
+//                            .projectUpdateTime(i.getInvoiceProjectUpdateTime())
+//                            .type(i.getInvoiceType())
+//                            .sperator(i.isSpecialInvoiceAddress())
+//                            .updateTime(i.getInvoiceAddressUpdateTime())
+//                            .taxNo(setInvoiceTaxNo(i.getInvoiceType(), i.getGeneralInvoice(), i.getSpecialInvoice()))
+//                            .build();
+//                    if (storeMap.get(group.getSupplier().getStoreId()) == null) {
+//                        throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//                    }
+//                    //周期购使用单品运费
+//                    DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
+//                            ? DefaultFlag.YES
+//                            : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
+//                    group.getSupplier().setFreightTemplateType(freightTemplateType);
+//
+//                    // 2.2.【公共方法】下单信息验证, 将信息包装成订单
+//                    trades.add(this.validateAndWrapperTrade(new Trade(),
+//                            TradeParams.builder()
+//                                    .backendFlag(false) //表示前端操作
+//                                    .commitFlag(true) //表示下单
+//                                    .marketingList(group.getTradeMarketingList())
+//                                    .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+//                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
+//                                    .couponCodeId(i.getCouponCodeId())
+//                                    .tradePrice(new TradePrice())
+//                                    .tradeItems(group.getTradeItems())
+//                                    .oldGifts(Collections.emptyList())//下单,非修改订单
+//                                    .oldTradeItems(Collections.emptyList())//下单,非修改订单
+//                                    .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
+//                                    .customer(customer)
+//                                    .supplier(group.getSupplier())
+//                                    .seller(null) //客户下单
+//                                    .consigneeId(tradeCommitRequest.getConsigneeId())
+//                                    .detailAddress(tradeCommitRequest.getConsigneeAddress())
+//                                    .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
+//                                    .consignee(null) //客户下单,不可填写临时收货地址
+//                                    .invoice(invoice)
+//                                    .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
+//                                    .deliverWay(i.getDeliverWay())
+//                                    .payType(i.getPayType())
+//                                    .buyerRemark(i.getBuyerRemark())
+//                                    .sellerRemark(null) //客户下单,无卖家备注
+//                                    .encloses(i.getEncloses())
+//                                    .ip(tradeCommitRequest.getOperator().getIp())
+//                                    .platform(Platform.CUSTOMER)
+//                                    .forceCommit(tradeCommitRequest.isForceCommit())
+//                                    .orderSource(tradeCommitRequest.getOrderSource())
+//                                    .distributeChannel(tradeCommitRequest.getDistributeChannel())
+//                                    .storeBagsFlag(group.getStoreBagsFlag())
+//                                    .shopName(tradeCommitRequest.getShopName())
+//                                    .isDistributor(tradeCommitRequest.getIsDistributor())
+//                                    .storeOpenFlag(i.getStoreOpenFlag())
+//                                    .openFlag(tradeCommitRequest.getOpenFlag())
+//                                    .grouponForm(group.getGrouponForm())
+//                                    .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
+//                                            ? null : tradeCommitRequest.getShareUserId())
+//                                    .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
+//                                    .suitMarketingFlag(group.getSuitMarketingFlag())
+//                                    .suitScene(group.getSuitScene())
+//                                    .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
+//                                    .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
+//                                    .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
+//                                    .cycleBuyInfo(group.getCycleBuyInfo())
+//                                    .promoteUserId(tradeCommitRequest.getPromoteUserId())
+//                                    .source(tradeCommitRequest.getSource())
+//                                    .build()));
+//                }
+//        );
         return trades;
     }
 
@@ -1477,6 +1590,11 @@ public class TradeService {
         return taxNo;
     }
 
+    /**
+     * 分摊积分信息
+     * @param trades
+     * @param tradeCommitRequest
+     */
     public void dealPoints(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
         SystemPointsConfigQueryResponse pointsConfig = systemPointsConfigService.querySettingCache();
         final BigDecimal pointWorth = BigDecimal.valueOf(pointsConfig.getPointsWorth());
@@ -1560,7 +1678,11 @@ public class TradeService {
         }
     }
 
-
+    /**
+     * 分摊知豆
+     * @param trades
+     * @param tradeCommitRequest
+     */
     public void dealKnowledge(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
 
         if (tradeCommitRequest.getKnowledge() == null || tradeCommitRequest.getKnowledge() <= 0) {
@@ -1618,6 +1740,245 @@ public class TradeService {
         });
 
     }
+
+
+    /**
+     * 处理打包商品
+     */
+    public void dealGoodsPackDetail(List<Trade> trades, TradeCommitRequest tradeCommitRequest, CustomerSimplifyOrderCommitVO customer) {
+        if (CollectionUtils.isEmpty(trades)) {
+            return;
+        }
+        Trade trade = trades.get(0);
+        //判断打包商品
+        //获取商品的打包信息，
+        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+
+        List<String> childGoodsInfoIdList = new ArrayList<>();
+
+        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+                goodsPackDetailListTmp.add(goodsPackDetailParam);
+                childGoodsInfoIdList.add(goodsPackDetailParam.getGoodsInfoId());
+            }
+        }
+
+        GoodsInfoListByConditionRequest goodsInfoListByConditionRequest = new GoodsInfoListByConditionRequest();
+        goodsInfoListByConditionRequest.setGoodsInfoIds(childGoodsInfoIdList);
+        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoListByConditionResponseBaseResponse =
+                goodsInfoQueryProvider.listByCondition(goodsInfoListByConditionRequest);
+        GoodsInfoListByConditionResponse context = goodsInfoListByConditionResponseBaseResponse.getContext();
+        Map<String, GoodsInfoVO> skuId2GoodsInfoMap
+                = context.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+
+        List<TradeItem> tradeItemListTmp = new ArrayList<>();
+        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
+                //拆分
+                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
+                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
+                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
+                BigDecimal rateAll = new BigDecimal("100");
+
+                //优先计算 子商品的价格，最后计算主要商品的价格；
+                BigDecimal surplusSplitPrice = splitPrice;
+                BigDecimal surplusPoint = new BigDecimal(points + "");
+                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
+
+                //获取子商品信息
+                List<TradeItemDTO> TradeItemDTOList = new ArrayList<>();
+                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+                        TradeItemDTOList.add(TradeItemDTO.builder().skuId(goodsPackDetailTmp.getGoodsInfoId()).num(Long.valueOf(goodsPackDetailTmp.getCount())).build());
+                    }
+                }
+                List<TradeItemGroup> tradeItemGroups =
+                        this.getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(TradeItemDTOList).build());
+                List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
+                Map<String, TradeItem> skuId2TradeItemMap = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
+
+                GoodsPackDetailResponse  mainGoodsPackDetail = null;
+                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+
+                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
+                        surplusPoint = surplusPoint.subtract(pointsTmp);
+                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
+
+                        TradeItem tradeItem = skuId2TradeItemMap.get(goodsPackDetailTmp.getGoodsInfoId());
+                        tradeItem.setOid(generatorService.generateOid());
+//                        if (StringUtils.isBlank(tradeItem.getAdminId())) {
+//                            tradeItem.setAdminId(String.format("%d", goodsPackDetailTmp.getSupplier().getSupplierId()));
+//                        }
+                        tradeItem.setSplitPrice(splitPriceTmp);
+                        tradeItem.setPoints(pointsTmp.longValue());
+                        tradeItem.setKnowledge(knowledgeTmp.longValue());
+
+                        if (tradeItem.getPoints() > 0) {
+                            tradeItem.setPointsPrice(pointsTmp.divide(new BigDecimal("100")));
+                        } else if (tradeItem.getKnowledge() > 0) {
+                            tradeItem.setPointsPrice(knowledgeTmp.divide(new BigDecimal("100")));
+                        } else {
+                            tradeItem.setPointsPrice(BigDecimal.ZERO);
+                        }
+
+                        BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
+                        tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
+
+                        PackRecord packRecord = tradeItem.getPackRecord();
+                        if (packRecord == null) {
+                            packRecord = new PackRecord();
+                        }
+                        packRecord.setPackId(tradeItemParam.getSpuId());
+                        packRecord.setPackPoint(pointsTmp.longValue());
+                        packRecord.setPackKnowLedge(knowledgeTmp.longValue());
+                        packRecord.setPackSplitPrice(splitPriceTmp);
+                        packRecord.setCount(goodsPackDetailTmp.getCount());
+                        tradeItem.setPackRecord(packRecord);
+
+                        tradeItemListTmp.add(tradeItem); // add1
+                    } else {
+                        mainGoodsPackDetail = goodsPackDetailTmp;
+                    }
+                }
+
+
+                tradeItemParam.setSplitPrice(surplusSplitPrice);
+                tradeItemParam.setPoints(surplusPoint.longValue());
+                tradeItemParam.setKnowledge(surplusKnowledge.longValue());
+
+                if (tradeItemParam.getPoints() > 0) {
+                    tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100")));
+                } else if (tradeItemParam.getKnowledge() > 0) {
+                    tradeItemParam.setPointsPrice(surplusKnowledge.divide(new BigDecimal("100")));
+                } else {
+                    tradeItemParam.setPointsPrice(BigDecimal.ZERO);
+                }
+
+                BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
+                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
+
+                PackRecord packRecord = tradeItemParam.getPackRecord();
+                if (packRecord == null) {
+                    packRecord = new PackRecord();
+                }
+                packRecord.setPackId(tradeItemParam.getSpuId());
+                packRecord.setPackPoint(surplusPoint.longValue());
+                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
+                packRecord.setPackSplitPrice(surplusSplitPrice);
+                packRecord.setCount(mainGoodsPackDetail.getCount());
+                tradeItemParam.setPackRecord(packRecord);
+            }
+            tradeItemListTmp.add(tradeItemParam); // add2
+        }
+        trade.setTradeItems(tradeItemListTmp);
+    }
+
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+    public List<TradeItemGroup> getTradeItemList(TradePurchaseRequest request) {
+        List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+        String customerId = request.getCustomer().getCustomerId();
+
+        //查询是否购买付费会员卡
+        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+                        .customerId(customerId)
+                        .delFlag(DeleteFlag.NO)
+                        .endTimeFlag(LocalDateTime.now())
+                        .build())
+                .getContext();
+        PaidCardVO paidCardVO = new PaidCardVO();
+        if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+            paidCardVO = paidCardCustomerRelVOList.stream()
+                    .map(PaidCardCustomerRelVO::getPaidCardVO)
+                    .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+        }
+
+        GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
+//        List<GoodsInfoVO> goodsInfoVOList = ;
+        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, Integer> cpsSpecialMap = response.getGoodsInfos().stream().collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+        List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
+        //获取付费会员价
+        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+            for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
+                goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
+            }
+//            if (CollectionUtils.isNotEmpty(tradeItems)) {
+//                for (TradeItem tradeItem : tradeItems) {
+//                    if (Objects.nonNull(tradeItem.getPrice())) {
+//                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
+//                    }
+//                }
+//            }
+        }
+        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, true, null);
+        verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
+        Map<String, GoodsInfoVO> goodsInfoVOMap = response.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+        tradeItems.stream().forEach(tradeItem -> {
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
+            tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
+            tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
+            tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
+            tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
+        });
+
+        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, response.getGoodsInfos(), customerId);
+        for (TradeItem tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if (priceByGoodsId.getContext() != null) {
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+        }
+
+
+
+        // 校验商品限售信息
+        TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();
+        tradeItemGroupVOS.setTradeItems(tradeItems);
+        tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
+
+
+        //商品按店铺分组
+        Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
+        List<TradeItemGroup> itemGroups = new ArrayList<>();
+        map.forEach((key,value)->{
+            StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
+                            .build())
+                    .getContext().getStoreVO();
+            DefaultFlag freightTemplateType = store.getFreightTemplateType();
+            Supplier supplier = Supplier.builder()
+                    .storeId(store.getStoreId())
+                    .storeName(store.getStoreName())
+                    .isSelf(store.getCompanyType() == BoolFlag.NO)
+                    .supplierCode(store.getCompanyInfo().getCompanyCode())
+                    .supplierId(store.getCompanyInfo().getCompanyInfoId())
+                    .supplierName(store.getCompanyInfo().getSupplierName())
+                    .freightTemplateType(freightTemplateType)
+                    .build();
+            TradeItemGroup tradeItemGroup = new TradeItemGroup();
+            tradeItemGroup.setTradeItems(value);
+            tradeItemGroup.setSupplier(supplier);
+            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+            itemGroups.add(tradeItemGroup);
+        });
+        return itemGroups;
+    }
+
+
     /**
      * 调用校验与封装单个订单信息 - [后端代客下单]
      * 业务员app/商家-共用
@@ -2067,6 +2428,71 @@ public class TradeService {
         } else {
             tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
         }
+//
+//        //判断打包商品
+//        //获取商品的打包信息，
+//        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+//        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+//        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+//
+//        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+//        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+//            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+//                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+//                goodsPackDetailListTmp.add(goodsPackDetailParam);
+//            }
+//        }
+//
+//        tradeParams.getTradeItems().forEach(t -> {
+//            t.setOid(generatorService.generateOid());
+//            if (StringUtils.isBlank(t.getAdminId())) {
+//                t.setAdminId(String.format("%d", tradeParams.getSupplier().getSupplierId()));
+//            }
+//        });
+//
+//        List<TradeItem> tradeItemListTmp = new ArrayList<>();
+//        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+//            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+//            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
+//                //拆分
+//                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
+//                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
+//                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
+//                BigDecimal rateAll = new BigDecimal("100");
+//
+//                //优先计算 子商品的价格，最后计算主要商品的价格；
+//                BigDecimal surplusSplitPrice = splitPrice;
+//                BigDecimal surplusPoint = new BigDecimal(splitPrice + "");
+//                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
+////                GoodsPackDetailResponse mainGoodsPackDetail;
+//
+//                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+//                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+//                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//
+//                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
+//                        surplusPoint = surplusPoint.subtract(pointsTmp);
+//                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
+//                    } /*else {
+//                        mainGoodsPackDetail = goodsPackDetailTmp;
+//                    }*/
+//                }
+//
+//                PackRecord packRecord = tradeItemParam.getPackRecord();
+//                if (packRecord == null) {
+//                    packRecord = new PackRecord();
+//                }
+//                packRecord.setPackId(tradeItemParam.getSpuId());
+//                packRecord.setPackPoint(surplusPoint.longValue());
+//                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
+//                packRecord.setPackSplitPrice(surplusSplitPrice);
+//                tradeItemParam.setPackRecord(packRecord);
+//            } else {
+//                tradeItemListTmp.add(tradeItemParam);
+//            }
+//        }
         return trade;
     }
 
@@ -7133,7 +7559,7 @@ public class TradeService {
                 goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder().goodsInfoIds(goodsInfoIdList).build());
         BaseResponse<GoodsListByIdsResponse> goodsListResponse = goodsQueryProvider
                 .listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsIdList).build());
-        List<GoodsVO> goodsVOList = goodsListResponse.getContext().getGoodsVOList();
+//        List<GoodsVO> goodsVOList = goodsListResponse.getContext().getGoodsVOList();
         List<GoodsInfoVO> goodsInfoVOList = listByIdsResponse.getContext().getGoodsInfos();
         tradeItemList.forEach(tradeItem -> goodsInfoVOList.forEach(goodsInfoVO -> {
             if (tradeItem.getSkuId().equals(goodsInfoVO.getGoodsInfoId())) {
