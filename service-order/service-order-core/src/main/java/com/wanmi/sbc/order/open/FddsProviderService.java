@@ -133,7 +133,7 @@ public class FddsProviderService {
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
         createParam.setPlDiscontPrice(tradeItem.getPrice().multiply(new BigDecimal(100)));
 
-        if (ChannelType.MINIAPP.toString().equals(trade.getChannelType())) {
+        if (ChannelType.MINIAPP.equals(trade.getChannelType())) {
             //小程序非视频号
             if (Integer.valueOf(1).equals(trade.getMiniProgramScene())) {
                 createParam.setPromoterType("4");
