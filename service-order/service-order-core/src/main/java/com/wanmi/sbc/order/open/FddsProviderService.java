@@ -132,10 +132,12 @@ public class FddsProviderService {
         if (ChannelType.MINIAPP.toString().equals(trade.getChannelType())) {
             //小程序非视频号
             if (Integer.valueOf(1).equals(trade.getMiniProgramScene())) {
+                createParam.setPromoterType("4");
                 createParam.setPromoterNo(wxAppletGeneralPromoter);
             }
             //小程序视频号
             if (Integer.valueOf(2).equals(trade.getMiniProgramScene())) {
+                createParam.setPromoterType("4");
                 createParam.setPromoterNo(wxAppletVideoPromoter);
             }
         }
