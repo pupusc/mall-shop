@@ -240,8 +240,8 @@ public class FddsProviderService {
         trade.getTradeDelivers().addAll(tradeDeliverVOList);
         //此发货单全部发货，判断其他发货单存在部分发货，则主订单是部分发货
         if (providerTrades.stream().anyMatch(p -> !providerTrade.getId().equals(p.getId())
-                && !DeliverStatus.SHIPPED.equals(providerTrade.getTradeState().getDeliverStatus())
-//                && !FlowState.VOID.equals(p.getTradeState().getFlowState()
+                && !DeliverStatus.SHIPPED.equals(p.getTradeState().getDeliverStatus())
+                && !FlowState.VOID.equals(p.getTradeState().getFlowState()
         )) {
             log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{} update part_shipped", trade.getId());
             trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
