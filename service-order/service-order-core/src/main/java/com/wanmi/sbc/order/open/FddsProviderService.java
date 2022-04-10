@@ -38,6 +38,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -122,12 +123,15 @@ public class FddsProviderService {
      * 创建樊登读书开放平台订单
      */
     private FddsBaseResult createOutOrder(ProviderTrade providerTrade, Trade trade) {
+        TradeItem tradeItem = getUniqueItem(providerTrade);
+
         FddsOrderCreateParam createParam = new FddsOrderCreateParam();
         createParam.setTradeNo(providerTrade.getId());
         createParam.setMobile(providerTrade.getDirectChargeMobile());
-        createParam.setExternalProductNo(getUniqueItem(providerTrade).getErpSkuNo());
+        createParam.setExternalProductNo(tradeItem.getErpSkuNo());
         createParam.setPayType(convertPayType(providerTrade.getPayWay()));
         createParam.setPayTime(providerTrade.getTradeState().getPayTime());
+        createParam.setPlDiscontPrice(tradeItem.getPrice().divide(new BigDecimal(100)));
 
         if (ChannelType.MINIAPP.toString().equals(trade.getChannelType())) {
             //小程序非视频号
