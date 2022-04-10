@@ -216,6 +216,15 @@ public class FddsProviderService {
         providerTrade.getTradeState().setDeliverTime(nowTime);
         providerTrade.getTradeDelivers().addAll(tradeDeliverVOList);
 
+        //此处重新赋值商品信息
+        for (ProviderTrade p : providerTrades) {
+            log.info("FddsProviderSerivce.createOutOrderSuccess tradeId:{}, p:{}", trade.getId(), JSON.toJSONString(p));
+            if (Objects.equals(p.getId(), providerTrade.getId())) {
+                providerTrade.setTradeItems(p.getTradeItems());
+                break;
+            }
+        }
+
         for (TradeItem tradeItem : providerTrade.getTradeItems()) {
             tradeItem.setDeliveredNum(tradeItem.getNum());
             tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
