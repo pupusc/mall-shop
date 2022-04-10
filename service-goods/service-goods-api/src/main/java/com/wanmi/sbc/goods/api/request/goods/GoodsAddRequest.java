@@ -2,7 +2,16 @@ package com.wanmi.sbc.goods.api.request.goods;
 
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.goods.bean.dto.*;
+import com.wanmi.sbc.goods.bean.dto.GoodsCustomerPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsIntervalPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsLevelPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsPropDetailRelDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsSpecDetailDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTabRelaVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -132,4 +141,14 @@ public class GoodsAddRequest extends BaseRequest {
         }
         return sensitiveWord.toString();
     }
+
+    /**
+     * 编辑类型：1普通商品；2直充商品；3打包商品；
+     */
+    private Integer editType;
+
+    /**
+     * 打包商品
+     */
+    private List<GoodsPackDetailDTO> goodsPackDetails;
 }

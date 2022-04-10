@@ -1,72 +1,72 @@
-package com.wanmi.sbc.goods.info.model.root;
+package com.wanmi.sbc.goods.bean.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+import java.io.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * ${DESCRIPTION}
- *
- * @auther ruilinxin
- * @create 2018/03/20 10:04
+ * 商品打包
  */
-@Data
+@DynamicInsert
+@Table(name = "goods_pack_detail")
 @Entity
-@Table(name = "goods_prop_detail_rel")
-public class GoodsPropDetailRel {
-
+@Data
+public class GoodsPackDetailDTO implements Serializable {
     /**
-     * 编号
+     * 主键
      */
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "rel_id")
-    private Long relId;
+    @Id
+    @Column(name = "id")
+    private Integer id;
 
     /**
-     * SPU标识
+     * spu主键
      */
     @Column(name = "goods_id")
     private String goodsId;
 
     /**
-     *属性值id
+     * sku主键
      */
-    @Column(name = "detail_id")
-    private Long detailId;
+    @Column(name = "goods_info_id")
+    private String goodsInfoId;
 
     /**
-     *属性值（文本框输入）
+     * 商品包主键
      */
-    @Column(name = "prop_value")
-    private String propValue;
+    @Column(name = "pack_id")
+    private String packId;
 
     /**
-     *属性id
+     * 商品数量
      */
-    @Column(name = "prop_id")
-    private Long propId;
+    @Column(name = "count")
+    private Integer count;
+
+    /**
+     * 分摊比例
+     */
+    @Column(name = "share_rate")
+    private BigDecimal shareRate;
 
     /**
      * 创建时间
      */
     @Column(name = "create_time")
-    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime;
@@ -75,21 +75,13 @@ public class GoodsPropDetailRel {
      * 更新时间
      */
     @Column(name = "update_time")
-    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
     /**
-     * 删除标记
+     * 删除标志
      */
     @Column(name = "del_flag")
-    @Enumerated
-    private DeleteFlag delFlag;
-
-    @Transient
-    private Integer propType;
-
-    @Transient
-    private String propName;
+    private Integer delFlag;
 }

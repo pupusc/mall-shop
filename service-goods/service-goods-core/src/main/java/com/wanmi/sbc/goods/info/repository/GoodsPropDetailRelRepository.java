@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * ${DESCRIPTION}
@@ -46,6 +47,18 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
      */
     @Query(" from GoodsPropDetailRel w where w.delFlag = 0 and w.goodsId in ?1")
     List<GoodsPropDetailRel> findByGoodsIds(List<String> goodsIds);
+
+    /**
+     * 根据多个SpuID查询
+     *
+     * @param goodsIds 多SpuID
+     * @return
+     */
+    @Query(value =
+            "SELECT t1.rel_id AS relId, t1.prop_id AS propId, t1.goods_id AS goodsid, t1.prop_value AS propvalue, t2.prop_name AS propName, t2.prop_type AS propType " +
+            "FROM goods_prop_detail_rel t1 LEFT JOIN goods_prop t2 ON t2.del_flag=0 AND t2.prop_id = t1.prop_id " +
+            "WHERE t1.del_flag=0 AND t1.goods_id IN (?1)", nativeQuery = true)
+    List<Map<String, Object>> selectByGoodsIds(List<String> goodsIds);
 
     /**
      * 根据多个商品ID编号进行删除

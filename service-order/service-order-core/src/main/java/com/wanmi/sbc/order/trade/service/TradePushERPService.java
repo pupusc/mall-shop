@@ -48,6 +48,7 @@ import com.wanmi.sbc.order.logistics.model.root.LogisticsLog;
 import com.wanmi.sbc.order.logistics.service.LogisticsLogService;
 import com.wanmi.sbc.order.mq.OrderProducerService;
 import com.wanmi.sbc.order.mq.ProviderTradeOrderService;
+import com.wanmi.sbc.order.open.FddsProviderService;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
 import com.wanmi.sbc.order.orderinvoice.service.OrderInvoiceService;
 import com.wanmi.sbc.order.redis.RedisService;
@@ -158,12 +159,18 @@ public class TradePushERPService {
     @Value("${bookuu.providerId}")
     private Long bookuuProviderId;
 
+    @Value("${fdds.provider.code}")
+    private String supplierCode;
+
 
     @Autowired
     private ProviderTradeOrderService providerTradeOrderService;
 
     @Autowired
     public OrderProducerService orderProducerService;
+
+    @Autowired
+    private FddsProviderService fddsProviderService;
 
     /**
      * 查询订单
@@ -223,6 +230,16 @@ public class TradePushERPService {
      * @return
      */
     public BaseResponse differentiatedDelivery(ProviderTrade providerTrade, PushTradeRequest request) {
+
+        //开放平台发货
+        if (supplierCode.equals(providerTrade.getSupplier().getSupplierCode())) {
+            return fddsProviderService.createFddsTrade(providerTrade);
+        }
+
+        if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId)){
+            providerTradeOrderService.sendMQForProviderTrade(request);
+            return BaseResponse.success("推送mq消息成功");
+        }
 
         Trade parentTrade = detail(providerTrade.getParentId());
 
@@ -1399,6 +1416,9 @@ public class TradePushERPService {
             //子单 按照物流信息填充
             Map<String, TradeDeliver> providerTradeDeliverMap = new HashMap<>();
             for (TradeDeliver providerTradeDeliverParam : providerTrade.getTradeDelivers()) {
+                if (providerTradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 providerTradeDeliverMap.put(providerTradeDeliverParam.getLogistics().getLogisticNo(), providerTradeDeliverParam);
             }
 
@@ -1407,6 +1427,9 @@ public class TradePushERPService {
             Trade trade = KsBeanUtil.convert(tradeVO, Trade.class);
             Map<String, TradeDeliver> tradeDeliverMap = new HashMap<>();
             for (TradeDeliver tradeDeliverParam : trade.getTradeDelivers()) {
+                if (tradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 tradeDeliverMap.put(tradeDeliverParam.getLogistics().getLogisticNo(), tradeDeliverParam);
             }
 
@@ -1415,6 +1438,9 @@ public class TradePushERPService {
 
             List<TradeDeliver> tradeDelivers = KsBeanUtil.copyListProperties(tradeDeliverVOList, TradeDeliver.class);
             for (TradeDeliver tradeDeliverParam : tradeDelivers) {
+                if (tradeDeliverParam.getLogistics() == null) {
+                    continue;
+                }
                 String logisticNo = tradeDeliverParam.getLogistics().getLogisticNo(); //物流号
 
                 //子单信息
