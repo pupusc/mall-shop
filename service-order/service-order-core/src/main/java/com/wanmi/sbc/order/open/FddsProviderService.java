@@ -134,11 +134,11 @@ public class FddsProviderService {
             if (Integer.valueOf(1).equals(trade.getMiniProgramScene())) {
                 createParam.setPromoterType("4");
                 createParam.setPromoterNo(wxAppletGeneralPromoter);
-            }
-            //小程序视频号
-            if (Integer.valueOf(2).equals(trade.getMiniProgramScene())) {
+            } else if (Integer.valueOf(2).equals(trade.getMiniProgramScene())) { //小程序视频号
                 createParam.setPromoterType("4");
                 createParam.setPromoterNo(wxAppletVideoPromoter);
+            } else {
+                log.warn("小程序来源订单，没有匹配的推广人，miniProgramScene = {}", trade.getMiniProgramScene());
             }
         }
 
