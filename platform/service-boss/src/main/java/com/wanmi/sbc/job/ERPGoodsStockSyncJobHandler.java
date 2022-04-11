@@ -191,7 +191,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 //发送库存消息
                 for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
 
-                    if (Objects.equals(p.getCurrentStockQty(), p.getActualStockQty()) && !p.isChangeStockFreeze()) {
+                    if (Objects.equals(p.getCurrentStockQty(), p.getActualStockQty()) && !p.isChangeStock()) {
                         continue;
                     }
                     log.info("ERPGoodsStockSyncJobHandler stock send feishu message :{}", JSON.toJSONString(p));

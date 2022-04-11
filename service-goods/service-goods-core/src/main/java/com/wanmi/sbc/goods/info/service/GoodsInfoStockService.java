@@ -167,15 +167,8 @@ public class GoodsInfoStockService {
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
 
             //同步库存之前优先获取库存冻结数量
-            boolean isChangeFreezeStock = false;
-            String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoParam.getGoodsInfoId());
-            if (!StringUtils.isEmpty(freezeStockStr)) {
-                long hisFreezeStock = Long.parseLong(freezeStockStr);
-                long currentFreezeStock = getCurrentFreezeStock(goodsInfoParam.getGoodsInfoId());
-                if (hisFreezeStock != currentFreezeStock) {
-                    isChangeFreezeStock = true;
-                }
-            }
+            boolean isChangeStock = false;
+            String hisStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_HIS_PREFIX + goodsInfoParam.getGoodsInfoId());
 
             //表示同步库存
             if (Objects.equals(goodsInfoParam.getStockSyncFlag(),1)) {
@@ -187,6 +180,13 @@ public class GoodsInfoStockService {
                 }
             } else {
                 actualStockQty = goodsInfoParam.getStock().intValue();
+            }
+
+            if (!StringUtils.isEmpty(hisStockStr)) {
+                long hisStock = Long.parseLong(hisStockStr);
+                if (hisStock != actualStockQty) {
+                    isChangeStock = true;
+                }
             }
 
 
@@ -222,7 +222,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setActualStockQty(actualStockQty);
                 goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
                 goodsInfoStockSyncResponse.setCurrentStockQty(goodsInfoParam.getStock().intValue());
-                goodsInfoStockSyncResponse.setChangeStockFreeze(isChangeFreezeStock);
+                goodsInfoStockSyncResponse.setChangeStock(isChangeStock);
                 goodsInfoStockSyncResponse.setCurrentCostPrice(goodsInfoParam.getCostPrice());
                 goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getErpCostPrice());
                 goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
@@ -344,7 +344,7 @@ public class GoodsInfoStockService {
             } else {
                 actualStockQty = currentErpStock - currentFreezeStock;
             }
-            redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId, currentFreezeStock.toString());
+            redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_HIS_PREFIX + goodsInfoId, actualStockQty.toString());
 //            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
 //            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
 //            log.info("{} redis getActualStock ,stock:{},lastStock:{},nowStock:{}",goodsInfoId, currentErpStock, lastStock,nowStock);

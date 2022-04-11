@@ -74,7 +74,7 @@ public final class RedisKeyConstant {
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
 
-    public static final String GOODS_INFO_STOCK_FREEZE_PREFIX = "GOODS_INFO_STOCK_FREEZE_";
+    public static final String GOODS_INFO_STOCK_HIS_PREFIX = "GOODS_INFO_STOCK_HIS_";
 
 //    public static final String STOCK_SYNC_TIME_PREFIX = "STOCK_SYNC_TIME";
 

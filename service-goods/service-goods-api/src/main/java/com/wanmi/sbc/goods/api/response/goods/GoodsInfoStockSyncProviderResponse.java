@@ -74,7 +74,7 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
     /**
      * 当前库存冻结是否变更
      */
-    private boolean isChangeStockFreeze = false;
+    private boolean isChangeStock = false;
 
     /**
      * 是否发送库存消息
