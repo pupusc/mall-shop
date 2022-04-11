@@ -36,9 +36,5 @@ public class TopicStoreyContentReponse extends TopicStoreyContentDTO {
          */
         private Boolean canFetchMore;
 
-        /**
-         * 可用商品的第一个
-         */
-        private String firstGoodsId;
     }
 }

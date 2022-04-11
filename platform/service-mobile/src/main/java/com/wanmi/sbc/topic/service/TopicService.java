@@ -153,48 +153,6 @@ public class TopicService {
         }
         List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
         List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
-        // 券可用商品的第一个
-//        String typeAllGoodsId = null;
-//        Map<String, String> typeStoreCateGoodsId = new HashMap<>();
-//        for (CouponVO couponVO : couponVOS) {
-//            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
-//                //适用店铺分类
-//                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
-//                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
-//                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
-//                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
-//                    }
-//
-//                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-//                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-//                            couponInfo.setFirstGoodsId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
-//                            break;
-//                        }
-//                    }
-//                }
-//            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
-//                if(typeAllGoodsId == null){
-//                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
-//                    typeAllGoodsId = goodsId.getContext();
-//                }
-//                for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-//                    if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-//                        couponInfo.setFirstGoodsId(typeAllGoodsId);
-//                        break;
-//                    }
-//                }
-//            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
-//                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
-//                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
-//                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-//                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-//                            couponInfo.setFirstGoodsId(goodsId.getContext());
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
         storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
             if(CollectionUtils.isEmpty(p.getContents())) {
                 return;
