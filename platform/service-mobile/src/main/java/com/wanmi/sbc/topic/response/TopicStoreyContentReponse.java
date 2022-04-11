@@ -35,5 +35,10 @@ public class TopicStoreyContentReponse extends TopicStoreyContentDTO {
          * 一天限领一次的券今日是否已领取
          */
         private Boolean canFetchMore;
+
+        /**
+         * 可用商品的第一个
+         */
+        private String firstGoodsId;
     }
 }
