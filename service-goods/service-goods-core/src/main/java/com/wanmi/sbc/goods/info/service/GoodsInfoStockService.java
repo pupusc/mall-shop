@@ -28,6 +28,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -164,6 +165,18 @@ public class GoodsInfoStockService {
             goodsInfoParam.setCostPrice(goodsInfoParam.getCostPrice() == null ? BigDecimal.ZERO : goodsInfoParam.getCostPrice());
             int actualStockQty = 0;
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
+
+            //同步库存之前优先获取库存冻结数量
+            boolean isChangeFreezeStock = false;
+            String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoParam.getGoodsInfoId());
+            if (!StringUtils.isEmpty(freezeStockStr)) {
+                long hisFreezeStock = Long.parseLong(freezeStockStr);
+                long currentFreezeStock = getCurrentFreezeStock(goodsInfoParam.getGoodsInfoId());
+                if (hisFreezeStock != currentFreezeStock) {
+                    isChangeFreezeStock = true;
+                }
+            }
+
             //表示同步库存
             if (Objects.equals(goodsInfoParam.getStockSyncFlag(),1)) {
                 goodsInfoStockSyncResponse.setCanSyncStock(true); //表示同步库存
@@ -209,6 +222,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setActualStockQty(actualStockQty);
                 goodsInfoStockSyncResponse.setErpStockQty(goodsInfoStockSyncRequestParam.getErpStockQty());
                 goodsInfoStockSyncResponse.setCurrentStockQty(goodsInfoParam.getStock().intValue());
+                goodsInfoStockSyncResponse.setChangeStockFreeze(isChangeFreezeStock);
                 goodsInfoStockSyncResponse.setCurrentCostPrice(goodsInfoParam.getCostPrice());
                 goodsInfoStockSyncResponse.setErpCostPrice(goodsInfoStockSyncRequestParam.getErpCostPrice());
                 goodsInfoStockSyncResponse.setCurrentMarketPrice(goodsInfoParam.getMarketPrice());
@@ -295,21 +309,56 @@ public class GoodsInfoStockService {
 //        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
 //    }
 
+    /**
+     * 获取当前冻结
+     * @param goodsInfoId
+     * @return
+     */
+    public Long getCurrentFreezeStock(String goodsInfoId) {
+        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+        log.info("{} redis getActualStock ,lastStock:{},nowStock:{}",goodsInfoId, lastStock,nowStock);
+        if (lastStock != null && nowStock != null) {
+            if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+                Long stockFreezeCount  = (Long.parseLong(lastStock.toString()) - Long.parseLong(nowStock.toString()));
+                return stockFreezeCount <= 0L ? 0L : stockFreezeCount;
+            }
+        }
+        return 0L;
+    }
+
+    /**
+     * 获取真实库存
+     * @param currentErpStock
+     * @param goodsInfoId
+     * @return
+     */
     public Long getActualStock(Long currentErpStock,String goodsInfoId){
+
         Long actualStockQty = null;
         //计算库存
         try {
-            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
-            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
-            log.info("{} redis getActualStock ,stock:{},lastStock:{},nowStock:{}",goodsInfoId, currentErpStock, lastStock,nowStock);
-            if (lastStock != null && nowStock != null) {
-                if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
-                    actualStockQty = currentErpStock - (Long.parseLong(lastStock.toString()) - Long.parseLong(nowStock.toString()));
-                }
-            }
-            if (actualStockQty == null) {
+            Long currentFreezeStock = this.getCurrentFreezeStock(goodsInfoId);
+            if (currentFreezeStock <= 0L) {
                 actualStockQty = currentErpStock;
+            } else {
+                actualStockQty = currentErpStock - currentFreezeStock;
             }
+            redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId, currentFreezeStock.toString());
+//            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+//            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+//            log.info("{} redis getActualStock ,stock:{},lastStock:{},nowStock:{}",goodsInfoId, currentErpStock, lastStock,nowStock);
+//            if (lastStock != null && nowStock != null) {
+//                if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+//                    Long stockFreezeCount  = (Long.parseLong(lastStock.toString()) - Long.parseLong(nowStock.toString()));
+//                    stockFreezeCount = stockFreezeCount <= 0L ? 0L : stockFreezeCount;
+//                    actualStockQty = currentErpStock - stockFreezeCount;
+//                    redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId, stockFreezeCount.toString());
+//                }
+//            }
+//            if (actualStockQty == null) {
+//                actualStockQty = currentErpStock;
+//            }
         }catch (Exception e){
             log.warn("更新库存失败，stock:{},goodsInfoId:{}",currentErpStock, goodsInfoId, e);
         }
