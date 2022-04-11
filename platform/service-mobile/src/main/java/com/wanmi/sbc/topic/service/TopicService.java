@@ -154,59 +154,87 @@ public class TopicService {
         List<CouponVO> couponVOS = couponResponse.getContext().getCouponViews().getContent();
         List<TopicStoreyContentReponse.CouponInfo> couponInfos = KsBeanUtil.convertList(couponVOS,TopicStoreyContentReponse.CouponInfo.class);
         // 券可用商品的第一个
-        String typeAllGoodsId = null;
-        Map<String, String> typeStoreCateGoodsId = new HashMap<>();
-        for (CouponVO couponVO : couponVOS) {
-            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
-                //适用店铺分类
-                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
-                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
-                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
-                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
-                    }
-                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-                            couponInfo.setFirstGoodsId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
-                            break;
-                        }
-                    }
-                }
-            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
-                if(typeAllGoodsId == null){
-                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
-                    typeAllGoodsId = goodsId.getContext();
-                }
-                for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-                    if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-                        couponInfo.setFirstGoodsId(typeAllGoodsId);
-                        break;
-                    }
-                }
-            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
-                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
-                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
-                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
-                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
-                            couponInfo.setFirstGoodsId(goodsId.getContext());
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+//        String typeAllGoodsId = null;
+//        Map<String, String> typeStoreCateGoodsId = new HashMap<>();
+//        for (CouponVO couponVO : couponVOS) {
+//            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
+//                //适用店铺分类
+//                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+//                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
+//                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
+//                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
+//                    }
+//
+//                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
+//                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
+//                            couponInfo.setFirstGoodsId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
+//                            break;
+//                        }
+//                    }
+//                }
+//            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
+//                if(typeAllGoodsId == null){
+//                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+//                    typeAllGoodsId = goodsId.getContext();
+//                }
+//                for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
+//                    if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
+//                        couponInfo.setFirstGoodsId(typeAllGoodsId);
+//                        break;
+//                    }
+//                }
+//            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
+//                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+//                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
+//                    for (TopicStoreyContentReponse.CouponInfo couponInfo : couponInfos) {
+//                        if(couponInfo.getCouponId().equals(couponVO.getCouponId())){
+//                            couponInfo.setFirstGoodsId(goodsId.getContext());
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
         storeyList.stream().filter(p->p.getStoreyType()!= null && p.getStoreyType().equals(TopicStoreyType.COUPON.getId())).forEach(p->{
             if(CollectionUtils.isEmpty(p.getContents())) {
                 return;
             }
-            p.getContents().forEach(c->{
+            String typeAllGoodsId = null;
+            Map<String, String> typeStoreCateGoodsId = new HashMap<>();
+            for (TopicStoreyContentReponse c : p.getContents()) {
                 Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
                 if(optionalCouponVO.isPresent()){
                     c.setCouponInfo(optionalCouponVO.get());
+                    for (CouponVO couponVO : couponVOS) {
+                        if(couponVO.getActivityId().equals(c.getActivityId()) && couponVO.getCouponId().equals(c.getCouponId())){
+                            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
+                                //适用店铺分类
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
+                                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
+                                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
+                                    }
+                                    c.setSpuId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
+                                }
+                            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
+                                if(typeAllGoodsId == null){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+                                    typeAllGoodsId = goodsId.getContext();
+                                }
+                                c.setSpuId(typeAllGoodsId);
+                            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
+                                    c.setSpuId(goodsId.getContext());
+                                }
+                            }
+                        }
+                    }
                 }
-            });
+            }
         });
-
    }
+
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
