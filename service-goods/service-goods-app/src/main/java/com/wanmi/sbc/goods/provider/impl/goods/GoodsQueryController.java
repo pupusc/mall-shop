@@ -27,6 +27,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsUnAuditCountRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByPointsGoodsIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCacheInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsCountByConditionRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsByConditionResponse;
@@ -36,6 +37,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListNeedSynResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageByConditionResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageForXsiteResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPageResponse;
@@ -47,6 +49,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsViewByPointsGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsCountByConditionResponse;
 import com.wanmi.sbc.goods.appointmentsale.model.root.AppointmentSaleDO;
 import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.AppointmentSaleVO;
 import com.wanmi.sbc.goods.bean.vo.BookingSaleVO;
@@ -66,6 +69,7 @@ import com.wanmi.sbc.goods.cate.model.root.GoodsCate;
 import com.wanmi.sbc.goods.cate.model.root.GoodsCateSync;
 import com.wanmi.sbc.goods.cate.request.GoodsCateQueryRequest;
 import com.wanmi.sbc.goods.cate.service.GoodsCateService;
+import com.wanmi.sbc.goods.common.GoodsPackService;
 import com.wanmi.sbc.goods.common.SystemPointsConfigService;
 import com.wanmi.sbc.goods.goodsevaluate.service.GoodsEvaluateService;
 import com.wanmi.sbc.goods.goodslabel.service.GoodsLabelService;
@@ -87,7 +91,6 @@ import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.util.mapper.GoodsBrandMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsCateMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsMapper;
-import com.wanmi.sbc.linkedmall.api.provider.stock.LinkedMallStockQueryProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -143,9 +146,6 @@ public class GoodsQueryController implements GoodsQueryProvider {
     private LinkedMallGoodsService linkedMallGoodsService;
 
     @Autowired
-    private LinkedMallStockQueryProvider linkedMallStockQueryProvider;
-
-    @Autowired
     private RedisService redisService;
 
     @Autowired
@@ -168,6 +168,9 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
     @Autowired
     private GoodsStockService goodsStockService;
+
+    @Autowired
+    private GoodsPackService goodsPackService;
 
     /**
      * 分页查询商品信息
@@ -446,8 +449,38 @@ public class GoodsQueryController implements GoodsQueryProvider {
 
         //未开启商品抵扣时，清零buyPoint
         systemPointsConfigService.clearBuyPoinsForSkus(goodsByIdResponse.getGoodsInfos());
+
+        //商品的打包信息
+        fillGoodsPackInfo(request, goodsByIdResponse);
+
         return BaseResponse.success(goodsByIdResponse);
     }
+
+    private void fillGoodsPackInfo(GoodsViewByIdRequest request, GoodsViewByIdResponse goodsByIdResponse) {
+        if (!Boolean.TRUE.equals(request.getShowGoodsPackFlag())) {
+            return;
+        }
+        List<GoodsPackDetailDTO> goodsPackDetailDTOS = goodsPackService.listGoodsPackDetailByPackId(request.getGoodsId());
+        if (CollectionUtils.isEmpty(goodsPackDetailDTOS)) {
+            return ;
+        }
+        goodsByIdResponse.setGoodsPackDetails(KsBeanUtil.convert(goodsPackDetailDTOS, GoodsPackDetailResponse.class));
+
+        List<String> goodsInfoIds = goodsPackDetailDTOS.stream().map(GoodsPackDetailDTO::getGoodsInfoId).distinct().collect(Collectors.toList());
+        List<GoodsInfo> goodsInfos = goodsInfoService.findByIds(goodsInfoIds);
+
+        Map<String, GoodsInfo> goodsInfoMap = goodsInfos.stream().collect(Collectors.toMap(GoodsInfo::getGoodsInfoId, item -> item));
+        for (GoodsPackDetailResponse item : goodsByIdResponse.getGoodsPackDetails()) {
+            if (!goodsInfoMap.containsKey(item.getGoodsInfoId())) {
+                continue;
+            }
+            item.setGoodsInfoNo(goodsInfoMap.get(item.getGoodsInfoId()).getGoodsInfoNo());
+            item.setGoodsInfoName(goodsInfoMap.get(item.getGoodsInfoId()).getGoodsInfoName());
+            item.setMarketPrice(goodsInfoMap.get(item.getGoodsInfoId()).getMarketPrice());
+            item.setProviderId(goodsInfoMap.get(item.getGoodsInfoId()).getProviderId());
+        }
+    }
+
     /**
      * 根据SPU编号和SkuId集合查询商品视图信息
      *
@@ -665,6 +698,14 @@ public class GoodsQueryController implements GoodsQueryProvider {
     }
 
     @Override
+    public BaseResponse<List<GoodsPackDetailResponse>> listPackDetailByPackIds(PackDetailByPackIdsRequest request) {
+        if (request.getPackIds().size() > 100) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "单次查询参数条目过多，数量需小于100");
+        }
+        List<GoodsPackDetailDTO> list = goodsPackService.listGoodsPackDetailByPackIds(request.getPackIds());
+        return BaseResponse.success(KsBeanUtil.convert(list, GoodsPackDetailResponse.class));
+    }
+
     public BaseResponse<String> getGoodsId(List<String> goodsInfoIds) {
         return BaseResponse.success(goodsService.getGoodsId(goodsInfoIds));
     }
