@@ -67,6 +67,8 @@ public class GoodsBlackListService {
             list.add(commonBlackListDTO);
         }
         goodsBlackListRepository.saveAll(list);
+        //刷缓存
+        flushBlackListCache(new GoodsBlackListCacheProviderRequest(), list);
     }
 
     /**
@@ -117,14 +119,18 @@ public class GoodsBlackListService {
         return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest), PageRequest.of(goodsBlackListPageProviderRequest.getPageNum(), goodsBlackListPageProviderRequest.getPageSize()));
     }
 
+    public GoodsBlackListPageProviderResponse flushBlackListCache(GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
+        List<GoodsBlackListDTO> blackListDTOList = this.listSimpleNoPage(goodsBlackListCacheProviderRequest);
+        return flushBlackListCache(goodsBlackListCacheProviderRequest, blackListDTOList);
+    }
+
     /**
      * 获取黑名单列表
      * @param goodsBlackListCacheProviderRequest
      * @return
      */
-    public GoodsBlackListPageProviderResponse flushBlackListCache(GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
+    public GoodsBlackListPageProviderResponse flushBlackListCache(GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest, List<GoodsBlackListDTO> blackListDTOList) {
         GoodsBlackListPageProviderResponse result = new GoodsBlackListPageProviderResponse();
-        List<GoodsBlackListDTO> blackListDTOList = this.listSimpleNoPage(goodsBlackListCacheProviderRequest);
         for (GoodsBlackListDTO commonBlackListParam : blackListDTOList) {
             if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.NEW_BOOKS.getCode())) {
                 BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getNewBooksBlackListModel());
