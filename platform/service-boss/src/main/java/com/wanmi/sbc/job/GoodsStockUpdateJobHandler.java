@@ -9,6 +9,7 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSkuStockSubRequest;
 import com.wanmi.sbc.elastic.api.request.goods.EsGoodsSpuStockSubRequest;
+import com.wanmi.sbc.feishu.FeiShuNoticeEnum;
 import com.wanmi.sbc.feishu.constant.FeiShuMessageConstant;
 import com.wanmi.sbc.feishu.service.FeiShuSendMessageService;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
@@ -131,7 +132,7 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
                     //发送库存消息
                     for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_STOCK_NOTIFY, p.getSkuNo(), p.getSkuName(), sdf.format(new Date()) , p.getActualStockQty());
-                        feiShuSendMessageService.sendMessage(content);
+                        feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.STOCK);
                     }
                 }
             }

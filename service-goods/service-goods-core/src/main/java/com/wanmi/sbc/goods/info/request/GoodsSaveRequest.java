@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.info.request;
 
 import com.wanmi.sbc.common.base.BaseRequest;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
 import com.wanmi.sbc.goods.images.GoodsImage;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
@@ -12,7 +13,11 @@ import com.wanmi.sbc.goods.spec.model.root.GoodsSpec;
 import com.wanmi.sbc.goods.spec.model.root.GoodsSpecDetail;
 import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -90,4 +95,8 @@ public class GoodsSaveRequest extends BaseRequest {
     @ApiModelProperty(value = "更新人", hidden = true)
     private String updatePerson;
 
+    /**
+     * 打包商品
+     */
+    private List<GoodsPackDetailDTO> goodsPackDetails;
 }

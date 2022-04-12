@@ -67,12 +67,13 @@ import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.distributor.goods.DistributorGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.flashsalegoods.FlashSaleGoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
-import com.wanmi.sbc.goods.api.provider.storetobeevaluate.StoreTobeEvaluateQueryProvider;
+import com.wanmi.sbc.goods.api.provider.prop.GoodsPropQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.RushToAppointmentSaleGoodsRequest;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
@@ -82,18 +83,24 @@ import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuySendDateRuleRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoVerifyRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsListRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.goodsrestrictedsale.GoodsRestrictedBatchValidateRequest;
 import com.wanmi.sbc.goods.api.request.goodstobeevaluate.GoodsTobeEvaluateQueryRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByGoodsIdsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleInProcessResponse;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleIsInProgressResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.api.response.price.GoodsIntervalPriceByCustomerIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListByGoodsIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DeliveryCycle;
 import com.wanmi.sbc.goods.bean.enums.DeliveryPlan;
@@ -265,6 +272,7 @@ import com.wanmi.sbc.order.request.TradeItemRequest;
 import com.wanmi.sbc.order.response.DeliverCalendarResponse;
 import com.wanmi.sbc.order.response.OrderTodoResp;
 import com.wanmi.sbc.order.response.TradeConfirmResponse;
+import com.wanmi.sbc.order.response.TradeItemGuideResponse;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.AuditQueryProvider;
 import com.wanmi.sbc.setting.api.provider.DeliveryQueryProvider;
@@ -443,9 +451,6 @@ public class TradeBaseController {
     private GoodsTobeEvaluateQueryProvider goodsTobeEvaluateQueryProvider;
 
     @Autowired
-    private StoreTobeEvaluateQueryProvider storeTobeEvaluateQueryProvider;
-
-    @Autowired
     private StoreCustomerQueryProvider storeCustomerQueryProvider;
 
     @Autowired
@@ -461,9 +466,6 @@ public class TradeBaseController {
 
     @Autowired
     private FlashSaleGoodsQueryProvider flashSaleGoodsQueryProvider;
-
-    @Autowired
-    private GoodsInfoQueryProvider goodsInfoQueryProvider;
 
     @Autowired
     private TradeItemMapper tradeItemMapper;
@@ -506,6 +508,15 @@ public class TradeBaseController {
 
     @Autowired
     private ExternalProvider externalProvider;
+
+    @Autowired
+    private GoodsPropQueryProvider goodsPropQueryProvider;
+
+    @Autowired
+    private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
@@ -568,6 +579,8 @@ public class TradeBaseController {
             detail.getGifts().stream()
                     .forEach(t -> t.setVirtualCoupons(Collections.EMPTY_LIST));
         }
+        //订单引导信息
+        handGuideInfo(Arrays.asList(detail));
         return BaseResponse.success(detail);
     }
 
@@ -1725,8 +1738,11 @@ public class TradeBaseController {
                 .builder().terminalToken(commonUtil.getTerminalToken()).build()).getContext().getTradeItemGroupList();
 
         List<TradeConfirmItemVO> items = new ArrayList<>();
-        List<String> skuIds = tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
+        List<String> skuIds =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
                 .map(TradeItemVO::getSkuId).collect(Collectors.toList());
+
+
+
         //获取订单商品详情,包含区间价，会员级别价salePrice
         GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
         Map<String, Integer> cpsMap = skuResp.getGoodses().stream().filter(good -> good.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
@@ -1748,8 +1764,7 @@ public class TradeBaseController {
         giftResp = tradeQueryProvider.getGoods(TradeGetGoodsRequest.builder().skuIds(giftIds).build()).getContext();
         final TradeGetGoodsResponse giftTemp = giftResp;
         // 组合购标记
-        boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE,
-                s.getSuitMarketingFlag()));
+        boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE, s.getSuitMarketingFlag()));
         Integer suitScene = null;
         if(suitMarketingFlag && tradeItemGroups.stream().anyMatch(s -> s.getSuitScene()!=null)){
             suitScene = tradeItemGroups.stream().filter(s -> s.getSuitScene()!=null).findFirst().get().getSuitScene();
@@ -2099,6 +2114,20 @@ public class TradeBaseController {
         confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(requ).getContext()
                 .getCouponCodeList());
 
+
+        //打包信息
+        List<String> mainGoodsIdList =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
+                .map(TradeItemVO::getSpuId).collect(Collectors.toList());
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(mainGoodsIdList);
+
+        List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
+        for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
+            List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
+            for (TradeItemVO tradeItemVO : tradeItems) {
+                tradeItemVO.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItemVO.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItemVO.getSpuId()));
+            }
+        }
+
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
@@ -2206,6 +2235,60 @@ public class TradeBaseController {
         confirmResponse.setMarkupLevel(markupLevelDetailVOList);
 
     }
+
+    /**
+     * 查看商品下是否有虚拟商品，是否显示 电话输入框
+     * @param spuIdList
+     * @return
+     */
+    private Map<String, Boolean> getGoodsIdHasVirtual(List<String> spuIdList) {
+
+
+        //获取商品下的打包信息
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = new HashMap<>();
+        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(spuIdList));
+        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+
+        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+            GoodsListByIdsRequest request = new GoodsListByIdsRequest();
+            request.setGoodsIds(goodsPackDetailList.stream().map(GoodsPackDetailResponse::getGoodsId).collect(Collectors.toList()));
+            BaseResponse<GoodsListByIdsResponse> childGoodsList = goodsQueryProvider.listByIds(request);
+            GoodsListByIdsResponse childGoodsResponse = childGoodsList.getContext();
+
+            Map<String, Boolean> childGoodsId2HasVirtualMap = new HashMap<>();
+            for (GoodsVO goodsVOParam : childGoodsResponse.getGoodsVOList()) {
+                Boolean hasGoodsType = childGoodsId2HasVirtualMap.get(goodsVOParam.getGoodsId());
+                if (hasGoodsType != null && hasGoodsType) {
+                    continue;
+                }
+                childGoodsId2HasVirtualMap.put(goodsVOParam.getGoodsId(), Objects.equals(goodsVOParam.getGoodsType(), GoodsType.VIRTUAL_GOODS.ordinal()));
+            }
+
+            //根据主商品 确定当前是否存放 展示 电话输入框
+            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+                Boolean hasGoodsType = mainGoodsId2HasVirtualMap.get(goodsPackDetailParam.getPackId());
+                if (hasGoodsType != null && hasGoodsType) {
+                    continue;
+                }
+                Boolean childHasGoodsType = childGoodsId2HasVirtualMap.get(goodsPackDetailParam.getGoodsId());
+                if (childHasGoodsType == null || !childHasGoodsType) {
+                    continue;
+                }
+                mainGoodsId2HasVirtualMap.put(goodsPackDetailParam.getPackId(), true);
+            }
+        } else {
+            GoodsListByIdsRequest requestOuter = new GoodsListByIdsRequest();
+            requestOuter.setGoodsIds(spuIdList);
+            BaseResponse<GoodsListByIdsResponse> outGoodsList = goodsQueryProvider.listByIds(requestOuter);
+            List<GoodsVO> goodsVOList = outGoodsList.getContext().getGoodsVOList();
+            for (GoodsVO goodsVOParam : goodsVOList) {
+                mainGoodsId2HasVirtualMap.put(goodsVOParam.getGoodsId(), Objects.equals(goodsVOParam.getGoodsType(), GoodsType.VIRTUAL_GOODS.ordinal()));
+            }
+        }
+        return mainGoodsId2HasVirtualMap;
+    }
+
+
 
     private BigDecimal dealDistribution(List<TradeItemGroupVO> tradeItemGroupVOS, TradeConfirmResponse tradeConfirmResponse) {
         BigDecimal totalCommission = BigDecimal.ZERO;
@@ -3807,7 +3890,74 @@ public class TradeBaseController {
                             .forEach(t -> t.setVirtualCoupons(Collections.EMPTY_LIST));
                 });
         tradePage.setContent(tradeVOList);
+
+        //商品引导信息
+        handGuideInfo(tradeVOList);
+
         return BaseResponse.success(tradePage);
+    }
+
+    private void handGuideInfo(List<TradeVO> tradeVOList) {
+        if (CollectionUtils.isEmpty(tradeVOList)) {
+            return;
+        }
+
+        List<String> goodsIds = new ArrayList<>();
+        for (TradeVO tradeVO : tradeVOList) {
+            for (TradeItemVO tradeItem : tradeVO.getTradeItems()) {
+                goodsIds.add(tradeItem.getSpuId());
+            }
+        }
+        if (CollectionUtils.isEmpty(goodsIds)) {
+            return;
+        }
+
+        BaseResponse<List<GoodsPropListByGoodsIdsResponse>> goodsPropResponse =
+                goodsPropQueryProvider.listByGoodsIds(new GoodsPropListByGoodsIdsRequest(goodsIds.stream().distinct().collect(Collectors.toList())));
+
+        if (CollectionUtils.isEmpty(goodsPropResponse.getContext())) {
+            return;
+        }
+
+        Map<String, GoodsPropListByGoodsIdsResponse> goodsPropGroup =
+                goodsPropResponse.getContext().stream().collect(Collectors.toMap(GoodsPropListByGoodsIdsResponse::getGoodsId, item -> item));
+
+        for (TradeVO tradeVO : tradeVOList) {
+            for (TradeItemVO tradeItem : tradeVO.getTradeItems()) {
+                if (goodsPropGroup.containsKey(tradeItem.getSpuId())) {
+                    tradeItem.setGuideText(goodsPropGroup.get(tradeItem.getSpuId()).getGuideText());
+                    tradeItem.setGuideImg(goodsPropGroup.get(tradeItem.getSpuId()).getGuideImg());
+                }
+            }
+        }
+    }
+
+    /**
+     * 查询订单的引导信息
+     */
+    @RequestMapping(value = "/guide/{tid}", method = RequestMethod.GET)
+    public BaseResponse<List<TradeItemGuideResponse>> guide(@PathVariable String tid) {
+        TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(tid).build()).getContext().getTradeVO();
+
+        if (Objects.isNull(trade)) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "指定的订单没有找到");
+        }
+        //订单引导信息
+        handGuideInfo(Arrays.asList(trade));
+
+        List<TradeItemGuideResponse> resultVOs = trade.getTradeItems().stream()
+                .filter(item -> StringUtils.isNotBlank(item.getGuideImg()) || StringUtils.isNotBlank(item.getGuideText()))
+                .map(item -> {
+                    TradeItemGuideResponse resultVO = new TradeItemGuideResponse();
+                    resultVO.setSpuId(item.getSpuId());
+                    resultVO.setSkuId(item.getSkuId());
+                    resultVO.setSpuName(item.getSpuName());
+                    resultVO.setSkuName(item.getSkuName());
+                    resultVO.setGuideImg(item.getGuideImg());
+                    resultVO.setGuideText(item.getGuideText());
+                    return resultVO;
+                }).collect(Collectors.toList());
+        return BaseResponse.success(resultVOs);
     }
 
     /**

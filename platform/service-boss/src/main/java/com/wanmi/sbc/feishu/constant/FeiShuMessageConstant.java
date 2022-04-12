@@ -34,4 +34,5 @@ public class FeiShuMessageConstant {
      */
     public static String FEI_SHU_COST_PRICE_NOTIFY = "{0}{1}当前售价{2}，于{3}成本价由{4}调整为{5}，原毛利率 {6}% 变为 {7}%";
 
+
 }

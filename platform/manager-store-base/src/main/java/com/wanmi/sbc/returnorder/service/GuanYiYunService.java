@@ -65,7 +65,7 @@ public class GuanYiYunService extends AbstractCRMService {
 //            //退单不存在
 //            throw new SbcRuntimeException("K-050003");
 //        }
-        boolean isDelivery = false;
+//        boolean isDelivery = false;
         TradeGetByIdResponse tradeAndProviderTrade = super.getTradeAndProviderTrade(returnOrderVO.getTid(), flag);
         TradeVO tradeVO = tradeAndProviderTrade.getTradeVO();
         //如果为周期购
@@ -92,7 +92,7 @@ public class GuanYiYunService extends AbstractCRMService {
                 }
             }
 
-        } else {
+        } /*else {
             //管易云普通订单  已发货并且没有确认收货的订单无法退款
             DeliveryQueryRequest deliveryQueryRequest = new DeliveryQueryRequest();
             deliveryQueryRequest.setTid(returnOrderVO.getPtid()); //子单
@@ -111,14 +111,13 @@ public class GuanYiYunService extends AbstractCRMService {
                     }
                 }
             }
-        }
+        }*/
         /****************商品拦截 begin*******************/
         log.info("订单管易云拦截:{}", JSON.toJSONString(returnOrderVO));
 
         //获取退单的商品列表
         Map<String, ReturnItemVO> skuId2ReturnItemMap =
                 returnOrderVO.getReturnItems().stream().collect(Collectors.toMap(ReturnItemVO::getSkuId, Function.identity(), (k1, k2) -> k1));
-        DeliverStatus deliverStatus = tradeVO.getTradeState().getDeliverStatus();
         //这里获取的实际上是子单
         List<TradeVO> providerTradeVoList = tradeVO.getTradeVOList().stream().filter(p -> p.getId().equals(returnOrderVO.getPtid())).collect(Collectors.toList());
 
@@ -130,11 +129,7 @@ public class GuanYiYunService extends AbstractCRMService {
                 if (returnItemVO == null) {
                     continue;
                 }
-                //如果已经发货
-                if (isDelivery) {
-                    if (!DeliverStatus.SHIPPED.equals(tradeItemParam.getDeliverStatus())) {
-                        throw new SbcRuntimeException("K-050511");
-                    }
+                if (DeliverStatus.SHIPPED.equals(tradeItemParam.getDeliverStatus())) {
                     log.info("GuanYiYunService interceptorErpDeliverStatus tid:{} 退款执行完成", returnOrderVO.getTid());
                 } else {
                     //如果没有发货，则可以通过商品行退款
@@ -149,6 +144,16 @@ public class GuanYiYunService extends AbstractCRMService {
                         throw new SbcRuntimeException("K-050141", new Object[]{returnOrderVO.getPtid(), tradeItemParam.getSpuName()});
                     }
                 }
+//
+//                //如果已经发货
+//                if (isDelivery) {
+//                    if (!DeliverStatus.SHIPPED.equals(tradeItemParam.getDeliverStatus())) {
+//                        throw new SbcRuntimeException("K-050511");
+//                    }
+//
+//                } else {
+//
+//                }
             }
         }
 
