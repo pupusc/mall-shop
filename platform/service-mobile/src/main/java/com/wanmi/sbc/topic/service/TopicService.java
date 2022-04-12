@@ -15,6 +15,7 @@ import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsInfoVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsLabelNestVO;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -23,6 +24,7 @@ import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheCenterPageRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheCenterPageResponse;
 import com.wanmi.sbc.marketing.bean.enums.CouponSceneType;
+import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponVO;
 import com.wanmi.sbc.setting.api.provider.topic.TopicConfigProvider;
 import com.wanmi.sbc.setting.api.request.topicconfig.TopicQueryRequest;
@@ -66,6 +68,9 @@ public class TopicService {
 
     @Autowired
     private CommonUtil commonUtil;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     public BaseResponse<TopicResponse> detail(TopicQueryRequest request,Boolean allLoad){
         BaseResponse<TopicActivityVO> activityVO =  topicConfigProvider.detail(request);
@@ -152,15 +157,42 @@ public class TopicService {
             if(CollectionUtils.isEmpty(p.getContents())) {
                 return;
             }
-            p.getContents().forEach(c->{
+            String typeAllGoodsId = null;
+            Map<String, String> typeStoreCateGoodsId = new HashMap<>();
+            for (TopicStoreyContentReponse c : p.getContents()) {
                 Optional<TopicStoreyContentReponse.CouponInfo> optionalCouponVO = couponInfos.stream().filter(coupon->coupon.getActivityId().equals(c.getActivityId()) && coupon.getCouponId().equals(c.getCouponId())).findFirst();
                 if(optionalCouponVO.isPresent()){
                     c.setCouponInfo(optionalCouponVO.get());
+                    for (CouponVO couponVO : couponVOS) {
+                        if(couponVO.getActivityId().equals(c.getActivityId()) && couponVO.getCouponId().equals(c.getCouponId())){
+                            if (ScopeType.STORE_CATE.equals(couponVO.getScopeType())) {
+                                //适用店铺分类
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    if(!typeStoreCateGoodsId.containsKey(couponVO.getScopeIds().get(0))){
+                                        BaseResponse<String> goodsId = goodsQueryProvider.getGoodsIdByClassify(Integer.parseInt(couponVO.getScopeIds().get(0)));
+                                        typeStoreCateGoodsId.put(couponVO.getScopeIds().get(0), goodsId.getContext());
+                                    }
+                                    c.setSpuId(typeStoreCateGoodsId.get(couponVO.getScopeIds().get(0)));
+                                }
+                            }else if (ScopeType.ALL.equals(couponVO.getScopeType()) || ScopeType.BOSS_CATE.equals(couponVO.getScopeType()) || ScopeType.BRAND.equals(couponVO.getScopeType())){
+                                if(typeAllGoodsId == null){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(Collections.emptyList());
+                                    typeAllGoodsId = goodsId.getContext();
+                                }
+                                c.setSpuId(typeAllGoodsId);
+                            }else if (ScopeType.SKU.equals(couponVO.getScopeType())){
+                                if(CollectionUtils.isNotEmpty(couponVO.getScopeIds())){
+                                    BaseResponse<String> goodsId = goodsQueryProvider.getGoodsId(couponVO.getScopeIds());
+                                    c.setSpuId(goodsId.getContext());
+                                }
+                            }
+                        }
+                    }
                 }
-            });
+            }
         });
-
    }
+
     private List<GoodsCustomResponse> initGoods(List<String> goodsInfoIds) {
         List<GoodsCustomResponse> goodList = new ArrayList<>();
         //根据商品id列表 获取商品列表信息
