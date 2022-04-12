@@ -32,7 +32,7 @@ public interface GoodsBlackListRepository extends JpaRepository<GoodsBlackListDT
             public Predicate toPredicate(Root<GoodsBlackListDTO> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 final List<Predicate> conditionList = new ArrayList<>();
 
-                if(BooleanUtils.isFalse(goodsBlackListPageProviderRequest.getSearchAll())) {
+                if(BooleanUtils.isNotTrue(goodsBlackListPageProviderRequest.getSearchAll())) {
                     conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlagEnum.NORMAL.getCode()));
                 }
                 if (goodsBlackListPageProviderRequest.getId() != null) {
