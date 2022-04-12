@@ -1,9 +1,6 @@
 package com.wanmi.sbc.goods.blacklist.service;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -18,6 +15,8 @@ import com.wanmi.sbc.goods.api.response.blacklist.BlackListCategoryProviderRespo
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.blacklist.model.root.GoodsBlackListDTO;
 import com.wanmi.sbc.goods.blacklist.repository.GoodsBlackListRepository;
+import com.wanmi.sbc.goods.fandeng.SiteSearchNotifyModel;
+import com.wanmi.sbc.goods.mq.ProducerService;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +42,10 @@ public class GoodsBlackListService {
 
     @Resource
     private GoodsBlackListRepository goodsBlackListRepository;
-
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private ProducerService producerService;
 
 
     /**
@@ -54,6 +54,7 @@ public class GoodsBlackListService {
      */
     public void add(GoodsBlackListProviderRequest goodsBlackListProviderRequest) {
         List<String> businessIdList = goodsBlackListProviderRequest.getBusinessId();
+        List<String> priceBlackList = new ArrayList<>();
         List<GoodsBlackListDTO> list = new ArrayList<>();
         for (String s : businessIdList) {
             GoodsBlackListDTO commonBlackListDTO = new GoodsBlackListDTO();
@@ -65,10 +66,22 @@ public class GoodsBlackListService {
             commonBlackListDTO.setUpdateTime(LocalDateTime.now());
             commonBlackListDTO.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
             list.add(commonBlackListDTO);
+
+            if(goodsBlackListProviderRequest.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode())){
+                priceBlackList.add(s);
+            }
         }
         goodsBlackListRepository.saveAll(list);
         //刷缓存
         flushBlackListCache(new GoodsBlackListCacheProviderRequest(), list);
+
+        //通知主站
+        if(!CollectionUtils.isEmpty(priceBlackList)){
+            SiteSearchNotifyModel siteSearchNotifyModel = new SiteSearchNotifyModel();
+            siteSearchNotifyModel.setType("BOOK_RES");
+            siteSearchNotifyModel.setIds(priceBlackList);
+            producerService.siteSearchDataNotify(siteSearchNotifyModel);
+        }
     }
 
     /**
@@ -93,11 +106,23 @@ public class GoodsBlackListService {
     public void update(GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest){
         Optional<GoodsBlackListDTO> opt = goodsBlackListRepository.findById(goodsBlackListCreateOrUpdateRequest.getId());
         if(opt.isPresent()){
+            String notifySiteId = null;
             GoodsBlackListDTO goodsBlackListDTO = opt.get();
             if(goodsBlackListCreateOrUpdateRequest.getDelFlag() != null){
                 goodsBlackListDTO.setDelFlag(goodsBlackListCreateOrUpdateRequest.getDelFlag());
+                if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()) && goodsBlackListCreateOrUpdateRequest.getDelFlag() == 1){
+                    notifySiteId = goodsBlackListDTO.getBusinessId();
+                }
             }
             goodsBlackListRepository.save(goodsBlackListDTO);
+
+            //通知主站
+            if(notifySiteId != null){
+                SiteSearchNotifyModel siteSearchNotifyModel = new SiteSearchNotifyModel();
+                siteSearchNotifyModel.setType("BOOK_RES");
+                siteSearchNotifyModel.setIds(Arrays.asList(notifySiteId));
+                producerService.siteSearchDataNotify(siteSearchNotifyModel);
+            }
         }
     }
 
@@ -227,7 +252,7 @@ public class GoodsBlackListService {
         }
         if (result.getGoodsSearchH5AtIndexBlackListModel() != null) {
             if (!CollectionUtils.isEmpty(result.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList())) {
-                redisService.putHashStrValueList(RedisKeyConstant.KEY_GOODS_SEARCH_AT_INDEX, RedisKeyConstant.KEY_SPU_ID, result.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList());
+                redisService.putHashStrValueList(RedisKeyConstant.KEY_GOODS_SEARCH_H5_AT_INDEX, RedisKeyConstant.KEY_SPU_ID, result.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList());
             }
         }
         return result;

@@ -2135,8 +2135,8 @@ public class TradeBaseController {
         GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
         if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
             List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-            List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
-            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
+            List<TradeConfirmItemVO> tradeConfirmItems2 = confirmResponse.getTradeConfirmItems();
+            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems2) {
                 List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
                 for (TradeItemVO tradeItem : tradeItems) {
                     if(blackListGoodsId.contains(tradeItem.getSpuId())){

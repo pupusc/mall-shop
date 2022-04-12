@@ -45,10 +45,10 @@ public class GoodsBlackListController {
      * @menu 黑名单
      * @status done
      */
-    @GetMapping("/delete/{id}")
-    public BaseResponse delete(@PathVariable("id") Integer id) {
-        return BaseResponse.success(goodsBlackListProvider.delete(id));
-    }
+//    @GetMapping("/delete/{id}")
+//    public BaseResponse delete(@PathVariable("id") Integer id) {
+//        return BaseResponse.success(goodsBlackListProvider.delete(id));
+//    }
 
     /**
      * @description 更新黑名单
