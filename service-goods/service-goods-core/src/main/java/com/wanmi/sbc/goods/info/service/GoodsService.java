@@ -1946,14 +1946,14 @@ public class GoodsService {
         detailDTO.setDelFlag(0);
         detailDTO.setGoodsId(mainSpuId);
         List<GoodsPackDetailDTO> packDetialsByGoods = goodsPackDetailRepository.findAll(Example.of(detailDTO));
-        GoodsPackDetailDTO childRecord = packDetialsByGoods.stream().filter(item -> item.getGoodsId().equals(mainSpuId) && !item.getPackId().equals(mainSpuId)).findFirst().get();
-        if (Objects.nonNull(childRecord)) {
-            Goods packGoods = goodsRepository.findById(childRecord.getPackId()).get();
-            if (Objects.isNull(packGoods)) {
-                log.warn("根据id查询商品不存在, goodsId = {}", childRecord.getPackId());
+        Optional<GoodsPackDetailDTO> childRecord = packDetialsByGoods.stream().filter(item -> item.getGoodsId().equals(mainSpuId) && !item.getPackId().equals(mainSpuId)).findFirst();
+        if (childRecord.isPresent()) {
+            Optional<Goods> packGoods = goodsRepository.findById(childRecord.get().getPackId());
+            if (!packGoods.isPresent()) {
+                log.warn("根据id查询商品不存在, goodsId = {}", childRecord.get().getPackId());
                 throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
             }
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前主商品已存在于其他商品包中:" + packGoods.getGoodsName());
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前主商品已存在于其他商品包中:" + packGoods.get().getGoodsName());
         }
 
         //验证子商品不能存在主商品身份
