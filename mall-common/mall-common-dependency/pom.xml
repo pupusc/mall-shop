@@ -33,7 +33,7 @@
                 <version>${service.common.version}</version>
             </dependency>
 
-            <!--三分jar包管理-->
+            <!--三方jar包管理-->
         </dependencies>
     </dependencyManagement>
 </project>
