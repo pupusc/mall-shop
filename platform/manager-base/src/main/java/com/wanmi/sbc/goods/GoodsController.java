@@ -248,9 +248,10 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
-        if (Objects.isNull(request.getEditType())) {
-            return BaseResponse.error("编辑类型不能为空");
-        }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
 
         request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
         request.setUpdatePerson(commonUtil.getOperatorId());
@@ -377,14 +378,12 @@ public class GoodsController {
     @ApiOperation(value = "同时新增商品基本和商品设价")
     @RequestMapping(value = "/spu/price", method = RequestMethod.POST)
     public BaseResponse<String> spuDetail(@RequestBody @Valid GoodsAddAllRequest request) {
-        if (Objects.isNull(request.getGoods().getProviderId())) {
-            return BaseResponse.error("供应商id不能为空");
-        }
-        if (Objects.isNull(request.getEditType())) {
-            return BaseResponse.error("编辑类型不能为空");
-        }
-        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
 
+        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
         //request.getGoods().setProviderId(defaultProviderId);
 
         request.setUpdatePerson(commonUtil.getOperatorId());
@@ -468,6 +467,11 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
+
         request.setUpdatePerson(commonUtil.getOperatorId());
         //todo 改为让前端传过来
         //request.getGoods().setProviderId(defaultProviderId);
@@ -1003,6 +1007,10 @@ public class GoodsController {
         if (Objects.isNull(request.getGoods().getProviderId())) {
             return BaseResponse.error("供应商id不能为空");
         }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
         //request.getGoods().setProviderId(defaultProviderId);
 
         Long fId = request.getGoods().getFreightTempId();
@@ -1040,6 +1048,22 @@ public class GoodsController {
         operateLogMQUtil.convertAndSend("商品", "设价",
                 "设价：SPU编码" + request.getGoods().getGoodsNo());
         return BaseResponse.SUCCESSFUL();
+    }
+
+    private void checkGoodsPack(Integer editType, int mainSkuSize, int childSkuSize) {
+        if (Objects.isNull(editType)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "编辑类型不能为空");
+        }
+        //打包商品
+        if (Integer.valueOf(3).equals(editType)) {
+            if (mainSkuSize != 1) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "组合商品的主商品sku数量必须是1");
+            }
+        } else {
+            if (childSkuSize != 0) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "非组合商品的子商品数量必须是0");
+            }
+        }
     }
 
     /**
