@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -161,7 +162,7 @@ public class GoodsBlackListService {
      * @return
      */
     public Page<GoodsBlackListDTO> pageSimple(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
-        return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest), PageRequest.of(goodsBlackListPageProviderRequest.getPageNum(), goodsBlackListPageProviderRequest.getPageSize()));
+        return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest), PageRequest.of(goodsBlackListPageProviderRequest.getPageNum(), goodsBlackListPageProviderRequest.getPageSize(), Sort.by(Sort.Direction.DESC, "createTime")));
     }
 
     public GoodsBlackListPageProviderResponse flushBlackListCache(GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest) {
