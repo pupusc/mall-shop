@@ -1911,11 +1911,14 @@ public class GoodsService {
         if (CollectionUtils.isEmpty(saveRequest.getGoodsPackDetails())) {
             return;
         }
-        //参数验证
+        //参数验证主商品
         if (CollectionUtils.isEmpty(saveRequest.getGoodsInfos())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku信息不能为空");
         }
-
+        if (saveRequest.getGoodsInfos().size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku数量不能大于1");
+        }
+        //参数验证子商品
         for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
             if (Objects.isNull(item.getGoodsId())) {
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的spuId不能为空");
@@ -1932,6 +1935,18 @@ public class GoodsService {
             if (item.getShareRate().compareTo(BigDecimal.ZERO) < 0) {
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例不能为负");
             }
+        }
+
+        List<String> goodsIds = saveRequest.getGoodsPackDetails().stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList());
+        List<GoodsPackDetailDTO> packDetails = goodsPackDetailRepository.listByPackIds(goodsIds);
+        packDetails = packDetails.stream().filter(item -> item.getPackId().equals(item.getGoodsId())).collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(packDetails)) {
+            List<Goods> goodsList = goodsRepository.findAllById(packDetails.stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList()));
+            String msg = "组合中含有主商品:" + (CollectionUtils.isNotEmpty(goodsList) ?
+                    goodsList.stream().map(Goods::getGoodsName).collect(Collectors.joining("、")) :
+                    packDetails.stream().map(GoodsPackDetailDTO::getGoodsId).collect(Collectors.joining("、")));
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, msg);
         }
 
         String spuId = saveRequest.getGoodsInfos().get(0).getGoodsId();
