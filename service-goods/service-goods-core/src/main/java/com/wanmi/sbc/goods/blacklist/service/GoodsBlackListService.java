@@ -110,11 +110,31 @@ public class GoodsBlackListService {
             GoodsBlackListDTO goodsBlackListDTO = opt.get();
             if(goodsBlackListCreateOrUpdateRequest.getDelFlag() != null){
                 goodsBlackListDTO.setDelFlag(goodsBlackListCreateOrUpdateRequest.getDelFlag());
-                if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode()) && goodsBlackListCreateOrUpdateRequest.getDelFlag() == 1){
+                if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.NEW_BOOKS.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_NEW_BOOKS_BLACK_LIST);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.SELL_WELL_BOOKS.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_SELL_WELL_BOOKS);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.SPECIAL_OFFER_BOOKS.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_SPECIAL_OFFER_BOOKS);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_SHOW_VIP_PRICE.getCode())){
                     notifySiteId = goodsBlackListDTO.getBusinessId();
+                    redisService.delete(RedisKeyConstant.KEY_UN_SHOW_VIP_PRICE);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_POINT_NOT_SPLIT);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_SHOW_WAREHOUSE.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_UN_WARE_HOUSE);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.CLASSIFT_AT_BOTTOM.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_CLASSIFY_AT_BOTTOM);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.GOODS_SESRCH_AT_INDEX.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_GOODS_SEARCH_AT_INDEX);
+                }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode())){
+                    redisService.delete(RedisKeyConstant.KEY_GOODS_SEARCH_H5_AT_INDEX);
                 }
             }
             goodsBlackListRepository.save(goodsBlackListDTO);
+            GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
+            goodsBlackListCacheProviderRequest.setBusinessCategoryColl(Collections.singletonList(goodsBlackListDTO.getBusinessCategory()));
+            flushBlackListCache(goodsBlackListCacheProviderRequest);
 
             //通知主站
             if(notifySiteId != null){
