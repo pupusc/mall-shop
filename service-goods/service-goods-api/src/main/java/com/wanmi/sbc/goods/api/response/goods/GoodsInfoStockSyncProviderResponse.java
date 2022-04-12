@@ -72,6 +72,16 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
     private Integer currentStockQty;
 
     /**
+     * 当前库存冻结是否变更
+     */
+    private boolean isChangeStock = false;
+
+    /**
+     * 是否发送库存消息
+     */
+    private Boolean isSendStockMsg;
+
+    /**
      * 是否同步成本价
      */
     private boolean canSyncCostPrice = false;
@@ -90,4 +100,5 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
      * 当前成本价
      */
     private BigDecimal currentCostPrice;
+
 }

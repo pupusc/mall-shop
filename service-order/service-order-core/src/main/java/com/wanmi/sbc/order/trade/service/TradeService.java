@@ -1779,8 +1779,8 @@ public class TradeService {
                 for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
                     if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
                         BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
-                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
-                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
+                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
 
                         surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
                         surplusPoint = surplusPoint.subtract(pointsTmp);
@@ -1827,7 +1827,7 @@ public class TradeService {
                 }
 
                 BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
-                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));
+                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));  //此处计算不正确
                 tradeItemParam.setPackId(mainGoodsPackDetailTmp == null ? tradeItemParam.getSpuId() : mainGoodsPackDetailTmp.getPackId());
 
                 log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItemParam.getSpuId(), tradeItemParam.getPackId());
