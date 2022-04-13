@@ -56,7 +56,7 @@ public class WxCallbackController {
             log.error("微信回调失败:\n" + encryptStr, e);
             if(callbackId != null) miniAppOrderProvider.updateCallback(WxMiniProgramCallbackRequest.builder().id(callbackId).status(1).build());
         }
-        return "success";
+        return "fail";
     }
 
     @GetMapping("/callback")

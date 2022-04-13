@@ -80,13 +80,13 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
     }
 
     @Override
-    public void handle(Map<String, Object> paramMap) {
+    public String handle(Map<String, Object> paramMap) {
         log.info("ReturnOrderCallbackHandler handle --> begin");
         long beginTime = System.currentTimeMillis();
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
             log.error("回调参数异常");
-            return;
+            return "false";
         }
 //        if (!(returnOrderObj instanceof Map)) {
 //            log.error("回调参数异常 returnOrderObj is not map");
@@ -143,31 +143,6 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
                         .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
 
         log.info("ReturnOrderCallbackHandler handle --> end cost: {} ms", System.currentTimeMillis() - beginTime);
-//
-//        //获取退单
-//        ReturnOrderByIdRequest request = new ReturnOrderByIdRequest();
-//        BaseResponse<ReturnOrderByIdResponse> returnOrderByIdResponseBaseResponse = returnOrderQueryProvider.getById(request);
-//        ReturnOrderByIdResponse context = returnOrderByIdResponseBaseResponse.getContext();
-//        if (context == null) {
-//            return;
-//        }
-//
-//        PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
-//        payTradeRecordRequest.setTradeNo(returnOrderTradeNo);
-//        payTradeRecordRequest.setBusinessId(returnOrderIdObj);
-//        payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
-//        BigDecimal applyPrice = context.getReturnPrice().getApplyPrice().
-//                divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
-//        payTradeRecordRequest.setApplyPrice(applyPrice);
-//        payTradeRecordRequest.setPracticalPrice(applyPrice);
-//        payProvider.wxPayCallBack(payTradeRecordRequest);
-//
-//        Operator operator =
-//                Operator.builder().adminId("1").name("system").account("system").ip("127.0.0.1").platform(Platform.PLATFORM).build();
-//
-//        returnOrderProvider.onlineRefund(
-//                ReturnOrderOnlineRefundRequest.builder().operator(operator)
-//                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
-//                        .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
+        return "success";
     }
 }

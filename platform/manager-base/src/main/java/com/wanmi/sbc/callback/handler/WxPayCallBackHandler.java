@@ -25,7 +25,7 @@ public class WxPayCallBackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handle(Map<String, Object> paramMap) {
+    public String handle(Map<String, Object> paramMap) {
         //支付回调
         log.info("WxPayCallBackHandler params:{}",paramMap);
         try {
@@ -37,5 +37,6 @@ public class WxPayCallBackHandler implements CallbackHandler {
         }catch (Exception e){
             log.error("WxPayCallBackHandler error,param:{}",paramMap,e);
         }
+        return "success";
     }
 }
