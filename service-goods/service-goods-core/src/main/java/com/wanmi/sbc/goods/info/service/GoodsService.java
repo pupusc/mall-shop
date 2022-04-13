@@ -137,6 +137,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
@@ -1911,11 +1912,14 @@ public class GoodsService {
         if (CollectionUtils.isEmpty(saveRequest.getGoodsPackDetails())) {
             return;
         }
-        //参数验证
+        //参数验证主商品
         if (CollectionUtils.isEmpty(saveRequest.getGoodsInfos())) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku信息不能为空");
         }
-
+        if (saveRequest.getGoodsInfos().size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku数量不能大于1");
+        }
+        //参数验证子商品
         for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
             if (Objects.isNull(item.getGoodsId())) {
                 throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的spuId不能为空");
@@ -1934,18 +1938,47 @@ public class GoodsService {
             }
         }
 
-        String spuId = saveRequest.getGoodsInfos().get(0).getGoodsId();
-        String skuId = saveRequest.getGoodsInfos().get(0).getGoodsInfoId();
+        String mainSpuId = saveRequest.getGoodsInfos().get(0).getGoodsId();
+        String mainSkuId = saveRequest.getGoodsInfos().get(0).getGoodsInfoId();
+
+        //验证主商品不能存在子商品身份
+        GoodsPackDetailDTO detailDTO = new GoodsPackDetailDTO();
+        detailDTO.setDelFlag(0);
+        detailDTO.setGoodsId(mainSpuId);
+        List<GoodsPackDetailDTO> packDetialsByGoods = goodsPackDetailRepository.findAll(Example.of(detailDTO));
+        Optional<GoodsPackDetailDTO> childRecord = packDetialsByGoods.stream().filter(item -> item.getGoodsId().equals(mainSpuId) && !item.getPackId().equals(mainSpuId)).findFirst();
+        if (childRecord.isPresent()) {
+            Optional<Goods> packGoods = goodsRepository.findById(childRecord.get().getPackId());
+            if (!packGoods.isPresent()) {
+                log.warn("根据id查询商品不存在, goodsId = {}", childRecord.get().getPackId());
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+            }
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前主商品已存在于其他商品包中:" + packGoods.get().getGoodsName());
+        }
+
+        //验证子商品不能存在主商品身份
+        List<String> packIds = saveRequest.getGoodsPackDetails().stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList());
+        List<GoodsPackDetailDTO> packDetails = goodsPackDetailRepository.listByPackIds(packIds);
+        packDetails = packDetails.stream().filter(item -> item.getPackId().equals(item.getGoodsId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(packDetails)) {
+            List<String> goodsIds = packDetails.stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList());
+            List<Goods> goodsList = goodsRepository.findAllById(goodsIds);
+            if (CollectionUtils.isEmpty(goodsList)) {
+                log.warn("根据ids查询商品不存在, goodsIds = {}", JSON.toJSONString(goodsIds));
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+            }
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "组合中含有主商品:" + goodsList.stream().map(Goods::getGoodsName).collect(Collectors.joining("、")));
+        }
 
         //删除关联的打包数据
-        goodsPackDetailRepository.removeAllByPackId(spuId);
+        goodsPackDetailRepository.removeAllByPackId(mainSpuId);
 
         BigDecimal sumRate = new BigDecimal(100);
         List<GoodsPackDetailDTO> insertList = new ArrayList<>();
         for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
             sumRate = sumRate.subtract(item.getShareRate());
             GoodsPackDetailDTO childGoods = new GoodsPackDetailDTO();
-            childGoods.setPackId(spuId);
+            childGoods.setPackId(mainSpuId);
             childGoods.setGoodsId(item.getGoodsId());
             childGoods.setGoodsInfoId(item.getGoodsInfoId());
             childGoods.setCount(item.getCount());
@@ -1957,9 +1990,9 @@ public class GoodsService {
         }
 
         GoodsPackDetailDTO mainGoods = new GoodsPackDetailDTO();
-        mainGoods.setGoodsId(spuId);
-        mainGoods.setGoodsInfoId(skuId);
-        mainGoods.setPackId(spuId);
+        mainGoods.setGoodsId(mainSpuId);
+        mainGoods.setGoodsInfoId(mainSkuId);
+        mainGoods.setPackId(mainSpuId);
         mainGoods.setCount(1);
         mainGoods.setShareRate(sumRate);
         insertList.add(mainGoods);

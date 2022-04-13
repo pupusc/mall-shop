@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.bean.dto.GoodsImageDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsIntervalPriceDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsLevelPriceDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPropDetailRelDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsSpecDetailDTO;
@@ -141,4 +142,9 @@ public class GoodsAddAllRequest extends BaseRequest {
      * 编辑类型：1普通商品；2直充商品；3打包商品；
      */
     private Integer editType;
+
+    /**
+     * 打包商品
+     */
+    private List<GoodsPackDetailDTO> goodsPackDetails;
 }
