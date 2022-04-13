@@ -73,8 +73,9 @@ public class GoodsBlackListService {
             }
         }
         goodsBlackListRepository.saveAll(list);
-        //刷缓存
-        flushBlackListCache(new GoodsBlackListCacheProviderRequest(), list);
+        GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
+        goodsBlackListCacheProviderRequest.setBusinessCategoryColl(Collections.singletonList(goodsBlackListProviderRequest.getBusinessCategory()));
+        flushBlackListCache(goodsBlackListCacheProviderRequest);
 
         //通知主站
         if(!CollectionUtils.isEmpty(priceBlackList)){
