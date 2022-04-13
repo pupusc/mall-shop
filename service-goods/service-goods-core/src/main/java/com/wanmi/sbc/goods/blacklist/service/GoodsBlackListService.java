@@ -406,7 +406,7 @@ public class GoodsBlackListService {
         /**
          * classifyId
          */
-        if (Objects.equals(commonBlackListParam.getBusinessType(), GoodsBlackListTypeEnum.CLASSIFY_ID_SECOND.getCode())) {
+        if (Objects.equals(commonBlackListParam.getBusinessType(), GoodsBlackListTypeEnum.CLASSIFY_ID_SECOND.getCode()) || Objects.equals(commonBlackListParam.getBusinessType(), GoodsBlackListTypeEnum.CLASSIFY_ID_FIRST.getCode())) {
             List<String> secondClassifyIdList = blackListCategoryProviderResponse.getSecondClassifyIdList();
             if (CollectionUtils.isEmpty(secondClassifyIdList)) {
                 secondClassifyIdList = new ArrayList<>();
