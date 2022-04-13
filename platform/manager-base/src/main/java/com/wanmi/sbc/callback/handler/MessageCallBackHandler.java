@@ -56,14 +56,14 @@ public class MessageCallBackHandler implements CallbackHandler {
         int index = (int)(Math.random() * result.size());
         WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline = result.get(index);
 
-        String createTime = (String) paramMap.get("CreateTime");
+        Long createTime = Long.valueOf(paramMap.get("CreateTime").toString());
         String toUser = customerServerOnline.getOpenId();
         String msgType = "transfer_customer_service";
-        String fromUserName = "WANH3081435";
+        String fromUserName = "gh_935e2442e993";
         String format = "<xml>" +
                 "<ToUserName><![CDATA[%s]]></ToUserName>" +
                 "<FromUserName><![CDATA[%s]]></FromUserName>" +
-                "<CreateTime>%s</CreateTime>" +
+                "<CreateTime>%d</CreateTime>" +
                 "<MsgType><![CDATA[%s]]></MsgType>" +
                 "</xml>";
         return String.format(format, toUser, fromUserName, createTime, msgType);
