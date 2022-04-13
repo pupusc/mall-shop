@@ -3,6 +3,7 @@ package com.wanmi.sbc.callback.handler;
 import com.soybean.mall.wx.mini.customerserver.controller.WxCustomerServerApiController;
 import com.soybean.mall.wx.mini.customerserver.request.WxCustomerServerOnlineRequest;
 import com.soybean.mall.wx.mini.customerserver.response.WxCustomerServerOnlineResponse;
+import com.wanmi.sbc.callback.controller.WxCallbackController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,11 +56,21 @@ public class MessageCallBackHandler implements CallbackHandler {
 
         int index = (int)(Math.random() * result.size());
         WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline = result.get(index);
+        String fromUserName = paramMap.get("FromUserName").toString();
+        if (WxCallbackController.paramMap.get("FromUserName") != null
+                && !WxCallbackController.paramMap.get("FromUserName").toString().equals("duanlsh")) {
+            fromUserName = WxCallbackController.paramMap.get("FromUserName").toString();
+        }
+
+        String toUserName = paramMap.get("ToUserName").toString();
+        if (WxCallbackController.paramMap.get("ToUserName") != null
+                && !WxCallbackController.paramMap.get("ToUserName").toString().equals("duanlsh")) {
+            fromUserName = WxCallbackController.paramMap.get("ToUserName").toString();
+        }
 
         Long createTime = Long.valueOf(paramMap.get("CreateTime").toString());
-        String fromUserName = paramMap.get("FromUserName").toString();
 
-        String toUser = paramMap.get("ToUserName").toString();
+
 //        String fromUserName = "gh_935e2442e993";
         String msgType = "transfer_customer_service";
         String format = "<xml>" +
@@ -68,8 +79,10 @@ public class MessageCallBackHandler implements CallbackHandler {
                 "<CreateTime>%d</CreateTime>" +
                 "<MsgType><![CDATA[%s]]></MsgType>" +
                 "</xml>";
-        return String.format(format, toUser, fromUserName, createTime, msgType);
-    }
 
+        String resultXml = String.format(format, fromUserName ,toUserName, createTime, msgType);
+        log.info("MessageCallBackHandler handler: {}", resultXml);
+        return resultXml;
+    }
     
 }

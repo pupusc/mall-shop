@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,15 +61,24 @@ public class WxCallbackController {
         return result;
     }
 
+
+    public static Map<String, Object> paramMap = new HashMap<>();
+
     @GetMapping("/callback")
     public String verifyCallback(HttpServletRequest request) {
-        Map<String, String[]> parameterMap = request.getParameterMap();
-        StringBuilder sb = new StringBuilder(128);
-        parameterMap.forEach((k, v) -> {
-            sb.append(k).append("=").append(v[0]).append("\n");
-        });
-        log.info("微信回调验证参数:{}", sb.toString());
-        BaseResponse baseResponse = wxGoodsApiController.verifyCallback(parameterMap);
-        return (String) baseResponse.getContext();
+        String fromUserName = request.getParameter("fromUserName");
+        String toUserName = request.getParameter("toUserName");
+        paramMap.put("FromUserName", fromUserName);
+        paramMap.put("ToUserName", toUserName);
+        return "success";
+//        Map<String, String[]> parameterMap = request.getParameterMap();
+//        StringBuilder sb = new StringBuilder(128);
+//        parameterMap.forEach((k, v) -> {
+//            sb.append(k).append("=").append(v[0]).append("\n");
+//        });
+//        log.info("微信回调验证参数:{}", sb.toString());
+//        BaseResponse baseResponse = wxGoodsApiController.verifyCallback(parameterMap);
+//        return (String) baseResponse.getContext();
     }
+
 }
