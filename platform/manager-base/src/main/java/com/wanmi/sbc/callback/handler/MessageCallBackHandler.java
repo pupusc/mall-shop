@@ -59,7 +59,7 @@ public class MessageCallBackHandler implements CallbackHandler {
         long createTime = (long) paramMap.get("CreateTime");
         String toUser = customerServerOnline.getOpenId();
         String msgType = "transfer_customer_service";
-        String fromUserName = "";
+        String fromUserName = "WANH3081435";
         String format = "<xml>" +
                 "<ToUserName><![CDATA[%s]]></ToUserName>" +
                 "<FromUserName><![CDATA[%s]]></FromUserName>" +
