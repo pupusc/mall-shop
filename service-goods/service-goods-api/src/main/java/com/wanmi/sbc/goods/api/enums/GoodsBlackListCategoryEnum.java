@@ -21,7 +21,10 @@ public enum GoodsBlackListCategoryEnum {
     SPECIAL_OFFER_BOOKS(3, "特价书榜"),
     UN_SHOW_VIP_PRICE(4, "不享受会员优惠商品"),
     UN_SHOW_WAREHOUSE(5, "查询的虚拟仓库"),
-    POINT_NOT_SPLIT(6, "不能使用积分商品");
+    POINT_NOT_SPLIT(6, "不能使用积分商品"),
+    CLASSIFT_AT_BOTTOM(7, "底部分类"),
+    GOODS_SESRCH_AT_INDEX(8, "首页商品搜索H5和领阅不展示"),
+    GOODS_SESRCH_H5_AT_INDEX(9, "首页商品搜索H5不展示");
 
     private final Integer code;
     private final String message;

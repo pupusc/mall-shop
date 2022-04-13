@@ -1,16 +1,18 @@
 package com.wanmi.sbc.blacklist;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCreateOrUpdateRequest;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListProviderRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListSearchRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.response.GoodsBlackListData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Description:
@@ -26,11 +28,11 @@ public class GoodsBlackListController {
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
 
-
     /**
-     * 新增黑名单
+     * @description 添加黑名单
      * @param goodsBlackListProviderRequest
-     * @return
+     * @menu 黑名单
+     * @status done
      */
     @PostMapping("/add")
     public BaseResponse add(@Validated @RequestBody GoodsBlackListProviderRequest goodsBlackListProviderRequest) {
@@ -38,14 +40,37 @@ public class GoodsBlackListController {
     }
 
     /**
-     * 删除黑名单
-     * @return
+     * @description 删除黑名单
+     * @param id
+     * @menu 黑名单
+     * @status done
      */
-    @GetMapping("/delete/{id}")
-    public BaseResponse delete(@PathVariable("id") Integer id) {
-        return BaseResponse.success(goodsBlackListProvider.delete(id));
+//    @GetMapping("/delete/{id}")
+//    public BaseResponse delete(@PathVariable("id") Integer id) {
+//        return BaseResponse.success(goodsBlackListProvider.delete(id));
+//    }
+
+    /**
+     * @description 更新黑名单
+     * @param goodsBlackListCreateOrUpdateRequest
+     * @menu 黑名单
+     * @status done
+     */
+    @PostMapping("/update")
+    public BaseResponse update(@RequestBody GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest){
+        goodsBlackListProvider.update(goodsBlackListCreateOrUpdateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
-
+    /**
+     * @description 查询黑名单
+     * @param goodsBlackListCacheProviderRequest
+     * @menu 黑名单
+     * @status done
+     */
+    @PostMapping("/list")
+    public BaseResponse<MicroServicePage<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest){
+        return goodsBlackListProvider.list(goodsBlackListCacheProviderRequest);
+    }
 
 }
