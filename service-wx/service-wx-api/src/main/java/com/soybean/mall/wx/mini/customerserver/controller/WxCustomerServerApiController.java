@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @RequestMapping("/wx/mini")
-@FeignClient(value = "${application.wx.name}", contextId = "WxMiniApiController")
+@FeignClient(value = "${application.wx.name}", contextId = "WxMiniCustomerServerApiController")
 public interface WxCustomerServerApiController {
 
 
