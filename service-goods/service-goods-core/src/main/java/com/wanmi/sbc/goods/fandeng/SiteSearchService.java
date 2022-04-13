@@ -150,7 +150,7 @@ public class SiteSearchService {
 
         try {
             //适当延时
-            TimeUnit.MILLISECONDS.sleep(1000);
+            TimeUnit.MILLISECONDS.sleep(3000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

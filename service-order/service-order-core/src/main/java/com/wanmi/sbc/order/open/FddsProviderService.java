@@ -33,6 +33,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
  * @author Liang Jun
  * @date 2022-04-02 00:40:00
  */
+@RefreshScope
 @Slf4j
 @Service
 public class FddsProviderService {
@@ -173,6 +175,7 @@ public class FddsProviderService {
 
         FddsBaseResult<FddsOrderCreateResultData> createResult;
         try {
+            checkParams(createParam);
             createResult = fddsOpenPlatformService.doRequest(orderCreateUrl, JSON.toJSONString(createParam), FddsBaseResult.class);
         } catch (Exception e) {
             Long orderNumber = queryUnknowOrder(providerTrade);
@@ -185,6 +188,13 @@ public class FddsProviderService {
         }
 
         return createResult;
+    }
+
+    private void checkParams(FddsOrderCreateParam createParam) {
+        String errorMsg = createParam.checkParams();
+        if (Objects.nonNull(errorMsg)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, errorMsg);
+        }
     }
 
     /**

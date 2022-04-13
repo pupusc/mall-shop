@@ -34,11 +34,10 @@ public class MyFeignClient extends Client.Default {
     @Override
     public Response execute(Request request, Request.Options options) throws IOException {
         try {
-            log.info("{} invoke url: {} method:{} request:{} options:{} ", sourceProjectName,
-                    request.url(), request.httpMethod(), JSON.toJSONString(request), JSON.toJSONString(options));
             return super.execute(request, options);
         } catch (Exception e) {
-            log.error("请求{} 异常", request.url(), e);
+            log.error("invoke url: {} method:{} request:{} options:{} 调用异常",
+                    request.url(), request.httpMethod(), JSON.toJSONString(request), JSON.toJSONString(options), e);
             throw e;
         }
     }

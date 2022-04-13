@@ -1,11 +1,13 @@
 package com.wanmi.sbc.order.open.model;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author Liang Jun
@@ -52,6 +54,7 @@ public class FddsOrderCreateParam {
     /**
      * 平台优惠价（单位分）
      */
+    @NotNull
     private BigDecimal plDiscontPrice;
 
     /**
@@ -82,4 +85,29 @@ public class FddsOrderCreateParam {
      * 推广人编号
      */
     private String promoterNo;
+
+    /**
+     * 验证下单参数，失败返回错误信息
+     */
+    public String checkParams() {
+        if (StringUtils.isBlank(tradeNo)) {
+            return "合作方订单号不能为空";
+        }
+        if (Objects.isNull(accountType)) {
+            return "账号类型不能为空";
+        }
+        if (StringUtils.isBlank(mobile)) {
+            return "购买人手机号不能为空";
+        }
+        if (Objects.isNull(plDiscontPrice)) {
+            return "平台优惠价不能为空";
+        }
+        if (StringUtils.isBlank(payType)) {
+            return "合作方支付方式不能为空";
+        }
+        if (StringUtils.isBlank(externalProductNo)) {
+            return "外部产品编码不能为空";
+        }
+        return null;
+    }
 }
