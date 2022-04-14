@@ -769,7 +769,7 @@ public class TradeService {
 
 
     /**
-     * C端下单
+     * C端下单 TODO 作废啦
      */
     @Transactional
     @GlobalTransactional
@@ -779,6 +779,10 @@ public class TradeService {
         CustomerSimplifyOrderCommitVO customer =
                 verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
+
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
 
         Operator operator = tradeCommitRequest.getOperator();
         List<TradeItemGroup> tradeItemGroups = tradeItemService.find(tradeCommitRequest.getTerminalToken());
@@ -929,6 +933,9 @@ public class TradeService {
             log.info("订单尾款超时未支付，发送订单作废MQ，订单号：{}", trade.getId());
             orderProducerService.cancelOrder(trade.getId(), 0L);
             throw new SbcRuntimeException("K-050102");
+        }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
         }
         // 验证用户
         CustomerSimplifyOrderCommitVO customer =
@@ -1770,8 +1777,13 @@ public class TradeService {
                         TradeItemDTOList.add(TradeItemDTO.builder().skuId(goodsPackDetailTmp.getGoodsInfoId()).num(Long.valueOf(goodsPackDetailTmp.getCount())).build());
                     }
                 }
-                List<TradeItemGroup> tradeItemGroups =
-                        this.getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(TradeItemDTOList).build());
+
+                TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+                tradePurchaseRequest.setCustomer(customer);
+                tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+                tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+
+                List<TradeItemGroup> tradeItemGroups = this.getTradeItemList(tradePurchaseRequest);
                 List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
                 Map<String, TradeItem> skuId2TradeItemMap = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
 
@@ -1861,9 +1873,16 @@ public class TradeService {
                     .map(PaidCardCustomerRelVO::getPaidCardVO)
                     .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
         }
-
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
-//        List<GoodsInfoVO> goodsInfoVOList = ;
+
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+
+            if (!goodsInfo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
+                throw new SbcRuntimeException("K-050216");
+            }
+        }
+
+
         Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         Map<String, Integer> cpsSpecialMap = response.getGoodsInfos().stream().collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
         List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
@@ -1906,6 +1925,7 @@ public class TradeService {
         tradeItemGroupVOS.setTradeItems(tradeItems);
         tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
 
+        //订单商品渠道校验信息
 
         //商品按店铺分组
         Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));

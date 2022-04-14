@@ -23,6 +23,7 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.*;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
@@ -184,6 +185,7 @@ public class OrderController {
             DistributeChannel channel = new DistributeChannel();
             channel.setChannelType(ChannelType.MINIAPP);
             tradeCommitRequest.setDistributeChannel(channel);
+            tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
 
         } catch (Exception e) {

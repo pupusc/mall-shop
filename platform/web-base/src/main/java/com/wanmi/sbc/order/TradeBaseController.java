@@ -1510,7 +1510,7 @@ public class TradeBaseController {
             //this.containAppointmentSaleAndBookingSale(tradeItemGroups, customer);
 
             tradeCommitRequest.setTerminalToken(commonUtil.getTerminalToken());
-
+            tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             //tradeCommitRequest.setCustomer(customer);
 
             successResults = tradeProvider.commit(tradeCommitRequest).getContext().getTradeCommitResults();
@@ -1574,6 +1574,7 @@ public class TradeBaseController {
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
             tradeCommitRequest.setTerminalToken(commonUtil.getTerminalToken());
+            tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
             //生成尾预售款订单快照
             generateSnapshot(tradeCommitRequest, trade);
             List<TradeItemGroupVO> tradeItemGroups =

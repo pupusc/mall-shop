@@ -4,6 +4,7 @@ import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -433,6 +434,7 @@ public class GoodsBaseController {
         return BaseResponse.success(detail(null,skuId, null, Boolean.FALSE));
     }
 
+
     @ApiOperation(value = "未登录时,查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/{skuId}", method = RequestMethod.GET)
@@ -704,12 +706,18 @@ public class GoodsBaseController {
      * fullMarketing
      */
     private GoodsViewByIdResponse detail(String spuId,String skuId, CustomerVO customer, Boolean fullMarketing) {
-
+        //获取源头
+        TerminalSource terminal = commonUtil.getTerminal();
         String customerId = null;
         if (Objects.nonNull(customer) && StringUtils.isNotBlank(customer.getCustomerId())) {
             customerId = customer.getCustomerId();
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(spuId,skuId, customerId);
+        if (CollectionUtils.isEmpty(response.getGoods().getGoodsChannelTypeSet())
+            || !response.getGoods().getGoodsChannelTypeSet().contains(terminal.getCode().toString())) {
+            throw new SbcRuntimeException("K-030025"); //K-030025=商品不可访问
+        }
+
         if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
             if (customer == null || StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);

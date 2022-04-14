@@ -113,8 +113,15 @@ public class OrderService {
         if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
             throw new SbcRuntimeException("K-050214");
         }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
 
-        List<TradeItemGroup> tradeItemGroups = tradeService.getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(tradeCommitRequest.getTradeItems()).build());
+        TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+        tradePurchaseRequest.setCustomer(customer);
+        tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+        tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+        List<TradeItemGroup> tradeItemGroups = tradeService.getTradeItemList(tradePurchaseRequest);
         List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
 
         //商品信息

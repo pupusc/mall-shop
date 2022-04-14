@@ -213,5 +213,7 @@ public class TradeCommitRequest extends BaseRequest {
     /**
      * 小程序订单场景1小程序2视频号
      */
-    private Integer miniProgramScene =1;
+    private Integer miniProgramScene;
+
+
 }

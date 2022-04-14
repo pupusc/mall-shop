@@ -153,6 +153,10 @@ public class TradeOptimizeService {
     @GlobalTransactional
     public List<TradeCommitResult> commit(TradeCommitRequest tradeCommitRequest) {
 
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
+
         // 验证用户
         CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
@@ -558,6 +562,11 @@ public class TradeOptimizeService {
         }
     }
 
+    /**
+     * TODO 作废啦没有调用的地方
+     * @param tradeCommitRequest
+     * @return
+     */
     @Transactional
     @GlobalTransactional
     public List<TradeCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
@@ -569,6 +578,10 @@ public class TradeOptimizeService {
         if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
             throw new SbcRuntimeException("K-050214");
         }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
+
 
         List<TradeItemGroup> tradeItemGroups = getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(tradeCommitRequest.getTradeItems()).build());
         List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());

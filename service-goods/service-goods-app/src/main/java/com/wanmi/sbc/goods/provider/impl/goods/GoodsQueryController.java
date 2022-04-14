@@ -335,6 +335,11 @@ public class GoodsQueryController implements GoodsQueryProvider {
             goodsByIdResponse = KsBeanUtil.convert(goodsEditResponse, GoodsViewByIdResponse.class);
         }
 
+        if (StringUtils.isNotBlank(goodsByIdResponse.getGoods().getGoodsChannelType())) {
+            String[] goodsChannelTypeAtt = goodsByIdResponse.getGoods().getGoodsChannelType().split(",");
+            goodsByIdResponse.getGoods().setGoodsChannelTypeSet(Arrays.asList(goodsChannelTypeAtt));
+        }
+
         //供应商商品同步库存
         goodsByIdResponse.setGoodsInfos(providerStockSync(goodsByIdResponse.getGoodsInfos()));
 
