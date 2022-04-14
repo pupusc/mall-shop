@@ -1,5 +1,6 @@
 package com.wanmi.sbc.job;
 
+import com.wanmi.sbc.goods.api.enums.DeleteFlagEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
 import com.xxl.job.core.biz.model.ReturnT;
@@ -45,6 +46,7 @@ public class GoodsBlackListJobHandler extends IJobHandler{
         }
         GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
         goodsBlackListCacheProviderRequest.setBusinessCategoryColl(businessCateGoryColl);
+        goodsBlackListCacheProviderRequest.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         goodsBlackListProvider.flushBlackListCache(goodsBlackListCacheProviderRequest);
         return ReturnT.SUCCESS;
     }

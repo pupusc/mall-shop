@@ -1875,7 +1875,9 @@ public class TradeService {
         }
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
         for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
-
+            log.info("TradeService getTradeItemList goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
+                    , JSON.toJSONString(goodsInfo.getGoodsChannelTypeSet())
+                    , JSON.toJSONString(request.getGoodsChannelTypeSet()));
             if (!goodsInfo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
                 throw new SbcRuntimeException("K-050216");
             }
