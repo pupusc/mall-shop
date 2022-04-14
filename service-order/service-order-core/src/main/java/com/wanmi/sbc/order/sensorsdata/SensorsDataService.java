@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.sensorsdata;
 import com.alibaba.fastjson.JSON;
 import com.soybean.common.util.IntegerEncryptTool;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.request.customer.NoDeleteCustomerGetByAccountRequest;
 import com.wanmi.sbc.customer.api.response.customer.NoDeleteCustomerGetByAccountResponse;
@@ -45,6 +46,7 @@ public class SensorsDataService {
             request.setCustomerAccount(trade.getBuyer().getAccount());
             BaseResponse<NoDeleteCustomerGetByAccountResponse> noDeleteCustomerByAccount = customerQueryProvider.getNoDeleteCustomerByAccount(request);
             String fandengUserNo = noDeleteCustomerByAccount.getContext().getFanDengUserNo();
+
             if (StringUtils.isNotBlank(fandengUserNo)) {
                 String fanDengUserNoEncrypt = "";
                 try {
@@ -59,6 +61,7 @@ public class SensorsDataService {
                     sensorsMessageDto.setDistinctId(fanDengUserNoEncrypt);
                     sensorsMessageDto.setLoginId(false);
                     sensorsMessageDto.addProperty("click_type", "付款成功");
+                    sensorsMessageDto.addProperty("platfrom_type", trade.getChannelType().equals(ChannelType.MINIAPP) ? "商城好书屋小程序" :"商城H5");
                     sensorsMessageDto.addProperty("var_id", tradeItem.getSkuId());
                     sensorsMessageDto.addProperty("goods_name", tradeItem.getSkuName());
                     sensorsMessageDto.addProperty("price", tradeItem.getSplitPrice());
