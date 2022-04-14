@@ -1,10 +1,9 @@
 package com.soybean.mall.common.logger;
 
-/**
- * @author Liang Jun
- * @date 2022-04-12 01:13:00
- */
-public class ConfigService {
+import com.alibaba.nacos.api.annotation.NacosInjected;
+
+public class IConfigService {
+
     public static void addChangeListener(Object o) {
 
     }
