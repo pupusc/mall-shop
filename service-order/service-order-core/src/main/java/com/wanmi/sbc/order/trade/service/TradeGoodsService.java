@@ -748,6 +748,7 @@ public class TradeGoodsService {
                         i.setMarketPrice(vo.getMarketPrice());
                         i.setSupplyPrice(vo.getSupplyPrice());
                         i.setBuyPoint(vo.getBuyPoint());
+                        i.setGoodsChannelTypeSet(vo.getGoodsChannelTypeSet());
                     });
         }
     }

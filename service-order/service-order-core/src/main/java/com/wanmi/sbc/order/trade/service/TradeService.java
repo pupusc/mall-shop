@@ -1874,7 +1874,6 @@ public class TradeService {
                     .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
         }
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
-
         for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
 
             if (!goodsInfo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
