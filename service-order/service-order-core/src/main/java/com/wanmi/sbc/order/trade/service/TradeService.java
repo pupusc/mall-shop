@@ -1877,7 +1877,7 @@ public class TradeService {
         for (GoodsVO goods : response.getGoodses()) {
             log.info("TradeService getTradeItemList goods:{} goods.getGoodsChannelTypeSet() :{} "
                     , goods.getGoodsChannelType()
-                    , JSON.toJSONString(goods.getGoodsChannelTypeSet());
+                    , JSON.toJSONString(goods.getGoodsChannelTypeSet()));
         }
         for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
             log.info("TradeService getTradeItemList goodsInfo:{} goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
