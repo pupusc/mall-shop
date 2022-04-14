@@ -1874,8 +1874,14 @@ public class TradeService {
                     .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
         }
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
+        for (GoodsVO goods : response.getGoodses()) {
+            log.info("TradeService getTradeItemList goods:{} goods.getGoodsChannelTypeSet() :{} "
+                    , goods.getGoodsChannelType()
+                    , JSON.toJSONString(goods.getGoodsChannelTypeSet());
+        }
         for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
-            log.info("TradeService getTradeItemList goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
+            log.info("TradeService getTradeItemList goodsInfo:{} goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
+                    , goodsInfo.getGoodsChannelType()
                     , JSON.toJSONString(goodsInfo.getGoodsChannelTypeSet())
                     , JSON.toJSONString(request.getGoodsChannelTypeSet()));
             if (!goodsInfo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
