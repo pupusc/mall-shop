@@ -38,6 +38,7 @@ import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
@@ -128,6 +129,9 @@ public class OrderController {
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
     @Value("${mini.program.appid}")
     private String appId;

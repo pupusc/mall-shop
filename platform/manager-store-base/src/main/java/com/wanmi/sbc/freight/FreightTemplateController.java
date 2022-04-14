@@ -31,6 +31,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -168,7 +169,10 @@ public class FreightTemplateController {
 
     @GetMapping(value = "/notSupportArea/template/down/{encrypted}")
     public void notSupportAreaTemplateDown(HttpServletResponse response, @PathVariable("encrypted") String encrypted) throws IOException {
-        InputStream in = templateFile.getInputStream();
+
+        ClassPathResource classPathResource = new ClassPathResource("not_deliver_area.xlsx");
+
+        InputStream in = classPathResource.getInputStream();
         byte[] buffer = new byte[in.available()];
         in.read(buffer);
         in.close();
