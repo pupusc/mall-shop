@@ -2129,6 +2129,8 @@ public class TradeBaseController {
             }
         }
 
+
+        
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
