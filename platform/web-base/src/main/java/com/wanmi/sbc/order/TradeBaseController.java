@@ -59,6 +59,7 @@ import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.distribute.DistributionCacheService;
 import com.wanmi.sbc.distribute.DistributionService;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
@@ -75,6 +76,7 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.prop.GoodsPropQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.RushToAppointmentSaleGoodsRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleIsInProgressRequest;
 import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuySendDateRuleRequest;
@@ -90,6 +92,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByGoodsIdsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleInProcessResponse;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleIsInProgressResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
@@ -2127,23 +2130,22 @@ public class TradeBaseController {
         }
 
         // 积分和名单商品不能使用积分，也不参与分摊
-//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-//        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-//        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-//            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-//            List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
-//            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
-//                List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
-//                for (TradeItemVO tradeItem : tradeItems) {
-//                    if(blackListGoodsId.contains(tradeItem.getSpuId())){
-//                        tradeItem.setInPointBlackList(true);
-//                    }
-//                }
-//            }
-//        }
-
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+            List<TradeConfirmItemVO> tradeConfirmItems2 = confirmResponse.getTradeConfirmItems();
+            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems2) {
+                List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
+                for (TradeItemVO tradeItem : tradeItems) {
+                    if(blackListGoodsId.contains(tradeItem.getSpuId())){
+                        tradeItem.setInPointBlackList(true);
+                    }
+                }
+            }
+        }
         return BaseResponse.success(confirmResponse);
     }
 

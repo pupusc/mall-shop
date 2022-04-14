@@ -43,4 +43,19 @@ public class GoodsBlackListPageProviderResponse implements Serializable {
      * 虚拟库存码 黑名单
      */
     private BlackListCategoryProviderResponse wareHouseListModel;
+
+    /*
+     * 底部分类 黑名单
+     */
+    private BlackListCategoryProviderResponse classifyAtBottomBlackListModel;
+
+    /*
+     * 首页商品搜索H5和领阅不展示 黑名单
+     */
+    private BlackListCategoryProviderResponse goodsSearchAtIndexBlackListModel;
+
+    /*
+     * 首页商品搜索H5不展示 黑名单
+     */
+    private BlackListCategoryProviderResponse goodsSearchH5AtIndexBlackListModel;
 }
