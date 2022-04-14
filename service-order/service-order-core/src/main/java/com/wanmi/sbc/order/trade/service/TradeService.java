@@ -1874,17 +1874,17 @@ public class TradeService {
                     .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
         }
         GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
-        for (GoodsVO goods : response.getGoodses()) {
-            log.info("TradeService getTradeItemList goods:{} goods.getGoodsChannelTypeSet() :{} "
-                    , goods.getGoodsChannelType()
-                    , JSON.toJSONString(goods.getGoodsChannelTypeSet()));
-        }
-        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+//        for (GoodsVO goods : response.getGoodses()) {
+//            log.info("TradeService getTradeItemList goods:{} goods.getGoodsChannelTypeSet() :{} "
+//                    , goods.getGoodsChannelType()
+//                    , JSON.toJSONString(goods.getGoodsChannelTypeSet()));
+//        }
+        for (GoodsVO goodsVo : response.getGoodses()) {
             log.info("TradeService getTradeItemList goodsInfo:{} goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
-                    , goodsInfo.getGoodsChannelType()
-                    , JSON.toJSONString(goodsInfo.getGoodsChannelTypeSet())
+                    , goodsVo.getGoodsChannelType()
+                    , JSON.toJSONString(goodsVo.getGoodsChannelTypeSet())
                     , JSON.toJSONString(request.getGoodsChannelTypeSet()));
-            if (!goodsInfo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
+            if (!goodsVo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
                 throw new SbcRuntimeException("K-050216");
             }
         }
