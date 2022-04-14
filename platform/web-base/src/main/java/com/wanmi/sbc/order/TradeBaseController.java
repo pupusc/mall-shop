@@ -2129,22 +2129,20 @@ public class TradeBaseController {
             }
         }
 
-
-        
+        List<String> blackListGoodsIdList = new ArrayList<>();
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
         goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        GoodsBlackListPageProviderResponse context = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
         if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-            List<TradeConfirmItemVO> tradeConfirmItems2 = confirmResponse.getTradeConfirmItems();
-            for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems2) {
-                List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
-                for (TradeItemVO tradeItem : tradeItems) {
-                    if(blackListGoodsId.contains(tradeItem.getSpuId())){
-                        tradeItem.setInPointBlackList(true);
-                    }
+            blackListGoodsIdList.addAll(context.getPointNotSplitBlackListModel().getGoodsIdList());
+        }
+
+        for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
+            List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
+            for (TradeItemVO tradeItem : tradeItems) {
+                if(blackListGoodsIdList.contains(tradeItem.getSpuId())){
+                    tradeItem.setInPointBlackList(true);
                 }
             }
         }
