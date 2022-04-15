@@ -151,5 +151,9 @@ public class ERPReturnTradeCreateRequest extends ERPBaseRequest{
     @JsonProperty("express_name")
     private String expressName;
 
-
+    /**
+     * 备注
+     */
+    @JsonProperty("note")
+    private String note;
 }

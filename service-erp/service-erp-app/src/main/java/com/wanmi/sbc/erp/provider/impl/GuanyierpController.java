@@ -325,6 +325,7 @@ public class GuanyierpController implements GuanyierpProvider {
                 .receiverAddress(requst.getReceiverAddress())
                 .expressName(Objects.nonNull(requst.getExpressName())  ? requst.getExpressName(): null)
                 .expressNum(Objects.nonNull(requst.getExpressNum()) ? requst.getExpressNum() : null)
+                .note("duanlsh这个是一个退货备注")
                 .build();
         Optional<ERPBaseResponse> optionalERPBaseResponse = guanyierpService.createReturnTrade(erpReturnTradeCreateRequest);
         if (optionalERPBaseResponse.isPresent() && optionalERPBaseResponse.get().isSuccess()){
