@@ -1,7 +1,6 @@
 package com.wanmi.sbc.order.open;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -30,6 +29,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.redisson.api.RLock;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,7 +111,7 @@ public class FddsProviderService {
         log.info("樊登读书->开放平台订单创建, provideTradeId={}", providerTrade.getId());
 
         //处理重复提交
-        RLock lock = redissonClient.getLock("LOCK:ORDER:CREATE-FDDS-ORDER:" + providerTrade.getId());
+        RLock lock = redissonClient.getLock("LOCK:CREATE-FDDS-ORDER:" + providerTrade.getId());
         if (lock.isLocked()) {
             log.warn("创建订单任务正在执行中，本次提交不做处理，tradeId = {}, providerTradeId = {}, deliveryOrderId = {}",
                     providerTrade.getParentId(), providerTrade.getId(), providerTrade.getDeliveryOrderId());
@@ -380,19 +380,25 @@ public class FddsProviderService {
 
     //子单号+sku编号+商品名称，充值失败；
     private String NOTICE_SEND_MESSAGE = "{0}+{1}+{2}，充值失败；";
-    private void noticeWaiter(ProviderTrade providerTrade) {
+    public void noticeWaiter(ProviderTrade providerTrade) {
+        //String orderNo = providerTrade.getId().replaceAll("[^0-9]", "").trim();
+        if (hasNoticed(providerTrade.getId())) {
+            log.info("下单失败，飞书通知已存在，本次通知取消，providerId = {}", providerTrade.getId());
+            return;
+        }
+
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(noticeSendMsgUrl);
-        JSONObject response = null;
+        String noticeMsg = null;
         try {
+            HttpPost post = new HttpPost(noticeSendMsgUrl);
             post.addHeader("Content-type", "application/json; charset=utf-8");
             post.setHeader("Accept", "application/json");
             post.setHeader("token",noticeSendMsgToken);
             post.setHeader("tenantId",noticeSendMsgTenantId);
             Map<String,Object> content = new HashMap<>();
 
-            content.put("content", MessageFormat
-                    .format(NOTICE_SEND_MESSAGE, providerTrade.getId(), getUniqueItem(providerTrade).getErpSkuNo(), getUniqueItem(providerTrade).getSkuName()));
+            noticeMsg = MessageFormat.format(NOTICE_SEND_MESSAGE, providerTrade.getId(), getUniqueItem(providerTrade).getErpSkuNo(), getUniqueItem(providerTrade).getSkuName());
+            content.put("content", noticeMsg);
             Map<String,Object> map = new HashMap<>();
             map.put("replaceParams",content);
             map.put("noticeId",noticeSendMsgNoticeId);
@@ -400,7 +406,9 @@ public class FddsProviderService {
             post.setEntity(entity);
             HttpResponse res = httpClient.execute(post);
             log.info("send message request:{},response:{}",post, res);
+            setNoticed(providerTrade.getId());
         } catch (Exception e) {
+            log.info("消息内容：{}", noticeMsg);
             log.error("开放平台充值失败，调用消息通知售后发生异常", e);
         } finally {
             try {
@@ -408,6 +416,18 @@ public class FddsProviderService {
             } catch (IOException e) {
                 log.error("httpClient关闭错误", e);
             }
+        }
+    }
+
+    private boolean hasNoticed(String provideId) {
+        return redissonClient.getMap("NOTICE:CREATE-FDDS-ORDER:" + provideId.substring(0, 7)).containsKey(provideId);
+    }
+    private void setNoticed(String provideId) {
+        RMap<Object, Object> map = redissonClient.getMap("NOTICE:CREATE-FDDS-ORDER:" + provideId.substring(0, 7));
+        boolean isNew = !map.isExists();
+        map.addAndGet(provideId, 1);
+        if (isNew) {
+            map.expire(180, TimeUnit.DAYS);
         }
     }
 
