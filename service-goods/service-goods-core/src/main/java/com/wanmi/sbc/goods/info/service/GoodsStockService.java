@@ -323,7 +323,9 @@ public class GoodsStockService {
     private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String goodsId, String erpGoodsCodeNo, String startTime) {
         BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(startTime, erpGoodsCodeNo);
         ErpStockVo erpStockInfo = listWareHoseStock.getContext();
-
+        if (erpStockInfo.getStocks() == null) {
+            erpStockInfo.setStocks(new ArrayList<>());
+        }
         //获取仓库黑名单
         List<String> unStaticsKey = new ArrayList<>();
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -333,6 +335,7 @@ public class GoodsStockService {
         if (goodsBlackListPageProviderResponse.getWareHouseListModel() != null && !CollectionUtils.isEmpty(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList())) {
             unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
         }
+
 
         Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
         for (ERPGoodsInfoVO erpGoodsInfoVo : erpStockInfo.getStocks()) {
