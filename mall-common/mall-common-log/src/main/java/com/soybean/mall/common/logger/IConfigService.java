@@ -1,8 +1,11 @@
 package com.soybean.mall.common.logger;
 
-import com.alibaba.nacos.api.annotation.NacosInjected;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IConfigService {
+
+    private NacosConfigService nacosConfigService;
 
     public static void addChangeListener(Object o) {
 
