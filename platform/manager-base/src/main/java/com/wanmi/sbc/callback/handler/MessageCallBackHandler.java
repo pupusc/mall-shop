@@ -38,24 +38,24 @@ public class MessageCallBackHandler implements CallbackHandler {
     @Override
     public String handle(Map<String, Object> paramMap) {
 //        {Content=222, CreateTime=1649787333, ToUserName=gh_acd5c1ee4776, FromUserName=oj6KP5A1Ca0rPVPCVq0kA0aQ6mQM, MsgType=text, MsgId=23619277945538626}
-        WxCustomerServerOnlineRequest wxCustomerServerOnlineRequest = new WxCustomerServerOnlineRequest();
-        BaseResponse<WxCustomerServerOnlineResponse> wxCustomerServerOnlineResponse
-                = wxCustomerServerApiController.listCustomerServerOnline(wxCustomerServerOnlineRequest);
-        WxCustomerServerOnlineResponse context = wxCustomerServerOnlineResponse.getContext();
-        List<WxCustomerServerOnlineResponse.CustomerServerOnline> result = new ArrayList<>();
-        for (WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline : context.getCustomerServerOnlineList()) {
-            if (customerServerOnline.getStatus() != null && customerServerOnline.getStatus() == 1) {
-                result.add(customerServerOnline);
-            }
-        }
+//        WxCustomerServerOnlineRequest wxCustomerServerOnlineRequest = new WxCustomerServerOnlineRequest();
+//        BaseResponse<WxCustomerServerOnlineResponse> wxCustomerServerOnlineResponse
+//                = wxCustomerServerApiController.listCustomerServerOnline(wxCustomerServerOnlineRequest);
+//        WxCustomerServerOnlineResponse context = wxCustomerServerOnlineResponse.getContext();
+//        List<WxCustomerServerOnlineResponse.CustomerServerOnline> result = new ArrayList<>();
+//        for (WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline : context.getCustomerServerOnlineList()) {
+//            if (customerServerOnline.getStatus() != null && customerServerOnline.getStatus() == 1) {
+//                result.add(customerServerOnline);
+//            }
+//        }
+//
+//        if (CollectionUtils.isEmpty(result)) {
+//            log.error("MessageCallBackHandler handle 当前没有在线客服");
+//            return "fail";
+//        }
 
-        if (CollectionUtils.isEmpty(result)) {
-            log.error("MessageCallBackHandler handle 当前没有在线客服");
-            return "fail";
-        }
-
-        int index = (int)(Math.random() * result.size());
-        WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline = result.get(index);
+//        int index = (int)(Math.random() * result.size());
+//        WxCustomerServerOnlineResponse.CustomerServerOnline customerServerOnline = result.get(index);
         String fromUserName = paramMap.get("FromUserName").toString();
         if (WxCallbackController.paramMap.get("FromUserName") != null
                 && !WxCallbackController.paramMap.get("FromUserName").toString().equals("duanlsh")) {
