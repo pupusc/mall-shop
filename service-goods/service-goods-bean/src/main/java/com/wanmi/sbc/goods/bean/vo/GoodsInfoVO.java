@@ -756,6 +756,8 @@ public class GoodsInfoVO implements Serializable {
      */
     private List<String> goodsChannelTypeSet;
 
+    private String goodsChannelType;
+
     /**
      * 是否是打包商品
      */

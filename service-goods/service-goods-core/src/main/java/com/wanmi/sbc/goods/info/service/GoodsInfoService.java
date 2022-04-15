@@ -2284,6 +2284,10 @@ public class GoodsInfoService {
             vo.setSupplyPrice(StringUtil.cast(result, 6, BigDecimal.class));
             BigInteger buyPoint = StringUtil.cast(result, 7, BigInteger.class);
             vo.setBuyPoint(buyPoint != null ? buyPoint.longValue() : null);
+            String channelTypeIdStr = StringUtil.cast(result, 8, String.class);
+            if (StringUtils.isNotBlank(channelTypeIdStr)) {
+                vo.setGoodsChannelTypeSet(Arrays.asList(channelTypeIdStr.split(",")));
+            }
             voList.add(vo);
         }
         return voList;

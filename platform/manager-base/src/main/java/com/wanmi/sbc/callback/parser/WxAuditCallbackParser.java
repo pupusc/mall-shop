@@ -38,17 +38,24 @@ public class WxAuditCallbackParser implements CommandLineRunner {
     DocumentBuilderFactory dbf;
     WXBizMsgCrypt pc;
 
-    public void dealCallback(String encryptStr, String timestamp, String nonce, String msgSignature) throws Exception {
+    public String dealCallback(String encryptStr, String timestamp, String nonce, String msgSignature) throws Exception {
         String decrypt = decrypt(encryptStr, timestamp, nonce, msgSignature);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(decrypt.getBytes());
         Map<String, Object> paramMap = parseXML(inputStream);
         log.info("WxAuditCallBackParser dealCallback paramMap: {}", paramMap);
+        String result = "success";
         for (CallbackHandler handler : handlers) {
+            //消息服务
+            if (handler.support((String) paramMap.get("MsgType"))){
+                result = handler.handle(paramMap);
+                break;
+            }
             if(handler.support((String) paramMap.get("Event"))){
                 handler.handle(paramMap);
                 break;
             }
         }
+        return result;
     }
 
     private Map<String, Object> parseXML(InputStream inputStream) throws DocumentException {

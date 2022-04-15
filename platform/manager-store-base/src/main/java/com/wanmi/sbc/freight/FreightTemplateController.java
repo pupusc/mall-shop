@@ -31,10 +31,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.BufferedOutputStream;
@@ -168,15 +170,19 @@ public class FreightTemplateController {
 
     @GetMapping(value = "/notSupportArea/template/down/{encrypted}")
     public void notSupportAreaTemplateDown(HttpServletResponse response, @PathVariable("encrypted") String encrypted) throws IOException {
-        InputStream in = templateFile.getInputStream();
-        byte[] buffer = new byte[in.available()];
-        in.read(buffer);
-        in.close();
+
+//        ClassPathResource classPathResource = new ClassPathResource("");
+
+//        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("not_deliver_area.xlsx");
+        InputStream inputStream = templateFile.getInputStream();
+        byte[] b = new byte[1024];
+        int len;
         response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode("商城不配送地区模板.xlsx", "UTF-8"));
-        OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
-        toClient.write(buffer);
-        toClient.flush();
-        toClient.close();
+        ServletOutputStream outputStream = response.getOutputStream();
+        while ((len = inputStream.read(b)) > 0) {
+            outputStream.write(b, 0, len);
+        }
+        inputStream.close();
     }
 
     /**

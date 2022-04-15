@@ -74,6 +74,7 @@ public class GoodsBlackListService {
         }
         goodsBlackListRepository.saveAll(list);
         GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
+        goodsBlackListCacheProviderRequest.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         goodsBlackListCacheProviderRequest.setBusinessCategoryColl(Collections.singletonList(goodsBlackListProviderRequest.getBusinessCategory()));
         flushBlackListCache(goodsBlackListCacheProviderRequest);
 
@@ -93,6 +94,7 @@ public class GoodsBlackListService {
     public void delete(Integer id){
         GoodsBlackListCacheProviderRequest request = new GoodsBlackListCacheProviderRequest();
         request.setId(id);
+        request.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
         List<GoodsBlackListDTO> commonBlackListDTOS = this.listSimpleNoPage(request);
         if (CollectionUtils.isEmpty(commonBlackListDTOS)) {
             return;
@@ -136,6 +138,7 @@ public class GoodsBlackListService {
             goodsBlackListRepository.save(goodsBlackListDTO);
             GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest = new GoodsBlackListCacheProviderRequest();
             goodsBlackListCacheProviderRequest.setBusinessCategoryColl(Collections.singletonList(goodsBlackListDTO.getBusinessCategory()));
+            goodsBlackListCacheProviderRequest.setDelFlag(DeleteFlagEnum.NORMAL.getCode());
             flushBlackListCache(goodsBlackListCacheProviderRequest);
 
             //通知主站

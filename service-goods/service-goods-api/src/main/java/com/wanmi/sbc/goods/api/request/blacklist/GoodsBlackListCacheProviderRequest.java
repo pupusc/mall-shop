@@ -38,7 +38,8 @@ public class GoodsBlackListCacheProviderRequest implements Serializable {
     private Collection<String> businessIdColl;
 
     /**
-     * true-删除和未删除的 false或者null-只查未删除的
+     * 0启用 1 删除
      */
-    private Boolean searchAll;
+//    private Boolean searchAll;
+    private Integer delFlag;
 }

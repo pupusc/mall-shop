@@ -6,5 +6,5 @@ public interface CallbackHandler {
 
     boolean support(String eventType);
 
-    void handle(Map<String, Object> paramMap);
+    String handle(Map<String, Object> paramMap);
 }
