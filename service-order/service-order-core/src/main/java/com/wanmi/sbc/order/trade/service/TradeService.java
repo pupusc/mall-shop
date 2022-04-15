@@ -1747,13 +1747,13 @@ public class TradeService {
             }
         }
 
-        GoodsInfoListByConditionRequest goodsInfoListByConditionRequest = new GoodsInfoListByConditionRequest();
-        goodsInfoListByConditionRequest.setGoodsInfoIds(childGoodsInfoIdList);
-        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoListByConditionResponseBaseResponse =
-                goodsInfoQueryProvider.listByCondition(goodsInfoListByConditionRequest);
-        GoodsInfoListByConditionResponse context = goodsInfoListByConditionResponseBaseResponse.getContext();
-        Map<String, GoodsInfoVO> skuId2GoodsInfoMap
-                = context.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+//        GoodsInfoListByConditionRequest goodsInfoListByConditionRequest = new GoodsInfoListByConditionRequest();
+//        goodsInfoListByConditionRequest.setGoodsInfoIds(childGoodsInfoIdList);
+//        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoListByConditionResponseBaseResponse =
+//                goodsInfoQueryProvider.listByCondition(goodsInfoListByConditionRequest);
+//        GoodsInfoListByConditionResponse context = goodsInfoListByConditionResponseBaseResponse.getContext();
+//        Map<String, GoodsInfoVO> skuId2GoodsInfoMap
+//                = context.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
 
         List<TradeItem> tradeItemListTmp = new ArrayList<>();
         for (TradeItem tradeItemParam : trade.getTradeItems()) {
@@ -1780,7 +1780,7 @@ public class TradeService {
 
                 TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
                 tradePurchaseRequest.setCustomer(customer);
-                tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+                tradePurchaseRequest.setTradeItems(TradeItemDTOList);
                 tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
 
                 List<TradeItemGroup> tradeItemGroups = this.getTradeItemList(tradePurchaseRequest);
