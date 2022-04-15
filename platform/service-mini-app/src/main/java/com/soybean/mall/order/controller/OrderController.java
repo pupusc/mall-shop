@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
 import com.soybean.mall.order.api.request.order.GetPaymentParamsRequest;
+import com.soybean.mall.order.api.response.OrderCommitResponse;
 import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.order.common.DefaultPayBatchRequest;
@@ -193,7 +194,9 @@ public class OrderController {
             channel.setChannelType(ChannelType.MINIAPP);
             tradeCommitRequest.setDistributeChannel(channel);
             tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
-            successResults = tradeProvider.commitTrade(tradeCommitRequest).getContext().getOrderCommitResults();
+            BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
+
+            successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
 
         } catch (Exception e) {
             throw e;

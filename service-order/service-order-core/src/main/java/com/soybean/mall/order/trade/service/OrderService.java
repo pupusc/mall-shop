@@ -205,7 +205,7 @@ public class OrderService {
                 log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
             }
 
-//            throw  new SbcRuntimeException("K-000001");
+            throw e;
         }
         try {
             // 6.订单提交成功，增加限售记录
