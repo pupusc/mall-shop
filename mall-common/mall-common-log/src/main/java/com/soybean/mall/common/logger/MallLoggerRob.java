@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 
-public class MallLoggerRob {
+public final class MallLoggerRob {
     private static final String LOG_FILTER = "log.filter";
     private static final String LOG_LEVEL = "log.level";
     private static final String ROOT_LOGGER = "root";
@@ -21,10 +21,16 @@ public class MallLoggerRob {
     private static final String FORMAT_LOCATION_METHOD_LEVEL = "%s.%s:%s";
     private static final String INNER_CLASS_SYMBOL = "$";
 
+    private static NacosConfigService configService;
+
+    private MallLoggerRob() {
+    }
+
     public static void initLevel() {
         try {
+            configService = NacosConfigService.getInstance();
             if (setLevel()) {
-//                IConfigService.addChangeListener(changeEvent -> setLevel());
+                configService.addChangeListener(LOG_LEVEL, () -> setLevel());
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -42,7 +48,7 @@ public class MallLoggerRob {
         if (loggerFactory instanceof LoggerContext) {
             LoggerContext loggerContext = (LoggerContext) loggerFactory;
 
-            String configLevelStr = IConfigService.getProperty(LOG_LEVEL, Level.INFO.levelStr);
+            String configLevelStr = configService.getStringProperty(LOG_LEVEL, Level.INFO.levelStr);
             Level configLevel = Level.toLevel(configLevelStr);
 
             // 设置全局日志级别
@@ -82,7 +88,7 @@ public class MallLoggerRob {
                      * 示例：org.soybean.Application = false  //关闭类日志
                      */
                     String keyClass = String.format(FORMAT_LOCATION_CLASS, className);
-                    boolean isOutClass = IConfigService.getBooleanProperty(keyClass, Boolean.TRUE);
+                    boolean isOutClass = configService.getBooleanProperty(keyClass, Boolean.TRUE);
                     if (!isOutClass) {
                         return false;
                     }
@@ -92,7 +98,7 @@ public class MallLoggerRob {
                      * 示例：org.soybean.Application:16 = false  //关闭Application类第16行日志
                      */
                     String keyClassLine = String.format(FORMAT_LOCATION_CLASS_LINE, className, element.getLineNumber());
-                    boolean isOutClassLine = IConfigService.getBooleanProperty(keyClassLine, Boolean.TRUE);
+                    boolean isOutClassLine = configService.getBooleanProperty(keyClassLine, Boolean.TRUE);
                     if (!isOutClassLine) {
                         return false;
                     }
@@ -102,7 +108,7 @@ public class MallLoggerRob {
                      * 示例：org.soybean.Application:INFO = false  //关闭Application类中所有INFO级别的日志
                      */
                     String keyClassLevel = String.format(FORMAT_LOCATION_CLASS_LEVEL, className, loggingEvent.getLevel().levelStr);
-                    boolean isOutClassLevel = IConfigService.getBooleanProperty(keyClassLevel, Boolean.TRUE);
+                    boolean isOutClassLevel = configService.getBooleanProperty(keyClassLevel, Boolean.TRUE);
                     if (!isOutClassLevel) {
                         return false;
                     }
@@ -112,7 +118,7 @@ public class MallLoggerRob {
                      * 示例：com.soybean.common.utils.exception.GlobalExceptionHandle.Exception = false  //关闭GlobalExceptionHandle类Exception方法的日志
                      */
                     String keyMethod = String.format(FORMAT_LOCATION_METHOD, className, methodName);
-                    boolean isOutMethod = IConfigService.getBooleanProperty(keyMethod, Boolean.TRUE);
+                    boolean isOutMethod = configService.getBooleanProperty(keyMethod, Boolean.TRUE);
                     if (!isOutMethod) {
                         return false;
                     }
@@ -122,7 +128,7 @@ public class MallLoggerRob {
                      * 示例：com.soybean.common.utils.exception.GlobalExceptionHandle.Exception:73 = false  //关闭GlobalExceptionHandle类Exception方法中第73行的日志
                      */
                     String keyMethodLine = String.format(FORMAT_LOCATION_METHOD_LINE, className, methodName, element.getLineNumber());
-                    boolean isOutMethodLine = IConfigService.getBooleanProperty(keyMethodLine, Boolean.TRUE);
+                    boolean isOutMethodLine = configService.getBooleanProperty(keyMethodLine, Boolean.TRUE);
                     if (!isOutMethodLine) {
                         return false;
                     }
@@ -132,7 +138,7 @@ public class MallLoggerRob {
                      * 示例：com.soybean.kafka.consumer.BehaviorConsumerMessageProcessor.onMessage:INFO = false //关闭BehaviorConsumerMessageProcessor类onMessage方法中所有INFO级别的日志
                      */
                     String keyMethodLevel = String.format(FORMAT_LOCATION_METHOD_LEVEL, className, methodName, loggingEvent.getLevel().levelStr);
-                    boolean isOutMethodLevel = IConfigService.getBooleanProperty(keyMethodLevel, Boolean.TRUE);
+                    boolean isOutMethodLevel = configService.getBooleanProperty(keyMethodLevel, Boolean.TRUE);
                     if (!isOutMethodLevel) {
                         return false;
                     }

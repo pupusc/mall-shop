@@ -21,6 +21,7 @@
         <logback.classic.version>1.2.3</logback.classic.version>
         <logback.core.version>1.2.3</logback.core.version>
         <apm.toolkit.logback.1.x.version>6.5.0</apm.toolkit.logback.1.x.version>
+        <spring.context.version>5.2.3.RELEASE</spring.context.version>
         <spring.cloud.starter.nacos.config>2.2.1.RELEASE</spring.cloud.starter.nacos.config>
     </properties>
 
@@ -59,8 +60,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>5.2.3.RELEASE</version>
-            <scope>compile</scope>
+            <version>${spring.context.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
