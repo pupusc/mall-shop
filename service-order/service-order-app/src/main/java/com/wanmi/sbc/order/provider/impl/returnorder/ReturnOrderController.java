@@ -69,7 +69,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
         if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
             throw new SbcRuntimeException("K-050463");
         }
-        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+//        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
                 List<ReturnItem> returnItemList = new ArrayList<>();
                 returnItemList.add(returnItemParam);
@@ -77,9 +77,9 @@ public class ReturnOrderController implements ReturnOrderProvider {
                 returnOrderNew.setReturnItems(returnItemList);
                 returnOrderId = returnOrderService.create(returnOrderNew, request.getOperator());
             }
-        } else {
-            returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
-        }
+//        } else {
+//            returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
+//        }
 
         ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
         returnOrderAddResponse.setReturnOrderId(returnOrderId);
