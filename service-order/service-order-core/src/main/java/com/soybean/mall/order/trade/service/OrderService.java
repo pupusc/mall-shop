@@ -1,48 +1,39 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
-import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.BoolFlag;
-import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
-import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
-import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
-import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
-import com.wanmi.sbc.customer.bean.vo.*;
+import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
+import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
+import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
-import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
-import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
-import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.MiniProgram;
-import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
 import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
 import com.wanmi.sbc.order.trade.request.TradeWrapperListRequest;
-import com.wanmi.sbc.order.trade.service.*;
+import com.wanmi.sbc.order.trade.service.ProviderTradeService;
+import com.wanmi.sbc.order.trade.service.TradeCacheService;
+import com.wanmi.sbc.order.trade.service.TradeCustomerService;
+import com.wanmi.sbc.order.trade.service.TradeGoodsService;
+import com.wanmi.sbc.order.trade.service.TradeService;
+import com.wanmi.sbc.order.trade.service.VerifyService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,10 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -86,14 +79,17 @@ public class OrderService {
     @Autowired
     private ExternalProvider externalProvider;
 
-    @Autowired
-    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
+//    @Autowired
+//    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     @Autowired
     private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
 
     @Autowired
     private StoreQueryProvider storeQueryProvider;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 
     @Autowired
     private WxOrderService wxOrderService;
@@ -117,8 +113,15 @@ public class OrderService {
         if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
             throw new SbcRuntimeException("K-050214");
         }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
 
-        List<TradeItemGroup> tradeItemGroups = getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(tradeCommitRequest.getTradeItems()).build());
+        TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+        tradePurchaseRequest.setCustomer(customer);
+        tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+        tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+        List<TradeItemGroup> tradeItemGroups = tradeService.getTradeItemList(tradePurchaseRequest);
         List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
 
         //商品信息
@@ -152,10 +155,14 @@ public class OrderService {
         try {
             // 处理积分抵扣
             tradeService.dealPoints(trades, tradeCommitRequest);
+            // 处理打包商品
+            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
             // 处理知豆抵扣
             //tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
+
+
             List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
             //返回订单信息
             results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
@@ -198,7 +205,7 @@ public class OrderService {
                 log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
             }
 
-            throw  new SbcRuntimeException("K-000001");
+            throw e;
         }
         try {
             // 6.订单提交成功，增加限售记录
@@ -221,94 +228,120 @@ public class OrderService {
      * @param request
      * @return
      */
-    public List<TradeItemGroup> getTradeItemList(TradePurchaseRequest request) {
-        List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
-        String customerId = request.getCustomer().getCustomerId();
-
-        //查询是否购买付费会员卡
-        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
-                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
-                        .customerId(customerId)
-                        .delFlag(DeleteFlag.NO)
-                        .endTimeFlag(LocalDateTime.now())
-                        .build())
-                .getContext();
-        PaidCardVO paidCardVO = new PaidCardVO();
-        if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
-            paidCardVO = paidCardCustomerRelVOList.stream()
-                    .map(PaidCardCustomerRelVO::getPaidCardVO)
-                    .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
-        }
-
-        GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
-        List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
-        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null)
-                .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
-                .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
-        List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
-        //获取付费会员价
-        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
-            for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
-                goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
-            }
-            if (CollectionUtils.isNotEmpty(tradeItems)) {
-                for (TradeItem tradeItem : tradeItems) {
-                    if (Objects.nonNull(tradeItem.getPrice())) {
-                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
-                    }
-                }
-            }
-        }
-        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, false, null);
-        verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
-        Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
-        tradeItems.stream().forEach(tradeItem -> {
-            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
-            tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
-            tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
-            tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
-            tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
-        });
-
-        // 校验商品限售信息
-        TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();
-        tradeItemGroupVOS.setTradeItems(tradeItems);
-        tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
-
-        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
-        for (TradeItem tradeItem : tradeItems) {
-            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
-            if (priceByGoodsId.getContext() != null) {
-                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
-            }
-        }
-
-        //商品按店铺分组
-        Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
-        List<TradeItemGroup> itemGroups = new ArrayList<>();
-        map.forEach((key,value)->{
-            StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
-                    .build())
-                    .getContext().getStoreVO();
-            DefaultFlag freightTemplateType = store.getFreightTemplateType();
-            Supplier supplier = Supplier.builder()
-                    .storeId(store.getStoreId())
-                    .storeName(store.getStoreName())
-                    .isSelf(store.getCompanyType() == BoolFlag.NO)
-                    .supplierCode(store.getCompanyInfo().getCompanyCode())
-                    .supplierId(store.getCompanyInfo().getCompanyInfoId())
-                    .supplierName(store.getCompanyInfo().getSupplierName())
-                    .freightTemplateType(freightTemplateType)
-                    .build();
-            TradeItemGroup tradeItemGroup = new TradeItemGroup();
-            tradeItemGroup.setTradeItems(value);
-            tradeItemGroup.setSupplier(supplier);
-            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
-            itemGroups.add(tradeItemGroup);
-        });
-        return itemGroups;
-    }
+//    public List<TradeItemGroup> getTradeItemList(TradePurchaseRequest request) {
+//        List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+//        String customerId = request.getCustomer().getCustomerId();
+//
+//        //查询是否购买付费会员卡
+//        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+//                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+//                        .customerId(customerId)
+//                        .delFlag(DeleteFlag.NO)
+//                        .endTimeFlag(LocalDateTime.now())
+//                        .build())
+//                .getContext();
+//        PaidCardVO paidCardVO = new PaidCardVO();
+//        if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+//            paidCardVO = paidCardCustomerRelVOList.stream()
+//                    .map(PaidCardCustomerRelVO::getPaidCardVO)
+//                    .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+//        }
+//
+//        GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
+//        List<GoodsInfoVO> goodsInfoVOList = response.getGoodsInfos();
+//        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null)
+//                .collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+//        Map<String, Integer> cpsSpecialMap = goodsInfoVOList.stream()
+//                .collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+//        List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
+//        //获取付费会员价
+//        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+//            for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
+//                goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
+//            }
+//            if (CollectionUtils.isNotEmpty(tradeItems)) {
+//                for (TradeItem tradeItem : tradeItems) {
+//                    if (Objects.nonNull(tradeItem.getPrice())) {
+//                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
+//                    }
+//                }
+//            }
+//        }
+//        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, false, null);
+//        verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
+//        Map<String, GoodsInfoVO> goodsInfoVOMap = goodsInfoVOList.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+//        tradeItems.stream().forEach(tradeItem -> {
+//            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
+//            tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
+//            tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
+//            tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
+//            tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
+//        });
+//
+//        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, goodsInfoVOList, customerId);
+//        for (TradeItem tradeItem : tradeItems) {
+//            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+//            if (priceByGoodsId.getContext() != null) {
+//                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+//            }
+//        }
+//
+////        //获取商品的打包信息，
+////        List<String> mainGoodsIdList = tradeItems.stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+////        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+////        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+////
+////        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+////        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+////            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+////                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+////                goodsPackDetailListTmp.add(goodsPackDetailParam);
+////            }
+////        }
+////
+////        List<TradeItem> resultTradeItem = new ArrayList<>();
+////        for (TradeItem tradeItemParam : tradeItems) {
+////            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+////            if (goodsPackDetailListTmp != null) {
+////                tradeItemParam.
+////            } else {
+////                resultTradeItem.add(tradeItemParam);
+////            }
+////        }
+//
+//
+//
+//        // 校验商品限售信息
+//        TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();
+//        tradeItemGroupVOS.setTradeItems(tradeItems);
+//        tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
+//
+//
+//        //商品按店铺分组
+//        Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
+//        List<TradeItemGroup> itemGroups = new ArrayList<>();
+//        map.forEach((key,value)->{
+//            StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
+//                    .build())
+//                    .getContext().getStoreVO();
+//            DefaultFlag freightTemplateType = store.getFreightTemplateType();
+//            Supplier supplier = Supplier.builder()
+//                    .storeId(store.getStoreId())
+//                    .storeName(store.getStoreName())
+//                    .isSelf(store.getCompanyType() == BoolFlag.NO)
+//                    .supplierCode(store.getCompanyInfo().getCompanyCode())
+//                    .supplierId(store.getCompanyInfo().getCompanyInfoId())
+//                    .supplierName(store.getCompanyInfo().getSupplierName())
+//                    .freightTemplateType(freightTemplateType)
+//                    .build();
+//            TradeItemGroup tradeItemGroup = new TradeItemGroup();
+//            tradeItemGroup.setTradeItems(value);
+//            tradeItemGroup.setSupplier(supplier);
+//            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+//            itemGroups.add(tradeItemGroup);
+//        });
+//        return itemGroups;
+//    }
 
     /**
      * 周期购

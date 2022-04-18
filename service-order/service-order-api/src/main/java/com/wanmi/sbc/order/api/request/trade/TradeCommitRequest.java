@@ -173,12 +173,6 @@ public class TradeCommitRequest extends BaseRequest {
     private String tid;
 
     /**
-     * 订单营销信息快照
-     */
-    @ApiModelProperty(value = "订单营销信息快照")
-    private List<TradeMarketingDTO> tradeMarketingList;
-
-    /**
      * 推广人用户id
      */
     private String promoteUserId;
@@ -187,6 +181,13 @@ public class TradeCommitRequest extends BaseRequest {
      * 推广人用户id
      */
     private String source;
+
+    /**
+     * 订单营销信息快照
+     */
+    @ApiModelProperty(value = "订单营销信息快照")
+    private List<TradeMarketingDTO> tradeMarketingList;
+
 
     /**
      * 是否参加积分换购活动
@@ -212,5 +213,7 @@ public class TradeCommitRequest extends BaseRequest {
     /**
      * 小程序订单场景1小程序2视频号
      */
-    private Integer miniProgramScene =1;
+    private Integer miniProgramScene;
+
+
 }

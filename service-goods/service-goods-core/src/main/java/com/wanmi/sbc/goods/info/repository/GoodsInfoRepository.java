@@ -339,7 +339,7 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      * @param goodsInfoIds
      * @return
      */
-    @Query(value = "select info.goods_info_id,info.del_flag,info.added_flag,info.vendibility,info.audit_status,info.market_price,info.supply_price,info.buy_point from goods_info info where info.goods_info_id in (:goodsInfoIds)", nativeQuery = true)
+    @Query(value = "select info.goods_info_id,info.del_flag,info.added_flag,info.vendibility,info.audit_status,info.market_price,info.supply_price,info.buy_point,info.channel_type from goods_info info where info.goods_info_id in (:goodsInfoIds)", nativeQuery = true)
     List<Object> findGoodsInfoPartColsByIds(@Param("goodsInfoIds") List<String> goodsInfoIds);
 
     /**

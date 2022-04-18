@@ -153,6 +153,10 @@ public class TradeOptimizeService {
     @GlobalTransactional
     public List<TradeCommitResult> commit(TradeCommitRequest tradeCommitRequest) {
 
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
+
         // 验证用户
         CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
@@ -356,6 +360,8 @@ public class TradeOptimizeService {
             tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             tradeService.dealTailPrice(trades, tradeCommitRequest);
+            //打包商品
+            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
             if (tradeGroup != null) {
                 successResults = tradeService.createBatchWithGroup(trades, tradeGroup, operator);
             } else {
@@ -556,6 +562,11 @@ public class TradeOptimizeService {
         }
     }
 
+    /**
+     * TODO 作废啦没有调用的地方
+     * @param tradeCommitRequest
+     * @return
+     */
     @Transactional
     @GlobalTransactional
     public List<TradeCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
@@ -567,6 +578,10 @@ public class TradeOptimizeService {
         if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
             throw new SbcRuntimeException("K-050214");
         }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
+
 
         List<TradeItemGroup> tradeItemGroups = getTradeItemList(TradePurchaseRequest.builder().customer(customer).tradeItems(tradeCommitRequest.getTradeItems()).build());
         List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
@@ -606,6 +621,8 @@ public class TradeOptimizeService {
             //tradeService.dealKnowledge(trades, tradeCommitRequest);
             // 预售补充尾款价格
             //tradeService.dealTailPrice(trades, tradeCommitRequest);
+            //处理打包信息
+            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
             successResults = tradeService.createBatch(trades, null, operator);
         }catch (Exception e){
             log.error("提交订单异常：{}",e);

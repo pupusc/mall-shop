@@ -24,7 +24,15 @@ import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.TradePointsCouponItem;
 import com.wanmi.sbc.order.trade.model.entity.TradeState;
-import com.wanmi.sbc.order.trade.model.entity.value.*;
+import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
+import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
+import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
+import com.wanmi.sbc.order.trade.model.entity.value.MiniProgram;
+import com.wanmi.sbc.order.trade.model.entity.value.Seller;
+import com.wanmi.sbc.order.trade.model.entity.value.Supplier;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeCycleBuyInfo;
+import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
+import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -510,7 +518,7 @@ public class Trade implements Serializable {
     private List<String> tags;
 
     /**
-     * 小程序订单场景0普通订单，1小程序2视频号
+     * 小程序订单场景：0普通订单；1小程序；2视频号；
      */
     private Integer miniProgramScene;
 }

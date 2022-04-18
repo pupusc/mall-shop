@@ -2,16 +2,23 @@ package com.wanmi.sbc.goods.api.request.goods;
 
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.goods.bean.dto.GoodsSpecDTO;
-import com.wanmi.sbc.goods.bean.dto.GoodsSpecDetailDTO;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCustomerPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsImageVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsTabRelaVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -134,4 +141,14 @@ public class GoodsModifyRequest extends BaseRequest {
         }
         return sensitiveWord.toString();
     }
+
+    /**
+     * 编辑类型：1普通商品；2直充商品；3打包商品；
+     */
+    private Integer editType;
+
+    /**
+     * 打包商品
+     */
+    private List<GoodsPackDetailDTO> goodsPackDetails;
 }

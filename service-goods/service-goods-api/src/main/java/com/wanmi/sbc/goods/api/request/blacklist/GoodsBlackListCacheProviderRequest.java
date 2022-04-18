@@ -15,6 +15,10 @@ import java.util.Collection;
 @Data
 public class GoodsBlackListCacheProviderRequest implements Serializable {
 
+    private Integer pageNum = 0;
+
+    private Integer pageSize = 10;
+
     private Integer id;
 
     /**
@@ -27,4 +31,15 @@ public class GoodsBlackListCacheProviderRequest implements Serializable {
      * 业务类型 1、商品skuId 2、商品spuId 3、一级分类id 4、二级分类id
      */
     private Collection<Integer> businessTypeColl;
+
+    /**
+     * 业务主键
+     */
+    private Collection<String> businessIdColl;
+
+    /**
+     * 0启用 1 删除
+     */
+//    private Boolean searchAll;
+    private Integer delFlag;
 }

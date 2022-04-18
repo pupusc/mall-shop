@@ -20,10 +20,10 @@ public class GoodsInfoStockSyncRequest {
      */
     private String spuId;
 
-    /**
-     * spuNo
-     */
-    private String spuNo;
+//    /**
+//     * spuNo
+//     */
+//    private String spuNo;
 
     /**
      * erpSpuCode

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.trade.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.account.api.provider.invoice.InvoiceProjectSwitchQueryProvider;
 import com.wanmi.sbc.account.api.request.invoice.InvoiceProjectSwitchByCompanyInfoIdRequest;
@@ -220,6 +221,8 @@ public class VerifyService {
      */
     public List<TradeItem> verifyGoods(List<TradeItem> tradeItems, List<TradeItem> oldTradeItems, TradeGoodsListVO goodsInfoResponse, Long storeId,
                                        boolean isFull, String areaId) {
+        log.info("VerifyService verifyGoods goodsInfoResponse:{}" , JSON.toJSONString(goodsInfoResponse));
+
         List<GoodsInfoVO> goodsInfos = goodsInfoResponse.getGoodsInfos();
         Map<String, GoodsVO> goodsMap = goodsInfoResponse.getGoodses().stream().collect(Collectors.toMap
                 (GoodsVO::getGoodsId, Function.identity()));
