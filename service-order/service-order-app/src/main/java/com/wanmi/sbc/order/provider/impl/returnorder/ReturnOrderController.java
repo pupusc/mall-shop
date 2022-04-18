@@ -1,6 +1,9 @@
 package com.wanmi.sbc.order.provider.impl.returnorder;
 
+import com.soybean.mall.order.enums.MiniProgramSceneType;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
@@ -9,9 +12,12 @@ import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.refund.model.root.RefundBill;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
+import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,6 +44,9 @@ public class ReturnOrderController implements ReturnOrderProvider {
     @Autowired
     private ReturnOrderService returnOrderService;
 
+    @Autowired
+    private TradeRepository tradeRepository;
+
     /**
      * 退单创建
      *
@@ -48,8 +59,27 @@ public class ReturnOrderController implements ReturnOrderProvider {
 
             return BaseResponse.FAILED();
         }
-        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
-                request.getOperator());
+
+        ReturnOrder returnOrder = KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class);
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        String returnOrderId = null;
+        if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
+            throw new SbcRuntimeException("K-050463");
+        }
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
+                List<ReturnItem> returnItemList = new ArrayList<>();
+                returnItemList.add(returnItemParam);
+                ReturnOrder returnOrderNew = KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class);
+                returnOrderNew.setReturnItems(returnItemList);
+                returnOrderId = returnOrderService.create(returnOrderNew, request.getOperator());
+            }
+        } else {
+            returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
+        }
 
         ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
         returnOrderAddResponse.setReturnOrderId(returnOrderId);

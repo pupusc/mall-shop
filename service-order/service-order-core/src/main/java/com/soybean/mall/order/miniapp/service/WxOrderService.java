@@ -657,7 +657,7 @@ public class WxOrderService {
             return;
         }
         WxAfterSaleListRequest wxAfterSaleListRequest = new WxAfterSaleListRequest();
-        wxAfterSaleListRequest.setLimit(50);
+        wxAfterSaleListRequest.setLimit(100);
         wxAfterSaleListRequest.setOffset(0);
         wxAfterSaleListRequest.setOutOrderId(tid);
         wxAfterSaleListRequest.setOpenid(trade.getBuyer().getOpenId());
