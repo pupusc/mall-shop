@@ -172,6 +172,7 @@ import com.wanmi.sbc.setting.api.response.platformaddress.PlatformAddressListRes
 import com.wanmi.sbc.setting.bean.enums.AddrLevel;
 import com.wanmi.sbc.setting.bean.vo.PlatformAddressVO;
 import io.seata.spring.annotation.GlobalTransactional;
+import io.seata.tm.api.transaction.Propagation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -833,7 +834,7 @@ public class ReturnOrderService {
      * @param returnOrder
      * @param operator
      */
-    @GlobalTransactional
+    @GlobalTransactional(propagation= Propagation.REQUIRES_NEW)
     @Transactional
     public String create(ReturnOrder returnOrder, Operator operator) {
 //        if (returnOrder.getDescription().length() > 100) {
