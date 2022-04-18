@@ -107,7 +107,7 @@ public class UserController {
             customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
         }
         FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
-                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
+                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).serviceType(101).build();
         BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
         LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
         return BaseResponse.success(loginResponse);

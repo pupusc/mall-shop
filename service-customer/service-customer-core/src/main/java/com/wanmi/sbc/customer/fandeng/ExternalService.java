@@ -141,7 +141,8 @@ public class ExternalService {
     /**
      * 微信授权登录
      */
-    public static final String WX_AUTH_LOGIN_URL = "/member/wechat/login";
+    public static final String WX_AUTH_LOGIN_URL = "/member/wechat/shop/login";
+//    public static final String WX_AUTH_LOGIN_URL = "/member/wechat/login";
 
     /**
      * 通过用户编号查询用户积分余额
