@@ -834,7 +834,7 @@ public class ReturnOrderService {
      * @param returnOrder
      * @param operator
      */
-    @GlobalTransactional(propagation= Propagation.REQUIRES_NEW)
+    @GlobalTransactional
     @Transactional
     public String create(ReturnOrder returnOrder, Operator operator) {
 //        if (returnOrder.getDescription().length() > 100) {
@@ -918,21 +918,6 @@ public class ReturnOrderService {
                 returnItem.setNum(0);
             }
         }
-
-//        //获取子单信息
-//        List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(returnOrder.getTid());
-//        if (!CollectionUtils.isEmpty(providerTradeList)) {
-//            for (ProviderTrade providerTradeParam : providerTradeList) {
-//                List<ReturnItem> returnItemList = provider2ReturnItemMap.get(providerTradeParam.getSupplier().getStoreId().toString());
-//                if (CollectionUtils.isEmpty(returnItemList)) {
-//                    continue;
-//                }
-//
-//                if (DeliverStatus.PART_SHIPPED == providerTradeParam.getTradeState().getDeliverStatus()) {
-//                    throw new SbcRuntimeException("K-050452");
-//                }
-//            }
-//        }
 
         //此处变更 订单的金额、积分、知豆等信息，此处储存的是 订单总共可退金额
         Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
@@ -1215,26 +1200,6 @@ public class ReturnOrderService {
                 virtualFlag = true;
             }
 
-            /*if(ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
-
-                newReturnOrder.setThirdPlatformType(ThirdPlatformType.LINKED_MALL);
-                newReturnOrder.setThirdPlatformOrderId(trade.getThirdPlatformOrderIds().get(0));
-                linkedMallReturnOrderProvider.applyRefund(SbcApplyRefundRequest.builder()
-                        .bizUid(trade.getBuyer().getId())
-                        .subLmOrderId(trade.getThirdPlatformOrderIds().get(0))
-                        .bizClaimType(isRefund?BigDecimal.ROUND_DOWN:BigDecimal.ROUND_FLOOR)
-                        .applyRefundFee(newReturnOrder.getReturnPrice().getActualReturnPrice().longValue() * 100)
-                        .applyReasonTextId(returnOrder.getThirdReasonId())
-                        .leaveMessage(returnOrder.getDescription())
-                        .leavePictureList(returnOrder.getImages().parallelStream().map(img -> {
-                            ApplyRefundRequest.LeavePictureList leavePictureList  = new ApplyRefundRequest.LeavePictureList();
-                            leavePictureList.setPicture(img);
-                            return leavePictureList;
-                        }).collect(Collectors.toList()))
-                        .goodsStatus(transformReturnFlowState(returnOrder.getReturnFlowState(),isRefund))
-                        .build());
-            }*/
-
             //视频号只能一次售后，判断是否有未作废的售后单,拒绝售后之后不能再次售后
             if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())
                     && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
@@ -1250,7 +1215,7 @@ public class ReturnOrderService {
 
             this.operationLogMq.convertAndSend(operator, "创建退单", "创建退单");
             //先取消之前的售后单
-            wxOrderService.cancelAfterSaleByOrderId(trade.getId(),newReturnOrder);
+//            wxOrderService.cancelAfterSaleByOrderId(trade.getId(),newReturnOrder);
             wxOrderService.addEcAfterSale(newReturnOrder);
 
             Boolean auditFlag = true;

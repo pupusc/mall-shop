@@ -65,22 +65,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
-        String returnOrderId = null;
-        if (CollectionUtils.isEmpty(returnOrder.getReturnItems())) {
-            throw new SbcRuntimeException("K-050463");
-        }
-//        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
-            for (ReturnItem returnItemParam : returnOrder.getReturnItems()) {
-                List<ReturnItem> returnItemList = new ArrayList<>();
-                returnItemList.add(returnItemParam);
-                ReturnOrder returnOrderNew = KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class);
-                returnOrderNew.setReturnItems(returnItemList);
-                returnOrderId = returnOrderService.create(returnOrderNew, request.getOperator());
-            }
-//        } else {
-//            returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
-//        }
-
+        String returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
         ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
         returnOrderAddResponse.setReturnOrderId(returnOrderId);
         return BaseResponse.success(returnOrderAddResponse);

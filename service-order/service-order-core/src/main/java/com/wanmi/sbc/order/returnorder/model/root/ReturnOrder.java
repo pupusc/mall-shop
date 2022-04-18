@@ -81,6 +81,11 @@ public class ReturnOrder implements Serializable {
     private String tid;
 
     /**
+     * 视频号售后id
+     */
+    private String aftersaleId;
+
+    /**
      * 樊登用户id
      */
     private String fanDengUserNo;

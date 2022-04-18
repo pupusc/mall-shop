@@ -95,6 +95,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -235,10 +237,15 @@ public class StoreReturnOrderController {
         returnOrder.setDistributorName(trade.getDistributorName());
         returnOrder.setDistributeItems(trade.getDistributeItems());
         returnOrder.setTerminalSource(TerminalSource.SUPPLIER);
-        BaseResponse<ReturnOrderAddResponse> response = returnOrderProvider.add(
-                ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
-        operateLogMQUtil.convertAndSend(
-                "订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
+
+        BaseResponse<ReturnOrderAddResponse> response = null;
+        for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+            List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+            returnItemDTONewList.add(returnItemParam);
+            returnOrder.setReturnItems(returnItemDTONewList);
+            response = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
+            operateLogMQUtil.convertAndSend("订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
+        }
         return response;
     }
 
