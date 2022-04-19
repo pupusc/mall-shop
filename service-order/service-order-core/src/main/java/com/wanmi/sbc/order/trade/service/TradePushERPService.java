@@ -370,6 +370,8 @@ public class TradePushERPService {
                 .receiverAddress(consignee.getDetailAddress())
                 .sellerMemo((trade.getCycleBuyFlag() && Objects.isNull(cycleNum)) ? "周期购订单" : null)
                 .buyerMemo(Objects.nonNull(trade.getBuyerRemark()) ? trade.getBuyerRemark() : null)
+//                .sellerMemoLate("duanlsh 这个是下单二次备注")
+//                .extendMemo("duanslh 这是个附加信息")
                 .build();
         return Optional.of(pushTradeRequest);
     }

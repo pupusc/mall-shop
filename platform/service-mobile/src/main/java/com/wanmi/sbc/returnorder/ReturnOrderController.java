@@ -15,6 +15,7 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
@@ -58,8 +59,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -111,12 +114,9 @@ public class ReturnOrderController {
     @GlobalTransactional
     @MultiSubmit
     public BaseResponse<String> create(@RequestBody @Valid ReturnOrderDTO returnOrder) {
-//        verifyIsReturnable(returnOrder.getTid());
-
 
         //验证用户
         String userId = commonUtil.getOperatorId();
-//        customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
         if (!verifyTradeByCustomerId(returnOrder.getTid(), userId)) {
             throw new SbcRuntimeException("K-050204");
         }
@@ -146,8 +146,26 @@ public class ReturnOrderController {
         oldReturnOrder.setDistributeItems(trade.getDistributeItems());
         oldReturnOrder.setReturnGift(returnOrder.getReturnGift());
         oldReturnOrder.setTerminalSource(commonUtil.getTerminal());
-        String rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
-                .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
+
+        String rid = null;
+        //视频号
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItemDTO returnItemParam : oldReturnOrder.getReturnItems()) {
+                if (returnItemParam.getApplyRealPrice() == null ||
+                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+                List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+                returnItemDTONewList.add(returnItemParam);
+                oldReturnOrder.setReturnItems(returnItemDTONewList);
+                rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
+                        .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
+            }
+        } else {
+            rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
+                    .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
+        }
+
         returnOrderProvider.deleteTransfer(ReturnOrderTransferDeleteRequest.builder().userId(userId).build());
         return BaseResponse.success(rid);
     }
@@ -284,10 +302,29 @@ public class ReturnOrderController {
         returnOrder.setTerminalSource(commonUtil.getTerminal());
 //        returnOrder.setFanDengUserNo(fanDengUserNo);
 
-        ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
-        returnOrderAddRequest.setReturnOrder(returnOrder);
-        returnOrderAddRequest.setOperator(commonUtil.getOperator());
-        String returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
+        String returnOrderId = null;
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+                if (returnItemParam.getApplyRealPrice() == null ||
+                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+
+                List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+                returnItemDTONewList.add(returnItemParam);
+                returnOrder.setReturnItems(returnItemDTONewList);
+
+                ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
+                returnOrderAddRequest.setReturnOrder(returnOrder);
+                returnOrderAddRequest.setOperator(commonUtil.getOperator());
+                returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
+            }
+        } else {
+            ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
+            returnOrderAddRequest.setReturnOrder(returnOrder);
+            returnOrderAddRequest.setOperator(commonUtil.getOperator());
+            returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
+        }
         return BaseResponse.success(returnOrderId);
     }
 

@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.provider.impl.returnorder;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
@@ -12,6 +13,8 @@ import com.wanmi.sbc.order.refund.model.root.RefundOrder;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
+import com.wanmi.sbc.order.trade.model.root.Trade;
+import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,6 +39,9 @@ public class ReturnOrderController implements ReturnOrderProvider {
     @Autowired
     private ReturnOrderService returnOrderService;
 
+    @Autowired
+    private TradeRepository tradeRepository;
+
     /**
      * 退单创建
      *
@@ -48,9 +54,13 @@ public class ReturnOrderController implements ReturnOrderProvider {
 
             return BaseResponse.FAILED();
         }
-        String returnOrderId = returnOrderService.create(KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class),
-                request.getOperator());
 
+        ReturnOrder returnOrder = KsBeanUtil.convert(request.getReturnOrder(), ReturnOrder.class);
+        Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
+        if (trade == null) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+        String returnOrderId = returnOrderService.create(returnOrder, request.getOperator());
         ReturnOrderAddResponse returnOrderAddResponse = new ReturnOrderAddResponse();
         returnOrderAddResponse.setReturnOrderId(returnOrderId);
         return BaseResponse.success(returnOrderAddResponse);

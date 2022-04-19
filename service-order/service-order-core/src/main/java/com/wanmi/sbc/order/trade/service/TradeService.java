@@ -1790,7 +1790,7 @@ public class TradeService {
                 GoodsPackDetailResponse mainGoodsPackDetailTmp = null;
                 for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
                     if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
-                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,2, RoundingMode.HALF_UP);
                         BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
                         BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
 
