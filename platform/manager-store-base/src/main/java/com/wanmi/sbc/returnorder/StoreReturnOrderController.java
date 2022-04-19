@@ -240,6 +240,10 @@ public class StoreReturnOrderController {
 
         BaseResponse<ReturnOrderAddResponse> response = null;
         for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+            if (returnItemParam.getApplyRealPrice() == null ||
+                returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
             List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
             returnItemDTONewList.add(returnItemParam);
             returnOrder.setReturnItems(returnItemDTONewList);

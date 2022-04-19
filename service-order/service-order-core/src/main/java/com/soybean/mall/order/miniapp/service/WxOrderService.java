@@ -28,6 +28,7 @@ import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
+import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
@@ -443,14 +444,15 @@ public class WxOrderService {
      *
      * @param returnOrder
      */
-    public void addEcAfterSale(ReturnOrder returnOrder) {
+    public String addEcAfterSale(ReturnOrder returnOrder) {
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
         if (trade == null) {
             throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
         }
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) || returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
-            return;
+            return null;
         }
+        String aftersaleId = null;
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
         request.setOutOrderId(returnOrder.getTid());
         request.setOutAftersaleId(returnOrder.getId());
@@ -458,7 +460,7 @@ public class WxOrderService {
         request.setType(Objects.equals(ReturnType.RETURN, returnOrder.getReturnType()) ? 2 : 1);
         request.setRefundReason(returnOrder.getDescription());
         request.setRefundReasonType(getReasonType(returnOrder.getReturnReason()));
-        returnOrder.getReturnItems().forEach(item -> {
+        for (ReturnItem item : returnOrder.getReturnItems()) {
             request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
             WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
             productInfo.setOutProductId(item.getSpuId());
@@ -471,7 +473,9 @@ public class WxOrderService {
                 throw new SbcRuntimeException("K-050415");
             }
 
-        });
+            aftersaleId = response.getContext().getAftersaleId().toString();
+        }
+        return aftersaleId;
     }
 
     private Integer getReasonType(ReturnReason returnReason){
@@ -507,7 +511,7 @@ public class WxOrderService {
     }
 
     /**
-     * 同意退款
+     * 取消退款
      */
     public void cancelAfterSale(ReturnOrder returnOrder) {
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);
@@ -565,7 +569,7 @@ public class WxOrderService {
     }
 
     /**
-     * 售后-同意退货
+     * 售后-拒绝退货
      */
     public void rejectAfterSale(ReturnOrder returnOrder) {
         Trade trade = tradeRepository.findById(returnOrder.getTid()).orElse(null);

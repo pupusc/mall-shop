@@ -58,6 +58,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -147,6 +148,10 @@ public class ReturnOrderController {
 
         String rid = null;
         for (ReturnItemDTO returnItemParam : oldReturnOrder.getReturnItems()) {
+            if (returnItemParam.getApplyRealPrice() == null ||
+                    returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
             List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
             returnItemDTONewList.add(returnItemParam);
             oldReturnOrder.setReturnItems(returnItemDTONewList);
@@ -291,6 +296,11 @@ public class ReturnOrderController {
 
         String returnOrderId = null;
         for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+            if (returnItemParam.getApplyRealPrice() == null ||
+                    returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
             List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
             returnItemDTONewList.add(returnItemParam);
             returnOrder.setReturnItems(returnItemDTONewList);
