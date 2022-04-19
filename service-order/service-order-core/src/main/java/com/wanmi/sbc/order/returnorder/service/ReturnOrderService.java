@@ -1215,6 +1215,21 @@ public class ReturnOrderService {
                 if (returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) <= 0) {
                     throw new SbcRuntimeException("K-050419");
                 }
+
+                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1))
+
+                for (ReturnOrder returnOrderParam : returnOrderList) {
+                    if (!returnOrderParam.getInterrupt()) {
+                        continue;
+                    }
+
+                    for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
+                        if (skuId2ReturnItemMap.get(returnItemParam.getSkuId()) != null) {
+                            throw new SbcRuntimeException("K-050420");
+                        }
+                    }
+
+                }
             }
 
             //先取消之前的售后单

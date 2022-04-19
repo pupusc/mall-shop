@@ -30,6 +30,7 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,9 @@ public class WxOrderService {
 
     @Autowired
     private TradeRepository tradeRepository;
+
+    @Autowired
+    private ReturnOrderRepository returnOrderRepository;
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
@@ -579,6 +583,16 @@ public class WxOrderService {
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
+        Optional<ReturnOrder> returnOrderOptional = returnOrderRepository.findById(returnOrder.getId());
+        if (!returnOrderOptional.isPresent()) {
+            throw new SbcRuntimeException("K-050003");
+        }
+
+        //更新为中断
+        ReturnOrder returnOrderNew = returnOrderOptional.get();
+        returnOrderNew.setInterrupt(Boolean.TRUE);
+        returnOrderRepository.save(returnOrderNew);
+
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
         request.setOutAftersaleId(returnOrder.getId());
         BaseResponse<WxResponseBase> response = wxOrderApiController.rejectAfterSale(request);
@@ -586,6 +600,8 @@ public class WxOrderService {
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
             throw new SbcRuntimeException("K-050415");
         }
+
+
 
     }
 
