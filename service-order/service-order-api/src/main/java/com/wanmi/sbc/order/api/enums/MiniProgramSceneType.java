@@ -1,4 +1,4 @@
-package com.soybean.mall.order.enums;
+package com.wanmi.sbc.order.api.enums;
 
 import com.wanmi.sbc.common.annotation.ApiEnum;
 

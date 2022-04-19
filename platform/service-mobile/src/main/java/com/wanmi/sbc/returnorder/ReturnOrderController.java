@@ -15,6 +15,7 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
@@ -147,17 +148,24 @@ public class ReturnOrderController {
         oldReturnOrder.setTerminalSource(commonUtil.getTerminal());
 
         String rid = null;
-        for (ReturnItemDTO returnItemParam : oldReturnOrder.getReturnItems()) {
-            if (returnItemParam.getApplyRealPrice() == null ||
-                    returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
+        //视频号
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItemDTO returnItemParam : oldReturnOrder.getReturnItems()) {
+                if (returnItemParam.getApplyRealPrice() == null ||
+                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+                List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+                returnItemDTONewList.add(returnItemParam);
+                oldReturnOrder.setReturnItems(returnItemDTONewList);
+                rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
+                        .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
             }
-            List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
-            returnItemDTONewList.add(returnItemParam);
-            oldReturnOrder.setReturnItems(returnItemDTONewList);
+        } else {
             rid = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(oldReturnOrder)
                     .operator(commonUtil.getOperator()).build()).getContext().getReturnOrderId();
         }
+
         returnOrderProvider.deleteTransfer(ReturnOrderTransferDeleteRequest.builder().userId(userId).build());
         return BaseResponse.success(rid);
     }
@@ -295,16 +303,23 @@ public class ReturnOrderController {
 //        returnOrder.setFanDengUserNo(fanDengUserNo);
 
         String returnOrderId = null;
-        for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
-            if (returnItemParam.getApplyRealPrice() == null ||
-                    returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+                if (returnItemParam.getApplyRealPrice() == null ||
+                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+
+                List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+                returnItemDTONewList.add(returnItemParam);
+                returnOrder.setReturnItems(returnItemDTONewList);
+
+                ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
+                returnOrderAddRequest.setReturnOrder(returnOrder);
+                returnOrderAddRequest.setOperator(commonUtil.getOperator());
+                returnOrderId = returnOrderProvider.add(returnOrderAddRequest).getContext().getReturnOrderId();
             }
-
-            List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
-            returnItemDTONewList.add(returnItemParam);
-            returnOrder.setReturnItems(returnItemDTONewList);
-
+        } else {
             ReturnOrderAddRequest returnOrderAddRequest = new ReturnOrderAddRequest();
             returnOrderAddRequest.setReturnOrder(returnOrder);
             returnOrderAddRequest.setOperator(commonUtil.getOperator());

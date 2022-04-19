@@ -35,6 +35,7 @@ import com.wanmi.sbc.erp.api.response.DeliveryStatusResponse;
 import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.linkedmall.api.request.returnorder.SbcQueryRefundApplicationDetailRequest;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
@@ -239,14 +240,19 @@ public class StoreReturnOrderController {
         returnOrder.setTerminalSource(TerminalSource.SUPPLIER);
 
         BaseResponse<ReturnOrderAddResponse> response = null;
-        for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
-            if (returnItemParam.getApplyRealPrice() == null ||
-                returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
+        if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
+                if (returnItemParam.getApplyRealPrice() == null ||
+                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new SbcRuntimeException("K-050419");
+                }
+                List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
+                returnItemDTONewList.add(returnItemParam);
+                returnOrder.setReturnItems(returnItemDTONewList);
+                response = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
+                operateLogMQUtil.convertAndSend("订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
             }
-            List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
-            returnItemDTONewList.add(returnItemParam);
-            returnOrder.setReturnItems(returnItemDTONewList);
+        } else {
             response = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrder).operator(operator).build());
             operateLogMQUtil.convertAndSend("订单", "代客退单", "退单号" + response.getContext().getReturnOrderId());
         }
