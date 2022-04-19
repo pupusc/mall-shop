@@ -359,6 +359,11 @@ public class ReturnOrderVO implements Serializable {
     private TradeCycleBuyInfoVO tradeCycleBuyInfo;
 
     /**
+     * 小程序订单场景1小程序2视频号
+     */
+    private Integer miniProgramScene;
+
+    /**
      * 增加操作日志
      *
      * @param log

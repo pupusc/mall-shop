@@ -1176,6 +1176,7 @@ public class ReturnOrderService {
             newReturnOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
             newReturnOrder.setPlatform(operator.getPlatform());
             newReturnOrder.setId(returnOrderId);
+            newReturnOrder.setMiniProgramScene(trade.getMiniProgramScene() == null ? 0 : trade.getMiniProgramScene());
 
             //记录日志
             newReturnOrder.appendReturnEventLog(new ReturnEventLog(operator, "创建退单", "创建退单", "", LocalDateTime.now()));

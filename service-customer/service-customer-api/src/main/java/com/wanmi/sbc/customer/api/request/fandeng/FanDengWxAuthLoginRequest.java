@@ -16,4 +16,5 @@ public class FanDengWxAuthLoginRequest {
     private String areaCode;
     private String mobile;
     private String registerSource;
+    private Integer serviceType;
 }
