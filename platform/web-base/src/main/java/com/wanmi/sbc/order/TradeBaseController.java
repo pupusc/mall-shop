@@ -704,6 +704,9 @@ public class TradeBaseController {
     public BaseResponse confirm(@RequestBody @Valid TradeItemConfirmRequest confirmRequest) {
 
         String customerId = commonUtil.getOperatorId();
+        if (StringUtils.isBlank(customerId)) {
+            throw new SbcRuntimeException("K-010110");
+        }
 
         List<String> skuIds =
                 confirmRequest.getTradeItems().stream().map(TradeItemRequest::getSkuId).collect(Collectors.toList());

@@ -275,6 +275,7 @@ public class CouponCodeService {
         // 1.设置tradeItem的storeCateIds
         List<TradeItemInfo> tradeItemInfos = request.getTradeItems();
         List<String> goodsIds = tradeItemInfos.stream().map(TradeItemInfo::getSpuId).distinct().collect(Collectors.toList());
+        //获取商品spuId 获取商品所在分类列表
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
         tradeItemInfos.forEach(item -> {
             List<Integer> cateIds = storeCateIdMap.get(item.getSpuId());

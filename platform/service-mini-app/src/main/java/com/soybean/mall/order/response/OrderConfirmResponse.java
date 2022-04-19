@@ -23,6 +23,11 @@ public class OrderConfirmResponse implements Serializable {
     private List<TradeConfirmItemVO> tradeConfirmItems;
 
     /**
+     * 优惠券信息
+     */
+    private List<CouponCodeVO> couponCodes;
+
+    /**
      * 订单总额
      */
     @ApiModelProperty(value = "订单总额")
