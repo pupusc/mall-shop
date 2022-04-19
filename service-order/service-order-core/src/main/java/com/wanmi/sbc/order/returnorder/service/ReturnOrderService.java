@@ -1216,7 +1216,7 @@ public class ReturnOrderService {
                     throw new SbcRuntimeException("K-050419");
                 }
 
-                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1))
+                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1));
 
                 for (ReturnOrder returnOrderParam : returnOrderList) {
                     if (!returnOrderParam.getInterrupt()) {
