@@ -1211,7 +1211,7 @@ public class ReturnOrderService {
                 Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1));
 
                 for (ReturnOrder returnOrderParam : returnOrderList) {
-                    if (!returnOrderParam.getInterrupt()) {
+                    if (returnOrderParam.getInterrupt() == null || !returnOrderParam.getInterrupt()) {
                         continue;
                     }
 
