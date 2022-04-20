@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.common.controller;
 
+import com.soybean.mall.wx.mini.common.bean.request.UrlschemeRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
@@ -19,4 +20,6 @@ public interface CommonController {
     @PostMapping("/common/send/msg")
     BaseResponse sendMessage(@RequestBody WxSendMessageRequest request);
 
+    @PostMapping("/common/urlscheme/generate")
+    BaseResponse<String> urlschemeGenerate(@RequestBody UrlschemeRequest request);
 }
