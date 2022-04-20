@@ -197,7 +197,7 @@ public class MarketingController {
             couponByCustomerResp.setScopeContent(scopeContent.toString());
             couponByCustomerResp.setCouponType(couponCodeVO.getCouponType());
             couponByCustomerResp.setNearOverdue(couponCodeVO.isNearOverdue());
-            couponByCustomerResp.setCouponCanUse(couponCodeVO.isCouponCanUse());
+//            couponByCustomerResp.setCouponCanUse(couponCodeVO.isCouponCanUse());
             couponByCustomerResp.setStatus(couponCodeVO.getStatus());
             result.add(couponByCustomerResp);
         }

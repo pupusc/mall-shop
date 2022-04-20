@@ -85,10 +85,10 @@ public class CouponByCustomerResp {
      */
     private boolean nearOverdue;
 
-    /**
-     * 是否可以立即使用 true 是(立即使用) false(查看可用商品)
-     */
-    private boolean couponCanUse;
+//    /**
+//     * 是否可以立即使用 true 是(立即使用) false(查看可用商品)
+//     */
+//    private boolean couponCanUse;
 
 
     /**
