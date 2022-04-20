@@ -35,9 +35,14 @@ public class CouponByCustomerResp {
     private LocalDateTime endTime;
 
     /**
-     * 优惠券Id
+     * 优惠券码id
      */
-    private String couponId;
+    private String couponCodeId;
+
+//    /**
+//     * 优惠券Id
+//     */
+//    private String couponId;
 
     /**
      * 优惠券名称
