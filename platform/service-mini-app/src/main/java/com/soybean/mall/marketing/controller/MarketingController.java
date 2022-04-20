@@ -162,7 +162,7 @@ public class MarketingController {
         List<CouponCodeVO> couponCodeList = couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext().getCouponCodeList();
         List<CouponByCustomerResp> result = new ArrayList<>();
         for (CouponCodeVO couponCodeVO : couponCodeList) {
-            log.info("MarketingController listCouponByCustomer param: {}", JSON.toJSONString(couponCodeVO));
+            log.info("MarketingController listCouponByCustomer customerId: {} param: {}", customerId, JSON.toJSONString(couponCodeVO));
             //过滤掉已经使用的优惠券
             if (DefaultFlag.YES.equals(couponCodeVO.getUseStatus())) {
                 continue;
