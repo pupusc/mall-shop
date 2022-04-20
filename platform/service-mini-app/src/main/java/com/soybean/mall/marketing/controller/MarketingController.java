@@ -169,11 +169,11 @@ public class MarketingController {
             couponByCustomerResp.setCouponCodeId(couponCodeVO.getCouponCodeId());
             couponByCustomerResp.setCouponName(couponCodeVO.getCouponName());
             couponByCustomerResp.setDenomination(couponCodeVO.getDenomination());
-            String fullContent = Objects.equals(couponCodeVO.getFullBuyType(), FullBuyType.NO_THRESHOLD) ? "无门槛" : "满 " + couponCodeVO.getFullBuyPrice() + " 可用";
+            String fullContent = Objects.equals(couponCodeVO.getFullBuyType(), FullBuyType.NO_THRESHOLD) ? "无门槛" : "满 " + couponCodeVO.getFullBuyPrice() + "可用";
             couponByCustomerResp.setFullContent(fullContent);
-            String platformContent = Objects.equals(couponCodeVO.getPlatformFlag(), DefaultFlag.YES) ? "全平台可用" : "仅" + couponCodeVO.getStoreName() + " 可用";
+            String platformContent = Objects.equals(couponCodeVO.getPlatformFlag(), DefaultFlag.YES) ? "全平台可用" : "仅" + couponCodeVO.getStoreName() + "可用";
             couponByCustomerResp.setPlatformContent(platformContent);
-            StringBuilder scopeContent = new StringBuilder("限 ");
+            StringBuilder scopeContent = new StringBuilder("限");
             if (Objects.equals(couponCodeVO.getScopeType(), ScopeType.ALL)) {
                 scopeContent.append("商品: ").append("全部商品");
             } else if (Objects.equals(couponCodeVO.getScopeType(), ScopeType.BRAND)) {
