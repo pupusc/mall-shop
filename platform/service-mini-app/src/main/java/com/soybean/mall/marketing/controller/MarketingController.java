@@ -94,8 +94,8 @@ public class MarketingController {
      * @return
      */
     @PostMapping("list-coupon-by-customer")
-    public BaseResponse listCouponByCustomer(@RequestBody List<TradeItemSimpleRequest> tradeItemSimpleList) {
-        if (CollectionUtils.isEmpty(tradeItemSimpleList)) {
+    public BaseResponse listCouponByCustomer(@RequestBody CouponByCustomerReq couponByCustomerReq) {
+        if (CollectionUtils.isEmpty(couponByCustomerReq.getTradeItems())) {
             throw new SbcRuntimeException("K-000009");
         }
         //获取客户id 验证客户信息
@@ -104,7 +104,7 @@ public class MarketingController {
 
         List<TradeItemDTO> tradeItemList = new ArrayList<>();
         List<String> skuIdList = new ArrayList<>();
-        for (TradeItemSimpleRequest tradeItemSimpleRequestParam : tradeItemSimpleList) {
+        for (TradeItemSimpleRequest tradeItemSimpleRequestParam : couponByCustomerReq.getTradeItems()) {
             TradeItemDTO tradeItemDTO = new TradeItemDTO();
             tradeItemDTO.setSkuId(tradeItemSimpleRequestParam.getSkuId());
             tradeItemDTO.setNum(tradeItemSimpleRequestParam.getNum());

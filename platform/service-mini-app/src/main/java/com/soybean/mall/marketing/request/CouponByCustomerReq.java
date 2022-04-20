@@ -17,6 +17,6 @@ public class CouponByCustomerReq {
     /**
      * 商品id和数量
      */
-    private List<TradeItemSimpleRequest> tradeItemSimpleList;
+    private List<TradeItemSimpleRequest> tradeItems;
 
 }
