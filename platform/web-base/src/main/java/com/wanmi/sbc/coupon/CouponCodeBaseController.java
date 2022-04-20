@@ -12,6 +12,7 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCheckoutRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodePageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeSimplePageRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponFetchRequest;
+import com.wanmi.sbc.marketing.api.response.config.MarketingNacosConfigResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCheckoutResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodePageResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCodeSimplePageResponse;
@@ -40,8 +41,8 @@ import java.util.List;
 @RefreshScope
 public class CouponCodeBaseController {
 
-    @Value("${coupon.mini.ids:[]}")
-    private List<String> couponIds;
+//    @Value("${coupon.mini.ids:[]}")
+//    private List<String> couponIds;
 
     @Autowired
     private CouponCodeQueryProvider couponCodeQueryProvider;
@@ -63,7 +64,8 @@ public class CouponCodeBaseController {
         request.setCustomerId(commonUtil.getOperatorId());
         String terminal = HttpUtil.getRequest().getHeader("terminal");
         if("MINIPROGRAM".equals(terminal)){
-            request.setCouponIds(couponIds);
+            BaseResponse<MarketingNacosConfigResponse> miniAppConfig = couponCodeQueryProvider.getMiniAppConfig();
+            request.setCouponIds(miniAppConfig.getContext().getAppMiniCouponIdList());
         }
         return couponCodeQueryProvider.page(request);
     }

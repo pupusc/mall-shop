@@ -30,6 +30,7 @@ import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.config.MarketingNacosConfigResponse;
 import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.bean.enums.ScopeType;
@@ -151,9 +152,8 @@ public class MarketingController {
             dto.setPrice(tradeItemVOParam.getSplitPrice());
             tradeItemInfoDTOList.add(dto);
         }
-
-        String allocateCouponId = "2c9a00ad7fd3bd1a017fd9fa2b760046,2c9a00ad7fd3bd1a017fd4f626e30005,2c9a00ad7fd3bd1a017fd9b9a44f0034,2c9a00ad7fd3bd1a017fda099965004a,2c9a00ad7fd3bd1a017fdae48e62007a,2c9a00e57fde6227017fe40d0ef3002d,2c9a00e57fde6227017fe41900720041,2c9a00e57fde6227017fe41d4f400047";
-        List<String> allocateCouponIdList = Arrays.asList(allocateCouponId.split(","));
+        BaseResponse<MarketingNacosConfigResponse> miniAppConfig = couponCodeQueryProvider.getMiniAppConfig();
+        MarketingNacosConfigResponse context = miniAppConfig.getContext();
 
         CouponCodeListForUseByCustomerIdRequest couponCodeListForUseByCustomerIdRequest = new CouponCodeListForUseByCustomerIdRequest();
         couponCodeListForUseByCustomerIdRequest.setCustomerId(customer.getCustomerId());
@@ -168,7 +168,7 @@ public class MarketingController {
                 continue;
             }
 
-            if (!allocateCouponIdList.contains(couponCodeVO.getCouponId())) {
+            if (!context.getAppMiniCouponIdList().contains(couponCodeVO.getCouponId())) {
                 continue;
             }
             CouponByCustomerResp couponByCustomerResp = new CouponByCustomerResp();
