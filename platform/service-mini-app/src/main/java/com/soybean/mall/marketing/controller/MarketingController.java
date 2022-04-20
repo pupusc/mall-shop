@@ -1,4 +1,5 @@
 package com.soybean.mall.marketing.controller;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 
 import com.soybean.mall.common.CommonUtil;
@@ -50,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -150,6 +152,9 @@ public class MarketingController {
             tradeItemInfoDTOList.add(dto);
         }
 
+        String allocateCouponId = "2c9a00ad7fd3bd1a017fd9fa2b760046,2c9a00ad7fd3bd1a017fd4f626e30005,2c9a00ad7fd3bd1a017fd9b9a44f0034,2c9a00ad7fd3bd1a017fda099965004a,2c9a00ad7fd3bd1a017fdae48e62007a,2c9a00e57fde6227017fe40d0ef3002d,2c9a00e57fde6227017fe41900720041,2c9a00e57fde6227017fe41d4f400047";
+        List<String> allocateCouponIdList = Arrays.asList(allocateCouponId.split(","));
+
         CouponCodeListForUseByCustomerIdRequest couponCodeListForUseByCustomerIdRequest = new CouponCodeListForUseByCustomerIdRequest();
         couponCodeListForUseByCustomerIdRequest.setCustomerId(customer.getCustomerId());
         couponCodeListForUseByCustomerIdRequest.setTradeItems(tradeItemInfoDTOList);
@@ -157,15 +162,19 @@ public class MarketingController {
         List<CouponCodeVO> couponCodeList = couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext().getCouponCodeList();
         List<CouponByCustomerResp> result = new ArrayList<>();
         for (CouponCodeVO couponCodeVO : couponCodeList) {
+            log.info("MarketingController listCouponByCustomer param: {}", JSON.toJSONString(couponCodeVO));
             //过滤掉已经使用的优惠券
             if (DefaultFlag.YES.equals(couponCodeVO.getUseStatus())) {
                 continue;
             }
 
+            if (!allocateCouponIdList.contains(couponCodeVO.getCouponId())) {
+                continue;
+            }
             CouponByCustomerResp couponByCustomerResp = new CouponByCustomerResp();
             couponByCustomerResp.setStartTime(couponCodeVO.getStartTime());
             couponByCustomerResp.setEndTime(couponCodeVO.getEndTime());
-//            couponByCustomerResp.setCouponId(couponCodeVO.getCouponId());
+            couponByCustomerResp.setCouponId(couponCodeVO.getCouponId());
             couponByCustomerResp.setCouponCodeId(couponCodeVO.getCouponCodeId());
             couponByCustomerResp.setCouponName(couponCodeVO.getCouponName());
             couponByCustomerResp.setDenomination(couponCodeVO.getDenomination());
