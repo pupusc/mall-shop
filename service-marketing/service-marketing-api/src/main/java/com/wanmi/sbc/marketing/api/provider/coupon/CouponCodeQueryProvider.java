@@ -2,6 +2,7 @@ package com.wanmi.sbc.marketing.api.provider.coupon;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.marketing.api.request.coupon.*;
+import com.wanmi.sbc.marketing.api.response.config.MarketingNacosConfigResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.*;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -94,4 +95,11 @@ public interface CouponCodeQueryProvider {
      */
     @PostMapping("/marketing/${application.marketing.version}/coupon/code/list-will-expire")
     BaseResponse<List<CouponCodeVO>> listWillExpireByCustomerIds(@RequestBody CouponCodeByCustomerIdsRequest request);
+
+    /**
+     * 获取小程序配置信息
+     * @return
+     */
+    @PostMapping("/marketing/${application.marketing.version}/coupon/code/get-mini-app-config")
+    BaseResponse<MarketingNacosConfigResponse> getMiniAppConfig();
 }
