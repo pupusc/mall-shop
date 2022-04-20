@@ -291,17 +291,28 @@ public class CouponCodeService {
         // 3.循环处理每个优惠券
         TradeCouponSnapshot checkInfo = new TradeCouponSnapshot();
         if(CollectionUtils.isNotEmpty(couponCodeVos)) {
-            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
-            if(listBaseResponse.getContext() != null){
-                List<ClassifyProviderResponse> classifies = listBaseResponse.getContext();
-                for (CouponCodeVO couponCodeVO : couponCodeVos) {
-                    for (ClassifyProviderResponse classify : classifies) {
-                        if (couponCodeVO.getStoreId().equals(classify.getId().longValue())) {
-                            couponCodeVO.setStoreName(classify.getClassifyName());
-                        }
+            BaseResponse<ListStoreByIdsResponse> baseResponse =
+                    storeQueryProvider.listByIds(new ListStoreByIdsRequest(couponCodeVos.stream().map(CouponCodeVO::getStoreId).collect(Collectors.toList())));
+            List<StoreVO> storeVOList = baseResponse.getContext().getStoreVOList();
+            for (CouponCodeVO couponCodeVO : couponCodeVos) {
+                for (StoreVO storeVO : storeVOList) {
+                    if (couponCodeVO.getStoreId().equals(storeVO.getStoreId())) {
+                        couponCodeVO.setStoreName(storeVO.getStoreName());
                     }
                 }
             }
+
+//            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
+//            if(listBaseResponse.getContext() != null){
+//                List<ClassifyProviderResponse> classifies = listBaseResponse.getContext();
+//                for (CouponCodeVO couponCodeVO : couponCodeVos) {
+//                    for (ClassifyProviderResponse classify : classifies) {
+//                        if (couponCodeVO.getStoreId().equals(classify.getId().longValue())) {
+//                            couponCodeVO.setStoreName(classify.getClassifyName());
+//                        }
+//                    }
+//                }
+//            }
             List<CouponMarketingScope> allScopeList = couponMarketingScopeRepository.findByCouponIdIn(
                     couponCodeVos.stream().map(vo -> vo.getCouponId()).collect(Collectors.toList())
             );
