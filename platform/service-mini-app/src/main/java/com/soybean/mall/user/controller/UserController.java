@@ -97,7 +97,7 @@ public class UserController {
             unionId = newCustomerVO.getWxMiniUnionId();
             openId = newCustomerVO.getWxMiniOpenId();
         }
-        if(!newUser && (openId == null || unionId == null)){
+        if(!newUser && (StringUtils.isBlank(openId) || StringUtils.isBlank(unionId))){
             // 如果不是新用户，但是没有openid，先调微信获取，再保存到用户信息中
             wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
             wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
