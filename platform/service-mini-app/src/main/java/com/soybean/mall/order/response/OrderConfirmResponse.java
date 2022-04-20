@@ -22,10 +22,10 @@ public class OrderConfirmResponse implements Serializable {
     @ApiModelProperty(value = "按商家拆分后的订单项")
     private List<TradeConfirmItemVO> tradeConfirmItems;
 
-    /**
-     * 优惠券信息
-     */
-    private List<CouponCodeVO> couponCodes;
+//    /**
+//     * 优惠券信息
+//     */
+//    private List<CouponCodeVO> couponCodes;
 
     /**
      * 订单总额

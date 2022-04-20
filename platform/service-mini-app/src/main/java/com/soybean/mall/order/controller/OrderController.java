@@ -11,6 +11,7 @@ import com.soybean.mall.order.common.DefaultPayBatchRequest;
 import com.soybean.mall.order.common.PayServiceHelper;
 import com.soybean.mall.order.request.TradeItemConfirmRequest;
 import com.soybean.mall.order.response.OrderConfirmResponse;
+import com.soybean.mall.service.CommonService;
 import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
@@ -139,8 +140,9 @@ public class OrderController {
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
 
-    @Resource
-    private CouponCodeQueryProvider couponCodeQueryProvider;
+    @Autowired
+    private CommonService commonService;
+
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -410,7 +412,7 @@ public class OrderController {
 
 
         tradeConfirmItemVO.setTradeItems(tradeItemVOList);
-        tradeConfirmItemVO.setTradePrice(calPrice(tradeItemVOList));
+        tradeConfirmItemVO.setTradePrice(commonService.calPrice(tradeItemVOList));
 
         DefaultFlag freightTemplateType = store.getFreightTemplateType();
         SupplierVO supplier = SupplierVO.builder()
@@ -426,26 +428,26 @@ public class OrderController {
         items.add(tradeConfirmItemVO);
         confirmResponse.setTradeConfirmItems(items);
 
-        //设置优惠券
-        List<TradeItemInfoDTO> tradeDtos = items.stream().flatMap(confirmItem ->
-                confirmItem.getTradeItems().stream().map(tradeItem -> {
-                    TradeItemInfoDTO dto = new TradeItemInfoDTO();
-                    dto.setBrandId(tradeItem.getBrand());
-                    dto.setCateId(tradeItem.getCateId());
-                    dto.setSpuId(tradeItem.getSpuId());
-                    dto.setSkuId(tradeItem.getSkuId());
-                    dto.setStoreId(confirmItem.getSupplier().getStoreId());
-                    dto.setPrice(tradeItem.getSplitPrice());
-                    return dto;
-                })).collect(Collectors.toList());
-
-        CouponCodeListForUseByCustomerIdRequest couponCodeListForUseByCustomerIdRequest = new CouponCodeListForUseByCustomerIdRequest();
-        couponCodeListForUseByCustomerIdRequest.setCustomerId(customer.getCustomerId());
-        couponCodeListForUseByCustomerIdRequest.setTradeItems(tradeDtos);
-        BigDecimal totalPriceSum = items.stream().map(item -> item.getTradePrice().getTotalPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
-        couponCodeListForUseByCustomerIdRequest.setPrice(totalPriceSum);
-        confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext()
-                .getCouponCodeList());
+//        //设置优惠券
+//        List<TradeItemInfoDTO> tradeDtos = items.stream().flatMap(confirmItem ->
+//                confirmItem.getTradeItems().stream().map(tradeItem -> {
+//                    TradeItemInfoDTO dto = new TradeItemInfoDTO();
+//                    dto.setBrandId(tradeItem.getBrand());
+//                    dto.setCateId(tradeItem.getCateId());
+//                    dto.setSpuId(tradeItem.getSpuId());
+//                    dto.setSkuId(tradeItem.getSkuId());
+//                    dto.setStoreId(confirmItem.getSupplier().getStoreId());
+//                    dto.setPrice(tradeItem.getSplitPrice());
+//                    return dto;
+//                })).collect(Collectors.toList());
+//
+//        CouponCodeListForUseByCustomerIdRequest couponCodeListForUseByCustomerIdRequest = new CouponCodeListForUseByCustomerIdRequest();
+//        couponCodeListForUseByCustomerIdRequest.setCustomerId(customer.getCustomerId());
+//        couponCodeListForUseByCustomerIdRequest.setTradeItems(tradeDtos);
+//        BigDecimal totalPriceSum = items.stream().map(item -> item.getTradePrice().getTotalPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+//        couponCodeListForUseByCustomerIdRequest.setPrice(totalPriceSum);
+//        confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext()
+//                .getCouponCodeList());
         return BaseResponse.success(confirmResponse);
     }
 
@@ -525,41 +527,6 @@ public class OrderController {
                 .goodses(response.getGoodses())
                 .build();
     }
-
-
-    /**
-     * 计算商品价格
-     *
-     * @param tradeItems 多个订单项(商品)
-     */
-    private TradePriceVO calPrice(List<TradeItemVO> tradeItems) {
-        TradePriceVO tradePrice = new TradePriceVO();
-        tradePrice.setGoodsPrice(BigDecimal.ZERO);
-        tradePrice.setOriginPrice(BigDecimal.ZERO);
-        tradePrice.setTotalPrice(BigDecimal.ZERO);
-        tradePrice.setBuyPoints(null);
-        tradeItems.forEach(t -> {
-            BigDecimal buyItemPrice = t.getPrice().multiply(BigDecimal.valueOf(t.getNum()));
-            BigDecimal originalPrice = t.getOriginalPrice().multiply(BigDecimal.valueOf(t.getNum()));
-            //总价，有定价=定价*数量，否则=原价
-            BigDecimal totalPrice = t.getPropPrice() != null ? (new BigDecimal(t.getPropPrice()).multiply(BigDecimal.valueOf(t.getNum()))) : originalPrice;
-            // 订单商品总价
-            tradePrice.setGoodsPrice(tradePrice.getGoodsPrice().add(buyItemPrice));
-            // 订单总金额
-            tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(totalPrice));
-            // 订单原始总金额
-            tradePrice.setOriginPrice(tradePrice.getOriginPrice().add(originalPrice));
-            //优惠金额=定价-原价
-            tradePrice.setDiscountsPrice(new BigDecimal(0));
-            if(totalPrice.compareTo(originalPrice) > 0){
-                tradePrice.setDiscountsPrice(totalPrice.subtract(originalPrice));
-            }
-            //会员优惠
-            tradePrice.setVipDiscountPrice(originalPrice.subtract(buyItemPrice));
-        });
-        return tradePrice;
-    }
-
 
 
     /**
