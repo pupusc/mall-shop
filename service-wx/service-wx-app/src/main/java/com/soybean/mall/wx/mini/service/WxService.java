@@ -2,8 +2,10 @@ package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.common.bean.request.UrlschemeRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.UrlschemeResponse;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
 import com.soybean.mall.wx.mini.customerserver.request.WxCustomerServerOnlineRequest;
 import com.soybean.mall.wx.mini.customerserver.response.WxCustomerServerOnlineResponse;
@@ -16,6 +18,7 @@ import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.wanmi.sbc.common.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,6 +68,8 @@ public class WxService {
     private static final String CUSTOMER_SERVER_ONLINE_URL="https://api.weixin.qq.com/cgi-bin/customservice/getonlinekflist";
 
     private static final HttpHeaders defaultHeader;
+    public static final String API_WEIXIN_WXA_GENERATESCHEME = "https://api.weixin.qq.com/wxa/generatescheme";
+
     static {
         defaultHeader = new HttpHeaders();
         defaultHeader.setContentType(MediaType.APPLICATION_JSON);
@@ -392,5 +397,21 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxCustomerServerOnlineResponse.class);
+    }
+
+    /**
+     * 生成小程序的schemeurl
+     * @param request
+     * @return
+     */
+    public BaseResponse<String> urlschemeGenerate(UrlschemeRequest request) {
+        String url = API_WEIXIN_WXA_GENERATESCHEME.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        UrlschemeResponse urlschemeResponse = sendRequest(url, HttpMethod.POST, entity, UrlschemeResponse.class);
+        if(urlschemeResponse.isSuccess()){
+            return BaseResponse.success(urlschemeResponse.getOpenlink());
+        }
+        return BaseResponse.error(urlschemeResponse.getErrcode()+"  "+ urlschemeResponse.getErrmsg());
     }
 }
