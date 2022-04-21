@@ -9,6 +9,7 @@
     <modules>
         <module>mall-common-log</module>
         <module>mall-common-dependency</module>
+        <module>mall-common-spring</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -28,6 +29,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <!--
             <plugin>
                 <groupId>com.soybean</groupId>
                 <artifactId>jarFilter-maven-plugin</artifactId>
@@ -43,6 +45,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>
