@@ -342,6 +342,11 @@ public class TradeQueryRequest extends BaseQueryRequest {
 
     @ApiModelProperty("虚拟全部发货，0否1是")
     private Integer virtualAllDelivery;
+
+    /**
+     * 发票的类型
+     */
+    private Integer invoiceType;
     /**
      * @return
      */
@@ -801,6 +806,10 @@ public class TradeQueryRequest extends BaseQueryRequest {
             criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(virtualAllDelivery));
         }else if(Objects.nonNull(virtualAllDelivery)){
             criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(null));
+        }
+
+        if(invoiceType!=null){
+            criterias.add(Criteria.where("invoice.type").is(invoiceType));
         }
         return criterias;
     }

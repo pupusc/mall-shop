@@ -236,5 +236,13 @@ public interface ExternalProvider {
     BaseResponse modifyCustomerAccountFanDeng(@RequestBody @Valid FanDengModifyAccountFanDengRequest request);
 
 
-
+    /**
+     * 提交订单开票
+     *
+     * @author lancey
+     * @param request
+     * @return  开票提交的key
+     */
+    @PostMapping("/customer/${application.customer.version}/fan-deng/submit/invoice/order")
+    BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request);
 }

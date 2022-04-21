@@ -191,6 +191,8 @@ public class ExternalService {
      */
     public static final String KNOWLEDGE_FALLBACK_URL = "/fallbackBeans";
 
+    private static final String INVOICE_ORDER_SUBMIT_URL = "invoice/order/submit";
+
     /**
      * 用户退积分
      */
@@ -629,6 +631,16 @@ public class ExternalService {
         return BaseResponse.success(response);
     }
 
+    public BaseResponse<FanDengLockResponse> pushInvoice(@Valid FanDengKnowledgeLockRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_URL + PARAMETER, body),
+                body);
+        FanDengLockResponse response =
+                (FanDengLockResponse) exchange(result, FanDengLockResponse.class);
+
+        return BaseResponse.success(response);
+    }
+
     public BaseResponse<FanDengConsumeResponse> pointDeduct(@Valid FanDengPointDeductRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(POINT_DEDUCT_URL + PARAMETER, body),
@@ -896,5 +908,19 @@ public class ExternalService {
         customerDetail.setCreateTime(LocalDateTime.now());
         customerDetail.setIsDistributor(DefaultFlag.NO);
         return customerDetail;
+    }
+
+    /**
+     * 提交订单
+     * @param request
+     * @return
+     */
+    public BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body),
+                body);
+        FdInVoiceResponse response =
+                (FdInVoiceResponse) exchange(result, FdInVoiceResponse.class);
+        return BaseResponse.success(response.getKey());
     }
 }

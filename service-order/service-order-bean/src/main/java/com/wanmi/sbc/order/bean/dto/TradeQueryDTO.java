@@ -335,6 +335,11 @@ public class TradeQueryDTO extends BaseQueryRequest {
     private  Boolean periodicPurchaseRefund=Boolean.FALSE;
 
     /**
+     * 发票开票类型
+     */
+    @ApiModelProperty(value = "发票开票类型")
+    private Integer invoiceType;
+    /**
      * @return
      */
     public Boolean getIsBoss() {
@@ -351,6 +356,8 @@ public class TradeQueryDTO extends BaseQueryRequest {
      * 订单标签
      */
     private String tag;
+
+
 
     /**
      * 封装公共条件
