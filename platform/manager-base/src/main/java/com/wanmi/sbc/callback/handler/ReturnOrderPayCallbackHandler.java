@@ -94,9 +94,9 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 //        }
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
         String returnOrderId = returnOrderMap.get("out_aftersale_id").toString();
-        String returnOrderTradeNo = returnOrderMap.get("aftersale_id").toString(); //退单流水
+        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //退单流水
 
-        log.info("ReturnOrderCallbackHandler handle out_aftersale_id: {}, aftersale_id: {}", returnOrderObj, returnOrderTradeNo);
+        log.info("ReturnOrderCallbackHandler handle out_aftersale_id: {}, aftersale_id: {}", returnOrderObj, aftersaleId);
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
                     .rid(returnOrderId).build()).getContext();
 
@@ -130,19 +130,21 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
                 .platform(Platform.THIRD).build();
 
         PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
-        payTradeRecordRequest.setTradeNo(returnOrderTradeNo);
+        payTradeRecordRequest.setTradeNo(aftersaleId);
         payTradeRecordRequest.setBusinessId(returnOrderId);
         payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
         payTradeRecordRequest.setChannelItemId(channelId);
         payTradeRecordRequest.setApplyPrice(returnOrder.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payTradeRecordRequest.setPracticalPrice(tradeVO.getTradePrice().getTotalPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payProvider.wxPayCallBack(payTradeRecordRequest);
-        returnOrderProvider.onlineRefund(
+        BaseResponse baseResponse = returnOrderProvider.onlineRefund(
                 ReturnOrderOnlineRefundRequest.builder().operator(operator)
                         .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
                         .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
 
-        log.info("ReturnOrderCallbackHandler handle --> end cost: {} ms", System.currentTimeMillis() - beginTime);
+        log.info("ReturnOrderCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
+                returnOrder.getTid(), aftersaleId, returnOrder.getId(), JSON.toJSONString(baseResponse),
+                System.currentTimeMillis() - beginTime);
         return "success";
     }
 }

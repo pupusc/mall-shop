@@ -1,22 +1,15 @@
 package com.wanmi.sbc.callback.handler;
-import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.ProductInfo;
-import com.google.common.collect.Lists;
-import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.RefundPayDetail;
 import java.time.Instant;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.soybean.mall.wx.mini.enums.AfterSalesReasonEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
-import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.ReturnInfo;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.callback.service.CallBackCommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
-import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.TerminalSource;
 
 
@@ -33,7 +26,6 @@ import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnPriceDTO;
-import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -51,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -75,6 +66,9 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
+
+    @Autowired
+    private CallBackCommonService callBackCommonService;
 
     @Override
     public boolean support(String eventType) {
@@ -173,21 +167,11 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         ReturnOrderDTO returnOrderDTO = new ReturnOrderDTO();
         returnOrderDTO.setTid(orderId);
         returnOrderDTO.setAftersaleId(aftersaleId);
-        returnOrderDTO.setReturnReason(this.wxReturnReasonType2ReturnReason(afterSalesOrder.getRefundReasonType()));
-        returnOrderDTO.setDescription(afterSalesOrder.getRefundReason() + " --- " + this.wxReturnReasonType2ReturnReasonStr(afterSalesOrder.getRefundReasonType()));
+        returnOrderDTO.setReturnReason(callBackCommonService.wxReturnReason2ReturnReasonType(afterSalesOrder));
+        returnOrderDTO.setDescription(callBackCommonService.wxReturnReasonType2ReturnReasonStr(afterSalesOrder));
         //附件
         if (!CollectionUtils.isEmpty(afterSalesOrder.getMediaList())) {
-            List<String> result = new ArrayList<>();
-            int i = 1;
-            for (WxDetailAfterSaleResponse.MediaListInfo mediaListInfo : afterSalesOrder.getMediaList()) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("uid", i);
-                jsonObject.put("status", "done");
-                jsonObject.put("url", mediaListInfo.getUrl());
-                result.add(jsonObject.toJSONString());
-                i++;
-            }
-            returnOrderDTO.setImages(result);
+            returnOrderDTO.setImages(callBackCommonService.appendix(afterSalesOrder.getMediaList()));
         }
 
 
@@ -233,8 +217,8 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
         returnOrderDTO.setReturnItems(Collections.singletonList(returnItemDTO));
         String returnOrderId = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrderDTO).operator(operator).build()).getContext().getReturnOrderId();
-        log.info("ReturnOrderCreateCallbackHandler orderId:{} aftersaleId:{} returnOrderId:{} handle --> end cost: {} ms",
-                orderId, aftersaleId, returnOrderId, System.currentTimeMillis() - beginTime);
+        log.info("ReturnOrderCreateCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
+                orderId, aftersaleId, returnOrderId, returnOrderId, System.currentTimeMillis() - beginTime);
         return "success";
     }
 
@@ -274,32 +258,8 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 //            returnItemDTO.setThirdPlatformSubOrderId(tradeItem.getThirdPlatformSubOrderId());
         returnItemDTO.setProviderId(tradeItem.getProviderId());
 //            returnItemDTO.setSplitPoint(tradeItem.get);
-
-
         return returnItemDTO;
     }
 
-    /**
-     * 视频号退款原因转化
-     * @param afterSalesReasonType
-     * @return
-     */
-    private ReturnReason wxReturnReasonType2ReturnReason(Integer afterSalesReasonType) {
-        AfterSalesReasonEnum byCode = AfterSalesReasonEnum.getByCode(afterSalesReasonType);
-        if (AfterSalesReasonEnum.AFTERSALES_TWO == byCode) {
-            return ReturnReason.WRONGGOODS;
-        } else if (AfterSalesReasonEnum.AFTERSALES_ONE == byCode) {
-            return ReturnReason.ERRORGOODS;
-        } else {
-            return ReturnReason.OTHER;
-        }
-    }
 
-    private String wxReturnReasonType2ReturnReasonStr(Integer afterSalesReasonType){
-        AfterSalesReasonEnum byCode = AfterSalesReasonEnum.getByCode(afterSalesReasonType);
-        if (byCode == null) {
-            return "未知原因";
-        }
-        return byCode.getMessage();
-    }
 }
