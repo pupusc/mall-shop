@@ -2,9 +2,14 @@ package com.wanmi.sbc.order;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.customer.CustomerBaseController;
 import com.wanmi.sbc.customer.CustomerInvoiceBaseController;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengInvoiceRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerSimplifyByIdResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePageQueryRequest;
@@ -49,7 +54,8 @@ public class InvoiceTradeController {
     @Autowired
     private ExternalProvider externalProvider;
 
-
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
 
     /**
      * 可以开票的订单列表
@@ -91,6 +97,10 @@ public class InvoiceTradeController {
         }
         FanDengInvoiceRequest fanDengInvoiceRequest = new FanDengInvoiceRequest();
 
+        CustomerSimplifyByIdResponse customer = customerQueryProvider.simplifyById(new CustomerSimplifyByIdRequest(commonUtil.getOperatorId())).getContext();
+        fanDengInvoiceRequest.setUserId(customer.getFanDengUserNo());
+        fanDengInvoiceRequest.setBusinessId(2);
+
         for (TradeVO tradeVO : tradePage.getContent()) {
             if (tradeVO.getTradeState().getEndTime() == null){
                 continue;
@@ -100,7 +110,13 @@ public class InvoiceTradeController {
             TradePriceVO tradePrice = tradeVO.getTradePrice();
             BigDecimal totalPrice = tradePrice.getTotalPrice().add(tradePrice.getDeliveryPrice());
             item.setFee(totalPrice);
+            item.setTotalFee(totalPrice);
             item.setCount(1);
+            item.setOrderCode(tradeVO.getTradeId());
+            item.setProduct(tradeVO.getTradeItems().get(0).getSpuName());
+            item.setProductNo(1);
+            item.setProductType(30);
+            item.setProductIcoon("");
             item.setCompleteTime(Date.from(tradeVO.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
