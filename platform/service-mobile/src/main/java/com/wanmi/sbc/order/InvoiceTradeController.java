@@ -12,6 +12,7 @@ import com.wanmi.sbc.order.bean.dto.TradeQueryDTO;
 import com.wanmi.sbc.order.bean.dto.TradeStateDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.request.InvoiceRequest;
 import com.wanmi.sbc.util.CommonUtil;
@@ -28,6 +29,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.ZoneId;
 
 @Api(tags = "InvoiceTradeController", description = "发票API")
 @RestController
@@ -88,10 +92,16 @@ public class InvoiceTradeController {
         FanDengInvoiceRequest fanDengInvoiceRequest = new FanDengInvoiceRequest();
 
         for (TradeVO tradeVO : tradePage.getContent()) {
+            if (tradeVO.getTradeState().getEndTime() == null){
+                continue;
+            }
             FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
-            item.setFee(tradeVO.getTradePrice().getTotalPayCash());
+            //现金价格
+            TradePriceVO tradePrice = tradeVO.getTradePrice();
+            BigDecimal totalPrice = tradePrice.getTotalPrice().add(tradePrice.getDeliveryPrice());
+            item.setFee(totalPrice);
             item.setCount(1);
-            item.setCompleteTime(tradeVO.getTradeEventLogs().);
+            item.setCompleteTime(Date.from(tradeVO.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
 
