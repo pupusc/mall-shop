@@ -95,4 +95,43 @@ public class CallBackCommonService {
         operator.setCompanyInfoId(returnOrderVO.getCompany().getCompanyInfoId());
         return operator;
     }
+
+    /**
+     * 测试信息
+     * @param outOrderId
+     * @param aftersaleId
+     */
+    public WxDetailAfterSaleResponse.AfterSalesOrder test(String outOrderId, Long aftersaleId) {
+        WxDetailAfterSaleResponse.AfterSalesOrder rr = new WxDetailAfterSaleResponse.AfterSalesOrder();
+        rr.setOutOrderId(outOrderId);
+        rr.setOrderId(0L);
+        rr.setAftersaleId(aftersaleId);
+        WxDetailAfterSaleResponse.ProductInfo productInfo = new WxDetailAfterSaleResponse.ProductInfo();
+        productInfo.setOutProductId("2c9a00f080289b5501804756a82401a2");
+        productInfo.setOutSkuId("2c9a00f080289b5501804756a83501a3");
+        productInfo.setProductCnt(1L);
+        rr.setProductInfo(productInfo);
+        List<WxDetailAfterSaleResponse.MediaListInfo> mediaList = new ArrayList<>();
+        WxDetailAfterSaleResponse.MediaListInfo mediaListInfo = new WxDetailAfterSaleResponse.MediaListInfo();
+        mediaListInfo.setType(1);
+        mediaListInfo.setUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
+        mediaListInfo.setThumbUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
+        mediaList.add(mediaListInfo);
+        rr.setMediaList(mediaList);
+        rr.setType(1);
+        WxDetailAfterSaleResponse.ReturnInfo returnInfo = new WxDetailAfterSaleResponse.ReturnInfo();
+        returnInfo.setOrderReturnTime(0L);
+        returnInfo.setWaybillId("");
+        rr.setReturnInfo(returnInfo);
+        rr.setOrderamt(1L);
+        rr.setRefundReasonType(2);
+        rr.setRefundReason("111252345");
+        rr.setStatus(2);
+        rr.setCreate_time("1650546747341");
+        rr.setUpdate_time("1650546747341");
+        rr.setOpenid("oj6KP5A1Ca0rPVPCVq0kA0aQ6mQM");
+        rr.setRefundPayDetail(new WxDetailAfterSaleResponse.RefundPayDetail());
+
+        return rr;
+    }
 }

@@ -94,8 +94,12 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
-        String aftersaleId = "4000000001562176";
-//        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
+
+        /**
+         * 测试数据
+         *      String aftersaleId = "4000000001562176";
+         */
+        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
 
         //根据视频号的售后id获取 微信 售后详细信息
         WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
@@ -103,38 +107,21 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
 
-
-        WxDetailAfterSaleResponse.AfterSalesOrder rr = new WxDetailAfterSaleResponse.AfterSalesOrder();
-        rr.setOutOrderId("O202204220216135401343");
-        rr.setOrderId(0L);
-        rr.setAftersaleId(4000000001562176L);
-        WxDetailAfterSaleResponse.ProductInfo productInfo = new WxDetailAfterSaleResponse.ProductInfo();
-        productInfo.setOutProductId("2c9a00f080289b5501804756a82401a2");
-        productInfo.setOutSkuId("2c9a00f080289b5501804756a83501a3");
-        productInfo.setProductCnt(1L);
-        rr.setProductInfo(productInfo);
-        List<WxDetailAfterSaleResponse.MediaListInfo> mediaList = new ArrayList<>();
-        WxDetailAfterSaleResponse.MediaListInfo mediaListInfo = new WxDetailAfterSaleResponse.MediaListInfo();
-        mediaListInfo.setType(1);
-        mediaListInfo.setUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
-        mediaListInfo.setThumbUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
-        mediaList.add(mediaListInfo);
-        rr.setMediaList(mediaList);
-        rr.setType(1);
-        WxDetailAfterSaleResponse.ReturnInfo returnInfo = new WxDetailAfterSaleResponse.ReturnInfo();
-        returnInfo.setOrderReturnTime(0L);
-        returnInfo.setWaybillId("");
-        rr.setReturnInfo(returnInfo);
-        rr.setOrderamt(1L);
-        rr.setRefundReasonType(2);
-        rr.setRefundReason("111252345");
-        rr.setStatus(2);
-        rr.setCreate_time("1650546747341");
-        rr.setUpdate_time("1650546747341");
-        rr.setOpenid("oj6KP5A1Ca0rPVPCVq0kA0aQ6mQM");
-        rr.setRefundPayDetail(new WxDetailAfterSaleResponse.RefundPayDetail());
-
-        context.setAfterSalesOrder(rr);
+        /**
+         * 测试数据
+         *      WxDetailAfterSaleResponse.AfterSalesOrder rr = callBackCommonService.test("O202204220216135401343", Long.valueOf(aftersaleId));
+         *      List<WxDetailAfterSaleResponse.MediaListInfo> mediaList = new ArrayList<>();
+         *      WxDetailAfterSaleResponse.MediaListInfo mediaListInfo = new WxDetailAfterSaleResponse.MediaListInfo();
+         *      mediaListInfo.setType(1);
+         *      mediaListInfo.setUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
+         *      mediaListInfo.setThumbUrl("https://store.mp.video.tencent-cloud.com/160/20304/snscosdownload/SH/reserved/6xykWLEnztLbbeOaJhzSoLdv6eLTdIlCPJNBGRFauL4TPyWk8k1IDSX32r0DQ2wE9szEIg41DGXIYKTQJyLANA?token=x5Y29zUxcibBnw6ckn64avUb5INaoz0SINpKmsU5PqgxdPEibq5kFVaGewLZzdYH0F&idx=1&expire=1650818887");
+         *      mediaList.add(mediaListInfo);
+         *      rr.setMediaList(mediaList);
+         *
+         *      rr.setRefundReasonType(2);
+         *      rr.setRefundReason("111252345");
+         *      context.setAfterSalesOrder(rr);
+         */
 
 
         if (context.getAfterSalesOrder() == null) {
