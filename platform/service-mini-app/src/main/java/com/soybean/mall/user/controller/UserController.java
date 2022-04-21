@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest
 import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
 import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -78,6 +79,10 @@ public class UserController {
         String codeForOpenid = wxGetUserPhoneAndOpenIdRequest.getCodeForOpenid();
         wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
         BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
+
+        if (StringUtils.isBlank(phoneAndOpenid.getContext().getPhoneNumber())) {
+            throw new SbcRuntimeException("K-220001", "微信授权电话获取失败");
+        }
 
         NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
         accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());

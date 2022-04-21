@@ -53,7 +53,7 @@ import java.util.Map;
  ********************************************************************/
 @Slf4j
 @Component
-public class ReturnOrderCallbackHandler implements CallbackHandler{
+public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 
 
     @Autowired
@@ -85,7 +85,7 @@ public class ReturnOrderCallbackHandler implements CallbackHandler{
         long beginTime = System.currentTimeMillis();
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
-            log.error("回调参数异常");
+            log.error("回调参数异常 param:{}", paramMap);
             return "false";
         }
 //        if (!(returnOrderObj instanceof Map)) {

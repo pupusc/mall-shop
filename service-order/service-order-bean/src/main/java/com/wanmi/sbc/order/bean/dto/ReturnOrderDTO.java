@@ -355,4 +355,9 @@ public class ReturnOrderDTO implements Serializable {
      */
     private Integer replace;
 
+    /**
+     * 视频号售后id
+     */
+    private String aftersaleId;
+
 }
