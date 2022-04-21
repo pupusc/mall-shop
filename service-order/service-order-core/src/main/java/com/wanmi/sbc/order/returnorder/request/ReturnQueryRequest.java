@@ -153,6 +153,11 @@ public class ReturnQueryRequest extends BaseQueryRequest {
     private Boolean thirdPlatFormApplyFlag;
 
     /**
+     * 视频号售后id
+     */
+    private String aftersaleId;
+
+    /**
      * ES中的createTime日期格式
      */
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -290,6 +295,10 @@ public class ReturnQueryRequest extends BaseQueryRequest {
         // 小与传入的结束时间+1天，零点前
         if (StringUtils.isNotBlank(endTime)) {
             criteria.add(Criteria.where("createTime").lt(DateUtil.parseDay(endTime).plusDays(1)));
+        }
+
+        if (StringUtils.isNotBlank(aftersaleId)) {
+            criteria.add(Criteria.where("aftersaleId").is(aftersaleId));
         }
 
         if (Objects.nonNull(returnFlowState)) {

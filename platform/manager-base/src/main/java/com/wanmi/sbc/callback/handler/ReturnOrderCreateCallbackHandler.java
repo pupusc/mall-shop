@@ -1,5 +1,9 @@
 package com.wanmi.sbc.callback.handler;
 import java.time.Instant;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.enums.AfterSalesReasonEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.ReturnInfo;
@@ -34,11 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -141,7 +148,20 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         returnOrderDTO.setReturnReason(this.wxReturnReasonType2ReturnReason(afterSalesOrder.getRefundReasonType()));
         returnOrderDTO.setDescription(afterSalesOrder.getRefundReason() + " --- " + this.wxReturnReasonType2ReturnReasonStr(afterSalesOrder.getRefundReasonType()));
         //附件
-        returnOrderDTO.setImages(afterSalesOrder.getMediaList().stream().map(WxDetailAfterSaleResponse.MediaListInfo::getUrl).collect(Collectors.toList()));
+        if (!CollectionUtils.isEmpty(afterSalesOrder.getMediaList())) {
+            List<String> result = new ArrayList<>();
+            int i = 1;
+            for (WxDetailAfterSaleResponse.MediaListInfo mediaListInfo : afterSalesOrder.getMediaList()) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("uid", i);
+                jsonObject.put("status", "done");
+                jsonObject.put("url", mediaListInfo.getUrl());
+                result.add(jsonObject.toJSONString());
+                i++;
+            }
+            returnOrderDTO.setImages(result);
+        }
+
 
         //物流信息
         if (afterSalesOrder.getReturnInfo() != null && StringUtils.isNotBlank(afterSalesOrder.getReturnInfo().getWaybillId())) {

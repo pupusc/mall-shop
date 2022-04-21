@@ -153,4 +153,8 @@ public class ReturnOrderByConditionRequest implements Serializable {
     @ApiModelProperty(value = "供应商编码")
     private String providerCode;
 
+    /**
+     * 视频号售后id
+     */
+    private String aftersaleId;
 }
