@@ -28,11 +28,15 @@
                 <version>${mall.common.log.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.soybean.mall</groupId>
+                <artifactId>mall-common-spring</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>com.wanmi.sbc</groupId>
                 <artifactId>service-common</artifactId>
                 <version>${service.common.version}</version>
             </dependency>
-
             <!--三分jar包管理-->
         </dependencies>
     </dependencyManagement>

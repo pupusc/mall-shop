@@ -19,6 +19,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-spring</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-common</artifactId>
             <scope>provided</scope>
