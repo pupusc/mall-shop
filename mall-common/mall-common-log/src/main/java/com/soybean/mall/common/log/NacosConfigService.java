@@ -1,4 +1,4 @@
-package com.soybean.mall.common.logger;
+package com.soybean.mall.common.log;
 
 import com.alibaba.cloud.nacos.NacosConfigManager;
 import com.alibaba.nacos.api.config.ConfigChangeEvent;

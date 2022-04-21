@@ -1,4 +1,4 @@
-package com.soybean.mall.common.logger;
+package com.soybean.mall.common.log;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;

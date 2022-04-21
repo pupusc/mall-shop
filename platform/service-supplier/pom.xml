@@ -21,6 +21,7 @@
         <dependency>
             <groupId>com.soybean.mall</groupId>
             <artifactId>mall-common-spring</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.wanmi.sbc</groupId>

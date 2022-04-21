@@ -1,4 +1,4 @@
-package com.soybean.mall.common.logger;
+package com.soybean.mall.common.log;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;

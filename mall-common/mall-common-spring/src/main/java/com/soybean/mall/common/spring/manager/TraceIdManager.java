@@ -14,8 +14,7 @@ import java.util.UUID;
  * @date 2022-04-20 18:50:00
  */
 public class TraceIdManager {
-    private static final String TRACE_ID = "traceId";
-    private static final String EMPTY_CONTEXT_TRACE_ID = "N/A";
+    private static final String TRACE_ID = "trace_id";
 
     public static void entrySpan(HttpServletRequest request, HttpServletResponse response) {
         String traceId = request.getHeader(TRACE_ID);

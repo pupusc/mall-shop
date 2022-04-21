@@ -1,8 +1,5 @@
 package com.wanmi.ms.log;
 
-import brave.ScopedSpan;
-import brave.Span;
-import brave.Tracing;
 import brave.propagation.TraceContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,15 +18,22 @@ import org.slf4j.MDC;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.*;
+import java.io.*;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -286,7 +290,7 @@ public class RequestLogFilter extends GenericFilterBean {
 
                         // 将MDC的其他信息全部附加到Addition
                         logBean.setAdditions(MDC.getCopyOfContextMap());
-                        MDC.clear(); // 清空MDC
+                        //MDC.clear(); // 清空MDC
 
                         //增加sleuth的信息
                         TraceContext traceContext = (TraceContext) request.getAttribute("brave.propagation.TraceContext");

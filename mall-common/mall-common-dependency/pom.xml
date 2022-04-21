@@ -37,7 +37,7 @@
                 <artifactId>service-common</artifactId>
                 <version>${service.common.version}</version>
             </dependency>
-            
+
             <!--三方jar包管理-->
         </dependencies>
     </dependencyManagement>
