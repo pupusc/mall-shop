@@ -15,8 +15,8 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <mall.common.log.version>0.0.1-SNAPSHOT</mall.common.log.version>
         <service.common.version>fandeng-4.1.7-release</service.common.version>
+        <mall.common.log.version>0.0.1-SNAPSHOT</mall.common.log.version>
     </properties>
 
     <dependencyManagement>
@@ -37,7 +37,8 @@
                 <artifactId>service-common</artifactId>
                 <version>${service.common.version}</version>
             </dependency>
-            <!--三分jar包管理-->
+            
+            <!--三方jar包管理-->
         </dependencies>
     </dependencyManagement>
 </project>

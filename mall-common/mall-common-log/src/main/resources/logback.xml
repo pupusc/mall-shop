@@ -6,7 +6,7 @@
     <include optional="true" resource="logback-logger.xml"/>
 
     <!-- 控制台输出 -->
-    <appender name="APPENDER_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="APPENDER_CONSOLE" class="com.soybean.mall.common.logger.MallConsoleAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
                 <pattern>${pattern}</pattern>
@@ -18,7 +18,7 @@
     <!-- 按照每天生成日志文件 -->
     <if condition='isDefined("logpath")'>
         <then>
-            <appender name="APPENDER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <appender name="APPENDER_FILE" class="com.soybean.mall.common.logger.MallRollingFileAppender">
                 <file>${logpath}</file>
                 <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <FileNamePattern>${logpath}-%d{yyyy-MM-dd}-%i</FileNamePattern>
