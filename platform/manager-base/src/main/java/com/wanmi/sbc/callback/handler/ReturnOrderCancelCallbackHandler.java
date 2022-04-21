@@ -2,6 +2,7 @@ package com.wanmi.sbc.callback.handler;
 
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Description: {CreateTime=1650534683, aftersale_info={aftersale_id=4000000001576183, out_aftersale_id=}, Event=aftersale_user_cancel, ToUserName=gh_acd5c1ee4776, FromUserName=oj6KP5G00QNbhDzjk_ZSqw15E_9o, MsgType=event}
@@ -86,6 +88,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
+//        String aftersaleId = "4000000001506166";
         String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
 
         //根据视频号的售后id获取 微信 售后详细信息
@@ -93,6 +96,34 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
         BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+
+
+//        WxDetailAfterSaleResponse.AfterSalesOrder rr = new WxDetailAfterSaleResponse.AfterSalesOrder();
+//        rr.setOutOrderId("O202204212143277229002");
+//        rr.setOrderId(0L);
+//        rr.setAftersaleId(4000000001506166L);
+//        WxDetailAfterSaleResponse.ProductInfo productInfo = new WxDetailAfterSaleResponse.ProductInfo();
+//        productInfo.setOutProductId("2c9a00f080289b5501804756a82401a2");
+//        productInfo.setOutSkuId("2c9a00f080289b5501804756a83501a3");
+//        productInfo.setProductCnt(1L);
+//        rr.setProductInfo(productInfo);
+//        rr.setMediaList(Lists.newArrayList());
+//        rr.setType(1);
+//        WxDetailAfterSaleResponse.ReturnInfo returnInfo = new WxDetailAfterSaleResponse.ReturnInfo();
+//        returnInfo.setOrderReturnTime(0L);
+//        returnInfo.setWaybillId("");
+//        rr.setReturnInfo(returnInfo);
+//        rr.setOrderamt(1L);
+//        rr.setRefundReasonType(1);
+//        rr.setRefundReason("111");
+//        rr.setStatus(2);
+//        rr.setCreate_time("1650546747341");
+//        rr.setUpdate_time("1650546747341");
+//        rr.setOpenid("oj6KP5A1Ca0rPVPCVq0kA0aQ6mQM");
+//        rr.setRefundPayDetail(new WxDetailAfterSaleResponse.RefundPayDetail());
+//
+//        context.setAfterSalesOrder(rr);
+
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 内容为空,不能取消售后订单", aftersaleId);
             return "fail";
@@ -103,15 +134,12 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
+        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(returnOrderList)) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
             return "fail";
         }
 
-        if (returnOrderList.size() > 1) {
-            log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 获取退单为多比,不能取消售后订单", aftersaleId);
-            return "fail";
-        }
         ReturnOrderVO returnOrderVO = returnOrderList.get(0);
         log.info("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
@@ -125,20 +153,13 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
             return "fail";
         }
 
-//        //判断退单状态
-//        if (returnOrderVO.getReturnFlowState() != ReturnFlowState.INIT) {
-//            log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 状态不是创建售后单初始状态", orderId, aftersaleId);
-//            return "fail";
-//        }
-
         //根据视频号售后单信息获取 订单的详细信息
         TradeVO tradeVo = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(orderId).build()).getContext().getTradeVO();
 
         Operator operator = new Operator();
-        operator.setPlatform(Platform.WX_VIDEO);
         operator.setUserId(tradeVo.getBuyer().getId());
         operator.setName(tradeVo.getBuyer().getName());
-        operator.setStoreId(tradeVo.getStoreId().toString());
+        operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());
         operator.setIp("127.0.0.1");
         operator.setAccount(tradeVo.getBuyer().getAccount());
         operator.setCompanyInfoId(tradeVo.getSupplier().getSupplierId());

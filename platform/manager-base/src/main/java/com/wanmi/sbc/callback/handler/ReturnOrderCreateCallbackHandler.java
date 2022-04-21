@@ -1,4 +1,7 @@
 package com.wanmi.sbc.callback.handler;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.ProductInfo;
+import com.google.common.collect.Lists;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse.RefundPayDetail;
 import java.time.Instant;
 
 import com.alibaba.fastjson.JSON;
@@ -89,6 +92,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
+//        String orderId = "O202204212143277229002";
         String orderId = returnOrderMap.get("out_order_id").toString(); //订单号
         String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
 
@@ -106,6 +110,32 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
         BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+
+//        WxDetailAfterSaleResponse.AfterSalesOrder rr = new WxDetailAfterSaleResponse.AfterSalesOrder();
+//        rr.setOutOrderId("O202204212143277229002");
+//        rr.setOrderId(0L);
+//        rr.setAftersaleId(4000000001506166L);
+//        ProductInfo productInfo = new ProductInfo();
+//        productInfo.setOutProductId("2c9a00f080289b5501804756a82401a2");
+//        productInfo.setOutSkuId("2c9a00f080289b5501804756a83501a3");
+//        productInfo.setProductCnt(1L);
+//        rr.setProductInfo(productInfo);
+//        rr.setMediaList(Lists.newArrayList());
+//        rr.setType(1);
+//        ReturnInfo returnInfo = new ReturnInfo();
+//        returnInfo.setOrderReturnTime(0L);
+//        returnInfo.setWaybillId("");
+//        rr.setReturnInfo(returnInfo);
+//        rr.setOrderamt(1L);
+//        rr.setRefundReasonType(1);
+//        rr.setRefundReason("111");
+//        rr.setStatus(2);
+//        rr.setCreate_time("1650546747341");
+//        rr.setUpdate_time("1650546747341");
+//        rr.setOpenid("oj6KP5A1Ca0rPVPCVq0kA0aQ6mQM");
+//        rr.setRefundPayDetail(new RefundPayDetail());
+//
+//        context.setAfterSalesOrder(rr);
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 内容为空,不能生成售后订单", orderId, aftersaleId);
             return "fail";
@@ -115,8 +145,6 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 非创建售后状态，return", orderId, aftersaleId);
             return "fail";
         }
-
-        afterSalesOrder.setReturnInfo(new ReturnInfo());
 
 
         //根据订单号获取订单详细信息
@@ -136,7 +164,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
                     orderId, aftersaleId, afterSalesOrder.getProductInfo().getOutProductId(), afterSalesOrder.getProductInfo().getOutSkuId());
             return "fail";
         }
-
+        afterSalesOrder.setOrderamt(afterSalesOrder.getOrderamt() == null ? 0L : afterSalesOrder.getOrderamt());
         BigDecimal applyReturnPrice = new BigDecimal(afterSalesOrder.getOrderamt()+"").divide(new BigDecimal("100"));
         //生成商品信息
         ReturnItemDTO returnItemDTO = this.packageTradeItem(tradeItemVO, afterSalesOrder.getProductInfo().getProductCnt().intValue(), applyReturnPrice);
@@ -196,10 +224,9 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
 
         Operator operator = new Operator();
-        operator.setPlatform(Platform.WX_VIDEO);
         operator.setUserId(tradeVo.getBuyer().getId());
         operator.setName(tradeVo.getBuyer().getName());
-        operator.setStoreId(tradeVo.getStoreId().toString());
+        operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());
         operator.setIp("127.0.0.1");
         operator.setAccount(tradeVo.getBuyer().getAccount());
         operator.setCompanyInfoId(tradeVo.getSupplier().getSupplierId());
@@ -220,10 +247,11 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
     private ReturnItemDTO packageTradeItem(TradeItemVO tradeItem, Integer returnNum, BigDecimal applyReturnPrice) {
         ReturnItemDTO returnItemDTO = new ReturnItemDTO();
         returnItemDTO.setApplyRealPrice(applyReturnPrice);
-        returnItemDTO.setApplyKnowledge(tradeItem.getKnowledge());
-        returnItemDTO.setApplyPoint(tradeItem.getPoints());
+        returnItemDTO.setApplyKnowledge(tradeItem.getKnowledge() == null ? 0L : tradeItem.getKnowledge());
+        returnItemDTO.setApplyPoint(tradeItem.getPoints() == null ? 0L : tradeItem.getPoints());
         returnItemDTO.setBuyPoint(tradeItem.getBuyPoint());
         returnItemDTO.setCanReturnNum(tradeItem.getCanReturnNum());
+        returnItemDTO.setNum(tradeItem.getNum().intValue());
         returnItemDTO.setSkuId(tradeItem.getSkuId());
         returnItemDTO.setSkuName(tradeItem.getSkuName());
         returnItemDTO.setSkuNo(tradeItem.getSkuNo());
