@@ -191,7 +191,7 @@ public class ExternalService {
      */
     public static final String KNOWLEDGE_FALLBACK_URL = "/fallbackBeans";
 
-    private static final String INVOICE_ORDER_SUBMIT_URL = "invoice/order/submit";
+    private static final String INVOICE_ORDER_SUBMIT_URL = "/invoice/order/submit";
 
     /**
      * 用户退积分
