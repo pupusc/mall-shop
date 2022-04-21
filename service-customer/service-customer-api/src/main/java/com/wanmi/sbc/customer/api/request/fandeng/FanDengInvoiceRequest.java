@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +21,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FanDengInvoiceRequest {
+public class FanDengInvoiceRequest implements Serializable {
 
     private String userId;
     private Integer businessId;
@@ -28,7 +29,7 @@ public class FanDengInvoiceRequest {
     private List<Item> orderExtendBOS = new ArrayList<>();
 
     @Data
-    public static class Item{
+    public static class Item implements Serializable{
         private String orderCode;
         private String product;
         private BigDecimal fee;

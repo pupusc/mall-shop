@@ -244,5 +244,5 @@ public interface ExternalProvider {
      * @return  开票提交的key
      */
     @PostMapping("/customer/${application.customer.version}/fan-deng/submit/invoice/order")
-    BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request);
+    BaseResponse<String> submitInvoiceOrder(@RequestBody @Valid FanDengInvoiceRequest request);
 }
