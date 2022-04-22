@@ -38,7 +38,7 @@ public class InvoiceCallbackController {
         if(CollectionUtils.isNotEmpty(byIds.getTradeVO())){
             for (TradeVO tradeVO : byIds.getTradeVO()) {
 //                tradeProvider.update()
-                log.info(tradeVO.getTradeId());
+                log.info("invoice callback: trade id:{}", tradeVO.getTradeId());
                 AutoUpdateInvoiceRequest autoUpdateInvoiceRequest = AutoUpdateInvoiceRequest.builder().tradeId(tradeVO.getTradeId()).build();
                 tradeProvider.updateInvoice(autoUpdateInvoiceRequest);
             }
