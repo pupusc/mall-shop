@@ -31,9 +31,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -347,6 +349,11 @@ public class TradeQueryRequest extends BaseQueryRequest {
      * 发票的类型
      */
     private Integer invoiceType;
+
+    /**
+     * 是否用了现金支付
+     */
+    private Boolean actualCashFlag;
     /**
      * @return
      */
@@ -810,6 +817,10 @@ public class TradeQueryRequest extends BaseQueryRequest {
 
         if(invoiceType!=null){
             criterias.add(Criteria.where("invoice.type").is(invoiceType));
+        }
+        if(BooleanUtils.toBoolean(actualCashFlag)){
+            criterias.add(Criteria.where("tradePrice.totalPrice").gt(BigDecimal.ZERO)
+                    .orOperator(Criteria.where("tradePrice.deliveryPrice").gt(BigDecimal.ZERO)));
         }
         return criterias;
     }

@@ -67,6 +67,7 @@ public class InvoiceTradeController {
                 .tradeState(TradeStateDTO.builder().flowState(FlowState.COMPLETED).payState(PayState.PAID).build())
                 .buyerId(commonUtil.getOperatorId())
                 .invoiceType(-1)
+                .actualCashFlag(true)
                 .build();
         tradeQueryRequest.setPageNum(paramRequest.getPageNum());
         tradeQueryRequest.setPageSize(paramRequest.getPageSize());
@@ -87,6 +88,7 @@ public class InvoiceTradeController {
                 .ids(request.getOrderIds().toArray(new String[request.getOrderIds().size()]))
                 .buyerId(commonUtil.getOperatorId())
                 .invoiceType(-1)
+                .actualCashFlag(true)
                 .build();
 
         MicroServicePage<TradeVO> tradePage = tradeQueryProvider.pageCriteriaOptimize(TradePageCriteriaRequest.builder()

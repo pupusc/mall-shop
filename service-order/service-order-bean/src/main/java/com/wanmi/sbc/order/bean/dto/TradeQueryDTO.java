@@ -27,6 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -339,6 +340,11 @@ public class TradeQueryDTO extends BaseQueryRequest {
      */
     @ApiModelProperty(value = "发票开票类型")
     private Integer invoiceType;
+
+    /**
+     * 是否用了现金支付
+     */
+    private Boolean actualCashFlag;
     /**
      * @return
      */
