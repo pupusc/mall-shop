@@ -8527,7 +8527,7 @@ public class TradeService {
     @GlobalTransactional
     public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
         mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
-                new Update().set("invoice.invoiceType", autoUpdateInvoiceRequest.getInvoiceType()), Trade.class);
+                new Update().set("invoice.invoiceType", InvoiceType.ELECTRONIC.toValue()), Trade.class);
         Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
         if(byOrderNo.isPresent()){
             OrderInvoice orderInvoice = byOrderNo.get();
