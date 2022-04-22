@@ -24,6 +24,7 @@ import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectRefundRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
@@ -115,7 +116,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         }
 
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
+        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_ONE) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 非创建售后状态，return", aftersaleId);
             return "fail";
         }
@@ -145,17 +146,26 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         }
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
+        BaseResponse baseResponse = null;
+        if (returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT) {
+            ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
+            returnOrderCancelRequest.setRid(returnOrderVO.getId());
+            returnOrderCancelRequest.setRemark("用户取消");
+            returnOrderCancelRequest.setOperator(operator);
+            baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
+        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
+            ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
+            returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
+            returnOrderRejectRefundRequest.setReason("用户主动取消");
+            returnOrderRejectRefundRequest.setOperator(operator);
+            baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
+        }
 
-        ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
-        returnOrderCancelRequest.setRid(returnOrderVO.getId());
-        returnOrderCancelRequest.setRemark("用户取消");
-        returnOrderCancelRequest.setOperator(operator);
-        BaseResponse cancel = returnOrderProvider.cancel(returnOrderCancelRequest);
 
 
         log.info("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(),
-                JSON.toJSONString(cancel), System.currentTimeMillis() - beginTime);
+                JSON.toJSONString(baseResponse), System.currentTimeMillis() - beginTime);
         return "success";
     }
 }

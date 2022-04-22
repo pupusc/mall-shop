@@ -143,7 +143,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         RefundOrderByReturnCodeResponse refundOrder =
                 refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrder.getId())).getContext();
 
-        Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name("UNIONB2B")
+        Operator operator = Operator.builder().ip("127.0.0.0").adminId("-1").name("UNIONB2B")
                 .platform(Platform.THIRD).build();
 
         PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
