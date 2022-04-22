@@ -2,6 +2,9 @@ package com.wanmi.sbc.callback.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
@@ -74,6 +77,9 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
     @Autowired
     private PayQueryProvider payQueryProvider;
 
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
+
     @Override
     public boolean support(String eventType) {
         return "aftersale_refund_success".equals(eventType);
@@ -93,10 +99,21 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 //            return;
 //        }
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
-        String returnOrderId = returnOrderMap.get("out_aftersale_id").toString();
+//        String returnOrderId = returnOrderMap.get("out_aftersale_id").toString();
         String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //退单流水
 
-        log.info("ReturnOrderCallbackHandler handle out_aftersale_id: {}, aftersale_id: {}", returnOrderObj, aftersaleId);
+        log.info("ReturnOrderCallbackHandler handle aftersale_id: {}", aftersaleId);
+
+        //根据视频号的售后id获取 微信 售后详细信息
+        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
+        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+        WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+        if (context.getAfterSalesOrder() == null) {
+            log.error("ReturnOrderCallbackHandler handler aftersaleId:{} 内容为空,不能支付售后订单", aftersaleId);
+            return "fail";
+        }
+        String returnOrderId = context.getAfterSalesOrder().getOutOrderId();
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
                     .rid(returnOrderId).build()).getContext();
 

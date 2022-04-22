@@ -82,6 +82,7 @@ public class OrderCouponService {
         }
         Map<String,List<OrderCouponRecord>> map = records.stream().collect(Collectors.groupingBy(OrderCouponRecord::getCustomerId));
         map.forEach((customer,list)->{
+            log.info("OrderCouponService sendCoupon customerId:{}", customer);
             CouponCodeByCouponIdsRequest request = new CouponCodeByCouponIdsRequest();
             request.setCustomerId(customer);
             request.setCouponIds(list.stream().map(OrderCouponRecord::getCouponId).collect(Collectors.toList()));
