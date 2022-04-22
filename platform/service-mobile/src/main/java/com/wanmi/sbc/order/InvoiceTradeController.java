@@ -114,7 +114,7 @@ public class InvoiceTradeController {
             item.setFee(totalPrice);
             item.setTotalFee(totalPrice);
             item.setCount(1);
-            item.setOrderCode(tradeVO.getTradeId());
+            item.setOrderCode(tradeVO.getId());
             item.setProduct(tradeVO.getTradeItems().get(0).getSpuName());
             item.setProductNo(1);
             item.setProductType(30);
