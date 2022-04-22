@@ -19,7 +19,7 @@ import java.net.UnknownHostException;
  * <p>Ares应用安装启动类</p>
  * Created by of628-wenzhi on 2017-09-18-上午11:18.
  */
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc.crm", "com.wanmi.sbc.common.util"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc.crm", "com.wanmi.sbc.common.util", "com.wanmi.sbc.common.handler.exc", "com.soybean.mall"})
 @EnableAsync
 @MapperScan(basePackages = {"com.wanmi.sbc.crm.*.mapper"})
 @Slf4j

@@ -21,7 +21,7 @@ import java.net.*;
  * Created by of628-wenzhi on 2017-09-18-上午11:18.
  */
 @SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class})
-@ComponentScan(basePackages = {"com.wanmi.sbc.message","com.wanmi.sbc.common.util","com.wanmi.sbc.common.handler.exc"})
+@ComponentScan(basePackages = {"com.wanmi.sbc.message","com.wanmi.sbc.common.util","com.wanmi.sbc.common.handler.exc", "com.soybean.mall"})
 @EnableAsync
 @Slf4j
 @EnableDiscoveryClient

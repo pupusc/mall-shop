@@ -16,7 +16,7 @@ import java.net.*;
 
 
 
-@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc","com.fangdeng.server"})
+@ComponentScan(basePackages = {"com.wanmi.sbc.common.handler.exc","com.fangdeng.server", "com.soybean.mall"})
 @SpringBootApplication
 @EnableAsync
 @EnableDiscoveryClient
