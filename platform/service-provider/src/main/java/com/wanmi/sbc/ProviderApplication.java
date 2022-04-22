@@ -27,7 +27,7 @@ import java.net.UnknownHostException;
 @Slf4j
 @PropertySource(value = {"manage-base-application.properties", "api-application.properties"}, factory =
         CompositePropertySourceFactory.class)
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.wanmi.ares.provider", "com.soybean.mall"})
 @ServletComponentScan
 @EnableJpaAuditing
 public class ProviderApplication {
