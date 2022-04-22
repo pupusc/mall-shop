@@ -47,17 +47,17 @@ public class OrderCancelCallBackHandler implements CallbackHandler{
 
         Map<String, String> orderResult = (Map<String, String>) paramMap.get("order_info");
         String outOrderId = orderResult.get("out_order_id");
-        String orderId = orderResult.get("order_id");
+        String wxOrderId = orderResult.get("order_id");
         //获取订单信息
 
         //根据订单号获取订单详细信息
-        TradeVO tradeVo = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(orderId).build()).getContext().getTradeVO();
+        TradeVO tradeVo = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(outOrderId).build()).getContext().getTradeVO();
         if (CollectionUtils.isEmpty(tradeVo.getTradeItems())) {
-            log.error("OrderCancelCallBackHandler handle orderId:{} outOrderId:{} 订单不存在 ", orderId, outOrderId);
+            log.error("OrderCancelCallBackHandler handle wxOrderId:{} outOrderId:{} 订单不存在 ", wxOrderId, outOrderId);
             return "fail";
         }
         if (tradeVo.getTradeState().getPayState() == PayState.PAID) {
-            log.error("OrderCancelCallBackHandler handle orderId:{} outOrderId:{} 订单已经支付、取消失败 ", orderId, outOrderId);
+            log.error("OrderCancelCallBackHandler handle wxOrderId:{} outOrderId:{} 订单已经支付、取消失败 ", wxOrderId, outOrderId);
             return "fail";
         }
 
@@ -74,8 +74,8 @@ public class OrderCancelCallBackHandler implements CallbackHandler{
         tradeCancelRequest.setOperator(operator);
         BaseResponse cancel = tradeProvider.cancel(tradeCancelRequest);
 
-        log.info("OrderCancelCallBackHandler  orderId:{} outOrderId:{} handle result:{} --> end cost: {} ms",
-                orderId, outOrderId, JSON.toJSONString(cancel), System.currentTimeMillis() - beginTime);
+        log.info("OrderCancelCallBackHandler  wxOrderId:{} outOrderId:{} handle result:{} --> end cost: {} ms",
+                wxOrderId, outOrderId, JSON.toJSONString(cancel), System.currentTimeMillis() - beginTime);
         return null;
     }
 }
