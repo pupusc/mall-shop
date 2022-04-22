@@ -152,12 +152,14 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
             returnOrderCancelRequest.setRid(returnOrderVO.getId());
             returnOrderCancelRequest.setRemark("用户取消");
             returnOrderCancelRequest.setOperator(operator);
+            returnOrderCancelRequest.setMessageSource(true);
             baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
         } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
             ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
             returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
             returnOrderRejectRefundRequest.setReason("用户主动取消");
             returnOrderRejectRefundRequest.setOperator(operator);
+            returnOrderRejectRefundRequest.setMessageSource(true);
             baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
         }
 

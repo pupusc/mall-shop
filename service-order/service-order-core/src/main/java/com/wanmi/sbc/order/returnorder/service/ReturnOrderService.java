@@ -3395,7 +3395,7 @@ public class ReturnOrderService {
      */
     @Transactional
     @GlobalTransactional
-    public void refundReject(String rid, String reason, Operator operator) {
+    public void refundReject(String rid, String reason, Operator operator, Boolean messageSource) {
         ReturnOrder returnOrder = findById(rid);
         TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
                 (returnOrder.getTid(), returnOrder.getId())).getContext().getTradeStatus();
@@ -3421,7 +3421,7 @@ public class ReturnOrderService {
                 .data(reason)
                 .build();
         returnFSMService.changeState(request);
-        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+        if (messageSource == null || !messageSource) {
             this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.REJECT_RETURN : WxAfterSaleStatus.REJECT_REFUND,
                     Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT.getIndex() : WxAfterSaleOperateType.CANCEL.getIndex());
 
@@ -3505,7 +3505,7 @@ public class ReturnOrderService {
      */
     @GlobalTransactional
     @Transactional
-    public void cancel(String rid, Operator operator, String remark) {
+    public void cancel(String rid, Operator operator, String remark, Boolean messageSource) {
 
         ReturnOrder returnOrder = this.findById(rid);
 
@@ -3546,7 +3546,9 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
-        this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
+        if (messageSource == null || !messageSource) {
+            this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
+        }
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
         if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
