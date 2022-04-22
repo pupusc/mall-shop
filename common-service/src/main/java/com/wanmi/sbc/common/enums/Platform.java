@@ -58,7 +58,12 @@ public enum Platform {
      * 主站
      */
     @ApiEnumProperty("樊登读书")
-    FDDS("樊登读书");
+    FDDS("樊登读书"),
+
+    /**
+     * 视频号
+     */
+    WX_VIDEO("视频号");
 
     private String desc;
 

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class WxDetailAfterSaleResponse extends WxResponseBase {
 
@@ -13,18 +15,30 @@ public class WxDetailAfterSaleResponse extends WxResponseBase {
     @Data
     public static class AfterSalesOrder {
 
-        @JSONField(name = "out_aftersale_id")
-        private String outAftersaleId;
-        @JSONField(name = "aftersale_id")
-        private Long aftersaleId;
         @JSONField(name = "out_order_id")
         private String outOrderId;
         @JSONField(name = "order_id")
         private Long orderId;
+
+//        @JSONField(name = "out_aftersale_id")
+//        private String outAftersaleId;
+        @JSONField(name = "aftersale_id")
+        private Long aftersaleId;
+
         @JSONField(name = "product_info")
         private ProductInfo productInfo;
+
+        @JSONField(name = "media_list")
+        private List<MediaListInfo> mediaList;
+
+        /**
+         * 售后类型，1:退款,2:退款退货
+         */
         @JSONField(name = "type")
         private Integer type;
+        /**
+         * 物流信息
+         */
         @JSONField(name = "return_info")
         private ReturnInfo returnInfo;
         @JSONField(name = "orderamt")
@@ -41,6 +55,9 @@ public class WxDetailAfterSaleResponse extends WxResponseBase {
         private String update_time;
         @JSONField(name = "openid")
         private String openid;
+
+        @JSONField(name = "refund_pay_detail")
+        private RefundPayDetail refundPayDetail;
 
     }
 
@@ -64,7 +81,29 @@ public class WxDetailAfterSaleResponse extends WxResponseBase {
 
         @JSONField(name = "order_return_time")
         private Long orderReturnTime;
+        /**
+         * 物流单号
+         */
         @JSONField(name = "waybill_id")
         private String waybillId;
+    }
+
+    @Data
+    public static class MediaListInfo {
+
+        @JSONField(name = "type")
+        private Integer type;
+
+        @JSONField(name = "url")
+        private String url;
+
+        @JSONField(name = "thumb_url")
+        private String thumbUrl;
+    }
+
+    @Data
+    public static class RefundPayDetail {
+        @JSONField(name = "refund_id")
+        private String refundId;
     }
 }
