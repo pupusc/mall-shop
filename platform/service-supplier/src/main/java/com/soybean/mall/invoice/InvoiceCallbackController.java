@@ -38,9 +38,13 @@ public class InvoiceCallbackController {
         if(CollectionUtils.isNotEmpty(byIds.getTradeVO())){
             for (TradeVO tradeVO : byIds.getTradeVO()) {
 //                tradeProvider.update()
-                log.info("invoice callback: trade id:{}", tradeVO.getTradeId());
-                AutoUpdateInvoiceRequest autoUpdateInvoiceRequest = AutoUpdateInvoiceRequest.builder().tradeId(tradeVO.getTradeId()).build();
-                tradeProvider.updateInvoice(autoUpdateInvoiceRequest);
+                try {
+                    log.info("invoice callback: trade id:{}", tradeVO.getTradeId());
+                    AutoUpdateInvoiceRequest autoUpdateInvoiceRequest = AutoUpdateInvoiceRequest.builder().tradeId(tradeVO.getTradeId()).build();
+                    tradeProvider.updateInvoice(autoUpdateInvoiceRequest);
+                }catch(Exception ex){
+                    log.info("update fail:{}", tradeVO.getTradeId());
+                }
             }
         }
     }
