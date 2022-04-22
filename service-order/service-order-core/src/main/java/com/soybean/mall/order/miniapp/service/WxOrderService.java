@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
@@ -322,29 +323,59 @@ public class WxOrderService {
         if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
             return;
         }
+
         try {
-            WxSendMessageRequest request = new WxSendMessageRequest();
-            request.setOpenId(trade.getBuyer().getOpenId());
-            request.setTemplateId(cancelOrderSendMsgTemplateId);
-            request.setUrl(createOrderSendMsgLinkUrl+trade.getId());
-            Map<String, Map<String, String>> map = new HashMap<>();
-           map.put("character_string2", new HashMap<String, String>() {{
-                put("value", trade.getId());
-            }});
-            map.put("thing1", new HashMap<String, String>() {{
-                put("value", "超时未付款");
-            }});
-            map.put("time3", new HashMap<String, String>() {{
-                put("value", DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1));
-            }});
-            map.put("thing4", new HashMap<String, String>() {{
-                put("value", "普通订单");
-            }});
-            request.setData(map);
-            BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
-            log.info("微信小程序取消订单发送消息request:{},response:{}",request,response);
+            //视频号
+            if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
+                    return;
+                }
+                WxOrderDetailRequest request = new WxOrderDetailRequest();
+                request.setOutOrderId(trade.getId());
+                request.setOpenid(trade.getBuyer().getOpenId());
+                BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
+                WxVideoOrderDetailResponse context = detail.getContext();
+                if (context == null || context.getOrder() == null) {
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
+                    return;
+                }
+
+                if (context.getOrder().getStatus() != 10) {
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
+                    return;
+                }
+                WxOrderCancelRequest wxOrderCancelRequest = new WxOrderCancelRequest();
+                wxOrderCancelRequest.setOutOrderId(trade.getId());
+                wxOrderCancelRequest.setOpenid(trade.getBuyer().getOpenId());
+                wxOrderCancelRequest.setOrderId(context.getOrder().getOrderId());
+                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.cancelOrder(wxOrderCancelRequest);
+                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 取消结果为：{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+
+            } else {
+                WxSendMessageRequest request = new WxSendMessageRequest();
+                request.setOpenId(trade.getBuyer().getOpenId());
+                request.setTemplateId(cancelOrderSendMsgTemplateId);
+                request.setUrl(createOrderSendMsgLinkUrl + trade.getId());
+                Map<String, Map<String, String>> map = new HashMap<>();
+                map.put("character_string2", new HashMap<String, String>() {{
+                    put("value", trade.getId());
+                }});
+                map.put("thing1", new HashMap<String, String>() {{
+                    put("value", "超时未付款");
+                }});
+                map.put("time3", new HashMap<String, String>() {{
+                    put("value", DateUtil.format(LocalDateTime.now(), DateUtil.FMT_DATE_1));
+                }});
+                map.put("thing4", new HashMap<String, String>() {{
+                    put("value", "普通订单");
+                }});
+                request.setData(map);
+                BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
+                log.info("微信小程序取消订单发送消息request:{},response:{}", request, response);
+            }
         }catch (Exception e){
-            log.error("微信小程序取消订单发送消息失败,trade:{}",trade,e);
+            log.error("微信小程序/视频号取消订单发送消息失败,trade:{}",trade,e);
       }
     }
 

@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +49,7 @@ public interface WxOrderApiController {
     BaseResponse<WxResponseBase> receive(@RequestBody WxDeliveryReceiveRequest request);
 
     @PostMapping("/order/detail")
-    BaseResponse getDetail(@RequestBody WxOrderDetailRequest request);
+    BaseResponse<WxVideoOrderDetailResponse> getDetail(@RequestBody WxOrderDetailRequest request);
 
 
     /**
@@ -113,4 +114,9 @@ public interface WxOrderApiController {
     BaseResponse<WxListAfterSaleResponse> listAfterSale(@RequestBody WxAfterSaleListRequest wxDealAftersaleRequest);
 
 
+    /**
+     * 取消订单
+     */
+    @PostMapping("/order/cancel")
+    BaseResponse<WxResponseBase> cancelOrder(@RequestBody WxOrderCancelRequest request);
 }

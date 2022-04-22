@@ -41,6 +41,11 @@ public class ReturnOrderRejectRefundRequest implements Serializable {
     private String reason;
 
     /**
+     * true 表示消息来源
+     */
+    private Boolean messageSource;
+
+    /**
      * 操作人信息
      */
     @ApiModelProperty(value = "操作人信息")

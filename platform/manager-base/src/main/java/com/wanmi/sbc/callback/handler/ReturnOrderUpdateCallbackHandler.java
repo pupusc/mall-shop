@@ -140,7 +140,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
+//        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(returnOrderList)) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取退单为空,不能修改售后订单", aftersaleId);
             return "fail";

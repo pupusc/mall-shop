@@ -42,6 +42,11 @@ public class ReturnOrderCancelRequest implements Serializable {
     private Operator operator;
 
     /**
+     * true 表示消息来源
+     */
+    private Boolean messageSource;
+
+    /**
      * 备注
      */
     @ApiModelProperty(value = "备注")

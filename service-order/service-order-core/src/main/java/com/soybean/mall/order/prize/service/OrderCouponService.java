@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,16 +81,26 @@ public class OrderCouponService {
         if(CollectionUtils.isEmpty(records)){
             return;
         }
-        Map<String,List<OrderCouponRecord>> map = records.stream().collect(Collectors.groupingBy(OrderCouponRecord::getCustomerId));
-        map.forEach((customer,list)->{
+
+        Map<String, List<OrderCouponRecord>> map = new HashMap<>();
+        for (OrderCouponRecord record : records) {
+            List<OrderCouponRecord> orderCouponRecords = map.get(record.getCustomerId());
+            if (CollectionUtils.isEmpty(orderCouponRecords) ) {
+                orderCouponRecords = new ArrayList<>();
+            }
+            orderCouponRecords.add(record);
+            map.put(record.getCustomerId(), orderCouponRecords);
+        }
+
+        for (Map.Entry<String, List<OrderCouponRecord>> entry : map.entrySet()) {
+            log.info("OrderCouponService sendCoupon customerId:{}", entry.getKey());
             CouponCodeByCouponIdsRequest request = new CouponCodeByCouponIdsRequest();
-            request.setCustomerId(customer);
-            request.setCouponIds(list.stream().map(OrderCouponRecord::getCouponId).collect(Collectors.toList()));
+            request.setCustomerId(entry.getKey());
+            request.setCouponIds(entry.getValue().stream().map(OrderCouponRecord::getCouponId).collect(Collectors.toList()));
             couponCodeProvider.sendCouponCodeByCouponIds(request);
             //更新状态
-            orderCouponRecordRepository.updateStatus(list.stream().map(OrderCouponRecord::getId).collect(Collectors.toList()));
-
-        });
+            orderCouponRecordRepository.updateStatus(entry.getValue().stream().map(OrderCouponRecord::getId).collect(Collectors.toList()));
+        }
     }
 
     public Specification<OrderCouponRecord> getWhereCriteria() {

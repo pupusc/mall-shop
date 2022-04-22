@@ -92,7 +92,7 @@ public class LinkedMallReturnOrderController implements LinkedMallReturnOrderPro
                         if(StringUtils.isBlank(message)){
                             message = detail.getSellerRefuseAgreementMessage();
                         }
-                        returnOrderService.cancel(returnOrder.getId(), system, message);
+                        returnOrderService.cancel(returnOrder.getId(), system, message, null);
                     }
                 } catch (Exception e) {
                     log.error("退单审核同步异常, rid=" + returnOrder.getId(), e);
