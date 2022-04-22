@@ -119,6 +119,8 @@ public class InvoiceTradeController {
             item.setProductNo(1);
             item.setProductType(30);
             item.setProductIcoon("");
+            //暂时都定1
+            item.setOrderType(1);
             item.setCompleteTime(Date.from(tradeVO.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
