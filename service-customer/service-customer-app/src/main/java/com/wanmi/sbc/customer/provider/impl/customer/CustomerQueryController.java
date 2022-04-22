@@ -532,6 +532,7 @@ public class CustomerQueryController implements CustomerQueryProvider {
         simplify.setPointsAvailable(customer.getPointsAvailable());
         simplify.setStoreCustomerRelaListByAll(KsBeanUtil.convert(customer.getStoreCustomerRelaListByAll(),StoreCustomerRelaVO.class));
         simplify.setFanDengUserNo(customer.getFanDengUserNo());
+        simplify.setOpenId(customer.getWxMiniOpenId());
         CustomerDetailSimplifyVO customerDetailSimplifyVO = new CustomerDetailSimplifyVO();
         CustomerDetail customerDetail = customer.getCustomerDetail();
         if (Objects.nonNull(customerDetail)) {

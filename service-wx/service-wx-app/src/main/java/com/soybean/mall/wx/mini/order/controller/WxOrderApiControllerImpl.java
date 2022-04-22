@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.soybean.mall.wx.mini.service.WxService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +47,8 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     }
 
     @Override
-    public BaseResponse getDetail(WxOrderDetailRequest request) {
-        wxService.getOrder(request);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<WxVideoOrderDetailResponse> getDetail(WxOrderDetailRequest request) {
+        return BaseResponse.success(wxService.getDetail(request));
     }
 
     @Override
