@@ -2932,6 +2932,8 @@ public class ReturnOrderService {
             throw new SbcRuntimeException("K-050003");
         }
         returnOrder.setReturnItems(returnOrderRaw.getReturnItems());
+        //此处填充
+        returnOrder.setAftersaleId(returnOrderRaw.getAftersaleId());
 
         returnOrderService.updateReturnOrder(returnOrder);
         this.operationLogMq.convertAndSend(operator, ReturnEvent.REFUND.getDesc(), detail);

@@ -194,10 +194,11 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
         returnOrderDTO.setCompany(company);
         returnOrderDTO.setChannelType(tradeVo.getChannelType());
-        returnOrderDTO.setPlatform(Platform.WX_VIDEO);
+//        returnOrderDTO.setPlatform(Platform.WX_VIDEO);
 
 
         Operator operator = new Operator();
+        operator.setPlatform(Platform.WX_VIDEO);
         operator.setUserId(tradeVo.getBuyer().getId());
         operator.setName(tradeVo.getBuyer().getName());
         operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());
