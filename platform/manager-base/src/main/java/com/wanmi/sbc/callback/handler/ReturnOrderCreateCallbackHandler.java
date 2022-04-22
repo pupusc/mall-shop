@@ -11,6 +11,7 @@ import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.callback.service.CallBackCommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.TerminalSource;
 
 
@@ -27,6 +28,7 @@ import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnPriceDTO;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -172,6 +174,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         }
 
         returnOrderDTO.setReturnWay(afterSalesOrder.getType() == 1 ? ReturnWay.OTHER : ReturnWay.EXPRESS);
+        returnOrderDTO.setReturnType(afterSalesOrder.getType() == 1 ? ReturnType.REFUND : ReturnType.RETURN);
         returnOrderDTO.setTerminalSource(TerminalSource.MINIPROGRAM);
 
         ReturnPriceDTO returnPrice = new ReturnPriceDTO();
@@ -191,6 +194,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
         returnOrderDTO.setCompany(company);
         returnOrderDTO.setChannelType(tradeVo.getChannelType());
+        returnOrderDTO.setPlatform(Platform.WX_VIDEO);
 
 
         Operator operator = new Operator();

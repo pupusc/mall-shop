@@ -2131,11 +2131,11 @@ public class ReturnOrderService {
             returnFSMService.changeState(request);
             //自动发货
             autoDeliver(returnOrderId, operator);
-            if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+//            if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
                 this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING,
                         Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null);
 
-            }
+//            }
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
                     || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
@@ -3546,7 +3546,7 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
-        if (messageSource == null || !messageSource) {
+        if ((messageSource == null || !messageSource) && Platform.WX_VIDEO != returnOrder.getPlatform()) {
             this.addWxAfterSale(returnOrder,Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND,WxAfterSaleOperateType.CANCEL.getIndex());
         }
         //售后审核未通过发送MQ消息
