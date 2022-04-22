@@ -26,6 +26,7 @@ public class FanDengInvoiceRequest implements Serializable {
     private String userId;
     private Integer businessId;
 
+    private String orderId;
     private List<Item> orderExtendBOS = new ArrayList<>();
 
     @Data
@@ -40,6 +41,7 @@ public class FanDengInvoiceRequest implements Serializable {
         private Integer productNo;
         private Integer orderType;
         private String productIcoon;
+        private String productTypeName;
     }
 
 }

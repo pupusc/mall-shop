@@ -17,6 +17,7 @@ import com.wanmi.sbc.order.bean.dto.TradeQueryDTO;
 import com.wanmi.sbc.order.bean.dto.TradeStateDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.request.InvoiceRequest;
@@ -24,6 +25,7 @@ import com.wanmi.sbc.util.CommonUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
 
 @Api(tags = "InvoiceTradeController", description = "发票API")
 @RestController
@@ -85,7 +89,7 @@ public class InvoiceTradeController {
     public BaseResponse<String> submitInvoice(@RequestBody InvoiceRequest request){
         TradeQueryDTO tradeQueryRequest = TradeQueryDTO.builder()
                 .tradeState(TradeStateDTO.builder().flowState(FlowState.COMPLETED).payState(PayState.PAID).build())
-                .ids(request.getOrderIds().toArray(new String[request.getOrderIds().size()]))
+                .id(request.getOrderIds().get(0))
                 .buyerId(commonUtil.getOperatorId())
                 .invoiceType(-1)
                 .actualCashFlag(true)
@@ -94,39 +98,41 @@ public class InvoiceTradeController {
         MicroServicePage<TradeVO> tradePage = tradeQueryProvider.pageCriteriaOptimize(TradePageCriteriaRequest.builder()
                 .tradePageDTO(tradeQueryRequest).build()).getContext().getTradePage();
 
-        if(tradePage.getContent().size()!=request.getOrderIds().size()){
+        if(CollectionUtils.isEmpty(tradePage.getContent())){
             return BaseResponse.error("开票的订单当中数据不一致");
         }
+        TradeVO tradeVO = tradePage.getContent().get(0);
         FanDengInvoiceRequest fanDengInvoiceRequest = new FanDengInvoiceRequest();
 
         CustomerSimplifyByIdResponse customer = customerQueryProvider.simplifyById(new CustomerSimplifyByIdRequest(commonUtil.getOperatorId())).getContext();
         fanDengInvoiceRequest.setUserId(customer.getFanDengUserNo());
         fanDengInvoiceRequest.setBusinessId(2);
+        fanDengInvoiceRequest.setOrderId(tradeVO.getId());
 
-        for (TradeVO tradeVO : tradePage.getContent()) {
-            if (tradeVO.getTradeState().getEndTime() == null){
-                continue;
-            }
+        for (TradeItemVO itemVO : tradeVO.getTradeItems()) {
             FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
             //现金价格
             TradePriceVO tradePrice = tradeVO.getTradePrice();
-            BigDecimal totalPrice = tradePrice.getTotalPrice().add(tradePrice.getDeliveryPrice());
-            item.setFee(totalPrice);
-            item.setTotalFee(totalPrice);
-            item.setCount(1);
-            item.setOrderCode(tradeVO.getId());
-            item.setProduct(tradeVO.getTradeItems().get(0).getSpuName());
+
+            item.setFee(itemVO.getSplitPrice().divide(new BigDecimal(itemVO.getNum())));
+            item.setOrderCode(tradeVO.getId()+itemVO.getOid());
+            item.setTotalFee(itemVO.getSplitPrice());
+            item.setCount(itemVO.getNum().intValue());
+
+            item.setProduct(itemVO.getSpuName());
             item.setProductNo(1);
-            item.setProductType(30);
+            item.setProductType(taxRateMap.get(itemVO.getCateId()));
             item.setProductIcoon("");
             //暂时都定1
             item.setOrderType(1);
             item.setCompleteTime(Date.from(tradeVO.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
             fanDengInvoiceRequest.getOrderExtendBOS().add(item);
         }
-
-
         BaseResponse<String> result = externalProvider.submitInvoiceOrder(fanDengInvoiceRequest);
         return result;
     }
+
+
+    Map<Long,Integer> taxRateMap = new HashMap<>();
+
 }
