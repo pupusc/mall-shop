@@ -87,7 +87,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
             log.error("回调参数异常 param:{}", paramMap);
-            return "false";
+            return CommonHandlerUtil.FAIL;
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
@@ -112,13 +112,13 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
 
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 内容为空,不能取消售后订单", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
         if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_ONE) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 非创建售后状态，return", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         //根据视频号获取退单的详细信息
@@ -129,7 +129,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(returnOrderList)) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         ReturnOrderVO returnOrderVO = returnOrderList.get(0);
@@ -142,7 +142,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         FindPayOrderResponse payOrderResponse = response.getContext();
         if (Objects.isNull(payOrderResponse) || Objects.isNull(payOrderResponse.getPayOrderStatus()) || payOrderResponse.getPayOrderStatus() != PayOrderStatus.PAYED) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 未支付，无法取消售后", orderId, aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
@@ -168,6 +168,6 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         log.info("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(),
                 JSON.toJSONString(baseResponse), System.currentTimeMillis() - beginTime);
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 }

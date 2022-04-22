@@ -90,7 +90,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
             log.error("回调参数异常 param:{}", paramMap);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
@@ -126,13 +126,13 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 内容为空,不能修改售后订单", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
         if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 非创建售后状态，return", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         //根据视频号获取退单的详细信息
@@ -143,7 +143,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 //        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(returnOrderList)) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取退单为空,不能修改售后订单", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         ReturnOrderVO returnOrderVO = returnOrderList.get(0);
@@ -167,7 +167,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         BaseResponse remedy = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
         log.info("ReturnOrderUpdateCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(), JSON.toJSONString(remedy), System.currentTimeMillis() - beginTime);
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class WxPayCallBackHandler implements CallbackHandler {
+public class OrderPayCallBackHandler implements CallbackHandler {
 
 
     @Autowired
@@ -37,6 +37,6 @@ public class WxPayCallBackHandler implements CallbackHandler {
         }catch (Exception e){
             log.error("WxPayCallBackHandler error,param:{}",paramMap,e);
         }
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 }

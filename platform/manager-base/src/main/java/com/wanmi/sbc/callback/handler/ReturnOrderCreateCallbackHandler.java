@@ -83,7 +83,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
             log.error("回调参数异常 param:{}", paramMap);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
         Map<String, Object> returnOrderMap = (Map<String, Object>) returnOrderObj;
@@ -94,8 +94,10 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
          *      String aftersaleId = "4000000001562176";
          */
 
-        String orderId = returnOrderMap.get("out_order_id").toString(); //订单号
-        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
+//        String orderId = returnOrderMap.get("out_order_id").toString(); //订单号
+//        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
+        String orderId = "O202204230205204025681";
+        String aftersaleId = "4000000001562176";
 
         //保证订单已经支付
         BaseResponse<FindPayOrderResponse> response =
@@ -103,29 +105,34 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         FindPayOrderResponse payOrderResponse = response.getContext();
         if (Objects.isNull(payOrderResponse) || Objects.isNull(payOrderResponse.getPayOrderStatus()) || payOrderResponse.getPayOrderStatus() != PayOrderStatus.PAYED) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 未支付，无法申请售后", orderId, aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
-        //根据视频号的售后id获取 售后详细信息
-        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
-        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
-        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
-        WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+//        //根据视频号的售后id获取 售后详细信息
+//        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+//        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
+//        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+//        WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
 
         /**
          * 测试数据
+         *      WxDetailAfterSaleResponse context = new WxDetailAfterSaleResponse();
          *      WxDetailAfterSaleResponse.AfterSalesOrder rr = callBackCommonService.test(orderId, Long.valueOf(aftersaleId));
          *      context.setAfterSalesOrder(rr);
          */
 
+        WxDetailAfterSaleResponse context = new WxDetailAfterSaleResponse();
+        WxDetailAfterSaleResponse.AfterSalesOrder rr = callBackCommonService.test(orderId, Long.valueOf(aftersaleId));
+        context.setAfterSalesOrder(rr);
+
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 内容为空,不能生成售后订单", orderId, aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
         if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 非创建售后状态，return", orderId, aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
 
 
@@ -144,7 +151,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         if (tradeItemVO == null) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 返回的商品 outSpuId:{} outSkuId:{} 在订单中没有匹配到",
                     orderId, aftersaleId, afterSalesOrder.getProductInfo().getOutProductId(), afterSalesOrder.getProductInfo().getOutSkuId());
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
         afterSalesOrder.setOrderamt(afterSalesOrder.getOrderamt() == null ? 0L : afterSalesOrder.getOrderamt());
         BigDecimal applyReturnPrice = new BigDecimal(afterSalesOrder.getOrderamt()+"").divide(new BigDecimal("100"));
@@ -210,7 +217,7 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
         String returnOrderId = returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrderDTO).operator(operator).build()).getContext().getReturnOrderId();
         log.info("ReturnOrderCreateCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 orderId, aftersaleId, returnOrderId, returnOrderId, System.currentTimeMillis() - beginTime);
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 
 

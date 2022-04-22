@@ -104,6 +104,23 @@ public class CallBackCommonService {
         return operator;
     }
 
+
+    /**
+     * 自定义 operator
+     * @param tradeVo
+     * @return
+     */
+    public Operator packOperator(TradeVO tradeVo) {
+        Operator operator = new Operator();
+        operator.setUserId(tradeVo.getBuyer().getId());
+        operator.setName(tradeVo.getBuyer().getName());
+        operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());
+        operator.setIp("127.0.0.1");
+        operator.setAccount(tradeVo.getBuyer().getAccount());
+        operator.setCompanyInfoId(tradeVo.getSupplier().getSupplierId());
+        return operator;
+    }
+
     /**
      * 测试信息
      * @param outOrderId
