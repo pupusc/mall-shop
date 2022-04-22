@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class}, scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class}, scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j

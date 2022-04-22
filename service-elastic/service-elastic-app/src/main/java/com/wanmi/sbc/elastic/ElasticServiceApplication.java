@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import java.net.InetAddress;
 
 
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j

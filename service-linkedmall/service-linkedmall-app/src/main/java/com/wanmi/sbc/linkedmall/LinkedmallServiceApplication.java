@@ -18,7 +18,7 @@ import java.net.UnknownHostException;
  * <p>Ares应用安装启动类</p>
  * Created by of628-wenzhi on 2017-09-18-上午11:18.
  */
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync
 @Slf4j
 @EnableCaching

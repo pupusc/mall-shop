@@ -21,7 +21,7 @@ import java.net.UnknownHostException;
  * Created by of628-wenzhi on 2017-06-01-上午11:10.
  */
 @EnableScheduling
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableWithStateMachine
 @EnableAsync
 @Slf4j

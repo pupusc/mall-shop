@@ -23,7 +23,7 @@ import java.net.InetAddress;
  * @Date: 2018-11-21 14:13
  */
 
-@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class}, scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, SpringBootConfiguration.class}, scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
