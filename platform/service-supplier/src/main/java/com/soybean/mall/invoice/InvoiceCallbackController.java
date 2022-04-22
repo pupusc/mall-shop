@@ -5,6 +5,7 @@ import com.soybean.mall.invoice.request.InvoiceCallbackRequest;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdsRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdsResponse;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -38,8 +39,9 @@ public class InvoiceCallbackController {
             for (TradeVO tradeVO : byIds.getTradeVO()) {
 //                tradeProvider.update()
                 log.info(tradeVO.getTradeId());
+                AutoUpdateInvoiceRequest autoUpdateInvoiceRequest = AutoUpdateInvoiceRequest.builder().tradeId(tradeVO.getTradeId()).build();
+                tradeProvider.updateInvoice(autoUpdateInvoiceRequest);
             }
-
         }
     }
 }

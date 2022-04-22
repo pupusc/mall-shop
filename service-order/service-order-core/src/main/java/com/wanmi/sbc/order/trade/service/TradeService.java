@@ -201,6 +201,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
@@ -8518,4 +8519,27 @@ public class TradeService {
         payCallbackOnline(trades, operator, false);
     }
 
+    /**
+     * 更新发票的类型
+     * @param autoUpdateInvoiceRequest
+     * @return
+     */
+    @GlobalTransactional
+    public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
+        mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
+                new Update().set("invoice.invoiceType", autoUpdateInvoiceRequest.getInvoiceType()), Trade.class);
+        Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
+        if(byOrderNo.isPresent()){
+            OrderInvoice orderInvoice = byOrderNo.get();
+            if(InvoiceState.WAIT.equals(orderInvoice.getInvoiceState())) {
+                orderInvoiceService.updateOrderInvoiceState(Lists.newArrayList(orderInvoice.getOrderInvoiceId()));
+            }
+            log.info("orderInvoice tradeNo:{}, origin state:{}",autoUpdateInvoiceRequest.getTradeId(), orderInvoice.getInvoiceState());
+        }else{
+            OrderInvoiceSaveRequest saveRequest = new OrderInvoiceSaveRequest();
+            saveRequest.setInvoiceType(InvoiceType.ELECTRONIC);
+            orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
 }
