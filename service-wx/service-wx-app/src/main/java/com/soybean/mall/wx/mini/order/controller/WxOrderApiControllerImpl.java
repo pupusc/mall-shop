@@ -100,4 +100,9 @@ public class WxOrderApiControllerImpl implements WxOrderApiController {
     public BaseResponse<WxListAfterSaleResponse> listAfterSale(WxAfterSaleListRequest request) {
         return BaseResponse.success(wxService.listAfterSale(request));
     }
+
+    @Override
+    public BaseResponse<WxResponseBase> cancelOrder(WxOrderCancelRequest request) {
+        return BaseResponse.success(wxService.cancelOrder(request));
+    }
 }

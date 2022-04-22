@@ -322,13 +322,15 @@ public class WxOrderService {
         if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
             return;
         }
+
         try {
+            //视频号
             WxSendMessageRequest request = new WxSendMessageRequest();
             request.setOpenId(trade.getBuyer().getOpenId());
             request.setTemplateId(cancelOrderSendMsgTemplateId);
-            request.setUrl(createOrderSendMsgLinkUrl+trade.getId());
+            request.setUrl(createOrderSendMsgLinkUrl + trade.getId());
             Map<String, Map<String, String>> map = new HashMap<>();
-           map.put("character_string2", new HashMap<String, String>() {{
+            map.put("character_string2", new HashMap<String, String>() {{
                 put("value", trade.getId());
             }});
             map.put("thing1", new HashMap<String, String>() {{
@@ -342,9 +344,9 @@ public class WxOrderService {
             }});
             request.setData(map);
             BaseResponse<WxResponseBase> response = wxCommonController.sendMessage(request);
-            log.info("微信小程序取消订单发送消息request:{},response:{}",request,response);
+            log.info("微信小程序取消订单发送消息request:{},response:{}", request, response);
         }catch (Exception e){
-            log.error("微信小程序取消订单发送消息失败,trade:{}",trade,e);
+            log.error("微信小程序/视频号取消订单发送消息失败,trade:{}",trade,e);
       }
     }
 

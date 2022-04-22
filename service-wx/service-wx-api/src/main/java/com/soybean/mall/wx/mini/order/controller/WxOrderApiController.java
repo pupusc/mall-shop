@@ -113,4 +113,9 @@ public interface WxOrderApiController {
     BaseResponse<WxListAfterSaleResponse> listAfterSale(@RequestBody WxAfterSaleListRequest wxDealAftersaleRequest);
 
 
+    /**
+     * 取消订单
+     */
+    @PostMapping("/order/cancel")
+    BaseResponse<WxResponseBase> cancelOrder(@RequestBody WxOrderCancelRequest request);
 }

@@ -66,9 +66,10 @@ public class WxService {
     private static final String UPLOAD_RETURN_INFO="https://api.weixin.qq.com/shop/ecaftersale/uploadreturninfo";
     private static final String LIST_AFTER_SALE="https://api.weixin.qq.com/shop/ecaftersale/get_list";
     private static final String CUSTOMER_SERVER_ONLINE_URL="https://api.weixin.qq.com/cgi-bin/customservice/getonlinekflist";
-
-    private static final HttpHeaders defaultHeader;
     public static final String API_WEIXIN_WXA_GENERATESCHEME = "https://api.weixin.qq.com/wxa/generatescheme";
+    public static final String CANCEL_ORDER_URL = "https://api.weixin.qq.com/shop/order/close";
+    private static final HttpHeaders defaultHeader;
+
 
     static {
         defaultHeader = new HttpHeaders();
@@ -413,5 +414,18 @@ public class WxService {
             return BaseResponse.success(urlschemeResponse.getOpenlink());
         }
         return BaseResponse.error(urlschemeResponse.getErrcode()+"  "+ urlschemeResponse.getErrmsg());
+    }
+
+
+    /**
+     * 关闭订单
+     * @param request
+     * @return
+     */
+    public WxResponseBase cancelOrder(WxOrderCancelRequest request) {
+        String url = CANCEL_ORDER_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 }
