@@ -155,9 +155,12 @@ public class OrderInvoiceService {
     @Transactional
     public Optional<OrderInvoice> updateOrderStatus(OrderInvoiceModifyOrderStatusRequest orderInvoiceModifyOrderRequest){
         OrderInvoice orderInvoice = repository.findByOrderNoAndDelFlag(orderInvoiceModifyOrderRequest.getOrderNo(),DeleteFlag.NO).orElse(null);
-        orderInvoice.setPayStatus(orderInvoiceModifyOrderRequest.getPayOrderStatus());
-        orderInvoice.setOrderStatus(orderInvoiceModifyOrderRequest.getOrderStatus());
-        return Optional.ofNullable(repository.save(orderInvoice));
+        if (orderInvoice != null) {
+            orderInvoice.setPayStatus(orderInvoiceModifyOrderRequest.getPayOrderStatus());
+            orderInvoice.setOrderStatus(orderInvoiceModifyOrderRequest.getOrderStatus());
+            repository.save(orderInvoice);
+        }
+        return Optional.empty();
     }
 
 
