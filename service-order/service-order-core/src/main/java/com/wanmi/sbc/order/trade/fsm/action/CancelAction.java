@@ -73,14 +73,19 @@ public class CancelAction extends TradeAction {
             }*/
             if (StringUtils.isNotEmpty(trade.getDeductCode())){
 
-                FanDengPointCancelRequest cancelRequest =
-                        FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
-                                .desc("订单取消返还(退单号:"+trade.getId()+")").build();
-                if (trade.getTradePrice().getPoints() != null && trade.getTradePrice().getPoints() > 0) {
-                    externalProvider.pointCancel(cancelRequest);
-                }
-                if (trade.getTradePrice().getKnowledge() != null && trade.getTradePrice().getKnowledge() > 0) {
-                    externalProvider.knowledgeCancel(cancelRequest);
+                try {
+                    //TODO 这里应该做的是 添加到表里面，异步去处理积分或者知豆信息
+                    FanDengPointCancelRequest cancelRequest =
+                            FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
+                                    .desc("订单取消返还(退单号:"+trade.getId()+")").build();
+                    if (trade.getTradePrice().getPoints() != null && trade.getTradePrice().getPoints() > 0) {
+                        externalProvider.pointCancel(cancelRequest);
+                    }
+                    if (trade.getTradePrice().getKnowledge() != null && trade.getTradePrice().getKnowledge() > 0) {
+                        externalProvider.knowledgeCancel(cancelRequest);
+                    }
+                } catch (Exception ex) {
+                    logger.error("CancelAction pointCancel or knowledgeCandel execute Exception", ex);
                 }
             }
         }
