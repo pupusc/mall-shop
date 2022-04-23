@@ -24,7 +24,7 @@ import java.net.*;
 @SpringBootApplication
 @EnableAsync
 @MapperScan(basePackages = {"com.wanmi.ares.report.*.dao", "com.wanmi.ares.export.dao"})
-@ComponentScan(basePackages = {"com.wanmi.ares", "com.wanmi.ares.provider", "com.wanmi.sbc.common.handler.exc"}, excludeFilters = {
+@ComponentScan(basePackages = {"com.wanmi.ares", "com.wanmi.ares.provider", "com.wanmi.sbc.common.handler.exc", "com.soybean.mall"}, excludeFilters = {
         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = com.wanmi.sbc.common.handler.aop.TomcatDataSourceAspect.class)
 })
 @Slf4j
