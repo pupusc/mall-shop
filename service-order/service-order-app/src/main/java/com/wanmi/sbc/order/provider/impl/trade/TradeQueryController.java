@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.OrderType;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.NotSupportDeliveryException;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.response.store.StoreInfoResponse;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
@@ -487,6 +488,9 @@ public class TradeQueryController implements TradeQueryProvider {
      */
     @Override
     public BaseResponse<TradeGetByIdResponse> getById(@RequestBody @Valid TradeGetByIdRequest tradeGetByIdRequest) {
+        if (StringUtils.isBlank(tradeGetByIdRequest.getTid())){
+            throw new SbcRuntimeException("K-050122");
+        }
         Trade trade = tradeService.detail(tradeGetByIdRequest.getTid());
         if(Objects.isNull(trade)){
             return BaseResponse.success(TradeGetByIdResponse.builder().tradeVO(new TradeVO()).build());
