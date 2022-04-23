@@ -10,6 +10,8 @@ import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengInvoiceRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerSimplifyByIdResponse;
+import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePageQueryRequest;
@@ -40,7 +42,9 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Api(tags = "InvoiceTradeController", description = "发票API")
 @RestController
@@ -60,6 +64,9 @@ public class InvoiceTradeController {
 
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private ClassifyProvider classifyProvider;
 
     /**
      * 可以开票的订单列表
@@ -108,11 +115,10 @@ public class InvoiceTradeController {
         fanDengInvoiceRequest.setUserId(customer.getFanDengUserNo());
         fanDengInvoiceRequest.setBusinessId(2);
         fanDengInvoiceRequest.setOrderId(tradeVO.getId());
+        List<Long> collect = tradeVO.getTradeItems().stream().map(TradeItemVO::getCateId).collect(Collectors.toList());
 
         for (TradeItemVO itemVO : tradeVO.getTradeItems()) {
             FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
-            //现金价格
-            TradePriceVO tradePrice = tradeVO.getTradePrice();
 
             item.setFee(itemVO.getSplitPrice().divide(new BigDecimal(itemVO.getNum())));
             item.setOrderCode(tradeVO.getId()+itemVO.getOid());
@@ -133,6 +139,13 @@ public class InvoiceTradeController {
     }
 
 
-    Map<Long,Integer> taxRateMap = new HashMap<>();
+    Map<Integer,Integer> taxRateMap = null;
+
+    private void init(){
+        if(taxRateMap ==null) {
+            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
+            taxRateMap = listBaseResponse.getContext().stream().collect(Collectors.toMap(ClassifyProviderResponse::getId, ClassifyProviderResponse::getTaxRateNo));
+        }
+    }
 
 }

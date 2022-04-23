@@ -64,6 +64,12 @@ public class ClassifyDTO {
     private Integer indexOrderNum;
 
     /**
+     * 税率编号，由平台提供
+     */
+    @Column(name = "tax_rate_no")
+    private Integer taxRateNo;
+
+    /**
      * 广告图
      */
     @Column(name = "ad_img_url")

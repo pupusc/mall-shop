@@ -819,9 +819,7 @@ public class TradeQueryRequest extends BaseQueryRequest {
             criterias.add(Criteria.where("invoice.type").is(invoiceType));
         }
         if(BooleanUtils.toBoolean(actualCashFlag)){
-            Criteria c = new Criteria();
-            c.orOperator(Criteria.where("tradePrice.totalPrice").gt(BigDecimal.ZERO),Criteria.where("tradePrice.deliveryPrice").gt(BigDecimal.ZERO));
-            criterias.add(c);
+            criterias.add(Criteria.where("tradePrice.totalPrice").gt(BigDecimal.ZERO));
         }
         return criterias;
     }
