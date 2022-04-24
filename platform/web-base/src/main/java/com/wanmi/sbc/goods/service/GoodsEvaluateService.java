@@ -232,7 +232,7 @@ public class GoodsEvaluateService {
                     EvaluateRatioVO.class);
             if (Objects.isNull(evaluateRatioVO)) {
                 evaluateRatioVO = evaluateRatioQueryProvider.findOne().getContext().getEvaluateRatioVO();
-                redisService.setObj(CacheKeyConstant.EVALUATE_RATIO, evaluateRatioVO, -1);
+                redisService.setObj(CacheKeyConstant.EVALUATE_RATIO, evaluateRatioVO, 5 * 60);
             }
 
             BigDecimal goodsRation = evaluateRatioVO.getGoodsRatio();
