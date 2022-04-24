@@ -28,6 +28,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/trade/invoice")
 @Slf4j
 @Validated
-public class InvoiceTradeController {
+public class InvoiceTradeController implements InitializingBean {
 
     @Resource
     private CommonUtil commonUtil;
@@ -148,4 +149,8 @@ public class InvoiceTradeController {
         }
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        init();
+    }
 }
