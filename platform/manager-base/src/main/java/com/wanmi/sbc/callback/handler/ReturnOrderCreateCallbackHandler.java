@@ -94,10 +94,10 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
          *      String aftersaleId = "4000000001562176";
          */
 
-//        String orderId = returnOrderMap.get("out_order_id").toString(); //订单号
-//        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
-        String orderId = "O202204230205204025681";
-        String aftersaleId = "4000000001562176";
+        String orderId = returnOrderMap.get("out_order_id").toString(); //订单号
+        String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //视频号 退单号
+//        String orderId = "O202204230205204025681";
+//        String aftersaleId = "4000000001562176";
 
         //保证订单已经支付
         BaseResponse<FindPayOrderResponse> response =
@@ -108,11 +108,11 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
             return CommonHandlerUtil.FAIL;
         }
 
-//        //根据视频号的售后id获取 售后详细信息
-//        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
-//        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
-//        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
-//        WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+        //根据视频号的售后id获取 售后详细信息
+        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(aftersaleId));
+        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+        WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
 
         /**
          * 测试数据
@@ -121,9 +121,9 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
          *      context.setAfterSalesOrder(rr);
          */
 
-        WxDetailAfterSaleResponse context = new WxDetailAfterSaleResponse();
-        WxDetailAfterSaleResponse.AfterSalesOrder rr = callBackCommonService.test(orderId, Long.valueOf(aftersaleId));
-        context.setAfterSalesOrder(rr);
+//        WxDetailAfterSaleResponse context = new WxDetailAfterSaleResponse();
+//        WxDetailAfterSaleResponse.AfterSalesOrder rr = callBackCommonService.test(orderId, Long.valueOf(aftersaleId));
+//        context.setAfterSalesOrder(rr);
 
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 内容为空,不能生成售后订单", orderId, aftersaleId);
