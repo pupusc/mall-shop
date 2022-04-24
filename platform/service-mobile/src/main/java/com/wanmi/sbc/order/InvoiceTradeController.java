@@ -128,7 +128,7 @@ public class InvoiceTradeController implements InitializingBean {
 
             item.setProduct(itemVO.getSpuName());
             item.setProductNo(1);
-            item.setProductType(taxRateMap.get(itemVO.getCateId()));
+            item.setProductType(taxRateMap.get(itemVO.getCateId().intValue()));
             item.setProductIcoon("");
             //暂时都定1
             item.setOrderType(1);
