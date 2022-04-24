@@ -534,7 +534,8 @@ public class WxOrderService {
             return;
         }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(request.getAftersaleId());
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
         log.info("微信小程序同意退款request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
@@ -593,7 +594,7 @@ public class WxOrderService {
         addressInfo.setReceiverName(returnAddress.getName());
         addressInfo.setTown(returnAddress.getAreaName());
         request.setAddressInfo(addressInfo);
-        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request); // 退货
         log.info("微信小程序同意退货request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
             throw new SbcRuntimeException("K-050415");
