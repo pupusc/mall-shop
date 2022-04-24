@@ -15,6 +15,11 @@ import java.util.UUID;
  */
 public class TraceIdManager {
     private static final String TRACE_ID = "trace_id";
+    private static final String EMPTY_TRACE_ID = "N/A";
+
+    public static String currTraceId() {
+        return Objects.isNull(MDC.get(TRACE_ID)) ? EMPTY_TRACE_ID : MDC.get(TRACE_ID);
+    }
 
     public static void entrySpan(HttpServletRequest request, HttpServletResponse response) {
         String traceId = request.getHeader(TRACE_ID);
