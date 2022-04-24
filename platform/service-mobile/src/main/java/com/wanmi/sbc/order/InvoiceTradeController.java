@@ -145,7 +145,18 @@ public class InvoiceTradeController implements InitializingBean {
     private void init(){
         if(taxRateMap ==null) {
             BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
-            taxRateMap = listBaseResponse.getContext().stream().collect(Collectors.toMap(ClassifyProviderResponse::getId, ClassifyProviderResponse::getTaxRateNo));
+            for (ClassifyProviderResponse classifyProviderResponse : listBaseResponse.getContext()) {
+                init2(classifyProviderResponse);
+            }
+        }
+    }
+
+    private void init2(ClassifyProviderResponse response){
+        taxRateMap.put(response.getId(), response.getTaxRateNo());
+        if (response.getChildrenList()!=null){
+            for (ClassifyProviderResponse classifyProviderResponse : response.getChildrenList()) {
+                init2(classifyProviderResponse);
+            }
         }
     }
 
