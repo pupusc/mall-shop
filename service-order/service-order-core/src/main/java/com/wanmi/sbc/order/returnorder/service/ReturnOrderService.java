@@ -2372,8 +2372,8 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
 
 //        WxAfterSaleOperateType
-        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
-//        wxOrderService.uploadReturnInfo(findById(rid));
+//        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
+        wxOrderService.uploadReturnInfo(findById(rid));  //上传物流信息
     }
 
 
