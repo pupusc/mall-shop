@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.enums.AfterSalesReasonEnum;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
@@ -95,6 +96,7 @@ public class CallBackCommonService {
      */
     public Operator packOperator(ReturnOrderVO returnOrderVO) {
         Operator operator = new Operator();
+        operator.setPlatform(Platform.WX_VIDEO);
         operator.setUserId(returnOrderVO.getBuyer().getId());
         operator.setName(returnOrderVO.getBuyer().getName());
         operator.setStoreId(returnOrderVO.getCompany().getStoreId().toString());
