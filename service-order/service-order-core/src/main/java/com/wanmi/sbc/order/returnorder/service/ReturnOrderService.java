@@ -3554,10 +3554,10 @@ public class ReturnOrderService {
                 .returnId(rid)
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
-        if ((messageSource == null || !messageSource) && Platform.WX_VIDEO != returnOrder.getPlatform()) {
-            WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND;
-            this.addWxAfterSale(returnOrder, wxAfterSaleStatus,WxAfterSaleOperateType.CANCEL.getIndex(), "驳回");
-        }
+//        if ((messageSource == null || !messageSource) && Platform.WX_VIDEO != returnOrder.getPlatform()) {
+        WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND;
+        this.addWxAfterSale(returnOrder, wxAfterSaleStatus, WxAfterSaleOperateType.CANCEL.getIndex(), "驳回");
+//        }
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
         if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())

@@ -113,4 +113,14 @@ public final class RedisKeyConstant {
     // 商品投票
     public static final String KEY_GOODS_VOTE_NUMBER = "KEY_GOODS_VOTE_NUMBER";
 
+
+    /**
+     * 评论数量缓存
+     */
+    public static final String KEY_GOODS_EVALUATE = "KEY_GOODS_EVALUATE:";
+
+    /**
+     * 评论数量缓存
+     */
+    public static final String KEY_GOODS_INFO_EVALUATE = "KEY_GOODS_INFO_EVALUATE:";
 }

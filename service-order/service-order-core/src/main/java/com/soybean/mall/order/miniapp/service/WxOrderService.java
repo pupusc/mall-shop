@@ -533,8 +533,12 @@ public class WxOrderService {
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
+        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            throw new SbcRuntimeException("K-050421");
+        }
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
         log.info("微信小程序同意退款request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
@@ -554,8 +558,12 @@ public class WxOrderService {
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
+        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            throw new SbcRuntimeException("K-050421");
+        }
         WxDealAftersaleNeedOpenidRequest request = new WxDealAftersaleNeedOpenidRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         request.setOpenid(returnOrder.getBuyer().getOpenId());
         BaseResponse<WxResponseBase> response = wxOrderApiController.cancelAfterSale(request);
         log.info("微信小程序取消售后request:{},response:{}", request, response);
@@ -581,9 +589,13 @@ public class WxOrderService {
         if (returnAddress == null) {
             throw new SbcRuntimeException("K-050417");
         }
+        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            throw new SbcRuntimeException("K-050421");
+        }
         //获取公司收货地址
         WxAcceptReturnAftersaleRequest request = new WxAcceptReturnAftersaleRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         WxAcceptReturnAftersaleRequest.AddressInfo addressInfo = new WxAcceptReturnAftersaleRequest.AddressInfo();
         addressInfo.setDetailedAddress(returnAddress.getDetailAddress());
         addressInfo.setCity(returnAddress.getCityName());
@@ -593,7 +605,7 @@ public class WxOrderService {
         addressInfo.setReceiverName(returnAddress.getName());
         addressInfo.setTown(returnAddress.getAreaName());
         request.setAddressInfo(addressInfo);
-        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request);
+        BaseResponse<WxResponseBase> response = wxOrderApiController.acceptReturnAfterSale(request); // 退货
         log.info("微信小程序同意退货request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
             throw new SbcRuntimeException("K-050415");
@@ -617,13 +629,18 @@ public class WxOrderService {
             throw new SbcRuntimeException("K-050003");
         }
 
+        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            throw new SbcRuntimeException("K-050421");
+        }
+
         //更新为中断
         ReturnOrder returnOrderNew = returnOrderOptional.get();
         returnOrderNew.setInterrupt(Boolean.TRUE);
         returnOrderRepository.save(returnOrderNew);
 
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         BaseResponse<WxResponseBase> response = wxOrderApiController.rejectAfterSale(request);
         log.info("微信小程序拒绝售后request:{},response:{}", request, response);
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
@@ -679,8 +696,13 @@ public class WxOrderService {
         if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) || !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())|| returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) == 0) {
             return;
         }
+        if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            throw new SbcRuntimeException("K-050421");
+        }
+
         WxUploadReturnInfoRequest request = new WxUploadReturnInfoRequest();
-        request.setOutAftersaleId(returnOrder.getId());
+//        request.setOutAftersaleId(returnOrder.getId());
+        request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         request.setOpenid(returnOrder.getBuyer().getOpenId());
         request.setWayBillId(returnOrder.getReturnLogistics().getNo());
         request.setDeliveryName(returnOrder.getReturnLogistics().getCompany());
