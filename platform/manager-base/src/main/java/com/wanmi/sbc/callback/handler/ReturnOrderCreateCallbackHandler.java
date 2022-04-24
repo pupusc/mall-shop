@@ -18,18 +18,23 @@ import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
+import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
+import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByConditionResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnPriceDTO;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
+import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +47,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -70,6 +77,9 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
 
     @Autowired
     private CallBackCommonService callBackCommonService;
+
+    @Autowired
+    private ReturnOrderQueryProvider returnOrderQueryProvider;
 
     @Override
     public boolean support(String eventType) {
@@ -135,6 +145,17 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
             return CommonHandlerUtil.FAIL;
         }
 
+        //查看订单是否存在，存在，则不继续执行
+        //根据视频号获取退单的详细信息
+        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
+        returnOrderByConditionRequest.setAftersaleId(aftersaleId);
+        BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
+        List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
+        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(returnOrderList)) {
+            log.warn("ReturnOrderCreateCallbackHandler handler aftersaleId:{} 获取售后订单存在，重复消息、不继续执行 return", aftersaleId);
+            return CommonHandlerUtil.SUCCESS;
+        }
 
         //根据订单号获取订单详细信息
         TradeVO tradeVo = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(orderId).build()).getContext().getTradeVO();

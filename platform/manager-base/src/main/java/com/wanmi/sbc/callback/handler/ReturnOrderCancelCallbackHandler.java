@@ -161,6 +161,9 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
             returnOrderRejectRefundRequest.setOperator(operator);
             returnOrderRejectRefundRequest.setMessageSource(true);
             baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
+        } else {
+            log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单状态不会处理"
+                , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
         }
 
 
