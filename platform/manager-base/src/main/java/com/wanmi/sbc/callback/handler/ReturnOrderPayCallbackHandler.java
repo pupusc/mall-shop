@@ -114,7 +114,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
         if (context.getAfterSalesOrder() == null) {
-            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 内容为空,不能支付售后订单", aftersaleId);
+            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 获取守候单为空售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
@@ -123,9 +123,8 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(returnOrderList)) {
-            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
+            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 获取退单为空,完成售后退款", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
@@ -161,7 +160,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
                 refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrderVO.getId())).getContext();
 
         Operator operator = Operator.builder().ip("127.0.0.0").adminId("-1").name("UNIONB2B")
-                .platform(Platform.THIRD).build();
+                .platform(Platform.WX_VIDEO).build();
 
         PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
         payTradeRecordRequest.setTradeNo(aftersaleId);
