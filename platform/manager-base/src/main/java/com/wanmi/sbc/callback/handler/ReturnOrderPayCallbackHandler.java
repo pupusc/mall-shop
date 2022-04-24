@@ -20,11 +20,13 @@ import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByIdRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderOnlineRefundRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.refund.RefundOrderByReturnCodeResponse;
+import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByConditionResponse;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByIdResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
 import com.wanmi.sbc.order.bean.dto.RefundOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.RefundChannel;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.pay.api.provider.PayProvider;
@@ -42,10 +44,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.K;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Description:
@@ -87,7 +91,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 
     @Override
     public String handle(Map<String, Object> paramMap) {
-        log.info("ReturnOrderCallbackHandler handle --> begin");
+        log.info("ReturnOrderPayCallbackHandler handle --> begin");
         long beginTime = System.currentTimeMillis();
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
@@ -102,7 +106,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 //        String returnOrderId = returnOrderMap.get("out_aftersale_id").toString();
         String aftersaleId = returnOrderMap.get("aftersale_id").toString(); //退单流水
 
-        log.info("ReturnOrderCallbackHandler handle aftersale_id: {}", aftersaleId);
+        log.info("ReturnOrderPayCallbackHandler handle aftersale_id: {}", aftersaleId);
 
         //根据视频号的售后id获取 微信 售后详细信息
         WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
@@ -110,12 +114,25 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
         if (context.getAfterSalesOrder() == null) {
-            log.error("ReturnOrderCallbackHandler handler aftersaleId:{} 内容为空,不能支付售后订单", aftersaleId);
+            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 内容为空,不能支付售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
-        String returnOrderId = context.getAfterSalesOrder().getOutOrderId();
-        ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
-                    .rid(returnOrderId).build()).getContext();
+
+
+        ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
+        returnOrderByConditionRequest.setAftersaleId(aftersaleId);
+        BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
+        List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
+        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(returnOrderList)) {
+            log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
+            return CommonHandlerUtil.FAIL;
+        }
+
+        ReturnOrderVO returnOrderVO = returnOrderList.get(0);
+        log.info("ReturnOrderPayCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
+
+
 
         Long channelId = 20L;
         ChannelItemByGatewayRequest channelItemByGatewayRequest = new ChannelItemByGatewayRequest();
@@ -135,32 +152,32 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
 
         //获取订单信息
         TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
-        tradeGetByIdRequest.setTid(returnOrder.getTid());
+        tradeGetByIdRequest.setTid(returnOrderVO.getTid());
         BaseResponse<TradeGetByIdResponse> tradeGetByIdResponse = tradeQueryProvider.getById(tradeGetByIdRequest);
         TradeGetByIdResponse tradeGetById = tradeGetByIdResponse.getContext();
         TradeVO tradeVO = tradeGetById.getTradeVO();
 
         RefundOrderByReturnCodeResponse refundOrder =
-                refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrder.getId())).getContext();
+                refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrderVO.getId())).getContext();
 
         Operator operator = Operator.builder().ip("127.0.0.0").adminId("-1").name("UNIONB2B")
                 .platform(Platform.THIRD).build();
 
         PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
         payTradeRecordRequest.setTradeNo(aftersaleId);
-        payTradeRecordRequest.setBusinessId(returnOrderId);
+        payTradeRecordRequest.setBusinessId(returnOrderVO.getId());
         payTradeRecordRequest.setResult_code(WXPayConstants.SUCCESS);
         payTradeRecordRequest.setChannelItemId(channelId);
-        payTradeRecordRequest.setApplyPrice(returnOrder.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
+        payTradeRecordRequest.setApplyPrice(returnOrderVO.getReturnPrice().getApplyPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payTradeRecordRequest.setPracticalPrice(tradeVO.getTradePrice().getTotalPrice().divide(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN));
         payProvider.wxPayCallBack(payTradeRecordRequest);
         BaseResponse baseResponse = returnOrderProvider.onlineRefund(
                 ReturnOrderOnlineRefundRequest.builder().operator(operator)
-                        .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
+                        .returnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class))
                         .refundOrder(KsBeanUtil.convert(refundOrder, RefundOrderDTO.class)).build());
 
         log.info("ReturnOrderCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
-                returnOrder.getTid(), aftersaleId, returnOrder.getId(), JSON.toJSONString(baseResponse),
+                returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(), JSON.toJSONString(baseResponse),
                 System.currentTimeMillis() - beginTime);
         return CommonHandlerUtil.SUCCESS;
     }
