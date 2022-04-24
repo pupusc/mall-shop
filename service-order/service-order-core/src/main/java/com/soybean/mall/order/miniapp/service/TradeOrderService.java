@@ -32,6 +32,7 @@ import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
 import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
+import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -168,22 +169,28 @@ public class TradeOrderService {
             request.setOpenid(trade.getBuyer().getOpenId());
             request.setOutOrderId(trade.getId());
             request.setFinishAllDelivery(Objects.equals(trade.getTradeState().getDeliverStatus(), DeliverStatus.SHIPPED) ? 1 : 0);
+
             List<WxDeliverySendRequest.WxDeliveryInfo> deliveryInfos = new ArrayList<>();
-            unSyncDelivery.forEach(delivery -> {
+
+            for (TradeDeliver delivery : unSyncDelivery) {
+                if (delivery.getLogistics() == null) {
+                    continue;
+                }
                 WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
+
                 deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(), delivery.getLogistics().getLogisticCompanyName()));
                 deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
                 List<WxProductDTO> productDTS = new ArrayList<>();
-                delivery.getShippingItems().forEach(item -> {
+                for (ShippingItem shippingItem : delivery.getShippingItems()) {
                     WxProductDTO wxProductDTO = new WxProductDTO();
-                    wxProductDTO.setOutProductId(trade.getTradeItems().stream().filter(p -> p.getSkuId().equals(item.getSkuId())).findFirst().get().getSpuId());
-                    wxProductDTO.setOutSkuId(item.getSkuId());
-                    wxProductDTO.setPrroductNum(item.getItemNum().intValue());
+                    wxProductDTO.setOutProductId(trade.getTradeItems().stream().filter(p -> p.getSkuId().equals(shippingItem.getSkuId())).findFirst().get().getSpuId());
+                    wxProductDTO.setOutSkuId(shippingItem.getSkuId());
+                    wxProductDTO.setPrroductNum(shippingItem.getItemNum().intValue());
                     productDTS.add(wxProductDTO);
-                });
+                }
                 deliveryInfo.setProductInfoList(productDTS);
                 deliveryInfos.add(deliveryInfo);
-            });
+            }
             request.setDeliveryList(deliveryInfos);
             BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
             if (result != null && result.getContext().isSuccess()) {
