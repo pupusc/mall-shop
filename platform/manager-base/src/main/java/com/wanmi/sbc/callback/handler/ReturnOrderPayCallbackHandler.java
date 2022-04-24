@@ -160,7 +160,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
                 refundOrderQueryProvider.getByReturnOrderCode(new RefundOrderByReturnOrderCodeRequest(returnOrderVO.getId())).getContext();
 
         Operator operator = Operator.builder().ip("127.0.0.0").adminId("-1").name("UNIONB2B")
-                .platform(Platform.WX_VIDEO).build();
+                .platform(Platform.THIRD).build();
 
         PayTradeRecordRequest payTradeRecordRequest = new PayTradeRecordRequest();
         payTradeRecordRequest.setTradeNo(aftersaleId);
