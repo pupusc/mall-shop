@@ -8,6 +8,10 @@ public class WxAcceptReturnAftersaleRequest {
 
     @JSONField(name = "out_aftersale_id")
     private String outAftersaleId;
+
+    @JSONField(name = "aftersale_id")
+    private Long aftersaleId;
+
     @JSONField(name = "address_info")
     private AddressInfo addressInfo;
 

@@ -1,7 +1,9 @@
 package com.wanmi.sbc.goods.provider.impl.goodsevaluate;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.goodsevaluate.GoodsEvaluateQueryProvider;
@@ -16,7 +18,9 @@ import com.wanmi.sbc.goods.goodsevaluate.service.GoodsEvaluateService;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.service.GoodsService;
+import com.wanmi.sbc.goods.redis.RedisService;
 import io.seata.common.util.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,6 +51,9 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 
 	@Autowired
 	private GoodsService goodsService;
+
+	@Autowired
+	private RedisService redisService;
 
 	/**
 	 * 分页查询商品评价
@@ -94,6 +101,14 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	 */
 	@Override
 	public BaseResponse<GoodsEvaluateCountResponse> getGoodsEvaluateSum(@RequestBody @Valid GoodsEvaluateCountRequset request) {
+		String goodsEvaluateStr = redisService.getString(RedisKeyConstant.KEY_GOODS_EVALUATE + request.getGoodsId());
+		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
+		if (StringUtils.isNotBlank(goodsEvaluateStr)) {
+			goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateStr, GoodsEvaluateCountResponse.class);
+			if (goodsEvaluateCountResponse != null) {
+				return BaseResponse.success(goodsEvaluateCountResponse);
+			}
+		}
 		//商品详情中的评价总数不包含隐藏的评论，好评率包含隐藏的评论
 		GoodsEvaluateQueryRequest queryRequest =
 				GoodsEvaluateQueryRequest.builder().goodsId(request.getGoodsId()).isShow(1).delFlag(0).build();
@@ -101,8 +116,12 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 		queryRequest.setIsUpload(1);
 		Long uploadCount = goodsEvaluateService.getGoodsEvaluateNum(queryRequest);
 		String praise = goodsEvaluateService.getGoodsPraise(request);
-		return BaseResponse.success(GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
-				.praise(praise).build());
+		goodsEvaluateCountResponse = new GoodsEvaluateCountResponse();
+		goodsEvaluateCountResponse.setEvaluateConut(count);
+		goodsEvaluateCountResponse.setPostOrderCount(uploadCount);
+		goodsEvaluateCountResponse.setPraise(praise);
+		redisService.setString(RedisKeyConstant.KEY_GOODS_EVALUATE + request.getGoodsId(), JSON.toJSONString(goodsEvaluateCountResponse), 5 * 60);
+		return BaseResponse.success(goodsEvaluateCountResponse);
 	}
 
 	/**
@@ -137,25 +156,38 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	@Override
 	public BaseResponse<GoodsEvaluateCountResponse> getGoodsEvaluateSumByskuId(@Valid GoodsEvaluateCountBySkuIdRequset request) {
 
-		List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(request.getSkuId()));
-		if (CollectionUtils.isNotEmpty(goodsInfos)) {
-
-			GoodsEvaluateQueryRequest goodsEvaluateQueryRequest = GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId())
-					.evaluateCatetory(0).delFlag(DeleteFlag.NO.toValue()).isShow(1).build();
-			Long count = goodsEvaluateService.getGoodsEvaluateNum(goodsEvaluateQueryRequest);
-
-			//商品详情中的评价总数
-			GoodsEvaluateQueryRequest queryRequest =
-					GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId()).delFlag(0).evaluateCatetory(0).build();
-			queryRequest.setIsUpload(1);
-
-			Long uploadCount = goodsEvaluateService.getGoodsEvaluateNum(queryRequest);
-			String praise = goodsEvaluateService.getGoodsPraise(GoodsEvaluateCountRequset
-					.builder().goodsId(goodsInfos.get(0).getGoodsId()).build());
-			return BaseResponse.success(GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
-					.praise(praise).goodsId(goodsInfos.get(0).getGoodsId()).build());
+		String goodsEvaluateCountStr = redisService.getString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId());
+		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
+		if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
+			if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
+				goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateCountStr, GoodsEvaluateCountResponse.class);
+				if (goodsEvaluateCountResponse != null) {
+					return BaseResponse.success(goodsEvaluateCountResponse);
+				}
+			}
 		}
-		return BaseResponse.FAILED();
+
+		List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(request.getSkuId()));
+		if (CollectionUtils.isEmpty(goodsInfos)) {
+			return BaseResponse.FAILED();
+		}
+		GoodsEvaluateQueryRequest goodsEvaluateQueryRequest = GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId())
+				.evaluateCatetory(0).delFlag(DeleteFlag.NO.toValue()).isShow(1).build();
+		Long count = goodsEvaluateService.getGoodsEvaluateNum(goodsEvaluateQueryRequest);
+
+		//商品详情中的评价总数
+		GoodsEvaluateQueryRequest queryRequest =
+				GoodsEvaluateQueryRequest.builder().goodsId(goodsInfos.get(0).getGoodsId()).delFlag(0).evaluateCatetory(0).build();
+		queryRequest.setIsUpload(1);
+
+		Long uploadCount = goodsEvaluateService.getGoodsEvaluateNum(queryRequest);
+		String praise = goodsEvaluateService.getGoodsPraise(GoodsEvaluateCountRequset
+				.builder().goodsId(goodsInfos.get(0).getGoodsId()).build());
+
+		goodsEvaluateCountResponse = GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
+				.praise(praise).goodsId(goodsInfos.get(0).getGoodsId()).build();
+		redisService.setString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId(), JSON.toJSONString(goodsEvaluateCountResponse), 5 * 60);
+		return BaseResponse.success(goodsEvaluateCountResponse);
 	}
 }
 

@@ -12,6 +12,9 @@ public class WxUploadReturnInfoRequest implements Serializable {
     @JSONField(name = "out_aftersale_id")
     private String outAftersaleId;
 
+    @JSONField(name = "aftersale_id")
+    private Long aftersaleId;
+
     private String openid;
 
     /**
