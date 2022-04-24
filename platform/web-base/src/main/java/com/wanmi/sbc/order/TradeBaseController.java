@@ -334,6 +334,7 @@ import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -1452,9 +1453,12 @@ public class TradeBaseController {
             }
         }
         RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
-        rLock.lock();
-        List<TradeCommitResultVO> successResults;
+
+        List<TradeCommitResultVO> successResults = new ArrayList<>();
         try {
+            if (!rLock.tryLock(3, 3, TimeUnit.SECONDS)) {
+                throw new SbcRuntimeException("K-050512");
+            }
             Operator operator = commonUtil.getOperator();
             tradeCommitRequest.setOperator(operator);
 
@@ -1538,10 +1542,16 @@ public class TradeBaseController {
                         Integer.valueOf(StringUtils.isNotBlank(redisService.getString(havePanicBuyingKey)) ?
                                 redisService.getString(havePanicBuyingKey) : "0") + trade.getTradeItems().get(0).getNum() + "");
             }
+        } catch (InterruptedException ex ) {
+            log.error("TradeBaseController commit InterruptedException", ex);
+            throw new SbcRuntimeException("K-000001");
         } catch (Exception e) {
+            log.error("TradeBaseController commit exception", e);
             throw e;
         } finally {
-            rLock.unlock();
+            if (rLock.isLocked()) {
+                rLock.unlock();
+            }
         }
         return BaseResponse.success(successResults);
     }

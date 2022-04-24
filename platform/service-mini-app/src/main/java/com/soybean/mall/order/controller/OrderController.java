@@ -91,6 +91,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -195,23 +196,33 @@ public class OrderController {
             }
         }
         RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
-        rLock.lock();
+
         List<OrderCommitResultVO> successResults;
         try {
-            Operator operator = commonUtil.getOperator();
-            tradeCommitRequest.setOperator(operator);
-            DistributeChannel channel = new DistributeChannel();
-            channel.setChannelType(ChannelType.MINIAPP);
-            tradeCommitRequest.setDistributeChannel(channel);
-            tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
-            BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
+//            rLock.lock();
+            if (rLock.tryLock(3, 3, TimeUnit.SECONDS)) {
+                Operator operator = commonUtil.getOperator();
+                tradeCommitRequest.setOperator(operator);
+                DistributeChannel channel = new DistributeChannel();
+                channel.setChannelType(ChannelType.MINIAPP);
+                tradeCommitRequest.setDistributeChannel(channel);
+                tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+                BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
 
-            successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
-
+                successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
+            } else {
+                throw new SbcRuntimeException("K-000001");
+            }
+        } catch (InterruptedException ex) {
+            log.error("OrderController commit InterruptedException", ex);
+            throw new SbcRuntimeException("K-000001");
         } catch (Exception e) {
+            log.error("OrderController commit Exception ", e);
             throw e;
         } finally {
-            rLock.unlock();
+            if (rLock.isLocked()) {
+                rLock.unlock();
+            }
         }
         return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
     }

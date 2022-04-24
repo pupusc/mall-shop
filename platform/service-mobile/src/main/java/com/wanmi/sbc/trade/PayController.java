@@ -499,7 +499,9 @@ public class PayController {
             }
             throw new SbcRuntimeException("K-000001");
         } finally {
-            lock.unlock();
+            if (lock.isLocked()) {
+                lock.unlock();
+            }
         }
         return BaseResponse.success(flag);
     }
@@ -540,7 +542,9 @@ public class PayController {
             }
             throw new SbcRuntimeException("K-000001");
         } finally {
-            lock.unlock();
+            if (lock.isLocked()) {
+                lock.unlock();
+            }
         }
 
         return BaseResponse.success(flag);
