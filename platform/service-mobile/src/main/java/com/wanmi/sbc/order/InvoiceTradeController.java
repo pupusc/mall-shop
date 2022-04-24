@@ -144,6 +144,7 @@ public class InvoiceTradeController implements InitializingBean {
 
     private void init(){
         if(taxRateMap ==null) {
+            taxRateMap = new HashMap<>();
             BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
             for (ClassifyProviderResponse classifyProviderResponse : listBaseResponse.getContext()) {
                 init2(classifyProviderResponse);
