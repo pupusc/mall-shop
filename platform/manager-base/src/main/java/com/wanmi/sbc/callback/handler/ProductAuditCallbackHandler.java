@@ -31,6 +31,6 @@ public class ProductAuditCallbackHandler implements CallbackHandler {
 //            String goodsId = auditResult.get("out_product_id");
 //            esGoodsStockProvider.updateWxAuditStatus(goodsId);
         }
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 }

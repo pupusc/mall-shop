@@ -4,11 +4,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.enums.AfterSalesReasonEnum;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
+import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +28,8 @@ import java.util.List;
 @Component
 public class CallBackCommonService {
 
+    @Autowired
+    private TradeQueryProvider tradeQueryProvider;
 
     /**
      * 视频号退款原因转化
@@ -96,19 +104,42 @@ public class CallBackCommonService {
         return operator;
     }
 
+
+    /**
+     * 自定义 operator
+     * @param tradeVo
+     * @return
+     */
+    public Operator packOperator(TradeVO tradeVo) {
+        Operator operator = new Operator();
+        operator.setUserId(tradeVo.getBuyer().getId());
+        operator.setName(tradeVo.getBuyer().getName());
+        operator.setStoreId(tradeVo.getSupplier().getStoreId().toString());
+        operator.setIp("127.0.0.1");
+        operator.setAccount(tradeVo.getBuyer().getAccount());
+        operator.setCompanyInfoId(tradeVo.getSupplier().getSupplierId());
+        return operator;
+    }
+
     /**
      * 测试信息
      * @param outOrderId
      * @param aftersaleId
      */
     public WxDetailAfterSaleResponse.AfterSalesOrder test(String outOrderId, Long aftersaleId) {
+        //根据订单号获取订单详细信息
+        TradeVO tradeVo = tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(outOrderId).build()).getContext().getTradeVO();
+        TradeItemVO tradeItemVO = tradeVo.getTradeItems().get(0);
+        String spuId = tradeItemVO.getSpuId();
+        String skuId = tradeItemVO.getSkuId();
+
         WxDetailAfterSaleResponse.AfterSalesOrder rr = new WxDetailAfterSaleResponse.AfterSalesOrder();
         rr.setOutOrderId(outOrderId);
         rr.setOrderId(0L);
         rr.setAftersaleId(aftersaleId);
         WxDetailAfterSaleResponse.ProductInfo productInfo = new WxDetailAfterSaleResponse.ProductInfo();
-        productInfo.setOutProductId("2c9a00f080289b5501804756a82401a2");
-        productInfo.setOutSkuId("2c9a00f080289b5501804756a83501a3");
+        productInfo.setOutProductId(spuId);
+        productInfo.setOutSkuId(skuId);
         productInfo.setProductCnt(1L);
         rr.setProductInfo(productInfo);
         List<WxDetailAfterSaleResponse.MediaListInfo> mediaList = new ArrayList<>();
@@ -123,7 +154,7 @@ public class CallBackCommonService {
         returnInfo.setOrderReturnTime(0L);
         returnInfo.setWaybillId("");
         rr.setReturnInfo(returnInfo);
-        rr.setOrderamt(1L);
+        rr.setOrderamt(tradeItemVO.getSplitPrice().multiply(new BigDecimal("100")).longValue());
         rr.setRefundReasonType(2);
         rr.setRefundReason("111252345");
         rr.setStatus(2);

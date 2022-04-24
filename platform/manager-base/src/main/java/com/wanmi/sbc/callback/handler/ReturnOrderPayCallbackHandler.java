@@ -92,7 +92,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         Object returnOrderObj = paramMap.get("aftersale_info");
         if (returnOrderObj == null) {
             log.error("回调参数异常 param:{}", paramMap);
-            return "false";
+            return CommonHandlerUtil.FAIL;
         }
 //        if (!(returnOrderObj instanceof Map)) {
 //            log.error("回调参数异常 returnOrderObj is not map");
@@ -111,7 +111,7 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
         if (context.getAfterSalesOrder() == null) {
             log.error("ReturnOrderCallbackHandler handler aftersaleId:{} 内容为空,不能支付售后订单", aftersaleId);
-            return "fail";
+            return CommonHandlerUtil.FAIL;
         }
         String returnOrderId = context.getAfterSalesOrder().getOutOrderId();
         ReturnOrderVO returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder()
@@ -162,6 +162,6 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         log.info("ReturnOrderCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrder.getTid(), aftersaleId, returnOrder.getId(), JSON.toJSONString(baseResponse),
                 System.currentTimeMillis() - beginTime);
-        return "success";
+        return CommonHandlerUtil.SUCCESS;
     }
 }

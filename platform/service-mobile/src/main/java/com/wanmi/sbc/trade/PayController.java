@@ -69,6 +69,7 @@ import com.wanmi.sbc.third.wechat.WechatSetService;
 import com.wanmi.sbc.trade.request.PayMobileRequest;
 import com.wanmi.sbc.trade.request.WeiXinPayRequest;
 import com.wanmi.sbc.util.CommonUtil;
+import com.wanmi.sbc.util.RedisKeyUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -461,16 +462,21 @@ public class PayController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单号", required = true)
     @RequestMapping(value = "/aliPay/check/{tid}", method = RequestMethod.GET)
     public BaseResponse checkPayState(@PathVariable String tid) {
-        Boolean check = redisService.setNx("pay:" + tid, "1", 4L);
-        if(BooleanUtils.isFalse(check)){
-            throw new SbcRuntimeException("请稍后再试");
-        }
-        TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder()
-                .tid(tid).build()).getContext().getTradeVO();
+        RLock lock = redissonClient.getLock(RedisKeyUtil.KEY_PAY_CHECK_LOCK + tid);
         //0:未支付
         String flag = "0";
-        if (Objects.nonNull(trade)) {
-            if (Objects.nonNull(trade.getTradeState())) {
+        try {
+            if (lock.tryLock(3, 5, TimeUnit.SECONDS)) {
+                TradeVO trade = tradeQueryProvider.getById(TradeGetByIdRequest.builder()
+                        .tid(tid).build()).getContext().getTradeVO();
+                if (trade == null){
+                    throw new SbcRuntimeException("K-020007");
+                }
+
+                if (trade.getTradeState() == null) {
+                    throw new SbcRuntimeException("K-050142");
+                }
+
                 LocalDateTime orderTimeOut = trade.getOrderTimeOut();
                 //已支付
                 if (PayState.PAID.equals(trade.getTradeState().getPayState())) {
@@ -480,6 +486,21 @@ public class PayController {
                 if (FlowState.VOID.equals(trade.getTradeState().getFlowState()) || Objects.nonNull(orderTimeOut) && orderTimeOut.isBefore(LocalDateTime.now())) {
                     flag = "2";
                 }
+            } else {
+                throw new SbcRuntimeException("K-050512");
+            }
+        } catch (InterruptedException ex) {
+            log.error("PayController checkPayState execute InterruptedException Exception", ex);
+            throw new SbcRuntimeException("K-000001");
+        } catch (Exception ex) {
+            log.error("PayController checkPayState execute Exception", ex);
+            if (ex instanceof SbcRuntimeException) {
+                throw ex;
+            }
+            throw new SbcRuntimeException("K-000001");
+        } finally {
+            if (lock.isLocked()) {
+                lock.unlock();
             }
         }
         return BaseResponse.success(flag);
@@ -489,26 +510,43 @@ public class PayController {
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "tid", value = "订单号", required = true)
     @RequestMapping(value = "/weiXinPay/checkOrderPayState/{tid}", method = RequestMethod.GET)
     public BaseResponse checkOrderPayState(@PathVariable String tid) {
-        Boolean check = redisService.setNx("pay:" + tid, "1", 4L);
-        if(BooleanUtils.isFalse(check)){
-            throw new SbcRuntimeException("请稍后再试");
-        }
+        RLock lock = redissonClient.getLock(RedisKeyUtil.KEY_PAY_CHECK_LOCK + tid);
         String flag = "0";
-        List<TradeVO> tradeVOList = new ArrayList<>();
-        if (tid.startsWith(GeneratorService._PREFIX_TRADE_ID)) {
-            tradeVOList.add(tradeQueryProvider.getById(TradeGetByIdRequest.builder()
-                    .tid(tid).build()).getContext().getTradeVO());
-        } else if (tid.startsWith(GeneratorService._PREFIX_PARENT_TRADE_ID)) {
-            tradeVOList.addAll(tradeQueryProvider.getListByParentId(TradeListByParentIdRequest.builder().parentTid(tid)
-                    .build()).getContext().getTradeVOList());
-        } else {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        try {
+            if (lock.tryLock(3, 5, TimeUnit.SECONDS)) {
+                List<TradeVO> tradeVOList = new ArrayList<>();
+                if (tid.startsWith(GeneratorService._PREFIX_TRADE_ID)) {
+                    tradeVOList.add(tradeQueryProvider.getById(TradeGetByIdRequest.builder()
+                            .tid(tid).build()).getContext().getTradeVO());
+                } else if (tid.startsWith(GeneratorService._PREFIX_PARENT_TRADE_ID)) {
+                    tradeVOList.addAll(tradeQueryProvider.getListByParentId(TradeListByParentIdRequest.builder().parentTid(tid)
+                            .build()).getContext().getTradeVOList());
+                } else {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+                if (tradeVOList.size() > 0
+                        && (tradeVOList.get(0).getTradeState().getPayState() == PayState.PAID
+                        || tradeVOList.get(0).getTradeState().getPayState() == PayState.PAID_EARNEST)) {
+                    flag = "1";
+                }
+            } else {
+                throw new SbcRuntimeException("K-050512");
+            }
+        } catch (InterruptedException ex) {
+            log.error("PayController checkOrderPayState execute InterruptedException Exception", ex);
+            throw new SbcRuntimeException("K-000001");
+        } catch (Exception ex) {
+            log.error("PayController checkOrderPayState execute Exception", ex);
+            if (ex instanceof SbcRuntimeException) {
+                throw ex;
+            }
+            throw new SbcRuntimeException("K-000001");
+        } finally {
+            if (lock.isLocked()) {
+                lock.unlock();
+            }
         }
-        if (tradeVOList.size() > 0
-                && (tradeVOList.get(0).getTradeState().getPayState() == PayState.PAID
-                || tradeVOList.get(0).getTradeState().getPayState() == PayState.PAID_EARNEST)) {
-            flag = "1";
-        }
+
         return BaseResponse.success(flag);
     }
 
