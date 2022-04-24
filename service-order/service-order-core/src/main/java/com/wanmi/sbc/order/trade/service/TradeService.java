@@ -1403,8 +1403,8 @@ public class TradeService {
                             .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
                             .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
                             .cycleBuyInfo(group.getCycleBuyInfo())
-                            .promoteUserId(tradeCommitRequest.getPromoteUserId())
-                            .source(tradeCommitRequest.getSource())
+                            .promoteUserId(tradeCommitRequest.getPromoteUserId() == null ? "" : tradeCommitRequest.getPromoteUserId().toString())
+                            .source(tradeCommitRequest.getSource() == null ? "" : tradeCommitRequest.getSource().toString())
                             .miniProgramScene(tradeCommitRequest.getMiniProgramScene())
                             .build()));
         }

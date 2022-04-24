@@ -499,7 +499,7 @@ public class ReturnOrderController {
         if (StringUtils.isNotBlank(rateLimitStr)) {
             throw new SbcRuntimeException("K-050414");
         }
-        redisService.setNx(onlineRefundKey, "true", 10L);
+        redisService.setNx(onlineRefundKey, "true", 30L);
 
         Operator operator = commonUtil.getOperatorWithNull();
         BaseResponse<Object> res = returnOrderProvider.refundOnlineByTid(ReturnOrderOnlineRefundByTidRequest.builder().returnOrderCode(rid)
