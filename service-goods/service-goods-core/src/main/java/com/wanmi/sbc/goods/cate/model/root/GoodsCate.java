@@ -10,11 +10,20 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.goods.prop.model.root.GoodsProp;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-import javax.validation.constraints.NotBlank;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotBlank;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -171,4 +180,10 @@ public class GoodsCate implements Serializable {
     @Transient
     @OneToMany(mappedBy = "goodsCate")
     private List<GoodsProp> goodsProps;
+
+    /**
+     * 税率编号，由平台提供
+     */
+    @Column(name = "tax_rate_no")
+    private Integer taxRateNo;
 }

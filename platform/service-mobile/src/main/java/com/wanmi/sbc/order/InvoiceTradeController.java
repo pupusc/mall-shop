@@ -2,15 +2,17 @@ package com.wanmi.sbc.order;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.customer.CustomerBaseController;
-import com.wanmi.sbc.customer.CustomerInvoiceBaseController;
-import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengInvoiceRequest;
 import com.wanmi.sbc.customer.api.response.customer.CustomerSimplifyByIdResponse;
+import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdRequest;
+import com.wanmi.sbc.goods.api.response.cate.GoodsCateByIdResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradePageCriteriaRequest;
@@ -20,7 +22,6 @@ import com.wanmi.sbc.order.bean.dto.TradeStateDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
-import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.order.request.InvoiceRequest;
 import com.wanmi.sbc.util.CommonUtil;
@@ -45,6 +46,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Api(tags = "InvoiceTradeController", description = "发票API")
@@ -68,6 +70,9 @@ public class InvoiceTradeController implements InitializingBean {
 
     @Autowired
     private ClassifyProvider classifyProvider;
+
+    @Autowired
+    private GoodsCateQueryProvider goodsCateQueryProvider;
 
     /**
      * 可以开票的订单列表
@@ -128,7 +133,7 @@ public class InvoiceTradeController implements InitializingBean {
 
             item.setProduct(itemVO.getSpuName());
             item.setProductNo(1);
-            item.setProductType(taxRateMap.get(itemVO.getCateId().intValue()));
+            item.setProductType(getProductType(itemVO.getCateId()));
             item.setProductIcoon("");
             //暂时都定1
             item.setOrderType(1);
@@ -139,6 +144,19 @@ public class InvoiceTradeController implements InitializingBean {
         return result;
     }
 
+    private Integer getProductType(Long cateId) {
+        if (Objects.isNull(cateId)) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "商品的分类信息不能为空");
+        }
+
+        GoodsCateByIdRequest goodsCateByIdRequest = new GoodsCateByIdRequest();
+        goodsCateByIdRequest.setCateId(cateId);
+        GoodsCateByIdResponse context = goodsCateQueryProvider.getById(goodsCateByIdRequest).getContext();
+        if (Objects.isNull(context)) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "商品的分类信息没有找到");
+        }
+        return context.getTaxRateNo();
+    }
 
     Map<Integer,Integer> taxRateMap = null;
 
