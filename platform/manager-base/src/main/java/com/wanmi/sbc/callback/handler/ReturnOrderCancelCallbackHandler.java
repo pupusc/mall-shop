@@ -154,10 +154,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
 
         // 查询退款单
         RefundOrderByReturnOrderNoResponse refundOrderByReturnCodeResponse = refundOrderQueryProvider.getByReturnOrderNo(new RefundOrderByReturnOrderNoRequest(returnOrderVO.getId())).getContext();
-        if (refundOrderByReturnCodeResponse == null) {
-            log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 查询退款订单为空", orderId, aftersaleId);
-            return CommonHandlerUtil.FAIL;
-        }
+
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
         BaseResponse baseResponse = null;
@@ -168,7 +165,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
             returnOrderCancelRequest.setOperator(operator);
             returnOrderCancelRequest.setMessageSource(true);
             baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
-        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
+        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
             //表示运营取消订单
             //1、做标记、2作废
             RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
