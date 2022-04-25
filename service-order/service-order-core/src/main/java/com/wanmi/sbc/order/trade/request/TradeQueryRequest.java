@@ -35,7 +35,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -819,7 +818,7 @@ public class TradeQueryRequest extends BaseQueryRequest {
             criterias.add(Criteria.where("invoice.type").is(invoiceType));
         }
         if(BooleanUtils.toBoolean(actualCashFlag)){
-            criterias.add(Criteria.where("tradePrice.totalPrice").gt(BigDecimal.ZERO));
+            criterias.add(Criteria.where("tradePrice.totalPrice").gt("0.00"));
         }
         return criterias;
     }

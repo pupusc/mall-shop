@@ -84,6 +84,7 @@ public class InvoiceTradeController implements InitializingBean {
                 .tradeState(TradeStateDTO.builder().flowState(FlowState.COMPLETED).payState(PayState.PAID).build())
                 .buyerId(commonUtil.getOperatorId())
                 .invoiceType(-1)
+                .actualCashFlag(true)
                 .build();
         tradeQueryRequest.setPageNum(paramRequest.getPageNum());
         tradeQueryRequest.setPageSize(paramRequest.getPageSize());
@@ -104,6 +105,7 @@ public class InvoiceTradeController implements InitializingBean {
                 .id(request.getOrderIds().get(0))
                 .buyerId(commonUtil.getOperatorId())
                 .invoiceType(-1)
+                .actualCashFlag(true)
                 .build();
 
         MicroServicePage<TradeVO> tradePage = tradeQueryProvider.pageCriteriaOptimize(TradePageCriteriaRequest.builder()
