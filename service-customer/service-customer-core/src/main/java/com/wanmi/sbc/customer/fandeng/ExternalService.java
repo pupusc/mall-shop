@@ -191,7 +191,14 @@ public class ExternalService {
      */
     public static final String KNOWLEDGE_FALLBACK_URL = "/fallbackBeans";
 
+    /**
+     * 申请开票
+     */
     private static final String INVOICE_ORDER_SUBMIT_URL = "/invoice/order/submit";
+    /**
+     * 直接开票
+     */
+    private static final String INVOICE_CREATE_URL = "/invoice/create";
 
     /**
      * 用户退积分
@@ -917,10 +924,37 @@ public class ExternalService {
      */
     public BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request) {
         String body = JSON.toJSONString(request);
-        String result = getUrl(jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body),
+        String jointUrlString = null;
+        //创建开票
+        if(request instanceof FanDengFullInvoiceRequest) {
+            jointUrlString = jointUrl(INVOICE_CREATE_URL + PARAMETER, body);
+        }else{
+            jointUrlString = jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body);
+        }
+        String result = getUrl(jointUrlString,
                 body);
         FdInVoiceResponse response =
                 (FdInVoiceResponse) exchange(result, FdInVoiceResponse.class);
         return BaseResponse.success(response.getKey());
+    }
+
+
+    /**
+     * 提交订单
+     * @param request
+     * @return
+     */
+    public BaseResponse createInvoice(FanDengFullInvoiceRequest request) {
+        String body = JSON.toJSONString(request);
+        String jointUrlString  = jointUrl(INVOICE_CREATE_URL + PARAMETER, body);
+
+        String result = getUrl(jointUrlString,
+                body);
+        JSONObject object = JSONObject.parseObject(body);
+        String code = (String) object.get("status");
+        if (code == null || (code != null && code.equals("0000"))) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        throw  new SbcRuntimeException("K-120801", (String) object.get("msg"));
     }
 }

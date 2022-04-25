@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/trade/invoice")
 @Slf4j
 @Validated
-public class InvoiceTradeController implements InitializingBean {
+public class InvoiceTradeController {
 
     @Resource
     private CommonUtil commonUtil;
@@ -68,8 +68,6 @@ public class InvoiceTradeController implements InitializingBean {
     @Autowired
     private CustomerQueryProvider customerQueryProvider;
 
-    @Autowired
-    private ClassifyProvider classifyProvider;
 
     @Autowired
     private GoodsCateQueryProvider goodsCateQueryProvider;
@@ -158,29 +156,4 @@ public class InvoiceTradeController implements InitializingBean {
         return context.getTaxRateNo();
     }
 
-    Map<Integer,Integer> taxRateMap = null;
-
-    private void init(){
-        if(taxRateMap ==null) {
-            taxRateMap = new HashMap<>();
-            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
-            for (ClassifyProviderResponse classifyProviderResponse : listBaseResponse.getContext()) {
-                init2(classifyProviderResponse);
-            }
-        }
-    }
-
-    private void init2(ClassifyProviderResponse response){
-        taxRateMap.put(response.getId(), response.getTaxRateNo());
-        if (response.getChildrenList()!=null){
-            for (ClassifyProviderResponse classifyProviderResponse : response.getChildrenList()) {
-                init2(classifyProviderResponse);
-            }
-        }
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        init();
-    }
 }
