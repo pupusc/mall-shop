@@ -5,6 +5,7 @@ import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -231,4 +232,12 @@ public interface ReturnOrderProvider {
      */
     @PostMapping("/order/${application.order.version}/return/list-return-provider-trade")
     BaseResponse<List<ProviderTradeSimpleVO>> listReturnProviderTrade(@RequestBody @Valid ReturnOrderProviderTradeRequest request);
+
+
+    /**
+     * 运营拒绝退款
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/return/refund-reject")
+    BaseResponse refundReject(@RequestBody RefundRejectRequest refundRejectRequest);
 }

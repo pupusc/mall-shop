@@ -90,6 +90,7 @@ import com.wanmi.sbc.order.api.provider.trade.ProviderTradeQueryProvider;
 import com.wanmi.sbc.order.api.request.distribution.ReturnOrderSendMQRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRefundRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderRequest;
+import com.wanmi.sbc.order.api.request.returnorder.RefundRejectRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderProviderTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
@@ -4706,6 +4707,35 @@ public class ReturnOrderService {
             throw new SbcRuntimeException("K-050002");
         }
         refundOrderService.refuse(refundOrder.getRefundId(), "已发货不允许退款");
+        // 拒绝退款时，发送MQ消息
+        ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
+                .addFlag(Boolean.FALSE)
+                .customerId(returnOrder.getBuyer().getId())
+                .orderId(returnOrder.getTid())
+                .returnId(returnOrder.getId())
+                .build();
+        returnOrderProducerService.returnOrderFlow(sendMQRequest);
+    }
+
+
+    /**
+     * 拒绝退款视频号
+     *
+     */
+    @Transactional
+    public void refundReject(RefundRejectRequest refundRejectRequest){
+        //查询退单
+        ReturnOrder returnOrder = returnOrderService.findById(refundRejectRequest.getRid());
+        // 查询退款单
+        RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(refundRejectRequest.getRid());
+
+        //退款单更新，已拒绝
+        returnOrder.setReturnFlowState(ReturnFlowState.REJECT_REFUND);
+        returnOrder.setRejectReason(refundRejectRequest.getReturnReanson());
+        returnOrder.setForceReject(refundRejectRequest.getForceReject());
+        returnOrderRepository.save(returnOrder);
+
+        refundOrderService.refuse(refundOrder.getRefundId(), refundRejectRequest.getReturnReanson());
         // 拒绝退款时，发送MQ消息
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)

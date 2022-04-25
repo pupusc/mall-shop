@@ -8,6 +8,7 @@ import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.account.bean.enums.RefundStatus;
 import com.wanmi.sbc.callback.service.CallBackCommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
@@ -17,10 +18,13 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
+import com.wanmi.sbc.order.api.provider.refund.RefundOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
+import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderNoRequest;
+import com.wanmi.sbc.order.api.request.returnorder.RefundRejectRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
@@ -28,6 +32,7 @@ import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectRefundReques
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
+import com.wanmi.sbc.order.api.response.refund.RefundOrderByReturnOrderNoResponse;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderByConditionResponse;
 import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
@@ -73,6 +78,9 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
 
     @Autowired
     private CallBackCommonService callBackCommonService;
+
+    @Autowired
+    private RefundOrderQueryProvider refundOrderQueryProvider;
 
 
     @Override
@@ -135,12 +143,19 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         log.info("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
         //保证订单已经支付
-        String orderId = context.getAfterSalesOrder().getOutOrderId();
+        String orderId = returnOrderVO.getTid();
         BaseResponse<FindPayOrderResponse> response =
                 payOrderQueryProvider.findPayOrder(FindPayOrderRequest.builder().value(orderId).build());
         FindPayOrderResponse payOrderResponse = response.getContext();
         if (Objects.isNull(payOrderResponse) || Objects.isNull(payOrderResponse.getPayOrderStatus()) || payOrderResponse.getPayOrderStatus() != PayOrderStatus.PAYED) {
             log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 未支付，无法取消售后", orderId, aftersaleId);
+            return CommonHandlerUtil.FAIL;
+        }
+
+        // 查询退款单
+        RefundOrderByReturnOrderNoResponse refundOrderByReturnCodeResponse = refundOrderQueryProvider.getByReturnOrderNo(new RefundOrderByReturnOrderNoRequest(returnOrderVO.getId())).getContext();
+        if (refundOrderByReturnCodeResponse == null) {
+            log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId: {} 查询退款订单为空", orderId, aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
@@ -153,6 +168,15 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
             returnOrderCancelRequest.setOperator(operator);
             returnOrderCancelRequest.setMessageSource(true);
             baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
+        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
+            //表示运营取消订单
+            //1、做标记、2作废
+            RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
+            refundRejectRequest.setRid(returnOrderVO.getId());
+            refundRejectRequest.setReturnReanson("用户强制取消");
+            refundRejectRequest.setForceReject(1);
+            baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
+
         } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
             ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
             returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
