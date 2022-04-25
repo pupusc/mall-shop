@@ -124,7 +124,6 @@ import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
@@ -133,7 +132,6 @@ import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
@@ -8527,7 +8525,7 @@ public class TradeService {
     @GlobalTransactional
     public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
         mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
-                new Update().set("invoice.invoiceType", InvoiceType.ELECTRONIC.toValue()), Trade.class);
+                new Update().set("invoice.type", InvoiceType.ELECTRONIC.toValue()), Trade.class);
         Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
         if(byOrderNo.isPresent()){
             OrderInvoice orderInvoice = byOrderNo.get();
@@ -8538,6 +8536,7 @@ public class TradeService {
         }else{
             OrderInvoiceSaveRequest saveRequest = new OrderInvoiceSaveRequest();
             saveRequest.setInvoiceType(InvoiceType.ELECTRONIC);
+            saveRequest.setOrderNo(autoUpdateInvoiceRequest.getTradeId());
             orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
         }
         return BaseResponse.SUCCESSFUL();
