@@ -4717,6 +4717,34 @@ public class ReturnOrderService {
     }
 
 
+    /**
+     * 拒绝退款视频号
+     *
+     */
+    @Transactional
+    public void refundReject(String rid, String rejectReason){
+        //查询退单
+        ReturnOrder returnOrder = returnOrderService.findById(rid);
+        // 查询退款单
+        RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(rid);
+
+        //退款单更新，已拒绝
+        returnOrder.setReturnFlowState(ReturnFlowState.REJECT_REFUND);
+        returnOrder.setRejectReason(rejectReason);
+        returnOrderRepository.save(returnOrder);
+
+        refundOrderService.refuse(refundOrder.getRefundId(), rejectReason);
+        // 拒绝退款时，发送MQ消息
+        ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
+                .addFlag(Boolean.FALSE)
+                .customerId(returnOrder.getBuyer().getId())
+                .orderId(returnOrder.getTid())
+                .returnId(returnOrder.getId())
+                .build();
+        returnOrderProducerService.returnOrderFlow(sendMQRequest);
+    }
+
+
 
 
      /**

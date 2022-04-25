@@ -365,4 +365,16 @@ public class ReturnOrderController implements ReturnOrderProvider {
         List<ProviderTradeSimpleVO> providerTradeSimpleVOList = returnOrderService.listReturnProviderTrade(request);
         return BaseResponse.success(providerTradeSimpleVOList);
     }
+
+    /**
+     * 运营拒绝退款
+     * @param rid
+     * @param rejectReason
+     * @return
+     */
+    @Override
+    public BaseResponse refundReject(String rid, String rejectReason) {
+        returnOrderService.refundReject(rid, rejectReason);
+        return BaseResponse.SUCCESSFUL();
+    }
 }
