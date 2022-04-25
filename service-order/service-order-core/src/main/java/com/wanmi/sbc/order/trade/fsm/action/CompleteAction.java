@@ -1,10 +1,25 @@
 package com.wanmi.sbc.order.trade.fsm.action;
 
 import com.alibaba.fastjson.JSONObject;
+import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.common.constant.MQConstant;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengFullInvoiceRequest;
+import com.wanmi.sbc.customer.api.request.fandeng.FanDengInvoiceRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerSimplifyByIdResponse;
+import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdRequest;
+import com.wanmi.sbc.goods.api.response.cate.GoodsCateByIdResponse;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.mq.OrderGrowthValueTempConsumptionSink;
 import com.wanmi.sbc.order.mq.OrderProducerService;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.value.GeneralInvoice;
+import com.wanmi.sbc.order.trade.model.entity.value.Invoice;
 import com.wanmi.sbc.order.trade.request.TradeQueryRequest;
 import io.seata.spring.annotation.GlobalTransactional;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -52,11 +67,15 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by Administrator on 2017/4/21.
@@ -92,6 +111,14 @@ public class CompleteAction extends TradeAction {
     @Autowired
     private OrderGrowthValueTempConsumptionSink orderGrowthValueTempConsumptionSink;
 
+    @Autowired
+    private ExternalProvider externalProvider;
+
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private GoodsCateQueryProvider goodsCateQueryProvider;
 
 
     /**
@@ -149,10 +176,77 @@ public class CompleteAction extends TradeAction {
                 saveProviderTrade(providerTrade);
             }
         }
+
+        try{
+            createInvoice(trade);
+        }catch(Exception ex){
+            logger.error("创建发票失败",ex);
+        }
         super.operationLogMq.convertAndSend(tsc.getOperator(), FlowState.COMPLETED.getDescription(), detail);
 
         // 处理用户积分成长值
         addCustomerAttribute(trade, finalTime);
+    }
+
+
+    private void createInvoice(Trade trade) {
+        Invoice invoice = trade.getInvoice();
+        if(InvoiceType.ELECTRONIC.toValue() == invoice.getType()) {
+            logger.info("用户申请开出电子票，trade id:{}",trade.getId());
+            FanDengFullInvoiceRequest fanDengInvoiceRequest = new FanDengFullInvoiceRequest();
+            CustomerSimplifyByIdResponse customer = customerQueryProvider.simplifyById(new CustomerSimplifyByIdRequest(trade.getBuyer().getId())).getContext();
+            fanDengInvoiceRequest.setUserId(customer.getFanDengUserNo());
+            fanDengInvoiceRequest.setBusinessId(2);
+            fanDengInvoiceRequest.setOrderCodes(trade.getId());
+            fanDengInvoiceRequest.setReceiptType(1);
+            GeneralInvoice generalInvoice = invoice.getGeneralInvoice();
+            fanDengInvoiceRequest.setHeaderType(2);
+            fanDengInvoiceRequest.setEmail(invoice.getEmail());
+            if(generalInvoice!=null){
+                if(generalInvoice.getFlag()!=null && generalInvoice.getFlag().equals(1)){
+                    fanDengInvoiceRequest.setHeaderType(1);
+                    fanDengInvoiceRequest.setReceiptHeader(generalInvoice.getTitle());
+                    fanDengInvoiceRequest.setTaxcCode(generalInvoice.getIdentification());
+                }
+            }
+
+
+            for (TradeItem itemVO : trade.getTradeItems()) {
+                FanDengInvoiceRequest.Item item = new FanDengInvoiceRequest.Item();
+
+                item.setFee(itemVO.getSplitPrice().divide(new BigDecimal(itemVO.getNum())));
+                item.setOrderCode(trade.getId() + itemVO.getOid());
+                item.setTotalFee(itemVO.getSplitPrice());
+                item.setCount(itemVO.getNum().intValue());
+
+                item.setProduct(itemVO.getSpuName());
+                item.setProductNo(1);
+                item.setProductType(getProductType(itemVO.getCateId()));
+                item.setProductIcoon("");
+                //暂时都定1
+                item.setOrderType(1);
+                item.setCompleteTime(Date.from(trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
+                fanDengInvoiceRequest.getOrderExtendBOS().add(item);
+            }
+            BaseResponse<String> result = externalProvider.createInvoice(fanDengInvoiceRequest);
+            if (!CommonErrorCode.SUCCESSFUL.equals(result.getCode())) {
+                logger.error("trade:{},create invoice error", trade.getId());
+            }
+        }
+    }
+
+    private Integer getProductType(Long cateId) {
+        if (Objects.isNull(cateId)) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "商品的分类信息不能为空");
+        }
+
+        GoodsCateByIdRequest goodsCateByIdRequest = new GoodsCateByIdRequest();
+        goodsCateByIdRequest.setCateId(cateId);
+        GoodsCateByIdResponse context = goodsCateQueryProvider.getById(goodsCateByIdRequest).getContext();
+        if (Objects.isNull(context)) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "商品的分类信息没有找到");
+        }
+        return context.getTaxRateNo();
     }
 
     private void processGoodsEvaluate(Trade trade) {

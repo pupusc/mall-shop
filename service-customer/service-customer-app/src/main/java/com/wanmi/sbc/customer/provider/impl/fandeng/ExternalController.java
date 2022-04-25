@@ -136,4 +136,11 @@ public class ExternalController implements ExternalProvider {
     public BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest fanDengInvoiceRequest) {
         return externalService.submitInvoiceOrder(fanDengInvoiceRequest);
     }
+
+    @Override
+    public BaseResponse<String> createInvoice(FanDengFullInvoiceRequest request) {
+        return externalService.submitInvoiceOrder(request);
+    }
+
+
 }
