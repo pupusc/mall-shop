@@ -175,12 +175,12 @@ public class TradeCommitRequest extends BaseRequest {
     /**
      * 推广人用户id
      */
-    private String promoteUserId;
+    private Object promoteUserId;
 
     /**
      * 推广人用户id
      */
-    private String source;
+    private Object source;
 
     /**
      * 订单营销信息快照
