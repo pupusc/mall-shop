@@ -109,7 +109,7 @@ public class GoodsInfoController {
 
         //持化至ES
         esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder()
-                .skuIds(Collections.singletonList(saveRequest.getGoodsInfo().getGoodsInfoId())).build());
+                .skuIds(Collections.singletonList(saveRequest.getGoodsInfo().getGoodsId())).build());
 
         //刷新商品库es
         esStandardProvider.init(EsStandardInitRequest.builder()
@@ -133,7 +133,7 @@ public class GoodsInfoController {
 
         //持化至ES
         esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder()
-                .skuIds(Collections.singletonList(saveRequest.getGoodsInfo().getGoodsInfoId())).build());
+                .skuIds(Collections.singletonList(saveRequest.getGoodsInfo().getGoodsId())).build());
 
         operateLogMQUtil.convertAndSend("商品", "设价",
                 "设价：SKU编码" + saveRequest.getGoodsInfo().getGoodsInfoNo());

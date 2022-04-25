@@ -184,23 +184,23 @@ public class EsGoodsElasticService {
             request.getGoodsIds().add(request.getGoodsId());
         }
 
-//        if (CollectionUtils.isNotEmpty(request.getSkuIds())) {
-//            //批量查询所有SKU信息列表
-//            GoodsInfoListByConditionRequest infoQueryRequest = new GoodsInfoListByConditionRequest();
-//            infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
-//            infoQueryRequest.setCompanyInfoId(request.getCompanyInfoId());
-//            infoQueryRequest.setGoodsInfoIds(request.getSkuIds());
-//            infoQueryRequest.setStoreId(request.getStoreId());
-//            infoQueryRequest.setGoodsIds(request.getGoodsIds());
-//            infoQueryRequest.setBrandIds(request.getBrandIds());
-//            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(infoQueryRequest).getContext().getGoodsInfos();
-//            List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
-//            if (CollectionUtils.isNotEmpty(goodsIds)) {
-//                request.getGoodsIds().addAll(goodsIds);
-//            } else {
-//                return;
-//            }
-//        }
+        if (CollectionUtils.isNotEmpty(request.getSkuIds())) {
+            //批量查询所有SKU信息列表
+            GoodsInfoListByConditionRequest infoQueryRequest = new GoodsInfoListByConditionRequest();
+            infoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
+            infoQueryRequest.setCompanyInfoId(request.getCompanyInfoId());
+            infoQueryRequest.setGoodsInfoIds(request.getSkuIds());
+            infoQueryRequest.setStoreId(request.getStoreId());
+            infoQueryRequest.setGoodsIds(request.getGoodsIds());
+            infoQueryRequest.setBrandIds(request.getBrandIds());
+            List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(infoQueryRequest).getContext().getGoodsInfos();
+            List<String> goodsIds = goodsInfos.stream().map(GoodsInfoVO::getGoodsId).distinct().collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(goodsIds)) {
+                request.getGoodsIds().addAll(goodsIds);
+            } else {
+                return;
+            }
+        }
         //批量查询所有SPU信息列表
         GoodsCountByConditionRequest goodsCountQueryRequest = new GoodsCountByConditionRequest();
         goodsCountQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
