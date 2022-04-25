@@ -140,10 +140,10 @@ public class ReturnOrderCreateCallbackHandler implements CallbackHandler {
             return CommonHandlerUtil.FAIL;
         }
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
-            log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 非创建售后状态，return", orderId, aftersaleId);
-            return CommonHandlerUtil.FAIL;
-        }
+//        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
+//            log.error("ReturnOrderCreateCallbackHandler handler orderId:{} aftersaleId:{} 非创建售后状态，return", orderId, aftersaleId);
+//            return CommonHandlerUtil.FAIL;
+//        }
 
         //查看订单是否存在，存在，则不继续执行
         //根据视频号获取退单的详细信息
