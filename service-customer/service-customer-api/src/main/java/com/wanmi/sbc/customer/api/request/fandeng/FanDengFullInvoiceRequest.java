@@ -14,7 +14,6 @@ import java.math.BigDecimal;
  */
 @ApiModel
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class FanDengFullInvoiceRequest extends FanDengInvoiceRequest{
