@@ -143,7 +143,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         log.info("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
         //保证订单已经支付
-        String orderId = context.getAfterSalesOrder().getOutOrderId();
+        String orderId = returnOrderVO.getTid();
         BaseResponse<FindPayOrderResponse> response =
                 payOrderQueryProvider.findPayOrder(FindPayOrderRequest.builder().value(orderId).build());
         FindPayOrderResponse payOrderResponse = response.getContext();
