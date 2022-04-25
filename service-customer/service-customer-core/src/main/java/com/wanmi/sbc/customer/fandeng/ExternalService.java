@@ -924,13 +924,8 @@ public class ExternalService {
      */
     public BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request) {
         String body = JSON.toJSONString(request);
-        String jointUrlString = null;
-        //创建开票
-        if(request instanceof FanDengFullInvoiceRequest) {
-            jointUrlString = jointUrl(INVOICE_CREATE_URL + PARAMETER, body);
-        }else{
-            jointUrlString = jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body);
-        }
+        String jointUrlString = jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body);
+
         String result = getUrl(jointUrlString,
                 body);
         FdInVoiceResponse response =
