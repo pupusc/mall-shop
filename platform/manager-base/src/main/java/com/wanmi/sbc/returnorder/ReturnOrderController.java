@@ -772,7 +772,7 @@ public class ReturnOrderController {
     private TradeVO checkOperatorByTrade(String tid) {
         TradeVO trade = null;
         Operator operator = commonUtil.getOperator();
-        if(operator.getPlatform() == Platform.SUPPLIER){
+        if(operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO){
             if (tid.startsWith("O")){
                 trade =
                         tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(tid).build()).getContext().getTradeVO();
@@ -790,7 +790,7 @@ public class ReturnOrderController {
     private ReturnOrderVO checkOperatorByReturnOrder(String rid){
         ReturnOrderVO returnOrder = null;
         Operator operator = commonUtil.getOperator();
-        if(operator.getPlatform() == Platform.SUPPLIER) {
+        if(operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) {
              returnOrder = returnOrderQueryProvider.getById(ReturnOrderByIdRequest.builder().rid(rid)
                     .build()).getContext();
             if(!Objects.equals(commonUtil.getStoreId(), returnOrder.getCompany().getStoreId())){

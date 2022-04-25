@@ -937,7 +937,7 @@ public class TradeController {
         TradeVO trade =
                 tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(tid).needLmOrder(Boolean.TRUE).build()).getContext().getTradeVO();
         Operator operator = commonUtil.getOperator();
-        if (operator.getPlatform() == Platform.SUPPLIER && Objects.nonNull(trade.getId()) && !Objects.equals(commonUtil.getStoreId(), trade.getSupplier().getStoreId())) {
+        if ((operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) && Objects.nonNull(trade.getId()) && !Objects.equals(commonUtil.getStoreId(), trade.getSupplier().getStoreId())) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
         }
         if(PayState.NOT_PAID == trade.getTradeState().getPayState()
@@ -1478,7 +1478,7 @@ public class TradeController {
     private TradeVO checkOperatorByTrade(String tid) {
         TradeVO trade = null;
         Operator operator = commonUtil.getOperator();
-        if (operator.getPlatform() == Platform.SUPPLIER) {
+        if (operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) {
             if (tid.startsWith("O")) {
                 trade =
                         tradeQueryProvider.getById(TradeGetByIdRequest.builder().tid(tid).build()).getContext().getTradeVO();
