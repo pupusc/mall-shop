@@ -373,8 +373,8 @@ public class ReturnOrderController implements ReturnOrderProvider {
      * @return
      */
     @Override
-    public BaseResponse refundReject(String rid, String rejectReason) {
-        returnOrderService.refundReject(rid, rejectReason);
+    public BaseResponse refundReject(RefundRejectRequest refundRejectRequest) {
+        returnOrderService.refundReject(refundRejectRequest);
         return BaseResponse.SUCCESSFUL();
     }
 }

@@ -24,6 +24,7 @@ import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderNoRequest;
+import com.wanmi.sbc.order.api.request.returnorder.RefundRejectRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
@@ -170,7 +171,11 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
             //表示运营取消订单
             //1、做标记、2作废
-            returnOrderProvider.refundReject(returnOrderVO.getId(), "用户取消");
+            RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
+            refundRejectRequest.setRid(returnOrderVO.getId());
+            refundRejectRequest.setReturnReanson("用户强制取消");
+            refundRejectRequest.setForceReject(1);
+            baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
 
         } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
             ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();

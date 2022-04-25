@@ -363,6 +363,12 @@ public class ReturnOrderVO implements Serializable {
      */
     private Integer miniProgramScene;
 
+
+    /**
+     * 强制退款
+     */
+    private Integer forceReject;
+
     /**
      * 增加操作日志
      *

@@ -236,10 +236,8 @@ public interface ReturnOrderProvider {
 
     /**
      * 运营拒绝退款
-     * @param rid
-     * @param rejectReason
      * @return
      */
-    @PostMapping("/order/${application.order.version}/return/refund-reject/{rid}/{rejectReason}")
-    BaseResponse refundReject(@PathVariable("rid") String rid, @PathVariable("rejectReason") String rejectReason);
+    @PostMapping("/order/${application.order.version}/return/refund-reject")
+    BaseResponse refundReject(@RequestBody RefundRejectRequest refundRejectRequest);
 }

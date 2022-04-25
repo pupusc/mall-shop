@@ -368,6 +368,12 @@ public class ReturnOrder implements Serializable {
 
 
     /**
+     * 强制拒绝退款
+     */
+    private Integer forceReject;
+
+
+    /**
      * 增加操作日志
      *
      * @param log
