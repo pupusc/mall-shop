@@ -23,7 +23,7 @@ public class FanDengFullInvoiceRequest extends FanDengInvoiceRequest{
     private Integer headerType;
     private String receiptHeader;
     private String content="1";
-    private String taxcCode;
+    private String taxCode;
     private String email;
     private boolean sendOrderFlag=true;
     private BigDecimal fee;

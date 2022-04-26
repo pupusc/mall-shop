@@ -209,7 +209,7 @@ public class CompleteAction extends TradeAction {
                 if(generalInvoice.getFlag()!=null && StringUtils.isNotEmpty(generalInvoice.getTitle())&& StringUtils.isNotEmpty(generalInvoice.getIdentification())){
                     fanDengInvoiceRequest.setHeaderType(1);
                     fanDengInvoiceRequest.setReceiptHeader(generalInvoice.getTitle());
-                    fanDengInvoiceRequest.setTaxcCode(generalInvoice.getIdentification());
+                    fanDengInvoiceRequest.setTaxCode(generalInvoice.getIdentification());
                 }
             }
 
