@@ -86,6 +86,18 @@ public class WxDetailAfterSaleResponse extends WxResponseBase {
          */
         @JSONField(name = "waybill_id")
         private String waybillId;
+
+        /**
+         * code
+         */
+        @JSONField(name = "delivery_id")
+        private String deliveryId;
+
+        /**
+         * code name
+         */
+        @JSONField(name = "delivery_name")
+        private String deliveryName;
     }
 
     @Data

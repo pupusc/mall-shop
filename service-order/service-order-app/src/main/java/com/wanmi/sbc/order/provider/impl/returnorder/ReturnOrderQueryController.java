@@ -1,6 +1,9 @@
 package com.wanmi.sbc.order.provider.impl.returnorder;
 
 import com.aliyuncs.linkedmall.model.v20180116.QueryRefundApplicationDetailResponse;
+import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
+import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
@@ -19,6 +22,7 @@ import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.*;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.returnorder.model.value.ReturnLogistics;
 import com.wanmi.sbc.order.returnorder.request.ReturnQueryRequest;
 import com.wanmi.sbc.order.returnorder.service.ReturnOrderService;
 import com.wanmi.sbc.order.thirdplatformtrade.service.LinkedMallTradeService;
@@ -38,6 +42,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +81,9 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
 
     @Autowired
     private TradeService tradeService;
+
+    @Autowired
+    private WxOrderApiController wxOrderApiController;
 
     /**
      * 根据userId获取退单快照
@@ -263,6 +273,29 @@ public class ReturnOrderQueryController implements ReturnOrderQueryProvider {
                 updateFlag.set(Boolean.TRUE);
             }
         }
+
+        //获取售后信息
+        if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
+            //根据视频号的售后id获取 微信 售后详细信息
+            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+            WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+            WxDetailAfterSaleResponse.ReturnInfo wxReturnInfo = null;
+            if (context.getAfterSalesOrder() != null) {
+                wxReturnInfo = context.getAfterSalesOrder().getReturnInfo();
+            }
+            if (wxReturnInfo != null) {
+                ReturnLogistics returnLogistics = new ReturnLogistics();
+                returnLogistics.setCode(wxReturnInfo.getDeliveryId());
+                returnLogistics.setCompany(wxReturnInfo.getDeliveryName());
+                returnLogistics.setNo(wxReturnInfo.getWaybillId());
+                Instant instant = Instant.ofEpochMilli(wxReturnInfo.getOrderReturnTime());
+                returnLogistics.setCreateTime(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+                returnOrder.setReturnLogistics(returnLogistics);
+            }
+        }
+
         if(updateFlag.get()) {
             // 更新退单信息
             returnOrderService.updateReturnOrder(returnOrder);

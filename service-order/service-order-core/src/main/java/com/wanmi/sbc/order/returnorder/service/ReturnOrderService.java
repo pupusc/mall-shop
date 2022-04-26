@@ -2376,7 +2376,9 @@ public class ReturnOrderService {
 
 //        WxAfterSaleOperateType
 //        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
-        wxOrderService.uploadReturnInfo(findById(rid));  //上传物流信息
+        if (Platform.WX_VIDEO != operator.getPlatform()) {
+            wxOrderService.uploadReturnInfo(findById(rid));  //上传物流信息
+        }
     }
 
 
