@@ -56,7 +56,6 @@ public class ClassifyService {
         parent.setOrderNum(classifyParam.getOrderNum());
         parent.setHasShowIndex(classifyParam.getHasShowIndex());
         parent.setIndexOrderNum(classifyParam.getIndexOrderNum());
-        parent.setTaxRateNo(classifyParam.getTaxRateNo());
         return parent;
     }
 
