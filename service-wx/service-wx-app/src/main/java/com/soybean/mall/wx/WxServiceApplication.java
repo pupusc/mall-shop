@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.ComponentScan;
 
+//编译
 @SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 @EnableDiscoveryClient
 @ComponentScan(basePackages = {"com.soybean.mall", "com.wanmi.sbc"})
