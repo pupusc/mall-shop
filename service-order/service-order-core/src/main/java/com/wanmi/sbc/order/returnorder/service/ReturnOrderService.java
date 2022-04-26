@@ -912,7 +912,7 @@ public class ReturnOrderService {
         }
 
         //此处变更 订单的金额、积分、知豆等信息，此处储存的是 订单总共可退金额
-        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
+        Trade trade = this.queryCanReturnItemNumByTid(returnOrder.getTid(), (operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) ? 1 : null, returnOrder.getReturnReason());
 
         //当前如果为视频号、退货退款， 则不可以发起退差价和运费
         if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)  &&  Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) ) {
@@ -1252,7 +1252,7 @@ public class ReturnOrderService {
             //判断是否要有商品
             if (returnOrder.getReturnReason() == null || !returnOrder.getReturnReason().getType().equals(ReturnReason.PRICE_DELIVERY.getType())) {
                 //虚拟商品自动审核
-                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
+                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO))) {
                     audit(returnOrderId, operator, null);
                 }
 
@@ -1457,7 +1457,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrderList = returnOrderRepository.findByTid(trade.getId());
         this.verifyIsExistsItemReturnOrder(returnOrder, returnOrderList);
 
-        this.verifyNum(trade, returnOrder.getReturnItems(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
+        this.verifyNum(trade, returnOrder.getReturnItems(), (operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) ? 1 : null, returnOrder.getReturnReason());
         returnOrder.setReturnType(ReturnType.RETURN);
 
         Buyer buyer = new Buyer();
@@ -1707,7 +1707,7 @@ public class ReturnOrderService {
         // 新增订单日志
         tradeService.returnOrder(returnOrder.getTid(), operator);
 
-        this.verifyNum(trade, returnOrder.getReturnItems(), operator.getPlatform() == Platform.SUPPLIER ? 1 : null , returnOrder.getReturnReason());
+        this.verifyNum(trade, returnOrder.getReturnItems(), (operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) ? 1 : null , returnOrder.getReturnReason());
 
         returnOrder.setReturnType(ReturnType.RETURN);
 
@@ -1715,7 +1715,7 @@ public class ReturnOrderService {
         List<ReturnOrder> returnOrders = returnOrderRepository.findByTid(trade.getId());
         this.filterCompletedReturnItem(returnOrders, returnOrder, trade);
         //填充退货商品信息
-        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade, operator.getPlatform() == Platform.SUPPLIER ? 1 : null, returnOrder.getReturnReason());
+        Map<String, Integer> itemsCanReturnMap = findLeftItems(trade, (operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) ? 1 : null, returnOrder.getReturnReason());
         returnOrder.getReturnItems().forEach(item ->
                 {
                     item.setSkuName(trade.skuItemMap().get(item.getSkuId()).getSkuName());

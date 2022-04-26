@@ -522,7 +522,7 @@ public class ProviderTradeService {
         this.updateProviderTrade(providerTrade);
 
         tradeDeliver.setSunDeliverId(tradeDeliver.getDeliverId());
-        tradeDeliver.setShipperType(operator.getPlatform() == Platform.SUPPLIER ? ShipperType.PROVIDER : ShipperType.PROVIDER);
+        tradeDeliver.setShipperType((operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) ? ShipperType.PROVIDER : ShipperType.PROVIDER);
         tradeService.deliver(providerTrade.getParentId(), tradeDeliver, operator, BoolFlag.NO);
 
         return tradeDeliver.getDeliverId();

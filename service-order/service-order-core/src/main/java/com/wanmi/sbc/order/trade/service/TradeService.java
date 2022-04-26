@@ -3382,7 +3382,7 @@ public class TradeService {
                 auditState = AuditState.CHECKED;
             } else {
                 //商家 boss 初始化状态是不需要审核的
-                if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER) {
+                if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) {
                     flowState = FlowState.AUDIT;
                     auditState = AuditState.CHECKED;
                 } else {
@@ -6124,7 +6124,7 @@ public class TradeService {
      * @param orderAuditSwitch
      */
     private void createPayOrder(Trade trade, Operator operator, Boolean orderAuditSwitch) {
-        if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER ||
+        if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.WX_VIDEO || operator.getPlatform() == Platform.SUPPLIER ||
                 !orderAuditSwitch) {
             createPayOrder(trade);
         }

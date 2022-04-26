@@ -219,7 +219,7 @@ public class GuanyierpController implements GuanyierpProvider {
             DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
             return BaseResponse.success(deliveryStatusResponse);
         }
-        return BaseResponse.success(DeliveryStatusResponse.builder().build());
+        return BaseResponse.success(DeliveryStatusResponse.builder().deliveryInfoVOList(new ArrayList<>()).build());
     }
 
 
