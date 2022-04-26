@@ -206,7 +206,7 @@ public class CompleteAction extends TradeAction {
             fanDengInvoiceRequest.setFee(trade.getTradePrice().getTotalPrice().subtract(trade.getTradePrice().getDeliveryPrice()));
             fanDengInvoiceRequest.setEmail(invoice.getEmail());
             if(generalInvoice!=null){
-                if(generalInvoice.getFlag()!=null && generalInvoice.getFlag().equals(2)){
+                if(generalInvoice.getFlag()!=null && StringUtils.isNotEmpty(generalInvoice.getTitle())&& StringUtils.isNotEmpty(generalInvoice.getIdentification())){
                     fanDengInvoiceRequest.setHeaderType(1);
                     fanDengInvoiceRequest.setReceiptHeader(generalInvoice.getTitle());
                     fanDengInvoiceRequest.setTaxcCode(generalInvoice.getIdentification());
