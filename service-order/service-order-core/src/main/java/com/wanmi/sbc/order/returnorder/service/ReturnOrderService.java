@@ -1252,7 +1252,7 @@ public class ReturnOrderService {
             //判断是否要有商品
             if (returnOrder.getReturnReason() == null || !returnOrder.getReturnReason().getType().equals(ReturnReason.PRICE_DELIVERY.getType())) {
                 //虚拟商品自动审核
-                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO))) {
+                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
                     audit(returnOrderId, operator, null);
                 }
 
@@ -2133,8 +2133,10 @@ public class ReturnOrderService {
             //自动发货
             autoDeliver(returnOrderId, operator);
 //            if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            //退货审核后不能拒绝，退款可以拒绝
             WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, null, "退单审核");
+            Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
+            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, wxAfterSaleOperateType, "退单审核");
 
 //            }
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());

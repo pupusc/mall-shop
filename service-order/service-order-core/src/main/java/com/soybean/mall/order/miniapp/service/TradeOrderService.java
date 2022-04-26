@@ -172,11 +172,20 @@ public class TradeOrderService {
 
             List<WxDeliverySendRequest.WxDeliveryInfo> deliveryInfos = new ArrayList<>();
 
+            LocalDateTime finishDeliverTime = null;
             for (TradeDeliver delivery : unSyncDelivery) {
                 if (delivery.getLogistics() == null) {
                     continue;
                 }
                 WxDeliverySendRequest.WxDeliveryInfo deliveryInfo = new WxDeliverySendRequest.WxDeliveryInfo();
+                if (finishDeliverTime == null) {
+                    finishDeliverTime = delivery.getDeliverTime();
+                } else {
+                    if (delivery.getDeliverTime() != null && delivery.getDeliverTime().isAfter(finishDeliverTime)) {
+                        finishDeliverTime = delivery.getDeliverTime();
+                    }
+                }
+
 
                 deliveryInfo.setDeliveryId(getWxLogisticsCode(delivery.getLogistics().getLogisticStandardCode(), delivery.getLogistics().getLogisticCompanyName()));
                 deliveryInfo.setWaybillId(delivery.getLogistics().getLogisticNo());
@@ -192,6 +201,12 @@ public class TradeOrderService {
                 deliveryInfos.add(deliveryInfo);
             }
             request.setDeliveryList(deliveryInfos);
+
+            //表示完成发货,此处以当前时间确定
+            if (Objects.equals(request.getFinishAllDelivery(), 1) ) {
+                request.setShipDoneTime(finishDeliverTime == null ? DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1) :
+                        DateUtil.format(finishDeliverTime, DateUtil.FMT_TIME_1));
+            }
             BaseResponse<WxResponseBase> result = wxOrderApiController.deliverySend(request);
             if (result != null && result.getContext().isSuccess()) {
                 //全部发货且已经全部同步
