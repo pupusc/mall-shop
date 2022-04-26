@@ -1252,7 +1252,7 @@ public class ReturnOrderService {
             //判断是否要有商品
             if (returnOrder.getReturnReason() == null || !returnOrder.getReturnReason().getType().equals(ReturnReason.PRICE_DELIVERY.getType())) {
                 //虚拟商品自动审核
-                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO))) {
+                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
                     audit(returnOrderId, operator, null);
                 }
 
