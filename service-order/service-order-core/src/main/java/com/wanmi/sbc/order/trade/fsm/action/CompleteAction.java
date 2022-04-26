@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.account.bean.enums.InvoiceType;
 import com.wanmi.sbc.common.constant.MQConstant;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.request.customer.CustomerSimplifyByIdRequest;
@@ -205,7 +206,7 @@ public class CompleteAction extends TradeAction {
             fanDengInvoiceRequest.setFee(trade.getTradePrice().getTotalPrice().subtract(trade.getTradePrice().getDeliveryPrice()));
             fanDengInvoiceRequest.setEmail(invoice.getEmail());
             if(generalInvoice!=null){
-                if(generalInvoice.getFlag()!=null && generalInvoice.getFlag().equals(1)){
+                if(generalInvoice.getFlag()!=null && generalInvoice.getFlag().equals(2)){
                     fanDengInvoiceRequest.setHeaderType(1);
                     fanDengInvoiceRequest.setReceiptHeader(generalInvoice.getTitle());
                     fanDengInvoiceRequest.setTaxcCode(generalInvoice.getIdentification());
@@ -227,6 +228,7 @@ public class CompleteAction extends TradeAction {
                 item.setProductIcoon("");
                 //暂时都定1
                 item.setOrderType(1);
+
                 item.setCompleteTime(Date.from(trade.getTradeState().getEndTime().atZone(ZoneId.systemDefault()).toInstant()));
                 fanDengInvoiceRequest.getOrderExtendBOS().add(item);
             }
