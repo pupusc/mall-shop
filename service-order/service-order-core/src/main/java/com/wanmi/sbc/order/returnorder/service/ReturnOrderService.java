@@ -2133,9 +2133,10 @@ public class ReturnOrderService {
             //自动发货
             autoDeliver(returnOrderId, operator);
 //            if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+            //退货审核后不能拒绝，退款可以拒绝
             WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, null, "退单审核");
-
+            Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
+            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, wxAfterSaleOperateType, "退单审核");
 
 //            }
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
