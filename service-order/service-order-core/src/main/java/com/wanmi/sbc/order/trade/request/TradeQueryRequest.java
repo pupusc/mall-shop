@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 import java.time.LocalDateTime;
@@ -689,7 +690,7 @@ public class TradeQueryRequest extends BaseQueryRequest {
                 criterias.add(Criteria.where("orderType").is(orderType));
             }
         } else {
-            criterias.add(Criteria.where("id").exists(true).orOperator(Criteria.where("orderType").exists(false),Criteria.where("orderType").is(OrderType.NORMAL_ORDER)));
+            criterias.add(Criteria.where("id").exists(true).orOperator(Criteria.where("orderType").exists(false),Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId())));
         }
 
         // 是否拼团订单
@@ -818,7 +819,15 @@ public class TradeQueryRequest extends BaseQueryRequest {
             criterias.add(Criteria.where("invoice.type").is(invoiceType));
         }
         if(BooleanUtils.toBoolean(actualCashFlag)){
-            criterias.add(Criteria.where("tradePrice.totalPrice").gt("$this.tradePrice.deliveryPrice"));
+            Criteria criteria = new Criteria(){
+                @Override
+                public Document getCriteriaObject() {
+                    Document document = new Document();
+                    document.put("$where", "this.tradePrice.totalPrice > this.tradePrice.deliveryPrice");
+                    return document;
+                }
+            };
+            criterias.add(criteria);
         }
         return criterias;
     }
