@@ -41,6 +41,11 @@ public class ClassifyProviderResponse implements Serializable {
      */
     private Integer indexOrderNum;
 
+    /**
+     * 税率编号
+     */
+    private Integer taxRateNo;
+
 
     private List<ClassifyProviderResponse> childrenList;
 

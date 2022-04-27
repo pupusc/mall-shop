@@ -192,6 +192,15 @@ public class ExternalService {
     public static final String KNOWLEDGE_FALLBACK_URL = "/fallbackBeans";
 
     /**
+     * 申请开票
+     */
+    private static final String INVOICE_ORDER_SUBMIT_URL = "/invoice/order/submit";
+    /**
+     * 直接开票
+     */
+    private static final String INVOICE_CREATE_URL = "/invoice/create";
+
+    /**
      * 用户退积分
      */
     public static final String MATERIAL_CHENCK_URL = "/file/image/uploadWithVerify";
@@ -629,6 +638,16 @@ public class ExternalService {
         return BaseResponse.success(response);
     }
 
+    public BaseResponse<FanDengLockResponse> pushInvoice(@Valid FanDengKnowledgeLockRequest request) {
+        String body = JSON.toJSONString(request);
+        String result = getUrl(jointUrl(KNOWLEDGE_LOCK_URL + PARAMETER, body),
+                body);
+        FanDengLockResponse response =
+                (FanDengLockResponse) exchange(result, FanDengLockResponse.class);
+
+        return BaseResponse.success(response);
+    }
+
     public BaseResponse<FanDengConsumeResponse> pointDeduct(@Valid FanDengPointDeductRequest request) {
         String body = JSON.toJSONString(request);
         String result = getUrl(jointUrl(POINT_DEDUCT_URL + PARAMETER, body),
@@ -896,5 +915,41 @@ public class ExternalService {
         customerDetail.setCreateTime(LocalDateTime.now());
         customerDetail.setIsDistributor(DefaultFlag.NO);
         return customerDetail;
+    }
+
+    /**
+     * 提交订单
+     * @param request
+     * @return
+     */
+    public BaseResponse<String> submitInvoiceOrder(FanDengInvoiceRequest request) {
+        String body = JSON.toJSONString(request);
+        String jointUrlString = jointUrl(INVOICE_ORDER_SUBMIT_URL + PARAMETER, body);
+
+        String result = getUrl(jointUrlString,
+                body);
+        FdInVoiceResponse response =
+                (FdInVoiceResponse) exchange(result, FdInVoiceResponse.class);
+        return BaseResponse.success(response.getKey());
+    }
+
+
+    /**
+     * 提交订单
+     * @param request
+     * @return
+     */
+    public BaseResponse createInvoice(FanDengFullInvoiceRequest request) {
+        String body = JSON.toJSONString(request);
+        String jointUrlString  = jointUrl(INVOICE_CREATE_URL + PARAMETER, body);
+
+        String result = getUrl(jointUrlString,
+                body);
+        JSONObject object = JSONObject.parseObject(body);
+        String code = (String) object.get("status");
+        if (code == null || (code != null && code.equals("0000"))) {
+            return BaseResponse.SUCCESSFUL();
+        }
+        throw  new SbcRuntimeException("K-120801", (String) object.get("msg"));
     }
 }

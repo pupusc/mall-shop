@@ -474,4 +474,11 @@ public interface TradeProvider {
     BaseResponse wxPayCallBack(@RequestBody  WxTradePayCallBackRequest request);
 
 
+    /**
+     * 更新发票信息
+     * @param autoUpdateInvoiceRequest
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/update-invoice")
+    BaseResponse updateInvoice(@RequestBody AutoUpdateInvoiceRequest autoUpdateInvoiceRequest);
 }

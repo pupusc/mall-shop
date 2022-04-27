@@ -124,7 +124,6 @@ import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
@@ -133,7 +132,6 @@ import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
@@ -201,6 +199,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
@@ -8516,5 +8515,30 @@ public class TradeService {
         Operator operator = Operator.builder().ip(HttpUtil.getIpAddr()).adminId("-1").name(PayGatewayEnum.WECHAT.name())
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, false);
+    }
+
+    /**
+     * 更新发票的类型
+     * @param autoUpdateInvoiceRequest
+     * @return
+     */
+    @GlobalTransactional
+    public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
+        mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
+                new Update().set("invoice.type", InvoiceType.ELECTRONIC.toValue()), Trade.class);
+        Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
+        if(byOrderNo.isPresent()){
+            OrderInvoice orderInvoice = byOrderNo.get();
+            if(InvoiceState.WAIT.equals(orderInvoice.getInvoiceState())) {
+                orderInvoiceService.updateOrderInvoiceState(Lists.newArrayList(orderInvoice.getOrderInvoiceId()));
+            }
+            log.info("orderInvoice tradeNo:{}, origin state:{}",autoUpdateInvoiceRequest.getTradeId(), orderInvoice.getInvoiceState());
+        }else{
+            OrderInvoiceSaveRequest saveRequest = new OrderInvoiceSaveRequest();
+            saveRequest.setInvoiceType(InvoiceType.ELECTRONIC);
+            saveRequest.setOrderNo(autoUpdateInvoiceRequest.getTradeId());
+            orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 }
