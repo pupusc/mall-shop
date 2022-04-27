@@ -31,7 +31,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 import java.time.LocalDateTime;
@@ -342,6 +344,16 @@ public class TradeQueryRequest extends BaseQueryRequest {
 
     @ApiModelProperty("虚拟全部发货，0否1是")
     private Integer virtualAllDelivery;
+
+    /**
+     * 发票的类型
+     */
+    private Integer invoiceType;
+
+    /**
+     * 是否用了现金支付
+     */
+    private Boolean actualCashFlag;
     /**
      * @return
      */
@@ -678,7 +690,7 @@ public class TradeQueryRequest extends BaseQueryRequest {
                 criterias.add(Criteria.where("orderType").is(orderType));
             }
         } else {
-            criterias.add(Criteria.where("id").exists(true).orOperator(Criteria.where("orderType").exists(false),Criteria.where("orderType").is(OrderType.NORMAL_ORDER)));
+            criterias.add(Criteria.where("id").exists(true).orOperator(Criteria.where("orderType").exists(false),Criteria.where("orderType").is(OrderType.NORMAL_ORDER.getOrderTypeId())));
         }
 
         // 是否拼团订单
@@ -801,6 +813,21 @@ public class TradeQueryRequest extends BaseQueryRequest {
             criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(virtualAllDelivery));
         }else if(Objects.nonNull(virtualAllDelivery)){
             criterias.add(Criteria.where("tradeState.virtualAllDelivery").is(null));
+        }
+
+        if(invoiceType!=null){
+            criterias.add(Criteria.where("invoice.type").is(invoiceType));
+        }
+        if(BooleanUtils.toBoolean(actualCashFlag)){
+            Criteria criteria = new Criteria(){
+                @Override
+                public Document getCriteriaObject() {
+                    Document document = new Document();
+                    document.put("$where", "this.tradePrice.totalPrice > this.tradePrice.deliveryPrice");
+                    return document;
+                }
+            };
+            criterias.add(criteria);
         }
         return criterias;
     }

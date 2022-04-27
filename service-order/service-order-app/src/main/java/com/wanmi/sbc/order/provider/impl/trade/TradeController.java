@@ -826,4 +826,9 @@ public class TradeController implements TradeProvider {
         tradeService.wxPayCallBack(request.getOrderId(),request.getTransationId());
         return BaseResponse.SUCCESSFUL();
     }
+
+    @Override
+    public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
+        return tradeService.updateInvoice(autoUpdateInvoiceRequest);
+    }
 }

@@ -27,6 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -335,6 +336,16 @@ public class TradeQueryDTO extends BaseQueryRequest {
     private  Boolean periodicPurchaseRefund=Boolean.FALSE;
 
     /**
+     * 发票开票类型
+     */
+    @ApiModelProperty(value = "发票开票类型")
+    private Integer invoiceType;
+
+    /**
+     * 是否用了现金支付
+     */
+    private Boolean actualCashFlag;
+    /**
      * @return
      */
     public Boolean getIsBoss() {
@@ -351,6 +362,8 @@ public class TradeQueryDTO extends BaseQueryRequest {
      * 订单标签
      */
     private String tag;
+
+
 
     /**
      * 封装公共条件
