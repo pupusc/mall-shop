@@ -15,10 +15,18 @@ import java.util.UUID;
  */
 public class TraceIdManager {
     private static final String TRACE_ID = "trace_id";
-    private static final String EMPTY_TRACE_ID = "N/A";
 
     public static String currTraceId() {
-        return Objects.isNull(MDC.get(TRACE_ID)) ? EMPTY_TRACE_ID : MDC.get(TRACE_ID);
+        return MDC.get(TRACE_ID);
+    }
+
+    public static String createTraceId() {
+        MDC.put(TRACE_ID, generate());
+        return MDC.get(TRACE_ID);
+    }
+
+    public static void removeTraceId() {
+        MDC.remove(TRACE_ID);
     }
 
     public static void entrySpan(HttpServletRequest request, HttpServletResponse response) {
