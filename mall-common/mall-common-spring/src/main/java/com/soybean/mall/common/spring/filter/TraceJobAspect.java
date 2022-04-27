@@ -17,11 +17,10 @@ import org.springframework.stereotype.Component;
 public class TraceJobAspect {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Around("execution(public com.xxl.job.core.handler.IJobHandler.execute(String))")
+    @Around("execution(public * com.xxl.job.core.handler.IJobHandler.execute(String))")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        String traceId = TraceIdManager.createTraceId();
-        log.info("xxl-job->execute");
-
+        TraceIdManager.createTraceId();
+        log.info("XXL-JOB: {}", joinPoint.getSignature().getDeclaringType().getName());
         return joinPoint.proceed();
     }
 }
