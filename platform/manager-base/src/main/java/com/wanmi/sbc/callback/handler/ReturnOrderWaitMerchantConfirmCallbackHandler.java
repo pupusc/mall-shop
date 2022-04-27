@@ -143,8 +143,8 @@ public class ReturnOrderWaitMerchantConfirmCallbackHandler implements CallbackHa
 
         ReturnLogisticsDTO returnLogisticsDTO = new ReturnLogisticsDTO();
         if (wxReturnLogistics != null) {
-           returnLogisticsDTO.setCompany(StringUtils.isEmpty(wxReturnLogistics.getDeliveryName()) ? "樊登读书" : wxReturnLogistics.getDeliveryName());
-           returnLogisticsDTO.setNo(StringUtils.isEmpty(wxReturnLogistics.getWaybillId()) ? "123456789" : wxReturnLogistics.getWaybillId());
+           returnLogisticsDTO.setCompany(StringUtils.isEmpty(wxReturnLogistics.getDeliveryName()) ? "视频号退单" : wxReturnLogistics.getDeliveryName());
+           returnLogisticsDTO.setNo(StringUtils.isEmpty(wxReturnLogistics.getWaybillId()) ? "1234" : wxReturnLogistics.getWaybillId());
            returnLogisticsDTO.setCode(StringUtils.isEmpty(wxReturnLogistics.getDeliveryId()) ? "FDDS" : wxReturnLogistics.getDeliveryId());
 
            Instant instant = Instant.ofEpochMilli(wxReturnLogistics.getOrderReturnTime());

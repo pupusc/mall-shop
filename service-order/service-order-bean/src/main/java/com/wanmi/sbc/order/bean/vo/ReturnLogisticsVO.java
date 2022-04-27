@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 退货物流信息
@@ -52,4 +53,9 @@ public class ReturnLogisticsVO implements Serializable {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime createTime = LocalDateTime.now();
+
+    /**
+     * 物流图片信息
+     */
+    private List<String> picList;
 }

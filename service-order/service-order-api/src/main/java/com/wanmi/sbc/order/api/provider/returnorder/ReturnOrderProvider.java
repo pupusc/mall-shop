@@ -240,4 +240,13 @@ public interface ReturnOrderProvider {
      */
     @PostMapping("/order/${application.order.version}/return/refund-reject")
     BaseResponse refundReject(@RequestBody RefundRejectRequest refundRejectRequest);
+
+
+    /**
+     * 修改物流信息
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/return/update-retun-logistics")
+    BaseResponse updateReturnLogistics(@RequestBody @Valid ReturnOrderDeliverRequest request);
 }

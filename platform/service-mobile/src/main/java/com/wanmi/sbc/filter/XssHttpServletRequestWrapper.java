@@ -111,7 +111,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         //缓存请求body
         try {
             requestBody = StreamUtils.copyToByteArray(servletRequest.getInputStream());
-            logger.info("XssHttpServletRequestWrapper IOException requestBody {}", new String(requestBody, "UTF-8"));
+            logger.info("XssHttpServletRequestWrapper IOException requestURI:{} requestBody {}", servletRequest.getRequestURI(), new String(requestBody, "UTF-8"));
         } catch (IOException e) {
             logger.error("XssHttpServletRequestWrapper IOException" , e);
         }
