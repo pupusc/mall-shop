@@ -351,10 +351,15 @@ public class GoodsStockService {
         }
 
         //获取sku 库存状态
-        BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsCodeNo);
-        List<ERPGoodsInfoVO> erpGoodsInfoVOList = erpGoodsInfoWithoutStock.getContext();
-        if (CollectionUtils.isEmpty(erpGoodsInfoVOList)) {
-            erpGoodsInfoVOList = new ArrayList<>();
+        List<ERPGoodsInfoVO> erpGoodsInfoVOList = new ArrayList<>();
+        try {
+            BaseResponse<List<ERPGoodsInfoVO>> erpGoodsInfoWithoutStock = guanyierpProvider.getErpGoodsInfoWithoutStock(erpGoodsCodeNo);
+            List<ERPGoodsInfoVO> erpGoodsInfoVOListTmp = erpGoodsInfoWithoutStock.getContext();
+            if (!CollectionUtils.isEmpty(erpGoodsInfoVOListTmp)) {
+                erpGoodsInfoVOList = erpGoodsInfoVOListTmp;
+            }
+        } catch (Exception ex) {
+            log.warn("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} 访问管易异常", erpGoodsCodeNo, ex);
         }
 
 
@@ -370,7 +375,7 @@ public class GoodsStockService {
             } else if (Arrays.asList("0", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
                 isCalculateStock = false;
             } else {
-                log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} stockStatusCode is not 1、2、3、4 continue", erpGoodsCodeNo);
+                log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} stockStatusCode is not 1、2、3、4", erpGoodsCodeNo);
                 isCalculateStock = false;
                 erpStockQty = 0;
             }
