@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.provider.impl.goodsevaluate;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -104,7 +105,7 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 		String goodsEvaluateStr = redisService.getString(RedisKeyConstant.KEY_GOODS_EVALUATE + request.getGoodsId());
 		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
 		if (StringUtils.isNotBlank(goodsEvaluateStr)) {
-			goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateStr, GoodsEvaluateCountResponse.class);
+			goodsEvaluateCountResponse = JSONObject.parseObject(goodsEvaluateStr, GoodsEvaluateCountResponse.class);;
 			if (goodsEvaluateCountResponse != null) {
 				return BaseResponse.success(goodsEvaluateCountResponse);
 			}
@@ -157,13 +158,10 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	public BaseResponse<GoodsEvaluateCountResponse> getGoodsEvaluateSumByskuId(@Valid GoodsEvaluateCountBySkuIdRequset request) {
 
 		String goodsEvaluateCountStr = redisService.getString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId());
-		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
 		if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
-			if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
-				goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateCountStr, GoodsEvaluateCountResponse.class);
-				if (goodsEvaluateCountResponse != null) {
-					return BaseResponse.success(goodsEvaluateCountResponse);
-				}
+			GoodsEvaluateCountResponse goodsEvaluateCountResponse = JSON.parseObject(goodsEvaluateCountStr, GoodsEvaluateCountResponse.class);
+			if (goodsEvaluateCountResponse != null) {
+				return BaseResponse.success(goodsEvaluateCountResponse);
 			}
 		}
 
@@ -184,7 +182,7 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 		String praise = goodsEvaluateService.getGoodsPraise(GoodsEvaluateCountRequset
 				.builder().goodsId(goodsInfos.get(0).getGoodsId()).build());
 
-		goodsEvaluateCountResponse = GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
+		GoodsEvaluateCountResponse goodsEvaluateCountResponse = GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
 				.praise(praise).goodsId(goodsInfos.get(0).getGoodsId()).build();
 		redisService.setString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId(), JSON.toJSONString(goodsEvaluateCountResponse), 5 * 60);
 		return BaseResponse.success(goodsEvaluateCountResponse);
