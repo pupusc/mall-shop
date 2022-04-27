@@ -8517,5 +8517,4 @@ public class TradeService {
                 .account(PayGatewayEnum.WECHAT.name()).platform(Platform.THIRD).build();
         payCallbackOnline(trades, operator, false);
     }
-
 }

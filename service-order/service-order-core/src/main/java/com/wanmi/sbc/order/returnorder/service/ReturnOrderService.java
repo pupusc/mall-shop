@@ -3,7 +3,9 @@ package com.wanmi.sbc.order.returnorder.service;
 import com.alibaba.fastjson.JSON;
 import com.aliyuncs.linkedmall.model.v20180116.QueryRefundApplicationDetailResponse;
 import com.google.common.collect.Lists;
+import com.mongodb.client.result.UpdateResult;
 import com.sbc.wanmi.erp.bean.enums.ERPTradePayChannel;
+import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
@@ -263,6 +265,9 @@ public class ReturnOrderService {
     @Autowired
     private PayOrderService payOrderService;
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
 //    @Autowired
 //    private ElasticsearchTemplate template;
 
@@ -274,9 +279,6 @@ public class ReturnOrderService {
 
     @Autowired
     private RefundOrderRepository refundOrderRepository;
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
 
     @Autowired
     private CustomerCommonService customerCommonService;
@@ -4955,7 +4957,39 @@ public class ReturnOrderService {
     }
 
 
+    /**
+     * 更新物流信息
+     * @param rid
+     * @param logistics
+     * @return
+     */
+    public BaseResponse updateReturnLogistics(String rid, ReturnLogistics logistics) {
 
+        ReturnOrder returnOrder = returnOrderRepository.findById(rid).orElse(null);
+        if (returnOrder == null) {
+            throw new SbcRuntimeException("K-050003");
+        }
+
+        Update update = new Update();
+        if (StringUtils.isNotBlank(logistics.getCode())) {
+            update.set("returnLogistics.code", logistics.getCode());
+        }
+        if (StringUtils.isNotBlank(logistics.getCompany())) {
+            update.set("returnLogistics.company", logistics.getCompany());
+        }
+        if (StringUtils.isNotBlank(logistics.getNo())) {
+            update.set("returnLogistics.no", logistics.getNo());
+        }
+        if (logistics.getCreateTime() != null) {
+            update.set("returnLogistics.createTime", logistics.getCreateTime());
+        }
+        if (!CollectionUtils.isEmpty(logistics.getPicList())) {
+            update.set("returnLogistics.picList", logistics.getPicList());
+        }
+        UpdateResult updateResult = mongoTemplate.updateFirst(new Query(Criteria.where("id").is(returnOrder.getId())), update, ReturnOrder.class);
+        log.info("ReturnOrderService updateLogisics rid:{} result:{}", returnOrder.getId(), JSON.toJSONString(updateResult));
+        return BaseResponse.SUCCESSFUL();
+    }
 
 
 }

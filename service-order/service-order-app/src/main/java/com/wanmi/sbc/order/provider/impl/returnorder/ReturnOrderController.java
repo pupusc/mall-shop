@@ -7,6 +7,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
+import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.refund.model.root.RefundBill;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
@@ -376,5 +377,16 @@ public class ReturnOrderController implements ReturnOrderProvider {
     public BaseResponse refundReject(RefundRejectRequest refundRejectRequest) {
         returnOrderService.refundReject(refundRejectRequest);
         return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 修改物流信息
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse updateReturnLogistics(ReturnOrderDeliverRequest request) {
+        return returnOrderService.updateReturnLogistics(request.getRid(), KsBeanUtil.convert(request.getLogistics(), ReturnLogistics.class));
     }
 }
