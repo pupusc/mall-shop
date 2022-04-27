@@ -2,7 +2,6 @@ package com.soybean.mall.invoice;
 
 
 import com.soybean.mall.invoice.request.InvoiceCallbackRequest;
-import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
@@ -43,7 +42,7 @@ public class InvoiceCallbackController {
                     AutoUpdateInvoiceRequest autoUpdateInvoiceRequest = AutoUpdateInvoiceRequest.builder().tradeId(tradeVO.getTradeId()).build();
                     tradeProvider.updateInvoice(autoUpdateInvoiceRequest);
                 }catch(Exception ex){
-                    log.info("update fail:{}", tradeVO.getTradeId());
+                    log.info("update fail:{}", tradeVO.getTradeId(), ex);
                 }
             }
         }
