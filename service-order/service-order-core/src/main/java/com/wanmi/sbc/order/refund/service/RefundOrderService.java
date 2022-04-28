@@ -495,7 +495,7 @@ public class RefundOrderService {
         }
         refundOrder.setRefuseReason(refuseReason);
         refundOrderRepository.saveAndFlush(refundOrder);
-        updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.TODO);
+        updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.REFUSE);
     }
 
 

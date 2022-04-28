@@ -51,7 +51,7 @@ public class RejectRefundReturnBuilder implements Builder {
         builder.configureTransitions()
                 // 拒绝退款 -> 已审核
                 .withExternal()
-                .source(ReturnFlowState.REJECT_REFUND).target(ReturnFlowState.AUDIT)
+                .source(ReturnFlowState.REJECT_REFUND).target(ReturnFlowState.DELIVERED)
                 .event(ReturnEvent.REVERSE_RETURN)  //扭转退货退单状态
                 .action(refundReject2RefundRejectAction)
         ;
