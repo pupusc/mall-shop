@@ -2432,19 +2432,19 @@ public class ReturnOrderService {
             tradeService.updateTrade(trade);
         } else {
             //视频号的订单如果 拒绝退款不进行作废处理
-//            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
-//                    && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
-//                return;
-//            } else {
-//                //判断是否全量退货完成
-//                if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
-//                    //作废主订单
-//                    tradeService.voidTrade(returnOrder.getTid(), operator);
-//                    trade = tradeService.detail(returnOrder.getTid());
-//                    trade.setRefundFlag(true);
-//                    tradeService.updateTrade(trade);
-//                }
-//            }
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
+                    && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                return;
+            } else {
+                //判断是否全量退货完成
+                if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
+                    //作废主订单
+                    tradeService.voidTrade(returnOrder.getTid(), operator);
+                    trade = tradeService.detail(returnOrder.getTid());
+                    trade.setRefundFlag(true);
+                    tradeService.updateTrade(trade);
+                }
+            }
         }
     }
 
