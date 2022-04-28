@@ -199,11 +199,14 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 //                baseResponse = returnOrderProvider.rejectRefund2Audit(request);
 
                 String returnOrderId = this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
-//              5、同意退货、要带id
+
+                //              5、同意退货、要带id
                 ReturnOrderReceiveRequest returnOrderReceiveRequest = new ReturnOrderReceiveRequest();
                 returnOrderReceiveRequest.setOperator(operator);
                 returnOrderReceiveRequest.setRid(returnOrderId);
                 BaseResponse receive = returnOrderProvider.receive(returnOrderReceiveRequest);
+                log.info("ReturnOrderUpdateCallbackHandler handler 4、同意退货 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
+                        , afterSalesOrder.getAftersaleId(), returnOrderId, JSON.toJSONString(receive));
             }
         }
 
@@ -224,14 +227,16 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
 //            1、用户申请、要带id
         String returnOrderId = this.createReturnOrder(returnOrderVO, afterSalesOrder);
-
+        log.info("ReturnOrderUpdateCallbackHandler handler 1、创建售后订单完成 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
+                , afterSalesOrder.getAftersaleId(), returnOrderId, returnOrderId);
 
 //            2、用户审核、要带id
         ReturnOrderAuditRequest request = new ReturnOrderAuditRequest();
         request.setOperator(operator);
         request.setRid(returnOrderId);
         BaseResponse audit = returnOrderProvider.audit(request);
-
+        log.info("ReturnOrderUpdateCallbackHandler handler 2、走审核流程 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
+                , afterSalesOrder.getAftersaleId(), returnOrderId, JSON.toJSONString(audit));
 
 //            3、填写物流、要带id
         ReturnOrderDeliverRequest returnOrderDeliverRequest = new ReturnOrderDeliverRequest();
@@ -242,7 +247,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
         returnOrderDeliverRequest.setOperator(operator);
         BaseResponse deliver = returnOrderProvider.deliver(returnOrderDeliverRequest);
-
+        log.info("ReturnOrderUpdateCallbackHandler handler 3、填写物流 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
+                , afterSalesOrder.getAftersaleId(), returnOrderId, JSON.toJSONString(deliver));
         return returnOrderId;
     }
 
