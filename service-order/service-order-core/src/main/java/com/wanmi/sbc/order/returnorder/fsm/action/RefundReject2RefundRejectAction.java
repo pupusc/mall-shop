@@ -22,7 +22,7 @@ public class RefundReject2RefundRejectAction extends ReturnAction {
     @Override
     protected void evaluateInternal(ReturnOrder returnOrder, ReturnStateRequest request, ReturnStateContext rsc) {
         Operator operator = rsc.findOperator();
-        returnOrder.setReturnFlowState(ReturnFlowState.AUDIT);
+        returnOrder.setReturnFlowState(ReturnFlowState.RECEIVED);
         returnOrder.setRejectReason(rsc.findRequestData());
         ReturnEventLog eventLog = ReturnEventLog.builder()
                 .operator(operator)
@@ -33,6 +33,6 @@ public class RefundReject2RefundRejectAction extends ReturnAction {
                 .build();
         returnOrder.appendReturnEventLog(eventLog);
         returnOrderService.updateReturnOrder(returnOrder);
-        super.operationLogMq.convertAndSend(operator, ReturnEvent.AUDIT.getDesc(), eventLog.getEventDetail());
+        super.operationLogMq.convertAndSend(operator, ReturnEvent.RECEIVE.getDesc(), eventLog.getEventDetail());
     }
 }
