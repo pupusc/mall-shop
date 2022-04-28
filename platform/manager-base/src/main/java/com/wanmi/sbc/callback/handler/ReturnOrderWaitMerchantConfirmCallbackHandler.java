@@ -118,12 +118,12 @@ public class ReturnOrderWaitMerchantConfirmCallbackHandler implements CallbackHa
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-        if (CollectionUtils.isEmpty(returnOrderList)) {
+        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
+        if (returnOrderVO == null) {
             log.error("ReturnOrderWaitMerchantConfirmCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
-        ReturnOrderVO returnOrderVO = returnOrderList.get(0);
         log.info("ReturnOrderWaitMerchantConfirmCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
         WxDetailAfterSaleResponse.ReturnInfo wxReturnLogistics = afterSalesOrder.getReturnInfo();
