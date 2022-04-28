@@ -482,6 +482,22 @@ public class RefundOrderService {
         updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.REFUSE);
     }
 
+    /**
+     * 扭转拒绝退款2审核成功
+     * @param id
+     * @param refuseReason
+     */
+    @Transactional
+    public void backRefuse(String id, String refuseReason) {
+        RefundOrder refundOrder = refundOrderRepository.findById(id).orElse(null);
+        if (Objects.isNull(refundOrder)) {
+            return;
+        }
+        refundOrder.setRefuseReason(refuseReason);
+        refundOrderRepository.saveAndFlush(refundOrder);
+        updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.TODO);
+    }
+
 
     /**
      * 合计退款金额

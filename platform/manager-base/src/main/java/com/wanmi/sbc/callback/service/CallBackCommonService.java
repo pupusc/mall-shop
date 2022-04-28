@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
@@ -166,5 +167,32 @@ public class CallBackCommonService {
         rr.setRefundPayDetail(new WxDetailAfterSaleResponse.RefundPayDetail());
 
         return rr;
+    }
+
+
+    /**
+     * 获取 有效的退单信息
+     * @param returnOrderVOList
+     * @return
+     */
+    public ReturnOrderVO getValidReturnOrderVo(List<ReturnOrderVO> returnOrderVOList) {
+        ReturnOrderVO returnOrderResult = null;
+        if (CollectionUtils.isEmpty(returnOrderVOList)) {
+            return returnOrderResult;
+        }
+
+        for (ReturnOrderVO returnOrderVO : returnOrderVOList) {
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.VOID) {
+                continue;
+            }
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
+                continue;
+            }
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
+                continue;
+            }
+            returnOrderResult = returnOrderVO;
+        }
+        return returnOrderResult;
     }
 }

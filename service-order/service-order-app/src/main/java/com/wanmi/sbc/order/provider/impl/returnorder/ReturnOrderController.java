@@ -389,4 +389,30 @@ public class ReturnOrderController implements ReturnOrderProvider {
     public BaseResponse updateReturnLogistics(ReturnOrderDeliverRequest request) {
         return returnOrderService.updateReturnLogistics(request.getRid(), KsBeanUtil.convert(request.getLogistics(), ReturnLogistics.class));
     }
+
+
+
+    /**
+     * 退单拒绝收货2 已发退货
+     *
+     * @param request 退单拒绝收货请求结构 {@link ReturnOrderRejectReceiveRequest}
+     * @return 操作结果 {@link BaseResponse}
+     */
+    @Override
+    public BaseResponse rejectReceive2Delivered(RejectRefund2DeliveredRequest request) {
+        returnOrderService.rejectReceive2Delivered(request.getRid(),  request.getOperator(), request.getReason());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 拒绝退换 2 审核通过
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse rejectRefund2Audit(RejectRefund2DeliveredRequest request){
+        returnOrderService.rejectRefund2Audit(request.getRid(), request.getReason(),  request.getOperator());
+        return BaseResponse.SUCCESSFUL();
+    }
 }

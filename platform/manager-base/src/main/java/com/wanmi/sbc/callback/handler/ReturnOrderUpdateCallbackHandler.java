@@ -20,6 +20,7 @@ import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
+import com.wanmi.sbc.order.api.request.returnorder.RejectRefund2DeliveredRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
@@ -34,6 +35,7 @@ import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnPriceDTO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
@@ -130,10 +132,10 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
 
         WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
-            log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 非创建售后状态，return", aftersaleId);
-            return CommonHandlerUtil.FAIL;
-        }
+//        if (AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()) != AfterSalesStateEnum.AFTER_SALES_STATE_TWO) {
+//            log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 非创建售后状态，return", aftersaleId);
+//            return CommonHandlerUtil.FAIL;
+//        }
 
         //根据视频号获取退单的详细信息
         ReturnOrderByConditionRequest returnOrderByConditionRequest = new ReturnOrderByConditionRequest();
@@ -141,12 +143,13 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
 //        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(returnOrderList)) {
+        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
+        if (returnOrderVO == null) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取退单为空,不能修改售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
-        ReturnOrderVO returnOrderVO = returnOrderList.get(0);
+
         log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
         //附件
@@ -164,9 +167,28 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
         ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
         ReturnOrderRemedyRequest.setOperator(operator);
-        BaseResponse remedy = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+        BaseResponse baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+
+        //todo
+        if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType()) && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
+            //此处售后 拒绝收获或者拒绝退款进行流转到 创建初始化
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
+                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("用户主动申请退货退款-退货");
+                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
+                baseResponse = returnOrderProvider.rejectReceive2Delivered(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
+                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("用户主动申请退货退款-退款");
+                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
+                baseResponse = returnOrderProvider.rejectRefund2Audit(request);
+            }
+        }
+
         log.info("ReturnOrderUpdateCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
-                returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(), JSON.toJSONString(remedy), System.currentTimeMillis() - beginTime);
+                returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(), JSON.toJSONString(baseResponse), System.currentTimeMillis() - beginTime);
         return CommonHandlerUtil.SUCCESS;
     }
 

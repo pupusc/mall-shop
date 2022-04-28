@@ -4992,4 +4992,131 @@ public class ReturnOrderService {
     }
 
 
+    /**
+     * 拒绝退货 转到 DELIVERED 已发退货
+     * @param rid
+     * @param operator
+     * @param reason
+     */
+    @GlobalTransactional
+    @Transactional
+    public void rejectReceive2Delivered(String rid, Operator operator, String reason) {
+        ReturnOrder returnOrder = this.findById(rid);
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
+            throw new SbcRuntimeException("K-050002");
+        }
+        ReturnStateRequest request = ReturnStateRequest
+                .builder()
+                .rid(rid)
+                .operator(operator)
+                .returnEvent(ReturnEvent.REVERSE_RETURN)
+                .data(reason)
+                .build();
+        returnFSMService.changeState(request);
+
+        ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
+                .addFlag(Boolean.TRUE)
+                .customerId(returnOrder.getBuyer().getId())
+                .orderId(returnOrder.getTid())
+                .returnId(rid)
+                .build();
+        returnOrderProducerService.returnOrderFlow(sendMQRequest);
+        log.info("ReturnOrderService rejectReceive 拒绝收货转化到买家已发货 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+
+        //扭转订单状态通知
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
+        }
+    }
+
+    /**
+     * 拒绝退款 2 审核成功  状态扭转
+     * @param rid
+     * @param reason
+     * @param operator
+     */
+    @Transactional
+    @GlobalTransactional
+    public void rejectRefund2Audit(String rid, String reason, Operator operator) {
+        ReturnOrder returnOrder = findById(rid);
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
+            throw new SbcRuntimeException("K-050002");
+        }
+
+        TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
+                (returnOrder.getTid(), returnOrder.getId())).getContext().getTradeStatus();
+        if (tradeStatus != null) {
+            if (tradeStatus == TradeStatus.SUCCEED) {
+                throw new SbcRuntimeException("K-100104");
+            } else if (tradeStatus == TradeStatus.PROCESSING) {
+                throw new SbcRuntimeException("K-100105");
+            }
+        }
+        //修改财务退款单状态
+        RefundOrder refundOrder = refundOrderService.findRefundOrderByReturnOrderNo(rid);
+        if (refundOrder.getRefundStatus().equals(RefundStatus.APPLY)) {
+            throw new SbcRuntimeException("K-050002");
+        }
+
+
+        refundOrderService.backRefuse(refundOrder.getRefundId(), reason);
+        //修改退单状态
+        ReturnStateRequest request = ReturnStateRequest
+                .builder()
+                .rid(rid)
+                .operator(operator)
+                .returnEvent(ReturnEvent.REVERSE_RETURN)
+                .data(reason)
+                .build();
+        returnFSMService.changeState(request);
+
+        // 拒绝退款时，发送MQ消息
+        ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
+                .addFlag(Boolean.TRUE)
+                .customerId(returnOrder.getBuyer().getId())
+                .orderId(returnOrder.getTid())
+                .returnId(rid)
+                .build();
+        returnOrderProducerService.returnOrderFlow(sendMQRequest);
+
+        //退款审核未通过发送MQ消息
+        log.info("ReturnOrderService rejectRefund2Audit 拒绝退款到审核成功  tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
+        }
+    }
+
+
 }
