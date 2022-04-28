@@ -9,6 +9,8 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.soybean.mall.order.enums.WxAfterSaleOperateType;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
@@ -2139,9 +2141,27 @@ public class ReturnOrderService {
             autoDeliver(returnOrderId, operator);
 
             //退货审核后不能拒绝，退款可以拒绝
-            WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-            Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
-            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, wxAfterSaleOperateType, "退单审核");
+
+            if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
+                WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+                wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+                BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+                WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+                if (context != null) {
+                    WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
+                    if (Objects.equals(afterSalesOrder.getType(), 2) ) {
+//                        WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
+//                        Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
+                        this.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.RETURN.getIndex(), "退单审核");
+                    }
+                }
+            }
+
+            if(Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.MINI_PROGRAM.getIndex())){
+                WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
+                this.addWxAfterSale(returnOrder,wxAfterSaleStatus, null, "小程序退单审核");
+            }
+
 
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
@@ -2378,11 +2398,35 @@ public class ReturnOrderService {
                 .build();
         returnFSMService.changeState(request);
 
+
 //        WxAfterSaleOperateType
 //        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
-        if (Platform.WX_VIDEO != operator.getPlatform()) {
-            wxOrderService.uploadReturnInfo(findById(rid));  //上传物流信息
+        ReturnOrder returnOrder = this.findById(rid);
+        if (returnOrder == null) {
+            throw new SbcRuntimeException("");
         }
+        if (Platform.WX_VIDEO != operator.getPlatform()) {
+            wxOrderService.uploadReturnInfo(returnOrder);  //上传物流信息
+        } else {
+
+            if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
+                WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+                wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+                BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+                WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+                if (context != null) {
+                    WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
+                    //表示退货退款
+                    if (Objects.equals(afterSalesOrder.getType(), 2) ) {
+//                        WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
+//                        Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
+                        wxOrderService.uploadReturnInfo(returnOrder);  //上传物流信息
+                    }
+                }
+            }
+
+        }
+
     }
 
 
