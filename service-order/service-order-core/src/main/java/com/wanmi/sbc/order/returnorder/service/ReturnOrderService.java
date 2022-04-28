@@ -1253,14 +1253,17 @@ public class ReturnOrderService {
 
             //判断是否要有商品
             if (returnOrder.getReturnReason() == null || !returnOrder.getReturnReason().getType().equals(ReturnReason.PRICE_DELIVERY.getType())) {
-                //虚拟商品自动审核
-                if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
-                    audit(returnOrderId, operator, null);
-                }
+                //视频号订单不进行自动审核
+                if (ChannelType.MINIAPP != trade.getChannelType() && !Objects.equals(MiniProgramSceneType.WECHAT_VIDEO.getIndex(), trade.getMiniProgramScene())) {
+                    //虚拟商品自动审核
+                    if (virtualFlag || (auditFlag && (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER))) {
+                        audit(returnOrderId, operator, null);
+                    }
 
-                // 虚拟自动收货
-                if (virtualFlag) {
-                    receive(returnOrderId, operator);
+                    // 虚拟自动收货
+                    if (virtualFlag) {
+                        receive(returnOrderId, operator);
+                    }
                 }
             }
             ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
@@ -2428,20 +2431,20 @@ public class ReturnOrderService {
             trade.setRefundFlag(true);
             tradeService.updateTrade(trade);
         } else {
-//            //视频号的订单如果 拒绝退款不进行作废处理
-//            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
-//                    && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
-//                return;
-//            } else {
-//                //判断是否全量退货完成
-//                if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
-//                    //作废主订单
-//                    tradeService.voidTrade(returnOrder.getTid(), operator);
-//                    trade = tradeService.detail(returnOrder.getTid());
-//                    trade.setRefundFlag(true);
-//                    tradeService.updateTrade(trade);
-//                }
-//            }
+            //视频号的订单如果 拒绝退款不进行作废处理
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
+                    && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                return;
+            } else {
+                //判断是否全量退货完成
+                if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
+                    //作废主订单
+                    tradeService.voidTrade(returnOrder.getTid(), operator);
+                    trade = tradeService.detail(returnOrder.getTid());
+                    trade.setRefundFlag(true);
+                    tradeService.updateTrade(trade);
+                }
+            }
         }
     }
 
