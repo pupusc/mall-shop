@@ -13,6 +13,7 @@ import com.wanmi.sbc.callback.service.CallBackCommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
+import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.api.provider.payorder.PayOrderQueryProvider;
@@ -22,8 +23,11 @@ import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.returnorder.RejectRefund2DeliveredRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAuditRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderDeliverRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderReceiveRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRemedyRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.response.payorder.FindPayOrderResponse;
@@ -37,6 +41,8 @@ import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
 import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.enums.ReturnWay;
+import com.wanmi.sbc.order.bean.vo.ReturnItemVO;
+import com.wanmi.sbc.order.bean.vo.ReturnLogisticsVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -49,6 +55,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,11 +150,14 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-//        returnOrderList = returnOrderList.stream().filter(returnOrderVO -> returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT).collect(Collectors.toList());
-        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
-        if (returnOrderVO == null) {
+
+        if (CollectionUtils.isEmpty(returnOrderList)) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取退单为空,不能修改售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
+        }
+        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
+        if (returnOrderVO == null) {
+            returnOrderVO = returnOrderList.get(0);
         }
 
 
@@ -171,19 +182,28 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         //todo
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType()) && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
-            //此处售后 拒绝收获或者拒绝退款进行流转到 创建初始化
+
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
-                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
-                request.setRid(returnOrderVO.getId());
-                request.setReason("用户主动申请退货退款-退货");
-                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
-                baseResponse = returnOrderProvider.rejectReceive2Delivered(request);
+//                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
+//                request.setRid(returnOrderVO.getId());
+//                request.setReason("用户主动申请退货退款-退货");
+//                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
+//                baseResponse = returnOrderProvider.rejectReceive2Delivered(request);
+                this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
+
             } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
-                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
-                request.setRid(returnOrderVO.getId());
-                request.setReason("用户主动申请退货退款-退款");
-                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
-                baseResponse = returnOrderProvider.rejectRefund2Audit(request);
+//                RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
+//                request.setRid(returnOrderVO.getId());
+//                request.setReason("用户主动申请退货退款-退款");
+//                request.setOperator(callBackCommonService.packOperator(returnOrderVO));
+//                baseResponse = returnOrderProvider.rejectRefund2Audit(request);
+
+                String returnOrderId = this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
+//              5、同意退货、要带id
+                ReturnOrderReceiveRequest returnOrderReceiveRequest = new ReturnOrderReceiveRequest();
+                returnOrderReceiveRequest.setOperator(operator);
+                returnOrderReceiveRequest.setRid(returnOrderId);
+                BaseResponse receive = returnOrderProvider.receive(returnOrderReceiveRequest);
             }
         }
 
@@ -192,4 +212,149 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         return CommonHandlerUtil.SUCCESS;
     }
 
+
+    /**
+     * 到指定的状态
+     * @param returnOrderVO
+     * @param afterSalesOrder
+     * @param operator
+     */
+    private String package2DirectStatus(ReturnOrderVO returnOrderVO, WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder, Operator operator) {
+        //此处售后 拒绝收获或者拒绝退款进行流转到 创建初始化
+
+//            1、用户申请、要带id
+        String returnOrderId = this.createReturnOrder(returnOrderVO, afterSalesOrder);
+
+
+//            2、用户审核、要带id
+        ReturnOrderAuditRequest request = new ReturnOrderAuditRequest();
+        request.setOperator(operator);
+        request.setRid(returnOrderId);
+        BaseResponse audit = returnOrderProvider.audit(request);
+
+
+//            3、填写物流、要带id
+        ReturnOrderDeliverRequest returnOrderDeliverRequest = new ReturnOrderDeliverRequest();
+        returnOrderDeliverRequest.setRid(returnOrderId);
+        ReturnLogisticsVO returnLogistics = returnOrderVO.getReturnLogistics();
+        if (returnLogistics != null) {
+            returnOrderDeliverRequest.setLogistics(callBackCommonService.packReturnLogistics(returnLogistics));
+        }
+        returnOrderDeliverRequest.setOperator(operator);
+        BaseResponse deliver = returnOrderProvider.deliver(returnOrderDeliverRequest);
+
+        return returnOrderId;
+    }
+
+
+    /**
+     * 退单转化售后订单
+     * @param returnOrderVO
+     * @param afterSalesOrder
+     * @return
+     */
+    private String createReturnOrder(ReturnOrderVO returnOrderVO, WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder) {
+
+        List<ReturnItemVO> returnItems = returnOrderVO.getReturnItems();
+        if (CollectionUtils.isEmpty(returnItems) || returnItems.size() > 1) {
+            log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 订单中的商品只能为单个商品 return", afterSalesOrder.getAftersaleId());
+            return "";
+        }
+        ReturnItemVO returnItemVO = returnItems.get(0);
+
+        ReturnOrderDTO returnOrderDTO = new ReturnOrderDTO();
+        returnOrderDTO.setTid(returnOrderVO.getTid());
+        returnOrderDTO.setAftersaleId(afterSalesOrder.getAftersaleId().toString());
+        returnOrderDTO.setReturnReason(callBackCommonService.wxReturnReason2ReturnReasonType(afterSalesOrder));
+        returnOrderDTO.setDescription(callBackCommonService.wxReturnReasonType2ReturnReasonStr(afterSalesOrder));
+        //附件
+        if (!CollectionUtils.isEmpty(afterSalesOrder.getMediaList())) {
+            returnOrderDTO.setImages(callBackCommonService.appendix(afterSalesOrder.getMediaList()));
+        }
+
+
+        //物流信息
+        ReturnLogisticsVO returnLogistics = returnOrderVO.getReturnLogistics();
+        if (returnLogistics != null) {
+            returnOrderDTO.setReturnLogistics(callBackCommonService.packReturnLogistics(returnLogistics));
+        }
+
+        returnOrderDTO.setReturnWay(returnOrderVO.getReturnWay());
+        returnOrderDTO.setReturnType(returnOrderVO.getReturnType());
+        returnOrderDTO.setTerminalSource(TerminalSource.MINIPROGRAM);
+
+        ReturnPriceDTO returnPrice = new ReturnPriceDTO();
+        returnPrice.setApplyPrice(returnOrderVO.getReturnPrice().getApplyPrice());
+        returnPrice.setTotalPrice(returnOrderVO.getReturnPrice().getTotalPrice());
+        returnPrice.setApplyStatus(false);
+        returnOrderDTO.setReturnPrice(returnPrice);
+
+        CompanyDTO company = new CompanyDTO();
+        company.setCompanyInfoId(returnOrderVO.getCompany().getCompanyInfoId());
+        company.setSupplierName(returnOrderVO.getCompany().getSupplierName());
+        company.setCompanyCode(returnOrderVO.getCompany().getCompanyCode());
+        company.setAccountName(returnOrderVO.getCompany().getAccountName());
+        company.setStoreId(returnOrderVO.getCompany().getStoreId());
+        company.setStoreName(returnOrderVO.getCompany().getStoreName());
+        company.setCompanyType(returnOrderVO.getCompany().getCompanyType());
+        returnOrderDTO.setCompany(company);
+
+        returnOrderDTO.setChannelType(returnOrderVO.getChannelType());
+//        returnOrderDTO.setPlatform(Platform.WX_VIDEO);
+
+
+        Operator operator = new Operator();
+        operator.setPlatform(Platform.WX_VIDEO);
+        operator.setUserId(returnOrderVO.getBuyer().getId());
+        operator.setName(returnOrderVO.getBuyer().getName());
+        operator.setStoreId(returnOrderVO.getCompany().getStoreId() == null ? "" : returnOrderVO.getCompany().getStoreId().toString());
+        operator.setIp("127.0.0.1");
+        operator.setAccount(returnOrderVO.getBuyer().getAccount());
+        operator.setCompanyInfoId(returnOrderVO.getCompany().getCompanyInfoId());
+
+
+
+        returnOrderDTO.setReturnItems(Collections.singletonList(this.packageTradeItem(returnItemVO)));
+        return returnOrderProvider.add(ReturnOrderAddRequest.builder().returnOrder(returnOrderDTO).operator(operator).build()).getContext().getReturnOrderId();
+    }
+
+
+
+    /**
+     * 打包tradeItem
+     * @param returnItem
+     * @return
+     */
+    private ReturnItemDTO packageTradeItem(ReturnItemVO returnItem) {
+        ReturnItemDTO returnItemDTO = new ReturnItemDTO();
+        returnItemDTO.setApplyRealPrice(returnItem.getApplyRealPrice());
+        returnItemDTO.setApplyKnowledge(returnItem.getApplyKnowledge());
+        returnItemDTO.setApplyPoint(returnItem.getApplyPoint() == null ? 0L : returnItem.getApplyPoint());
+        returnItemDTO.setBuyPoint(returnItem.getBuyPoint());
+        returnItemDTO.setCanReturnNum(returnItem.getCanReturnNum());
+        returnItemDTO.setNum(returnItem.getNum().intValue());
+        returnItemDTO.setSkuId(returnItem.getSkuId());
+        returnItemDTO.setSkuName(returnItem.getSkuName());
+        returnItemDTO.setSkuNo(returnItem.getSkuNo());
+        returnItemDTO.setSpecDetails(returnItem.getSpecDetails());
+        returnItemDTO.setPrice(returnItem.getPrice());
+        returnItemDTO.setSplitPrice(returnItem.getSplitPrice());
+        returnItemDTO.setSupplyPrice(returnItem.getSupplyPrice());
+//            returnItemDTO.setProviderPrice(tradeItem.getPro);
+//            returnItemDTO.setOrderSplitPrice(tradeItem.getord);
+        returnItemDTO.setNum(returnItem.getNum());
+        returnItemDTO.setPic(returnItem.getPic());
+        returnItemDTO.setUnit(returnItem.getUnit());
+        returnItemDTO.setGoodsType(returnItem.getGoodsType());
+
+
+//            returnItemDTO.setThirdPlatformSpuId(tradeItem.getThirdPlatformSpuId());
+//            returnItemDTO.setThirdPlatformSkuId(tradeItem.getThirdPlatformSkuId());
+        returnItemDTO.setGoodsSource(returnItem.getGoodsSource());
+//            returnItemDTO.setThirdPlatformType(tradeItem.getThirdPlatformType());
+//            returnItemDTO.setThirdPlatformSubOrderId(tradeItem.getThirdPlatformSubOrderId());
+        returnItemDTO.setProviderId(returnItem.getProviderId());
+//            returnItemDTO.setSplitPoint(tradeItem.get);
+        return returnItemDTO;
+    }
 }

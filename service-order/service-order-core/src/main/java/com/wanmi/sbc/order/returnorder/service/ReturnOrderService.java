@@ -2134,13 +2134,14 @@ public class ReturnOrderService {
             returnFSMService.changeState(request);
             //自动发货
             autoDeliver(returnOrderId, operator);
-//            if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
-            //退货审核后不能拒绝，退款可以拒绝
-            WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-            Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
-            this.addWxAfterSale(returnOrder,wxAfterSaleStatus, wxAfterSaleOperateType, "退单审核");
 
-//            }
+            //退货审核后不能拒绝，退款可以拒绝
+            if (Platform.WX_VIDEO != operator.getPlatform()) {
+                WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
+                Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
+                this.addWxAfterSale(returnOrder,wxAfterSaleStatus, wxAfterSaleOperateType, "退单审核");
+            }
+
             log.info("ReturnOrderService audit 审核订单 tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
             if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
                     || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
@@ -2418,7 +2419,9 @@ public class ReturnOrderService {
             // 更新子单状态
             updateProviderTrade(returnOrder);
         }
-        this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING,null, "收货");
+        if (Platform.WX_VIDEO != operator.getPlatform()) {
+            this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REFUNDING,null, "收货");
+        }
         Trade trade = tradeService.detail(returnOrder.getTid());
 
         //周期购订单部分发货退货退款
