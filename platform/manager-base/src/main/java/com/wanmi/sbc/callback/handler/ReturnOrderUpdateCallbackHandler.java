@@ -177,16 +177,42 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         try {
             //修改售后订单
-            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
-            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
-            ReturnOrderRemedyRequest.setOperator(operator);
-            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+//            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
+//            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
+//            ReturnOrderRemedyRequest.setOperator(operator);
+//            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+//            更新物流信息
+
+            WxDetailAfterSaleResponse.ReturnInfo returnInfo = afterSalesOrder.getReturnInfo();
+            if (returnInfo != null) {
+                ReturnOrderDeliverRequest returnOrderDeliverRequest = new ReturnOrderDeliverRequest();
+                returnOrderDeliverRequest.setRid(returnOrderVO.getId());
+                returnOrderDeliverRequest.setOperator(operator);
+                ReturnLogisticsDTO returnLogisticsDTO = new ReturnLogisticsDTO();
+                if (StringUtils.isNotBlank(returnInfo.getDeliveryName())) {
+                    returnLogisticsDTO.setCompany(returnInfo.getDeliveryName());
+                }
+                if (StringUtils.isNotBlank(returnInfo.getDeliveryId())) {
+                    returnLogisticsDTO.setCode(returnInfo.getDeliveryId());
+                }
+                if (StringUtils.isNotBlank(returnInfo.getWaybillId())) {
+                    returnLogisticsDTO.setNo(returnInfo.getWaybillId());
+                }
+                if (returnInfo.getOrderReturnTime() != null) {
+                    Instant instant = Instant.ofEpochMilli(returnInfo.getOrderReturnTime());
+                    returnLogisticsDTO.setCreateTime(LocalDateTime.ofInstant(instant, ZoneId.systemDefault()));
+                }
+                returnOrderDeliverRequest.setLogistics(returnLogisticsDTO);
+                baseResponse = returnOrderProvider.updateReturnLogistics(returnOrderDeliverRequest);
+            }
         } catch (Exception ex) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改提示内容信息异常", aftersaleId, ex);
         }
 
         //todo
-        if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType()) && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
+        if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType())
+                && (Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
+                    || Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus())))) {
 
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
