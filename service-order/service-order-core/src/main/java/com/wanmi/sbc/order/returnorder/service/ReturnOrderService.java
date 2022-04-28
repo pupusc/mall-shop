@@ -2429,13 +2429,19 @@ public class ReturnOrderService {
             trade.setRefundFlag(true);
             tradeService.updateTrade(trade);
         } else {
-            //判断是否全量退货完成
-            if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
-                //作废主订单
-                tradeService.voidTrade(returnOrder.getTid(), operator);
-                trade = tradeService.detail(returnOrder.getTid());
-                trade.setRefundFlag(true);
-                tradeService.updateTrade(trade);
+            //视频号的订单如果 拒绝退款不进行作废处理
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
+                    && Objects.equals(returnOrder.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                return;
+            } else {
+                //判断是否全量退货完成
+                if (isReturnFull(returnOrder) && providerTradeAllVoid(returnOrder)) {
+                    //作废主订单
+                    tradeService.voidTrade(returnOrder.getTid(), operator);
+                    trade = tradeService.detail(returnOrder.getTid());
+                    trade.setRefundFlag(true);
+                    tradeService.updateTrade(trade);
+                }
             }
         }
     }
@@ -5003,7 +5009,10 @@ public class ReturnOrderService {
     public void rejectReceive2Delivered(String rid, Operator operator, String reason) {
         ReturnOrder returnOrder = this.findById(rid);
         if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_RECEIVE) {
-            throw new SbcRuntimeException("K-050002");
+            throw new SbcRuntimeException("K-050464");
+        }
+        if (returnOrder.getReturnType() != ReturnType.RETURN) {
+            throw new SbcRuntimeException("K-050465");
         }
         ReturnStateRequest request = ReturnStateRequest
                 .builder()
@@ -5056,7 +5065,10 @@ public class ReturnOrderService {
     public void rejectRefund2Audit(String rid, String reason, Operator operator) {
         ReturnOrder returnOrder = findById(rid);
         if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
-            throw new SbcRuntimeException("K-050002");
+            throw new SbcRuntimeException("K-050464");
+        }
+        if (returnOrder.getReturnType() != ReturnType.RETURN) {
+            throw new SbcRuntimeException("K-050465");
         }
 
         TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
