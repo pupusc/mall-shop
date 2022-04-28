@@ -4,8 +4,10 @@ import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.returnorder.fsm.Builder;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundReject2RefundRejectAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RejectReceive2DeliveredAction;
+import com.wanmi.sbc.order.returnorder.fsm.action.RemedyReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
+import com.wanmi.sbc.order.trade.fsm.action.RemedyAction;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
@@ -31,6 +33,9 @@ public class RejectRefundReturnBuilder implements Builder {
     @Autowired
     private RefundReject2RefundRejectAction refundReject2RefundRejectAction;
 
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
+
     @Override
     public ReturnFlowState supportState() {
         return ReturnFlowState.REJECT_REFUND;
@@ -54,6 +59,12 @@ public class RejectRefundReturnBuilder implements Builder {
                 .source(ReturnFlowState.REJECT_REFUND).target(ReturnFlowState.DELIVERED)
                 .event(ReturnEvent.REVERSE_RETURN)  //扭转退货退单状态
                 .action(refundReject2RefundRejectAction)
+
+                .and()
+                .withExternal()
+                .source(ReturnFlowState.REJECT_REFUND)
+                .event(ReturnEvent.REMEDY)
+                .action(remedyReturnAction)
         ;
 
         return builder.build();

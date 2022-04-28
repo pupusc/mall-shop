@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.returnorder.fsm.builder;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.returnorder.fsm.Builder;
 import com.wanmi.sbc.order.returnorder.fsm.action.RejectReceive2DeliveredAction;
+import com.wanmi.sbc.order.returnorder.fsm.action.RemedyReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import org.springframework.beans.factory.BeanFactory;
@@ -30,6 +31,9 @@ public class RejectReceiveReturnBuilder implements Builder {
     @Autowired
     private RejectReceive2DeliveredAction rejectReceive2DeliveredAction;
 
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
+
     @Override
     public ReturnFlowState supportState() {
         return ReturnFlowState.REJECT_RECEIVE;
@@ -53,6 +57,12 @@ public class RejectReceiveReturnBuilder implements Builder {
                 .source(ReturnFlowState.REJECT_RECEIVE).target(ReturnFlowState.DELIVERED)
                 .event(ReturnEvent.REVERSE_RETURN)  //扭转退货退单状态
                 .action(rejectReceive2DeliveredAction)
+
+                .and()
+                .withExternal()
+                .source(ReturnFlowState.REJECT_RECEIVE)
+                .event(ReturnEvent.REMEDY)
+                .action(remedyReturnAction)
         ;
 
         return builder.build();

@@ -173,12 +173,17 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
 
+        BaseResponse baseResponse = null;
 
-        //修改售后订单
-        ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
-        ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
-        ReturnOrderRemedyRequest.setOperator(operator);
-        BaseResponse baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+        try {
+            //修改售后订单
+            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
+            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
+            ReturnOrderRemedyRequest.setOperator(operator);
+            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+        } catch (Exception ex) {
+            log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改提示内容信息异常", aftersaleId, ex);
+        }
 
         //todo
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType()) && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
