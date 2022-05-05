@@ -71,11 +71,11 @@ public class AuditReturnBuilder implements Builder {
                 .action(refundReturnAction)
                 .and()
 
-//                .withExternal()
-//                .source(ReturnFlowState.AUDIT).target(ReturnFlowState.VOID)
-//                .event(ReturnEvent.VOID)
-//                .action(cancelReturnAction)
-//                .and()
+                .withExternal()
+                .source(ReturnFlowState.AUDIT).target(ReturnFlowState.VOID)
+                .event(ReturnEvent.VOID)
+                .action(cancelReturnAction)
+                .and()
 
                 .withExternal()
                 .source(ReturnFlowState.AUDIT).target(ReturnFlowState.REJECT_REFUND)

@@ -415,4 +415,16 @@ public class ReturnOrderController implements ReturnOrderProvider {
         returnOrderService.rejectRefund2Audit(request.getRid(), request.getReason(),  request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
+
+
+    /**
+     * 审核通过 2 作废
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse audit2Void(Audit2VoidRequest request){
+        returnOrderService.audit2Void(request.getRid(), request.getReason(),  request.getOperator());
+        return BaseResponse.SUCCESSFUL();
+    }
 }

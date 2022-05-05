@@ -5154,4 +5154,54 @@ public class ReturnOrderService {
     }
 
 
+    /**
+     * 状态扭转，审核状态到作废状态
+     * @param rid
+     * @param reason
+     * @param operator
+     */
+    public void audit2Void(String rid, String reason, Operator operator) {
+        ReturnOrder returnOrder = findById(rid);
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
+            throw new SbcRuntimeException("K-050464");
+        }
+        if (returnOrder.getReturnType() != ReturnType.RETURN) {
+            throw new SbcRuntimeException("K-050465");
+        }
+
+        //修改退单状态
+        ReturnStateRequest request = ReturnStateRequest
+                .builder()
+                .rid(rid)
+                .operator(operator)
+                .returnEvent(ReturnEvent.VOID)
+                .data(reason)
+                .build();
+        returnFSMService.changeState(request);
+
+
+        //退款审核未通过发送MQ消息
+        log.info("ReturnOrderService audit2Void 审核成功到作废  tid:{}, pid:{} 原因是：{}", returnOrder.getTid(), returnOrder.getPtid(), returnOrder.getReturnReason());
+        if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())
+                || CollectionUtils.isNotEmpty(returnOrder.getReturnGifts())) {
+            List<String> params;
+            String pic;
+            if (CollectionUtils.isNotEmpty(returnOrder.getReturnItems())) {
+                params = Lists.newArrayList(returnOrder.getReturnItems().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnItems().get(0).getPic();
+            } else {
+                params = Lists.newArrayList(returnOrder.getReturnGifts().get(0).getSkuName(), reason);
+                pic = returnOrder.getReturnGifts().get(0).getPic();
+            }
+            this.sendNoticeMessage(NodeType.RETURN_ORDER_PROGRESS_RATE,
+                    ReturnOrderProcessType.AFTER_SALE_ORDER_CHECK_PASS,
+                    params,
+                    returnOrder.getId(),
+                    returnOrder.getBuyer().getId(),
+                    pic,
+                    returnOrder.getBuyer().getAccount());
+        }
+    }
+
+
 }
