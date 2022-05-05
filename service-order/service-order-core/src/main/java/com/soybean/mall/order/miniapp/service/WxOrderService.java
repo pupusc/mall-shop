@@ -488,7 +488,7 @@ public class WxOrderService {
         String aftersaleId = null;
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
         request.setOutOrderId(returnOrder.getTid());
-//        request.setOutAftersaleId(returnOrder.getId());
+        request.setOutAftersaleId(returnOrder.getId());
         request.setOpenid(returnOrder.getBuyer().getOpenId());
         request.setType(Objects.equals(ReturnType.RETURN, returnOrder.getReturnType()) ? 2 : 1);
         request.setRefundReason(returnOrder.getDescription());
