@@ -1208,7 +1208,13 @@ public class ReturnOrderService {
 //            }
 
             //视频号判断逻辑
-//            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                for (ReturnOrder returnOrderParam : returnOrderList) {
+                    //表示申请有现金
+                    if (Objects.equals(returnOrderParam.getReturnType(), ReturnType.RETURN) && returnOrderParam.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
+                        throw new SbcRuntimeException("K-050419");
+                    }
+                }
 //                if (returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) <= 0) {
 //                    throw new SbcRuntimeException("K-050419");
 //                }
@@ -1225,7 +1231,7 @@ public class ReturnOrderService {
 //                    }
 //
 //                }
-//            }
+            }
 
             //先取消之前的售后单
             String aftersaleId = "";
