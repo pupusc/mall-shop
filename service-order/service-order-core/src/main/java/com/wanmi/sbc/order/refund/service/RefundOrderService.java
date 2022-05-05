@@ -856,7 +856,9 @@ public class RefundOrderService {
                         returnOrderService.refundFailed(refundOrderRefundRequest);
                     }
                     log.error("refund error,", e);
-                    //throw e;
+                    if (e.getErrorCode() != null && (e.getErrorCode().equals("K-050425") || (e.getErrorCode().equals("K-050421")))) {
+                        throw e;
+                    }
                 }
             }
         }

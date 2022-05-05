@@ -427,6 +427,12 @@ public class ReturnOrderController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    /**
+     * 退货退款 拒绝收货
+     * @param rid
+     * @param request
+     * @return
+     */
     @ApiOperation(value = "退单拒绝收货")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/receive/{rid}/reject", method = RequestMethod.POST)
