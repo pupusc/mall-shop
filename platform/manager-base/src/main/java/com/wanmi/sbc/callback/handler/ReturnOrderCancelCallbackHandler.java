@@ -30,6 +30,7 @@ import com.wanmi.sbc.order.api.request.returnorder.RefundRejectRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectReceiveRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectRefundRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
@@ -173,14 +174,14 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 //1、做标记、2作废
                 RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
                 refundRejectRequest.setRid(returnOrderVO.getId());
-                refundRejectRequest.setReturnReanson("用户强制取消");
+                refundRejectRequest.setReturnReanson("退款用户强制取消");
                 refundRejectRequest.setForceReject(1);
                 baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
 
-            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.TODO) {
                 ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
                 returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
-                returnOrderRejectRefundRequest.setReason("用户主动取消");
+                returnOrderRejectRefundRequest.setReason("退款用户主动取消");
                 returnOrderRejectRefundRequest.setOperator(operator);
                 baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
             } else {
@@ -194,7 +195,6 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 returnOrderCancelRequest.setRid(returnOrderVO.getId());
                 returnOrderCancelRequest.setRemark("用户取消");
                 returnOrderCancelRequest.setOperator(operator);
-//                returnOrderCancelRequest.setMessageSource(true);
                 baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
             } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
                 Audit2VoidRequest request = new Audit2VoidRequest();
@@ -202,6 +202,14 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 request.setReason("用户主动取消");
                 request.setOperator(operator);
                 baseResponse = returnOrderProvider.audit2Void(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED ) {
+                ReturnOrderRejectReceiveRequest request = new ReturnOrderRejectReceiveRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("退货的时候用户主动取消");
+                request.setOperator(operator);
+                baseResponse = returnOrderProvider.rejectReceive(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED) {
+
             }
         }
 
