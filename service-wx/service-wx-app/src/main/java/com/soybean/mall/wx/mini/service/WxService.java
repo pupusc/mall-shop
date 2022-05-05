@@ -302,7 +302,7 @@ public class WxService {
     }
 
     /**
-     * 生成售后单-新版
+     * 视频号-生成售后单-新版
      */
     public WxCreateNewAfterSaleResponse createNewAfterSale(WxCreateNewAfterSaleRequest wxCreateNewAfterSaleRequest){
         String url = AFTER_SALE_CREATE_URL.concat("?access_token=").concat(getAccessToken());
@@ -342,7 +342,7 @@ public class WxService {
     }
 
     /**
-     * 售后单-取消售后🤮
+     * 视频号-售后单-取消售后🤮
      */
     public WxResponseBase cancelAfterSale(WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest){
         String url = AFTER_SALE_CANCEL_URL.concat("?access_token=").concat(getAccessToken());

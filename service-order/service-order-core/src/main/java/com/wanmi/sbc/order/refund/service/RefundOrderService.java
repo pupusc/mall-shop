@@ -815,7 +815,7 @@ public class RefundOrderService {
                         returnOrderService.refundOnline(returnOrder, refundOrder, operator);
                     } else if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())){
                         //视频号订单直接调同意退款接口
-                        returnOrderService.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.REFUND.getIndex(), "运营退款");
+                        returnOrderService.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.REFUND, "运营退款");
                     }else {
                         BigDecimal totalPrice =
                                 payQueryProvider.getTradeRecordByOrderCode(new TradeRecordByOrderCodeRequest(refundRequest.getBusinessId()))

@@ -1213,24 +1213,21 @@ public class ReturnOrderService {
                     throw new SbcRuntimeException("K-050419");
                 }
 
-                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1));
-
-                for (ReturnOrder returnOrderParam : returnOrderList) {
-                    if (returnOrderParam.getInterrupt() == null || !returnOrderParam.getInterrupt()) {
-                        continue;
-                    }
-
-                    for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
-                        if (skuId2ReturnItemMap.get(returnItemParam.getSkuId()) != null) {
-                            throw new SbcRuntimeException("K-050420");
-                        }
-                    }
-
-                }
+//                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1));
+//                for (ReturnOrder returnOrderParam : returnOrderList) {
+//                    if (returnOrderParam.getInterrupt() == null || !returnOrderParam.getInterrupt()) {
+//                        continue;
+//                    }
+//                    for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
+//                        if (skuId2ReturnItemMap.get(returnItemParam.getSkuId()) != null) {
+//                            throw new SbcRuntimeException("K-050420");
+//                        }
+//                    }
+//
+//                }
             }
 
             //先取消之前的售后单
-//            wxOrderService.cancelAfterSaleByOrderId(trade.getId(),newReturnOrder);
             String aftersaleId = "";
             if (StringUtils.isBlank(newReturnOrder.getAftersaleId())) {
                 aftersaleId = wxOrderService.addEcAfterSale(newReturnOrder);
@@ -2150,9 +2147,7 @@ public class ReturnOrderService {
                 if (context != null) {
                     WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
                     if (Objects.equals(afterSalesOrder.getType(), 2) ) {
-//                        WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-//                        Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
-                        this.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.RETURN.getIndex(), "退单审核");
+                        this.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.RETURN, "退单审核");
                     }
                 }
             }
@@ -2403,20 +2398,8 @@ public class ReturnOrderService {
 //        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
         ReturnOrder returnOrder = this.findById(rid);
 
-        if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
-            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
-            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
-            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
-            WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
-            if (context != null) {
-                WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-                //表示退货退款
-                if (Objects.equals(afterSalesOrder.getType(), 2)  && Platform.WX_VIDEO != operator.getPlatform()) {
-//                        WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.WAIT_RETURN : WxAfterSaleStatus.REFUNDING;
-//                        Integer wxAfterSaleOperateType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.RETURN.getIndex() : null;
-                    wxOrderService.uploadReturnInfo(returnOrder);  //上传物流信息
-                }
-            }
+        if (Platform.WX_VIDEO != operator.getPlatform()) {
+            wxOrderService.uploadReturnInfo(returnOrder);  //上传物流信息
         }
 
     }
@@ -2561,8 +2544,10 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
         // 拒绝退单时，发送MQ消息
         ReturnOrder returnOrder = this.findById(rid);
-        Integer wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT.getIndex() : WxAfterSaleOperateType.CANCEL.getIndex();
+        WxAfterSaleOperateType wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT : WxAfterSaleOperateType.CANCEL;
+
         this.addWxAfterSale(returnOrder,WxAfterSaleStatus.REJECT_RETURN, wxAfterSaleType, "拒绝收货");
+
         ReturnOrderSendMQRequest sendMQRequest = ReturnOrderSendMQRequest.builder()
                 .addFlag(Boolean.FALSE)
                 .customerId(returnOrder.getBuyer().getId())
@@ -3451,7 +3436,7 @@ public class ReturnOrderService {
      */
     @Transactional
     @GlobalTransactional
-    public void refundReject(String rid, String reason, Operator operator, Boolean messageSource) {
+    public void refundReject(String rid, String reason, Operator operator) {
         ReturnOrder returnOrder = findById(rid);
         TradeStatus tradeStatus = payQueryProvider.getRefundResponseByOrdercode(new RefundResultByOrdercodeRequest
                 (returnOrder.getTid(), returnOrder.getId())).getContext().getTradeStatus();
@@ -3479,7 +3464,7 @@ public class ReturnOrderService {
         returnFSMService.changeState(request);
         if (Platform.WX_VIDEO != operator.getPlatform()) {
             WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.REJECT_RETURN : WxAfterSaleStatus.REJECT_REFUND;
-            Integer wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT.getIndex() : WxAfterSaleOperateType.CANCEL.getIndex();
+            WxAfterSaleOperateType wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT : WxAfterSaleOperateType.CANCEL;
             this.addWxAfterSale(returnOrder, wxAfterSaleStatus, wxAfterSaleType, "拒绝退款");
 
         }
@@ -3551,7 +3536,7 @@ public class ReturnOrderService {
                     .build();
             returnFSMService.changeState(request);
             WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND;
-            Integer wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT.getIndex() : WxAfterSaleOperateType.CANCEL.getIndex();
+            WxAfterSaleOperateType wxAfterSaleType = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleOperateType.REJECT : WxAfterSaleOperateType.CANCEL;
             this.addWxAfterSale(returnOrder, wxAfterSaleStatus,wxAfterSaleType , "拒绝退款");
         });
     }
@@ -3606,8 +3591,8 @@ public class ReturnOrderService {
                 .build();
         returnOrderProducerService.returnOrderFlow(sendMQRequest);
         if (Platform.WX_VIDEO != operator.getPlatform()) {
-            WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN)?WxAfterSaleStatus.REJECT_RETURN:WxAfterSaleStatus.REJECT_REFUND;
-            this.addWxAfterSale(returnOrder, wxAfterSaleStatus, WxAfterSaleOperateType.CANCEL.getIndex(), "驳回");
+            WxAfterSaleStatus wxAfterSaleStatus = Objects.equals(returnOrder.getReturnType(),ReturnType.RETURN) ? WxAfterSaleStatus.REJECT_RETURN : WxAfterSaleStatus.REJECT_REFUND;
+            this.addWxAfterSale(returnOrder, wxAfterSaleStatus, WxAfterSaleOperateType.CANCEL, "取消");
         }
         //售后审核未通过发送MQ消息
         log.info("ReturnOrderService cancel 驳回订单 rid:{} 原因是：{}", rid, returnOrder.getReturnReason());
@@ -4940,7 +4925,7 @@ public class ReturnOrderService {
      * 微信退款单-小程序场景
      * @param returnOrder
      */
-    public void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status,Integer operateType, String desc){
+    public void addWxAfterSale(ReturnOrder returnOrder, WxAfterSaleStatus status,WxAfterSaleOperateType saleOperateType, String desc){
         if(!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)){
             return;
         }
@@ -4971,25 +4956,25 @@ public class ReturnOrderService {
             }catch (Exception e){
                 log.error("微信小程序创建售后失败，returnOrder:{},WxAfterSaleStatus:{}",returnOrder,status,e);
             }
-        }else if(Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && operateType!=null) {
+        }else if(Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex()) && saleOperateType !=null) {
             //视频号售后
-            switch (operateType) {
-                case 1:
-                    wxOrderService.addEcAfterSale(returnOrder);
-                    break;
-                case 2:
+            switch (saleOperateType) {
+//                case 1:
+//                    wxOrderService.addEcAfterSale(returnOrder);
+//                    break;
+                case CANCEL:
                     wxOrderService.cancelAfterSale(returnOrder);
                     break;
-                case 3:
+                case REJECT:
                     wxOrderService.rejectAfterSale(returnOrder);
                     break;
-                case 4:
+                case REFUND:
                     wxOrderService.acceptRefundAfterSale(returnOrder);
                     break;
-                case 5:
+                case RETURN:
                     wxOrderService.acceptReturnAfterSale(returnOrder);
                     break;
-                case 6:
+                case UPLOAD_RETURN_INFO:
                     wxOrderService.uploadReturnInfo(returnOrder);
                     break;
                 default:

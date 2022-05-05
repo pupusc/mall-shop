@@ -248,7 +248,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse rejectRefund(@RequestBody @Valid ReturnOrderRejectRefundRequest request) {
-        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator(), request.getMessageSource());
+        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
