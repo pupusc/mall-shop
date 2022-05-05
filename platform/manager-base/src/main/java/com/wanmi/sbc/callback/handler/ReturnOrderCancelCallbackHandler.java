@@ -198,7 +198,6 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
             } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse == null) {
                 //审核
-
                 Audit2VoidRequest request = new Audit2VoidRequest();
                 request.setRid(returnOrderVO.getId());
                 request.setReason("退货的时候 用户主动取消");

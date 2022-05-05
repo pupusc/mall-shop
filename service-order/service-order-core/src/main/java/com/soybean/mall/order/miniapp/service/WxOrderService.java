@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
+import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
+import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.common.enums.Platform;
@@ -525,11 +527,45 @@ public class WxOrderService {
         if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
             throw new SbcRuntimeException("K-050421");
         }
+
+        //如果订单为退货退款，同时状态为2的时候，则修改微信订单为退款
+        if (Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
+            //获取订单信息
+            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+            log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxDetailAfterSaleResponseBaseResponse));
+            if (!wxDetailAfterSaleResponseBaseResponse.getContext().isSuccess()) {
+                throw new SbcRuntimeException("K-050427");
+            }
+            WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+            WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
+
+            //售后订单为退款,
+            if (Objects.equals(afterSalesOrder.getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_TWO.getCode())) {
+                //2表示退款，当前为退货退款状态，则修改订单为退款状态；
+                WxAfterSaleUpdateRequest request = new WxAfterSaleUpdateRequest();
+                request.setAftersaleId(afterSalesOrder.getAftersaleId());
+                request.setOrderamt(afterSalesOrder.getOrderamt());
+                request.setOpenid(afterSalesOrder.getOpenid());
+                request.setType(AfterSalesTypeEnum.REFUND.getCode());
+                request.setRefundReason(afterSalesOrder.getRefundReason());
+                request.setRefundReasonType(afterSalesOrder.getRefundReasonType());
+                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.updateAfterSaleOrder(request);
+                log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                if (!wxResponseBaseBaseResponse.getContext().isSuccess()) {
+                    throw new SbcRuntimeException("K-050428");
+                }
+            }
+
+        }
+
+
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
 //        request.setOutAftersaleId(returnOrder.getId());
         request.setAftersaleId(Long.parseLong(returnOrder.getAftersaleId()));
         BaseResponse<WxResponseBase> response = wxOrderApiController.acceptRefundAfterSale(request);
-        log.info("微信小程序同意退款request:{},response:{}", request, response);
+        log.info("WxOrderService afterSaleId {} 运营退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(response));
         if (response == null || response.getContext() == null || !response.getContext().isSuccess()) {
             throw new SbcRuntimeException("K-050425");
         }

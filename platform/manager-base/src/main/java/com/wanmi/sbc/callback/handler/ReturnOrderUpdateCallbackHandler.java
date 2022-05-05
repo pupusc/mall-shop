@@ -209,10 +209,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改提示内容信息异常", aftersaleId, ex);
         }
 
-        //todo
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType())
-                && (Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
-                    || Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus())))) {
+                && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
 
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
