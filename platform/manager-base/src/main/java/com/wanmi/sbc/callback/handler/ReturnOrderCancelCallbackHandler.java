@@ -185,7 +185,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 returnOrderRejectRefundRequest.setOperator(operator);
                 baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
             } else {
-                log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单状态不会处理"
+                log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单 退款单 状态不会处理"
                         , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
             }
         } else {
@@ -196,24 +196,41 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
                 returnOrderCancelRequest.setRemark("用户取消");
                 returnOrderCancelRequest.setOperator(operator);
                 baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
-            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse == null) {
+                //审核
+
                 Audit2VoidRequest request = new Audit2VoidRequest();
                 request.setRid(returnOrderVO.getId());
-                request.setReason("用户主动取消");
+                request.setReason("退货的时候 用户主动取消");
                 request.setOperator(operator);
                 baseResponse = returnOrderProvider.audit2Void(request);
-            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED ) {
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED && refundOrderByReturnCodeResponse == null) {
+                //收货 拒绝收货页面
                 ReturnOrderRejectReceiveRequest request = new ReturnOrderRejectReceiveRequest();
                 request.setRid(returnOrderVO.getId());
-                request.setReason("退货的时候用户主动取消");
+                request.setReason("退货退款拒绝收货用户主动取消");
                 request.setOperator(operator);
                 baseResponse = returnOrderProvider.rejectReceive(request);
-            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED) {
-
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.RECEIVED && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.TODO) {
+               // 退款 拒绝退款
+                ReturnOrderRejectRefundRequest request = new ReturnOrderRejectRefundRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("退货退款拒绝退款用户主动取消");
+                request.setOperator(operator);
+                baseResponse = returnOrderProvider.rejectRefund(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.RECEIVED && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
+                //表示运营取消订单
+                //1、做标记、2作废
+                RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
+                refundRejectRequest.setRid(returnOrderVO.getId());
+                refundRejectRequest.setReturnReanson("拒绝退款用户强制取消");
+                refundRejectRequest.setForceReject(1);
+                baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
+            } else {
+                log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单 退货退款单 状态不会处理"
+                        , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
             }
         }
-
-
 
         log.info("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(),
