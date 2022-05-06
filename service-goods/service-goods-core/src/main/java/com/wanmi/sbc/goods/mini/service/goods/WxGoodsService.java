@@ -405,6 +405,8 @@ public class WxGoodsService {
             BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
             sku.setMarketPrice(price);
             sku.setSalePrice(price);
+            sku.setBarcode(StringUtils.isEmpty(goodsInfo.getGoodsInfoBarcode()) ? goodsInfo.getGoodsInfoName() : goodsInfo.getGoodsInfoBarcode());
+            sku.setSkuCode(goodsInfo.getGoodsInfoName());
             sku.setStockNum(goodsInfo.getStock() == null ? 0 : goodsInfo.getStock().intValue());
             skus.add(sku);
         }

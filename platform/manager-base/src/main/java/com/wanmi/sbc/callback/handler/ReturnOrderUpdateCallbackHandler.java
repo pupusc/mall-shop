@@ -161,7 +161,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
 
 
-        log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
+        log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 返回的退单为：{} 微信售后单为: {}", aftersaleId, JSON.toJSONString(returnOrderVO), JSON.toJSONString(afterSalesOrder));
 
         //附件
         if (!CollectionUtils.isEmpty(afterSalesOrder.getMediaList())) {
@@ -210,6 +210,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
 
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType())
+                && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
                 && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
 
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
