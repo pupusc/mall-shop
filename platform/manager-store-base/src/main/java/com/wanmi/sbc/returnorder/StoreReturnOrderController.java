@@ -347,6 +347,7 @@ public class StoreReturnOrderController {
 //        }
 
         //3、退款
+        log.info("StoreReturnOrderController onlineEditPrice returnOrderId:{} returnOrder:{}", returnOrder.getId(), JSON.toJSONString(returnOrder));
         return returnOrderProvider.onlineModifyPrice(ReturnOrderOnlineModifyPriceRequest.builder()
                 .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
                 .refundComment(request.getRefundComment())

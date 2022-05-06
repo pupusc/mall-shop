@@ -1237,7 +1237,7 @@ public class ReturnOrderService {
             if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
                     && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 //只有代客退单才做校验
-                if (Platform.WX_VIDEO != operator.getPlatform()) {
+                if (Platform.WX_VIDEO != operator.getPlatform() && returnOrder.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
                     for (ReturnOrder returnOrderParam : returnOrderList) {
                         //表示申请有现金
                         if (Objects.equals(returnOrderParam.getReturnType(), ReturnType.RETURN) && returnOrderParam.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
@@ -2882,6 +2882,7 @@ public class ReturnOrderService {
     @GlobalTransactional
     public void onlineEditPrice(ReturnOrder returnOrder, String refundComment, BigDecimal actualReturnPrice,
                                 Long actualReturnPoints, Long actualReturnKnowledge, Operator operator) {
+        log.info("StoreReturnOrderController onlineEditPrice ReturnOrderService onlineEditPrice returnOrderId:{} returnOrder:{}", returnOrder.getId(), JSON.toJSONString(returnOrder));
         ReturnPrice returnPrice = returnOrder.getReturnPrice();
         if (StringUtils.isNotEmpty(returnOrder.getBusinessTailId()) && Objects.nonNull(returnPrice.getIsTailApply()) && returnPrice.getIsTailApply()) {
             BigDecimal refundPrice = returnPrice.getEarnestPrice().add(returnPrice.getTailPrice());
@@ -2996,6 +2997,7 @@ public class ReturnOrderService {
         returnOrder.setReturnItems(returnOrderRaw.getReturnItems());
         //此处填充
         returnOrder.setAftersaleId(returnOrderRaw.getAftersaleId());
+        returnOrder.setMiniProgramScene(returnOrderRaw.getMiniProgramScene());
 
         returnOrderService.updateReturnOrder(returnOrder);
         this.operationLogMq.convertAndSend(operator, ReturnEvent.REFUND.getDesc(), detail);
