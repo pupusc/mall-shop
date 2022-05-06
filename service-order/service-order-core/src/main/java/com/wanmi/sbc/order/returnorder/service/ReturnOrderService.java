@@ -1180,6 +1180,7 @@ public class ReturnOrderService {
             newReturnOrder.setCreateTime(LocalDateTime.now());
             newReturnOrder.setPayType(PayType.valueOf(trade.getPayInfo().getPayTypeName()));
             newReturnOrder.setPlatform(operator.getPlatform());
+            newReturnOrder.setMiniProgramScene(trade.getMiniProgramScene());
             newReturnOrder.setId(returnOrderId);
             newReturnOrder.setMiniProgramScene(trade.getMiniProgramScene() == null ? 0 : trade.getMiniProgramScene());
 
