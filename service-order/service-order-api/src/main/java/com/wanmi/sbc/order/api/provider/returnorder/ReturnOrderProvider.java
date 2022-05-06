@@ -274,5 +274,5 @@ public interface ReturnOrderProvider {
      * @return
      */
     @PostMapping("/order/${application.order.version}/return/audit-2-void")
-    BaseResponse audit2Void(Audit2VoidRequest request);
+    BaseResponse audit2Void(@RequestBody Audit2VoidRequest request);
 }
