@@ -224,13 +224,14 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
                 request.setOperator(callBackCommonService.packOperator(returnOrderVO));
                 baseResponse = returnOrderProvider.rejectReceive2Delivered(request);
 //                this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
-
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{}  拒绝退货转 已发退货: {}", aftersaleId, JSON.toJSONString(baseResponse));
             } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
                 request.setRid(returnOrderVO.getId());
                 request.setReason("用户主动申请退货退款-退款");
                 request.setOperator(callBackCommonService.packOperator(returnOrderVO));
                 baseResponse = returnOrderProvider.rejectRefund2Audit(request);
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{}  拒绝退款 转 审核成功: {}", aftersaleId, JSON.toJSONString(baseResponse));
 
 //                String returnOrderId = this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
 //
@@ -241,6 +242,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 //                BaseResponse receive = returnOrderProvider.receive(returnOrderReceiveRequest);
 //                log.info("ReturnOrderUpdateCallbackHandler handler 4、同意退货 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
 //                        , afterSalesOrder.getAftersaleId(), returnOrderId, JSON.toJSONString(receive));
+            } else {
+                log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 当前状态没有对接 returnFlowStatus: {}", aftersaleId, returnOrderVO.getReturnFlowState());
             }
         }
 

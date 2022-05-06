@@ -59,7 +59,7 @@ public class RejectReceiveReturnBuilder implements Builder {
                 .action(rejectReceive2DeliveredAction)
 
                 .and()
-                .withExternal()
+                .withInternal()
                 .source(ReturnFlowState.REJECT_RECEIVE)
                 .event(ReturnEvent.REMEDY)
                 .action(remedyReturnAction)

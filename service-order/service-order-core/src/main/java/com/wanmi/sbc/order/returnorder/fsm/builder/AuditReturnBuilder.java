@@ -94,7 +94,7 @@ public class AuditReturnBuilder implements Builder {
 
                 //修改订单
                 .and()
-                .withExternal()
+                .withInternal()
                 .source(ReturnFlowState.AUDIT)
                 .event(ReturnEvent.REMEDY)
                 .action(remedyReturnAction)
