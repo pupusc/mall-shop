@@ -37,6 +37,7 @@ public class WxUpdateProductWithoutAuditRequest extends WxResponseBase {
         /**
          * 商品编码，字符类型，最长不超过20
          */
+        @JSONField(name = "sku_code")
         private String skuCode;
     }
 }
