@@ -76,14 +76,14 @@ public class DeliveredBuilder implements Builder {
                 .event(TradeEvent.COMPLETE)
                 .action(completeAction)
 
-                // 收货 -> 退款
+                // 发货 -> 退款
                 .and()
                 .withExternal()
                 .source(FlowState.DELIVERED).target(FlowState.DELIVERED)
                 .event(TradeEvent.REFUND)
                 .action(refundAction)
 
-                // 收货到作废
+                // 发货 到 作废
                 .and()
                 .withExternal()
                 .source(FlowState.DELIVERED).target(FlowState.VOID)
@@ -97,7 +97,7 @@ public class DeliveredBuilder implements Builder {
                 .event(TradeEvent.OBSOLETE_DELIVER)
                 .action(obsoleteDeliverAction)
 
-                // 发货 -> [作废] -> 审核
+                // 发货 -> [审核] -> 审核
                 .and()
                 .withExternal()
                 .source(FlowState.DELIVERED).target(FlowState.AUDIT)
