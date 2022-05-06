@@ -118,7 +118,7 @@ public class RefundOrderService {
     /**
      * 根据退单生成退款单 //todo 操作人
      *
-     * @param returnOrderCode returnOrderCode
+     *
      * @param customerId      customerId
      * @param price           price 应退金额
      * @param price           payType 应退金额
@@ -285,7 +285,12 @@ public class RefundOrderService {
      * @return 退款单信息
      */
     public RefundOrderResponse findRefundOrderRespByReturnOrderNo(String returnOrderCode) {
-        return generateRefundOrderResponse(findRefundOrderByReturnOrderNo(returnOrderCode));
+//        return generateRefundOrderResponse(findRefundOrderByReturnOrderNo(returnOrderCode));
+        RefundOrder refundOrderByReturnOrderNo = this.getRefundOrderByReturnOrderNo(returnOrderCode);
+        if (refundOrderByReturnOrderNo == null) {
+            return null;
+        }
+        return generateRefundOrderResponse(refundOrderByReturnOrderNo);
     }
 
 

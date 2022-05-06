@@ -157,6 +157,7 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
         ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
         if (returnOrderVO == null) {
+            log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取非正常的售后订单", aftersaleId);
             returnOrderVO = returnOrderList.get(0);
         }
 
@@ -214,8 +215,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
 
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType())
-                && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
-                && Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))) {
+                && (Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
+                || Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus())))) {
 
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
