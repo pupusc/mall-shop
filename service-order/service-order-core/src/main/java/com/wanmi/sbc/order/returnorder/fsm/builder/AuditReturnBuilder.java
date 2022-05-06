@@ -37,6 +37,9 @@ public class AuditReturnBuilder implements Builder {
     @Autowired
     private RefundFailedAction refundFailedAction;
 
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
+
     @Override
     public ReturnFlowState supportState() {
         return ReturnFlowState.AUDIT;
@@ -89,6 +92,12 @@ public class AuditReturnBuilder implements Builder {
                 .event(ReturnEvent.REFUND_FAILED)
                 .action(refundFailedAction)
 
+                //修改订单
+                .and()
+                .withExternal()
+                .source(ReturnFlowState.AUDIT)
+                .event(ReturnEvent.REMEDY)
+                .action(remedyReturnAction)
         ;
 
         return builder.build();

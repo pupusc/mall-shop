@@ -177,10 +177,12 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         try {
             //修改售后订单
-//            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
-//            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
-//            ReturnOrderRemedyRequest.setOperator(operator);
-//            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
+            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
+            ReturnOrderRemedyRequest.setOperator(operator);
+            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+            log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改售后附件信息返回结果: {}", aftersaleId, JSON.toJSONString(baseResponse));
+
 //            更新物流信息
 
             WxDetailAfterSaleResponse.ReturnInfo returnInfo = afterSalesOrder.getReturnInfo();
@@ -204,6 +206,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
                 }
                 returnOrderDeliverRequest.setLogistics(returnLogisticsDTO);
                 baseResponse = returnOrderProvider.updateReturnLogistics(returnOrderDeliverRequest);
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改物流信息结果: {}", aftersaleId, JSON.toJSONString(baseResponse));
+
             }
         } catch (Exception ex) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改提示内容信息异常", aftersaleId, ex);

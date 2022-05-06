@@ -5184,7 +5184,7 @@ public class ReturnOrderService {
      */
     public void audit2Void(String rid, String reason, Operator operator) {
         ReturnOrder returnOrder = findById(rid);
-        if (returnOrder.getReturnFlowState() != ReturnFlowState.REJECT_REFUND) {
+        if (returnOrder.getReturnFlowState() != ReturnFlowState.AUDIT) {
             throw new SbcRuntimeException("K-050464");
         }
         if (returnOrder.getReturnType() != ReturnType.RETURN) {
