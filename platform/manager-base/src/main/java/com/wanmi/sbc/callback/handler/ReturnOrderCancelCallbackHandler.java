@@ -41,6 +41,7 @@ import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.extern.slf4j.Slf4j;
@@ -161,7 +162,7 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
         BaseResponse baseResponse = null;
-        if (Objects.equals(afterSalesOrder.getType(), AfterSalesTypeEnum.REFUND)) {
+        if (Objects.equals(returnOrderVO.getReturnType(), ReturnType.REFUND)) {
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT) {
                 ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
                 returnOrderCancelRequest.setRid(returnOrderVO.getId());
