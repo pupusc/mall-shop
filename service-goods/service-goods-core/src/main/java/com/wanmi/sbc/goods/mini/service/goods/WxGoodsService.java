@@ -53,6 +53,9 @@ public class WxGoodsService {
     @Value("${wx.mini.goods.path}")
     private String wxGoodsPath;
 
+    @Value("${wx.mini.goods.direct.path}")
+    private String wxGoodsDirectPath;
+
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
     @Autowired
@@ -353,6 +356,7 @@ public class WxGoodsService {
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsName());
         addProductRequest.setPath(wxGoodsPath.concat("?spuId=").concat(goods.getGoodsId()));
+        addProductRequest.setDirectPath(wxGoodsDirectPath.concat("?spuId=").concat(goods.getGoodsId()));
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
         if(StringUtils.isNotEmpty(wxGoodsModel.getIsbnImg()) && StringUtils.isNotEmpty(wxGoodsModel.getPublisherImg())){
             List<String> qualificationics = new ArrayList<>();
@@ -405,8 +409,8 @@ public class WxGoodsService {
             BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
             sku.setMarketPrice(price);
             sku.setSalePrice(price);
-            sku.setBarcode(StringUtils.isEmpty(goodsInfo.getGoodsInfoBarcode()) ? goodsInfo.getGoodsInfoName() : goodsInfo.getGoodsInfoBarcode());
-            sku.setSkuCode(goodsInfo.getGoodsInfoName());
+            sku.setBarcode("樊登读书--barcode");
+            sku.setSkuCode("樊登读书--skuCode");
             sku.setStockNum(goodsInfo.getStock() == null ? 0 : goodsInfo.getStock().intValue());
             skus.add(sku);
         }
@@ -424,7 +428,8 @@ public class WxGoodsService {
             sku.setSalePrice(price);
             sku.setMarketPrice(price);
             sku.setStockNum(goodsInfo.getStock().intValue());
-//            sku.setSkuAttrs();
+
+            sku.setSkuAttrs(Collections.singletonList(new WxAddProductRequest.SkuAttrs("樊登读书Key", "樊登读书value")));
             skus.add(sku);
         }
         return skus;

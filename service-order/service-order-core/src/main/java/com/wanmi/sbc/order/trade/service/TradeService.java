@@ -8464,8 +8464,9 @@ public class TradeService {
                 }
                 //支付回调处理成功
                 //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
-                sensorsDataService.sendPaySuccessEvent(trades);
                 wxOrderService.orderReportCache(trade.getId());
+                sensorsDataService.sendPaySuccessEvent(trades);
+
                 log.info("TradeService wxPayCallBack 微信支付异步通知回调end---------");
             } catch (Exception e) {
                 log.error("TradeService wxPayCallBack 微信支付异步通知回调 异常---------", e);
