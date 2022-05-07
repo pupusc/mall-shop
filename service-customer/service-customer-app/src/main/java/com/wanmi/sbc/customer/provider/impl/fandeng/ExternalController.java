@@ -139,7 +139,7 @@ public class ExternalController implements ExternalProvider {
 
     @Override
     public BaseResponse<String> createInvoice(FanDengFullInvoiceRequest request) {
-        return externalService.submitInvoiceOrder(request);
+        return externalService.createInvoice(request);
     }
 
 
