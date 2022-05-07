@@ -1198,42 +1198,6 @@ public class ReturnOrderService {
                 virtualFlag = true;
             }
 
-//            //视频号只能一次售后，判断是否有未作废的售后单,拒绝售后之后不能再次售后
-//            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())
-//                    && returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0
-//                    && CollectionUtils.isNotEmpty(returnOrderList) && returnOrderList.stream().anyMatch(p->!p.getId().equals(returnOrder.getId())
-//                    && (Arrays.asList(ReturnFlowState.AUDIT,ReturnFlowState.RECEIVED,ReturnFlowState.COMPLETED,ReturnFlowState.DELIVERED,ReturnFlowState.INIT,ReturnFlowState.COMPLETED,ReturnFlowState.REFUNDED,ReturnFlowState.REJECT_RECEIVE).contains(p.getReturnFlowState())
-//                    || (Objects.equals(ReturnFlowState.REJECT_RECEIVE,p.getReturnFlowState()) && Objects.equals(p.getReturnType(),ReturnType.RETURN)))
-//                    && p.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) > 0)) {
-//                throw new SbcRuntimeException("K-050416");
-//            }
-
-//            //视频号判断逻辑
-//            if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
-//                for (ReturnOrder returnOrderParam : returnOrderList) {
-//                    //表示申请有现金
-//                    if (Objects.equals(returnOrderParam.getReturnType(), ReturnType.RETURN) && returnOrderParam.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
-//                        throw new SbcRuntimeException("K-050419");
-//                    }
-//                }
-//                if (returnOrder.getReturnPrice().getApplyPrice().compareTo(new BigDecimal(0)) <= 0) {
-//                    throw new SbcRuntimeException("K-050419");
-//                }
-//
-//                Map<String, ReturnItem> skuId2ReturnItemMap = returnOrder.getReturnItems().stream().collect(Collectors.toMap(ReturnItem::getSkuId, Function.identity(), (k1,k2) -> k1));
-//                for (ReturnOrder returnOrderParam : returnOrderList) {
-//                    if (returnOrderParam.getInterrupt() == null || !returnOrderParam.getInterrupt()) {
-//                        continue;
-//                    }
-//                    for (ReturnItem returnItemParam : returnOrderParam.getReturnItems()) {
-//                        if (skuId2ReturnItemMap.get(returnItemParam.getSkuId()) != null) {
-//                            throw new SbcRuntimeException("K-050420");
-//                        }
-//                    }
-//
-//                }
-//            }
-
             if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
                     && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 //只有代客退单才做校验
@@ -2155,10 +2119,12 @@ public class ReturnOrderService {
                     .data(returnAddress)
                     .build();
             returnFSMService.changeState(request);
-            //自动发货
-            autoDeliver(returnOrderId, operator);
 
-            //退货审核后不能拒绝，退款可以拒绝
+            //视频号不进行自动发货
+            if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                //自动发货
+                autoDeliver(returnOrderId, operator);
+            }
 
             if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
                 WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
