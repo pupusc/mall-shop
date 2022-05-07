@@ -96,11 +96,6 @@ public class WxAddProductRequest {
     @Data
     public static class SkuAttrs{
 
-        public SkuAttrs(String attrKey, String attrValue){
-            this.attrKey = attrKey;
-            this.attrValue = attrValue;
-        }
-
         @JSONField(name = "attr_key")
         private String attrKey;
         @JSONField(name = "attr_value")
