@@ -44,6 +44,7 @@ public class WxAddProductRequest {
     @JSONField(name = "info_version")
     private String infoVersion;
 
+    @JSONField(name = "skus")
     private List<Sku> skus;
 
     @Data
