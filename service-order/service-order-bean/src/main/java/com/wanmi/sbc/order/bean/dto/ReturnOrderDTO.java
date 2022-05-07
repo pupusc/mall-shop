@@ -360,4 +360,15 @@ public class ReturnOrderDTO implements Serializable {
      */
     private String aftersaleId;
 
+    /**
+     * 小程序订单场景1小程序2视频号
+     */
+    private Integer miniProgramScene;
+
+
+    /**
+     * 强制拒绝退款
+     */
+    private Integer forceReject;
+
 }

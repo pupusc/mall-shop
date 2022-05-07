@@ -157,11 +157,12 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
         }
         ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
         if (returnOrderVO == null) {
+            log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 获取非正常的售后订单", aftersaleId);
             returnOrderVO = returnOrderList.get(0);
         }
 
 
-        log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
+        log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 返回的退单为：{} 微信售后单为: {}", aftersaleId, JSON.toJSONString(returnOrderVO), JSON.toJSONString(afterSalesOrder));
 
         //附件
         if (!CollectionUtils.isEmpty(afterSalesOrder.getMediaList())) {
@@ -177,10 +178,12 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 
         try {
             //修改售后订单
-//            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
-//            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
-//            ReturnOrderRemedyRequest.setOperator(operator);
-//            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+            ReturnOrderRemedyRequest ReturnOrderRemedyRequest = new ReturnOrderRemedyRequest();
+            ReturnOrderRemedyRequest.setNewReturnOrder(KsBeanUtil.convert(returnOrderVO, ReturnOrderDTO.class));
+            ReturnOrderRemedyRequest.setOperator(operator);
+            baseResponse = returnOrderProvider.remedy(ReturnOrderRemedyRequest);
+            log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改售后附件信息返回结果: {}", aftersaleId, JSON.toJSONString(baseResponse));
+
 //            更新物流信息
 
             WxDetailAfterSaleResponse.ReturnInfo returnInfo = afterSalesOrder.getReturnInfo();
@@ -204,15 +207,16 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
                 }
                 returnOrderDeliverRequest.setLogistics(returnLogisticsDTO);
                 baseResponse = returnOrderProvider.updateReturnLogistics(returnOrderDeliverRequest);
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改物流信息结果: {}", aftersaleId, JSON.toJSONString(baseResponse));
+
             }
         } catch (Exception ex) {
             log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 修改提示内容信息异常", aftersaleId, ex);
         }
 
-        //todo
         if (Objects.equals(ReturnType.RETURN, returnOrderVO.getReturnType())
-                && (Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
-                    || Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus())))) {
+                && (Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_TWO, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus()))
+                || Objects.equals(AfterSalesStateEnum.AFTER_SALES_STATE_FOUR, AfterSalesStateEnum.getByCode(afterSalesOrder.getStatus())))) {
 
             if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
@@ -221,13 +225,14 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
                 request.setOperator(callBackCommonService.packOperator(returnOrderVO));
                 baseResponse = returnOrderProvider.rejectReceive2Delivered(request);
 //                this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
-
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{}  拒绝退货转 已发退货: {}", aftersaleId, JSON.toJSONString(baseResponse));
             } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
                 RejectRefund2DeliveredRequest request = new RejectRefund2DeliveredRequest();
                 request.setRid(returnOrderVO.getId());
                 request.setReason("用户主动申请退货退款-退款");
                 request.setOperator(callBackCommonService.packOperator(returnOrderVO));
                 baseResponse = returnOrderProvider.rejectRefund2Audit(request);
+                log.info("ReturnOrderUpdateCallbackHandler handler aftersaleId:{}  拒绝退款 转 审核成功: {}", aftersaleId, JSON.toJSONString(baseResponse));
 
 //                String returnOrderId = this.package2DirectStatus(returnOrderVO, afterSalesOrder, operator);
 //
@@ -238,6 +243,8 @@ public class ReturnOrderUpdateCallbackHandler implements CallbackHandler {
 //                BaseResponse receive = returnOrderProvider.receive(returnOrderReceiveRequest);
 //                log.info("ReturnOrderUpdateCallbackHandler handler 4、同意退货 aftersaleId:{} returnOrderId:{} 返回结果为:{}"
 //                        , afterSalesOrder.getAftersaleId(), returnOrderId, JSON.toJSONString(receive));
+            } else {
+                log.error("ReturnOrderUpdateCallbackHandler handler aftersaleId:{} 当前状态没有对接 returnFlowStatus: {}", aftersaleId, returnOrderVO.getReturnFlowState());
             }
         }
 

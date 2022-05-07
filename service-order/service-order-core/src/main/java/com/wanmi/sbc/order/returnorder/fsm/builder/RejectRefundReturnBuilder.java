@@ -61,7 +61,7 @@ public class RejectRefundReturnBuilder implements Builder {
                 .action(refundReject2RefundRejectAction)
 
                 .and()
-                .withExternal()
+                .withInternal()
                 .source(ReturnFlowState.REJECT_REFUND)
                 .event(ReturnEvent.REMEDY)
                 .action(remedyReturnAction)

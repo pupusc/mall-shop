@@ -242,10 +242,10 @@ public class StoreReturnOrderController {
         BaseResponse<ReturnOrderAddResponse> response = null;
         if (Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
             for (ReturnItemDTO returnItemParam : returnOrder.getReturnItems()) {
-                if (returnItemParam.getApplyRealPrice() == null ||
-                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                    throw new SbcRuntimeException("K-050419");
-                }
+//                if (returnItemParam.getApplyRealPrice() == null ||
+//                        returnItemParam.getApplyRealPrice().compareTo(BigDecimal.ZERO) <= 0) {
+//                    throw new SbcRuntimeException("K-050419");
+//                }
                 List<ReturnItemDTO> returnItemDTONewList = new ArrayList<>();
                 returnItemDTONewList.add(returnItemParam);
                 returnOrder.setReturnItems(returnItemDTONewList);
@@ -347,6 +347,7 @@ public class StoreReturnOrderController {
 //        }
 
         //3、退款
+        log.info("StoreReturnOrderController onlineEditPrice returnOrderId:{} returnOrder:{}", returnOrder.getId(), JSON.toJSONString(returnOrder));
         return returnOrderProvider.onlineModifyPrice(ReturnOrderOnlineModifyPriceRequest.builder()
                 .returnOrder(KsBeanUtil.convert(returnOrder, ReturnOrderDTO.class))
                 .refundComment(request.getRefundComment())

@@ -28,5 +28,16 @@ public class WxUpdateProductWithoutAuditRequest extends WxResponseBase {
         private BigDecimal marketPrice;
         @JSONField(name = "stock_num")
         private Integer stockNum;
+        /**
+         * 条形码
+         */
+        @JSONField(name = "barcode")
+        private String barcode;
+
+        /**
+         * 商品编码，字符类型，最长不超过20
+         */
+        @JSONField(name = "sku_code")
+        private String skuCode;
     }
 }

@@ -267,4 +267,12 @@ public interface ReturnOrderProvider {
      */
     @PostMapping("/order/${application.order.version}/return/reject-refund-2-audit")
     BaseResponse rejectRefund2Audit(@RequestBody @Valid RejectRefund2DeliveredRequest request);
+
+    /**
+     * 审核通过到作废
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/return/audit-2-void")
+    BaseResponse audit2Void(@RequestBody Audit2VoidRequest request);
 }

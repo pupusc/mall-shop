@@ -23,7 +23,7 @@ public class RemedyReturnAction extends ReturnAction {
     protected void evaluateInternal(ReturnOrder oldReturnOrder, ReturnStateRequest request, ReturnStateContext rsc) {
         Operator operator = rsc.findOperator();
         ReturnOrder newReturnOrder = rsc.findRequestData();
-        oldReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
+//        oldReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
         String join = StringUtils.join(oldReturnOrder.buildDiffStr(newReturnOrder), ";");
         if (StringUtils.isNotBlank(join) && !join.equals("null")) {
             oldReturnOrder.appendReturnEventLog(

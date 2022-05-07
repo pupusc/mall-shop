@@ -58,10 +58,6 @@ public class OrderConfirmCallBackHandler implements CallbackHandler {
             log.error("OrderConfirmCallBackHandler handle wxOrderId:{} outOrderId:{} 订单不存在 ", wxOrderId, outOrderId);
             return CommonHandlerUtil.FAIL;
         }
-        if (tradeVo.getTradeState().getPayState() == PayState.PAID) {
-            log.error("OrderConfirmCallBackHandler handle wxOrderId:{} outOrderId:{} 订单已经支付、取消失败 ", wxOrderId, outOrderId);
-            return CommonHandlerUtil.FAIL;
-        }
 
         Operator operator = callBackCommonService.packOperator(tradeVo);
         TradeConfirmReceiveRequest tradeConfirmReceiveRequest = TradeConfirmReceiveRequest.builder().operator(operator).tid(tradeVo.getId()).build();

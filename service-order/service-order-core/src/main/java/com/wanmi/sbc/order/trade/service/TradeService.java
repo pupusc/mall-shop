@@ -8464,10 +8464,12 @@ public class TradeService {
                 }
                 //支付回调处理成功
                 //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+                wxOrderService.orderReportCache(trade.getId());
                 sensorsDataService.sendPaySuccessEvent(trades);
-                log.info("微信支付异步通知回调end---------");
+
+                log.info("TradeService wxPayCallBack 微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error("微信支付异步通知回调end2---------", e);
+                log.error("TradeService wxPayCallBack 微信支付异步通知回调 异常---------", e);
                 //支付处理结果回写回执支付结果表
                 // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
@@ -8476,7 +8478,7 @@ public class TradeService {
             }
         } catch (Exception ex) {
             //失败回执表更新
-            log.error(ex.getMessage());
+            log.error("TradeService wxPayCallBack 微信支付异步通知回调异常" ,ex);
         }
 
     }

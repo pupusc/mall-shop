@@ -85,10 +85,10 @@ public class ReturnOrder implements Serializable {
      */
     private String aftersaleId;
 
-    /**
-     * 视频号流程中断 true 表示中断,临时使用中断操作
-     */
-    private Boolean interrupt;
+//    /**
+//     * 视频号流程中断 true 表示中断,临时使用中断操作
+//     */
+//    private Boolean interrupt;
 
     /**
      * 樊登用户id

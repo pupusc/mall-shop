@@ -248,7 +248,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse rejectRefund(@RequestBody @Valid ReturnOrderRejectRefundRequest request) {
-        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator(), request.getMessageSource());
+        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -413,6 +413,18 @@ public class ReturnOrderController implements ReturnOrderProvider {
     @Override
     public BaseResponse rejectRefund2Audit(RejectRefund2DeliveredRequest request){
         returnOrderService.rejectRefund2Audit(request.getRid(), request.getReason(),  request.getOperator());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 审核通过 2 作废
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse audit2Void(Audit2VoidRequest request){
+        returnOrderService.audit2Void(request.getRid(), request.getReason(),  request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 }

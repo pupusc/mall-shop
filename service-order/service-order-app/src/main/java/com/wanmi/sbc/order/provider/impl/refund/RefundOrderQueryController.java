@@ -92,7 +92,9 @@ public class RefundOrderQueryController implements RefundOrderQueryProvider{
         List<RefundOrderResponse> list = new ArrayList<>();
         ReturnOrder returnOrder = returnOrderService.findById(refundOrderResponseByReturnOrderCodeRequest.getReturnOrderCode());
         com.wanmi.sbc.order.bean.vo.RefundOrderResponse refundOrderResponse = refundOrderService.findRefundOrderRespByReturnOrderNo(refundOrderResponseByReturnOrderCodeRequest.getReturnOrderCode());
-        list.add(KsBeanUtil.convert(refundOrderResponse, RefundOrderResponse.class));
+        if (refundOrderResponse != null) {
+            list.add(KsBeanUtil.convert(refundOrderResponse, RefundOrderResponse.class));
+        }
         if(StringUtils.isNotBlank(returnOrder.getBusinessTailId())) {
             RefundOrderResponse convert = KsBeanUtil.convert(refundOrderService.findRefundOrderRespByReturnOrderNo(returnOrder.getBusinessTailId()), RefundOrderResponse.class);
             list.add(convert);
