@@ -2419,7 +2419,7 @@ public class ReturnOrderService {
 //        this.addWxAfterSale(findById(rid), null, WxAfterSaleOperateType.UPLOAD_RETURN_INFO.getIndex(), "上传物流信息");
         ReturnOrder returnOrder = this.findById(rid);
 
-        if (Platform.WX_VIDEO != operator.getPlatform()) {
+        if (Platform.WX_VIDEO != operator.getPlatform() && returnOrder.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
             wxOrderService.uploadReturnInfo(returnOrder);  //上传物流信息
         }
 
