@@ -11,6 +11,8 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.vo.DeliveryInfoVO;
 import com.sbc.wanmi.erp.bean.vo.DeliveryItemVO;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
+import com.wanmi.sbc.account.bean.enums.PayType;
+import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
@@ -281,6 +283,9 @@ public class TradePushERPService {
         //查询主单信息
         Trade parentTrade = detail(trade.getParentId());
         trade.setPayWay(parentTrade.getPayWay());
+        if (trade.getPayWay() == null && trade.getPayInfo() != null && PayType.fromValue(Integer.parseInt(trade.getPayInfo() .getPayTypeId())) == PayType.OFFLINE) {
+            trade.setPayWay(PayWay.UNIONPAY);
+        }
         trade.getTradeState().setPayTime(parentTrade.getTradeState().getPayTime());
 
         //订单主商品
