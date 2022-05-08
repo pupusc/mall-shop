@@ -1,8 +1,6 @@
 package com.wanmi.sbc.filter;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -15,8 +13,8 @@ import java.io.*;
  * @author Liang Jun
  * @date 2022-03-08 02:25:00
  */
-@Order(-1000)
-@Component
+//@Order(-1000)
+//@Component
 public class HealthFilter extends OncePerRequestFilter {
     private static String HEALTH_URI = "/";
     private static String HEALTH_METHOD = "HEAD";
