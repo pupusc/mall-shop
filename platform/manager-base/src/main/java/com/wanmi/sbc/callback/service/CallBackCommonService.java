@@ -7,7 +7,10 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
+import com.wanmi.sbc.order.bean.dto.ReturnLogisticsDTO;
+import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.bean.enums.ReturnReason;
+import com.wanmi.sbc.order.bean.vo.ReturnLogisticsVO;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
@@ -166,5 +169,51 @@ public class CallBackCommonService {
         rr.setRefundPayDetail(new WxDetailAfterSaleResponse.RefundPayDetail());
 
         return rr;
+    }
+
+
+    /**
+     * 获取 有效的退单信息
+     * @param returnOrderVOList
+     * @return
+     */
+    public ReturnOrderVO getValidReturnOrderVo(List<ReturnOrderVO> returnOrderVOList) {
+        ReturnOrderVO returnOrderResult = null;
+        if (CollectionUtils.isEmpty(returnOrderVOList)) {
+            return returnOrderResult;
+        }
+
+        for (ReturnOrderVO returnOrderVO : returnOrderVOList) {
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.VOID) {
+                continue;
+            }
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_REFUND) {
+                continue;
+            }
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.REJECT_RECEIVE) {
+                continue;
+            }
+            returnOrderResult = returnOrderVO;
+        }
+        return returnOrderResult;
+    }
+
+
+    /**
+     * 封装物流信息
+     * @param returnLogistics
+     * @return
+     */
+    public ReturnLogisticsDTO packReturnLogistics(ReturnLogisticsVO returnLogistics) {
+        if (returnLogistics != null) {
+            ReturnLogisticsDTO returnLogisticsDTO = new ReturnLogisticsDTO();
+            returnLogisticsDTO.setCompany(returnLogistics.getCompany());
+            returnLogisticsDTO.setNo(returnLogistics.getNo());
+            returnLogisticsDTO.setCode(returnLogistics.getCode());
+            returnLogisticsDTO.setCreateTime(returnLogistics.getCreateTime());
+            returnLogisticsDTO.setPicList(returnLogistics.getPicList());
+            return returnLogisticsDTO;
+        }
+        return null;
     }
 }

@@ -70,6 +70,7 @@ public class WxService {
     public static final String API_WEIXIN_WXA_GENERATESCHEME = "https://api.weixin.qq.com/wxa/generatescheme";
     public static final String CANCEL_ORDER_URL = "https://api.weixin.qq.com/shop/order/close";
     public static final String GET_VIDEO_ORDER_URL = "https://api.weixin.qq.com/shop/order/get";
+    public static final String AFTER_SALE_UPDATE_URL = "https://api.weixin.qq.com/shop/ecaftersale/update";
 
 
     private static final HttpHeaders defaultHeader;
@@ -302,7 +303,7 @@ public class WxService {
     }
 
     /**
-     * 生成售后单-新版
+     * 视频号-生成售后单-新版
      */
     public WxCreateNewAfterSaleResponse createNewAfterSale(WxCreateNewAfterSaleRequest wxCreateNewAfterSaleRequest){
         String url = AFTER_SALE_CREATE_URL.concat("?access_token=").concat(getAccessToken());
@@ -342,7 +343,7 @@ public class WxService {
     }
 
     /**
-     * 售后单-取消售后🤮
+     * 视频号-售后单-取消售后🤮
      */
     public WxResponseBase cancelAfterSale(WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest){
         String url = AFTER_SALE_CANCEL_URL.concat("?access_token=").concat(getAccessToken());
@@ -432,6 +433,17 @@ public class WxService {
      */
     public WxResponseBase cancelOrder(WxOrderCancelRequest request) {
         String url = CANCEL_ORDER_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+
+    /**
+     * 视频号 - 更新售后订单
+     */
+    public WxResponseBase updateAfterSaleOrder(WxAfterSaleUpdateRequest request) {
+        String url = AFTER_SALE_UPDATE_URL.concat("?access_token=").concat(getAccessToken());
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);

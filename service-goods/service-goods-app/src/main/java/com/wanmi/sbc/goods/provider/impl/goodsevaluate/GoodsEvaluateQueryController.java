@@ -1,6 +1,7 @@
 package com.wanmi.sbc.goods.provider.impl.goodsevaluate;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -20,6 +21,7 @@ import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.redis.RedisService;
 import io.seata.common.util.CollectionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @Validated
+@Slf4j
 public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider {
 	@Autowired
 	private GoodsEvaluateService goodsEvaluateService;
@@ -103,11 +106,15 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	public BaseResponse<GoodsEvaluateCountResponse> getGoodsEvaluateSum(@RequestBody @Valid GoodsEvaluateCountRequset request) {
 		String goodsEvaluateStr = redisService.getString(RedisKeyConstant.KEY_GOODS_EVALUATE + request.getGoodsId());
 		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
-		if (StringUtils.isNotBlank(goodsEvaluateStr)) {
-			goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateStr, GoodsEvaluateCountResponse.class);
-			if (goodsEvaluateCountResponse != null) {
-				return BaseResponse.success(goodsEvaluateCountResponse);
+		try {
+			if (StringUtils.isNotBlank(goodsEvaluateStr)) {
+				goodsEvaluateCountResponse = JSONObject.parseObject(goodsEvaluateStr, GoodsEvaluateCountResponse.class);;
+				if (goodsEvaluateCountResponse != null) {
+					return BaseResponse.success(goodsEvaluateCountResponse);
+				}
 			}
+		} catch (Exception ex) {
+			log.error("GoodsEvaluateQueryController getGoodsEvaluateSum 异常 ", ex);
 		}
 		//商品详情中的评价总数不包含隐藏的评论，好评率包含隐藏的评论
 		GoodsEvaluateQueryRequest queryRequest =
@@ -157,14 +164,15 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 	public BaseResponse<GoodsEvaluateCountResponse> getGoodsEvaluateSumByskuId(@Valid GoodsEvaluateCountBySkuIdRequset request) {
 
 		String goodsEvaluateCountStr = redisService.getString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId());
-		GoodsEvaluateCountResponse goodsEvaluateCountResponse = null;
-		if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
+		try {
 			if (StringUtils.isNotBlank(goodsEvaluateCountStr)) {
-				goodsEvaluateCountResponse = KsBeanUtil.convert(goodsEvaluateCountStr, GoodsEvaluateCountResponse.class);
+				GoodsEvaluateCountResponse goodsEvaluateCountResponse = JSON.parseObject(goodsEvaluateCountStr, GoodsEvaluateCountResponse.class);
 				if (goodsEvaluateCountResponse != null) {
 					return BaseResponse.success(goodsEvaluateCountResponse);
 				}
 			}
+		} catch (Exception ex) {
+			log.error("GoodsEvaluateQueryController getGoodsEvaluateSumByskuId Exception", ex);
 		}
 
 		List<GoodsInfo> goodsInfos = goodsInfoRepository.findByGoodsInfoIds(Arrays.asList(request.getSkuId()));
@@ -184,7 +192,7 @@ public class GoodsEvaluateQueryController implements GoodsEvaluateQueryProvider 
 		String praise = goodsEvaluateService.getGoodsPraise(GoodsEvaluateCountRequset
 				.builder().goodsId(goodsInfos.get(0).getGoodsId()).build());
 
-		goodsEvaluateCountResponse = GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
+		GoodsEvaluateCountResponse goodsEvaluateCountResponse = GoodsEvaluateCountResponse.builder().evaluateConut(count).postOrderCount(uploadCount)
 				.praise(praise).goodsId(goodsInfos.get(0).getGoodsId()).build();
 		redisService.setString(RedisKeyConstant.KEY_GOODS_INFO_EVALUATE + request.getSkuId(), JSON.toJSONString(goodsEvaluateCountResponse), 5 * 60);
 		return BaseResponse.success(goodsEvaluateCountResponse);

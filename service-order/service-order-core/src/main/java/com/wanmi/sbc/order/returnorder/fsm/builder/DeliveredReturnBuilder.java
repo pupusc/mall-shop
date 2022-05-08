@@ -3,6 +3,7 @@ package com.wanmi.sbc.order.returnorder.fsm.builder;
 import com.wanmi.sbc.order.returnorder.fsm.Builder;
 import com.wanmi.sbc.order.returnorder.fsm.action.ReceiveRejectAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.ReceiveReturnAction;
+import com.wanmi.sbc.order.returnorder.fsm.action.RemedyReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -29,6 +30,9 @@ public class DeliveredReturnBuilder implements Builder {
 
     @Autowired
     private ReceiveRejectAction receiveRejectAction;
+
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
 
     @Override
     public ReturnFlowState supportState() {
@@ -61,6 +65,13 @@ public class DeliveredReturnBuilder implements Builder {
             .source(ReturnFlowState.DELIVERED).target(ReturnFlowState.REJECT_RECEIVE)
             .event(ReturnEvent.REJECT_RECEIVE)
             .action(receiveRejectAction)
+
+            // 已经发货 -> 更新信息
+            .and()
+            .withInternal()
+            .source(ReturnFlowState.DELIVERED)
+            .event(ReturnEvent.REMEDY)
+            .action(remedyReturnAction)
         ;
 
         return builder.build();

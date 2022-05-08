@@ -12,7 +12,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -156,4 +156,9 @@ public class GoodsCateByIdResponse implements Serializable {
 
     @ApiModelProperty(value = "商品分类属性")
     private List<GoodsCatePropVO> goodsProps;
+
+    /**
+     * 税率编号，对应值由平台提供
+     */
+    private Integer taxRateNo;
 }

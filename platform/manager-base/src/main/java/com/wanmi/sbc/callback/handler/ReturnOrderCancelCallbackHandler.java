@@ -4,6 +4,7 @@ package com.wanmi.sbc.callback.handler;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
+import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
@@ -24,10 +25,12 @@ import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.request.payorder.FindPayOrderRequest;
 import com.wanmi.sbc.order.api.request.refund.RefundOrderByReturnOrderNoRequest;
+import com.wanmi.sbc.order.api.request.returnorder.Audit2VoidRequest;
 import com.wanmi.sbc.order.api.request.returnorder.RefundRejectRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderAddRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderByConditionRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderCancelRequest;
+import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectReceiveRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderRejectRefundRequest;
 import com.wanmi.sbc.order.api.request.returnorder.ReturnOrderTransferByUserIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
@@ -38,6 +41,7 @@ import com.wanmi.sbc.order.bean.dto.CompanyDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnItemDTO;
 import com.wanmi.sbc.order.bean.dto.ReturnOrderDTO;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
+import com.wanmi.sbc.order.bean.enums.ReturnType;
 import com.wanmi.sbc.order.bean.vo.ReturnOrderVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.extern.slf4j.Slf4j;
@@ -134,12 +138,12 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-        if (CollectionUtils.isEmpty(returnOrderList)) {
+        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
+        if (returnOrderVO == null) {
             log.error("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 获取退单为空,不能取消售后订单", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
-        ReturnOrderVO returnOrderVO = returnOrderList.get(0);
         log.info("ReturnOrderCancelCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
         //保证订单已经支付
@@ -158,35 +162,75 @@ public class ReturnOrderCancelCallbackHandler implements CallbackHandler {
 
         Operator operator = callBackCommonService.packOperator(returnOrderVO);
         BaseResponse baseResponse = null;
-        if (returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT) {
-            ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
-            returnOrderCancelRequest.setRid(returnOrderVO.getId());
-            returnOrderCancelRequest.setRemark("用户取消");
-            returnOrderCancelRequest.setOperator(operator);
-            returnOrderCancelRequest.setMessageSource(true);
-            baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
-        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
-            //表示运营取消订单
-            //1、做标记、2作废
-            RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
-            refundRejectRequest.setRid(returnOrderVO.getId());
-            refundRejectRequest.setReturnReanson("用户强制取消");
-            refundRejectRequest.setForceReject(1);
-            baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
+        if (Objects.equals(returnOrderVO.getReturnType(), ReturnType.REFUND)) {
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT) {
+                ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
+                returnOrderCancelRequest.setRid(returnOrderVO.getId());
+                returnOrderCancelRequest.setRemark("用户取消");
+                returnOrderCancelRequest.setOperator(operator);
+                returnOrderCancelRequest.setMessageSource(true);
+                baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
+                //表示运营取消订单
+                //1、做标记、2作废
+                RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
+                refundRejectRequest.setRid(returnOrderVO.getId());
+                refundRejectRequest.setReturnReanson("退款用户强制取消");
+                refundRejectRequest.setForceReject(1);
+                baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
 
-        } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT) {
-            ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
-            returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
-            returnOrderRejectRefundRequest.setReason("用户主动取消");
-            returnOrderRejectRefundRequest.setOperator(operator);
-            returnOrderRejectRefundRequest.setMessageSource(true);
-            baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.TODO) {
+                ReturnOrderRejectRefundRequest returnOrderRejectRefundRequest = new ReturnOrderRejectRefundRequest();
+                returnOrderRejectRefundRequest.setRid(returnOrderVO.getId());
+                returnOrderRejectRefundRequest.setReason("退款用户主动取消");
+                returnOrderRejectRefundRequest.setOperator(operator);
+                baseResponse = returnOrderProvider.rejectRefund(returnOrderRejectRefundRequest);
+            } else {
+                log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单 退款单 状态不会处理"
+                        , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
+            }
         } else {
-            log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单状态不会处理"
-                , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
+            //退货退款的情况
+            if (returnOrderVO.getReturnFlowState() == ReturnFlowState.INIT) {
+                ReturnOrderCancelRequest returnOrderCancelRequest = new ReturnOrderCancelRequest();
+                returnOrderCancelRequest.setRid(returnOrderVO.getId());
+                returnOrderCancelRequest.setRemark("用户取消");
+                returnOrderCancelRequest.setOperator(operator);
+                baseResponse = returnOrderProvider.cancel(returnOrderCancelRequest);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.AUDIT && refundOrderByReturnCodeResponse == null) {
+                //审核
+                Audit2VoidRequest request = new Audit2VoidRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("退货的时候 用户主动取消");
+                request.setOperator(operator);
+                baseResponse = returnOrderProvider.audit2Void(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.DELIVERED && refundOrderByReturnCodeResponse == null) {
+                //收货 拒绝收货页面
+                ReturnOrderRejectReceiveRequest request = new ReturnOrderRejectReceiveRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("退货退款拒绝收货用户主动取消");
+                request.setOperator(operator);
+                baseResponse = returnOrderProvider.rejectReceive(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.RECEIVED && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.TODO) {
+               // 退款 拒绝退款
+                ReturnOrderRejectRefundRequest request = new ReturnOrderRejectRefundRequest();
+                request.setRid(returnOrderVO.getId());
+                request.setReason("退货退款拒绝退款用户主动取消");
+                request.setOperator(operator);
+                baseResponse = returnOrderProvider.rejectRefund(request);
+            } else if (returnOrderVO.getReturnFlowState() == ReturnFlowState.RECEIVED && refundOrderByReturnCodeResponse != null && refundOrderByReturnCodeResponse.getRefundStatus() == RefundStatus.APPLY) {
+                //表示运营取消订单
+                //1、做标记、2作废
+                RefundRejectRequest refundRejectRequest = new RefundRejectRequest();
+                refundRejectRequest.setRid(returnOrderVO.getId());
+                refundRejectRequest.setReturnReanson("拒绝退款用户强制取消");
+                refundRejectRequest.setForceReject(1);
+                baseResponse = returnOrderProvider.refundReject(refundRejectRequest);
+            } else {
+                log.error("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} 该售后订单 退货退款单 状态不会处理"
+                        , returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId());
+            }
         }
-
-
 
         log.info("ReturnOrderCancelCallbackHandler  orderId:{} aftersaleId:{} returnOrderId:{} handle result:{} --> end cost: {} ms",
                 returnOrderVO.getTid(), aftersaleId, returnOrderVO.getId(),

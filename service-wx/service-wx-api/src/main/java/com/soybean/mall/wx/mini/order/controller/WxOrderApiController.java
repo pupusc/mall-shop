@@ -119,4 +119,11 @@ public interface WxOrderApiController {
      */
     @PostMapping("/order/cancel")
     BaseResponse<WxResponseBase> cancelOrder(@RequestBody WxOrderCancelRequest request);
+
+
+    /**
+     * 更新售后订单信息
+     */
+    @PostMapping("/aftersale/update")
+    BaseResponse<WxResponseBase> updateAfterSaleOrder(@RequestBody WxAfterSaleUpdateRequest request);
 }

@@ -118,7 +118,7 @@ public class RefundOrderService {
     /**
      * 根据退单生成退款单 //todo 操作人
      *
-     * @param returnOrderCode returnOrderCode
+     *
      * @param customerId      customerId
      * @param price           price 应退金额
      * @param price           payType 应退金额
@@ -285,7 +285,12 @@ public class RefundOrderService {
      * @return 退款单信息
      */
     public RefundOrderResponse findRefundOrderRespByReturnOrderNo(String returnOrderCode) {
-        return generateRefundOrderResponse(findRefundOrderByReturnOrderNo(returnOrderCode));
+//        return generateRefundOrderResponse(findRefundOrderByReturnOrderNo(returnOrderCode));
+        RefundOrder refundOrderByReturnOrderNo = this.getRefundOrderByReturnOrderNo(returnOrderCode);
+        if (refundOrderByReturnOrderNo == null) {
+            return null;
+        }
+        return generateRefundOrderResponse(refundOrderByReturnOrderNo);
     }
 
 
@@ -480,6 +485,22 @@ public class RefundOrderService {
         refundOrder.setRefuseReason(refuseReason);
         refundOrderRepository.saveAndFlush(refundOrder);
         updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.REFUSE);
+    }
+
+    /**
+     * 扭转拒绝退款2审核成功
+     * @param id
+     * @param refuseReason
+     */
+    @Transactional
+    public void backRefuse(String id, String refuseReason) {
+        RefundOrder refundOrder = refundOrderRepository.findById(id).orElse(null);
+        if (Objects.isNull(refundOrder)) {
+            return;
+        }
+        refundOrder.setRefuseReason(refuseReason);
+        refundOrderRepository.saveAndFlush(refundOrder);
+        updateRefundConsumer.accept(Lists.newArrayList(id), RefundStatus.TODO);
     }
 
 
@@ -799,7 +820,7 @@ public class RefundOrderService {
                         returnOrderService.refundOnline(returnOrder, refundOrder, operator);
                     } else if(Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())){
                         //视频号订单直接调同意退款接口
-                        returnOrderService.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.REFUND.getIndex(), "运营退款");
+                        returnOrderService.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.REFUND, "运营退款");
                     }else {
                         BigDecimal totalPrice =
                                 payQueryProvider.getTradeRecordByOrderCode(new TradeRecordByOrderCodeRequest(refundRequest.getBusinessId()))
@@ -840,7 +861,10 @@ public class RefundOrderService {
                         returnOrderService.refundFailed(refundOrderRefundRequest);
                     }
                     log.error("refund error,", e);
-                    //throw e;
+                    if (e.getErrorCode() != null && (e.getErrorCode().equals("K-050427") || e.getErrorCode().equals("K-050428") ||
+                            e.getErrorCode().equals("K-050425") || (e.getErrorCode().equals("K-050421")))) {
+                        throw e;
+                    }
                 }
             }
         }

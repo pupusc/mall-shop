@@ -427,6 +427,12 @@ public class ReturnOrderController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    /**
+     * 退货退款 拒绝收货
+     * @param rid
+     * @param request
+     * @return
+     */
     @ApiOperation(value = "退单拒绝收货")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "rid", value = "退单Id", required = true)
     @RequestMapping(value = "/receive/{rid}/reject", method = RequestMethod.POST)
@@ -830,6 +836,24 @@ public class ReturnOrderController {
                 .operator(operator).tid(tid).build();
 
         tradeProvider.confirmReceive(tradeConfirmReceiveRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
+     * 更新退单物流信息
+     * @param rid
+     * @param logistics
+     * @return
+     */
+    @PostMapping("/update-return-logistics/{rid}")
+    public BaseResponse updateReturnLogistics(@PathVariable String rid, @RequestBody ReturnLogisticsDTO logistics) {
+        if (StringUtils.isBlank(logistics.getNo())) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        ReturnOrderDeliverRequest request = new ReturnOrderDeliverRequest();
+        request.setRid(rid);
+        request.setLogistics(logistics);
+        returnOrderProvider.updateReturnLogistics(request);
         return BaseResponse.SUCCESSFUL();
     }
 }

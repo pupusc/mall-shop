@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
+import com.wanmi.sbc.callback.service.CallBackCommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.Platform;
@@ -84,6 +85,9 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
     @Autowired
     private WxOrderApiController wxOrderApiController;
 
+    @Autowired
+    private CallBackCommonService callBackCommonService;
+
     @Override
     public boolean support(String eventType) {
         return "aftersale_refund_success".equals(eventType);
@@ -123,12 +127,12 @@ public class ReturnOrderPayCallbackHandler implements CallbackHandler{
         returnOrderByConditionRequest.setAftersaleId(aftersaleId);
         BaseResponse<ReturnOrderByConditionResponse> returnOrderByConditionResponseBaseResponse = returnOrderQueryProvider.listByCondition(returnOrderByConditionRequest);
         List<ReturnOrderVO> returnOrderList = returnOrderByConditionResponseBaseResponse.getContext().getReturnOrderList();
-        if (CollectionUtils.isEmpty(returnOrderList)) {
+        ReturnOrderVO returnOrderVO = callBackCommonService.getValidReturnOrderVo(returnOrderList);
+        if (returnOrderVO == null) {
             log.error("ReturnOrderPayCallbackHandler handler aftersaleId:{} 获取退单为空,完成售后退款", aftersaleId);
             return CommonHandlerUtil.FAIL;
         }
 
-        ReturnOrderVO returnOrderVO = returnOrderList.get(0);
         log.info("ReturnOrderPayCallbackHandler handler aftersaleId:{} 返回的退单为：{}", aftersaleId, JSON.toJSONString(returnOrderVO));
 
 

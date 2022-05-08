@@ -7,6 +7,7 @@ import com.wanmi.sbc.customer.bean.vo.CustomerAccountVO;
 import com.wanmi.sbc.order.api.provider.returnorder.ReturnOrderProvider;
 import com.wanmi.sbc.order.api.request.returnorder.*;
 import com.wanmi.sbc.order.api.response.returnorder.ReturnOrderAddResponse;
+import com.wanmi.sbc.order.bean.dto.LogisticsDTO;
 import com.wanmi.sbc.order.bean.vo.ProviderTradeSimpleVO;
 import com.wanmi.sbc.order.refund.model.root.RefundBill;
 import com.wanmi.sbc.order.refund.model.root.RefundOrder;
@@ -247,7 +248,7 @@ public class ReturnOrderController implements ReturnOrderProvider {
      */
     @Override
     public BaseResponse rejectRefund(@RequestBody @Valid ReturnOrderRejectRefundRequest request) {
-        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator(), request.getMessageSource());
+        returnOrderService.refundReject(request.getRid(), request.getReason(), request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -375,6 +376,55 @@ public class ReturnOrderController implements ReturnOrderProvider {
     @Override
     public BaseResponse refundReject(RefundRejectRequest refundRejectRequest) {
         returnOrderService.refundReject(refundRejectRequest);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 修改物流信息
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse updateReturnLogistics(ReturnOrderDeliverRequest request) {
+        return returnOrderService.updateReturnLogistics(request.getRid(), KsBeanUtil.convert(request.getLogistics(), ReturnLogistics.class));
+    }
+
+
+
+    /**
+     * 退单拒绝收货2 已发退货
+     *
+     * @param request 退单拒绝收货请求结构 {@link ReturnOrderRejectReceiveRequest}
+     * @return 操作结果 {@link BaseResponse}
+     */
+    @Override
+    public BaseResponse rejectReceive2Delivered(RejectRefund2DeliveredRequest request) {
+        returnOrderService.rejectReceive2Delivered(request.getRid(),  request.getOperator(), request.getReason());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 拒绝退换 2 审核通过
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse rejectRefund2Audit(RejectRefund2DeliveredRequest request){
+        returnOrderService.rejectRefund2Audit(request.getRid(), request.getReason(),  request.getOperator());
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 审核通过 2 作废
+     * @param request
+     * @return
+     */
+    @Override
+    public BaseResponse audit2Void(Audit2VoidRequest request){
+        returnOrderService.audit2Void(request.getRid(), request.getReason(),  request.getOperator());
         return BaseResponse.SUCCESSFUL();
     }
 }

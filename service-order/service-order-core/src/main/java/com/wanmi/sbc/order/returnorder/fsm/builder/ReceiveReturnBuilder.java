@@ -5,6 +5,7 @@ import com.wanmi.sbc.order.returnorder.fsm.action.CompleteReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundFailedAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundRejectAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundReturnAction;
+import com.wanmi.sbc.order.returnorder.fsm.action.RemedyReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.bean.enums.ReturnFlowState;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
@@ -37,6 +38,9 @@ public class ReceiveReturnBuilder implements Builder {
 
     @Autowired
     private CompleteReturnAction completeReturnAction;
+
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
 
     @Override
     public ReturnFlowState supportState() {
@@ -84,6 +88,15 @@ public class ReceiveReturnBuilder implements Builder {
             .source(ReturnFlowState.RECEIVED).target(ReturnFlowState.COMPLETED)
             .event(ReturnEvent.COMPLETE)
             .action(completeReturnAction)
+
+            //已收货 -> 更新信息
+            .and()
+            .withInternal()
+            .source(ReturnFlowState.RECEIVED)
+            .event(ReturnEvent.REMEDY)
+            .action(remedyReturnAction)
+
+
         ;
 
         return builder.build();

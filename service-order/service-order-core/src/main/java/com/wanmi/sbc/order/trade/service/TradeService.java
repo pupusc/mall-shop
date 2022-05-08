@@ -124,7 +124,6 @@ import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
 import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsMinusStockRequest;
@@ -133,7 +132,6 @@ import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
@@ -201,6 +199,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
@@ -8465,10 +8464,12 @@ public class TradeService {
                 }
                 //支付回调处理成功
                 //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+                wxOrderService.orderReportCache(trade.getId());
                 sensorsDataService.sendPaySuccessEvent(trades);
-                log.info("微信支付异步通知回调end---------");
+
+                log.info("TradeService wxPayCallBack 微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error("微信支付异步通知回调end2---------", e);
+                log.error("TradeService wxPayCallBack 微信支付异步通知回调 异常---------", e);
                 //支付处理结果回写回执支付结果表
                 // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
@@ -8477,7 +8478,7 @@ public class TradeService {
             }
         } catch (Exception ex) {
             //失败回执表更新
-            log.error(ex.getMessage());
+            log.error("TradeService wxPayCallBack 微信支付异步通知回调异常" ,ex);
         }
 
     }
@@ -8518,4 +8519,28 @@ public class TradeService {
         payCallbackOnline(trades, operator, false);
     }
 
+    /**
+     * 更新发票的类型
+     * @param autoUpdateInvoiceRequest
+     * @return
+     */
+    @GlobalTransactional
+    public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
+        mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
+                new Update().set("invoice.type", InvoiceType.ELECTRONIC.toValue()), Trade.class);
+        Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
+        if(byOrderNo.isPresent()){
+            OrderInvoice orderInvoice = byOrderNo.get();
+            if(InvoiceState.WAIT.equals(orderInvoice.getInvoiceState())) {
+                orderInvoiceService.updateOrderInvoiceState(Lists.newArrayList(orderInvoice.getOrderInvoiceId()));
+            }
+            log.info("orderInvoice tradeNo:{}, origin state:{}",autoUpdateInvoiceRequest.getTradeId(), orderInvoice.getInvoiceState());
+        }else{
+            OrderInvoiceSaveRequest saveRequest = new OrderInvoiceSaveRequest();
+            saveRequest.setInvoiceType(InvoiceType.ELECTRONIC);
+            saveRequest.setOrderNo(autoUpdateInvoiceRequest.getTradeId());
+            orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
 }
