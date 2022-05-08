@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 /**
+ * health check
  * @author Liang Jun
  * @date 2022-03-08 02:25:00
  */
