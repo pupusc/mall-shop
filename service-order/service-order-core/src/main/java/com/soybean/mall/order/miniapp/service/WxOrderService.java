@@ -34,6 +34,7 @@ import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
+import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -311,12 +312,29 @@ public class WxOrderService {
             redisService.setObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), cacheHourPrice, 86400);
             log.info("小程序实时报表设置分时付款金额，trade:{},now price:{},last price:{}", trade, totalPrice, lastPrice);
             //只保存20条数据
+            String goodsName = "";
+            String pic = "";
+            BigDecimal price = new BigDecimal("9999");
+            for (TradeItem tradeItem : trade.getTradeItems()) {
+                if (StringUtils.isBlank(tradeItem.getPackId())) {
+                    goodsName = trade.getTradeItems().get(0).getSpuName();
+                    pic = trade.getTradeItems().get(0).getPic();
+                    price = trade.getTradePrice().getGoodsPrice();
+                } else {
+                    if (Objects.equals(tradeItem.getSpuId(), tradeItem.getPackId())) {
+                        goodsName = trade.getTradeItems().get(0).getSpuName();
+                        pic = trade.getTradeItems().get(0).getPic();
+                        price = trade.getTradePrice().getGoodsPrice();
+                    }
+                }
+            }
+
             OrderReportDetailDTO orderReportDetailDTO = OrderReportDetailDTO.builder()
                     .createTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1))
-                    .goodsName(trade.getTradeItems().get(0).getSpuName())
+                    .goodsName(goodsName)
                     .orderId(trade.getId())
-                    .pic(trade.getTradeItems().get(0).getPic())
-                    .price(trade.getTradePrice().getGoodsPrice()).build();
+                    .pic(pic)
+                    .price(price).build();
             List<OrderReportDetailDTO> newList = new ArrayList<>(20);
             List<OrderReportDetailDTO> list = redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), OrderReportDetailDTO.class);
             newList.add(0, orderReportDetailDTO);

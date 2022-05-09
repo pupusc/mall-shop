@@ -107,8 +107,8 @@ public class WxLiveAssistantService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getStartTime(), df);
         LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
-        if(endTime.isBefore(startTime)) throw new SbcRuntimeException("开始时间不能大于结束时间");
-        if(endTime.isBefore(now)) throw new SbcRuntimeException("结束时间不能小于现在");
+        if(endTime.isBefore(startTime)) throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "开始时间不能大于结束时间");
+        if(endTime.isBefore(now)) throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "结束时间不能小于现在");
         Map<String, String> resultMap = new HashMap<>();
         if (wxLiveAssistantCreateRequest.getStartTime() != null){
             if(!wxLiveAssistantModel.getStartTime().isEqual(startTime)){
@@ -369,8 +369,11 @@ public class WxLiveAssistantService {
     private List<Goods> resetStockAndProce(WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel, List<GoodsInfo> goodsInfos, List<GoodsInfo> toSave){
         String olfSyncStockFlagStr = wxLiveAssistantGoodsModel.getOlfSyncStockFlag();
         JSONObject olfSyncStockFlag = JSONObject.parseObject(olfSyncStockFlagStr);
-//        String oldGoodsInfoStr = wxLiveAssistantGoodsModel.getOldGoodsInfo();
-//        Map oldGoodsInfo = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
+        String oldGoodsInfoStr = wxLiveAssistantGoodsModel.getOldGoodsInfo();
+        Map oldGoodsInfoMap = null;
+        if (StringUtils.isNotBlank(oldGoodsInfoStr)) {
+            oldGoodsInfoMap = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
+        }
 
 //        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
 //        Map<String, Integer> skus = new HashMap<>();
@@ -385,13 +388,29 @@ public class WxLiveAssistantService {
 //            boolean change = false;
             Integer oldFlag = (Integer) olfSyncStockFlag.get(goodsInfo.getGoodsInfoId());
 //            BigDecimal skuMinMarketPrice = goods.getSkuMinMarketPrice();
+
+            if (oldGoodsInfoMap != null) {
+                Object obj = oldGoodsInfoMap.get(goodsInfo.getGoodsInfoId());
+                if (obj != null) {
+                    Map<String, String> oldInfo = (Map<String, String>) obj;
+                    String price = oldInfo.get("price");
+                    if(price != null) {
+                        goodsInfo.setMarketPrice(new BigDecimal(price));
+                    }
+                }
+            }
+
+            oldFlag = oldFlag == null ? 0 : oldFlag;
+            goodsInfo.setStockSyncFlag(oldFlag);
+            goodsInfoRepository.save(goodsInfo);
+
             if(oldFlag == null || oldFlag == 0){
                 //开播之前未开同步
 
             }else {
                 //开播之前同步了,同步一次库存
 //                change = true;
-                goodsInfo.setStockSyncFlag(1);
+//                goodsInfo.setStockSyncFlag(1);
 //                Map<String, Map<String, Integer>> map = goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
 //                goodsStockService.partialUpdateStock(goodsInfo.getErpGoodsInfoNo(), "", "1", "10");
                 goodsStockService.batchUpdateStock(Collections.singletonList(goodsInfo.getGoodsId()), "", 0, 80);
