@@ -25,6 +25,7 @@ import com.wanmi.sbc.goods.mini.service.goods.WxGoodsService;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -99,8 +100,8 @@ public class WxLiveAssistantService {
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantCreateRequest.getId());
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
-        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
-        if(wxLiveAssistantCreateRequest.getTheme() != null){
+//        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
+        if(StringUtils.isNotBlank(wxLiveAssistantCreateRequest.getTheme())){
             wxLiveAssistantModel.setTheme(wxLiveAssistantCreateRequest.getTheme());
         }
         LocalDateTime now = LocalDateTime.now();
