@@ -1,4 +1,4 @@
-package com.soybean.mall.filter;
+package com.soybean.mall.common.spring.filter;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -9,14 +9,15 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
 
 /**
+ * health check
  * @author Liang Jun
  * @date 2022-03-08 02:25:00
  */
-//@Order(-1000)
-//@Component
+@Order(-1000)
+@Component
 public class HealthFilter extends OncePerRequestFilter {
     private static String HEALTH_URI = "/";
     private static String HEALTH_METHOD = "HEAD";
