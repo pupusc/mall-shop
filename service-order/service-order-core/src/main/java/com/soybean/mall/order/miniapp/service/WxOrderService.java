@@ -314,17 +314,15 @@ public class WxOrderService {
             //只保存20条数据
             String goodsName = "";
             String pic = "";
-            BigDecimal price = new BigDecimal("9999");
+            BigDecimal price = trade.getTradePrice().getGoodsPrice();
             for (TradeItem tradeItem : trade.getTradeItems()) {
                 if (StringUtils.isBlank(tradeItem.getPackId())) {
-                    goodsName = trade.getTradeItems().get(0).getSpuName();
-                    pic = trade.getTradeItems().get(0).getPic();
-                    price = trade.getTradePrice().getGoodsPrice();
+                    goodsName = tradeItem.getSpuName();
+                    pic = tradeItem.getPic();
                 } else {
                     if (Objects.equals(tradeItem.getSpuId(), tradeItem.getPackId())) {
-                        goodsName = trade.getTradeItems().get(0).getSpuName();
-                        pic = trade.getTradeItems().get(0).getPic();
-                        price = trade.getTradePrice().getGoodsPrice();
+                        goodsName = tradeItem.getSpuName();
+                        pic = tradeItem.getPic();
                     }
                 }
             }
