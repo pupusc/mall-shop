@@ -1044,7 +1044,7 @@ public class ReturnOrderService {
                     }
                 }
                 //非运费
-            } else if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason()) && !ReturnReason.PRICE_DIFF.equals(returnOrder.getReturnReason())) {
+            } else if (!ReturnReason.PRICE_DELIVERY.equals(returnOrder.getReturnReason()) ) {
                 //只有有传递apply 对应的信息，则认为是新版本的售后
                 if ((returnItem.getApplyKnowledge() == null
                         || returnItem.getApplyPoint() == null
@@ -1094,6 +1094,10 @@ public class ReturnOrderService {
 //                if (diffNum == 0 && diffPoint == 0 && diffKnowLedge == 0 && diffPrice.compareTo(BigDecimal.ZERO) == 0) {
 //                    throw new SbcRuntimeException("K-050457");
 //                }
+
+                if (ReturnReason.PRICE_DIFF.equals(returnOrder.getReturnReason())) {
+                    continue;
+                }
 
                 //表示部分申请，则此时最大申请金额 必须的小于 单价 * 数量
                 if (diffNum != 0) {
