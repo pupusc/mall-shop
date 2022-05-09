@@ -1522,8 +1522,8 @@ public class TradeController {
      * 推送订单至ERP系统
      */
     @ApiOperation(value = "同步发货状态")
-    @RequestMapping(value = "/erpGoods/syncDeliveryStatus", method = RequestMethod.GET)
-    public BaseResponse syncDeliveryStatus(String ptid){
+    @RequestMapping(value = "/erpGoods/syncDeliveryStatus/{ptid}", method = RequestMethod.GET)
+    public BaseResponse syncDeliveryStatus(@PathVariable("ptid") String ptid){
         ProviderTradeErpRequest providerTradeErpRequest = ProviderTradeErpRequest.builder().ptid(ptid).build();
         providerTradeQueryProvider.batchSyncDeliveryStatus(providerTradeErpRequest);
         return BaseResponse.SUCCESSFUL();
