@@ -1,5 +1,6 @@
 package com.wanmi.sbc.marketing.plugin.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
@@ -36,6 +37,7 @@ import com.wanmi.sbc.marketing.plugin.IGoodsDetailPlugin;
 import com.wanmi.sbc.marketing.plugin.IGoodsListPlugin;
 import com.wanmi.sbc.marketing.plugin.ITradeCommitPlugin;
 import com.wanmi.sbc.marketing.request.MarketingPluginRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,7 @@ import java.util.stream.Collectors;
  * Created by dyt on 2016/12/8.
  */
 @Repository("couponPlugin")
+@Slf4j
 public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITradeCommitPlugin {
 
 
@@ -169,6 +172,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
      */
     @Override
     public TradeMarketingResponse wraperMarketingFullInfo(TradeMarketingPluginRequest request) {
+        log.info("CouponPlugin wraperMarketingFullInfo param: {}", JSON.toJSONString(request));
         String couponCodeId = request.getCouponCodeId();
 //        List<TradeItemInfo> tradeItems = request.getTradeItems();
         if(StringUtils.isEmpty(couponCodeId)) {
@@ -183,6 +187,7 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
             tradeItems.add(tradeItem);
         }
 
+        log.info("CouponPlugin wraperMarketingFullInfo tradeItems:{}", JSON.toJSONString(tradeItems));
 
         // 1.查询我的未使用优惠券
         List<CouponCode> couponCodes = couponCodeService.listCouponCodeByCondition(CouponCodeQueryRequest.builder()
