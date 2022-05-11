@@ -386,6 +386,14 @@ public class GoodsBlackListService {
                 }
                 goodsSearchBlackListModel.setGoodsIdList(goodsIdList);
                 result.setGoodsSearchH5AtIndexBlackListModel(goodsSearchBlackListModel);
+            }  else if (Objects.equals(businessCateGoryId, GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode())) {
+                List<String> goodsIdList = redisService.getHashStrValueList(RedisKeyConstant.KEY_UN_USE_GOODS_COUPON, RedisKeyConstant.KEY_SPU_ID);
+                BlackListCategoryProviderResponse goodsSearchBlackListModel = result.getUnUseCouponBlackListModel();
+                if (goodsSearchBlackListModel == null) {
+                    goodsSearchBlackListModel = new BlackListCategoryProviderResponse();
+                }
+                goodsSearchBlackListModel.setGoodsIdList(goodsIdList);
+                result.setUnUseCouponBlackListModel(goodsSearchBlackListModel);
             } else {
                 log.error("===>>> CommonBlackListService listNoPage 参数有误 {}", JSON.toJSONString(goodsBlackListPageProviderRequest));
             }
