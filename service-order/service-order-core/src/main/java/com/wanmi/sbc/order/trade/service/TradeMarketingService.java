@@ -79,8 +79,7 @@ public class TradeMarketingService {
                 tradeItemInfoDTOBuilder.storeCateIds(new ArrayList<>());
             }
             return tradeItemInfoDTOBuilder.build();
-        })
-                .collect(Collectors.toList());
+        }).collect(Collectors.toList());
         MarketingCouponWrapperRequest request = new MarketingCouponWrapperRequest();
         request.setCustomerId(customerId);
         request.setCouponCodeId(couponCodeId);

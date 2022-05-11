@@ -1,12 +1,17 @@
 package com.wanmi.sbc.marketing.plugin.impl;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoDetailByGoodsInfoResponse;
 import com.wanmi.sbc.goods.bean.vo.CouponLabelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -38,6 +43,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +74,28 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
 
     @Autowired
     private ClassifyProvider classifyProvider;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
+
+    /**
+     * 获取优惠券黑名单
+     * @return
+     */
+    private List<String> listUnUseCouponBlackList () {
+        List<String> unUseCouponBlackList = new ArrayList<>();
+        //获取黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Collections.singletonList(GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getUnUseCouponBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnUseCouponBlackListModel().getGoodsIdList())) {
+            unUseCouponBlackList.addAll(context.getUnUseCouponBlackListModel().getGoodsIdList());
+        }
+        return unUseCouponBlackList;
+    }
+
 
     /**
      * 商品列表处理
@@ -142,10 +170,19 @@ public class CouponPlugin implements IGoodsListPlugin, IGoodsDetailPlugin, ITrad
     @Override
     public TradeMarketingResponse wraperMarketingFullInfo(TradeMarketingPluginRequest request) {
         String couponCodeId = request.getCouponCodeId();
-        List<TradeItemInfo> tradeItems = request.getTradeItems();
+//        List<TradeItemInfo> tradeItems = request.getTradeItems();
         if(StringUtils.isEmpty(couponCodeId)) {
             return null;
         }
+        List<TradeItemInfo> tradeItems = new ArrayList<>();
+        List<String> unUseCouponBlackList = this.listUnUseCouponBlackList();
+        for (TradeItemInfo tradeItem : request.getTradeItems()) {
+            if (unUseCouponBlackList.contains(tradeItem.getSpuId())) {
+                continue;
+            }
+            tradeItems.add(tradeItem);
+        }
+
 
         // 1.查询我的未使用优惠券
         List<CouponCode> couponCodes = couponCodeService.listCouponCodeByCondition(CouponCodeQueryRequest.builder()

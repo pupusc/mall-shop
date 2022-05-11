@@ -299,7 +299,7 @@ public class CouponCodeService {
         List<TradeItemInfo> filterTradeItemInfoList = new ArrayList<>();
         List<String> unUseCouponBlackList = this.listUnUseCouponBlackList();
         for (TradeItemInfo tradeItem : request.getTradeItems()) {
-            if (unUseCouponBlackList.contains(tradeItem.getSkuId())) {
+            if (unUseCouponBlackList.contains(tradeItem.getSpuId())) {
                 continue;
             }
             filterTradeItemInfoList.add(tradeItem);

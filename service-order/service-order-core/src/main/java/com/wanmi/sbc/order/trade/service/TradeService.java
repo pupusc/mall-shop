@@ -2304,6 +2304,7 @@ public class TradeService {
         // 校验组合购活动信息
         dealSuitOrder(trade, tradeParams);
 
+        //构建订单满系营销对象 优惠券
         this.wrapperMarketingForCommit(trade, tradeParams);
         long count = tradeParams.getTradeItems().stream().filter(tradeItem -> Objects.nonNull(tradeItem.getGoodsType())
                 && (GoodsType.VIRTUAL_COUPON.equals(tradeItem.getGoodsType())
