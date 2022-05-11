@@ -58,4 +58,9 @@ public class GoodsBlackListPageProviderResponse implements Serializable {
      * 首页商品搜索H5不展示 黑名单
      */
     private BlackListCategoryProviderResponse goodsSearchH5AtIndexBlackListModel;
+
+    /*
+     * 下单不使用优惠券
+     */
+    private BlackListCategoryProviderResponse unUseCouponBlackListModel;
 }

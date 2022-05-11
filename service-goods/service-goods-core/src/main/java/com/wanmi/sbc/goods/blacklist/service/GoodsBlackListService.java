@@ -133,6 +133,8 @@ public class GoodsBlackListService {
                     redisService.delete(RedisKeyConstant.KEY_GOODS_SEARCH_AT_INDEX);
                 }else if(goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode())){
                     redisService.delete(RedisKeyConstant.KEY_GOODS_SEARCH_H5_AT_INDEX);
+                } else if (goodsBlackListDTO.getBusinessCategory().equals(GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode())) {
+                    redisService.delete(RedisKeyConstant.KEY_UN_USE_GOODS_COUPON);
                 }
             }
             goodsBlackListRepository.save(goodsBlackListDTO);
@@ -156,7 +158,7 @@ public class GoodsBlackListService {
      * @param goodsBlackListPageProviderRequest
      * @return
      */
-    public List<GoodsBlackListDTO> listSimpleNoPage(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
+    private List<GoodsBlackListDTO> listSimpleNoPage(GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest) {
         return goodsBlackListRepository.findAll(goodsBlackListRepository.packageWhere(goodsBlackListPageProviderRequest));
     }
 
@@ -209,6 +211,9 @@ public class GoodsBlackListService {
             } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode())) {
                 BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getGoodsSearchH5AtIndexBlackListModel());
                 result.setGoodsSearchH5AtIndexBlackListModel(blackListCategoryProviderResponse);
+            } else if (Objects.equals(commonBlackListParam.getBusinessCategory(), GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode())) {
+                BlackListCategoryProviderResponse blackListCategoryProviderResponse = this.packageBlackList(commonBlackListParam, result.getUnUseCouponBlackListModel());
+                result.setUnUseCouponBlackListModel(blackListCategoryProviderResponse);
             } else {
                 log.error("===>>> CommonBlackListService flushBlackListCache 参数有误 {}", JSON.toJSONString(goodsBlackListCacheProviderRequest));
             }
@@ -278,6 +283,11 @@ public class GoodsBlackListService {
         if (result.getGoodsSearchH5AtIndexBlackListModel() != null) {
             if (!CollectionUtils.isEmpty(result.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList())) {
                 redisService.putHashStrValueList(RedisKeyConstant.KEY_GOODS_SEARCH_H5_AT_INDEX, RedisKeyConstant.KEY_SPU_ID, result.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList());
+            }
+        }
+        if (result.getUnUseCouponBlackListModel() != null) {
+            if (!CollectionUtils.isEmpty(result.getUnUseCouponBlackListModel().getGoodsIdList())) {
+                redisService.putHashStrValueList(RedisKeyConstant.KEY_UN_USE_GOODS_COUPON, RedisKeyConstant.KEY_SPU_ID, result.getUnUseCouponBlackListModel().getGoodsIdList());
             }
         }
         return result;
