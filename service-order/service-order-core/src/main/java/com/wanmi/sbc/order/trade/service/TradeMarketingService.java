@@ -69,6 +69,7 @@ public class TradeMarketingService {
                     .num(t.getNum())
                     .price(t.getPrice())
                     .skuId(t.getSkuId())
+                    .spuId(t.getSpuId())
                     .cateId(t.getCateId())
                     .storeId(t.getStoreId())
                     .brandId(t.getBrand())
