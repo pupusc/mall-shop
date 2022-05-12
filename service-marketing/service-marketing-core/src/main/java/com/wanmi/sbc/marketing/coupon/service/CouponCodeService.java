@@ -21,16 +21,20 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelByCustomerIdAndStoreIdResponse;
 import com.wanmi.sbc.customer.api.response.store.ListStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByIdsRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
@@ -171,6 +175,9 @@ public class CouponCodeService {
     private DistributionCacheService distributionCacheService;
 
     @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
     private ClassifyProvider classifyProvider;
     
 
@@ -265,12 +272,40 @@ public class CouponCodeService {
         };
     }
 
+    /**
+     * 获取优惠券黑名单
+     * @return
+     */
+    private List<String> listUnUseCouponBlackList () {
+        List<String> unUseCouponBlackList = new ArrayList<>();
+        //获取黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Collections.singletonList(GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getUnUseCouponBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnUseCouponBlackListModel().getGoodsIdList())) {
+            unUseCouponBlackList.addAll(context.getUnUseCouponBlackListModel().getGoodsIdList());
+        }
+        return unUseCouponBlackList;
+    }
 
     /**
      * 查询使用优惠券页需要的优惠券列表
      */
     @Transactional
     public List<CouponCodeVO> listCouponCodeForUse(CouponCodeListForUseRequest request) {
+
+        List<TradeItemInfo> filterTradeItemInfoList = new ArrayList<>();
+        List<String> unUseCouponBlackList = this.listUnUseCouponBlackList();
+        for (TradeItemInfo tradeItem : request.getTradeItems()) {
+            if (unUseCouponBlackList.contains(tradeItem.getSpuId())) {
+                continue;
+            }
+            filterTradeItemInfoList.add(tradeItem);
+        }
+        request.setTradeItems(filterTradeItemInfoList);
+
 
         // 1.设置tradeItem的storeCateIds
         List<TradeItemInfo> tradeItemInfos = request.getTradeItems();

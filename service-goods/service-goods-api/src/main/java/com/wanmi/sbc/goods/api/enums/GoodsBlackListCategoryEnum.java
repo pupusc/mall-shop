@@ -24,7 +24,8 @@ public enum GoodsBlackListCategoryEnum {
     POINT_NOT_SPLIT(6, "不能使用积分商品"),
     CLASSIFT_AT_BOTTOM(7, "底部分类"),
     GOODS_SESRCH_AT_INDEX(8, "首页商品搜索H5和领阅不展示"),
-    GOODS_SESRCH_H5_AT_INDEX(9, "首页商品搜索H5不展示");
+    GOODS_SESRCH_H5_AT_INDEX(9, "首页商品搜索H5不展示"),
+    UN_USE_GOODS_COUPON(10, "下单不可以使用优惠券");
 
     private final Integer code;
     private final String message;

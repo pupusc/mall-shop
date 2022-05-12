@@ -57,6 +57,11 @@ public class RedisKeyConstant {
     public static final String KEY_GOODS_SEARCH_H5_AT_INDEX = "KEY_BLACK_LIST_GOODS_SEARCH_H5_AT_INDEX";
 
     /**
+     * 下单不使用优惠券 黑名单KEY
+     */
+    public static final String KEY_UN_USE_GOODS_COUPON = "KEY_BLACK_LIST_UN_USE_GOODS_COUPON";
+
+    /**
      * SPU_ID hashKey
      */
     public static final String KEY_SPU_ID = "KEY_BLACK_LIST_SPU_ID";
