@@ -147,7 +147,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             wxLiveAssistantDetailVo.setStatus(0);
         }
         wxLiveAssistantDetailVo.setDuration(duration.toMinutes());
-        wxLiveAssistantSearchRequest.setPageSize(100);
+        wxLiveAssistantSearchRequest.setPageSize(300);
         Page<WxLiveAssistantGoodsModel> wxLiveAssistantGoodsPage = wxLiveAssistantService.listGoods(wxLiveAssistantSearchRequest);
         List<WxLiveAssistantGoodsModel> content = wxLiveAssistantGoodsPage.getContent();
 
