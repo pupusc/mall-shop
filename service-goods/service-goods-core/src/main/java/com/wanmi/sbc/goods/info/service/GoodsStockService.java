@@ -339,12 +339,11 @@ public class GoodsStockService {
 
         Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
         for (ERPGoodsInfoVO erpGoodsInfoVo : erpStockInfo.getStocks()) {
-            log.info("GoodsStockService batchUpdateStock  itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
-                    erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemName(), erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemSkuName(), erpGoodsInfoVo.getWarehouseCode());
             if (erpGoodsInfoVo.getDel() || unStaticsKey.contains(erpGoodsInfoVo.getWarehouseCode())) {
+                log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{}  itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
+                        erpGoodsCodeNo, erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemName(), erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemSkuName(), erpGoodsInfoVo.getWarehouseCode());
                 continue;
             }
-
             Integer saleableStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoVo.getSkuCode());
             int tmpStockQty = saleableStockQty == null ? erpGoodsInfoVo.getSalableQty() : saleableStockQty + erpGoodsInfoVo.getSalableQty();
             erpSkuCode2ErpStockQtyMap.put(erpGoodsInfoVo.getSkuCode(), tmpStockQty);
@@ -390,7 +389,7 @@ public class GoodsStockService {
             goodsInfoStockSyncRequestList.add(goodsInfoStockSyncRequest);
         }
 
-        log.info("GoodsStockService batchUpdateStock goodsId:{} size:{}", goodsId, goodsInfoStockSyncRequestList.size());
+        log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} goodsId:{} goodsInfoStockSyncRequest:{}", erpGoodsCodeNo, goodsId, JSON.toJSONString(goodsInfoStockSyncRequestList));
         if (CollectionUtils.isEmpty(goodsInfoStockSyncRequestList)) {
             GoodsInfoStockSyncRequest goodsInfoStockSyncRequest = new GoodsInfoStockSyncRequest();
             goodsInfoStockSyncRequest.setSpuId(goodsId);
