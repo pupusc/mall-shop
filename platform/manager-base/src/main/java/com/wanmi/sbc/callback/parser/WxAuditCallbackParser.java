@@ -35,8 +35,8 @@ public class WxAuditCallbackParser implements CommandLineRunner {
     private String wxCallbackAesKey;
 
     private static Collection<CallbackHandler> handlers;
-    DocumentBuilderFactory dbf;
-    WXBizMsgCrypt pc;
+    private static DocumentBuilderFactory dbf;
+    private static WXBizMsgCrypt pc;
 
     public String dealCallback(String encryptStr, String timestamp, String nonce, String msgSignature) throws Exception {
         String decrypt = decrypt(encryptStr, timestamp, nonce, msgSignature);
