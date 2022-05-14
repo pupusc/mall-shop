@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaBookMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaBook" id="MetaBookMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="isbn" column="isbn" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="subName" column="sub_name" jdbcType="VARCHAR"/>
+        <result property="originName" column="origin_name" jdbcType="VARCHAR"/>
+        <result property="publisherId" column="publisher_id" jdbcType="INTEGER"/>
+        <result property="producerId" column="producer_id" jdbcType="INTEGER"/>
+        <result property="bookGroupId" column="book_group_id" jdbcType="INTEGER"/>
+        <result property="bindId" column="bind_id" jdbcType="INTEGER"/>
+        <result property="paperId" column="paper_id" jdbcType="INTEGER"/>
+        <result property="publishTime" column="publish_time" jdbcType="TIMESTAMP"/>
+        <result property="publishBatch" column="publish_batch" jdbcType="INTEGER"/>
+        <result property="printTime" column="print_time" jdbcType="TIMESTAMP"/>
+        <result property="printBatch" column="print_batch" jdbcType="INTEGER"/>
+        <result property="pageCount" column="page_count" jdbcType="INTEGER"/>
+        <result property="wordCount" column="word_count" jdbcType="INTEGER"/>
+        <result property="score" column="score" jdbcType="NUMERIC"/>
+        <result property="price" column="price" jdbcType="NUMERIC"/>
+        <result property="sizeLength" column="size_length" jdbcType="INTEGER"/>
+        <result property="sizeWidth" column="size_width" jdbcType="INTEGER"/>
+        <result property="printSheet" column="print_sheet" jdbcType="INTEGER"/>
+        <result property="language" column="language" jdbcType="VARCHAR"/>
+        <result property="fitAgeMin" column="fit_age_min" jdbcType="INTEGER"/>
+        <result property="fitAgeMax" column="fit_age_max" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookMap">
+        select
+          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag
+        from meta_book
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookMap">
+        select
+          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag
+        from meta_book
+        <where>
+            <if test="metaBook.id != null">
+                and id = #{metaBook.id}
+            </if>
+            <if test="metaBook.isbn != null and metaBook.isbn != ''">
+                and isbn = #{metaBook.isbn}
+            </if>
+            <if test="metaBook.name != null and metaBook.name != ''">
+                and name = #{metaBook.name}
+            </if>
+            <if test="metaBook.subName != null and metaBook.subName != ''">
+                and sub_name = #{metaBook.subName}
+            </if>
+            <if test="metaBook.originName != null and metaBook.originName != ''">
+                and origin_name = #{metaBook.originName}
+            </if>
+            <if test="metaBook.publisherId != null">
+                and publisher_id = #{metaBook.publisherId}
+            </if>
+            <if test="metaBook.producerId != null">
+                and producer_id = #{metaBook.producerId}
+            </if>
+            <if test="metaBook.bookGroupId != null">
+                and book_group_id = #{metaBook.bookGroupId}
+            </if>
+            <if test="metaBook.bindId != null">
+                and bind_id = #{metaBook.bindId}
+            </if>
+            <if test="metaBook.paperId != null">
+                and paper_id = #{metaBook.paperId}
+            </if>
+            <if test="metaBook.publishTime != null">
+                and publish_time = #{metaBook.publishTime}
+            </if>
+            <if test="metaBook.publishBatch != null">
+                and publish_batch = #{metaBook.publishBatch}
+            </if>
+            <if test="metaBook.printTime != null">
+                and print_time = #{metaBook.printTime}
+            </if>
+            <if test="metaBook.printBatch != null">
+                and print_batch = #{metaBook.printBatch}
+            </if>
+            <if test="metaBook.pageCount != null">
+                and page_count = #{metaBook.pageCount}
+            </if>
+            <if test="metaBook.wordCount != null">
+                and word_count = #{metaBook.wordCount}
+            </if>
+            <if test="metaBook.score != null">
+                and score = #{metaBook.score}
+            </if>
+            <if test="metaBook.price != null">
+                and price = #{metaBook.price}
+            </if>
+            <if test="metaBook.sizeLength != null">
+                and size_length = #{metaBook.sizeLength}
+            </if>
+            <if test="metaBook.sizeWidth != null">
+                and size_width = #{metaBook.sizeWidth}
+            </if>
+            <if test="metaBook.printSheet != null">
+                and print_sheet = #{metaBook.printSheet}
+            </if>
+            <if test="metaBook.language != null and metaBook.language != ''">
+                and language = #{metaBook.language}
+            </if>
+            <if test="metaBook.fitAgeMin != null">
+                and fit_age_min = #{metaBook.fitAgeMin}
+            </if>
+            <if test="metaBook.fitAgeMax != null">
+                and fit_age_max = #{metaBook.fitAgeMax}
+            </if>
+            <if test="metaBook.createTime != null">
+                and create_time = #{metaBook.createTime}
+            </if>
+            <if test="metaBook.updateTime != null">
+                and update_time = #{metaBook.updateTime}
+            </if>
+            <if test="metaBook.delFlag != null">
+                and del_flag = #{metaBook.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="isbn != null and isbn != ''">
+                and isbn = #{isbn}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="subName != null and subName != ''">
+                and sub_name = #{subName}
+            </if>
+            <if test="originName != null and originName != ''">
+                and origin_name = #{originName}
+            </if>
+            <if test="publisherId != null">
+                and publisher_id = #{publisherId}
+            </if>
+            <if test="producerId != null">
+                and producer_id = #{producerId}
+            </if>
+            <if test="bookGroupId != null">
+                and book_group_id = #{bookGroupId}
+            </if>
+            <if test="bindId != null">
+                and bind_id = #{bindId}
+            </if>
+            <if test="paperId != null">
+                and paper_id = #{paperId}
+            </if>
+            <if test="publishTime != null">
+                and publish_time = #{publishTime}
+            </if>
+            <if test="publishBatch != null">
+                and publish_batch = #{publishBatch}
+            </if>
+            <if test="printTime != null">
+                and print_time = #{printTime}
+            </if>
+            <if test="printBatch != null">
+                and print_batch = #{printBatch}
+            </if>
+            <if test="pageCount != null">
+                and page_count = #{pageCount}
+            </if>
+            <if test="wordCount != null">
+                and word_count = #{wordCount}
+            </if>
+            <if test="score != null">
+                and score = #{score}
+            </if>
+            <if test="price != null">
+                and price = #{price}
+            </if>
+            <if test="sizeLength != null">
+                and size_length = #{sizeLength}
+            </if>
+            <if test="sizeWidth != null">
+                and size_width = #{sizeWidth}
+            </if>
+            <if test="printSheet != null">
+                and print_sheet = #{printSheet}
+            </if>
+            <if test="language != null and language != ''">
+                and language = #{language}
+            </if>
+            <if test="fitAgeMin != null">
+                and fit_age_min = #{fitAgeMin}
+            </if>
+            <if test="fitAgeMax != null">
+                and fit_age_max = #{fitAgeMax}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
+        values (#{isbn}, #{name}, #{subName}, #{originName}, #{publisherId}, #{producerId}, #{bookGroupId}, #{bindId}, #{paperId}, #{publishTime}, #{publishBatch}, #{printTime}, #{printBatch}, #{pageCount}, #{wordCount}, #{score}, #{price}, #{sizeLength}, #{sizeWidth}, #{printSheet}, #{language}, #{fitAgeMin}, #{fitAgeMax}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        isbn = values(isbn),
+        name = values(name),
+        sub_name = values(sub_name),
+        origin_name = values(origin_name),
+        publisher_id = values(publisher_id),
+        producer_id = values(producer_id),
+        book_group_id = values(book_group_id),
+        bind_id = values(bind_id),
+        paper_id = values(paper_id),
+        publish_time = values(publish_time),
+        publish_batch = values(publish_batch),
+        print_time = values(print_time),
+        print_batch = values(print_batch),
+        page_count = values(page_count),
+        word_count = values(word_count),
+        score = values(score),
+        price = values(price),
+        size_length = values(size_length),
+        size_width = values(size_width),
+        print_sheet = values(print_sheet),
+        language = values(language),
+        fit_age_min = values(fit_age_min),
+        fit_age_max = values(fit_age_max),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book
+        <set>
+            <if test="isbn != null and isbn != ''">
+                isbn = #{isbn},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="subName != null and subName != ''">
+                sub_name = #{subName},
+            </if>
+            <if test="originName != null and originName != ''">
+                origin_name = #{originName},
+            </if>
+            <if test="publisherId != null">
+                publisher_id = #{publisherId},
+            </if>
+            <if test="producerId != null">
+                producer_id = #{producerId},
+            </if>
+            <if test="bookGroupId != null">
+                book_group_id = #{bookGroupId},
+            </if>
+            <if test="bindId != null">
+                bind_id = #{bindId},
+            </if>
+            <if test="paperId != null">
+                paper_id = #{paperId},
+            </if>
+            <if test="publishTime != null">
+                publish_time = #{publishTime},
+            </if>
+            <if test="publishBatch != null">
+                publish_batch = #{publishBatch},
+            </if>
+            <if test="printTime != null">
+                print_time = #{printTime},
+            </if>
+            <if test="printBatch != null">
+                print_batch = #{printBatch},
+            </if>
+            <if test="pageCount != null">
+                page_count = #{pageCount},
+            </if>
+            <if test="wordCount != null">
+                word_count = #{wordCount},
+            </if>
+            <if test="score != null">
+                score = #{score},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="sizeLength != null">
+                size_length = #{sizeLength},
+            </if>
+            <if test="sizeWidth != null">
+                size_width = #{sizeWidth},
+            </if>
+            <if test="printSheet != null">
+                print_sheet = #{printSheet},
+            </if>
+            <if test="language != null and language != ''">
+                language = #{language},
+            </if>
+            <if test="fitAgeMin != null">
+                fit_age_min = #{fitAgeMin},
+            </if>
+            <if test="fitAgeMax != null">
+                fit_age_max = #{fitAgeMax},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

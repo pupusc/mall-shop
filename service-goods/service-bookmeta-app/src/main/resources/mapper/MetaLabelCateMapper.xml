@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaLabelCateMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaLabelCate" id="MetaLabelCateMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaLabelCateMap">
+        select
+          id, name, parent_id, path, create_time, update_time, del_flag
+        from meta_label_cate
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaLabelCateMap">
+        select
+          id, name, parent_id, path, create_time, update_time, del_flag
+        from meta_label_cate
+        <where>
+            <if test="metaLabelCate.id != null">
+                and id = #{metaLabelCate.id}
+            </if>
+            <if test="metaLabelCate.name != null and metaLabelCate.name != ''">
+                and name = #{metaLabelCate.name}
+            </if>
+            <if test="metaLabelCate.parentId != null">
+                and parent_id = #{metaLabelCate.parentId}
+            </if>
+            <if test="metaLabelCate.path != null and metaLabelCate.path != ''">
+                and path = #{metaLabelCate.path}
+            </if>
+            <if test="metaLabelCate.createTime != null">
+                and create_time = #{metaLabelCate.createTime}
+            </if>
+            <if test="metaLabelCate.updateTime != null">
+                and update_time = #{metaLabelCate.updateTime}
+            </if>
+            <if test="metaLabelCate.delFlag != null">
+                and del_flag = #{metaLabelCate.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_label_cate
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="parentId != null">
+                and parent_id = #{parentId}
+            </if>
+            <if test="path != null and path != ''">
+                and path = #{path}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label_cate(name, parent_id, path, create_time, update_time, del_flag)
+        values (#{name}, #{parentId}, #{path}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label_cate(name, parent_id, path, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.name}, #{entity.parentId}, #{entity.path}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label_cate(name, parent_id, path, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.name}, #{entity.parentId}, #{entity.path}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        name = values(name),
+        parent_id = values(parent_id),
+        path = values(path),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_label_cate
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="path != null and path != ''">
+                path = #{path},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_label_cate set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

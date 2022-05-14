@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaLabelMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaLabel" id="MetaLabelMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="labelCateId" column="label_cate_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="seq" column="seq" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaLabelMap">
+        select
+          id, label_cate_id, name, status, create_time, update_time, del_flag, descr, seq
+        from meta_label
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaLabelMap">
+        select
+          id, label_cate_id, name, status, create_time, update_time, del_flag, descr, seq
+        from meta_label
+        <where>
+            <if test="metaLabel.id != null">
+                and id = #{metaLabel.id}
+            </if>
+            <if test="metaLabel.labelCateId != null">
+                and label_cate_id = #{metaLabel.labelCateId}
+            </if>
+            <if test="metaLabel.name != null and metaLabel.name != ''">
+                and name = #{metaLabel.name}
+            </if>
+            <if test="metaLabel.status != null">
+                and status = #{metaLabel.status}
+            </if>
+            <if test="metaLabel.createTime != null">
+                and create_time = #{metaLabel.createTime}
+            </if>
+            <if test="metaLabel.updateTime != null">
+                and update_time = #{metaLabel.updateTime}
+            </if>
+            <if test="metaLabel.delFlag != null">
+                and del_flag = #{metaLabel.delFlag}
+            </if>
+            <if test="metaLabel.descr != null and metaLabel.descr != ''">
+                and descr = #{metaLabel.descr}
+            </if>
+            <if test="metaLabel.seq != null">
+                and seq = #{metaLabel.seq}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_label
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="labelCateId != null">
+                and label_cate_id = #{labelCateId}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            <if test="seq != null">
+                and seq = #{seq}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
+        values (#{labelCateId}, #{name}, #{status}, #{createTime}, #{updateTime}, #{delFlag}, #{descr}, #{seq})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.labelCateId}, #{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.labelCateId}, #{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq})
+        </foreach>
+        on duplicate key update
+        label_cate_id = values(label_cate_id),
+        name = values(name),
+        status = values(status),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        descr = values(descr),
+        seq = values(seq)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_label
+        <set>
+            <if test="labelCateId != null">
+                label_cate_id = #{labelCateId},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="descr != null and descr != ''">
+                descr = #{descr},
+            </if>
+            <if test="seq != null">
+                seq = #{seq},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_label set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

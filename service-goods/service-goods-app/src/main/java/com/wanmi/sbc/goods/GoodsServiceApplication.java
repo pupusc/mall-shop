@@ -14,7 +14,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
-
+import tk.mybatis.spring.annotation.MapperScan;
 
 import java.net.InetAddress;
 
@@ -23,7 +23,7 @@ import java.net.InetAddress;
  * @Description: 商品服务启动器
  * @Date: 2018-11-07 10:07
  */
-
+@MapperScan(basePackages = {"com.wanmi.sbc.goods.mapper"})
 @SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @ComponentScan(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync

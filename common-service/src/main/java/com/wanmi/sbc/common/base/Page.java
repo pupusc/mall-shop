@@ -11,7 +11,7 @@ public class Page implements Serializable {
     /**
      * 当前页码
      */
-    private Integer pageNo;
+    private Integer pageNo = 1;
     /**
      * 每页记录数
      */
@@ -24,6 +24,8 @@ public class Page implements Serializable {
      * 总页数
      */
     private Integer pageCount = 0;
+
+    public Page() {}
 
     /**
      * Description: 构建分页对象，计算总页数
@@ -77,14 +79,7 @@ public class Page implements Serializable {
         this.totalCount = totalCount;
     }
 
-    public void setPage(Integer pageNo, Integer pageSize, Integer totalCount) {
-        this.setPage(pageNo, pageSize, totalCount, (totalCount - 1) / pageSize + 1);
-    }
-
-    public void setPage(Integer pageNo, Integer pageSize, Integer totalCount, Integer pageCount) {
-        this.setPageNo(pageNo);
-        this.setPageSize(pageSize);
-        this.setPageCount(pageCount);
-        this.setTotalCount(totalCount);
+    public Integer getOffset() {
+        return (pageNo - 1) * pageSize;
     }
 }

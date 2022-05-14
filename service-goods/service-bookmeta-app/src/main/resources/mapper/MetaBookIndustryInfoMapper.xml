@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaBookIndustryInfoMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaBookIndustryInfo" id="MetaBookIndustryInfoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="isbn" column="isbn" jdbcType="VARCHAR"/>
+        <result property="productId" column="product_id" jdbcType="VARCHAR"/>
+        <result property="sourceType" column="source_type" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="subTitle" column="sub_title" jdbcType="VARCHAR"/>
+        <result property="sellPrice" column="sell_price" jdbcType="NUMERIC"/>
+        <result property="originPrice" column="origin_price" jdbcType="NUMERIC"/>
+        <result property="editorRcmmd" column="editor_rcmmd" jdbcType="VARCHAR"/>
+        <result property="content_Rcmmd" column="content__rcmmd" jdbcType="VARCHAR"/>
+        <result property="catalog" column="catalog" jdbcType="VARCHAR"/>
+        <result property="digest" column="digest" jdbcType="VARCHAR"/>
+        <result property="author" column="author" jdbcType="VARCHAR"/>
+        <result property="authorAbout" column="author_about" jdbcType="VARCHAR"/>
+        <result property="foreword" column="foreword" jdbcType="VARCHAR"/>
+        <result property="mediaComment" column="media_comment" jdbcType="VARCHAR"/>
+        <result property="publisher" column="publisher" jdbcType="VARCHAR"/>
+        <result property="publishTime" column="publish_time" jdbcType="VARCHAR"/>
+        <result property="publishBatch" column="publish_batch" jdbcType="VARCHAR"/>
+        <result property="size" column="size" jdbcType="VARCHAR"/>
+        <result property="suitFlag" column="suit_flag" jdbcType="INTEGER"/>
+        <result property="paper" column="paper" jdbcType="VARCHAR"/>
+        <result property="bookBind" column="book_bind" jdbcType="VARCHAR"/>
+        <result property="printTime" column="print_time" jdbcType="VARCHAR"/>
+        <result property="toneFlag" column="tone_flag" jdbcType="INTEGER"/>
+        <result property="pageCount" column="page_count" jdbcType="INTEGER"/>
+        <result property="wordCount" column="word_count" jdbcType="INTEGER"/>
+        <result property="printSheet" column="print_sheet" jdbcType="INTEGER"/>
+        <result property="bookletCount" column="booklet_count" jdbcType="INTEGER"/>
+        <result property="originName" column="origin_name" jdbcType="VARCHAR"/>
+        <result property="language" column="language" jdbcType="VARCHAR"/>
+        <result property="editorName" column="editor_name" jdbcType="VARCHAR"/>
+        <result property="translatorName" column="translator_name" jdbcType="VARCHAR"/>
+        <result property="painterName" column="painter_name" jdbcType="VARCHAR"/>
+        <result property="commentCount" column="comment_count" jdbcType="INTEGER"/>
+        <result property="rankName" column="rank_name" jdbcType="VARCHAR"/>
+        <result property="rankPlace" column="rank_place" jdbcType="INTEGER"/>
+        <result property="tags" column="tags" jdbcType="VARCHAR"/>
+        <result property="category" column="category" jdbcType="VARCHAR"/>
+        <result property="relationProduct" column="relation_product" jdbcType="VARCHAR"/>
+        <result property="rcmmdAlsoBought" column="rcmmd_also_bought" jdbcType="VARCHAR"/>
+        <result property="rcmmdAlsoBrowse" column="rcmmd_also_browse" jdbcType="VARCHAR"/>
+        <result property="rcmmdSameTime" column="rcmmd_same_time" jdbcType="VARCHAR"/>
+        <result property="rcmmdPerhapsLike" column="rcmmd_perhaps_like" jdbcType="VARCHAR"/>
+        <result property="rcmmdBookList" column="rcmmd_book_list" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookIndustryInfoMap">
+        select
+          id, isbn, product_id, source_type, title, sub_title, sell_price, origin_price, editor_rcmmd, content__rcmmd, catalog, digest, author, author_about, foreword, media_comment, publisher, publish_time, publish_batch, size, suit_flag, paper, book_bind, print_time, tone_flag, page_count, word_count, print_sheet, booklet_count, origin_name, language, editor_name, translator_name, painter_name, comment_count, rank_name, rank_place, tags, category, relation_product, rcmmd_also_bought, rcmmd_also_browse, rcmmd_same_time, rcmmd_perhaps_like, rcmmd_book_list, create_time, update_time, del_flag
+        from meta_book_industry_info
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookIndustryInfoMap">
+        select
+          id, isbn, product_id, source_type, title, sub_title, sell_price, origin_price, editor_rcmmd, content__rcmmd, catalog, digest, author, author_about, foreword, media_comment, publisher, publish_time, publish_batch, size, suit_flag, paper, book_bind, print_time, tone_flag, page_count, word_count, print_sheet, booklet_count, origin_name, language, editor_name, translator_name, painter_name, comment_count, rank_name, rank_place, tags, category, relation_product, rcmmd_also_bought, rcmmd_also_browse, rcmmd_same_time, rcmmd_perhaps_like, rcmmd_book_list, create_time, update_time, del_flag
+        from meta_book_industry_info
+        <where>
+            <if test="metaBookIndustryInfo.id != null">
+                and id = #{metaBookIndustryInfo.id}
+            </if>
+            <if test="metaBookIndustryInfo.isbn != null and metaBookIndustryInfo.isbn != ''">
+                and isbn = #{metaBookIndustryInfo.isbn}
+            </if>
+            <if test="metaBookIndustryInfo.productId != null and metaBookIndustryInfo.productId != ''">
+                and product_id = #{metaBookIndustryInfo.productId}
+            </if>
+            <if test="metaBookIndustryInfo.sourceType != null">
+                and source_type = #{metaBookIndustryInfo.sourceType}
+            </if>
+            <if test="metaBookIndustryInfo.title != null and metaBookIndustryInfo.title != ''">
+                and title = #{metaBookIndustryInfo.title}
+            </if>
+            <if test="metaBookIndustryInfo.subTitle != null and metaBookIndustryInfo.subTitle != ''">
+                and sub_title = #{metaBookIndustryInfo.subTitle}
+            </if>
+            <if test="metaBookIndustryInfo.sellPrice != null">
+                and sell_price = #{metaBookIndustryInfo.sellPrice}
+            </if>
+            <if test="metaBookIndustryInfo.originPrice != null">
+                and origin_price = #{metaBookIndustryInfo.originPrice}
+            </if>
+            <if test="metaBookIndustryInfo.editorRcmmd != null and metaBookIndustryInfo.editorRcmmd != ''">
+                and editor_rcmmd = #{metaBookIndustryInfo.editorRcmmd}
+            </if>
+            <if test="metaBookIndustryInfo.content_Rcmmd != null and metaBookIndustryInfo.content_Rcmmd != ''">
+                and content__rcmmd = #{metaBookIndustryInfo.content_Rcmmd}
+            </if>
+            <if test="metaBookIndustryInfo.catalog != null and metaBookIndustryInfo.catalog != ''">
+                and catalog = #{metaBookIndustryInfo.catalog}
+            </if>
+            <if test="metaBookIndustryInfo.digest != null and metaBookIndustryInfo.digest != ''">
+                and digest = #{metaBookIndustryInfo.digest}
+            </if>
+            <if test="metaBookIndustryInfo.author != null and metaBookIndustryInfo.author != ''">
+                and author = #{metaBookIndustryInfo.author}
+            </if>
+            <if test="metaBookIndustryInfo.authorAbout != null and metaBookIndustryInfo.authorAbout != ''">
+                and author_about = #{metaBookIndustryInfo.authorAbout}
+            </if>
+            <if test="metaBookIndustryInfo.foreword != null and metaBookIndustryInfo.foreword != ''">
+                and foreword = #{metaBookIndustryInfo.foreword}
+            </if>
+            <if test="metaBookIndustryInfo.mediaComment != null and metaBookIndustryInfo.mediaComment != ''">
+                and media_comment = #{metaBookIndustryInfo.mediaComment}
+            </if>
+            <if test="metaBookIndustryInfo.publisher != null and metaBookIndustryInfo.publisher != ''">
+                and publisher = #{metaBookIndustryInfo.publisher}
+            </if>
+            <if test="metaBookIndustryInfo.publishTime != null and metaBookIndustryInfo.publishTime != ''">
+                and publish_time = #{metaBookIndustryInfo.publishTime}
+            </if>
+            <if test="metaBookIndustryInfo.publishBatch != null and metaBookIndustryInfo.publishBatch != ''">
+                and publish_batch = #{metaBookIndustryInfo.publishBatch}
+            </if>
+            <if test="metaBookIndustryInfo.size != null and metaBookIndustryInfo.size != ''">
+                and size = #{metaBookIndustryInfo.size}
+            </if>
+            <if test="metaBookIndustryInfo.suitFlag != null">
+                and suit_flag = #{metaBookIndustryInfo.suitFlag}
+            </if>
+            <if test="metaBookIndustryInfo.paper != null and metaBookIndustryInfo.paper != ''">
+                and paper = #{metaBookIndustryInfo.paper}
+            </if>
+            <if test="metaBookIndustryInfo.bookBind != null and metaBookIndustryInfo.bookBind != ''">
+                and book_bind = #{metaBookIndustryInfo.bookBind}
+            </if>
+            <if test="metaBookIndustryInfo.printTime != null and metaBookIndustryInfo.printTime != ''">
+                and print_time = #{metaBookIndustryInfo.printTime}
+            </if>
+            <if test="metaBookIndustryInfo.toneFlag != null">
+                and tone_flag = #{metaBookIndustryInfo.toneFlag}
+            </if>
+            <if test="metaBookIndustryInfo.pageCount != null">
+                and page_count = #{metaBookIndustryInfo.pageCount}
+            </if>
+            <if test="metaBookIndustryInfo.wordCount != null">
+                and word_count = #{metaBookIndustryInfo.wordCount}
+            </if>
+            <if test="metaBookIndustryInfo.printSheet != null">
+                and print_sheet = #{metaBookIndustryInfo.printSheet}
+            </if>
+            <if test="metaBookIndustryInfo.bookletCount != null">
+                and booklet_count = #{metaBookIndustryInfo.bookletCount}
+            </if>
+            <if test="metaBookIndustryInfo.originName != null and metaBookIndustryInfo.originName != ''">
+                and origin_name = #{metaBookIndustryInfo.originName}
+            </if>
+            <if test="metaBookIndustryInfo.language != null and metaBookIndustryInfo.language != ''">
+                and language = #{metaBookIndustryInfo.language}
+            </if>
+            <if test="metaBookIndustryInfo.editorName != null and metaBookIndustryInfo.editorName != ''">
+                and editor_name = #{metaBookIndustryInfo.editorName}
+            </if>
+            <if test="metaBookIndustryInfo.translatorName != null and metaBookIndustryInfo.translatorName != ''">
+                and translator_name = #{metaBookIndustryInfo.translatorName}
+            </if>
+            <if test="metaBookIndustryInfo.painterName != null and metaBookIndustryInfo.painterName != ''">
+                and painter_name = #{metaBookIndustryInfo.painterName}
+            </if>
+            <if test="metaBookIndustryInfo.commentCount != null">
+                and comment_count = #{metaBookIndustryInfo.commentCount}
+            </if>
+            <if test="metaBookIndustryInfo.rankName != null and metaBookIndustryInfo.rankName != ''">
+                and rank_name = #{metaBookIndustryInfo.rankName}
+            </if>
+            <if test="metaBookIndustryInfo.rankPlace != null">
+                and rank_place = #{metaBookIndustryInfo.rankPlace}
+            </if>
+            <if test="metaBookIndustryInfo.tags != null and metaBookIndustryInfo.tags != ''">
+                and tags = #{metaBookIndustryInfo.tags}
+            </if>
+            <if test="metaBookIndustryInfo.category != null and metaBookIndustryInfo.category != ''">
+                and category = #{metaBookIndustryInfo.category}
+            </if>
+            <if test="metaBookIndustryInfo.relationProduct != null and metaBookIndustryInfo.relationProduct != ''">
+                and relation_product = #{metaBookIndustryInfo.relationProduct}
+            </if>
+            <if test="metaBookIndustryInfo.rcmmdAlsoBought != null and metaBookIndustryInfo.rcmmdAlsoBought != ''">
+                and rcmmd_also_bought = #{metaBookIndustryInfo.rcmmdAlsoBought}
+            </if>
+            <if test="metaBookIndustryInfo.rcmmdAlsoBrowse != null and metaBookIndustryInfo.rcmmdAlsoBrowse != ''">
+                and rcmmd_also_browse = #{metaBookIndustryInfo.rcmmdAlsoBrowse}
+            </if>
+            <if test="metaBookIndustryInfo.rcmmdSameTime != null and metaBookIndustryInfo.rcmmdSameTime != ''">
+                and rcmmd_same_time = #{metaBookIndustryInfo.rcmmdSameTime}
+            </if>
+            <if test="metaBookIndustryInfo.rcmmdPerhapsLike != null and metaBookIndustryInfo.rcmmdPerhapsLike != ''">
+                and rcmmd_perhaps_like = #{metaBookIndustryInfo.rcmmdPerhapsLike}
+            </if>
+            <if test="metaBookIndustryInfo.rcmmdBookList != null and metaBookIndustryInfo.rcmmdBookList != ''">
+                and rcmmd_book_list = #{metaBookIndustryInfo.rcmmdBookList}
+            </if>
+            <if test="metaBookIndustryInfo.createTime != null">
+                and create_time = #{metaBookIndustryInfo.createTime}
+            </if>
+            <if test="metaBookIndustryInfo.updateTime != null">
+                and update_time = #{metaBookIndustryInfo.updateTime}
+            </if>
+            <if test="metaBookIndustryInfo.delFlag != null">
+                and del_flag = #{metaBookIndustryInfo.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_industry_info
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="isbn != null and isbn != ''">
+                and isbn = #{isbn}
+            </if>
+            <if test="productId != null and productId != ''">
+                and product_id = #{productId}
+            </if>
+            <if test="sourceType != null">
+                and source_type = #{sourceType}
+            </if>
+            <if test="title != null and title != ''">
+                and title = #{title}
+            </if>
+            <if test="subTitle != null and subTitle != ''">
+                and sub_title = #{subTitle}
+            </if>
+            <if test="sellPrice != null">
+                and sell_price = #{sellPrice}
+            </if>
+            <if test="originPrice != null">
+                and origin_price = #{originPrice}
+            </if>
+            <if test="editorRcmmd != null and editorRcmmd != ''">
+                and editor_rcmmd = #{editorRcmmd}
+            </if>
+            <if test="content_Rcmmd != null and content_Rcmmd != ''">
+                and content__rcmmd = #{content_Rcmmd}
+            </if>
+            <if test="catalog != null and catalog != ''">
+                and catalog = #{catalog}
+            </if>
+            <if test="digest != null and digest != ''">
+                and digest = #{digest}
+            </if>
+            <if test="author != null and author != ''">
+                and author = #{author}
+            </if>
+            <if test="authorAbout != null and authorAbout != ''">
+                and author_about = #{authorAbout}
+            </if>
+            <if test="foreword != null and foreword != ''">
+                and foreword = #{foreword}
+            </if>
+            <if test="mediaComment != null and mediaComment != ''">
+                and media_comment = #{mediaComment}
+            </if>
+            <if test="publisher != null and publisher != ''">
+                and publisher = #{publisher}
+            </if>
+            <if test="publishTime != null and publishTime != ''">
+                and publish_time = #{publishTime}
+            </if>
+            <if test="publishBatch != null and publishBatch != ''">
+                and publish_batch = #{publishBatch}
+            </if>
+            <if test="size != null and size != ''">
+                and size = #{size}
+            </if>
+            <if test="suitFlag != null">
+                and suit_flag = #{suitFlag}
+            </if>
+            <if test="paper != null and paper != ''">
+                and paper = #{paper}
+            </if>
+            <if test="bookBind != null and bookBind != ''">
+                and book_bind = #{bookBind}
+            </if>
+            <if test="printTime != null and printTime != ''">
+                and print_time = #{printTime}
+            </if>
+            <if test="toneFlag != null">
+                and tone_flag = #{toneFlag}
+            </if>
+            <if test="pageCount != null">
+                and page_count = #{pageCount}
+            </if>
+            <if test="wordCount != null">
+                and word_count = #{wordCount}
+            </if>
+            <if test="printSheet != null">
+                and print_sheet = #{printSheet}
+            </if>
+            <if test="bookletCount != null">
+                and booklet_count = #{bookletCount}
+            </if>
+            <if test="originName != null and originName != ''">
+                and origin_name = #{originName}
+            </if>
+            <if test="language != null and language != ''">
+                and language = #{language}
+            </if>
+            <if test="editorName != null and editorName != ''">
+                and editor_name = #{editorName}
+            </if>
+            <if test="translatorName != null and translatorName != ''">
+                and translator_name = #{translatorName}
+            </if>
+            <if test="painterName != null and painterName != ''">
+                and painter_name = #{painterName}
+            </if>
+            <if test="commentCount != null">
+                and comment_count = #{commentCount}
+            </if>
+            <if test="rankName != null and rankName != ''">
+                and rank_name = #{rankName}
+            </if>
+            <if test="rankPlace != null">
+                and rank_place = #{rankPlace}
+            </if>
+            <if test="tags != null and tags != ''">
+                and tags = #{tags}
+            </if>
+            <if test="category != null and category != ''">
+                and category = #{category}
+            </if>
+            <if test="relationProduct != null and relationProduct != ''">
+                and relation_product = #{relationProduct}
+            </if>
+            <if test="rcmmdAlsoBought != null and rcmmdAlsoBought != ''">
+                and rcmmd_also_bought = #{rcmmdAlsoBought}
+            </if>
+            <if test="rcmmdAlsoBrowse != null and rcmmdAlsoBrowse != ''">
+                and rcmmd_also_browse = #{rcmmdAlsoBrowse}
+            </if>
+            <if test="rcmmdSameTime != null and rcmmdSameTime != ''">
+                and rcmmd_same_time = #{rcmmdSameTime}
+            </if>
+            <if test="rcmmdPerhapsLike != null and rcmmdPerhapsLike != ''">
+                and rcmmd_perhaps_like = #{rcmmdPerhapsLike}
+            </if>
+            <if test="rcmmdBookList != null and rcmmdBookList != ''">
+                and rcmmd_book_list = #{rcmmdBookList}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_info(isbn, product_id, source_type, title, sub_title, sell_price, origin_price, editor_rcmmd, content__rcmmd, catalog, digest, author, author_about, foreword, media_comment, publisher, publish_time, publish_batch, size, suit_flag, paper, book_bind, print_time, tone_flag, page_count, word_count, print_sheet, booklet_count, origin_name, language, editor_name, translator_name, painter_name, comment_count, rank_name, rank_place, tags, category, relation_product, rcmmd_also_bought, rcmmd_also_browse, rcmmd_same_time, rcmmd_perhaps_like, rcmmd_book_list, create_time, update_time, del_flag)
+        values (#{isbn}, #{productId}, #{sourceType}, #{title}, #{subTitle}, #{sellPrice}, #{originPrice}, #{editorRcmmd}, #{content_Rcmmd}, #{catalog}, #{digest}, #{author}, #{authorAbout}, #{foreword}, #{mediaComment}, #{publisher}, #{publishTime}, #{publishBatch}, #{size}, #{suitFlag}, #{paper}, #{bookBind}, #{printTime}, #{toneFlag}, #{pageCount}, #{wordCount}, #{printSheet}, #{bookletCount}, #{originName}, #{language}, #{editorName}, #{translatorName}, #{painterName}, #{commentCount}, #{rankName}, #{rankPlace}, #{tags}, #{category}, #{relationProduct}, #{rcmmdAlsoBought}, #{rcmmdAlsoBrowse}, #{rcmmdSameTime}, #{rcmmdPerhapsLike}, #{rcmmdBookList}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_info(isbn, product_id, source_type, title, sub_title, sell_price, origin_price, editor_rcmmd, content__rcmmd, catalog, digest, author, author_about, foreword, media_comment, publisher, publish_time, publish_batch, size, suit_flag, paper, book_bind, print_time, tone_flag, page_count, word_count, print_sheet, booklet_count, origin_name, language, editor_name, translator_name, painter_name, comment_count, rank_name, rank_place, tags, category, relation_product, rcmmd_also_bought, rcmmd_also_browse, rcmmd_same_time, rcmmd_perhaps_like, rcmmd_book_list, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.isbn}, #{entity.productId}, #{entity.sourceType}, #{entity.title}, #{entity.subTitle}, #{entity.sellPrice}, #{entity.originPrice}, #{entity.editorRcmmd}, #{entity.content_Rcmmd}, #{entity.catalog}, #{entity.digest}, #{entity.author}, #{entity.authorAbout}, #{entity.foreword}, #{entity.mediaComment}, #{entity.publisher}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.size}, #{entity.suitFlag}, #{entity.paper}, #{entity.bookBind}, #{entity.printTime}, #{entity.toneFlag}, #{entity.pageCount}, #{entity.wordCount}, #{entity.printSheet}, #{entity.bookletCount}, #{entity.originName}, #{entity.language}, #{entity.editorName}, #{entity.translatorName}, #{entity.painterName}, #{entity.commentCount}, #{entity.rankName}, #{entity.rankPlace}, #{entity.tags}, #{entity.category}, #{entity.relationProduct}, #{entity.rcmmdAlsoBought}, #{entity.rcmmdAlsoBrowse}, #{entity.rcmmdSameTime}, #{entity.rcmmdPerhapsLike}, #{entity.rcmmdBookList}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_info(isbn, product_id, source_type, title, sub_title, sell_price, origin_price, editor_rcmmd, content__rcmmd, catalog, digest, author, author_about, foreword, media_comment, publisher, publish_time, publish_batch, size, suit_flag, paper, book_bind, print_time, tone_flag, page_count, word_count, print_sheet, booklet_count, origin_name, language, editor_name, translator_name, painter_name, comment_count, rank_name, rank_place, tags, category, relation_product, rcmmd_also_bought, rcmmd_also_browse, rcmmd_same_time, rcmmd_perhaps_like, rcmmd_book_list, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.isbn}, #{entity.productId}, #{entity.sourceType}, #{entity.title}, #{entity.subTitle}, #{entity.sellPrice}, #{entity.originPrice}, #{entity.editorRcmmd}, #{entity.content_Rcmmd}, #{entity.catalog}, #{entity.digest}, #{entity.author}, #{entity.authorAbout}, #{entity.foreword}, #{entity.mediaComment}, #{entity.publisher}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.size}, #{entity.suitFlag}, #{entity.paper}, #{entity.bookBind}, #{entity.printTime}, #{entity.toneFlag}, #{entity.pageCount}, #{entity.wordCount}, #{entity.printSheet}, #{entity.bookletCount}, #{entity.originName}, #{entity.language}, #{entity.editorName}, #{entity.translatorName}, #{entity.painterName}, #{entity.commentCount}, #{entity.rankName}, #{entity.rankPlace}, #{entity.tags}, #{entity.category}, #{entity.relationProduct}, #{entity.rcmmdAlsoBought}, #{entity.rcmmdAlsoBrowse}, #{entity.rcmmdSameTime}, #{entity.rcmmdPerhapsLike}, #{entity.rcmmdBookList}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        isbn = values(isbn),
+        product_id = values(product_id),
+        source_type = values(source_type),
+        title = values(title),
+        sub_title = values(sub_title),
+        sell_price = values(sell_price),
+        origin_price = values(origin_price),
+        editor_rcmmd = values(editor_rcmmd),
+        content__rcmmd = values(content__rcmmd),
+        catalog = values(catalog),
+        digest = values(digest),
+        author = values(author),
+        author_about = values(author_about),
+        foreword = values(foreword),
+        media_comment = values(media_comment),
+        publisher = values(publisher),
+        publish_time = values(publish_time),
+        publish_batch = values(publish_batch),
+        size = values(size),
+        suit_flag = values(suit_flag),
+        paper = values(paper),
+        book_bind = values(book_bind),
+        print_time = values(print_time),
+        tone_flag = values(tone_flag),
+        page_count = values(page_count),
+        word_count = values(word_count),
+        print_sheet = values(print_sheet),
+        booklet_count = values(booklet_count),
+        origin_name = values(origin_name),
+        language = values(language),
+        editor_name = values(editor_name),
+        translator_name = values(translator_name),
+        painter_name = values(painter_name),
+        comment_count = values(comment_count),
+        rank_name = values(rank_name),
+        rank_place = values(rank_place),
+        tags = values(tags),
+        category = values(category),
+        relation_product = values(relation_product),
+        rcmmd_also_bought = values(rcmmd_also_bought),
+        rcmmd_also_browse = values(rcmmd_also_browse),
+        rcmmd_same_time = values(rcmmd_same_time),
+        rcmmd_perhaps_like = values(rcmmd_perhaps_like),
+        rcmmd_book_list = values(rcmmd_book_list),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_industry_info
+        <set>
+            <if test="isbn != null and isbn != ''">
+                isbn = #{isbn},
+            </if>
+            <if test="productId != null and productId != ''">
+                product_id = #{productId},
+            </if>
+            <if test="sourceType != null">
+                source_type = #{sourceType},
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="subTitle != null and subTitle != ''">
+                sub_title = #{subTitle},
+            </if>
+            <if test="sellPrice != null">
+                sell_price = #{sellPrice},
+            </if>
+            <if test="originPrice != null">
+                origin_price = #{originPrice},
+            </if>
+            <if test="editorRcmmd != null and editorRcmmd != ''">
+                editor_rcmmd = #{editorRcmmd},
+            </if>
+            <if test="content_Rcmmd != null and content_Rcmmd != ''">
+                content__rcmmd = #{content_Rcmmd},
+            </if>
+            <if test="catalog != null and catalog != ''">
+                catalog = #{catalog},
+            </if>
+            <if test="digest != null and digest != ''">
+                digest = #{digest},
+            </if>
+            <if test="author != null and author != ''">
+                author = #{author},
+            </if>
+            <if test="authorAbout != null and authorAbout != ''">
+                author_about = #{authorAbout},
+            </if>
+            <if test="foreword != null and foreword != ''">
+                foreword = #{foreword},
+            </if>
+            <if test="mediaComment != null and mediaComment != ''">
+                media_comment = #{mediaComment},
+            </if>
+            <if test="publisher != null and publisher != ''">
+                publisher = #{publisher},
+            </if>
+            <if test="publishTime != null and publishTime != ''">
+                publish_time = #{publishTime},
+            </if>
+            <if test="publishBatch != null and publishBatch != ''">
+                publish_batch = #{publishBatch},
+            </if>
+            <if test="size != null and size != ''">
+                size = #{size},
+            </if>
+            <if test="suitFlag != null">
+                suit_flag = #{suitFlag},
+            </if>
+            <if test="paper != null and paper != ''">
+                paper = #{paper},
+            </if>
+            <if test="bookBind != null and bookBind != ''">
+                book_bind = #{bookBind},
+            </if>
+            <if test="printTime != null and printTime != ''">
+                print_time = #{printTime},
+            </if>
+            <if test="toneFlag != null">
+                tone_flag = #{toneFlag},
+            </if>
+            <if test="pageCount != null">
+                page_count = #{pageCount},
+            </if>
+            <if test="wordCount != null">
+                word_count = #{wordCount},
+            </if>
+            <if test="printSheet != null">
+                print_sheet = #{printSheet},
+            </if>
+            <if test="bookletCount != null">
+                booklet_count = #{bookletCount},
+            </if>
+            <if test="originName != null and originName != ''">
+                origin_name = #{originName},
+            </if>
+            <if test="language != null and language != ''">
+                language = #{language},
+            </if>
+            <if test="editorName != null and editorName != ''">
+                editor_name = #{editorName},
+            </if>
+            <if test="translatorName != null and translatorName != ''">
+                translator_name = #{translatorName},
+            </if>
+            <if test="painterName != null and painterName != ''">
+                painter_name = #{painterName},
+            </if>
+            <if test="commentCount != null">
+                comment_count = #{commentCount},
+            </if>
+            <if test="rankName != null and rankName != ''">
+                rank_name = #{rankName},
+            </if>
+            <if test="rankPlace != null">
+                rank_place = #{rankPlace},
+            </if>
+            <if test="tags != null and tags != ''">
+                tags = #{tags},
+            </if>
+            <if test="category != null and category != ''">
+                category = #{category},
+            </if>
+            <if test="relationProduct != null and relationProduct != ''">
+                relation_product = #{relationProduct},
+            </if>
+            <if test="rcmmdAlsoBought != null and rcmmdAlsoBought != ''">
+                rcmmd_also_bought = #{rcmmdAlsoBought},
+            </if>
+            <if test="rcmmdAlsoBrowse != null and rcmmdAlsoBrowse != ''">
+                rcmmd_also_browse = #{rcmmdAlsoBrowse},
+            </if>
+            <if test="rcmmdSameTime != null and rcmmdSameTime != ''">
+                rcmmd_same_time = #{rcmmdSameTime},
+            </if>
+            <if test="rcmmdPerhapsLike != null and rcmmdPerhapsLike != ''">
+                rcmmd_perhaps_like = #{rcmmdPerhapsLike},
+            </if>
+            <if test="rcmmdBookList != null and rcmmdBookList != ''">
+                rcmmd_book_list = #{rcmmdBookList},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_industry_info set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

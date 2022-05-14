@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaBookClumpMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaBookClump" id="MetaBookClumpMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="publisherId" column="publisher_id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="volumeCount" column="volume_count" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookClumpMap">
+        select
+          id, publisher_id, name, image, volume_count, create_time, update_time, del_flag, descr
+        from meta_book_clump
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookClumpMap">
+        select
+          id, publisher_id, name, image, volume_count, create_time, update_time, del_flag, descr
+        from meta_book_clump
+        <where>
+            <if test="metaBookClump.id != null">
+                and id = #{metaBookClump.id}
+            </if>
+            <if test="metaBookClump.publisherId != null">
+                and publisher_id = #{metaBookClump.publisherId}
+            </if>
+            <if test="metaBookClump.name != null and metaBookClump.name != ''">
+                and name = #{metaBookClump.name}
+            </if>
+            <if test="metaBookClump.image != null and metaBookClump.image != ''">
+                and image = #{metaBookClump.image}
+            </if>
+            <if test="metaBookClump.volumeCount != null">
+                and volume_count = #{metaBookClump.volumeCount}
+            </if>
+            <if test="metaBookClump.createTime != null">
+                and create_time = #{metaBookClump.createTime}
+            </if>
+            <if test="metaBookClump.updateTime != null">
+                and update_time = #{metaBookClump.updateTime}
+            </if>
+            <if test="metaBookClump.delFlag != null">
+                and del_flag = #{metaBookClump.delFlag}
+            </if>
+            <if test="metaBookClump.descr != null and metaBookClump.descr != ''">
+                and descr = #{metaBookClump.descr}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_clump
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="publisherId != null">
+                and publisher_id = #{publisherId}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="image != null and image != ''">
+                and image = #{image}
+            </if>
+            <if test="volumeCount != null">
+                and volume_count = #{volumeCount}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_clump(publisher_id, name, image, volume_count, create_time, update_time, del_flag, descr)
+        values (#{publisherId}, #{name}, #{image}, #{volumeCount}, #{createTime}, #{updateTime}, #{delFlag}, #{descr})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_clump(publisher_id, name, image, volume_count, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.publisherId}, #{entity.name}, #{entity.image}, #{entity.volumeCount}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_clump(publisher_id, name, image, volume_count, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.publisherId}, #{entity.name}, #{entity.image}, #{entity.volumeCount}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+        on duplicate key update
+        publisher_id = values(publisher_id),
+        name = values(name),
+        image = values(image),
+        volume_count = values(volume_count),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        descr = values(descr)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_clump
+        <set>
+            <if test="publisherId != null">
+                publisher_id = #{publisherId},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="image != null and image != ''">
+                image = #{image},
+            </if>
+            <if test="volumeCount != null">
+                volume_count = #{volumeCount},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="descr != null and descr != ''">
+                descr = #{descr},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_clump set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

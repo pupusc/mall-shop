@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.goods.mapper.MetaFigureMapper">
+
+    <resultMap type="com.wanmi.sbc.goods.entity.MetaFigure" id="MetaFigureMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="englishName" column="english_name" jdbcType="VARCHAR"/>
+        <result property="formerName" column="former_name" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="country" column="country" jdbcType="VARCHAR"/>
+        <result property="provinceCode" column="province_code" jdbcType="VARCHAR"/>
+        <result property="cityCode" column="city_code" jdbcType="VARCHAR"/>
+        <result property="districtCode" column="district_code" jdbcType="VARCHAR"/>
+        <result property="graduateSchool" column="graduate_school" jdbcType="VARCHAR"/>
+        <result property="jobPost" column="job_post" jdbcType="VARCHAR"/>
+        <result property="jobTitle" column="job_title" jdbcType="VARCHAR"/>
+        <result property="diploma" column="diploma" jdbcType="VARCHAR"/>
+        <result property="researchField" column="research_field" jdbcType="VARCHAR"/>
+        <result property="introduce" column="introduce" jdbcType="VARCHAR"/>
+        <result property="birthTime" column="birth_time" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaFigureMap">
+        select
+          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag
+        from meta_figure
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaFigureMap">
+        select
+          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag
+        from meta_figure
+        <where>
+            <if test="metaFigure.id != null">
+                and id = #{metaFigure.id}
+            </if>
+            <if test="metaFigure.type != null">
+                and type = #{metaFigure.type}
+            </if>
+            <if test="metaFigure.name != null and metaFigure.name != ''">
+                and name = #{metaFigure.name}
+            </if>
+            <if test="metaFigure.englishName != null and metaFigure.englishName != ''">
+                and english_name = #{metaFigure.englishName}
+            </if>
+            <if test="metaFigure.formerName != null and metaFigure.formerName != ''">
+                and former_name = #{metaFigure.formerName}
+            </if>
+            <if test="metaFigure.image != null and metaFigure.image != ''">
+                and image = #{metaFigure.image}
+            </if>
+            <if test="metaFigure.country != null and metaFigure.country != ''">
+                and country = #{metaFigure.country}
+            </if>
+            <if test="metaFigure.provinceCode != null and metaFigure.provinceCode != ''">
+                and province_code = #{metaFigure.provinceCode}
+            </if>
+            <if test="metaFigure.cityCode != null and metaFigure.cityCode != ''">
+                and city_code = #{metaFigure.cityCode}
+            </if>
+            <if test="metaFigure.districtCode != null and metaFigure.districtCode != ''">
+                and district_code = #{metaFigure.districtCode}
+            </if>
+            <if test="metaFigure.graduateSchool != null and metaFigure.graduateSchool != ''">
+                and graduate_school = #{metaFigure.graduateSchool}
+            </if>
+            <if test="metaFigure.jobPost != null and metaFigure.jobPost != ''">
+                and job_post = #{metaFigure.jobPost}
+            </if>
+            <if test="metaFigure.jobTitle != null and metaFigure.jobTitle != ''">
+                and job_title = #{metaFigure.jobTitle}
+            </if>
+            <if test="metaFigure.diploma != null and metaFigure.diploma != ''">
+                and diploma = #{metaFigure.diploma}
+            </if>
+            <if test="metaFigure.researchField != null and metaFigure.researchField != ''">
+                and research_field = #{metaFigure.researchField}
+            </if>
+            <if test="metaFigure.introduce != null and metaFigure.introduce != ''">
+                and introduce = #{metaFigure.introduce}
+            </if>
+            <if test="metaFigure.birthTime != null">
+                and birth_time = #{metaFigure.birthTime}
+            </if>
+            <if test="metaFigure.createTime != null">
+                and create_time = #{metaFigure.createTime}
+            </if>
+            <if test="metaFigure.updateTime != null">
+                and update_time = #{metaFigure.updateTime}
+            </if>
+            <if test="metaFigure.delFlag != null">
+                and del_flag = #{metaFigure.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_figure
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="englishName != null and englishName != ''">
+                and english_name = #{englishName}
+            </if>
+            <if test="formerName != null and formerName != ''">
+                and former_name = #{formerName}
+            </if>
+            <if test="image != null and image != ''">
+                and image = #{image}
+            </if>
+            <if test="country != null and country != ''">
+                and country = #{country}
+            </if>
+            <if test="provinceCode != null and provinceCode != ''">
+                and province_code = #{provinceCode}
+            </if>
+            <if test="cityCode != null and cityCode != ''">
+                and city_code = #{cityCode}
+            </if>
+            <if test="districtCode != null and districtCode != ''">
+                and district_code = #{districtCode}
+            </if>
+            <if test="graduateSchool != null and graduateSchool != ''">
+                and graduate_school = #{graduateSchool}
+            </if>
+            <if test="jobPost != null and jobPost != ''">
+                and job_post = #{jobPost}
+            </if>
+            <if test="jobTitle != null and jobTitle != ''">
+                and job_title = #{jobTitle}
+            </if>
+            <if test="diploma != null and diploma != ''">
+                and diploma = #{diploma}
+            </if>
+            <if test="researchField != null and researchField != ''">
+                and research_field = #{researchField}
+            </if>
+            <if test="introduce != null and introduce != ''">
+                and introduce = #{introduce}
+            </if>
+            <if test="birthTime != null">
+                and birth_time = #{birthTime}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
+        values (#{type}, #{name}, #{englishName}, #{formerName}, #{image}, #{country}, #{provinceCode}, #{cityCode}, #{districtCode}, #{graduateSchool}, #{jobPost}, #{jobTitle}, #{diploma}, #{researchField}, #{introduce}, #{birthTime}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        type = values(type),
+        name = values(name),
+        english_name = values(english_name),
+        former_name = values(former_name),
+        image = values(image),
+        country = values(country),
+        province_code = values(province_code),
+        city_code = values(city_code),
+        district_code = values(district_code),
+        graduate_school = values(graduate_school),
+        job_post = values(job_post),
+        job_title = values(job_title),
+        diploma = values(diploma),
+        research_field = values(research_field),
+        introduce = values(introduce),
+        birth_time = values(birth_time),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_figure
+        <set>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="englishName != null and englishName != ''">
+                english_name = #{englishName},
+            </if>
+            <if test="formerName != null and formerName != ''">
+                former_name = #{formerName},
+            </if>
+            <if test="image != null and image != ''">
+                image = #{image},
+            </if>
+            <if test="country != null and country != ''">
+                country = #{country},
+            </if>
+            <if test="provinceCode != null and provinceCode != ''">
+                province_code = #{provinceCode},
+            </if>
+            <if test="cityCode != null and cityCode != ''">
+                city_code = #{cityCode},
+            </if>
+            <if test="districtCode != null and districtCode != ''">
+                district_code = #{districtCode},
+            </if>
+            <if test="graduateSchool != null and graduateSchool != ''">
+                graduate_school = #{graduateSchool},
+            </if>
+            <if test="jobPost != null and jobPost != ''">
+                job_post = #{jobPost},
+            </if>
+            <if test="jobTitle != null and jobTitle != ''">
+                job_title = #{jobTitle},
+            </if>
+            <if test="diploma != null and diploma != ''">
+                diploma = #{diploma},
+            </if>
+            <if test="researchField != null and researchField != ''">
+                research_field = #{researchField},
+            </if>
+            <if test="introduce != null and introduce != ''">
+                introduce = #{introduce},
+            </if>
+            <if test="birthTime != null">
+                birth_time = #{birthTime},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_figure set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+
