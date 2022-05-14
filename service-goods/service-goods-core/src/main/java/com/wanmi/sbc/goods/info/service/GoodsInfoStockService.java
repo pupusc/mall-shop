@@ -196,7 +196,7 @@ public class GoodsInfoStockService {
             }
 
             boolean isAddResult = true;
-            log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsId:{} goodsInfoStockSyncResponse:{} ",
+            log.info("GoodsStockService batchUpdateStock batchUpdateGoodsInfoStock goodsId:{} goodsInfoStockSyncResponse:{} ",
                     goodsInfoParam.getGoodsId(), JSON.toJSONString(goodsInfoStockSyncResponse));
             if (goodsInfoStockSyncResponse.isCanSyncStock() && goodsInfoStockSyncResponse.isCanSyncCostPrice()) {
                 //更新库存和成本价
@@ -230,7 +230,7 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setSkuId(goodsInfoParam.getGoodsInfoId());
                 goodsInfoStockSyncResponse.setSkuNo(goodsInfoParam.getGoodsInfoNo());
                 goodsInfoStockSyncResponse.setIsCalculateStock(goodsInfoStockSyncRequestParam.getIsCalculateStock());
-                log.info("GoodsInfoStockService batchUpdateGoodsInfoStock goodsInfoStockSyncResponse: {}", JSON.toJSONString(goodsInfoStockSyncResponse));
+                log.info("GoodsStockService batchUpdateStock batchUpdateGoodsInfoStock goodsInfoStockSyncResponse: {}", JSON.toJSONString(goodsInfoStockSyncResponse));
                 result.add(goodsInfoStockSyncResponse);
             }
         }
