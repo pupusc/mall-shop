@@ -32,7 +32,7 @@
                 and id = #{metaPublisher.id}
             </if>
             <if test="metaPublisher.name != null and metaPublisher.name != ''">
-                and name = #{metaPublisher.name}
+                and name like concat('%', #{metaPublisher.name}, '%')
             </if>
             <if test="metaPublisher.image != null and metaPublisher.image != ''">
                 and image = #{metaPublisher.image}
@@ -66,7 +66,7 @@
                 and id = #{id}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="image != null and image != ''">
                 and image = #{image}

@@ -31,7 +31,7 @@
                 and id = #{metaAward.id}
             </if>
             <if test="metaAward.name != null and metaAward.name != ''">
-                and name = #{metaAward.name}
+                and name like concat('%', #{metaAward.name}, '%')
             </if>
             <if test="metaAward.image != null and metaAward.image != ''">
                 and image = #{metaAward.image}
@@ -62,7 +62,7 @@
                 and id = #{id}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="image != null and image != ''">
                 and image = #{image}

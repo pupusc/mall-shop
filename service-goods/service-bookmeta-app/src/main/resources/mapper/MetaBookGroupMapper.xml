@@ -35,7 +35,7 @@
                 and type = #{metaBookGroup.type}
             </if>
             <if test="metaBookGroup.name != null and metaBookGroup.name != ''">
-                and name = #{metaBookGroup.name}
+                and name like concat('%', #{metaBookGroup.name}, '%')
             </if>
             <if test="metaBookGroup.image != null and metaBookGroup.image != ''">
                 and image = #{metaBookGroup.image}
@@ -69,7 +69,7 @@
                 and type = #{type}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="image != null and image != ''">
                 and image = #{image}

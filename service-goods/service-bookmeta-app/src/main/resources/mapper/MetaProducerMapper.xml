@@ -31,7 +31,7 @@
                 and id = #{metaProducer.id}
             </if>
             <if test="metaProducer.name != null and metaProducer.name != ''">
-                and name = #{metaProducer.name}
+                and name like concat('%', #{metaProducer.name}, '%')
             </if>
             <if test="metaProducer.image != null and metaProducer.image != ''">
                 and image = #{metaProducer.image}
@@ -62,7 +62,7 @@
                 and id = #{id}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="image != null and image != ''">
                 and image = #{image}

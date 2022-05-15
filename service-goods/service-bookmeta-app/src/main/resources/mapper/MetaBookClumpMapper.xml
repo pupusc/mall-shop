@@ -36,7 +36,7 @@
                 and publisher_id = #{metaBookClump.publisherId}
             </if>
             <if test="metaBookClump.name != null and metaBookClump.name != ''">
-                and name = #{metaBookClump.name}
+                and name like concat('%', #{metaBookClump.name}, '%')
             </if>
             <if test="metaBookClump.image != null and metaBookClump.image != ''">
                 and image = #{metaBookClump.image}
@@ -73,7 +73,7 @@
                 and publisher_id = #{publisherId}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="image != null and image != ''">
                 and image = #{image}
