@@ -10,7 +10,7 @@ import java.util.List;
  * 人物(MetaFigure)表数据库访问层
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:26:58
  */
 @Repository
 public interface MetaFigureMapper extends Mapper<MetaFigure> {

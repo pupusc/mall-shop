@@ -3,15 +3,17 @@ package com.wanmi.sbc.goods.vo;
 import java.util.Date;
 import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
+import lombok.Data;
 
 /**
  * 数据字典(MetaDataDict)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaDataDictQueryByPageReqVO implements Serializable {
-    private static final long serialVersionUID = -85870855466096857L;
+    private static final long serialVersionUID = -91922047132897889L;
     
     private Integer id;
     /**
@@ -40,70 +42,5 @@ public class MetaDataDictQueryByPageReqVO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
-
-    public Page getPage() {
-        return this.page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
 }
 

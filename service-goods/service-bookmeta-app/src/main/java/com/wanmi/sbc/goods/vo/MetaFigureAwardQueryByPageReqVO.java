@@ -3,15 +3,17 @@ package com.wanmi.sbc.goods.vo;
 import java.util.Date;
 import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
+import lombok.Data;
 
 /**
  * 人物获奖(MetaFigureAward)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaFigureAwardQueryByPageReqVO implements Serializable {
-    private static final long serialVersionUID = 553937862882700326L;
+    private static final long serialVersionUID = -12741523864821530L;
     
     private Integer id;
     /**
@@ -42,70 +44,5 @@ public class MetaFigureAwardQueryByPageReqVO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
-
-    public Page getPage() {
-        return this.page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getFigureId() {
-        return figureId;
-    }
-
-    public void setFigureId(Integer figureId) {
-        this.figureId = figureId;
-    }
-
-    public Integer getAwardId() {
-        return awardId;
-    }
-
-    public void setAwardId(Integer awardId) {
-        this.awardId = awardId;
-    }
-
-    public Date getAwardTime() {
-        return awardTime;
-    }
-
-    public void setAwardTime(Date awardTime) {
-        this.awardTime = awardTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
 }
 

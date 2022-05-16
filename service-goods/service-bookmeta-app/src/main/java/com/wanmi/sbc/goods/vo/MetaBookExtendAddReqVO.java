@@ -2,15 +2,17 @@ package com.wanmi.sbc.goods.vo;
 
 import java.util.Date;
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 书籍扩展属性(MetaBookExtend)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:01
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookExtendAddReqVO implements Serializable {
-    private static final long serialVersionUID = 367759837064884154L;
+    private static final long serialVersionUID = -22859141516396597L;
     
     private Integer id;
     /**
@@ -37,63 +39,5 @@ public class MetaBookExtendAddReqVO implements Serializable {
      * 删除标识
      */
     private Integer delFlag;
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getBookId() {
-        return bookId;
-    }
-
-    public void setBookId(Integer bookId) {
-        this.bookId = bookId;
-    }
-
-    public String getPropName() {
-        return propName;
-    }
-
-    public void setPropName(String propName) {
-        this.propName = propName;
-    }
-
-    public String getPropValue() {
-        return propValue;
-    }
-
-    public void setPropValue(String propValue) {
-        this.propValue = propValue;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
 }
 

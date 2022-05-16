@@ -1,16 +1,20 @@
 package com.wanmi.sbc.goods.vo;
 
-import java.util.Date;
+import lombok.Data;
+
 import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 书籍(MetaBook)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:01
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookAddReqVO implements Serializable {
-    private static final long serialVersionUID = -95240579570764045L;
+    private static final long serialVersionUID = 451774430772321139L;
     
     private Integer id;
     
@@ -115,223 +119,30 @@ public class MetaBookAddReqVO implements Serializable {
      * 删除标识
      */
     private Integer delFlag;
-   
 
-    public Integer getId() {
-        return id;
+    /**
+     * 标签列表
+     */
+    private List<MetaBookLabelVO> labelList;
+
+    private static class MetaBookLabelVO {
+        private Integer id;
+        /**
+         * 名称
+         */
+        private String name;
+        /**
+         * 说明
+         */
+        private String descr;
+        /**
+         * 顺序
+         */
+        private Integer seq;
+        /**
+         * 路径，下划线分隔
+         */
+        private String path;
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getIsbn() {
-        return isbn;
-    }
-
-    public void setIsbn(String isbn) {
-        this.isbn = isbn;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSubName() {
-        return subName;
-    }
-
-    public void setSubName(String subName) {
-        this.subName = subName;
-    }
-
-    public String getOriginName() {
-        return originName;
-    }
-
-    public void setOriginName(String originName) {
-        this.originName = originName;
-    }
-
-    public Integer getPublisherId() {
-        return publisherId;
-    }
-
-    public void setPublisherId(Integer publisherId) {
-        this.publisherId = publisherId;
-    }
-
-    public Integer getProducerId() {
-        return producerId;
-    }
-
-    public void setProducerId(Integer producerId) {
-        this.producerId = producerId;
-    }
-
-    public Integer getBookGroupId() {
-        return bookGroupId;
-    }
-
-    public void setBookGroupId(Integer bookGroupId) {
-        this.bookGroupId = bookGroupId;
-    }
-
-    public Integer getBindId() {
-        return bindId;
-    }
-
-    public void setBindId(Integer bindId) {
-        this.bindId = bindId;
-    }
-
-    public Integer getPaperId() {
-        return paperId;
-    }
-
-    public void setPaperId(Integer paperId) {
-        this.paperId = paperId;
-    }
-
-    public Date getPublishTime() {
-        return publishTime;
-    }
-
-    public void setPublishTime(Date publishTime) {
-        this.publishTime = publishTime;
-    }
-
-    public Integer getPublishBatch() {
-        return publishBatch;
-    }
-
-    public void setPublishBatch(Integer publishBatch) {
-        this.publishBatch = publishBatch;
-    }
-
-    public Date getPrintTime() {
-        return printTime;
-    }
-
-    public void setPrintTime(Date printTime) {
-        this.printTime = printTime;
-    }
-
-    public Integer getPrintBatch() {
-        return printBatch;
-    }
-
-    public void setPrintBatch(Integer printBatch) {
-        this.printBatch = printBatch;
-    }
-
-    public Integer getPageCount() {
-        return pageCount;
-    }
-
-    public void setPageCount(Integer pageCount) {
-        this.pageCount = pageCount;
-    }
-
-    public Integer getWordCount() {
-        return wordCount;
-    }
-
-    public void setWordCount(Integer wordCount) {
-        this.wordCount = wordCount;
-    }
-
-    public Double getScore() {
-        return score;
-    }
-
-    public void setScore(Double score) {
-        this.score = score;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Integer getSizeLength() {
-        return sizeLength;
-    }
-
-    public void setSizeLength(Integer sizeLength) {
-        this.sizeLength = sizeLength;
-    }
-
-    public Integer getSizeWidth() {
-        return sizeWidth;
-    }
-
-    public void setSizeWidth(Integer sizeWidth) {
-        this.sizeWidth = sizeWidth;
-    }
-
-    public Integer getPrintSheet() {
-        return printSheet;
-    }
-
-    public void setPrintSheet(Integer printSheet) {
-        this.printSheet = printSheet;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public Integer getFitAgeMin() {
-        return fitAgeMin;
-    }
-
-    public void setFitAgeMin(Integer fitAgeMin) {
-        this.fitAgeMin = fitAgeMin;
-    }
-
-    public Integer getFitAgeMax() {
-        return fitAgeMax;
-    }
-
-    public void setFitAgeMax(Integer fitAgeMax) {
-        this.fitAgeMax = fitAgeMax;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
 }
 

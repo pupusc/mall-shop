@@ -1,18 +1,21 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaBookQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaBook;
 import com.wanmi.sbc.goods.provider.MetaBookProvider;
-import com.wanmi.sbc.goods.vo.MetaBookQueryByPageReqVO;
-import com.wanmi.sbc.goods.vo.MetaBookQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaBookQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
 import com.wanmi.sbc.goods.vo.MetaBookAddReqVO;
 import com.wanmi.sbc.goods.vo.MetaBookEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaBookQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.vo.MetaBookQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.MetaBookQueryByPageReqVO;
+import com.wanmi.sbc.goods.vo.MetaBookQueryByPageResVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;

@@ -3,19 +3,21 @@ package com.wanmi.sbc.goods.bo;
 import java.util.Date;
 import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
+import lombok.Data;
 
 /**
  * 人物(MetaFigure)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaFigureQueryByPageReqBO implements Serializable {
-    private static final long serialVersionUID = -88180952939172477L;
+    private static final long serialVersionUID = 417025162416253059L;
     
     private Integer id;
     /**
-     * 类型：1作者；2译者；3绘者；4编辑；5名家；6专业机构；7媒体；
+     * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
      */
     private Integer type;
     /**
@@ -94,174 +96,5 @@ public class MetaFigureQueryByPageReqBO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
-
-    public Page getPage() {
-        return this.page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEnglishName() {
-        return englishName;
-    }
-
-    public void setEnglishName(String englishName) {
-        this.englishName = englishName;
-    }
-
-    public String getFormerName() {
-        return formerName;
-    }
-
-    public void setFormerName(String formerName) {
-        this.formerName = formerName;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getProvinceCode() {
-        return provinceCode;
-    }
-
-    public void setProvinceCode(String provinceCode) {
-        this.provinceCode = provinceCode;
-    }
-
-    public String getCityCode() {
-        return cityCode;
-    }
-
-    public void setCityCode(String cityCode) {
-        this.cityCode = cityCode;
-    }
-
-    public String getDistrictCode() {
-        return districtCode;
-    }
-
-    public void setDistrictCode(String districtCode) {
-        this.districtCode = districtCode;
-    }
-
-    public String getGraduateSchool() {
-        return graduateSchool;
-    }
-
-    public void setGraduateSchool(String graduateSchool) {
-        this.graduateSchool = graduateSchool;
-    }
-
-    public String getJobPost() {
-        return jobPost;
-    }
-
-    public void setJobPost(String jobPost) {
-        this.jobPost = jobPost;
-    }
-
-    public String getJobTitle() {
-        return jobTitle;
-    }
-
-    public void setJobTitle(String jobTitle) {
-        this.jobTitle = jobTitle;
-    }
-
-    public String getDiploma() {
-        return diploma;
-    }
-
-    public void setDiploma(String diploma) {
-        this.diploma = diploma;
-    }
-
-    public String getResearchField() {
-        return researchField;
-    }
-
-    public void setResearchField(String researchField) {
-        this.researchField = researchField;
-    }
-
-    public String getIntroduce() {
-        return introduce;
-    }
-
-    public void setIntroduce(String introduce) {
-        this.introduce = introduce;
-    }
-
-    public Date getBirthTime() {
-        return birthTime;
-    }
-
-    public void setBirthTime(Date birthTime) {
-        this.birthTime = birthTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
 }
 

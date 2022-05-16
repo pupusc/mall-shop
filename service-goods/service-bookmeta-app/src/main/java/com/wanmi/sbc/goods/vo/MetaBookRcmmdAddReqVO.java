@@ -2,15 +2,17 @@ package com.wanmi.sbc.goods.vo;
 
 import java.util.Date;
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 书籍推荐(MetaBookRcmmd)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookRcmmdAddReqVO implements Serializable {
-    private static final long serialVersionUID = 104716658885342338L;
+    private static final long serialVersionUID = -64513760989214745L;
     
     private Integer id;
     /**
@@ -41,71 +43,5 @@ public class MetaBookRcmmdAddReqVO implements Serializable {
      * 描述信息
      */
     private String descr;
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getBizId() {
-        return bizId;
-    }
-
-    public void setBizId(Integer bizId) {
-        this.bizId = bizId;
-    }
-
-    public Integer getBizType() {
-        return bizType;
-    }
-
-    public void setBizType(Integer bizType) {
-        this.bizType = bizType;
-    }
-
-    public Date getBizTime() {
-        return bizTime;
-    }
-
-    public void setBizTime(Date bizTime) {
-        this.bizTime = bizTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
 }
 

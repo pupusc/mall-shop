@@ -2,15 +2,17 @@ package com.wanmi.sbc.goods.vo;
 
 import java.util.Date;
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 行业数据文件(MetaBookIndustryFile)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookIndustryFileAddReqVO implements Serializable {
-    private static final long serialVersionUID = 216299278736899693L;
+    private static final long serialVersionUID = -68082755595388669L;
     
     private Integer id;
     /**
@@ -37,63 +39,5 @@ public class MetaBookIndustryFileAddReqVO implements Serializable {
      * 描述信息，失败原因等
      */
     private String descr;
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
 }
 

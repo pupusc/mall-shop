@@ -4,7 +4,6 @@
 
     <resultMap type="com.wanmi.sbc.goods.entity.MetaLabel" id="MetaLabelMap">
         <result property="id" column="id" jdbcType="INTEGER"/>
-        <result property="labelCateId" column="label_cate_id" jdbcType="INTEGER"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="status" column="status" jdbcType="INTEGER"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
@@ -12,12 +11,16 @@
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
         <result property="descr" column="descr" jdbcType="VARCHAR"/>
         <result property="seq" column="seq" jdbcType="INTEGER"/>
+        <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="scene" column="scene" jdbcType="INTEGER"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaLabelMap">
         select
-          id, label_cate_id, name, status, create_time, update_time, del_flag, descr, seq
+          id, name, status, create_time, update_time, del_flag, descr, seq, parent_id, type, scene, path
         from meta_label
         where id = #{id}
             and del_flag = 0
@@ -26,14 +29,11 @@
     <!--查询指定行数据-->
     <select id="queryAllByLimit" resultMap="MetaLabelMap">
         select
-          id, label_cate_id, name, status, create_time, update_time, del_flag, descr, seq
+          id, name, status, create_time, update_time, del_flag, descr, seq, parent_id, type, scene, path
         from meta_label
         <where>
             <if test="metaLabel.id != null">
                 and id = #{metaLabel.id}
-            </if>
-            <if test="metaLabel.labelCateId != null">
-                and label_cate_id = #{metaLabel.labelCateId}
             </if>
             <if test="metaLabel.name != null and metaLabel.name != ''">
                 and name = #{metaLabel.name}
@@ -56,6 +56,18 @@
             <if test="metaLabel.seq != null">
                 and seq = #{metaLabel.seq}
             </if>
+            <if test="metaLabel.parentId != null">
+                and parent_id = #{metaLabel.parentId}
+            </if>
+            <if test="metaLabel.type != null">
+                and type = #{metaLabel.type}
+            </if>
+            <if test="metaLabel.scene != null">
+                and scene = #{metaLabel.scene}
+            </if>
+            <if test="metaLabel.path != null and metaLabel.path != ''">
+                and path = #{metaLabel.path}
+            </if>
             and del_flag = 0
         </where>
         limit #{limitIndex}, #{limitSize}
@@ -68,9 +80,6 @@
         <where>
             <if test="id != null">
                 and id = #{id}
-            </if>
-            <if test="labelCateId != null">
-                and label_cate_id = #{labelCateId}
             </if>
             <if test="name != null and name != ''">
                 and name = #{name}
@@ -93,48 +102,60 @@
             <if test="seq != null">
                 and seq = #{seq}
             </if>
+            <if test="parentId != null">
+                and parent_id = #{parentId}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="scene != null">
+                and scene = #{scene}
+            </if>
+            <if test="path != null and path != ''">
+                and path = #{path}
+            </if>
             and del_flag = 0
         </where>
     </select>
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
-        values (#{labelCateId}, #{name}, #{status}, #{createTime}, #{updateTime}, #{delFlag}, #{descr}, #{seq})
+        insert into meta_label(name, status, create_time, update_time, del_flag, descr, seq, parent_id, type, scene, path)
+        values (#{name}, #{status}, #{createTime}, #{updateTime}, #{delFlag}, #{descr}, #{seq}, #{parentId}, #{type}, #{scene}, #{path})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
+        insert into meta_label(name, status, create_time, update_time, del_flag, descr, seq, parent_id, type, scene, path)
         values
         <foreach collection="entities" item="entity" separator=",">
-        (#{entity.labelCateId}, #{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq})
+        (#{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq}, #{entity.parentId}, #{entity.type}, #{entity.scene}, #{entity.path})
         </foreach>
     </insert>
 
     <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_label(label_cate_id, name, status, create_time, update_time, del_flag, descr, seq)
+        insert into meta_label(name, status, create_time, update_time, del_flag, descr, seq, parent_id, type, scene, path)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.labelCateId}, #{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq})
+            (#{entity.name}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.seq}, #{entity.parentId}, #{entity.type}, #{entity.scene}, #{entity.path})
         </foreach>
         on duplicate key update
-        label_cate_id = values(label_cate_id),
         name = values(name),
         status = values(status),
         create_time = values(create_time),
         update_time = values(update_time),
         del_flag = values(del_flag),
         descr = values(descr),
-        seq = values(seq)
+        seq = values(seq),
+        parent_id = values(parent_id),
+        type = values(type),
+        scene = values(scene),
+        path = values(path)
     </insert>
 
     <!--通过主键修改数据-->
     <update id="update">
         update meta_label
         <set>
-            <if test="labelCateId != null">
-                label_cate_id = #{labelCateId},
-            </if>
             <if test="name != null and name != ''">
                 name = #{name},
             </if>
@@ -155,6 +176,18 @@
             </if>
             <if test="seq != null">
                 seq = #{seq},
+            </if>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="scene != null">
+                scene = #{scene},
+            </if>
+            <if test="path != null and path != ''">
+                path = #{path},
             </if>
         </set>
         where id = #{id}

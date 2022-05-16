@@ -3,15 +3,17 @@ package com.wanmi.sbc.goods.bo;
 import java.util.Date;
 import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
+import lombok.Data;
 
 /**
  * 书籍推荐(MetaBookRcmmd)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookRcmmdQueryByPageReqBO implements Serializable {
-    private static final long serialVersionUID = 173408346264522132L;
+    private static final long serialVersionUID = 629280771146286806L;
     
     private Integer id;
     /**
@@ -46,78 +48,5 @@ public class MetaBookRcmmdQueryByPageReqBO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
-
-    public Page getPage() {
-        return this.page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getBizId() {
-        return bizId;
-    }
-
-    public void setBizId(Integer bizId) {
-        this.bizId = bizId;
-    }
-
-    public Integer getBizType() {
-        return bizType;
-    }
-
-    public void setBizType(Integer bizType) {
-        this.bizType = bizType;
-    }
-
-    public Date getBizTime() {
-        return bizTime;
-    }
-
-    public void setBizTime(Date bizTime) {
-        this.bizTime = bizTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
 }
 

@@ -2,15 +2,17 @@ package com.wanmi.sbc.goods.vo;
 
 import java.util.Date;
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 标签(MetaBookLabel)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookLabelQueryByPageResVO implements Serializable {
-    private static final long serialVersionUID = -16373978475035045L;
+    private static final long serialVersionUID = -57628148955616010L;
     
     private Integer id;
     /**
@@ -33,55 +35,5 @@ public class MetaBookLabelQueryByPageResVO implements Serializable {
      * 删除标识
      */
     private Integer delFlag;
-   
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getBookId() {
-        return bookId;
-    }
-
-    public void setBookId(Integer bookId) {
-        this.bookId = bookId;
-    }
-
-    public Integer getLabelId() {
-        return labelId;
-    }
-
-    public void setLabelId(Integer labelId) {
-        this.labelId = labelId;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
 }
 

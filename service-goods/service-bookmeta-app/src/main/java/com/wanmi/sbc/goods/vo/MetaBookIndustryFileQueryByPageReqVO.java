@@ -3,15 +3,17 @@ package com.wanmi.sbc.goods.vo;
 import java.util.Date;
 import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
+import lombok.Data;
 
 /**
  * 行业数据文件(MetaBookIndustryFile)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:48:33
  */
+@Data
 public class MetaBookIndustryFileQueryByPageReqVO implements Serializable {
-    private static final long serialVersionUID = -94679354873689562L;
+    private static final long serialVersionUID = -25164988106538814L;
     
     private Integer id;
     /**
@@ -42,70 +44,5 @@ public class MetaBookIndustryFileQueryByPageReqVO implements Serializable {
      * 分页参数
      */
     private Page page = new Page(1, 10);
-
-    public Page getPage() {
-        return this.page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getDescr() {
-        return descr;
-    }
-
-    public void setDescr(String descr) {
-        this.descr = descr;
-    }
-
 }
 

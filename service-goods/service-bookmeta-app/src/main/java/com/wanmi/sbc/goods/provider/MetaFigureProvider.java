@@ -13,7 +13,7 @@ import java.util.List;
  * 人物(MetaFigure)表服务接口
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:27:00
  */
 @FeignClient(value = "${application.goods.name}", contextId = "MetaFigureProvider")
 public interface MetaFigureProvider {

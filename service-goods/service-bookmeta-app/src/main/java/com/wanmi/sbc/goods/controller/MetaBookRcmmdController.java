@@ -1,18 +1,22 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaBookRcmmdQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaBookRcmmd;
 import com.wanmi.sbc.goods.provider.MetaBookRcmmdProvider;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
+import com.wanmi.sbc.goods.vo.MetaBookRcmmdAddReqVO;
+import com.wanmi.sbc.goods.vo.MetaBookRcmmdByBookIdVO;
+import com.wanmi.sbc.goods.vo.MetaBookRcmmdEditReqVO;
+import com.wanmi.sbc.goods.vo.MetaBookRcmmdQueryByIdResVO;
 import com.wanmi.sbc.goods.vo.MetaBookRcmmdQueryByPageReqVO;
 import com.wanmi.sbc.goods.vo.MetaBookRcmmdQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaBookRcmmdQueryByIdResVO;
-import com.wanmi.sbc.goods.vo.MetaBookRcmmdAddReqVO;
-import com.wanmi.sbc.goods.vo.MetaBookRcmmdEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaBookRcmmdQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -95,5 +99,22 @@ public class MetaBookRcmmdController {
         return this.metaBookRcmmdProvider.deleteById(id.getId());
     }
 
+    /**
+     * 书籍推荐-书籍id查询
+     */
+    @PostMapping("queryByBookId")
+    public BusinessResponse<MetaBookRcmmdByBookIdVO> queryByBookId(@RequestBody IntegerIdVO id) {
+        // TODO: 2022/5/16
+        return null;
+    }
+
+    /**
+     * 书籍推荐-编辑数据
+     */
+    @PostMapping("edit")
+    public BusinessResponse<Boolean> editByBookId(@RequestBody MetaBookRcmmdByBookIdVO editReqVO) {
+        // TODO: 2022/5/16
+        return null;
+    }
 }
 

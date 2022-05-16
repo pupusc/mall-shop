@@ -7,14 +7,14 @@ import java.io.Serializable;
  * 人物(MetaFigure)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 11:26:56
  */
 public class MetaFigure implements Serializable {
-    private static final long serialVersionUID = 714760600950272223L;
+    private static final long serialVersionUID = -60280342023110598L;
     
     private Integer id;
     /**
-     * 类型：1作者；2译者；3绘者；4编辑；5名家；6专业机构；7媒体；
+     * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
      */
     private Integer type;
     /**

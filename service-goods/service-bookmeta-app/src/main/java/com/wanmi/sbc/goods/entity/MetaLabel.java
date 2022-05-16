@@ -7,22 +7,18 @@ import java.io.Serializable;
  * 标签(MetaLabel)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-16 17:15:50
  */
 public class MetaLabel implements Serializable {
-    private static final long serialVersionUID = 528660132480166462L;
+    private static final long serialVersionUID = -13800739274167397L;
     
     private Integer id;
-    /**
-     * 目录id
-     */
-    private Integer labelCateId;
     /**
      * 名称
      */
     private String name;
     /**
-     * 状态：0停用；1启用；
+     * 状态：1启用；2停用；
      */
     private Integer status;
     /**
@@ -45,6 +41,22 @@ public class MetaLabel implements Serializable {
      * 顺序
      */
     private Integer seq;
+    /**
+     * 父级id
+     */
+    private Integer parentId;
+    /**
+     * 类型：1目录；2标签；
+     */
+    private Integer type;
+    /**
+     * 场景：1适读对象；
+     */
+    private Integer scene;
+    /**
+     * 路径，下划线分隔
+     */
+    private String path;
 
 
     public Integer getId() {
@@ -53,14 +65,6 @@ public class MetaLabel implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getLabelCateId() {
-        return labelCateId;
-    }
-
-    public void setLabelCateId(Integer labelCateId) {
-        this.labelCateId = labelCateId;
     }
 
     public String getName() {
@@ -117,6 +121,38 @@ public class MetaLabel implements Serializable {
 
     public void setSeq(Integer seq) {
         this.seq = seq;
+    }
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer getScene() {
+        return scene;
+    }
+
+    public void setScene(Integer scene) {
+        this.scene = scene;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
 }
