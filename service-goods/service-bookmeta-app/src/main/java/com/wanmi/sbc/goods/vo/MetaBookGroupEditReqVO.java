@@ -1,8 +1,11 @@
 package com.wanmi.sbc.goods.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 书组(MetaBookGroup)实体类
@@ -43,5 +46,9 @@ public class MetaBookGroupEditReqVO implements Serializable {
      * 介绍
      */
     private String descr;
+    /**
+     * 图片列表
+     */
+    private List<String> imageList = new ArrayList<>();
 }
 

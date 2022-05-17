@@ -1,8 +1,11 @@
 package com.wanmi.sbc.goods.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 奖项(MetaAward)实体类
@@ -39,5 +42,9 @@ public class MetaAwardEditReqVO implements Serializable {
      * 描述
      */
     private String descr;
+    /**
+     * 图片列表
+     */
+    private List<String> imageList = new ArrayList<>();
 }
 

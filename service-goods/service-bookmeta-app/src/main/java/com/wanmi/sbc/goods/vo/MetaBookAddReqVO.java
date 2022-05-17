@@ -121,6 +121,15 @@ public class MetaBookAddReqVO implements Serializable {
     private Integer delFlag;
 
     /**
+     * 丛书id
+     */
+    private Integer bookClumpId;
+    /**
+     * 书组说明
+     */
+    private String bookGroupDescr;
+
+    /**
      * 标签列表
      */
     private List<MetaBookLabelVO> labelList;

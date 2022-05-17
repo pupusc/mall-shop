@@ -1,7 +1,10 @@
 package com.wanmi.sbc.goods.vo;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -43,5 +46,9 @@ public class MetaBookGroupQueryByIdResVO implements Serializable {
      * 介绍
      */
     private String descr;
+    /**
+     * 图片列表
+     */
+    private List<String> imageList = new ArrayList<>();
 }
 

@@ -4,6 +4,7 @@ import com.wanmi.sbc.goods.entity.MetaFigureAward;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -97,10 +98,10 @@ public class MetaFigureQueryByIdResVO implements Serializable {
     /**
      * 图片列表
      */
-    private List<String> imageList;
+    private List<String> imageList = new ArrayList<>();
     /**
      * 奖项列表
      */
-    private List<MetaFigureAward> awardList;
+    private List<MetaFigureAward> awardList = new ArrayList<>();
 }
 

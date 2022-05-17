@@ -1,18 +1,21 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaBookClumpQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaBookClump;
 import com.wanmi.sbc.goods.provider.MetaBookClumpProvider;
-import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByPageReqVO;
-import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
 import com.wanmi.sbc.goods.vo.MetaBookClumpAddReqVO;
 import com.wanmi.sbc.goods.vo.MetaBookClumpEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaBookClumpQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByPageReqVO;
+import com.wanmi.sbc.goods.vo.MetaBookClumpQueryByPageResVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -54,7 +57,11 @@ public class MetaBookClumpController {
     @PostMapping("queryById")
     public BusinessResponse<MetaBookClumpQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
         BusinessResponse<MetaBookClump> resBO = this.metaBookClumpProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        BusinessResponse<MetaBookClumpQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        if (result.getContext() != null) {
+            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+        }
+        return result;
     }
 
     /**
@@ -65,6 +72,7 @@ public class MetaBookClumpController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookClumpAddReqVO addReqVO) {
+        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
         MetaBookClump addReqBO = new MetaBookClump();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookClumpProvider.insert(addReqBO).getContext());
@@ -78,6 +86,7 @@ public class MetaBookClumpController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookClumpEditReqVO editReqVO) {
+        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
         MetaBookClump editReqVBO = new MetaBookClump();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookClumpProvider.update(editReqVBO);

@@ -30,12 +30,14 @@
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="bookClumpId" column="book_clump_id" jdbcType="INTEGER"/>
+        <result property="bookGroupDescr" column="book_group_descr" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaBookMap">
         select
-          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag
+          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr
         from meta_book
         where id = #{id}
             and del_flag = 0
@@ -44,7 +46,7 @@
     <!--查询指定行数据-->
     <select id="queryAllByLimit" resultMap="MetaBookMap">
         select
-          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag
+          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr
         from meta_book
         <where>
             <if test="metaBook.id != null">
@@ -127,6 +129,12 @@
             </if>
             <if test="metaBook.delFlag != null">
                 and del_flag = #{metaBook.delFlag}
+            </if>
+            <if test="metaBook.bookClumpId != null">
+                and book_clump_id = #{metaBook.bookClumpId}
+            </if>
+            <if test="metaBook.bookGroupDescr != null and metaBook.bookGroupDescr != ''">
+                and book_group_descr = #{metaBook.bookGroupDescr}
             </if>
             and del_flag = 0
         </where>
@@ -219,29 +227,35 @@
             <if test="delFlag != null">
                 and del_flag = #{delFlag}
             </if>
+            <if test="bookClumpId != null">
+                and book_clump_id = #{bookClumpId}
+            </if>
+            <if test="bookGroupDescr != null and bookGroupDescr != ''">
+                and book_group_descr = #{bookGroupDescr}
+            </if>
             and del_flag = 0
         </where>
     </select>
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
-        values (#{isbn}, #{name}, #{subName}, #{originName}, #{publisherId}, #{producerId}, #{bookGroupId}, #{bindId}, #{paperId}, #{publishTime}, #{publishBatch}, #{printTime}, #{printBatch}, #{pageCount}, #{wordCount}, #{score}, #{price}, #{sizeLength}, #{sizeWidth}, #{printSheet}, #{language}, #{fitAgeMin}, #{fitAgeMax}, #{createTime}, #{updateTime}, #{delFlag})
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr)
+        values (#{isbn}, #{name}, #{subName}, #{originName}, #{publisherId}, #{producerId}, #{bookGroupId}, #{bindId}, #{paperId}, #{publishTime}, #{publishBatch}, #{printTime}, #{printBatch}, #{pageCount}, #{wordCount}, #{score}, #{price}, #{sizeLength}, #{sizeWidth}, #{printSheet}, #{language}, #{fitAgeMin}, #{fitAgeMax}, #{createTime}, #{updateTime}, #{delFlag}, #{bookClumpId}, #{bookGroupDescr})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr)
         values
         <foreach collection="entities" item="entity" separator=",">
-        (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId}, #{entity.bookGroupDescr})
         </foreach>
     </insert>
 
     <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag)
+        insert into meta_book(isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, score, price, size_length, size_width, print_sheet, language, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+            (#{entity.isbn}, #{entity.name}, #{entity.subName}, #{entity.originName}, #{entity.publisherId}, #{entity.producerId}, #{entity.bookGroupId}, #{entity.bindId}, #{entity.paperId}, #{entity.publishTime}, #{entity.publishBatch}, #{entity.printTime}, #{entity.printBatch}, #{entity.pageCount}, #{entity.wordCount}, #{entity.score}, #{entity.price}, #{entity.sizeLength}, #{entity.sizeWidth}, #{entity.printSheet}, #{entity.language}, #{entity.fitAgeMin}, #{entity.fitAgeMax}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.bookClumpId}, #{entity.bookGroupDescr})
         </foreach>
         on duplicate key update
         isbn = values(isbn),
@@ -269,7 +283,9 @@
         fit_age_max = values(fit_age_max),
         create_time = values(create_time),
         update_time = values(update_time),
-        del_flag = values(del_flag)
+        del_flag = values(del_flag),
+        book_clump_id = values(book_clump_id),
+        book_group_descr = values(book_group_descr)
     </insert>
 
     <!--通过主键修改数据-->
@@ -353,6 +369,12 @@
             </if>
             <if test="delFlag != null">
                 del_flag = #{delFlag},
+            </if>
+            <if test="bookClumpId != null">
+                book_clump_id = #{bookClumpId},
+            </if>
+            <if test="bookGroupDescr != null and bookGroupDescr != ''">
+                book_group_descr = #{bookGroupDescr},
             </if>
         </set>
         where id = #{id}

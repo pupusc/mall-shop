@@ -54,7 +54,11 @@ public class MetaFigureController {
     @PostMapping("queryById")
     public BusinessResponse<MetaFigureQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
         BusinessResponse<MetaFigure> resBO = this.metaFigureProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        BusinessResponse<MetaFigureQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        if (result.getContext() != null) {
+            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+        }
+        return result;
     }
 
     /**
@@ -65,6 +69,7 @@ public class MetaFigureController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaFigureAddReqVO addReqVO) {
+        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
         MetaFigure addReqBO = new MetaFigure();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaFigureProvider.insert(addReqBO).getContext());
@@ -78,6 +83,7 @@ public class MetaFigureController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaFigureEditReqVO editReqVO) {
+        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
         MetaFigure editReqVBO = new MetaFigure();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaFigureProvider.update(editReqVBO);

@@ -108,6 +108,14 @@ public class MetaBookQueryByIdResVO implements Serializable {
      */
     private Integer fitAgeMax;
     /**
+     * 丛书id
+     */
+    private Integer bookClumpId;
+    /**
+     * 书组说明
+     */
+    private String bookGroupDescr;
+    /**
      * 标签列表
      */
     private List<MetaBookLabelVO> labelList;

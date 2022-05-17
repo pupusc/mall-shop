@@ -10,7 +10,7 @@ import java.util.List;
  * 标签(MetaLabel)表数据库访问层
  *
  * @author Liang Jun
- * @since 2022-05-16 17:15:50
+ * @since 2022-05-17 11:38:03
  */
 @Repository
 public interface MetaLabelMapper extends Mapper<MetaLabel> {

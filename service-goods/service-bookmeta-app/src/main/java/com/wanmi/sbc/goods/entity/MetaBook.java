@@ -7,10 +7,10 @@ import java.io.Serializable;
  * 书籍(MetaBook)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:01
+ * @since 2022-05-17 16:03:45
  */
 public class MetaBook implements Serializable {
-    private static final long serialVersionUID = 286567604570536190L;
+    private static final long serialVersionUID = 934637683315126183L;
     
     private Integer id;
     
@@ -36,7 +36,7 @@ public class MetaBook implements Serializable {
      */
     private Integer producerId;
     /**
-     * 数组
+     * 书组id
      */
     private Integer bookGroupId;
     /**
@@ -115,6 +115,14 @@ public class MetaBook implements Serializable {
      * 删除标识
      */
     private Integer delFlag;
+    /**
+     * 丛书id
+     */
+    private Integer bookClumpId;
+    /**
+     * 书组说明
+     */
+    private String bookGroupDescr;
 
 
     public Integer getId() {
@@ -331,6 +339,22 @@ public class MetaBook implements Serializable {
 
     public void setDelFlag(Integer delFlag) {
         this.delFlag = delFlag;
+    }
+
+    public Integer getBookClumpId() {
+        return bookClumpId;
+    }
+
+    public void setBookClumpId(Integer bookClumpId) {
+        this.bookClumpId = bookClumpId;
+    }
+
+    public String getBookGroupDescr() {
+        return bookGroupDescr;
+    }
+
+    public void setBookGroupDescr(String bookGroupDescr) {
+        this.bookGroupDescr = bookGroupDescr;
     }
 
 }

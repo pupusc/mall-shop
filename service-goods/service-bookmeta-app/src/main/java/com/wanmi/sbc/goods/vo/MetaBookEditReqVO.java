@@ -107,7 +107,14 @@ public class MetaBookEditReqVO implements Serializable {
      * 最大阅读年龄
      */
     private Integer fitAgeMax;
-
+    /**
+     * 丛书id
+     */
+    private Integer bookClumpId;
+    /**
+     * 书组说明
+     */
+    private String bookGroupDescr;
     /**
      * 标签列表
      */

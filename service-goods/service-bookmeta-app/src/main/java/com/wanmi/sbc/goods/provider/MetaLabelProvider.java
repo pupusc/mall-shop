@@ -13,7 +13,7 @@ import java.util.List;
  * 标签(MetaLabel)表服务接口
  *
  * @author Liang Jun
- * @since 2022-05-16 17:15:50
+ * @since 2022-05-17 11:38:03
  */
 @FeignClient(value = "${application.goods.name}", contextId = "MetaLabelProvider")
 public interface MetaLabelProvider {

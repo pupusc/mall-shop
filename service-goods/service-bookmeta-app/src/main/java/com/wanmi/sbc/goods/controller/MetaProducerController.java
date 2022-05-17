@@ -1,18 +1,21 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaProducerQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaProducer;
 import com.wanmi.sbc.goods.provider.MetaProducerProvider;
-import com.wanmi.sbc.goods.vo.MetaProducerQueryByPageReqVO;
-import com.wanmi.sbc.goods.vo.MetaProducerQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaProducerQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
 import com.wanmi.sbc.goods.vo.MetaProducerAddReqVO;
 import com.wanmi.sbc.goods.vo.MetaProducerEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaProducerQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.vo.MetaProducerQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.MetaProducerQueryByPageReqVO;
+import com.wanmi.sbc.goods.vo.MetaProducerQueryByPageResVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -54,7 +57,11 @@ public class MetaProducerController {
     @PostMapping("queryById")
     public BusinessResponse<MetaProducerQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
         BusinessResponse<MetaProducer> resBO = this.metaProducerProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        BusinessResponse<MetaProducerQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        if (result.getContext() != null) {
+            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+        }
+        return result;
     }
 
     /**
@@ -65,6 +72,7 @@ public class MetaProducerController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaProducerAddReqVO addReqVO) {
+        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
         MetaProducer addReqBO = new MetaProducer();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaProducerProvider.insert(addReqBO).getContext());
@@ -78,6 +86,7 @@ public class MetaProducerController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaProducerEditReqVO editReqVO) {
+        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
         MetaProducer editReqVBO = new MetaProducer();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaProducerProvider.update(editReqVBO);
@@ -94,6 +103,5 @@ public class MetaProducerController {
     public BusinessResponse<Boolean> deleteById(@RequestBody IntegerIdVO id) {
         return this.metaProducerProvider.deleteById(id.getId());
     }
-
 }
 

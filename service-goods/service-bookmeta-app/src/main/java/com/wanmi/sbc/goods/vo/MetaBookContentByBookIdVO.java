@@ -14,7 +14,10 @@ import java.util.List;
 @Data
 public class MetaBookContentByBookIdVO implements Serializable {
     private static final long serialVersionUID = 636367289017261664L;
-
+    /**
+     * 书籍id
+     */
+    private Integer bookId;
     /**
      * 简介
      */
@@ -34,7 +37,7 @@ public class MetaBookContentByBookIdVO implements Serializable {
     /**
      * 前言
      */
-    private List<MetaBookContentVO> prefaceList;
+    private MetaBookContentVO prefaceList;
 
     private static class MetaBookContentVO {
         private Integer id;

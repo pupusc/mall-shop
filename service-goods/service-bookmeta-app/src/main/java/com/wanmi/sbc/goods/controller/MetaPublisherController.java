@@ -1,18 +1,21 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaPublisherQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaPublisher;
 import com.wanmi.sbc.goods.provider.MetaPublisherProvider;
-import com.wanmi.sbc.goods.vo.MetaPublisherQueryByPageReqVO;
-import com.wanmi.sbc.goods.vo.MetaPublisherQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaPublisherQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
 import com.wanmi.sbc.goods.vo.MetaPublisherAddReqVO;
 import com.wanmi.sbc.goods.vo.MetaPublisherEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaPublisherQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.vo.MetaPublisherQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.MetaPublisherQueryByPageReqVO;
+import com.wanmi.sbc.goods.vo.MetaPublisherQueryByPageResVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -54,7 +57,11 @@ public class MetaPublisherController {
     @PostMapping("queryById")
     public BusinessResponse<MetaPublisherQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
         BusinessResponse<MetaPublisher> resBO = this.metaPublisherProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        BusinessResponse<MetaPublisherQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        if (result.getContext() != null) {
+            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+        }
+        return result;
     }
 
     /**
@@ -65,6 +72,7 @@ public class MetaPublisherController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaPublisherAddReqVO addReqVO) {
+        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
         MetaPublisher addReqBO = new MetaPublisher();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaPublisherProvider.insert(addReqBO).getContext());
@@ -78,6 +86,7 @@ public class MetaPublisherController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaPublisherEditReqVO editReqVO) {
+        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
         MetaPublisher editReqVBO = new MetaPublisher();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaPublisherProvider.update(editReqVBO);

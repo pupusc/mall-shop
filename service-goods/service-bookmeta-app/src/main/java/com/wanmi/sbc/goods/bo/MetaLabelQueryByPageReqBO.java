@@ -9,11 +9,11 @@ import lombok.Data;
  * 标签(MetaLabel)实体类
  *
  * @author Liang Jun
- * @since 2022-05-16 17:15:50
+ * @since 2022-05-17 11:38:03
  */
 @Data
 public class MetaLabelQueryByPageReqBO implements Serializable {
-    private static final long serialVersionUID = 368386570265699865L;
+    private static final long serialVersionUID = 764749601528938596L;
     
     private Integer id;
     /**
@@ -57,7 +57,7 @@ public class MetaLabelQueryByPageReqBO implements Serializable {
      */
     private Integer scene;
     /**
-     * 路径，下划线分隔
+     * 路径：下划线分隔（1_2）
      */
     private String path;
     /**
