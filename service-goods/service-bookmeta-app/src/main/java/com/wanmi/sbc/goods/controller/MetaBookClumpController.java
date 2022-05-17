@@ -59,7 +59,7 @@ public class MetaBookClumpController {
         BusinessResponse<MetaBookClump> resBO = this.metaBookClumpProvider.queryById(id.getId());
         BusinessResponse<MetaBookClumpQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         if (result.getContext() != null) {
-            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+            result.getContext().setImageList(StringSplitUtil.split(result.getContext().getImage()));
         }
         return result;
     }
@@ -72,7 +72,7 @@ public class MetaBookClumpController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookClumpAddReqVO addReqVO) {
-        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
+        addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaBookClump addReqBO = new MetaBookClump();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookClumpProvider.insert(addReqBO).getContext());
@@ -86,7 +86,7 @@ public class MetaBookClumpController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookClumpEditReqVO editReqVO) {
-        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
+        editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaBookClump editReqVBO = new MetaBookClump();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookClumpProvider.update(editReqVBO);

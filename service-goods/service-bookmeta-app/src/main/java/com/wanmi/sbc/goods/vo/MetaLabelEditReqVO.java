@@ -1,7 +1,10 @@
 package com.wanmi.sbc.goods.vo;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.Serializable;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -59,5 +62,9 @@ public class MetaLabelEditReqVO implements Serializable {
      * 路径：下划线分隔（1_2）
      */
     private String path;
+    /**
+     * 路径：下划线拆开 [1, 2]
+     */
+    private List<String> pathList = new ArrayList<>();
 }
 

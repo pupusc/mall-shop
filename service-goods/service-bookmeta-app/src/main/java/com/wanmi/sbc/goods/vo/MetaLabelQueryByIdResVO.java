@@ -1,8 +1,11 @@
 package com.wanmi.sbc.goods.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 标签(MetaLabel)实体类
@@ -59,5 +62,9 @@ public class MetaLabelQueryByIdResVO implements Serializable {
      * 路径：下划线分隔（1_2）
      */
     private String path;
+    /**
+     * 路径：下划线拆开 [1, 2]
+     */
+    private List<String> pathList = new ArrayList<>();
 }
 

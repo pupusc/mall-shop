@@ -59,7 +59,7 @@ public class MetaAwardController {
         BusinessResponse<MetaAward> resBO = this.metaAwardProvider.queryById(id.getId());
         BusinessResponse<MetaAwardQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         if (result.getContext() != null) {
-            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+            result.getContext().setImageList(StringSplitUtil.split(result.getContext().getImage()));
         }
         return result;
     }
@@ -72,7 +72,7 @@ public class MetaAwardController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaAwardAddReqVO addReqVO) {
-        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
+        addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaAward addReqBO = new MetaAward();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaAwardProvider.insert(addReqBO).getContext());
@@ -86,7 +86,7 @@ public class MetaAwardController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaAwardEditReqVO editReqVO) {
-        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
+        editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaAward editReqVBO = new MetaAward();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaAwardProvider.update(editReqVBO);

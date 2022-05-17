@@ -1,18 +1,21 @@
 package com.wanmi.sbc.goods.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.goods.entity.MetaLabel;
 import com.wanmi.sbc.goods.provider.MetaLabelProvider;
-import com.wanmi.sbc.goods.vo.MetaLabelQueryByPageReqVO;
-import com.wanmi.sbc.goods.vo.MetaLabelQueryByPageResVO;
-import com.wanmi.sbc.goods.vo.MetaLabelQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.IntegerIdVO;
 import com.wanmi.sbc.goods.vo.MetaLabelAddReqVO;
 import com.wanmi.sbc.goods.vo.MetaLabelEditReqVO;
-import com.wanmi.sbc.goods.vo.IntegerIdVO;
-import com.wanmi.sbc.goods.bo.MetaLabelQueryByPageReqBO;
-import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.goods.vo.MetaLabelQueryByIdResVO;
+import com.wanmi.sbc.goods.vo.MetaLabelQueryByPageReqVO;
+import com.wanmi.sbc.goods.vo.MetaLabelQueryByPageResVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("metaLabel")
 public class MetaLabelController {
+    private static final String PATH_SPLIT_SYMBOL = "_";
     /**
      * 标签-服务对象
      */
@@ -54,7 +58,11 @@ public class MetaLabelController {
     @PostMapping("queryById")
     public BusinessResponse<MetaLabelQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
         BusinessResponse<MetaLabel> resBO = this.metaLabelProvider.queryById(id.getId());
-        return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        BusinessResponse<MetaLabelQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
+        if (result.getContext() != null) {
+            result.getContext().setPathList(StringSplitUtil.split(result.getContext().getPath(), PATH_SPLIT_SYMBOL));
+        }
+        return result;
     }
 
     /**
@@ -65,6 +73,7 @@ public class MetaLabelController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaLabelAddReqVO addReqVO) {
+        addReqVO.setPath(StringSplitUtil.join(addReqVO.getPathList(), PATH_SPLIT_SYMBOL));
         MetaLabel addReqBO = new MetaLabel();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaLabelProvider.insert(addReqBO).getContext());
@@ -78,6 +87,7 @@ public class MetaLabelController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaLabelEditReqVO editReqVO) {
+        editReqVO.setPath(StringSplitUtil.join(editReqVO.getPathList(), PATH_SPLIT_SYMBOL));
         MetaLabel editReqVBO = new MetaLabel();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaLabelProvider.update(editReqVBO);

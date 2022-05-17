@@ -59,7 +59,7 @@ public class MetaPublisherController {
         BusinessResponse<MetaPublisher> resBO = this.metaPublisherProvider.queryById(id.getId());
         BusinessResponse<MetaPublisherQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         if (result.getContext() != null) {
-            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+            result.getContext().setImageList(StringSplitUtil.split(result.getContext().getImage()));
         }
         return result;
     }
@@ -72,7 +72,7 @@ public class MetaPublisherController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaPublisherAddReqVO addReqVO) {
-        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
+        addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaPublisher addReqBO = new MetaPublisher();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaPublisherProvider.insert(addReqBO).getContext());
@@ -86,7 +86,7 @@ public class MetaPublisherController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaPublisherEditReqVO editReqVO) {
-        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
+        editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaPublisher editReqVBO = new MetaPublisher();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaPublisherProvider.update(editReqVBO);

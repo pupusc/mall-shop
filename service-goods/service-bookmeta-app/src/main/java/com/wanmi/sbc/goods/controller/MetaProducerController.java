@@ -59,7 +59,7 @@ public class MetaProducerController {
         BusinessResponse<MetaProducer> resBO = this.metaProducerProvider.queryById(id.getId());
         BusinessResponse<MetaProducerQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         if (result.getContext() != null) {
-            result.getContext().setImageList(ImageListConvert.imageToList(result.getContext().getImage()));
+            result.getContext().setImageList(StringSplitUtil.split(result.getContext().getImage()));
         }
         return result;
     }
@@ -72,7 +72,7 @@ public class MetaProducerController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaProducerAddReqVO addReqVO) {
-        addReqVO.setImage(ImageListConvert.listToImage(addReqVO.getImageList()));
+        addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaProducer addReqBO = new MetaProducer();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaProducerProvider.insert(addReqBO).getContext());
@@ -86,7 +86,7 @@ public class MetaProducerController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaProducerEditReqVO editReqVO) {
-        editReqVO.setImage(ImageListConvert.listToImage(editReqVO.getImageList()));
+        editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaProducer editReqVBO = new MetaProducer();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaProducerProvider.update(editReqVBO);
