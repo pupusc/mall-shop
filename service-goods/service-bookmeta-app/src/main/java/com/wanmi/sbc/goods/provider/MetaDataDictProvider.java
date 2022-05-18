@@ -13,7 +13,7 @@ import java.util.List;
  * 数据字典(MetaDataDict)表服务接口
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-18 13:46:06
  */
 @FeignClient(value = "${application.goods.name}", contextId = "MetaDataDictProvider")
 public interface MetaDataDictProvider {

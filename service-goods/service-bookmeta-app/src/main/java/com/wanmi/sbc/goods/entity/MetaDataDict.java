@@ -7,17 +7,15 @@ import java.io.Serializable;
  * 数据字典(MetaDataDict)实体类
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-18 13:46:06
  */
 public class MetaDataDict implements Serializable {
-    private static final long serialVersionUID = -85468092539536469L;
+    private static final long serialVersionUID = 224401597819473075L;
     
     private Integer id;
     /**
-     * 分组（book_cate、book_language、figure_cate、book_group_cate、book_bind，book_paper）
+     * 业务值
      */
-    private String key;
-    
     private String value;
     /**
      * 创建时间
@@ -32,9 +30,20 @@ public class MetaDataDict implements Serializable {
      */
     private Integer delFlag;
     /**
-     * 名称（书籍分类/书籍语言/人物分类/书组分类）
+     * 分组：
+book_cate=书籍分类；
+book_language=书籍语言；
+figure_cate=人物分类；
+book_group_cate=书组分类；
+book_bind=书籍装帧；
+book_paper=书籍纸张；
+figure_country=人物国籍；
      */
-    private String descr;
+    private String group;
+    /**
+     * 业务名
+     */
+    private String name;
 
 
     public Integer getId() {
@@ -43,14 +52,6 @@ public class MetaDataDict implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getValue() {
@@ -85,12 +86,20 @@ public class MetaDataDict implements Serializable {
         this.delFlag = delFlag;
     }
 
-    public String getDescr() {
-        return descr;
+    public String getGroup() {
+        return group;
     }
 
-    public void setDescr(String descr) {
-        this.descr = descr;
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

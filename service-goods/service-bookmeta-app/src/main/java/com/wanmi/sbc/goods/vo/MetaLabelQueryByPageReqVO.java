@@ -1,9 +1,9 @@
 package com.wanmi.sbc.goods.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import com.wanmi.sbc.common.base.Page;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 标签(MetaLabel)实体类
@@ -25,26 +25,6 @@ public class MetaLabelQueryByPageReqVO implements Serializable {
      */
     private Integer status;
     /**
-     * 创建时间
-     */
-    private Date createTime;
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-    /**
-     * 删除标识
-     */
-    private Integer delFlag;
-    /**
-     * 说明
-     */
-    private String descr;
-    /**
-     * 顺序
-     */
-    private Integer seq;
-    /**
      * 父级id
      */
     private Integer parentId;
@@ -56,10 +36,6 @@ public class MetaLabelQueryByPageReqVO implements Serializable {
      * 场景：1适读对象；
      */
     private Integer scene;
-    /**
-     * 路径：下划线分隔（1_2）
-     */
-    private String path;
     /**
      * 分页参数
      */

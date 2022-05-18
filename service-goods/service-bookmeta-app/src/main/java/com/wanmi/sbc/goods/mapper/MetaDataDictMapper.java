@@ -10,7 +10,7 @@ import java.util.List;
  * 数据字典(MetaDataDict)表数据库访问层
  *
  * @author Liang Jun
- * @since 2022-05-13 22:20:02
+ * @since 2022-05-18 13:46:06
  */
 @Repository
 public interface MetaDataDictMapper extends Mapper<MetaDataDict> {
