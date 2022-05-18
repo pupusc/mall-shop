@@ -2346,7 +2346,7 @@ public class ReturnOrderService {
                     .goodsInfoId(returnItem.getSkuId()).build());
             ReturnTradeItemVO returnTradeItemVO = ReturnTradeItemVO.builder()
                     .spuCode(goodsInfoByIdResponse.getContext().getErpGoodsNo())
-                    .skuCode(goodsInfoByIdResponse.getContext().getErpGoodsInfoNo())
+                    .skuCode(goodsInfoByIdResponse.getContext().getCombinedCommodity() != null && goodsInfoByIdResponse.getContext().getCombinedCommodity() ? "" : goodsInfoByIdResponse.getContext().getErpGoodsInfoNo())
                     .qty(returnItem.getNum())
                     .build();
             returnTradeItemVOS.add(returnTradeItemVO);
