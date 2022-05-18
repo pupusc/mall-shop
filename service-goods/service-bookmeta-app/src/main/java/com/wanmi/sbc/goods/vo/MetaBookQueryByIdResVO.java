@@ -119,6 +119,18 @@ public class MetaBookQueryByIdResVO implements Serializable {
      * 标签列表
      */
     private List<MetaBookLabelVO> labelList;
+    /**
+     * 作者id列表
+     */
+    private List<Integer> authorIdList;
+    /**
+     * 译者id列表
+     */
+    private List<Integer> translatorIdList;
+    /**
+     * 绘者id列表
+     */
+    private List<Integer> painterIdList;
 
     private static class MetaBookLabelVO {
         private Integer id;
