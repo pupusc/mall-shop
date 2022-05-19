@@ -80,11 +80,20 @@ public interface PaidCardCustomerRelRepository extends JpaRepository<PaidCardCus
     void deleteByCustomerId(Integer paidSource,String customerId);
 
     /**
-     * 根据最大id获取对应的优惠券
+     * 根据最大id获取对应的客户权益
      * @param paidCardIdList
      * @param tmpId
      * @return
      */
     @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and paid_card_id in ?1 and ?2 > begin_time  and end_time > ?2 and tmp_id > ?3 limit ?4", nativeQuery = true)
     List<PaidCardCustomerRel> pageByMaxAutoId(List<String> paidCardIdList, LocalDateTime currentTime, Integer tmpId, Integer pageSize);
+
+
+    /**
+     * 根据最大id获取对应的客户权益
+     * @param tmpId
+     * @return
+     */
+    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and send_msg_flag = 0 and end_time >= ?1 and tmp_id > ?2 limit ?3", nativeQuery = true)
+    List<PaidCardCustomerRel> pageByEndTimeAndMaxAutoId(LocalDateTime endTime, Integer tmpId, Integer pageSize);
 }

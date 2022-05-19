@@ -1,5 +1,6 @@
 package com.wanmi.sbc.customer.provider.impl.paidcardcustomerrel;
 
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.customer.api.request.paidcard.PaidCardQueryRequest;
 import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.*;
 import com.wanmi.sbc.customer.api.response.paidcardcustomerrel.*;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
 import com.wanmi.sbc.customer.paidcardcustomerrel.service.PaidCardCustomerRelService;
 import com.wanmi.sbc.customer.paidcardcustomerrel.model.root.PaidCardCustomerRel;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,6 +70,32 @@ public class PaidCardCustomerRelQueryController implements PaidCardCustomerRelQu
 		PaidCardCustomerRelQueryRequest queryReq = new PaidCardCustomerRelQueryRequest();
 		KsBeanUtil.copyPropertiesThird(paidCardCustomerRelListReq, queryReq);
 		List<PaidCardCustomerRel> paidCardCustomerRelList = paidCardCustomerRelService.list(queryReq);
+		List<String> paidCardIdList = paidCardCustomerRelList.stream().map(x -> x.getPaidCardId()).distinct().collect(Collectors.toList());
+		List<String> customerIdList = paidCardCustomerRelList.stream().map(x -> x.getCustomerId()).distinct().collect(Collectors.toList());
+		List<PaidCard> paidCardList = paidCardService.list(PaidCardQueryRequest.builder().idList(paidCardIdList).build());
+		List<Customer> customerList = customerService.findByCustomerIdIn(customerIdList);
+		List<PaidCardCustomerRelVO> newList = paidCardCustomerRelList.stream().map(entity -> {
+			PaidCard paidCard = paidCardList.stream().filter(x -> x.getId().equals(entity.getPaidCardId())).findFirst().orElse(new PaidCard());
+			Customer customer = customerList.stream().filter(x -> x.getCustomerId().equals(entity.getCustomerId())).findFirst().orElse(new Customer());
+			entity.setPaidCardName(paidCard.getName());
+			entity.setPhone(customer.getCustomerAccount());
+			return paidCardCustomerRelService.wrapperVo(entity);
+		}).collect(Collectors.toList());
+		return BaseResponse.success(new PaidCardCustomerRelListResponse(newList));
+	}
+
+
+
+	@Override
+	public BaseResponse<PaidCardCustomerRelListResponse> listNew(PaidCardCustomerRelListRequest request) {
+		PaidCardCustomerRelQueryRequest queryReq = new PaidCardCustomerRelQueryRequest();
+//		KsBeanUtil.copyPropertiesThird(paidCardCustomerRelListReq, queryReq);
+//		queryReq.setDelFlag(DeleteFlag.NO);
+//		queryReq.setSendMsgFlag(Boolean.FALSE);
+		queryReq.setEndTimeEnd(request.getEndTimeEnd());
+		queryReq.setMaxTmpId(request.getMaxTmpId());
+		queryReq.setPageSize(request.getPageSize());
+		List<PaidCardCustomerRel> paidCardCustomerRelList = paidCardCustomerRelService.pageByEndTimeAndMaxAutoId(queryReq);
 		List<String> paidCardIdList = paidCardCustomerRelList.stream().map(x -> x.getPaidCardId()).distinct().collect(Collectors.toList());
 		List<String> customerIdList = paidCardCustomerRelList.stream().map(x -> x.getCustomerId()).distinct().collect(Collectors.toList());
 		List<PaidCard> paidCardList = paidCardService.list(PaidCardQueryRequest.builder().idList(paidCardIdList).build());
