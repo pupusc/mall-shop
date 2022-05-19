@@ -367,13 +367,13 @@ public class WxOrderService {
         if (hourPriceMap == null) {
             hourPriceMap = new HashMap<>();
         }
-        Map<String, BigDecimal> hourPriceResultMap = new HashMap<>();
+        Map<String, BigDecimal> hourPriceResultMap = new LinkedHashMap<>();
         for (int i = 0; i< 24 ; i++) {
             if (i < 7) {
                 String key = "0-6";
                 BigDecimal mergePriceKey = hourPriceResultMap.get(key) == null ? BigDecimal.ZERO : hourPriceResultMap.get(key);
                 BigDecimal currentPrice = hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i);
-                hourPriceResultMap.put(i + "时", mergePriceKey.add(currentPrice));
+                hourPriceResultMap.put(key + "时", mergePriceKey.add(currentPrice));
             } else {
                 hourPriceResultMap.put(i + "时", hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
             }
