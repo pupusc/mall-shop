@@ -18,7 +18,7 @@ public class MiniProgramOrderReportVO implements Serializable {
     /**
      * 分时金额
      */
-    private Map<Integer,BigDecimal> hourPrice;
+    private Map<String,BigDecimal> hourPrice;
 
     private List<OrderReportDetailVO> orders;
 
