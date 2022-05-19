@@ -364,6 +364,9 @@ public class WxOrderService {
         }
         //分时金额
         Map<Integer,BigDecimal> hourPriceMap = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), Map.class);
+        if (hourPriceMap == null) {
+            hourPriceMap = new HashMap<>();
+        }
         Map<Integer, BigDecimal> hourPriceResultMap = new HashMap<>();
         for (int i = 0; i< 24 ; i++) {
             hourPriceResultMap.put(i, hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
