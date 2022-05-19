@@ -3438,13 +3438,22 @@ public class TradeService {
                     tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             Integer timeoutSwitch = timeoutCancelConfig.getStatus();
             if (timeoutSwitch == 1) {
-                // 查询设置中订单超时时间
-                Integer hours =
-                        Integer.valueOf(JSON.parseObject(timeoutCancelConfig.getContext()).get("hour").toString());
                 if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
+                    // 查询设置中订单超时时间
+                    int outTime = 60; //1小时
+                    try {
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(timeoutCancelConfig.getContext());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+                        if (minuteObj != null) {
+                            outTime = Integer.parseInt(minuteObj.toString());
+                        }
+                    } catch (Exception ex) {
+                        log.error("TradeService timeoutCancelConfig error", ex);
+                    }
+
                     // 发送非拼团单取消订单延迟队列;
-                    trade.setOrderTimeOut(LocalDateTime.now().plusHours(hours));
-                    orderProducerService.cancelOrder(trade.getId(), hours * 60 * 60 * 1000L);
+                    trade.setOrderTimeOut(LocalDateTime.now().plusMinutes(outTime));
+                    orderProducerService.cancelOrder(trade.getId(), outTime * 60 * 1000L);
                 }
             }
         }
@@ -5489,6 +5498,7 @@ public class TradeService {
                             (AppointmentSaleByIdRequest.builder().id(tradeItemVO.getAppointmentSaleId()).storeId(tradeItemVO.getStoreId()).build())).getContext().getAppointmentSaleVO();
                     ConfigVO timeoutCancelConfig =
                             tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
+                    //TODO 此处没有使用到，没有修改掉 duanlsh
                     Integer hours =
                             Integer.valueOf(JSON.parseObject(timeoutCancelConfig.getContext()).get("hour").toString()) + 1;
                     long seconds =
