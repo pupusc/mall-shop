@@ -363,7 +363,12 @@ public class WxOrderService {
             result.setTotalPrice(new BigDecimal(cachePrice));
         }
         //分时金额
-        result.setHourPrice(redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), Map.class));
+        Map<Integer,BigDecimal> hourPriceMap = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), Map.class);
+        Map<Integer, BigDecimal> hourPriceResultMap = new HashMap<>();
+        for (int i = 0; i< 24 ; i++) {
+            hourPriceResultMap.put(i, hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
+        }
+        result.setHourPrice(hourPriceResultMap);
         //订单数据
         result.setOrders(redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), MiniProgramOrderReportVO.OrderReportDetailVO.class));
         return result;
