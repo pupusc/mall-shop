@@ -57,6 +57,7 @@ public interface PaidCardCustomerRelQueryProvider {
 	 * @param request
 	 * @return
 	 */
+	@PostMapping("/customer/${application.customer.version}/paidcardcustomerrel/list-new")
 	BaseResponse<PaidCardCustomerRelListResponse> listNew(@RequestBody @Valid PaidCardCustomerRelListRequest request);
 
 	/**
