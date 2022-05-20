@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
+import com.soybean.mall.order.config.ConfigProperties;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
@@ -72,9 +73,6 @@ public class WxOrderService {
     private TradeRepository tradeRepository;
 
     @Autowired
-    private ReturnOrderRepository returnOrderRepository;
-
-    @Autowired
     private TradeCacheService tradeCacheService;
 
     @Autowired
@@ -109,6 +107,9 @@ public class WxOrderService {
 
     @Value("${wx.order.list.url}")
     private String orderListUrl;
+
+    @Autowired
+    private ConfigProperties configProperties;
 
     /**
      * 视频号售后公共部分
@@ -446,41 +447,39 @@ public class WxOrderService {
     }
 
 
-    public void createWxOrder(String tid) {
-        Trade trade = tradeRepository.findById(tid).orElse(null);
-        if (trade == null) {
-            throw new SbcRuntimeException("K-050100", new Object[]{tid});
-        }
-        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
-            return;
-        }
-        log.info("微信小程序订单创建start,tid:{}", tid);
-        WxCreateOrderRequest wxCreateOrderRequest = null;
-        try {
-            //先创建订单
-            wxCreateOrderRequest = this.buildRequest(trade);
-            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
-            log.info("微信小程序0元订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
-            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
-                addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-                return;
-            }
-        } catch (Exception e) {
-            log.error("微信小程序创建订单失败，tid：{}", tid, e);
-            addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-            return;
-        }
-    }
+//    public void createWxOrder(String tid) {
+//        Trade trade = tradeRepository.findById(tid).orElse(null);
+//        if (trade == null) {
+//            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+//        }
+//        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+//            return;
+//        }
+//        log.info("微信小程序订单创建start,tid:{}", tid);
+//        WxCreateOrderRequest wxCreateOrderRequest = null;
+//        try {
+//            //先创建订单
+//            wxCreateOrderRequest = this.buildRequest(trade);
+//            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
+//            log.info("微信小程序0元订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
+//            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
+//                addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+//                return;
+//            }
+//        } catch (Exception e) {
+//            log.error("微信小程序创建订单失败，tid：{}", tid, e);
+//            addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+//            return;
+//        }
+//    }
 
     public WxCreateOrderRequest buildRequest(Trade trade) {
 
         int outTime = 60; //1小时
         try {
-            ConfigVO timeoutCancelConfig =
-                    tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             // 查询设置中订单超时时间
-            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(timeoutCancelConfig.getContext());
-            Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(configProperties.getTimeOutJson());
+            Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
             if (minuteObj != null) {
                 outTime = Integer.parseInt(minuteObj.toString());
             }
