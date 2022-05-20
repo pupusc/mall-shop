@@ -367,19 +367,19 @@ public class WxOrderService {
         if (hourPriceMap == null) {
             hourPriceMap = new HashMap<>();
         }
-        Map<String, BigDecimal> hourPriceResultMap = new LinkedHashMap<>();
-        for (int i = 0; i< 24 ; i++) {
-            if (i < 7) {
-                String key = "0-6";
-                BigDecimal mergePriceKey = hourPriceResultMap.get(key) == null ? BigDecimal.ZERO : hourPriceResultMap.get(key);
-                BigDecimal currentPrice = hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i);
-                hourPriceResultMap.put(key + "时", mergePriceKey.add(currentPrice));
-            } else {
-                hourPriceResultMap.put(i + "时", hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
-            }
-
-        }
-        result.setHourPrice(hourPriceResultMap);
+//        Map<String, BigDecimal> hourPriceResultMap = new LinkedHashMap<>();
+//        for (int i = 0; i< 24 ; i++) {
+//            if (i < 7) {
+//                String key = "0-6";
+//                BigDecimal mergePriceKey = hourPriceResultMap.get(key) == null ? BigDecimal.ZERO : hourPriceResultMap.get(key);
+//                BigDecimal currentPrice = hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i);
+//                hourPriceResultMap.put(key + "时", mergePriceKey.add(currentPrice));
+//            } else {
+//                hourPriceResultMap.put(i + "时", hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
+//            }
+//
+//        }
+        result.setHourPrice(hourPriceMap);
         //订单数据
         result.setOrders(redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), MiniProgramOrderReportVO.OrderReportDetailVO.class));
         return result;
