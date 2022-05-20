@@ -9,8 +9,10 @@ import com.wanmi.sbc.goods.api.request.image.ImagePageProviderRequest;
 import com.wanmi.sbc.goods.api.response.image.ImageProviderResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,17 +25,18 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @RequestMapping("/wx/image")
+@RestController
 public class ImageController {
 
     @Autowired
     private ImageProvider imageProvider;
 
     /**
-     * 小程序订阅图片 app端列表
+     * app - 小程序订阅图片
      * @menu 小程序订阅
      * @return
      */
-    @PostMapping("/list")
+    @GetMapping("/list")
     public List<ImageProviderResponse> listImageSubscribe() {
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
