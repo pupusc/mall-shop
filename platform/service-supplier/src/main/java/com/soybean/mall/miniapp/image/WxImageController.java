@@ -30,7 +30,7 @@ import java.util.Collections;
  * Date       : 2022/5/20 1:27 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@RequestMapping("/wx/image")
+@RequestMapping("/cms/wx/image")
 @RestController
 public class WxImageController {
 
