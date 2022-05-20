@@ -67,6 +67,7 @@ public class ImageService {
         imageDTO.setImgHref(imageProviderRequest.getImgHref());
         imageDTO.setBeginTime(imageProviderRequest.getBeginTime());
         imageDTO.setEndTime(imageProviderRequest.getEndTime());
+        imageDTO.setBusinessId(imageProviderRequest.getBusinessId());
         imageDTO.setPublishState(UsingStateEnum.USING.getCode()); //未启用
         imageDTO.setOrderNum(orderNum + 1);
         imageDTO.setImageType(imageProviderRequest.getImageType());
@@ -103,6 +104,10 @@ public class ImageService {
 
         if (imageProviderRequest.getEndTime() != null) {
             imageDTO.setEndTime(imageProviderRequest.getEndTime());
+        }
+
+        if (!StringUtils.isEmpty(imageProviderRequest.getBusinessId())) {
+            imageDTO.setBusinessId(imageProviderRequest.getBusinessId());
         }
 
 //        if (!StringUtils.isEmpty(imageProviderRequest.getImgUrl())) {

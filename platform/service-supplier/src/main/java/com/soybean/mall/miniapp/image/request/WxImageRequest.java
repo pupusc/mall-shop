@@ -1,10 +1,9 @@
-package com.wanmi.sbc.index.request;
+package com.soybean.mall.miniapp.image.request;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
-import com.wanmi.sbc.goods.api.request.image.ImageProviderRequest;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -15,25 +14,25 @@ import java.time.LocalDateTime;
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/10/27 1:21 上午
+ * Date       : 2022/5/20 1:40 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class ImageRequest {
+public class WxImageRequest {
 
-    @NotNull(groups = ImageRequest.Update.class, message = "id不能为空")
+    @NotNull(groups = WxImageRequest.Update.class, message = "id不能为空")
     private Integer id;
 
     /**
      * 名称
      */
-    @NotBlank(groups = ImageRequest.Add.class, message = "名称不能为空")
+    @NotBlank(groups = WxImageRequest.Add.class, message = "名称不能为空")
     private String name;
 
     /**
      * 图片地址
      */
-    @NotBlank(groups = ImageRequest.Add.class, message = "图片地址不能为空")
+    @NotBlank(groups = WxImageRequest.Add.class, message = "图片地址不能为空")
     private String imgUrl;
 
     /**
@@ -45,7 +44,7 @@ public class ImageRequest {
     /**
      * 开始时间
      */
-    @NotNull(groups = ImageRequest.Add.class, message = "开始时间不能为空")
+    @NotNull(groups = WxImageRequest.Add.class, message = "开始时间不能为空")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime beginTime;
@@ -53,7 +52,7 @@ public class ImageRequest {
     /**
      * 结束时间
      */
-    @NotNull(groups = ImageRequest.Add.class, message = "结束时间不能为空")
+    @NotNull(groups = WxImageRequest.Add.class, message = "结束时间不能为空")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;

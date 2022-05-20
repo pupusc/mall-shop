@@ -56,6 +56,11 @@ public class ImageProviderResponse implements Serializable {
     private Integer publishState;
 
     /**
+     * 业务id
+     */
+    private String businessId;
+
+    /**
      * 排序
      */
     private Integer orderNum;
@@ -66,7 +71,7 @@ public class ImageProviderResponse implements Serializable {
     private Integer status;
 
     /**
-     * 图片类型 1首页轮播 2 广告图片
+     * 图片类型 1首页轮播 2 广告图片、3 首页卖点图 4 直播订阅图
      */
     private Integer imageType;
 }
