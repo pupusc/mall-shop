@@ -37,12 +37,12 @@ public class ImageController {
      * @return
      */
     @GetMapping("/list")
-    public List<ImageProviderResponse> listImageSubscribe() {
+    public BaseResponse<List<ImageProviderResponse>> listImageSubscribe() {
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
         imagePageProviderRequest.setStatus(StateEnum.RUNNING.getCode());
         imagePageProviderRequest.setImageTypeList(Collections.singletonList(ImageTypeEnum.WX_SUBSCRIBE.getCode()));
         BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
-        return listBaseResponse.getContext();
+        return BaseResponse.success(listBaseResponse.getContext());
     }
 }
