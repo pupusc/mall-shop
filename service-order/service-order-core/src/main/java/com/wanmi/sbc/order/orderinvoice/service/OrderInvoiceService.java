@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order.orderinvoice.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.account.bean.enums.PayOrderStatus;
 import com.wanmi.sbc.order.bean.enums.PayState;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceModifyOrderStatusRequest;
@@ -26,6 +27,7 @@ import com.wanmi.sbc.order.orderinvoice.repository.OrderInvoiceRepository;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceQueryRequest;
 import com.wanmi.sbc.order.orderinvoice.request.OrderInvoiceSaveRequest;
 import com.wanmi.sbc.order.orderinvoice.response.OrderInvoiceResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,7 @@ import java.util.Optional;
  * Created by CHENLI on 2017/5/5.
  */
 @Service
+@Slf4j
 public class OrderInvoiceService {
     @Autowired
     private OrderInvoiceRepository repository;
@@ -153,14 +156,20 @@ public class OrderInvoiceService {
      * @return Optional<OrderInvoice>
      */
     @Transactional
-    public Optional<OrderInvoice> updateOrderStatus(OrderInvoiceModifyOrderStatusRequest orderInvoiceModifyOrderRequest){
-        OrderInvoice orderInvoice = repository.findByOrderNoAndDelFlag(orderInvoiceModifyOrderRequest.getOrderNo(),DeleteFlag.NO).orElse(null);
-        if (orderInvoice != null) {
-            orderInvoice.setPayStatus(orderInvoiceModifyOrderRequest.getPayOrderStatus());
-            orderInvoice.setOrderStatus(orderInvoiceModifyOrderRequest.getOrderStatus());
-            repository.save(orderInvoice);
+    public void updateOrderStatus(OrderInvoiceModifyOrderStatusRequest orderInvoiceModifyOrderRequest){
+//        fix bug by duanlsh 线上出现此处获取了多个发票对象。此处记录下日志
+//        OrderInvoice orderInvoice = repository.findByOrderNoAndDelFlag(orderInvoiceModifyOrderRequest.getOrderNo(),DeleteFlag.NO).orElse(null);
+        List<OrderInvoice> orderInvoiceList = repository.findByDelFlagAndOrderNo(DeleteFlag.NO, orderInvoiceModifyOrderRequest.getOrderNo());
+        log.info("OrderInvoiceService updateOrderStatus orderNo: {} delFlag: {} result:{}", orderInvoiceModifyOrderRequest.getOrderNo(), DeleteFlag.NO,
+                JSON.toJSONString(orderInvoiceList));
+        if (!CollectionUtils.isEmpty(orderInvoiceList)) {
+            for (OrderInvoice orderInvoice : orderInvoiceList) {
+
+                orderInvoice.setPayStatus(orderInvoiceModifyOrderRequest.getPayOrderStatus());
+                orderInvoice.setOrderStatus(orderInvoiceModifyOrderRequest.getOrderStatus());
+                repository.save(orderInvoice);
+            }
         }
-        return Optional.empty();
     }
 
 
