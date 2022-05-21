@@ -17,7 +17,7 @@ public enum TerminalSource {
 
     H5(1, "H5", "H5"),
     MINIPROGRAM(2, "MINIPROGRAM", "小程序"),
-    MALL_NORMAL(3, "NORMAL", "商城-普通分类"),
+    MALL_NORMAL(3, "MINIPROGRAM_VIDEO", "商城-视频号"),
     FDDS_DELIVER(4, "FDDS_DELIVER", "樊登读书-实物履约"),
     SUPPLIER(10, "SUPPLIER", "商家后台"),
     PC(11, "PC", "PC"),

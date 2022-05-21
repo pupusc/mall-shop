@@ -10,6 +10,7 @@ import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.MaxDiscountPaidCar
 import com.wanmi.sbc.customer.bean.vo.*;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceListBySkuIdsRequest;
@@ -53,6 +54,9 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
 
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
+
 //    @Value("${exclude-product:000}")
 //    private String excludeProduct;
 
@@ -84,7 +88,6 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
     public void goodsListFilter(List<GoodsInfoVO> goodsInfos, MarketingPluginRequest request) {
         List<String> unVipPriceBlackList = this.listUnVipPriceBlackList();
         log.info("PaidCardPlugin  goodsListFilter param : {}, config : {}", JSONArray.toJSONString(goodsInfos), JSONArray.toJSONString(unVipPriceBlackList));
-
         if (Objects.isNull(request.getCustomer())) {
             return;
         }
@@ -134,11 +137,21 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         List<GoodsInfoVO> goodsInfoList = goodsInfos.stream().filter(goodsInfo -> Integer.valueOf(GoodsPriceType
                 .CUSTOMER.toValue()).equals(goodsInfo.getPriceType())
                 && (goodsInfo.getCompanyType().equals(BoolFlag.NO))).collect(Collectors.toList());
+
+        List<String> skuIdList = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
         goodsInfoList.forEach(goodsInfo -> {
             if(excludeIds.contains(goodsInfo.getGoodsId())){
                 log.info("PaidCardPlugin goodsListFilter，{}", goodsInfo.getGoodsId());
                 return;
             }
+
+            if (goodsId2VideoChannelMap.get(goodsInfo.getGoodsId()) != null && goodsId2VideoChannelMap.get(goodsInfo.getGoodsId())) {
+                log.info("PaidCardPlugin goodsListFilter2，{}", goodsInfo.getGoodsId());
+                return;
+            }
+
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
             //是否设置单独价格
             if(isIndependent) {
@@ -164,9 +177,20 @@ public class PaidCardPlugin implements IGoodsListPlugin, IGoodsDetailPlugin {
         if (CollectionUtils.isEmpty(goodsInfoList)) {
             return;
         }
+
+        /**
+         * 视频号价格黑名单
+         */
+        List<String> skuIdList = goodsInfos.stream().map(GoodsInfoVO::getGoodsInfoId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
         goodsInfoList.forEach(goodsInfo -> {
             if(excludeIds.contains(goodsInfo.getGoodsId())){
                 log.info("PaidCardPlugin goodsListFilter，{}", goodsInfo.getGoodsId());
+                return;
+            }
+            if (goodsId2VideoChannelMap.get(goodsInfo.getGoodsId()) != null && goodsId2VideoChannelMap.get(goodsInfo.getGoodsId())) {
+                log.info("PaidCardPlugin goodsListFilter2，{}", goodsInfo.getGoodsId());
                 return;
             }
             BigDecimal discountPrice = goodsInfo.getMarketPrice().multiply(paidCardVO.getDiscountRate()).setScale(2, BigDecimal.ROUND_HALF_UP);
