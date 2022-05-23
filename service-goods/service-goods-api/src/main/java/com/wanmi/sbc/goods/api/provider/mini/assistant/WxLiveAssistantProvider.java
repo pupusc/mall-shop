@@ -33,7 +33,7 @@ public interface WxLiveAssistantProvider {
     BaseResponse<MicroServicePage<WxLiveAssistantVo>> listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/add")
-    BaseResponse addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest);
+    BaseResponse<List<String>> addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest);
 
     @PostMapping("/wx/assistant/goods/${application.goods.version}/delete")
     BaseResponse<List<String>> deleteGoods(@RequestParam("id") Long id);
@@ -44,8 +44,8 @@ public interface WxLiveAssistantProvider {
     @PostMapping("/wx/assistant/goods/${application.goods.version}/list")
     BaseResponse<WxLiveAssistantDetailVo> listGoods(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);
 
-    @PostMapping("/wx/assistant/${application.goods.version}/live-end")
-    BaseResponse<List<String>> afterWxLiveEnd(@RequestParam("message") String message);
+//    @PostMapping("/wx/assistant/${application.goods.version}/live-end")
+//    BaseResponse<List<String>> afterWxLiveEnd(@RequestParam("message") String message);
 
     @PostMapping("/wx/assistant/${application.goods.version}/if-goods-in-live")
     BaseResponse<List<String>> ifGoodsInLive(@RequestBody List<String> goodsIds);

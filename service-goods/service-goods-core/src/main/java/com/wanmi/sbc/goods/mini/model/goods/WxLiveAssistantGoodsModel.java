@@ -1,17 +1,21 @@
 package com.wanmi.sbc.goods.mini.model.goods;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsInfoConfigVo;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Entity
@@ -67,19 +71,23 @@ public class WxLiveAssistantGoodsModel {
     @Enumerated
     private DeleteFlag delFlag;
 
-    public static List<WxLiveAssistantGoodsModel> create(WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest) {
-        List<WxLiveAssistantGoodsModel> assistantGoodsModels = new ArrayList<>();
-        List<String> goodsIds = wxLiveAssistantGoodsCreateRequest.getGoods();
-        for (String goodId : goodsIds) {
-            WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = new WxLiveAssistantGoodsModel();
-            wxLiveAssistantGoodsModel.setAssistId(wxLiveAssistantGoodsCreateRequest.getAssistantId());
-            wxLiveAssistantGoodsModel.setGoodsId(goodId);
-            LocalDateTime now = LocalDateTime.now();
-            wxLiveAssistantGoodsModel.setCreateTime(now);
-            wxLiveAssistantGoodsModel.setUpdateTime(now);
-            wxLiveAssistantGoodsModel.setDelFlag(DeleteFlag.NO);
-            assistantGoodsModels.add(wxLiveAssistantGoodsModel);
-        }
-        return assistantGoodsModels;
-    }
+//    public static List<WxLiveAssistantGoodsModel> create(WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest, Map<String, List<WxLiveAssistantGoodsInfoConfigVo>> assistantGoodsInfoConfigMap) {
+//        List<WxLiveAssistantGoodsModel> assistantGoodsModels = new ArrayList<>();
+//        List<String> goodsIds = wxLiveAssistantGoodsCreateRequest.getGoods();
+//        for (String goodsId : goodsIds) {
+//            WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = new WxLiveAssistantGoodsModel();
+//            wxLiveAssistantGoodsModel.setAssistId(wxLiveAssistantGoodsCreateRequest.getAssistantId());
+//            wxLiveAssistantGoodsModel.setGoodsId(goodsId);
+//            List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList = assistantGoodsInfoConfigMap.get(goodsId);
+//            if (!CollectionUtils.isEmpty(assistantGoodsInfoConfigVoList)) {
+//                wxLiveAssistantGoodsModel.setNewGoodsInfoJson(JSON.toJSONString(assistantGoodsInfoConfigVoList));
+//            }
+//            LocalDateTime now = LocalDateTime.now();
+//            wxLiveAssistantGoodsModel.setCreateTime(now);
+//            wxLiveAssistantGoodsModel.setUpdateTime(now);
+//            wxLiveAssistantGoodsModel.setDelFlag(DeleteFlag.NO);
+//            assistantGoodsModels.add(wxLiveAssistantGoodsModel);
+//        }
+//        return assistantGoodsModels;
+//    }
 }

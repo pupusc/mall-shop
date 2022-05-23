@@ -134,7 +134,16 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/addGoods")
     public BaseResponse addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest){
-        return wxLiveAssistantProvider.addGoods(wxLiveAssistantGoodsCreateRequest);
+        BaseResponse<List<String>> response = wxLiveAssistantProvider.addGoods(wxLiveAssistantGoodsCreateRequest);
+        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+            List<String> goodsIds = response.getContext();
+            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+            if(CollectionUtils.isNotEmpty(goodsIds)){
+                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+            }
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -154,9 +163,8 @@ public class GoodsLiveAssistantController {
                 esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
             }
 //            resetEsStock(response.getContext());
-            return BaseResponse.SUCCESSFUL();
         }
-        return BaseResponse.FAILED();
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

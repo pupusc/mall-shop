@@ -559,4 +559,13 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     @Transactional
     @Query(value = "update GoodsInfo gi set gi.costPrice=?1, gi.stock=?2 where gi.goodsInfoId=?3")
     int updateCostPriceAndStockById(BigDecimal costPrice, Long stock, String goodsInfoId);
+
+    /**
+     * 更新库存和价格
+     * @return
+     */
+    @Modifying
+    @Transactional
+    @Query(value = "update GoodsInfo gi set gi.marketPrice=?1, gi.stock=?2, gi.stockSyncFlag=?3 where gi.goodsInfoId=?4")
+    int updateMarketPriceAndStockAndStockSyncFlagById(BigDecimal marketPrice, Long stock, Integer stockSyncFlag, String goodsInfoId);
 }

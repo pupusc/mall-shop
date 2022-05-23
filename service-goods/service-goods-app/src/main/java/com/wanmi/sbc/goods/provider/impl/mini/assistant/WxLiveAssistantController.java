@@ -113,9 +113,8 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse addGoods(WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest) {
-        wxLiveAssistantService.addGoods(wxLiveAssistantGoodsCreateRequest);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<List<String>> addGoods(WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest) {
+        return BaseResponse.success(wxLiveAssistantService.addGoods(wxLiveAssistantGoodsCreateRequest));
     }
 
     @Override
@@ -243,23 +242,23 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         return BaseResponse.success(wxLiveAssistantService.ifGoodsInLive(goodsIds));
     }
 
-    public BaseResponse<List<String>> afterWxLiveEnd(String message){
-        JSONObject wxLiveAssistantMessage = JSONObject.parseObject(message);
-        Long assistantId = wxLiveAssistantMessage.getLong("assistantId");
-        if(wxLiveAssistantMessage.getInteger("event_type") == 0){
-            //开始直播
-        }else if(wxLiveAssistantMessage.getInteger("event_type") == 1){
-            WxLiveAssistantModel wxLiveAssistantModel = wxLiveAssistantService.findAssistantById(assistantId);
-            if(wxLiveAssistantModel != null){
-                if(wxLiveAssistantModel.getDelFlag().equals(DeleteFlag.NO) && wxLiveAssistantModel.getEndTime().format(df).equals(wxLiveAssistantMessage.getString("time"))){
-                    log.info("直播助手结束直播:{}, 所有直播商品将恢复原价和库存", assistantId);
-                    List<Goods> goodsList = wxLiveAssistantService.resetStockAndProce(assistantId);
-                    List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
-                    return BaseResponse.success(goodsIds);
-                }
-            }
-        }
-        return BaseResponse.SUCCESSFUL();
-    }
+//    public BaseResponse<List<String>> afterWxLiveEnd(String message){
+//        JSONObject wxLiveAssistantMessage = JSONObject.parseObject(message);
+//        Long assistantId = wxLiveAssistantMessage.getLong("assistantId");
+//        if(wxLiveAssistantMessage.getInteger("event_type") == 0){
+//            //开始直播
+//        }else if(wxLiveAssistantMessage.getInteger("event_type") == 1){
+//            WxLiveAssistantModel wxLiveAssistantModel = wxLiveAssistantService.findAssistantById(assistantId);
+//            if(wxLiveAssistantModel != null){
+//                if(wxLiveAssistantModel.getDelFlag().equals(DeleteFlag.NO) && wxLiveAssistantModel.getEndTime().format(df).equals(wxLiveAssistantMessage.getString("time"))){
+//                    log.info("直播助手结束直播:{}, 所有直播商品将恢复原价和库存", assistantId);
+//                    List<Goods> goodsList = wxLiveAssistantService.resetStockAndProce(assistantId);
+//                    List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+//                    return BaseResponse.success(goodsIds);
+//                }
+//            }
+//        }
+//        return BaseResponse.SUCCESSFUL();
+//    }
 
 }

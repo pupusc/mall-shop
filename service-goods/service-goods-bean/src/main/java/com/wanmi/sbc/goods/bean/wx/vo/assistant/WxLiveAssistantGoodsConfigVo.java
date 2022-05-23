@@ -3,7 +3,6 @@ package com.wanmi.sbc.goods.bean.wx.vo.assistant;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * Description:
@@ -14,20 +13,20 @@ import java.util.List;
  ********************************************************************/
 
 @Data
-public class WxLiveAssistantGoodsInfoConfigVo {
+public class WxLiveAssistantGoodsConfigVo {
 
     /**
      * 商品id
      */
-    private String goodsInfoId;
+    private String goodsId;
 
     /**
      * 微信对应的价格
      */
-    private BigDecimal wxPrice;
+    private BigDecimal skuMiniMarketPrice;
 
     /**
      * 微信对应的库存
      */
-    private Long stock;
+    private Long sumStock;
 }
