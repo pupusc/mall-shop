@@ -102,7 +102,7 @@ public class WxImageController {
 
     /**
      * 小程序图片 cms 删除图片
-     * @param imageId
+     * @menu 小程序订阅
      * @return
      */
     @GetMapping("/publish/{imageId}")
