@@ -77,6 +77,6 @@ public interface ImageProvider {
      * @menu 后台CMS2.0
      * @return
      */
-    @GetMapping("/publish/{imageId}")
+    @GetMapping("/delete/{imageId}")
     BaseResponse delete(@PathVariable("imageId") Integer imageId);
 }

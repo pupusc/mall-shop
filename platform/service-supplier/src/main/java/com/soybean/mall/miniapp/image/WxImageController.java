@@ -105,7 +105,7 @@ public class WxImageController {
      * @menu 小程序订阅
      * @return
      */
-    @GetMapping("/publish/{imageId}")
+    @GetMapping("/delete/{imageId}")
     public BaseResponse delete(@PathVariable("imageId") Integer imageId) {
         imageProvider.delete(imageId);
         return BaseResponse.SUCCESSFUL();
