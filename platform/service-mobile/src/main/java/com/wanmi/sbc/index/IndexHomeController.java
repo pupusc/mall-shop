@@ -3,6 +3,7 @@ package com.wanmi.sbc.index;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.order.api.provider.order.OrderConfigProvider;
 import com.wanmi.sbc.booklistmodel.BookListModelAndGoodsService;
 import com.wanmi.sbc.booklistmodel.response.SortGoodsCustomResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -88,6 +89,9 @@ public class IndexHomeController {
 
     @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
+
+    @Autowired
+    private OrderConfigProvider orderConfigProvider;
 
     @Value("${stock.size:5}")
     private Long stockSize;
@@ -198,12 +202,20 @@ public class IndexHomeController {
     @PostMapping(value = "/configByKey")
     public BaseResponse<Map<String, String>> configByKey(@RequestBody @Validated KeyRequest keyRequest) {
         List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
+
+        Map<String, String> context = orderConfigProvider.listConfig().getContext();
+
         Map<String, String> configMap = new HashMap<>();
         for (String key : keyRequest.getKeys()) {
             if (allowKeyList.contains(key)) {
                 configMap.put(key, SpringUtil.getBean(key));
             }
+            if (context.get(key) != null) {
+                configMap.put(key, context.get(key));
+            }
         }
+        //order redis time
+
         return BaseResponse.success(configMap);
     }
 
