@@ -26,7 +26,7 @@ public interface WxLiveAssistantProvider {
     BaseResponse<List<String>> deleteAssistant(@RequestParam("id") Long id);
 
     @PostMapping("/wx/assistant/${application.goods.version}/update")
-    BaseResponse<Map<String, String>> updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
+    BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/list")
     BaseResponse<MicroServicePage<WxLiveAssistantVo>> listAssistant(@RequestBody WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest);

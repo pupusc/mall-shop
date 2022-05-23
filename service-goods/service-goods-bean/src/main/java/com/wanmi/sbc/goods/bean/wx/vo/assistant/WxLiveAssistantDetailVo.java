@@ -32,6 +32,12 @@ public class WxLiveAssistantDetailVo {
      * 0-未开始 1-直播中 2-已结束
      */
     private Integer status;
+
+    /**
+     * 是否直播计划商品有效0 不同步 1同步
+     */
+    private Integer hasAssistantGoodsValid;
+
     /**
      * spu
      */

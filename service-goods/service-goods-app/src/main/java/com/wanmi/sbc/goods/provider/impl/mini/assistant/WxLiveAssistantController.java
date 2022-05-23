@@ -72,8 +72,9 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<Map<String, String>> updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest) {
-        return BaseResponse.success(wxLiveAssistantService.updateAssistant(wxLiveAssistantCreateRequest));
+    public BaseResponse updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest) {
+        wxLiveAssistantService.updateAssistant(wxLiveAssistantCreateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     @Override
@@ -92,6 +93,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             wxLiveAssistantVo.setDuration(duration.toMinutes());
             wxLiveAssistantVo.setTheme(assistantModel.getTheme());
             wxLiveAssistantVo.setId(assistantModel.getId());
+            wxLiveAssistantVo.setHasAssistantGoodsValid(assistantModel.getHasAssistantGoodsValid());
             wxLiveAssistantVo.setEndTime(endTime.format(df));
             wxLiveAssistantVo.setStartTime(startTime.format(df));
             wxLiveAssistantVo.setGoodsCount(assistantModel.getGoodsCount());
@@ -116,9 +118,9 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
 
     @Override
     public BaseResponse<List<String>> deleteGoods(Long id) {
-        List<Goods> goodsList = wxLiveAssistantService.deleteGoods(id);
-        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
-        return BaseResponse.success(goodsIds);
+        List<String> goodsIdList = wxLiveAssistantService.deleteGoods(id);
+//        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+        return BaseResponse.success(goodsIdList);
     }
 
     @Override
@@ -133,6 +135,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         WxLiveAssistantDetailVo wxLiveAssistantDetailVo = new WxLiveAssistantDetailVo();
         wxLiveAssistantDetailVo.setAssistantId(assistantModel.getId());
         wxLiveAssistantDetailVo.setTheme(assistantModel.getTheme());
+        wxLiveAssistantDetailVo.setHasAssistantGoodsValid(assistantModel.getHasAssistantGoodsValid());
         wxLiveAssistantDetailVo.setStartTime(assistantModel.getStartTime().format(df));
         wxLiveAssistantDetailVo.setEndTime(assistantModel.getEndTime().format(df));
         LocalDateTime endTime = assistantModel.getEndTime();

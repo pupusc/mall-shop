@@ -1,14 +1,18 @@
 package com.wanmi.sbc.goods.mini.service.assistant;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.enums.HasAssistantGoodsValidEnum;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsInfoConfigVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
@@ -96,7 +100,7 @@ public class WxLiveAssistantService {
     }
 
     @Transactional
-    public Map<String, String> updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
+    public void updateAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantCreateRequest.getId());
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
@@ -118,12 +122,12 @@ public class WxLiveAssistantService {
         if(wxLiveAssistantCreateRequest.getEndTime() != null){
             if(!wxLiveAssistantModel.getEndTime().isEqual(endTime)){
                 wxLiveAssistantModel.setEndTime(endTime);
-                resultMap.put("endTime", wxLiveAssistantCreateRequest.getEndTime());
+//                resultMap.put("endTime", wxLiveAssistantCreateRequest.getEndTime());
             }
         }
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
-        resultMap.put("id", wxLiveAssistantModel.getId().toString());
-        return resultMap;
+//        resultMap.put("id", wxLiveAssistantModel.getId().toString());
+//        return resultMap;
     }
 
     public Page<WxLiveAssistantModel> listAssistant(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
@@ -160,27 +164,35 @@ public class WxLiveAssistantService {
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
         List<WxLiveAssistantGoodsModel> assistantGoodsModels = WxLiveAssistantGoodsModel.create(wxLiveAssistantGoodsCreateRequest);
-        Map<String, List<WxLiveAssistantGoodsModel>> assistantGoodsGroup = assistantGoodsModels.stream().collect(Collectors.groupingBy(WxLiveAssistantGoodsModel::getGoodsId));
-
-        List<String> goods = wxLiveAssistantGoodsCreateRequest.getGoods();
-        log.info("以下商品被添加到直播助手{}, 将停止库存同步", Arrays.toString(goods.toArray()));
-        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goods).delFlag(DeleteFlag.NO.toValue()).build());
-        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().collect(Collectors.groupingBy(GoodsInfo::getGoodsId));
-        goodsInfoGroup.forEach((k, v) -> {
-            Map<String, Integer> olfSyncStockFlag = new HashMap<>();
-            WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = assistantGoodsGroup.get(k).get(0);
-            for (GoodsInfo goodsInfo : v) {
-                olfSyncStockFlag.put(goodsInfo.getGoodsInfoId(), goodsInfo.getStockSyncFlag());
-                goodsInfo.setStockSyncFlag(0);
-            }
-            wxLiveAssistantGoodsModel.setOlfSyncStockFlag(JSONObject.toJSONString(olfSyncStockFlag));
-        });
         wxLiveAssistantGoodsRepository.saveAll(assistantGoodsModels);
-        goodsInfoRepository.saveAll(goodsInfos);
+
+//
+//        List<String> goodsIdList = assistantGoodsModels.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
+//        List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIdList).delFlag(DeleteFlag.NO.toValue()).build());
+//        for (GoodsInfo goodsInfo : goodsInfoList) {
+//
+//        }
+//        Map<String, List<WxLiveAssistantGoodsModel>> assistantGoodsGroup = assistantGoodsModels.stream().collect(Collectors.groupingBy(WxLiveAssistantGoodsModel::getGoodsId));
+//
+//        List<String> goodIdList = wxLiveAssistantGoodsCreateRequest.getGoods();
+//        log.info("以下商品被添加到直播助手{}, 将停止库存同步", Arrays.toString(goodIdList.toArray()));
+//        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodIdList).delFlag(DeleteFlag.NO.toValue()).build());
+//        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().collect(Collectors.groupingBy(GoodsInfo::getGoodsId));
+//        goodsInfoGroup.forEach((k, v) -> {
+//            Map<String, Integer> olfSyncStockFlag = new HashMap<>();
+//            WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = assistantGoodsGroup.get(k).get(0);
+//            for (GoodsInfo goodsInfo : v) {
+//                olfSyncStockFlag.put(goodsInfo.getGoodsInfoId(), goodsInfo.getStockSyncFlag());
+//                goodsInfo.setStockSyncFlag(0);
+//            }
+//            wxLiveAssistantGoodsModel.setOlfSyncStockFlag(JSONObject.toJSONString(olfSyncStockFlag));
+//        });
+//
+//        goodsInfoRepository.saveAll(goodsInfos);
     }
 
     @Transactional
-    public List<Goods> deleteGoods(Long id){
+    public List<String> deleteGoods(Long id){
         Optional<WxLiveAssistantGoodsModel> opt = wxLiveAssistantGoodsRepository.findById(id);
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
         WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt.get();
@@ -198,15 +210,15 @@ public class WxLiveAssistantService {
         wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
 
         String goodsId = wxLiveAssistantGoodsModel.getGoodsId();
-        log.info("直播商品{}删除，关联的sku将恢复库存同步和价格", goodsId);
-        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Arrays.asList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
-        List<GoodsInfo> toSave = new ArrayList<>();
-        List<Goods> goodsList = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos, toSave);
-        if (!toSave.isEmpty()) {
-//            goodsInfoRepository.saveAll(toSave);
-//            goodsRepository.saveAll(goodsList);
-        }
-        return goodsList;
+        log.info("直播计划：{} 直播商品 {}删除，关联的sku将恢复库存同步和价格", wxLiveAssistantModel.getId(), goodsId);
+//        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Collections.singletonList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
+//        List<GoodsInfo> toSave = new ArrayList<>();
+//        List<Goods> goodsList = resetStockAndProce(wxLiveAssistantGoodsModel, goodsInfos, toSave);
+//        if (!toSave.isEmpty()) {
+////            goodsInfoRepository.saveAll(toSave);
+////            goodsRepository.saveAll(goodsList);
+//        }
+        return Collections.singletonList(goodsId);
     }
 
     @Transactional
@@ -218,7 +230,7 @@ public class WxLiveAssistantService {
 
         Optional<WxLiveAssistantGoodsModel> opt2 = wxLiveAssistantGoodsRepository.findById(wxLiveAssistantGoodsUpdateRequest.getAssistantGoodsId());
         if(!opt2.isPresent() || opt2.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
-        if(!opt2.get().getAssistId().equals(wxLiveAssistantGoodsUpdateRequest.getAssistantId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "非法参数");
+        if(!opt2.get().getAssistId().equals(wxLiveAssistantGoodsUpdateRequest.getAssistantId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
 
         List<WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo> liveAssistantGoodsInfos = wxLiveAssistantGoodsUpdateRequest.getGoodsInfos();
 //        List<String> goodsInfoIds = liveAssistantGoodsInfos.stream().map(WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo::getGoodsInfoId).collect(Collectors.toList());
@@ -299,6 +311,112 @@ public class WxLiveAssistantService {
         return goodsId;
     }
 
+
+    /**
+     *
+     * @param wxLiveAssistantId 直播计划id
+     */
+    public void openAssistantGoodsValid(Long wxLiveAssistantId) {
+        /**
+         * 获取直播计划
+         */
+        Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantId);
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        }
+        WxLiveAssistantModel wxLiveAssistantModel = opt.get();
+
+        /**
+         * 获取直播计划商品列表
+         */
+        List<WxLiveAssistantGoodsModel> assistantGoodsModelList = wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository
+                .buildSearchCondition(WxLiveAssistantSearchRequest.builder().liveAssistantId(wxLiveAssistantId).build()));
+        if (CollectionUtils.isEmpty(assistantGoodsModelList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法开启");
+        }
+
+        //批量获取商品信息
+        List<String> goodsIdList = assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
+        List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIdList).delFlag(DeleteFlag.NO.toValue()).build());
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法开启");
+        }
+
+        //直播计划商品库存同步
+        Map<String, Map<String, Integer>> goodsId2GoodsInfoId2StockFlagSyncMap = new HashMap<>(goodsInfoList.size());
+        //直播计划商品价格
+        Map<String, Map<String, BigDecimal>> goodsId2GoodsInfoId2PriceMap = new HashMap<>(goodsInfoList.size());
+
+//        Map<String, GoodsInfo> goodsInfoMap = new HashMap<>();
+
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            Map<String, Integer> goodsInfo2StockFlagSyncMap = goodsId2GoodsInfoId2StockFlagSyncMap.get(goodsInfo.getGoodsId());
+            if (goodsInfo2StockFlagSyncMap == null) {
+                goodsInfo2StockFlagSyncMap = new HashMap<>();
+            }
+            goodsInfo2StockFlagSyncMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getStockSyncFlag());
+            goodsId2GoodsInfoId2StockFlagSyncMap.put(goodsInfo.getGoodsId(), goodsInfo2StockFlagSyncMap);
+
+            Map<String, BigDecimal> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(goodsInfo.getGoodsId());
+            if (goodsInfo2PriceMap == null) {
+                goodsInfo2PriceMap = new HashMap<>();
+            }
+            goodsInfo2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice());
+            goodsId2GoodsInfoId2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo2PriceMap);
+
+//            goodsInfoMap.put(goodsInfo.getGoodsInfoId(), goodsInfo);
+        }
+
+        Map<String, WxLiveAssistantGoodsInfoConfigVo> goodsInfoId2AssistantGoodsInfoConfigMap = new HashMap<>();
+        //更新商品价格，库存同步标志
+        for (WxLiveAssistantGoodsModel assistantGoodsModel : assistantGoodsModelList) {
+            Map<String, Integer> goodsInfo2StockFlagSyncMap = goodsId2GoodsInfoId2StockFlagSyncMap.get(assistantGoodsModel.getGoodsId());
+            if (goodsInfo2StockFlagSyncMap != null) {
+                assistantGoodsModel.setOlfSyncStockFlag(JSON.toJSONString(goodsInfo2StockFlagSyncMap));
+            }
+
+            Map<String, BigDecimal> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(assistantGoodsModel.getGoodsId());
+            if (goodsInfo2PriceMap != null) {
+                assistantGoodsModel.setOldGoodsInfo(JSON.toJSONString(goodsInfo2PriceMap));
+            }
+
+            String newGoodsInfoJson = assistantGoodsModel.getNewGoodsInfoJson();
+            if (StringUtils.isEmpty(newGoodsInfoJson)) {
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED,  assistantGoodsModel.getGoodsId() + "需要重新更新一下价格和库存");
+            } else {
+                List<WxLiveAssistantGoodsInfoConfigVo> wxLiveAssistantGoodsConfigVoList =
+                        JSONArray.parseArray(newGoodsInfoJson, WxLiveAssistantGoodsInfoConfigVo.class);
+                for (WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo : wxLiveAssistantGoodsConfigVoList) {
+                    goodsInfoId2AssistantGoodsInfoConfigMap.put(wxLiveAssistantGoodsInfoConfigVo.getGoodsInfoId(), wxLiveAssistantGoodsInfoConfigVo);
+                }
+            }
+
+        }
+        //更新直播计划商品信息
+        wxLiveAssistantGoodsRepository.saveAll(assistantGoodsModelList);
+
+        //更新直播计划为有效
+        wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.SYNC.getCode());
+        wxLiveAssistantRepository.save(wxLiveAssistantModel);
+
+
+        //同步goodsInfo信息
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo = goodsInfoId2AssistantGoodsInfoConfigMap.get(goodsInfo.getGoodsInfoId());
+            if (wxLiveAssistantGoodsInfoConfigVo != null) {
+                goodsInfo.setMarketPrice(wxLiveAssistantGoodsInfoConfigVo.getWxPrice());
+                goodsInfo.setStock(wxLiveAssistantGoodsInfoConfigVo.getStock().longValue());
+            }
+        }
+        goodsInfoRepository.saveAll(goodsInfoList);
+        //同步goods信息
+    }
+
+    /**
+     * 获取商品列表
+     * @param wxLiveAssistantSearchRequest
+     * @return
+     */
     public Page<WxLiveAssistantGoodsModel> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository.buildSearchCondition(wxLiveAssistantSearchRequest), PageRequest.of(wxLiveAssistantSearchRequest.getPageNum(), wxLiveAssistantSearchRequest.getPageSize()));
     }

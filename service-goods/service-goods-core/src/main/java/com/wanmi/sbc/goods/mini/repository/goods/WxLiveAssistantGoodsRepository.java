@@ -22,6 +22,7 @@ public interface WxLiveAssistantGoodsRepository extends JpaRepository<WxLiveAssi
     @Query(value = "select lg.* from t_wx_live_assistant as l join t_wx_live_assistant_goods as lg on lg.assist_id=l.id where lg.goods_id in ?1 and l.del_flag=0 and lg.del_flag=0 and now() <= l.end_time", nativeQuery = true)
     List<WxLiveAssistantGoodsModel> findTimeConflictGoods(List<String> goodsIds);
 
+
     default Specification<WxLiveAssistantGoodsModel> buildSearchCondition(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return (Specification<WxLiveAssistantGoodsModel>) (root, criteriaQuery, criteriaBuilder) -> {
             final List<Predicate> conditionList = new ArrayList<>();

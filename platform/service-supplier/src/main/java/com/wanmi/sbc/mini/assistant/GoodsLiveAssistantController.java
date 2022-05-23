@@ -98,15 +98,17 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/update")
     public BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
-        BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            Map<String, String> context = response.getContext();
-            if(context.get("endTime") != null){
-                sendDelayMessage(Long.parseLong(context.get("id")), wxLiveAssistantCreateRequest.getEndTime());
-            }
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            Map<String, String> context = response.getContext();
+//            if(context.get("endTime") != null){
+//                sendDelayMessage(Long.parseLong(context.get("id")), wxLiveAssistantCreateRequest.getEndTime());
+//            }
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -218,18 +220,18 @@ public class GoodsLiveAssistantController {
         return BaseResponse.success(false);
     }
 
-    private void sendDelayMessage(Long assistantId, String endTimeStr){
-        log.info("发送直播助手延时消息: {},{}", assistantId, endTimeStr);
-        LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
-        LocalDateTime now2 = LocalDateTime.now();
-        Duration duration2 = Duration.between(now2, endTime);
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("assistantId", assistantId);
-        map.put("time", endTime.format(df));
-        map.put("event_type", 1);
-        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
-    }
+//    private void sendDelayMessage(Long assistantId, String endTimeStr){
+//        log.info("发送直播助手延时消息: {},{}", assistantId, endTimeStr);
+//        LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
+//        LocalDateTime now2 = LocalDateTime.now();
+//        Duration duration2 = Duration.between(now2, endTime);
+//
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("assistantId", assistantId);
+//        map.put("time", endTime.format(df));
+//        map.put("event_type", 1);
+//        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
+//    }
 
     public void resetEsStock(Map<String, Map<String, Integer>> map){
 

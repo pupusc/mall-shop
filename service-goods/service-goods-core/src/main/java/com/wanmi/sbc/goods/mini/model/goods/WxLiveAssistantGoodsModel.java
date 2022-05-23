@@ -29,6 +29,12 @@ public class WxLiveAssistantGoodsModel {
     @Column(name = "goods_id")
     private String goodsId;
 
+    /**
+     * 直播计划中的商品库存信息
+     */
+    @Column(name = "new_goods_info_json")
+    private String newGoodsInfoJson;
+
 //    @Column(name = "price")
 //    private BigDecimal price;
 //
