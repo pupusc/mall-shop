@@ -294,95 +294,139 @@ public class WxLiveAssistantService {
         return isSync ? Collections.singletonList(wxLiveAssistantGoodsModel.getGoodsId()) : new ArrayList<>();
     }
 
+
     @Transactional
     public String updateGoodsInfos(WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantGoodsUpdateRequest.getAssistantId());
-        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        }
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
-        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
+        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
+        }
+
 
         Optional<WxLiveAssistantGoodsModel> opt2 = wxLiveAssistantGoodsRepository.findById(wxLiveAssistantGoodsUpdateRequest.getAssistantGoodsId());
-        if(!opt2.isPresent() || opt2.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
-        if(!opt2.get().getAssistId().equals(wxLiveAssistantGoodsUpdateRequest.getAssistantId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
-
-        List<WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo> liveAssistantGoodsInfos = wxLiveAssistantGoodsUpdateRequest.getGoodsInfos();
-//        List<String> goodsInfoIds = liveAssistantGoodsInfos.stream().map(WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo::getGoodsInfoId).collect(Collectors.toList());
-//        List<GoodsInfo> goodsInfos = goodsInfoService.findByIds(goodsInfoIds);
-//        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().filter(g -> g.getDelFlag().equals(DeleteFlag.NO)).collect(Collectors.groupingBy(GoodsInfo::getGoodsInfoId));
+        if(!opt2.isPresent() || opt2.get().getDelFlag().equals(DeleteFlag.YES)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
+        }
+        if(!opt2.get().getAssistId().equals(wxLiveAssistantGoodsUpdateRequest.getAssistantId())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+        }
         WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt2.get();
-        String goodsId = wxLiveAssistantGoodsModel.getGoodsId();
-        Goods goods = goodsService.findByGoodsId(goodsId);
 
-        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Collections.singletonList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
-        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().filter(g -> g.getDelFlag().equals(DeleteFlag.NO)).collect(Collectors.groupingBy(GoodsInfo::getGoodsInfoId));
-
-        JSONObject oldGoodsInfo;
-        if(wxLiveAssistantGoodsModel.getOldGoodsInfo()!= null){
-            oldGoodsInfo = JSONObject.parseObject(wxLiveAssistantGoodsModel.getOldGoodsInfo());
-        }else{
-            oldGoodsInfo = new JSONObject();
-        }
-        log.info("以下商品在直播助手中修改价格和库存{}", JSONObject.toJSONString(wxLiveAssistantGoodsUpdateRequest));
-        List<GoodsInfo> toUpdateGoodsInfo = new ArrayList<>();
-        for (WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo liveAssistantGoodsInfo : liveAssistantGoodsInfos) {
-            String goodsInfoId = liveAssistantGoodsInfo.getGoodsInfoId();
-            String price = liveAssistantGoodsInfo.getPrice();
-            Integer stock = liveAssistantGoodsInfo.getStock();
-
-            List<GoodsInfo> goodsInfoList = goodsInfoGroup.get(goodsInfoId);
-            if(CollectionUtils.isEmpty(goodsInfoList)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "goodsInfo不存在: " + goodsInfoId);
-            GoodsInfo goodsInfo = goodsInfoList.get(0);
-            if(!goodsId.equals(goodsInfo.getGoodsId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "非法参数");
-            JSONObject map = (JSONObject) oldGoodsInfo.compute(goodsInfoId, (k, v) -> {
-                if (v == null) return new JSONObject();
-                return v;
-            });
-            Long goodsStock = goods.getStock();
-            boolean updateGoodsInfo = false;
-            if(stock != null) {
-                Long goodsInfoStock = goodsInfo.getStock();
-                if(!map.containsKey("stock")) map.put("stock", goodsInfo.getStock().toString());
-                updateGoodsInfo = true;
-                if(goodsStock == null) {
-                    goods.setStock(goodsInfoStock);
-                }else {
-                    int stockDistance = stock - goodsInfoStock.intValue();
-                    long newStock = goodsStock + stockDistance;
-                    goods.setStock(newStock > 0 ? newStock : 0);
-                }
-                goodsInfo.setStock(stock.longValue());
-                redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+        List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList = new ArrayList<>();
+        for (WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo assistantGoodsInfoParam : wxLiveAssistantGoodsUpdateRequest.getGoodsInfos()) {
+            if (StringUtils.isBlank(assistantGoodsInfoParam.getPrice()) || assistantGoodsInfoParam.getStock() == null || assistantGoodsInfoParam.getStock() <= 0) {
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, assistantGoodsInfoParam.getGoodsInfoId() + "对应的商品库存不能为空");
             }
-            if(price != null){
-                if(!map.containsKey("price")) map.put("price", goodsInfo.getMarketPrice().toString());
-                updateGoodsInfo = true;
-                BigDecimal newPrice = new BigDecimal(price);
-                goodsInfo.setMarketPrice(newPrice);
-            }
-            if(updateGoodsInfo) {
-                toUpdateGoodsInfo.add(goodsInfo);
-            }
+            WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo = new WxLiveAssistantGoodsInfoConfigVo();
+            wxLiveAssistantGoodsInfoConfigVo.setGoodsInfoId(assistantGoodsInfoParam.getGoodsInfoId());
+            wxLiveAssistantGoodsInfoConfigVo.setStock(assistantGoodsInfoParam.getStock().longValue());
+            wxLiveAssistantGoodsInfoConfigVo.setWxPrice(new BigDecimal(assistantGoodsInfoParam.getPrice()));
+            assistantGoodsInfoConfigVoList.add(wxLiveAssistantGoodsInfoConfigVo);
         }
 
-        BigDecimal minPrice = BigDecimal.valueOf(99999);
-        for (GoodsInfo goodsInfo : goodsInfos) {
-            if(goodsInfo.getMarketPrice().compareTo(minPrice) < 0){
-                minPrice = goodsInfo.getMarketPrice();
-            }
+        wxLiveAssistantGoodsModel.setNewGoodsInfoJson(JSON.toJSONString(assistantGoodsInfoConfigVoList));
+
+        if (wxLiveAssistantModel.getHasAssistantGoodsValid() != null && wxLiveAssistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.SYNC.getCode()) {
+            this.lockGoodsAndGoodsInfo(Collections.singletonList(wxLiveAssistantGoodsModel));
         }
-        goods.setSkuMinMarketPrice(minPrice);
-        if(oldGoodsInfo != null && CollectionUtils.isNotEmpty(liveAssistantGoodsInfos)){
-            wxLiveAssistantGoodsModel.setOldGoodsInfo(JSONObject.toJSONString(oldGoodsInfo));
-            wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
-        }
-        if(CollectionUtils.isNotEmpty(toUpdateGoodsInfo)){
-            goodsService.save(goods);
-            goodsInfoRepository.saveAll(toUpdateGoodsInfo);
-            //微信免审
-            wxGoodsService.toAudit(goods);
-        }
-        return goodsId;
+        wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
+
+        return wxLiveAssistantGoodsModel.getGoodsId();
     }
+
+//    @Transactional
+//    public String updateGoodsInfos(WxLiveAssistantGoodsUpdateRequest wxLiveAssistantGoodsUpdateRequest){
+//        Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantGoodsUpdateRequest.getAssistantId());
+//        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+//        WxLiveAssistantModel wxLiveAssistantModel = opt.get();
+//        if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
+//
+//        Optional<WxLiveAssistantGoodsModel> opt2 = wxLiveAssistantGoodsRepository.findById(wxLiveAssistantGoodsUpdateRequest.getAssistantGoodsId());
+//        if(!opt2.isPresent() || opt2.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播商品不存在");
+//        if(!opt2.get().getAssistId().equals(wxLiveAssistantGoodsUpdateRequest.getAssistantId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+//
+//        List<WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo> liveAssistantGoodsInfos = wxLiveAssistantGoodsUpdateRequest.getGoodsInfos();
+////        List<String> goodsInfoIds = liveAssistantGoodsInfos.stream().map(WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo::getGoodsInfoId).collect(Collectors.toList());
+////        List<GoodsInfo> goodsInfos = goodsInfoService.findByIds(goodsInfoIds);
+////        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().filter(g -> g.getDelFlag().equals(DeleteFlag.NO)).collect(Collectors.groupingBy(GoodsInfo::getGoodsInfoId));
+//        WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt2.get();
+//        String goodsId = wxLiveAssistantGoodsModel.getGoodsId();
+//        Goods goods = goodsService.findByGoodsId(goodsId);
+//
+//        List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(Collections.singletonList(goodsId)).delFlag(DeleteFlag.NO.toValue()).build());
+//        Map<String, List<GoodsInfo>> goodsInfoGroup = goodsInfos.stream().filter(g -> g.getDelFlag().equals(DeleteFlag.NO)).collect(Collectors.groupingBy(GoodsInfo::getGoodsInfoId));
+//
+//        JSONObject oldGoodsInfo;
+//        if(wxLiveAssistantGoodsModel.getOldGoodsInfo()!= null){
+//            oldGoodsInfo = JSONObject.parseObject(wxLiveAssistantGoodsModel.getOldGoodsInfo());
+//        }else{
+//            oldGoodsInfo = new JSONObject();
+//        }
+//        log.info("以下商品在直播助手中修改价格和库存{}", JSONObject.toJSONString(wxLiveAssistantGoodsUpdateRequest));
+//        List<GoodsInfo> toUpdateGoodsInfo = new ArrayList<>();
+//        for (WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo liveAssistantGoodsInfo : liveAssistantGoodsInfos) {
+//            String goodsInfoId = liveAssistantGoodsInfo.getGoodsInfoId();
+//            String price = liveAssistantGoodsInfo.getPrice();
+//            Integer stock = liveAssistantGoodsInfo.getStock();
+//
+//            List<GoodsInfo> goodsInfoList = goodsInfoGroup.get(goodsInfoId);
+//            if(CollectionUtils.isEmpty(goodsInfoList)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "goodsInfo不存在: " + goodsInfoId);
+//            GoodsInfo goodsInfo = goodsInfoList.get(0);
+//            if(!goodsId.equals(goodsInfo.getGoodsId())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "非法参数");
+//            JSONObject map = (JSONObject) oldGoodsInfo.compute(goodsInfoId, (k, v) -> {
+//                if (v == null) return new JSONObject();
+//                return v;
+//            });
+//            Long goodsStock = goods.getStock();
+//            boolean updateGoodsInfo = false;
+//            if(stock != null) {
+//                Long goodsInfoStock = goodsInfo.getStock();
+//                if(!map.containsKey("stock")) map.put("stock", goodsInfo.getStock().toString());
+//                updateGoodsInfo = true;
+//                if(goodsStock == null) {
+//                    goods.setStock(goodsInfoStock);
+//                }else {
+//                    int stockDistance = stock - goodsInfoStock.intValue();
+//                    long newStock = goodsStock + stockDistance;
+//                    goods.setStock(newStock > 0 ? newStock : 0);
+//                }
+//                goodsInfo.setStock(stock.longValue());
+//                redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+//            }
+//            if(price != null){
+//                if(!map.containsKey("price")) map.put("price", goodsInfo.getMarketPrice().toString());
+//                updateGoodsInfo = true;
+//                BigDecimal newPrice = new BigDecimal(price);
+//                goodsInfo.setMarketPrice(newPrice);
+//            }
+//            if(updateGoodsInfo) {
+//                toUpdateGoodsInfo.add(goodsInfo);
+//            }
+//        }
+//
+//        BigDecimal minPrice = BigDecimal.valueOf(99999);
+//        for (GoodsInfo goodsInfo : goodsInfos) {
+//            if(goodsInfo.getMarketPrice().compareTo(minPrice) < 0){
+//                minPrice = goodsInfo.getMarketPrice();
+//            }
+//        }
+//        goods.setSkuMinMarketPrice(minPrice);
+//        if(oldGoodsInfo != null && CollectionUtils.isNotEmpty(liveAssistantGoodsInfos)){
+//            wxLiveAssistantGoodsModel.setOldGoodsInfo(JSONObject.toJSONString(oldGoodsInfo));
+//            wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
+//        }
+//        if(CollectionUtils.isNotEmpty(toUpdateGoodsInfo)){
+//            goodsService.save(goods);
+//            goodsInfoRepository.saveAll(toUpdateGoodsInfo);
+//            //微信免审
+//            wxGoodsService.toAudit(goods);
+//        }
+//        return goodsId;
+//    }
 
 
     /**
