@@ -86,7 +86,7 @@ public class WxLiveAssistantService {
     }
 
     @Transactional
-    public List<Goods> deleteAssistant(Long id){
+    public void deleteAssistant(Long id){
         Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(id);
         if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
@@ -95,8 +95,8 @@ public class WxLiveAssistantService {
         wxLiveAssistantModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
-        log.info("删除直播助手:{}, 所有直播商品将恢复原价和库存", id);
-        return resetStockAndProce(id);
+//        log.info("删除直播助手:{}, 所有直播商品将恢复原价和库存", id);
+//        return resetStockAndProce(id);
     }
 
     @Transactional
@@ -113,7 +113,7 @@ public class WxLiveAssistantService {
         LocalDateTime endTime = LocalDateTime.parse(wxLiveAssistantCreateRequest.getEndTime(), df);
         if(endTime.isBefore(startTime)) throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "开始时间不能大于结束时间");
         if(endTime.isBefore(now)) throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "结束时间不能小于现在");
-        Map<String, String> resultMap = new HashMap<>();
+//        Map<String, String> resultMap = new HashMap<>();
         if (wxLiveAssistantCreateRequest.getStartTime() != null){
             if(!wxLiveAssistantModel.getStartTime().isEqual(startTime)){
                 wxLiveAssistantModel.setStartTime(startTime);

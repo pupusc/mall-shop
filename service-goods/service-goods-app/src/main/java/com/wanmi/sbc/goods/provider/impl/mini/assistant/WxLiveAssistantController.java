@@ -65,10 +65,12 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     }
 
     @Override
-    public BaseResponse<List<String>> deleteAssistant(Long id) {
-        List<Goods> goodsList = wxLiveAssistantService.deleteAssistant(id);
-        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
-        return BaseResponse.success(goodsIds);
+    public BaseResponse deleteAssistant(Long id) {
+//        List<Goods> goodsList = wxLiveAssistantService.deleteAssistant(id);
+//        List<String> goodsIds = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
+//        return BaseResponse.success(goodsIds);
+        wxLiveAssistantService.deleteAssistant(id);
+        return BaseResponse.SUCCESSFUL();
     }
 
     @Override

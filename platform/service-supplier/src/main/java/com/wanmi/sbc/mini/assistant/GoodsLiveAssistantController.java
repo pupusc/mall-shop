@@ -60,12 +60,14 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/add")
     public BaseResponse addAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
-        BaseResponse<Long> response = wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            sendDelayMessage(response.getContext(), wxLiveAssistantCreateRequest.getEndTime());
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<Long> response = wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            sendDelayMessage(response.getContext(), wxLiveAssistantCreateRequest.getEndTime());
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -76,18 +78,20 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/delete")
     public BaseResponse deleteAssistant(@RequestParam Long id){
-        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteAssistant(id);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            List<String> goodsIds = response.getContext();
-            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
-            if(CollectionUtils.isNotEmpty(goodsIds)){
-                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
-                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
-            }
-//            resetEsStock(response.getContext());
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteAssistant(id);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            List<String> goodsIds = response.getContext();
+//            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+//            if(CollectionUtils.isNotEmpty(goodsIds)){
+//                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+//                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+//            }
+////            resetEsStock(response.getContext());
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.deleteAssistant(id);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**

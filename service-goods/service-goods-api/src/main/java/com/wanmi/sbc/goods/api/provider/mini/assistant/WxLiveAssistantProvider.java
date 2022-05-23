@@ -23,7 +23,8 @@ public interface WxLiveAssistantProvider {
     BaseResponse<Long> addAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
 
     @PostMapping("/wx/assistant/${application.goods.version}/delete")
-    BaseResponse<List<String>> deleteAssistant(@RequestParam("id") Long id);
+//    BaseResponse<List<String>> deleteAssistant(@RequestParam("id") Long id);
+    BaseResponse deleteAssistant(@RequestParam("id") Long id);
 
     @PostMapping("/wx/assistant/${application.goods.version}/update")
     BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest);
