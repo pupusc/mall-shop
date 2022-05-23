@@ -134,11 +134,20 @@ public class PaidCardCustomerRelService {
 	}
 
 	/**
-	 * 批量数据的时候使用 分页查询付费会员
+	 * 获取30天即将过期的会员卡信息
 	 * @author xuhai
 	 */
-	public List<PaidCardCustomerRel> pageByEndTimeAndMaxAutoId(PaidCardCustomerRelQueryRequest request){
-		return paidCardCustomerRelRepository.pageByEndTimeAndMaxAutoId(request.getEndTimeEnd(), request.getMaxTmpId(), request.getPageSize());
+	public List<PaidCardCustomerRel> pageSendMsgFlagByEndTimeAndMaxAutoId(PaidCardCustomerRelQueryRequest request){
+		return paidCardCustomerRelRepository.pageSendMsgFlagByEndTimeAndMaxAutoId(request.getEndTimeEnd(), request.getMaxTmpId(), request.getPageSize());
+	}
+
+
+	/**
+	 * 获取已经过期的会员卡信息
+	 * @author xuhai
+	 */
+	public List<PaidCardCustomerRel> pageSendExpireMsgFlagByEndTimeAndMaxAutoId(PaidCardCustomerRelQueryRequest request){
+		return paidCardCustomerRelRepository.pageSendExpireMsgFlagByEndTimeAndMaxAutoId(request.getEndTimeEnd(), request.getMaxTmpId(), request.getPageSize());
 	}
 	
 	/** 

@@ -92,10 +92,19 @@ public class PaidCardCustomerRelQueryController implements PaidCardCustomerRelQu
 //		KsBeanUtil.copyPropertiesThird(paidCardCustomerRelListReq, queryReq);
 //		queryReq.setDelFlag(DeleteFlag.NO);
 //		queryReq.setSendMsgFlag(Boolean.FALSE);
+//		queryReq.setEndTimeBegin(request.getEndTimeEnd());
 		queryReq.setEndTimeEnd(request.getEndTimeEnd());
 		queryReq.setMaxTmpId(request.getMaxTmpId());
 		queryReq.setPageSize(request.getPageSize());
-		List<PaidCardCustomerRel> paidCardCustomerRelList = paidCardCustomerRelService.pageByEndTimeAndMaxAutoId(queryReq);
+		List<PaidCardCustomerRel> paidCardCustomerRelList;
+		if (request.getSendMsgFlag() != null && request.getSendMsgFlag() == Boolean.FALSE) {
+			paidCardCustomerRelList = paidCardCustomerRelService.pageSendMsgFlagByEndTimeAndMaxAutoId(queryReq);
+		} else if (request.getSendExpireMsgFlag() != null && request.getSendExpireMsgFlag() == Boolean.FALSE) {
+			paidCardCustomerRelList = paidCardCustomerRelService.pageSendExpireMsgFlagByEndTimeAndMaxAutoId(queryReq);
+		} else {
+			paidCardCustomerRelList = new ArrayList<>();
+		}
+
 		List<String> paidCardIdList = paidCardCustomerRelList.stream().map(x -> x.getPaidCardId()).distinct().collect(Collectors.toList());
 		List<String> customerIdList = paidCardCustomerRelList.stream().map(x -> x.getCustomerId()).distinct().collect(Collectors.toList());
 		List<PaidCard> paidCardList = paidCardService.list(PaidCardQueryRequest.builder().idList(paidCardIdList).build());

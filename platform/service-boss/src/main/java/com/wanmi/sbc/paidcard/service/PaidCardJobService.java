@@ -71,24 +71,18 @@ public class PaidCardJobService {
         Long remainDayVal = Long.valueOf(contextMap.get("remainDay").toString());
         LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         LocalDateTime remainDay = now.plusDays(remainDayVal);
-//        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList
-//                = paidCardCustomerRelQueryProvider
-//                .listNew(PaidCardCustomerRelListRequest.builder()
-//                        .delFlag(DeleteFlag.NO)
-//                        .sendMsgFlag(Boolean.FALSE)
-//                        .endTimeEnd(remainDay)
-//                        .build()).getContext().getPaidCardCustomerRelVOList();
-
-//        log.info("paidCardCustomerRelVOList: {}",paidCardCustomerRelVOList);
         Integer maxTmpId = 0;
         int pageSize = 500;
         int i = 0;
         while (true) {
             PaidCardCustomerRelListRequest paidCardCustomerRelListRequest = new PaidCardCustomerRelListRequest();
-            paidCardCustomerRelListRequest.setEndTimeBegin(remainDay);
+            paidCardCustomerRelListRequest.setEndTimeEnd(remainDay);
             paidCardCustomerRelListRequest.setPageSize(pageSize);
             paidCardCustomerRelListRequest.setMaxTmpId(maxTmpId);
+            paidCardCustomerRelListRequest.setSendMsgFlag(Boolean.FALSE);
             List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider.listNew(paidCardCustomerRelListRequest).getContext().getPaidCardCustomerRelVOList();
+            log.info("PaidCardJobService sendWillExpireMsg 轮次:{} maxTmpId:{} size:{}", ++i, maxTmpId, paidCardCustomerRelVOList.size());
+
             if (!CollectionUtils.isEmpty(paidCardCustomerRelVOList)) {
                 List<String> customerIdList = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getCustomerId).distinct().collect(Collectors.toList());
                 CustomerDetailListByConditionRequest req = new CustomerDetailListByConditionRequest();
@@ -102,7 +96,6 @@ public class PaidCardJobService {
                         maxTmpId = paidCardCustomerRelVO.getMaxTmpId();
                     }
                 }
-                log.info("PaidCardJobService sendWillExpireMsg 轮次:{} maxTmpId:{} size:{}", i, maxTmpId, paidCardCustomerRelVOList.size());
 
                 // TODO 发送短信
                 List<PaidCardExpireRequest> requestList = paidCardCustomerRelVOList.stream()
@@ -132,39 +125,63 @@ public class PaidCardJobService {
      */
     public void sendExpireMsg() {
         log.info("sendExpireMsg执行了");
-        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList
-                = paidCardCustomerRelQueryProvider
-                .listNew(PaidCardCustomerRelListRequest.builder()
-                        .delFlag(DeleteFlag.NO)
-                        .sendExpireMsgFlag(Boolean.FALSE)
-                        .endTimeEnd(LocalDateTime.now())
-                        .build()).getContext().getPaidCardCustomerRelVOList();
-        log.info("paidCardCustomerRelVOList: {}",paidCardCustomerRelVOList);
-        if(CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)){
-            List<String> customerIdList = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getCustomerId).distinct().collect(Collectors.toList());
-            CustomerDetailListByConditionRequest req = new CustomerDetailListByConditionRequest();
-            req.setCustomerIds(customerIdList);
-            List<CustomerDetailVO> customerDetailVOList = customerDetailQueryProvider.listCustomerDetailByCondition(req).getContext().getCustomerDetailVOList();
-            paidCardCustomerRelVOList.forEach(paidCardCustomerRelVO->{
-                CustomerDetailVO customerDetailVO = customerDetailVOList.stream().filter(x -> x.getCustomerId().equals(paidCardCustomerRelVO.getCustomerId())).findFirst().get();
-                paidCardCustomerRelVO.setPhone(customerDetailVO.getContactPhone());
-            });
-            // 需要发送已经过期提醒短信的用户信息
-            List<PaidCardExpireRequest> requestList = paidCardCustomerRelVOList.stream()
-                    .map(rel -> PaidCardExpireRequest.builder()
-                            .phone(rel.getPhone())
-                            .paidCardName(rel.getPaidCardName())
-                            .year(rel.getEndTime().getYear()+"")
-                            .month(rel.getEndTime().getMonth().getValue()+"")
-                            .day(rel.getEndTime().getDayOfMonth()+"")
-                            .customerId(rel.getCustomerId())
-                            .build())
-                    .collect(Collectors.toList());
-            paidCardSaveProvider.sendExpireSms(requestList);
+        Integer maxTmpId = 0;
+        int pageSize = 500;
+        int i = 0;
+        while (true) {
 
-            // 变更付费卡实例发送短信状态
-            List<String> relIdList = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getId).collect(Collectors.toList());
-            paidCardCustomerRelSaveProvider.changeExpireSendMsgFlag(relIdList);
+            PaidCardCustomerRelListRequest paidCardCustomerRelListRequest = new PaidCardCustomerRelListRequest();
+            paidCardCustomerRelListRequest.setEndTimeEnd(LocalDateTime.now());
+            paidCardCustomerRelListRequest.setPageSize(pageSize);
+            paidCardCustomerRelListRequest.setMaxTmpId(maxTmpId);
+            paidCardCustomerRelListRequest.setSendExpireMsgFlag(Boolean.FALSE);
+            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider.listNew(paidCardCustomerRelListRequest).getContext().getPaidCardCustomerRelVOList();
+
+
+//            List<PaidCardCustomerRelVO> paidCardCustomerRelVOList
+//                    = paidCardCustomerRelQueryProvider
+//                    .listNew(PaidCardCustomerRelListRequest.builder()
+//                            .delFlag(DeleteFlag.NO)
+//                            .sendExpireMsgFlag(Boolean.FALSE)
+//                            .endTimeEnd(LocalDateTime.now())
+//                            .build()).getContext().getPaidCardCustomerRelVOList();
+//            log.info("paidCardCustomerRelVOList: {}", paidCardCustomerRelVOList);
+
+            log.info("PaidCardJobService sendExpireMsg 轮次:{} maxTmpId:{} size:{}", ++i, maxTmpId, paidCardCustomerRelVOList.size());
+            if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+                List<String> customerIdList = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getCustomerId).distinct().collect(Collectors.toList());
+                CustomerDetailListByConditionRequest req = new CustomerDetailListByConditionRequest();
+                req.setCustomerIds(customerIdList);
+                List<CustomerDetailVO> customerDetailVOList = customerDetailQueryProvider.listCustomerDetailByCondition(req).getContext().getCustomerDetailVOList();
+                for (PaidCardCustomerRelVO paidCardCustomerRelVO : paidCardCustomerRelVOList) {
+                    CustomerDetailVO customerDetailVO = customerDetailVOList.stream().filter(x -> x.getCustomerId().equals(paidCardCustomerRelVO.getCustomerId())).findFirst().get();
+                    paidCardCustomerRelVO.setPhone(customerDetailVO.getContactPhone());
+                    if (paidCardCustomerRelVO.getMaxTmpId() > maxTmpId) {
+                        maxTmpId = paidCardCustomerRelVO.getMaxTmpId();
+                    }
+                }
+
+                // 需要发送已经过期提醒短信的用户信息
+                List<PaidCardExpireRequest> requestList = paidCardCustomerRelVOList.stream()
+                        .map(rel -> PaidCardExpireRequest.builder()
+                                .phone(rel.getPhone())
+                                .paidCardName(rel.getPaidCardName())
+                                .year(rel.getEndTime().getYear() + "")
+                                .month(rel.getEndTime().getMonth().getValue() + "")
+                                .day(rel.getEndTime().getDayOfMonth() + "")
+                                .customerId(rel.getCustomerId())
+                                .build())
+                        .collect(Collectors.toList());
+                paidCardSaveProvider.sendExpireSms(requestList);
+
+                // 变更付费卡实例发送短信状态
+                List<String> relIdList = paidCardCustomerRelVOList.stream().map(PaidCardCustomerRelVO::getId).collect(Collectors.toList());
+                paidCardCustomerRelSaveProvider.changeExpireSendMsgFlag(relIdList);
+            }
+
+            if (paidCardCustomerRelVOList.size() < pageSize) {
+                break;
+            }
         }
     }
 }

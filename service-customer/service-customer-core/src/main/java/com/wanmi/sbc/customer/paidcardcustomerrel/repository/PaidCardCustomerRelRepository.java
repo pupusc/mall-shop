@@ -90,10 +90,18 @@ public interface PaidCardCustomerRelRepository extends JpaRepository<PaidCardCus
 
 
     /**
-     * 根据最大id获取对应的客户权益
+     * 获取30天即将过期的会员卡信息
      * @param tmpId
      * @return
      */
-    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and send_msg_flag = 0 and end_time >= ?1 and tmp_id > ?2 limit ?3", nativeQuery = true)
-    List<PaidCardCustomerRel> pageByEndTimeAndMaxAutoId(LocalDateTime endTime, Integer tmpId, Integer pageSize);
+    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and send_msg_flag = 0 and end_time < ?1 and tmp_id > ?2 limit ?3", nativeQuery = true)
+    List<PaidCardCustomerRel> pageSendMsgFlagByEndTimeAndMaxAutoId(LocalDateTime endTime, Integer tmpId, Integer pageSize);
+
+    /**
+     * 获取已经过期的会员卡信息
+     * @param tmpId
+     * @return
+     */
+    @Query(value = "select * from paid_card_customer_rel where del_flag = 0 and send_expire_msg_flag = 0 and end_time < ?1 and tmp_id > ?2 limit ?3", nativeQuery = true)
+    List<PaidCardCustomerRel> pageSendExpireMsgFlagByEndTimeAndMaxAutoId(LocalDateTime endTime, Integer tmpId, Integer pageSize);
 }
