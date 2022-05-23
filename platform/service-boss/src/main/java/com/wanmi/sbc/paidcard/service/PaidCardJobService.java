@@ -134,7 +134,7 @@ public class PaidCardJobService {
         log.info("sendExpireMsg执行了");
         List<PaidCardCustomerRelVO> paidCardCustomerRelVOList
                 = paidCardCustomerRelQueryProvider
-                .list(PaidCardCustomerRelListRequest.builder()
+                .listNew(PaidCardCustomerRelListRequest.builder()
                         .delFlag(DeleteFlag.NO)
                         .sendExpireMsgFlag(Boolean.FALSE)
                         .endTimeEnd(LocalDateTime.now())
