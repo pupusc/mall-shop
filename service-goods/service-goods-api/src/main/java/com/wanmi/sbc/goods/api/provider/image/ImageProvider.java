@@ -72,4 +72,11 @@ public interface ImageProvider {
     @GetMapping("/publish/{imageId}/{isOpen}")
     BaseResponse publish(@PathVariable("imageId") Integer id, @PathVariable("isOpen") Boolean isOpen);
 
+    /**
+     * 删除图片
+     * @menu 后台CMS2.0
+     * @return
+     */
+    @GetMapping("/publish/{imageId}")
+    BaseResponse delete(@PathVariable("imageId") Integer imageId);
 }

@@ -99,4 +99,15 @@ public class WxImageController {
         imagePageProviderRequest.setImageTypeList(Collections.singletonList(ImageTypeEnum.WX_SUBSCRIBE.getCode()));
         return imageProvider.list(imagePageProviderRequest);
     }
+
+    /**
+     * 小程序图片 cms 删除图片
+     * @param imageId
+     * @return
+     */
+    @GetMapping("/publish/{imageId}")
+    public BaseResponse delete(@PathVariable("imageId") Integer imageId) {
+        imageProvider.delete(imageId);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

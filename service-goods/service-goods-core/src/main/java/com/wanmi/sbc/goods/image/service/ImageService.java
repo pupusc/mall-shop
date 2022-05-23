@@ -161,22 +161,22 @@ public class ImageService {
         }
     }
 
-//    public void delete(ImageProviderRequest imageProviderRequest) {
-//        if (imageProviderRequest.getId() == null) {
-//            throw new SbcRuntimeException("K-000009");
-//        }
-//
-//        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
-//        imagePageProviderRequest.setId(imageProviderRequest.getId());
-//        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
-//        if (CollectionUtils.isEmpty(imageDTOList)) {
-//            throw new SbcRuntimeException("K-000009");
-//        }
-//        ImageDTO imageDTO = imageDTOList.get(0);
-//        imageDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
-//        imageDTO.setUpdateTime(LocalDateTime.now());
-//        imageRepository.save(imageDTO);
-//    }
+    public void delete(Integer imageId) {
+        if (imageId == null) {
+            throw new SbcRuntimeException("K-000009");
+        }
+
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setId(imageId);
+        List<ImageDTO> imageDTOList = this.listNoPage(imagePageProviderRequest);
+        if (CollectionUtils.isEmpty(imageDTOList)) {
+            throw new SbcRuntimeException("K-000009");
+        }
+        ImageDTO imageDTO = imageDTOList.get(0);
+        imageDTO.setDelFlag(DeleteFlagEnum.DELETE.getCode());
+        imageDTO.setUpdateTime(LocalDateTime.now());
+        imageRepository.save(imageDTO);
+    }
 
 
     private Sort packageSort() {
