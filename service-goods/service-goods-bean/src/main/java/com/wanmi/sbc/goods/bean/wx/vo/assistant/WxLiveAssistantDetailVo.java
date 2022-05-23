@@ -43,4 +43,9 @@ public class WxLiveAssistantDetailVo {
      */
     private List<WxLiveAssistantGoodsVo> goods;
 
+    /**
+     * 当前时间
+     */
+    private String currentTime;
+
 }

@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods.provider.impl.mini.assistant;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
@@ -12,6 +13,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateR
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsInfoConfigVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
@@ -28,10 +30,12 @@ import com.wanmi.sbc.goods.spec.repository.GoodsInfoSpecDetailRelRepository;
 import com.wanmi.sbc.goods.spec.repository.GoodsSpecRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -133,15 +137,18 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     public BaseResponse<WxLiveAssistantDetailVo> listGoods(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest) {
         WxLiveAssistantModel assistantModel = wxLiveAssistantService.findAssistantById(wxLiveAssistantSearchRequest.getLiveAssistantId());
         if(assistantModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
+
         WxLiveAssistantDetailVo wxLiveAssistantDetailVo = new WxLiveAssistantDetailVo();
         wxLiveAssistantDetailVo.setAssistantId(assistantModel.getId());
         wxLiveAssistantDetailVo.setTheme(assistantModel.getTheme());
         wxLiveAssistantDetailVo.setHasAssistantGoodsValid(assistantModel.getHasAssistantGoodsValid());
         wxLiveAssistantDetailVo.setStartTime(assistantModel.getStartTime().format(df));
         wxLiveAssistantDetailVo.setEndTime(assistantModel.getEndTime().format(df));
+        LocalDateTime now = LocalDateTime.now();
+        wxLiveAssistantDetailVo.setCurrentTime(now.format(df));
         LocalDateTime endTime = assistantModel.getEndTime();
         LocalDateTime startTime = assistantModel.getStartTime();
-        LocalDateTime now = LocalDateTime.now();
+
         Duration duration = Duration.between(startTime, endTime);
         if(endTime.isBefore(now)){
             wxLiveAssistantDetailVo.setStatus(2);
@@ -197,8 +204,21 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                 //规格
                 List<GoodsInfoSpecDetailRel> goodsInfoSpecDetailGroup = goodsInfoSpecDetailRelMap.get(wxLiveAssistantGoodsModel.getGoodsId());
 
+                Map<String, WxLiveAssistantGoodsInfoConfigVo> goodsInfoId2GoodsInfoConfig = new HashMap<>();
+                if (StringUtils.isNotBlank(wxLiveAssistantGoodsModel.getNewGoodsInfoJson())) {
+                    List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList =
+                            JSON.parseArray(wxLiveAssistantGoodsModel.getNewGoodsInfoJson(), WxLiveAssistantGoodsInfoConfigVo.class);
+                    for (WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigParam : assistantGoodsInfoConfigVoList) {
+                        goodsInfoId2GoodsInfoConfig.put(wxLiveAssistantGoodsInfoConfigParam.getGoodsInfoId(), wxLiveAssistantGoodsInfoConfigParam);
+                    }
+                }
+                        ;
+
                 List<WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo> wxLiveAssistantGoodsInfoVos = new ArrayList<>();
                 Long stockSum = 0L;
+                Long wxStockSum = 0L;
+                String wxMarketPrice = "99999";
+                BigDecimal wxGoodsMiniMarketPrice = new BigDecimal(wxMarketPrice);
                 if (goodsInfoGroup != null) {
                     for (GoodsInfo goodsInfo : goodsInfoGroup) {
                         WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo wxLiveAssistantGoodsInfoVo = new WxLiveAssistantGoodsVo.WxLiveAssistantGoodsInfoVo();
@@ -211,6 +231,24 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                         }
                         wxLiveAssistantGoodsInfoVo.setGoodsInfoNo(goodsInfo.getGoodsInfoNo());
                         wxLiveAssistantGoodsInfoVo.setMarketPrice(goodsInfo.getMarketPrice() != null ? goodsInfo.getMarketPrice().toString() : "0");
+
+
+                        WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo = goodsInfoId2GoodsInfoConfig.get(goodsInfo.getGoodsInfoId());
+                        if (wxLiveAssistantGoodsInfoConfigVo != null) {
+                            Long wxGoodsInfoStock = wxLiveAssistantGoodsInfoConfigVo.getStock() == null ? 0L : wxLiveAssistantGoodsInfoConfigVo.getStock();
+                            wxLiveAssistantGoodsInfoVo.setWxStock(wxGoodsInfoStock.intValue());
+                            BigDecimal wxGoodsInfoMarketPrice = wxLiveAssistantGoodsInfoConfigVo.getWxPrice() == null ? wxGoodsMiniMarketPrice : wxLiveAssistantGoodsInfoConfigVo.getWxPrice();
+                            wxLiveAssistantGoodsInfoVo.setWxMarketPrice(wxGoodsInfoMarketPrice.toString());
+                            wxStockSum += wxGoodsInfoStock;
+
+                            if (wxGoodsInfoMarketPrice.compareTo(wxGoodsMiniMarketPrice) < 0) {
+                                wxGoodsMiniMarketPrice = wxGoodsInfoMarketPrice;
+                            }
+                        } else {
+                            wxLiveAssistantGoodsInfoVo.setWxStock(0);
+                            wxLiveAssistantGoodsInfoVo.setWxMarketPrice(wxGoodsMiniMarketPrice.toString());
+
+                        }
 
                         if(CollectionUtils.isNotEmpty(goodsInfoSpecDetailGroup)){
                             Map<String, String> goodsInfoSpec = new HashMap<>();
@@ -228,6 +266,8 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
                     }
                 }
                 wxLiveAssistantGoodsVo.setStock(stockSum.intValue());
+                wxLiveAssistantGoodsVo.setWxStock(wxStockSum.intValue());
+                wxLiveAssistantGoodsVo.setWxMarketPrice(wxGoodsMiniMarketPrice.toString());
                 wxLiveAssistantGoodsVo.setGoodsInfos(wxLiveAssistantGoodsInfoVos);
                 voList.add(wxLiveAssistantGoodsVo);
 

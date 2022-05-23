@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.api.enums.HasAssistantGoodsValidEnum;
+import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
@@ -15,6 +16,7 @@ import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateR
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsConfigVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsInfoConfigVo;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsUpdateVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -69,6 +72,9 @@ public class WxLiveAssistantService {
     private WxGoodsService wxGoodsService;
     @Autowired
     private RedisService redisService;
+
+    @Value("${default.providerId}")
+    private String defaultProviderId;
 
     @Transactional
     public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
@@ -158,7 +164,7 @@ public class WxLiveAssistantService {
 
         if(wxLiveAssistantModel.getEndTime().isBefore(LocalDateTime.now())) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能修改");
 
-        List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.findTimeConflictGoods(wxLiveAssistantGoodsCreateRequest.getGoods());
+        List<WxLiveAssistantGoodsModel> timeConflictGoods = wxLiveAssistantGoodsRepository.listAssistantGoodsByGoodsIds(wxLiveAssistantGoodsCreateRequest.getGoods());
         if(CollectionUtils.isNotEmpty(timeConflictGoods)){
             List<String> timeConflictGoodsIds = timeConflictGoods.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
             List<Goods> goodsList = goodsRepository.findAllByGoodsIdIn(timeConflictGoodsIds);
@@ -316,6 +322,8 @@ public class WxLiveAssistantService {
         }
         WxLiveAssistantGoodsModel wxLiveAssistantGoodsModel = opt2.get();
 
+        List<WxLiveAssistantGoodsUpdateVo> wxLiveAssistantGoodsUpdateVoList = new ArrayList<>();
+
         List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList = new ArrayList<>();
         for (WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo assistantGoodsInfoParam : wxLiveAssistantGoodsUpdateRequest.getGoodsInfos()) {
             if (StringUtils.isBlank(assistantGoodsInfoParam.getPrice()) || assistantGoodsInfoParam.getStock() == null || assistantGoodsInfoParam.getStock() <= 0) {
@@ -326,6 +334,12 @@ public class WxLiveAssistantService {
             wxLiveAssistantGoodsInfoConfigVo.setStock(assistantGoodsInfoParam.getStock().longValue());
             wxLiveAssistantGoodsInfoConfigVo.setWxPrice(new BigDecimal(assistantGoodsInfoParam.getPrice()));
             assistantGoodsInfoConfigVoList.add(wxLiveAssistantGoodsInfoConfigVo);
+
+            WxLiveAssistantGoodsUpdateVo wxLiveAssistantGoodsUpdateVo = new WxLiveAssistantGoodsUpdateVo();
+            wxLiveAssistantGoodsUpdateVo.setGoodsInfoId(assistantGoodsInfoParam.getGoodsInfoId());
+            wxLiveAssistantGoodsUpdateVo.setWxPrice(new BigDecimal(assistantGoodsInfoParam.getPrice()));
+            wxLiveAssistantGoodsUpdateVo.setWxStock(assistantGoodsInfoParam.getStock().longValue());
+            wxLiveAssistantGoodsUpdateVoList.add(wxLiveAssistantGoodsUpdateVo);
         }
 
         wxLiveAssistantGoodsModel.setNewGoodsInfoJson(JSON.toJSONString(assistantGoodsInfoConfigVoList));
@@ -333,6 +347,9 @@ public class WxLiveAssistantService {
         if (wxLiveAssistantModel.getHasAssistantGoodsValid() != null && wxLiveAssistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.SYNC.getCode()) {
             this.lockGoodsAndGoodsInfo(Collections.singletonList(wxLiveAssistantGoodsModel));
         }
+
+        wxGoodsService.toAudit(wxLiveAssistantGoodsModel.getGoodsId(), wxLiveAssistantGoodsUpdateVoList);
+
         wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
 
         return wxLiveAssistantGoodsModel.getGoodsId();
@@ -455,81 +472,39 @@ public class WxLiveAssistantService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法开启");
         }
 
-        //批量获取商品信息
-        List<String> goodsIdList = assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
-        List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIdList).delFlag(DeleteFlag.NO.toValue()).build());
-        if (CollectionUtils.isEmpty(goodsInfoList)) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法开启");
-        }
+        this.lockGoodsAndGoodsInfo(assistantGoodsModelList);
 
-        //直播计划商品库存同步
-        Map<String, Map<String, Integer>> goodsId2GoodsInfoId2StockFlagSyncMap = new HashMap<>(goodsInfoList.size());
-        //直播计划商品价格
-        Map<String, Map<String, BigDecimal>> goodsId2GoodsInfoId2PriceMap = new HashMap<>(goodsInfoList.size());
-
-//        Map<String, GoodsInfo> goodsInfoMap = new HashMap<>();
-
-        for (GoodsInfo goodsInfo : goodsInfoList) {
-            Map<String, Integer> goodsInfo2StockFlagSyncMap = goodsId2GoodsInfoId2StockFlagSyncMap.get(goodsInfo.getGoodsId());
-            if (goodsInfo2StockFlagSyncMap == null) {
-                goodsInfo2StockFlagSyncMap = new HashMap<>();
-            }
-            goodsInfo2StockFlagSyncMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getStockSyncFlag());
-            goodsId2GoodsInfoId2StockFlagSyncMap.put(goodsInfo.getGoodsId(), goodsInfo2StockFlagSyncMap);
-
-            Map<String, BigDecimal> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(goodsInfo.getGoodsId());
-            if (goodsInfo2PriceMap == null) {
-                goodsInfo2PriceMap = new HashMap<>();
-            }
-            goodsInfo2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice());
-            goodsId2GoodsInfoId2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo2PriceMap);
-
-//            goodsInfoMap.put(goodsInfo.getGoodsInfoId(), goodsInfo);
-        }
-
-        Map<String, WxLiveAssistantGoodsInfoConfigVo> goodsInfoId2AssistantGoodsInfoConfigMap = new HashMap<>();
-        //更新商品价格，库存同步标志
-        for (WxLiveAssistantGoodsModel assistantGoodsModel : assistantGoodsModelList) {
-            Map<String, Integer> goodsInfo2StockFlagSyncMap = goodsId2GoodsInfoId2StockFlagSyncMap.get(assistantGoodsModel.getGoodsId());
-            if (goodsInfo2StockFlagSyncMap != null) {
-                assistantGoodsModel.setOlfSyncStockFlag(JSON.toJSONString(goodsInfo2StockFlagSyncMap));
-            }
-
-            Map<String, BigDecimal> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(assistantGoodsModel.getGoodsId());
-            if (goodsInfo2PriceMap != null) {
-                assistantGoodsModel.setOldGoodsInfo(JSON.toJSONString(goodsInfo2PriceMap));
-            }
-
-            String newGoodsInfoJson = assistantGoodsModel.getNewGoodsInfoJson();
-            if (StringUtils.isEmpty(newGoodsInfoJson)) {
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED,  assistantGoodsModel.getGoodsId() + "需要重新更新一下价格和库存");
-            } else {
-                List<WxLiveAssistantGoodsInfoConfigVo> wxLiveAssistantGoodsConfigVoList =
-                        JSONArray.parseArray(newGoodsInfoJson, WxLiveAssistantGoodsInfoConfigVo.class);
-                for (WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo : wxLiveAssistantGoodsConfigVoList) {
-                    goodsInfoId2AssistantGoodsInfoConfigMap.put(wxLiveAssistantGoodsInfoConfigVo.getGoodsInfoId(), wxLiveAssistantGoodsInfoConfigVo);
-                }
-            }
-
-        }
-        //更新直播计划商品信息
-        wxLiveAssistantGoodsRepository.saveAll(assistantGoodsModelList);
-
-        //更新直播计划为有效
         wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.SYNC.getCode());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+    }
 
 
-        //同步goodsInfo信息
-        for (GoodsInfo goodsInfo : goodsInfoList) {
-            WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo = goodsInfoId2AssistantGoodsInfoConfigMap.get(goodsInfo.getGoodsInfoId());
-            if (wxLiveAssistantGoodsInfoConfigVo != null) {
-                goodsInfo.setMarketPrice(wxLiveAssistantGoodsInfoConfigVo.getWxPrice());
-                goodsInfo.setStock(wxLiveAssistantGoodsInfoConfigVo.getStock().longValue());
-            }
+    public void closeAssistantGoodsValid(Long wxLiveAssistantId) {
+        /**
+         * 获取直播计划
+         */
+        Optional<WxLiveAssistantModel> opt = wxLiveAssistantRepository.findById(wxLiveAssistantId);
+        if(!opt.isPresent() || opt.get().getDelFlag().equals(DeleteFlag.YES)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划不存在");
         }
-        goodsInfoRepository.saveAll(goodsInfoList);
-        //同步goods信息
+        WxLiveAssistantModel wxLiveAssistantModel = opt.get();
+        if (wxLiveAssistantModel.getHasAssistantGoodsValid() == null || wxLiveAssistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.NO_SYNC.getCode()) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先开启同步，才能重新关闭");
+        }
+
+        /**
+         * 获取直播计划商品列表
+         */
+        List<WxLiveAssistantGoodsModel> assistantGoodsModelList = wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository
+                .buildSearchCondition(WxLiveAssistantSearchRequest.builder().liveAssistantId(wxLiveAssistantId).build()));
+        if (CollectionUtils.isEmpty(assistantGoodsModelList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法关闭");
+        }
+
+        this.unlockGoodsAndGoodsInfo(assistantGoodsModelList);
+
+        wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.NO_SYNC.getCode());
+        wxLiveAssistantRepository.save(wxLiveAssistantModel);
     }
 
     /**
@@ -573,7 +548,9 @@ public class WxLiveAssistantService {
         }
 
         List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIdList).delFlag(DeleteFlag.NO.toValue()).build());
-
+        if (CollectionUtils.isEmpty(goodsInfoList)) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED,  "直播计划下商品为空");
+        }
         Map<String, WxLiveAssistantGoodsConfigVo> goodsId2AssistantGoodsConfigMap = new HashMap<>();
 
         for (GoodsInfo goodsInfo : goodsInfoList) {
@@ -717,7 +694,9 @@ public class WxLiveAssistantService {
             goodsRepository.updateSkuMinMarketPriceByGoodsId(AddedFlag.NO.toValue(), V.getSkuMiniMarketPrice(), V.getGoodsId());
         });
 
-        //刷新es
+        //同步库存 不判断是否自动同步，交给同步方法处理 此处只是处理管易云的商品
+        goodsStockService.batchUpdateStock(
+                wxLiveAssistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).distinct().collect(Collectors.toList()), "", 0, 0);
     }
 
 //    @Transactional
