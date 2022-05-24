@@ -326,8 +326,8 @@ public class WxLiveAssistantService {
 
         List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList = new ArrayList<>();
         for (WxLiveAssistantGoodsUpdateRequest.WxLiveAssistantGoodsInfo assistantGoodsInfoParam : wxLiveAssistantGoodsUpdateRequest.getGoodsInfos()) {
-            if (StringUtils.isBlank(assistantGoodsInfoParam.getPrice()) || assistantGoodsInfoParam.getStock() == null || assistantGoodsInfoParam.getStock() <= 0) {
-                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, assistantGoodsInfoParam.getGoodsInfoId() + "对应的商品库存不能为空");
+            if (StringUtils.isBlank(assistantGoodsInfoParam.getPrice()) || assistantGoodsInfoParam.getStock() == null || assistantGoodsInfoParam.getStock() < 0) {
+                throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, assistantGoodsInfoParam.getGoodsInfoId() + "对应的商品库存不能为空 或者负数");
             }
             WxLiveAssistantGoodsInfoConfigVo wxLiveAssistantGoodsInfoConfigVo = new WxLiveAssistantGoodsInfoConfigVo();
             wxLiveAssistantGoodsInfoConfigVo.setGoodsInfoId(assistantGoodsInfoParam.getGoodsInfoId());
