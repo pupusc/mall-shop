@@ -20,6 +20,6 @@ public class OrderConfigProperties {
     /**
      * 订单超时时间（微信）
      */
-    @Value("order.time.out")
+    @Value("${order.time.out}")
     private String timeOutJson;
 }
