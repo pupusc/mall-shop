@@ -464,7 +464,7 @@ public class WxLiveAssistantService {
         }
 
         LocalDateTime beforeDateTime = wxLiveAssistantModel.getStartTime().minusMonths(60);
-        if (beforeDateTime.isBefore(LocalDateTime.now())) {
+        if (LocalDateTime.now().isBefore(beforeDateTime)) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播开始时间前1小时才可以开启");
         }
 
