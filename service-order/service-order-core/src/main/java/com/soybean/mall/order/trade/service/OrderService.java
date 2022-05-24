@@ -19,6 +19,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
@@ -115,6 +116,10 @@ public class OrderService {
         }
         if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
             throw new SbcRuntimeException("K-050215");
+        }
+
+        if (tradeCommitRequest.getTradeItems().stream().anyMatch(f -> f.getNum() <= 0)) {
+            throw new SbcRuntimeException("K-050466");
         }
 
         TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();

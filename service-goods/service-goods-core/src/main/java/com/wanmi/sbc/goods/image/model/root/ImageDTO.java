@@ -77,6 +77,12 @@ public class ImageDTO {
     private Integer imageType;
 
     /**
+     * 业务id
+     */
+    @Column(name = "business_id")
+    private String businessId;
+
+    /**
      * 版本
      */
     @Column(name = "version")

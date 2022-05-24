@@ -195,6 +195,8 @@ public class OrderController {
                 throw new SbcRuntimeException("K-220001");
             }
         }
+
+
         RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
 
         List<OrderCommitResultVO> successResults;
@@ -213,6 +215,7 @@ public class OrderController {
             } else {
                 throw new SbcRuntimeException("K-000001");
             }
+            return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
         } catch (InterruptedException ex) {
             log.error("OrderController commit InterruptedException", ex);
             throw new SbcRuntimeException("K-000001");
@@ -224,7 +227,6 @@ public class OrderController {
                 rLock.unlock();
             }
         }
-        return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
     }
 
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){

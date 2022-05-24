@@ -69,6 +69,11 @@ public class ImageProviderRequest implements Serializable {
     @NotNull(groups = Add.class, message = "图片类型不能为空")
     private Integer imageType;
 
+    /**
+     * 业务id
+     */
+    private String businessId;
+
 
     public interface Add{}
     public interface Update{}

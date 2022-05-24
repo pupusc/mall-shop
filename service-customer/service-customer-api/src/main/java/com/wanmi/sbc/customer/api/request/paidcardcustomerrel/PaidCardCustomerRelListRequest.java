@@ -27,6 +27,11 @@ public class PaidCardCustomerRelListRequest extends BaseQueryRequest {
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * 最大的临时id
+	 */
+	private Integer maxTmpId;
+
+	/**
 	 * 批量查询-主键List
 	 */
 	@ApiModelProperty(value = "批量查询-主键List")

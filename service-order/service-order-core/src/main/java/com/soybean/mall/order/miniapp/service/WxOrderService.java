@@ -1,6 +1,7 @@
 package com.soybean.mall.order.miniapp.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
@@ -37,6 +38,9 @@ import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
+import com.wanmi.sbc.order.trade.service.TradeCacheService;
+import com.wanmi.sbc.setting.bean.enums.ConfigType;
+import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +73,9 @@ public class WxOrderService {
 
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
+
+    @Autowired
+    private TradeCacheService tradeCacheService;
 
     @Autowired
     private WxOrderApiController wxOrderApiController;
@@ -356,7 +363,23 @@ public class WxOrderService {
             result.setTotalPrice(new BigDecimal(cachePrice));
         }
         //分时金额
-        result.setHourPrice(redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), Map.class));
+        Map<Integer,BigDecimal> hourPriceMap = redisService.getObj(MINI_PROGRAM_ORDER_REPORT_HOUR_PRICE.concat(date), Map.class);
+        if (hourPriceMap == null) {
+            hourPriceMap = new HashMap<>();
+        }
+//        Map<String, BigDecimal> hourPriceResultMap = new LinkedHashMap<>();
+//        for (int i = 0; i< 24 ; i++) {
+//            if (i < 7) {
+//                String key = "0-6";
+//                BigDecimal mergePriceKey = hourPriceResultMap.get(key) == null ? BigDecimal.ZERO : hourPriceResultMap.get(key);
+//                BigDecimal currentPrice = hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i);
+//                hourPriceResultMap.put(key + "时", mergePriceKey.add(currentPrice));
+//            } else {
+//                hourPriceResultMap.put(i + "时", hourPriceMap.get(i) == null ? BigDecimal.ZERO : hourPriceMap.get(i));
+//            }
+//
+//        }
+        result.setHourPrice(hourPriceMap);
         //订单数据
         result.setOrders(redisService.getList(MINI_PROGRAM_ORDER_REPORT_LIST.concat(date), MiniProgramOrderReportVO.OrderReportDetailVO.class));
         return result;
@@ -450,6 +473,21 @@ public class WxOrderService {
     }
 
     public WxCreateOrderRequest buildRequest(Trade trade) {
+
+        int outTime = 60; //1小时
+        try {
+            ConfigVO timeoutCancelConfig =
+                    tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
+            // 查询设置中订单超时时间
+            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(timeoutCancelConfig.getContext());
+            Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+            if (minuteObj != null) {
+                outTime = Integer.parseInt(minuteObj.toString());
+            }
+        } catch (Exception ex) {
+            log.error("TradeService timeoutCancelConfig error", ex);
+        }
+
         WxCreateOrderRequest result = new WxCreateOrderRequest();
         result.setOutOrderId(trade.getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1));
@@ -460,7 +498,7 @@ public class WxOrderService {
         if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), 2)) {
             result.setFundType(1);
         }
-        result.setExpireTime(LocalDateTime.now().plusHours(1).toEpochSecond(ZoneOffset.of("+8")));
+        result.setExpireTime(LocalDateTime.now().plusMinutes((outTime + 1)).toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {

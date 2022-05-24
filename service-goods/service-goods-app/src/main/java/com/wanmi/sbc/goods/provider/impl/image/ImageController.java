@@ -111,4 +111,10 @@ public class ImageController implements ImageProvider {
         }
         return result;
     }
+
+    @Override
+    public BaseResponse delete(Integer imageId) {
+        imageService.delete(imageId);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

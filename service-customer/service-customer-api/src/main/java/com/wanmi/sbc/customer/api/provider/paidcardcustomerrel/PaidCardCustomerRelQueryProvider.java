@@ -51,6 +51,15 @@ public interface PaidCardCustomerRelQueryProvider {
 	@PostMapping("/customer/${application.customer.version}/paidcardcustomerrel/list")
 	BaseResponse<PaidCardCustomerRelListResponse> list(@RequestBody @Valid PaidCardCustomerRelListRequest paidCardCustomerRelListReq);
 
+
+	/**
+	 * 列表查询付费会员API 大量数据
+	 * @param request
+	 * @return
+	 */
+	@PostMapping("/customer/${application.customer.version}/paidcardcustomerrel/list-new")
+	BaseResponse<PaidCardCustomerRelListResponse> listNew(@RequestBody @Valid PaidCardCustomerRelListRequest request);
+
 	/**
 	 * 列表查询所有该付费会员下面的会员id
 	 *
