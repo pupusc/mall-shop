@@ -210,7 +210,7 @@ public class WxLiveAssistantService {
                 goodsInfo2PriceMap = new HashMap<>();
             }
             goodsInfo2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice());
-            goodsId2GoodsInfoId2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo2PriceMap);
+            goodsId2GoodsInfoId2PriceMap.put(goodsInfo.getGoodsId(), goodsInfo2PriceMap);
 
         }
 
@@ -286,6 +286,7 @@ public class WxLiveAssistantService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播已结束，不能删除");
         }
         wxLiveAssistantModel.setGoodsCount(wxLiveAssistantModel.getGoodsCount() - 1);
+        wxLiveAssistantModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
 
         boolean isSync = false;
@@ -349,7 +350,7 @@ public class WxLiveAssistantService {
         }
 
         wxGoodsService.toAudit(wxLiveAssistantGoodsModel.getGoodsId(), wxLiveAssistantGoodsUpdateVoList);
-
+        wxLiveAssistantGoodsModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantGoodsRepository.save(wxLiveAssistantGoodsModel);
 
         return wxLiveAssistantGoodsModel.getGoodsId();
@@ -480,6 +481,7 @@ public class WxLiveAssistantService {
         this.lockGoodsAndGoodsInfo(assistantGoodsModelList);
 
         wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.SYNC.getCode());
+        wxLiveAssistantModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
         return assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
     }
@@ -503,13 +505,12 @@ public class WxLiveAssistantService {
          */
         List<WxLiveAssistantGoodsModel> assistantGoodsModelList = wxLiveAssistantGoodsRepository.findAll(wxLiveAssistantGoodsRepository
                 .buildSearchCondition(WxLiveAssistantSearchRequest.builder().liveAssistantId(wxLiveAssistantId).build()));
-        if (CollectionUtils.isEmpty(assistantGoodsModelList)) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播计划商品为空无法关闭");
+        if (!CollectionUtils.isEmpty(assistantGoodsModelList)) {
+            this.unlockGoodsAndGoodsInfo(assistantGoodsModelList);
         }
 
-        this.unlockGoodsAndGoodsInfo(assistantGoodsModelList);
-
         wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.NO_SYNC.getCode());
+        wxLiveAssistantModel.setUpdateTime(LocalDateTime.now());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
         return assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
     }
@@ -628,7 +629,6 @@ public class WxLiveAssistantService {
             goodsIdList.add(wxLiveAssistantGoodsModel.getGoodsId());
             goodsId2AssistantGoodsMap.put(wxLiveAssistantGoodsModel.getGoodsId(), wxLiveAssistantGoodsModel);
         }
-
 
 
         List<GoodsInfo> goodsInfoList = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsIds(goodsIdList).delFlag(DeleteFlag.NO.toValue()).build());
