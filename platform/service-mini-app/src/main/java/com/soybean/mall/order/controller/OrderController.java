@@ -214,7 +214,10 @@ public class OrderController {
                 tradeCommitRequest.setDistributeChannel(channel);
                 tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
                 BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
-
+                log.info("OrderController commit result: {}", JSON.toJSONString(orderCommitResponseBaseResponse));
+                if (!CommonErrorCode.SUCCESSFUL.equals(orderCommitResponseBaseResponse.getCode())) {
+                    throw new SbcRuntimeException(orderCommitResponseBaseResponse.getCode(), orderCommitResponseBaseResponse.getMessage());
+                }
                 successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
             } else {
                 throw new SbcRuntimeException("K-000001");
