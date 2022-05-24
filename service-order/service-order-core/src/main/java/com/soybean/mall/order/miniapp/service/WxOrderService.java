@@ -481,7 +481,7 @@ public class WxOrderService {
         } catch (Exception ex) {
             log.error("TradeService timeoutCancelConfig error", ex);
         }
-
+        log.info("WxOrderService buildRequest 订单：{} 超时是:{}分钟", trade.getId(), outTime );
         WxCreateOrderRequest result = new WxCreateOrderRequest();
         result.setOutOrderId(trade.getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1));

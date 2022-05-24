@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.prize.service.OrderCouponService;
 import com.thoughtworks.xstream.XStream;
@@ -640,6 +641,9 @@ public class TradeService {
 
     @Autowired
     private OrderCouponService orderCouponService;
+
+    @Autowired
+    private OrderConfigProperties orderConfigProperties;
 
     /**
      * 新增文档
@@ -3438,7 +3442,22 @@ public class TradeService {
                     tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             Integer timeoutSwitch = timeoutCancelConfig.getStatus();
             if (timeoutSwitch == 1) {
-                if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
+                //视频号、小程序订单
+                if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+                    int outTime = 60; //1小时
+                    try {
+                        // 查询设置中订单超时时间
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
+                        if (minuteObj != null) {
+                            outTime = Integer.parseInt(minuteObj.toString());
+                        }
+                    } catch (Exception ex) {
+                        log.error("TradeService timeoutCancelConfig error", ex);
+                    }
+                    trade.setOrderTimeOut(LocalDateTime.now().plusMinutes(outTime));
+                    orderProducerService.cancelOrder(trade.getId(), outTime * 60 * 1000L);
+                } else  if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
                     // 查询设置中订单超时时间
                     int outTime = 60; //1小时
                     try {
