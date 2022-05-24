@@ -215,6 +215,33 @@ public class GoodsLiveAssistantController {
     }
 
     /**
+     * 开启同步
+     * @param wxLiveAssistantId
+     *
+     * @menu 小程序
+     * @return
+     */
+    @GetMapping("/assistant/open-assistant-goods-valid/{wxLiveAssistantId}")
+    public BaseResponse open(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
+        wxLiveAssistantProvider.openAssistantGoodsValid(wxLiveAssistantId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 关闭同步
+     * @param wxLiveAssistantId
+     *
+     * @menu 小程序
+     * @return
+     */
+    @GetMapping("/assistant/close-assistant-goods-valid/{wxLiveAssistantId}")
+    public BaseResponse close(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
+        wxLiveAssistantProvider.closeAssistantGoodsValid(wxLiveAssistantId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * @description 查询直播计划商品是否在直播计划中
      * @param goodsId
      * @menu 小程序
@@ -245,19 +272,19 @@ public class GoodsLiveAssistantController {
 //        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
 //    }
 
-    public void resetEsStock(Map<String, Map<String, Integer>> map){
-
-        if(map != null && !map.isEmpty()){
-            Map<String, Integer> skusMap = map.get("skus");
-            if(!skusMap.isEmpty()){
-                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
-                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-            }
-            Map<String, Integer> spusMap = map.get("spus");
-            if(!spusMap.isEmpty()){
-                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
-                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-            }
-        }
-    }
+//    public void resetEsStock(Map<String, Map<String, Integer>> map){
+//
+//        if(map != null && !map.isEmpty()){
+//            Map<String, Integer> skusMap = map.get("skus");
+//            if(!skusMap.isEmpty()){
+//                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
+//                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
+//            }
+//            Map<String, Integer> spusMap = map.get("spus");
+//            if(!spusMap.isEmpty()){
+//                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+//                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
+//            }
+//        }
+//    }
 }

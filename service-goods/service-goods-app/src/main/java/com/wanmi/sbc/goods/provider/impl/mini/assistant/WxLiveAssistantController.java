@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.xml.ws.Response;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -301,4 +302,16 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
 //        return BaseResponse.SUCCESSFUL();
 //    }
 
+    @Override
+    public BaseResponse openAssistantGoodsValid(Long wxLiveAssistantId) {
+        wxLiveAssistantService.openAssistantGoodsValid(wxLiveAssistantId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    @Override
+    public BaseResponse closeAssistantGoodsValid(Long wxLiveAssistantId) {
+        wxLiveAssistantService.closeAssistantGoodsValid(wxLiveAssistantId);
+        return BaseResponse.SUCCESSFUL();
+    }
 }

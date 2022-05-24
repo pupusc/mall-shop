@@ -463,6 +463,11 @@ public class WxLiveAssistantService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先关闭同步，才能重新开启");
         }
 
+        LocalDateTime beforeDateTime = wxLiveAssistantModel.getStartTime().minusMonths(15);
+        if (beforeDateTime.isBefore(LocalDateTime.now())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播开始时间前15分钟才可以开启");
+        }
+
         /**
          * 获取直播计划商品列表
          */
