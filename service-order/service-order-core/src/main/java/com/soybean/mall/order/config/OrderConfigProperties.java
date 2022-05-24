@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RefreshScope
 @Data
-public class ConfigProperties {
+public class OrderConfigProperties {
 
     /**
      * 订单超时时间（微信）

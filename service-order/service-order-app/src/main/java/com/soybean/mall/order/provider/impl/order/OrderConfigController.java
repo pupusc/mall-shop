@@ -1,7 +1,7 @@
 package com.soybean.mall.order.provider.impl.order;
 
 import com.soybean.mall.order.api.provider.order.OrderConfigProvider;
-import com.soybean.mall.order.config.ConfigProperties;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,12 +20,12 @@ import java.util.Map;
 public class OrderConfigController implements OrderConfigProvider {
 
     @Autowired
-    private ConfigProperties configProperties;
+    private OrderConfigProperties orderConfigProperties;
 
     @Override
     public BaseResponse<Map<String, String>> listConfig() {
         Map<String, String> result = new HashMap<>();
-        result.put("order.time.out", configProperties.getTimeOutJson());
+        result.put("order.time.out", orderConfigProperties.getTimeOutJson());
         return BaseResponse.success(result);
     }
 }

@@ -4,13 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
-import com.soybean.mall.order.config.ConfigProperties;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
-import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
@@ -23,7 +22,6 @@ import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleReasonType;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
-import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -35,13 +33,10 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
-import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.service.TradeCacheService;
-import com.wanmi.sbc.setting.bean.enums.ConfigType;
-import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -109,7 +104,7 @@ public class WxOrderService {
     private String orderListUrl;
 
     @Autowired
-    private ConfigProperties configProperties;
+    private OrderConfigProperties orderConfigProperties;
 
     /**
      * 视频号售后公共部分
@@ -478,7 +473,7 @@ public class WxOrderService {
         int outTime = 60; //1小时
         try {
             // 查询设置中订单超时时间
-            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(configProperties.getTimeOutJson());
+            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
             Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
             if (minuteObj != null) {
                 outTime = Integer.parseInt(minuteObj.toString());
