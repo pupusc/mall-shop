@@ -204,7 +204,7 @@ public class IndexHomeController {
         List<String> allowKeyList = Arrays.asList(refreshConfig.getAllowKeys().split(","));
 
         Map<String, String> context = orderConfigProvider.listConfig().getContext();
-
+        log.info("configByKey order context:{}", context);
         Map<String, String> configMap = new HashMap<>();
         for (String key : keyRequest.getKeys()) {
             if (allowKeyList.contains(key)) {
