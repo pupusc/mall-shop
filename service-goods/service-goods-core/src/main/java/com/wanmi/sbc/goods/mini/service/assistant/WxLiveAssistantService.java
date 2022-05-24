@@ -450,7 +450,7 @@ public class WxLiveAssistantService {
      *
      * @param wxLiveAssistantId 直播计划id
      */
-    public void openAssistantGoodsValid(Long wxLiveAssistantId) {
+    public List<String> openAssistantGoodsValid(Long wxLiveAssistantId) {
         /**
          * 获取直播计划
          */
@@ -481,10 +481,11 @@ public class WxLiveAssistantService {
 
         wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.SYNC.getCode());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+        return assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
     }
 
 
-    public void closeAssistantGoodsValid(Long wxLiveAssistantId) {
+    public List<String> closeAssistantGoodsValid(Long wxLiveAssistantId) {
         /**
          * 获取直播计划
          */
@@ -510,6 +511,7 @@ public class WxLiveAssistantService {
 
         wxLiveAssistantModel.setHasAssistantGoodsValid(HasAssistantGoodsValidEnum.NO_SYNC.getCode());
         wxLiveAssistantRepository.save(wxLiveAssistantModel);
+        return assistantGoodsModelList.stream().map(WxLiveAssistantGoodsModel::getGoodsId).collect(Collectors.toList());
     }
 
     /**

@@ -58,7 +58,7 @@ public interface WxLiveAssistantProvider {
      * @return
      */
     @GetMapping("/wx/assistant/goods/${application.goods.version}/open-assistant-goods-valid/{wxLiveAssistantId}")
-    BaseResponse openAssistantGoodsValid(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId);
+    BaseResponse<List<String>> openAssistantGoodsValid(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId);
 
 
     /**
@@ -67,7 +67,7 @@ public interface WxLiveAssistantProvider {
      * @return
      */
     @GetMapping("/wx/assistant/goods/${application.goods.version}/close-assistant-goods-valid/{wxLiveAssistantId}")
-    BaseResponse closeAssistantGoodsValid(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId);
+    BaseResponse<List<String>> closeAssistantGoodsValid(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId);
 
 
 

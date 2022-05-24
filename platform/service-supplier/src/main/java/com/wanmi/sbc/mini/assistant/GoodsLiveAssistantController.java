@@ -223,7 +223,11 @@ public class GoodsLiveAssistantController {
      */
     @GetMapping("/assistant/open-assistant-goods-valid/{wxLiveAssistantId}")
     public BaseResponse open(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
-        wxLiveAssistantProvider.openAssistantGoodsValid(wxLiveAssistantId);
+        List<String> goodsIdList = wxLiveAssistantProvider.openAssistantGoodsValid(wxLiveAssistantId).getContext();
+        if(CollectionUtils.isNotEmpty(goodsIdList)){
+            esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIdList).build());
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIdList).build());
+        }
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -237,7 +241,11 @@ public class GoodsLiveAssistantController {
      */
     @GetMapping("/assistant/close-assistant-goods-valid/{wxLiveAssistantId}")
     public BaseResponse close(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
-        wxLiveAssistantProvider.closeAssistantGoodsValid(wxLiveAssistantId);
+        List<String> goodsIdList = wxLiveAssistantProvider.closeAssistantGoodsValid(wxLiveAssistantId).getContext();
+        if(CollectionUtils.isNotEmpty(goodsIdList)){
+            esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIdList).build());
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIdList).build());
+        }
         return BaseResponse.SUCCESSFUL();
     }
 

@@ -303,15 +303,13 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
 //    }
 
     @Override
-    public BaseResponse openAssistantGoodsValid(Long wxLiveAssistantId) {
-        wxLiveAssistantService.openAssistantGoodsValid(wxLiveAssistantId);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<List<String>> openAssistantGoodsValid(Long wxLiveAssistantId) {
+        return BaseResponse.success(wxLiveAssistantService.openAssistantGoodsValid(wxLiveAssistantId));
     }
 
 
     @Override
-    public BaseResponse closeAssistantGoodsValid(Long wxLiveAssistantId) {
-        wxLiveAssistantService.closeAssistantGoodsValid(wxLiveAssistantId);
-        return BaseResponse.SUCCESSFUL();
+    public BaseResponse<List<String>> closeAssistantGoodsValid(Long wxLiveAssistantId) {
+        return BaseResponse.success(wxLiveAssistantService.closeAssistantGoodsValid(wxLiveAssistantId));
     }
 }
