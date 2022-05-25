@@ -41,6 +41,13 @@ public class ERPGoods implements Serializable {
     @JsonProperty("name")
     private String name;
 
+
+    /**
+     * 库存状态
+     */
+    @JsonProperty("stock_status_code")
+    private String stockStatusCode;
+
     /**
      * skus列表
      */

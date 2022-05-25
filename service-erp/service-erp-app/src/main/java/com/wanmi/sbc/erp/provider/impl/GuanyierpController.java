@@ -139,14 +139,17 @@ public class GuanyierpController implements GuanyierpProvider {
         if(optionalErpGoodsInfo.isPresent()) {
             ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
             erpGoods.getSkus().stream().forEach(erpGoodsInfo -> {
-                ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
-                        .itemSkuName(erpGoodsInfo.getName())
-                        .skuCode(erpGoodsInfo.getCode())
-                        .costPrice(erpGoodsInfo.getCostPrice())
-                        .stockStatusCode(erpGoodsInfo.getStockStatusCode())
-                        .itemCode(erpGoods.getCode())
-                        .itemName(erpGoods.getName())
-                        .build();
+                ERPGoodsInfoVO erpGoodsInfoVO = new ERPGoodsInfoVO();
+                erpGoodsInfoVO.setItemSkuName(erpGoodsInfo.getName());
+                erpGoodsInfoVO.setSkuCode(erpGoodsInfo.getCode());
+                erpGoodsInfoVO.setCostPrice(erpGoodsInfo.getCostPrice());
+                erpGoodsInfoVO.setStockStatusCode(erpGoodsInfo.getStockStatusCode());
+                erpGoodsInfoVO.setItemCode(erpGoods.getCode());
+                erpGoodsInfoVO.setItemName(erpGoods.getName());
+                //如果库存状态为空则设置为spu的库存状态
+                if (StringUtils.isBlank(erpGoodsInfo.getStockStatusCode())) {
+                    erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
+                }
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
             });
         }
