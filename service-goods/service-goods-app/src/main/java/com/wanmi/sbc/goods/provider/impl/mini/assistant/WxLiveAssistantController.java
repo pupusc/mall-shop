@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.goods.api.enums.HasAssistantGoodsValidEnum;
 import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
@@ -111,6 +112,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             }else {
                 wxLiveAssistantVo.setStatus(0);
             }
+            wxLiveAssistantVo.setHasAssistantTouch(this.getHasAssistantTouch(assistantModel, now));
             return wxLiveAssistantVo;
         }).collect(Collectors.toList());
         microServicePage.setContent(collect);
@@ -149,7 +151,6 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         wxLiveAssistantDetailVo.setCurrentTime(now.format(df));
         LocalDateTime endTime = assistantModel.getEndTime();
         LocalDateTime startTime = assistantModel.getStartTime();
-
         Duration duration = Duration.between(startTime, endTime);
         if(endTime.isBefore(now)){
             wxLiveAssistantDetailVo.setStatus(2);
@@ -159,6 +160,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
             wxLiveAssistantDetailVo.setStatus(0);
         }
         wxLiveAssistantDetailVo.setDuration(duration.toMinutes());
+        wxLiveAssistantDetailVo.setHasAssistantTouch(this.getHasAssistantTouch(assistantModel, now));
         wxLiveAssistantSearchRequest.setPageSize(300);
         Page<WxLiveAssistantGoodsModel> wxLiveAssistantGoodsPage = wxLiveAssistantService.listGoods(wxLiveAssistantSearchRequest);
         List<WxLiveAssistantGoodsModel> content = wxLiveAssistantGoodsPage.getContent();
@@ -311,5 +313,23 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
     @Override
     public BaseResponse<List<String>> closeAssistantGoodsValid(Long wxLiveAssistantId) {
         return BaseResponse.success(wxLiveAssistantService.closeAssistantGoodsValid(wxLiveAssistantId));
+    }
+
+    /**
+     * 获取是否可以点击按钮
+     * @param assistantModel
+     * @param now
+     * @return
+     */
+    private Integer getHasAssistantTouch(WxLiveAssistantModel assistantModel, LocalDateTime now){
+        Integer hasAssistantTouch = 0;
+        LocalDateTime startBufferTime = assistantModel.getStartTime().minusMinutes(WxLiveAssistantService.minuteBeginBuffer);
+        if (assistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.NO_SYNC.getCode()
+                && now.isAfter(startBufferTime)) {
+            hasAssistantTouch = 1;
+        } else if (assistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.SYNC.getCode() && now.isAfter(assistantModel.getEndTime())) {
+            hasAssistantTouch = 1;
+        }
+        return hasAssistantTouch;
     }
 }

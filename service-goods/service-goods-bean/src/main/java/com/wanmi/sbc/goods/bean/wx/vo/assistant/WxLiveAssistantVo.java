@@ -24,6 +24,12 @@ public class WxLiveAssistantVo {
     private Integer hasAssistantGoodsValid;
 
     /**
+     * 是否直播计划的开始同步/结束同步按钮可以触发 0 不可以 1可以
+     */
+    private Integer hasAssistantTouch;
+
+
+    /**
      * 开始时间
      */
     private String startTime;

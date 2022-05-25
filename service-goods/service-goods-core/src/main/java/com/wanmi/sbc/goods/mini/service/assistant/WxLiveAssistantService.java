@@ -73,8 +73,9 @@ public class WxLiveAssistantService {
     private WxGoodsService wxGoodsService;
     @Autowired
     private RedisService redisService;
-    @Autowired
-    private RedisTemplate redisTemplate;
+
+    public static final Integer minuteBeginBuffer = 60;
+
 
     @Transactional
     public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
@@ -470,7 +471,7 @@ public class WxLiveAssistantService {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先关闭同步，才能重新开启");
         }
 
-        LocalDateTime beforeDateTime = wxLiveAssistantModel.getStartTime().minusMonths(60);
+        LocalDateTime beforeDateTime = wxLiveAssistantModel.getStartTime().minusMinutes(minuteBeginBuffer);
         if (LocalDateTime.now().isBefore(beforeDateTime)) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播开始时间前1小时才可以开启");
         }
@@ -504,6 +505,9 @@ public class WxLiveAssistantService {
         WxLiveAssistantModel wxLiveAssistantModel = opt.get();
         if (wxLiveAssistantModel.getHasAssistantGoodsValid() == null || wxLiveAssistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.NO_SYNC.getCode()) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先开启同步，才能重新关闭");
+        }
+        if (LocalDateTime.now().isBefore(wxLiveAssistantModel.getEndTime())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播期间不能关闭同步");
         }
 
         /**
