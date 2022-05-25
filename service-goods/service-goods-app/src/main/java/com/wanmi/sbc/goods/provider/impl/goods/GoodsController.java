@@ -54,6 +54,7 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemDelDTO;
 import com.wanmi.sbc.goods.bean.dto.LinkedMallItemModificationDTO;
@@ -723,11 +724,20 @@ public class GoodsController implements GoodsProvider {
 //        return BaseResponse.success(resultMap);
 //    }
 
-    @Override
-    public BaseResponse<Map<String,String>> decryLastStock(Map<String, Long> datas){
-        goodsInfoStockService.decryLastStock(datas);
-        return BaseResponse.SUCCESSFUL();
-    }
+//    @Override
+//    public BaseResponse<Map<String,String>> decryLastStock(Map<String, Long> datas){
+//        goodsInfoStockService.decryLastStock(datas);
+//        return BaseResponse.SUCCESSFUL();
+//    }
+
+//    @Override
+//    public BaseResponse decryFreezeStock(List<GoodsInfoMinusStockDTO> releaseFrozenStockList){
+//        goodsInfoStockService.decryFreezeStock(releaseFrozenStockList);
+//        return BaseResponse.SUCCESSFUL();
+//    }
+
+
+
 
     @Override
     public BaseResponse<GoodsInfoStockSyncMaxIdProviderResponse> guanYiSyncGoodsStock(GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest){

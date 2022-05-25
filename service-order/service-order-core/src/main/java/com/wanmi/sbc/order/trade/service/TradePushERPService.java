@@ -29,9 +29,11 @@ import com.wanmi.sbc.erp.api.request.TradeQueryRequest;
 import com.wanmi.sbc.erp.api.response.QueryTradeResponse;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdAndSkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdAndSkuIdsResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.order.api.request.trade.ProviderTradeDeliveryStatusSyncRequest;
@@ -134,7 +136,7 @@ public class TradePushERPService {
     private TradeService tradeService;
 
     @Autowired
-    private GoodsInfoQueryProvider goodsInfoQueryProvider;
+    private GoodsInfoProvider goodsInfoProvider;
 
     @Autowired
     private GoodsProvider goodsProvider;
@@ -219,10 +221,19 @@ public class TradePushERPService {
     }
 
     private void releaseFrozenStock(ProviderTrade providerTrade){
-        List<TradeItem> tradeItems = providerTrade.getTradeItems();
-        Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
-        log.info("释放虚拟冻结库存:{}", JSONObject.toJSONString(map));
-        goodsProvider.decryLastStock(map);
+//        List<TradeItem> tradeItems = providerTrade.getTradeItems();
+//        Map<String, Long> map = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, TradeItem::getNum));
+//        log.info("释放虚拟冻结库存:{}", JSONObject.toJSONString(map));
+//        goodsProvider.decryLastStock(map);
+
+        List<GoodsInfoMinusStockDTO> stockList = new ArrayList<>();
+        for (TradeItem tradeItem : providerTrade.getTradeItems()) {
+            GoodsInfoMinusStockDTO goodsInfoMinusStockDTO = new GoodsInfoMinusStockDTO();
+            goodsInfoMinusStockDTO.setStock(tradeItem.getNum());
+            goodsInfoMinusStockDTO.setGoodsInfoId(tradeItem.getSkuId());
+            stockList.add(goodsInfoMinusStockDTO);
+        }
+        goodsInfoProvider.decryFreezeStock(stockList);
     }
 
     /**

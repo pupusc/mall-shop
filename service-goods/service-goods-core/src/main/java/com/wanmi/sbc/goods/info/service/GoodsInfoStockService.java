@@ -21,6 +21,8 @@ import com.wanmi.sbc.goods.redis.RedisHIncrBean;
 import com.wanmi.sbc.goods.redis.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +63,9 @@ public class GoodsInfoStockService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     /**
      * 初始化redis缓存
      *
@@ -74,6 +80,58 @@ public class GoodsInfoStockService {
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
     }
 
+//    /**
+//     * 更新商品库存
+//     * @param erpStock
+//     * @param goodsInfoId
+//     */
+//    public void resetStockByGoodsInfoId(Long erpStock,String goodsInfoId,Long actualStock){
+//        log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, erpStock);
+//        redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
+//        redisService.setString(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, erpStock.toString());
+//        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
+//
+//        //发送mq，更新数据库库存
+////        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
+//        // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+//        //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+//        goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
+////        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
+//    }
+//
+//    /**
+//     * 更新商品库存
+//     * @param erpStock
+//     * @param goodsInfoId
+//     */
+//    public void resetStockByGoodsInfoId(Long erpStock,String goodsInfoId,Long actualStock){
+//        log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, erpStock);
+//        redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
+//        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
+//
+//        //发送mq，更新数据库库存
+////        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
+//        // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+//        //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+//        goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
+////        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
+//    }
+//
+//
+//    /**
+//     * 重制库存和成本价
+//     * @param goodsInfoId
+//     * @param erpStock
+//     * @param actualStock
+//     * @param erpCostPrice
+//     */
+//    private void resetStockCostPriceByGoodsInfoId(String goodsInfoId, Long erpStock, Long actualStock, BigDecimal erpCostPrice) {
+//        log.info("GoodsInfoStockService resetStockCostPriceByGoodsInfoId skuId {} erpStock: {} actualStock:{} erpCostPrice: {}", goodsInfoId, erpStock, actualStock, erpCostPrice);
+//        redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
+//        redisService.setString(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, erpStock.toString());
+//        goodsInfoRepository.updateCostPriceAndStockById(erpCostPrice, actualStock, goodsInfoId);
+//    }
+
     /**
      * 更新商品库存
      * @param erpStock
@@ -82,17 +140,9 @@ public class GoodsInfoStockService {
     public void resetStockByGoodsInfoId(Long erpStock,String goodsInfoId,Long actualStock){
         log.info("初始化/覆盖redis库存开始：skuId={},stock={}", goodsInfoId, erpStock);
         redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
-        redisService.setString(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, erpStock.toString());
         log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, actualStock);
-
-        //发送mq，更新数据库库存
-//        log.info("更新redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, actualStock);
-        // GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
-        //  goodsInfoStockSink.resetOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
         goodsInfoRepository.resetStockById(actualStock, goodsInfoId);
-//        log.info("更新redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, actualStock);
     }
-
 
     /**
      * 重制库存和成本价
@@ -104,28 +154,50 @@ public class GoodsInfoStockService {
     private void resetStockCostPriceByGoodsInfoId(String goodsInfoId, Long erpStock, Long actualStock, BigDecimal erpCostPrice) {
         log.info("GoodsInfoStockService resetStockCostPriceByGoodsInfoId skuId {} erpStock: {} actualStock:{} erpCostPrice: {}", goodsInfoId, erpStock, actualStock, erpCostPrice);
         redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, actualStock.toString());
-        redisService.setString(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId, erpStock.toString());
         goodsInfoRepository.updateCostPriceAndStockById(erpCostPrice, actualStock, goodsInfoId);
     }
 
-    /**
-     * 更新商品库存
-     * @param stock
-     * @param goodsInfoId
-     */
-    public void resetGoodsInfoStock(Long stock, String goodsInfoId){
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
-        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
-        goodsInfoRepository.resetStockById(stock, goodsInfoId);
-    }
+//    /**
+//     * 更新商品库存
+//     * @param stock
+//     * @param goodsInfoId
+//     */
+//    public void resetGoodsInfoStock(Long stock, String goodsInfoId){
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setValueSerializer(new StringRedisSerializer());
+//        redisTemplate.opsForValue().set(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock.toString());
+//        log.info("初始化/覆盖redis库存结束：skuId={},stock={}", goodsInfoId, stock);
+//        goodsInfoRepository.resetStockById(stock, goodsInfoId);
+//    }
 
-    public void decryLastStock(Map<String, Long> datas){
-        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
-            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
-            return null;
-        });
+//    public void decryLastStock(Map<String, Long> datas){
+//        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+//            return null;
+//        });
+//    }
+//    public void decryLastStock(Map<String, Long> datas){
+//        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX.concat(k)).getBytes(), v));
+//            return null;
+//        });
+//    }
+//
+//    public void decryLastStock(Map<String, Long> datas){
+//        redisTemplate.executePipelined((RedisCallback<Object>) redisConnection -> {
+//            datas.forEach((k, v) -> redisConnection.decrBy((RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX.concat(k)).getBytes(), v));
+//            return null;
+//        });
+//    }
+
+    /**
+     * 减少冻结库存
+     */
+    public void decryFreezeStock(List<GoodsInfoMinusStockDTO> releaseFrozenStockList) {
+        for (GoodsInfoMinusStockDTO goodsInfoMinusStockDTO : releaseFrozenStockList) {
+            redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoMinusStockDTO.getGoodsInfoId(),
+                    -goodsInfoMinusStockDTO.getStock());
+        }
     }
 
     /**
@@ -166,10 +238,6 @@ public class GoodsInfoStockService {
             int actualStockQty = 0;
             GoodsInfoStockSyncProviderResponse goodsInfoStockSyncResponse = new GoodsInfoStockSyncProviderResponse();
 
-            //同步库存之前优先获取库存冻结数量
-            boolean isChangeStock = false;
-            String hisStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_HIS_PREFIX + goodsInfoParam.getGoodsInfoId());
-
             //表示同步库存
             if (Objects.equals(goodsInfoParam.getStockSyncFlag(),1)) {
                 goodsInfoStockSyncResponse.setCanSyncStock(true); //表示同步库存
@@ -182,13 +250,8 @@ public class GoodsInfoStockService {
                 actualStockQty = goodsInfoParam.getStock().intValue();
             }
 
-            if (!StringUtils.isEmpty(hisStockStr)) {
-                long hisStock = Long.parseLong(hisStockStr);
-                if (hisStock != actualStockQty) {
-                    isChangeStock = true;
-                }
-            }
-
+            //判断库存是否变更
+            boolean isChangeStock = actualStockQty == goodsInfoParam.getStock();
 
             //表示同步 成本价
             if (Objects.equals(goodsInfoParam.getCostPriceSyncFlag(),1)){
@@ -236,77 +299,23 @@ public class GoodsInfoStockService {
         }
         return result;
     }
-//
-//    @Transactional
-//    public Map<String, Map<String, Integer>> batchUpdateGoodsInfoStock(List<GoodsInfo> goodsInfos, Map<String, Integer> erpSkuStockMap,Map<String, String> stockStatusMap){
-//        Map<String, Map<String, Integer>> resultMap = new HashMap<>();
-//        Map<String, Integer> goodsStockMap = new HashMap<>();
-//        Map<String, Integer> goodsInfoStockMap = new HashMap<>();
-//        if(!erpSkuStockMap.isEmpty() && CollectionUtils.isNotEmpty(goodsInfos) && !stockStatusMap.isEmpty()){
-//            for (GoodsInfo goodsInfo : goodsInfos) {
-//                if (Objects.equals(goodsInfo.getStockSyncFlag(),0)){
-//                    log.info("{}同步库存关闭",goodsInfo.getErpGoodsInfoNo());
-//                    continue;
-//                }
-//                Integer erpGoodsInfoStock = erpSkuStockMap.get(goodsInfo.getErpGoodsInfoNo());
-//                String erpStockStatus = stockStatusMap.get(goodsInfo.getErpGoodsInfoNo());
-//                int actualStock;
-//                //虚拟、代发无所库：99逻辑，当库存＜10，自动库存变为99
-//                if(StringUtils.isNotEmpty(erpStockStatus) && Arrays.asList("0","2").contains(erpStockStatus)){
-//                    log.info("{}同步库存，99逻辑",goodsInfo.getErpGoodsInfoNo());
-//                    if(erpGoodsInfoStock == null) {
-//                        Long stock = goodsInfo.getStock();
-//                        if(stock == null) {
-//                            actualStock = 0;
-//                        }else {
-//                            actualStock = stock.intValue();
-//                        }
-//                    }else {
-//                        if(erpGoodsInfoStock == 0) {
-//                            actualStock = 0;
-//                            resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 0L);
-//                        }else {
-//                            Long stock = goodsInfo.getStock();
-//                            if(stock == null || stock <= 9) {
-//                                actualStock = 99;
-//                                resetGoodsById(0L, goodsInfo.getGoodsInfoId(), 99L);
-//                            }else {
-//                                actualStock = stock.intValue();
-//                            }
-//                        }
-//                    }
-//                    log.info("{}同步库存，99逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
-//                }else {
-//                    log.info("{}同步库存，正常同步逻辑",goodsInfo.getErpGoodsInfoNo());
-//                    if(erpGoodsInfoStock == null) {
-//                        Long stock = goodsInfo.getStock();
-//                        if(stock == null) {
-//                            actualStock = 0;
-//                        }else {
-//                            actualStock = stock.intValue();
-//                        }
-//                    }else {
-//                        actualStock = getActualStock(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId()).intValue();
-//                        resetGoodsById(Long.valueOf(erpGoodsInfoStock), goodsInfo.getGoodsInfoId(), (long) actualStock);
-//                    }
-//                    log.info("{}同步库存，正常同步逻辑,actualStock:{}",goodsInfo.getErpGoodsInfoNo(),actualStock);
-//                }
-//                goodsStockMap.compute(goodsInfo.getGoodsId(), (k, v) -> {
-//                    if(v == null) return actualStock;
-//                    return v + actualStock;
-//                });
-//                goodsInfoStockMap.put(goodsInfo.getGoodsInfoId(), actualStock);
-//            }
-//            goodsStockMap.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
-//        }
-//        resultMap.put("skus", goodsInfoStockMap);
-//        resultMap.put("spus", goodsStockMap);
-//        return resultMap;
-//    }
 
-//    @Transactional
-//    public void batchUpdateGoodsStock(Map<String, Integer> data){
-//        data.forEach((k, v) -> goodsRepository.resetGoodsStockById(Long.valueOf(v), k));
+//    /**
+//     * 获取当前冻结
+//     * @param goodsInfoId
+//     * @return
+//     */
+//    public Long getCurrentFreezeStock(String goodsInfoId) {
+//        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
+//        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
+//        log.info("{} redis getActualStock ,lastStock:{},nowStock:{}",goodsInfoId, lastStock,nowStock);
+//        if (lastStock != null && nowStock != null) {
+//            if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
+//                Long stockFreezeCount  = (Long.parseLong(lastStock.toString()) - Long.parseLong(nowStock.toString()));
+//                return stockFreezeCount <= 0L ? 0L : stockFreezeCount;
+//            }
+//        }
+//        return 0L;
 //    }
 
     /**
@@ -315,14 +324,10 @@ public class GoodsInfoStockService {
      * @return
      */
     public Long getCurrentFreezeStock(String goodsInfoId) {
-        Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
-        Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
-        log.info("{} redis getActualStock ,lastStock:{},nowStock:{}",goodsInfoId, lastStock,nowStock);
-        if (lastStock != null && nowStock != null) {
-            if (Long.valueOf(lastStock.toString()).compareTo(Long.valueOf(nowStock.toString())) > 0) {
-                Long stockFreezeCount  = (Long.parseLong(lastStock.toString()) - Long.parseLong(nowStock.toString()));
-                return stockFreezeCount <= 0L ? 0L : stockFreezeCount;
-            }
+
+        Object freezeStockObj = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId);
+        if (freezeStockObj != null) {
+            return Long.parseLong(freezeStockObj.toString());
         }
         return 0L;
     }
@@ -344,7 +349,6 @@ public class GoodsInfoStockService {
             } else {
                 actualStockQty = currentErpStock - currentFreezeStock;
             }
-            redisService.setString(RedisKeyConstant.GOODS_INFO_STOCK_HIS_PREFIX + goodsInfoId, actualStockQty.toString());
 //            Object lastStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_LAST_STOCK_PREFIX + goodsInfoId);
 //            Object nowStock = redisTemplate.opsForValue().get(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
 //            log.info("{} redis getActualStock ,stock:{},lastStock:{},nowStock:{}",goodsInfoId, currentErpStock, lastStock,nowStock);
@@ -373,18 +377,28 @@ public class GoodsInfoStockService {
      * @param goodsInfoId SKU编号
      */
     public void addStockById(Long stock, String goodsInfoId) {
+        RLock rLock = redissonClient.getFairLock(RedisKeyConstant.GOODS_INFO_STOCK_LOCK_PREFIX + goodsInfoId);
+        try {
+            // 检查数据准确
+            checkStockCache(goodsInfoId);
 
-        // 检查数据准确
-        checkStockCache(goodsInfoId);
+            if (rLock.tryLock(1, 1, TimeUnit.SECONDS)) {
 
-        Long count = redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock);
-        log.info("增量增加库存结束：skuId={},增加的库存增量:{},增加后的库存:{}", goodsInfoId, stock, count);
-
-        //发送mq，增加数据库库存
-        log.info("扣减redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
-        GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
-        goodsInfoStockSink.addOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
-        log.info("扣减redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+                Long count = redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock);
+                log.info("增量增加库存结束：skuId={},增加的库存增量:{},增加后的库存:{}", goodsInfoId, stock, count);
+                //发送mq，增加数据库库存
+                log.info("扣减redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
+                GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+                goodsInfoStockSink.addOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+                log.info("扣减redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+            }
+        } catch (Exception ex) {
+            log.error("GoodsInfoStockService addStockById goodsInfoId:{} 添加库存异常", goodsInfoId, ex);
+        } finally {
+            if (rLock.isLocked()) {
+                rLock.unlock();
+            }
+        }
     }
 
 
@@ -395,24 +409,40 @@ public class GoodsInfoStockService {
      * @param goodsInfoId SKU编号
      */
     public void subStockById(Long stock, String goodsInfoId) {
-        // 检查数据准确
-        checkStockCache(goodsInfoId);
 
-        Long count = redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, -stock);
-        log.info("增量扣减库存结束：skuId={},扣减的库存增量:{},扣减后的库存:{}", goodsInfoId, stock, count);
-        if (count == null || count < 0) {
-            log.info("redis中库存不足，返还redis库存开始，skuId={},stock={}...", goodsInfoId, stock);
-            //扣到负数时，返还库存。
-            redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock);
-            log.info("redis中库存不足，返还redis库存结束，skuId={},stock={}...", goodsInfoId, stock);
-            throw new SbcRuntimeException("k-030301");
-        } else {
-            log.info("扣减redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
-            //发送mq，扣减数据库库存
-            GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
-            goodsInfoStockSink.subOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
-            log.info("扣减redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+        RLock rLock = redissonClient.getFairLock(RedisKeyConstant.GOODS_INFO_STOCK_LOCK_PREFIX + goodsInfoId);
+        try {
+            // 检查数据准确
+            checkStockCache(goodsInfoId);
+            if (rLock.tryLock(1, 1, TimeUnit.SECONDS)) {
+
+                Long count = redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, -stock);
+                log.info("增量扣减库存结束：skuId={},扣减的库存增量:{},扣减后的库存:{}", goodsInfoId, stock, count);
+                if (count == null || count < 0) {
+                    log.info("redis中库存不足，返还redis库存开始，skuId={},stock={}...", goodsInfoId, stock);
+                    //扣到负数时，返还库存。
+                    redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId, stock); //增加冻结
+                    log.info("redis中库存不足，返还redis库存结束，skuId={},stock={}...", goodsInfoId, stock);
+                    throw new SbcRuntimeException("k-030301");
+                } else {
+                    redisTemplate.opsForValue().increment(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId, stock); //此处要考虑原子性问题
+                    log.info("扣减redis库存后，发送mq同步至数据库开始skuId={},stock={}...", goodsInfoId, stock);
+                    //发送mq，扣减数据库库存
+                    GoodsInfoMinusStockByIdRequest request = GoodsInfoMinusStockByIdRequest.builder().goodsInfoId(goodsInfoId).stock(stock).build();
+                    goodsInfoStockSink.subOutput().send(new GenericMessage<>(JSONObject.toJSONString(request)));
+                    log.info("扣减redis库存后，发送mq同步至数据库结束skuId={},stock={}...", goodsInfoId, stock);
+                }
+            } else {
+                throw new SbcRuntimeException("k-030301");
+            }
+        } catch (Exception e) {
+            log.error("GoodsInfoStockService subStockById goodsInfoId:{} 扣减库存异常", goodsInfoId, e);
+        } finally {
+            if (rLock.isLocked()) {
+                rLock.unlock();
+            }
         }
+
     }
 
     /**

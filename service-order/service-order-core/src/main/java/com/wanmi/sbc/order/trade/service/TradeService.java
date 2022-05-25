@@ -4286,11 +4286,15 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             bookingSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         //状态变更
         StateRequest stateRequest = StateRequest
@@ -6742,10 +6746,14 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
             bookingSaleGoodsOrderAddStock(trade);
         }
 
@@ -6795,10 +6803,14 @@ public class TradeService {
             verifyService.addFlashSaleGoodsStock(trade.getTradeItems(), trade.getBuyer().getId());
             //秒杀商品参与活动不扣减库存改造，下单时要同时加库存
             verifyService.addSkuListStock(trade.getTradeItems());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         // 取消订单退还用户的已抢购数量
         String havePanicBuyingKey =

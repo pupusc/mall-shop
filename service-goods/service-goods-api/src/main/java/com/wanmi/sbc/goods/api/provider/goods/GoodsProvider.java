@@ -12,6 +12,7 @@ import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsDelResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallGoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.LinkedMallInitResponse;
 import com.wanmi.sbc.goods.api.response.linkedmall.SyncItemResponse;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPriceChangeDTO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
@@ -309,8 +310,11 @@ public interface GoodsProvider {
     BaseResponse syncGoodsStockAndCostPrice(@RequestBody List<String> goodsIdList);
 
 
-    @PostMapping("/goods/${application.goods.version}/decry-last-stock")
-    BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
+//    @PostMapping("/goods/${application.goods.version}/decry-last-stock")
+//    BaseResponse<Map<String,String>> decryLastStock(@RequestBody Map<String, Long> datas);
+
+//    @PostMapping("/goods/${application.goods.version}/decry-freeze-stock")
+//    BaseResponse decryFreezeStock(@RequestBody List<GoodsInfoMinusStockDTO> releaseFrozenStockList);
 
 
     /**
