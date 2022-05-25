@@ -668,20 +668,20 @@ public class WxLiveAssistantService {
 
 
             //价格还原
-            Map oldGoodsInfoMap = null;
+            Map<String, Map<String, String>> oldGoodsInfoMap = null;
             if (StringUtils.isNotBlank(oldGoodsInfoStr)) {
                 oldGoodsInfoMap = JSONObject.parseObject(oldGoodsInfoStr, Map.class);
             }
-            Object oldGoodsInfoMapObj = oldGoodsInfoMap.get(goodsInfo.getGoodsInfoId());
-            if (oldGoodsInfoMapObj != null) {
-                Map<String, BigDecimal> oldGoodsInfoInnerMap = (Map<String, BigDecimal>) oldGoodsInfoMapObj;
-                BigDecimal oldGoodsInfoMarketPrice = oldGoodsInfoInnerMap.get("price");
-                if (oldGoodsInfoMarketPrice != null) {
-                    goodsInfo.setMarketPrice(oldGoodsInfoMarketPrice);
+            Map<String, String> priceAndStockMap = oldGoodsInfoMap.get(goodsInfo.getGoodsInfoId());
+            if (priceAndStockMap != null) {
+                String oldGoodsInfoMarketPrice = priceAndStockMap.get("price");
+                if (StringUtils.isNotBlank(oldGoodsInfoMarketPrice)) {
+                    BigDecimal oldGoodsInfoMarketPriceDecimal = new BigDecimal(oldGoodsInfoMarketPrice);
+                    goodsInfo.setMarketPrice(oldGoodsInfoMarketPriceDecimal);
 
                     //设置goods的最小金额
-                    if (oldGoodsInfoMarketPrice.compareTo(assistantGoodsConfigVo.getSkuMiniMarketPrice()) < 0) {
-                        assistantGoodsConfigVo.setSkuMiniMarketPrice(oldGoodsInfoMarketPrice);
+                    if (oldGoodsInfoMarketPriceDecimal.compareTo(assistantGoodsConfigVo.getSkuMiniMarketPrice()) < 0) {
+                        assistantGoodsConfigVo.setSkuMiniMarketPrice(oldGoodsInfoMarketPriceDecimal);
                     }
                 }
             }
