@@ -225,10 +225,10 @@ public class WxLiveAssistantService {
                 wxLiveAssistantGoodsModel.setNewGoodsInfoJson(JSON.toJSONString(assistantGoodsInfoConfigVoList));
             }
             if (goodsId2GoodsInfoId2StockFlagSyncMap.get(goodsId) != null) {
-                wxLiveAssistantGoodsModel.setOlfSyncStockFlag(JSON.toJSONString(goodsId2GoodsInfoId2StockFlagSyncMap));
+                wxLiveAssistantGoodsModel.setOlfSyncStockFlag(JSON.toJSONString(goodsId2GoodsInfoId2StockFlagSyncMap.get(goodsId) ));
             }
             if (goodsId2GoodsInfoId2PriceMap.get(goodsId) != null) {
-                wxLiveAssistantGoodsModel.setOldGoodsInfo(JSON.toJSONString(goodsId2GoodsInfoId2PriceMap));
+                wxLiveAssistantGoodsModel.setOldGoodsInfo(JSON.toJSONString(goodsId2GoodsInfoId2PriceMap.get(goodsId)));
             }
             LocalDateTime now = LocalDateTime.now();
             wxLiveAssistantGoodsModel.setCreateTime(now);
