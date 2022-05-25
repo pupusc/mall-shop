@@ -38,12 +38,28 @@ public enum TerminalSource {
     }
 
 
-    public static TerminalSource getTerminalSource(String name) {
+//    public static TerminalSource getTerminalSource(String name) {
+//        for (TerminalSource terminal : values()) {
+//            if (terminal.getMessage().equals(name)) {
+//                return terminal;
+//            }
+//        }
+//        return TerminalSource.H5;
+//    }
+
+    public static TerminalSource getTerminalSource(String name, TerminalScene terminalScene) {
+        TerminalSource terminalResult = TerminalSource.H5;
         for (TerminalSource terminal : values()) {
             if (terminal.getMessage().equals(name)) {
-                return terminal;
+                terminalResult = terminal;
+                break;
             }
         }
-        return TerminalSource.H5;
+        if (terminalResult == TerminalSource.MINIPROGRAM) {
+            if (TerminalScene.WECHAT_VIDEO == terminalScene) {
+                terminalResult = TerminalSource.MALL_NORMAL;
+            }
+        }
+        return terminalResult;
     }
 }

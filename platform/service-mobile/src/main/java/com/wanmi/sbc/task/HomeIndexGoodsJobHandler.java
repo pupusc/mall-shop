@@ -232,7 +232,7 @@ public class HomeIndexGoodsJobHandler extends IJobHandler {
         queryRequest.setAuditStatus(CheckStatus.CHECKED.toValue());
         queryRequest.setStoreState(StoreState.OPENING.toValue());
         queryRequest.setVendibility(Constants.yes);
-        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(goodsChannelTypeName).getCode()));
+        queryRequest.setGoodsChannelTypeSet(Collections.singletonList(TerminalSource.getTerminalSource(goodsChannelTypeName, null).getCode()));
         List<EsGoodsVO> esGoodsVOS = esGoodsInfoElasticQueryProvider.pageByGoods(queryRequest).getContext().getEsGoods().getContent();
         List<GoodsVO> goodsVOList = bookListModelAndGoodsService.changeEsGoods2GoodsVo(esGoodsVOS);
         Map<String, GoodsVO> spuId2GoodsVoMap = goodsVOList.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
