@@ -8,6 +8,8 @@ import com.google.common.collect.Lists;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.prize.service.OrderCouponService;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -198,6 +200,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
 import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
@@ -4313,6 +4316,16 @@ public class TradeService {
         orderProducerService.backRestrictedPurchaseNum(trade.getId(), null, BackRestrictedType.ORDER_CANCEL);
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
+
+        //视频号
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
+                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
+                return;
+            }
+            WxVideoOrderDetailResponse wechatVideoOrder = wxOrderService.getWechatVideoOrder(trade);
+            wxOrderService.releaseWechatVideoStock(wechatVideoOrder);
+        }
     }
 
     /**
@@ -6729,6 +6742,19 @@ public class TradeService {
             return;
         }
 
+        //校验是有视频号支付订单信息
+        WxVideoOrderDetailResponse context = null;
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            context = wxOrderService.getWechatVideoOrder(trade);
+            if (context != null) {
+                WxVideoOrderDetailResponse.PayInfo payInfo = context.getOrder().getOrderDetail().getPayInfo();
+                if (payInfo != null) {
+                    log.info("==========视频号订单超时未支付取消，订单已支付取消失败，订单Id为：{}", baseTid);
+                    return;
+                }
+            }
+        }
+
         if (trade.getTradeState().getAuditState() == AuditState.CHECKED) {
             //删除支付单
             // payOrderService.deleteByPayOrderId(trade.getPayOrderId());
@@ -6778,7 +6804,7 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
         //小程序发送取消消息
-        wxOrderService.sendWxCancelOrderMessage(trade);
+        wxOrderService.sendWxCancelOrderMessage(trade, context);
     }
 
     /**

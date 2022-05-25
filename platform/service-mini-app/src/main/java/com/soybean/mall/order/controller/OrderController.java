@@ -220,12 +220,12 @@ public class OrderController {
                 }
                 successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
             } else {
-                throw new SbcRuntimeException("K-000001");
+                throw new SbcRuntimeException("K-000001", "操作频繁");
             }
             return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
         } catch (InterruptedException ex) {
             log.error("OrderController commit InterruptedException", ex);
-            throw new SbcRuntimeException("K-000001");
+            throw new SbcRuntimeException("K-000001",  "操作频繁");
         } catch (Exception e) {
             log.error("OrderController commit Exception ", e);
             throw e;
@@ -264,7 +264,7 @@ public class OrderController {
             getPaymentParamsRequest.setTid(trades.get(0).getId());
             BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
             if(response == null || response.getContext() ==null){
-                return  wxOrderPaymentVO;
+                throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
             }
             wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
             wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());

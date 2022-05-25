@@ -8,6 +8,9 @@ import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
@@ -105,6 +108,9 @@ public class WxOrderService {
 
     @Autowired
     private OrderConfigProperties orderConfigProperties;
+
+    @Autowired
+    private WxGoodsApiController wxGoodsApiController;
 
     /**
      * 视频号售后公共部分
@@ -381,7 +387,7 @@ public class WxOrderService {
         return result;
     }
 
-    public void sendWxCancelOrderMessage(Trade trade){
+    public void sendWxCancelOrderMessage(Trade trade, WxVideoOrderDetailResponse context){
         if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
             return;
         }
@@ -393,18 +399,18 @@ public class WxOrderService {
                     log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
                     return;
                 }
-                WxOrderDetailRequest request = new WxOrderDetailRequest();
-                request.setOutOrderId(trade.getId());
-                request.setOpenid(trade.getBuyer().getOpenId());
-                BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
-                WxVideoOrderDetailResponse context = detail.getContext();
-                if (context == null || context.getOrder() == null) {
-                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
+//                WxOrderDetailRequest request = new WxOrderDetailRequest();
+//                request.setOutOrderId(trade.getId());
+//                request.setOpenid(trade.getBuyer().getOpenId());
+//                BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
+//                WxVideoOrderDetailResponse context = detail.getContext();
+                if (context == null) {
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单为空 不可以自动取消微信订单", trade.getId(), trade.getBuyer().getOpenId());
                     return;
                 }
 
                 if (context.getOrder().getStatus() != 10) {
-                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消微信订单", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
                     return;
                 }
                 WxOrderCancelRequest wxOrderCancelRequest = new WxOrderCancelRequest();
@@ -412,7 +418,8 @@ public class WxOrderService {
                 wxOrderCancelRequest.setOpenid(trade.getBuyer().getOpenId());
                 wxOrderCancelRequest.setOrderId(context.getOrder().getOrderId());
                 BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.cancelOrder(wxOrderCancelRequest);
-                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 取消结果为：{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 取消结果为：{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                this.releaseWechatVideoStock(context);
 
             } else {
                 WxSendMessageRequest request = new WxSendMessageRequest();
@@ -441,6 +448,55 @@ public class WxOrderService {
       }
     }
 
+    /**
+     * 释放库存，添加trycatch 防止异常影响数据，此处添加try catch
+     * @param context
+     */
+    public void releaseWechatVideoStock(WxVideoOrderDetailResponse context) {
+        if (context == null) {
+            return;
+        }
+
+        try {
+            //1、获取商品的库存
+            for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
+                // 获取总的库存信息
+                BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
+                        wxGoodsApiController.getProductDetail(productInfo.getOutProductId());
+                for (WxGetProductDetailResponse.Sku skuParam : productDetail.getContext().getSkus()) {
+                    if (Objects.equals(productInfo.getOutSkuId(), skuParam.getOutSkuId())) {
+                        WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+                        wxUpdateProductWithoutAuditRequest.setOutProductId(productInfo.getOutProductId());
+
+                        List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+                        WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+                        sku.setOutSkuId(productInfo.getOutSkuId());
+                        sku.setStockNum(skuParam.getStockNum() + productInfo.getProductCnt());
+                        skus.add(sku);
+                        wxUpdateProductWithoutAuditRequest.setSkus(skus);
+                        BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
+                        log.error("微信小程序 视频号取消订单 {} 释放库存返回的结果为 {}", context.getOrder().getOutOrderId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            log.error("视频号取消订单 {} 增加库存异常", context.getOrder().getOutOrderId());
+        }
+    }
+
+    /**
+     * 获取微信视频号订单信息
+     * @param trade
+     */
+    public WxVideoOrderDetailResponse getWechatVideoOrder(Trade trade) {
+        WxOrderDetailRequest request = new WxOrderDetailRequest();
+        request.setOutOrderId(trade.getId());
+        request.setOpenid(trade.getBuyer().getOpenId());
+        BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
+        WxVideoOrderDetailResponse context = detail.getContext();
+        log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
+        return context;
+    }
 
 //    public void createWxOrder(String tid) {
 //        Trade trade = tradeRepository.findById(tid).orElse(null);
@@ -476,7 +532,10 @@ public class WxOrderService {
             JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
             Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
             if (minuteObj != null) {
-                outTime = Integer.parseInt(minuteObj.toString());
+                int tmpOutTime = Integer.parseInt(minuteObj.toString());
+                if (tmpOutTime >= 15 && tmpOutTime <= (24 * 60)) {
+                    outTime = tmpOutTime;
+                }
             }
         } catch (Exception ex) {
             log.error("TradeService timeoutCancelConfig error", ex);
