@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -72,9 +73,8 @@ public class WxLiveAssistantService {
     private WxGoodsService wxGoodsService;
     @Autowired
     private RedisService redisService;
-
-    @Value("${default.providerId}")
-    private String defaultProviderId;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Transactional
     public Long addAssistant(WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
@@ -611,6 +611,9 @@ public class WxLiveAssistantService {
             goodsRepository.updateStockAndSkuMinMarketPriceByGoodsId(V.getSumStock(), V.getSkuMiniMarketPrice(), V.getGoodsId());
         });
 
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            redisService.delete(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfo.getGoodsInfoId());
+        }
         //刷新es
     }
 
@@ -700,6 +703,10 @@ public class WxLiveAssistantService {
         goodsId2AssistantGoodsConfigMap.forEach((K, V) -> {
             goodsRepository.updateSkuMinMarketPriceByGoodsId(AddedFlag.NO.toValue(), V.getSkuMiniMarketPrice(), V.getGoodsId());
         });
+
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            redisService.delete(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfo.getGoodsInfoId());
+        }
 
         //同步库存 不判断是否自动同步，交给同步方法处理 此处只是处理管易云的商品
         goodsStockService.batchUpdateStock(
