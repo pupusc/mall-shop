@@ -6804,7 +6804,9 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
         //小程序发送取消消息
-        wxOrderService.sendWxCancelOrderMessage(trade, context);
+        if (context != null) {
+            wxOrderService.sendWxCancelOrderMessage(trade, context);
+        }
     }
 
     /**

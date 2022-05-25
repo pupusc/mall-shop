@@ -399,15 +399,6 @@ public class WxOrderService {
                     log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
                     return;
                 }
-//                WxOrderDetailRequest request = new WxOrderDetailRequest();
-//                request.setOutOrderId(trade.getId());
-//                request.setOpenid(trade.getBuyer().getOpenId());
-//                BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
-//                WxVideoOrderDetailResponse context = detail.getContext();
-                if (context == null) {
-                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单为空 不可以自动取消微信订单", trade.getId(), trade.getBuyer().getOpenId());
-                    return;
-                }
 
                 if (context.getOrder().getStatus() != 10) {
                     log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消微信订单", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
