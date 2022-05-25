@@ -187,8 +187,8 @@ public class WxLiveAssistantService {
 
         //直播计划商品库存同步
         Map<String, Map<String, Integer>> goodsId2GoodsInfoId2StockFlagSyncMap = new HashMap<>(goodsInfoList.size());
-        //直播计划商品价格
-        Map<String, Map<String, BigDecimal>> goodsId2GoodsInfoId2PriceMap = new HashMap<>(goodsInfoList.size());
+        //直播计划商品价格 goodsId - goodsInfoId - price/stock
+        Map<String, Map<String, Map<String, String>>> goodsId2GoodsInfoId2PriceMap = new HashMap<>(goodsInfoList.size());
 
         for (GoodsInfo goodsInfo : goodsInfoList) {
             List<WxLiveAssistantGoodsInfoConfigVo> assistantGoodsInfoConfigVoList = goodsInfoId2AssistantGoodsInfoConfigMap.computeIfAbsent(goodsInfo.getGoodsId(), k -> new ArrayList<>());
@@ -205,11 +205,17 @@ public class WxLiveAssistantService {
             goodsInfo2StockFlagSyncMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getStockSyncFlag());
             goodsId2GoodsInfoId2StockFlagSyncMap.put(goodsInfo.getGoodsId(), goodsInfo2StockFlagSyncMap);
 
-            Map<String, BigDecimal> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(goodsInfo.getGoodsId());
+            Map<String, Map<String, String>> goodsInfo2PriceMap = goodsId2GoodsInfoId2PriceMap.get(goodsInfo.getGoodsId());
             if (goodsInfo2PriceMap == null) {
                 goodsInfo2PriceMap = new HashMap<>();
             }
-            goodsInfo2PriceMap.put(goodsInfo.getGoodsInfoId(), goodsInfo.getMarketPrice());
+
+            //兼容历史所以要这么写
+            Map<String, String> content = new HashMap<>();
+            content.put("price", goodsInfo.getMarketPrice().toString());
+            content.put("stock", goodsInfo.getStock()+"");
+
+            goodsInfo2PriceMap.put(goodsInfo.getGoodsInfoId(), content);
             goodsId2GoodsInfoId2PriceMap.put(goodsInfo.getGoodsId(), goodsInfo2PriceMap);
 
         }
