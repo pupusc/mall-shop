@@ -39,6 +39,11 @@
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-api</artifactId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
     </dependencies>
 
     <properties>

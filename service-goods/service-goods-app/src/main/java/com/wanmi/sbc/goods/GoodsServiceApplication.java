@@ -23,7 +23,7 @@ import java.net.InetAddress;
  * @Description: 商品服务启动器
  * @Date: 2018-11-07 10:07
  */
-@MapperScan(basePackages = {"com.wanmi.sbc.goods.mapper"})
+@MapperScan(basePackages = {"com.wanmi.sbc.bookmeta.mapper"})
 @SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class},scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @ComponentScan(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 @EnableAsync

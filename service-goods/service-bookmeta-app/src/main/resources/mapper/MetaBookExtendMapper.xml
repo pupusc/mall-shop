@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wanmi.sbc.goods.mapper.MetaBookExtendMapper">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookExtendMapper">
 
-    <resultMap type="com.wanmi.sbc.goods.entity.MetaBookExtend" id="MetaBookExtendMap">
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookExtend" id="MetaBookExtendMap">
         <result property="id" column="id" jdbcType="INTEGER"/>
         <result property="bookId" column="book_id" jdbcType="INTEGER"/>
         <result property="propName" column="prop_name" jdbcType="VARCHAR"/>
