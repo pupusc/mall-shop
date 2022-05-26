@@ -1,14 +1,15 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import tk.mybatis.mapper.entity.Example;
@@ -37,8 +38,8 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaLabel> queryById(Integer id) {
-        return BusinessResponse.success(this.metaLabelMapper.queryById(id));
+    public BusinessResponse<MetaLabelBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaLabelMapper.queryById(id), MetaLabelBO.class));
     }
 
     /**
@@ -48,7 +49,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaLabel>> queryByPage(@Valid MetaLabelQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaLabelBO>> queryByPage(@Valid MetaLabelQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaLabel metaLabel = JSON.parseObject(JSON.toJSONString(pageRequest), MetaLabel.class);
         
@@ -56,17 +57,20 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaLabelMapper.queryAllByLimit(metaLabel, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaLabel> labels = this.metaLabelMapper.queryAllByLimit(metaLabel, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(labels, MetaLabelBO.class), page);
     }
 
     /**
      * 新增数据
      *
-     * @param metaLabel 实例对象
+     * @param metaLabelBO 实例对象
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaLabel metaLabel) {
+    public BusinessResponse<Integer> insert(@Valid MetaLabelBO metaLabelBO) {
+        MetaLabel metaLabel = DO2BOUtils.objA2objB(metaLabelBO, MetaLabel.class);
         validate(metaLabel, true);
         this.metaLabelMapper.insertSelective(metaLabel);
         return BusinessResponse.success(metaLabel.getId());
@@ -75,11 +79,12 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     /**
      * 修改数据
      *
-     * @param metaLabel 实例对象
+     * @param metaLabelBO 实例对象
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaLabel metaLabel) {
+    public BusinessResponse<Boolean> update(@Valid MetaLabelBO metaLabelBO) {
+        MetaLabel metaLabel = DO2BOUtils.objA2objB(metaLabelBO, MetaLabel.class);
         validate(metaLabel, false);
         return BusinessResponse.success(this.metaLabelMapper.update(metaLabel) > 0);
     }

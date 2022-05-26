@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaDataDictQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaDataDict;
+import com.wanmi.sbc.bookmeta.bo.MetaDataDictBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaDataDictProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaDataDict/queryById")
-    BusinessResponse<MetaDataDict> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaDataDictBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaDataDictProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaDataDict/queryByPage")
-    BusinessResponse<List<MetaDataDict>> queryByPage(@RequestBody @Valid MetaDataDictQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaDataDictBO>> queryByPage(@RequestBody @Valid MetaDataDictQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaDataDictProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaDataDict/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaDataDict metaDataDict);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaDataDictBO metaDataDict);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaDataDictProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaDataDict/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaDataDict metaDataDict);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaDataDictBO metaDataDict);
 
     /**
      * 通过主键删除数据

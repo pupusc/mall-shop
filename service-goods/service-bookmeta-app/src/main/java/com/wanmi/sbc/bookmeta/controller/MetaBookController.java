@@ -7,7 +7,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBook;
+import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
@@ -54,7 +54,7 @@ public class MetaBookController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookQueryByPageResVO>> queryByPage(@RequestBody @Valid MetaBookQueryByPageReqVO pageRequest) {
         MetaBookQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBook>> list = this.metaBookProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookBO>> list = this.metaBookProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 

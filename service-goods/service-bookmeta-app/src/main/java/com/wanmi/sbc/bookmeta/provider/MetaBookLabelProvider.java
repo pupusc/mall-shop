@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookLabelQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaBookLabelProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/queryById")
-    BusinessResponse<MetaBookLabel> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaBookLabelBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaBookLabelProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/queryByPage")
-    BusinessResponse<List<MetaBookLabel>> queryByPage(@RequestBody @Valid MetaBookLabelQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookLabelBO>> queryByPage(@RequestBody @Valid MetaBookLabelQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaBookLabelProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookLabel metaBookLabel);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookLabelBO metaBookLabel);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaBookLabelProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookLabel/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookLabel metaBookLabel);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookLabelBO metaBookLabel);
 
     /**
      * 通过主键删除数据

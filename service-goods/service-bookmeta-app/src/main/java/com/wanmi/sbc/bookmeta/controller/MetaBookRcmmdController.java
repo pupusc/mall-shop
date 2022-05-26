@@ -3,7 +3,7 @@ package com.wanmi.sbc.bookmeta.controller;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
@@ -52,7 +52,7 @@ public class MetaBookRcmmdController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookRcmmdQueryByPageResVO>> queryByPage(@RequestBody MetaBookRcmmdQueryByPageReqVO pageRequest) {
         MetaBookRcmmdQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookRcmmdQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookRcmmd>> list = this.metaBookRcmmdProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookRcmmdBO>> list = this.metaBookRcmmdProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -64,7 +64,7 @@ public class MetaBookRcmmdController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookRcmmdQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookRcmmd> resBO = this.metaBookRcmmdProvider.queryById(id.getId());
+        BusinessResponse<MetaBookRcmmdBO> resBO = this.metaBookRcmmdProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -76,7 +76,7 @@ public class MetaBookRcmmdController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookRcmmdAddReqVO addReqVO) {
-        MetaBookRcmmd addReqBO = new MetaBookRcmmd();
+        MetaBookRcmmdBO addReqBO = new MetaBookRcmmdBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookRcmmdProvider.insert(addReqBO).getContext());
     }
@@ -89,7 +89,7 @@ public class MetaBookRcmmdController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookRcmmdEditReqVO editReqVO) {
-        MetaBookRcmmd editReqVBO = new MetaBookRcmmd();
+        MetaBookRcmmdBO editReqVBO = new MetaBookRcmmdBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookRcmmdProvider.update(editReqVBO);
         return BusinessResponse.success(true);

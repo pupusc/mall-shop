@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaProducerQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaProducer;
+import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaProducerProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaProducer/queryById")
-    BusinessResponse<MetaProducer> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaProducerBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaProducerProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaProducer/queryByPage")
-    BusinessResponse<List<MetaProducer>> queryByPage(@RequestBody @Valid MetaProducerQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaProducerBO>> queryByPage(@RequestBody @Valid MetaProducerQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaProducerProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaProducer/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaProducer metaProducer);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaProducerBO metaProducer);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaProducerProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaProducer/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaProducer metaProducer);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaProducerBO metaProducer);
 
     /**
      * 通过主键删除数据

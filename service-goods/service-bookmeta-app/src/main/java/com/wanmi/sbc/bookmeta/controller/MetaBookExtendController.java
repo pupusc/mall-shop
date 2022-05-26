@@ -9,7 +9,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookExtendEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookExtendQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookExtendQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookExtendQueryByPageResVO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookExtend;
+import com.wanmi.sbc.bookmeta.bo.MetaBookExtendBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +41,7 @@ public class MetaBookExtendController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookExtendQueryByPageResVO>> queryByPage(@RequestBody MetaBookExtendQueryByPageReqVO pageRequest) {
         MetaBookExtendQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookExtendQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookExtend>> list = this.metaBookExtendProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookExtendBO>> list = this.metaBookExtendProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaBookExtendController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookExtendQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookExtend> resBO = this.metaBookExtendProvider.queryById(id.getId());
+        BusinessResponse<MetaBookExtendBO> resBO = this.metaBookExtendProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaBookExtendController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookExtendAddReqVO addReqVO) {
-        MetaBookExtend addReqBO = new MetaBookExtend();
+        MetaBookExtendBO addReqBO = new MetaBookExtendBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookExtendProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaBookExtendController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookExtendEditReqVO editReqVO) {
-        MetaBookExtend editReqVBO = new MetaBookExtend();
+        MetaBookExtendBO editReqVBO = new MetaBookExtendBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookExtendProvider.update(editReqVBO);
         return BusinessResponse.success(true);

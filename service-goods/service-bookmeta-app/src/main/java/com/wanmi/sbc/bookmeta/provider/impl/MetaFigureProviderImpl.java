@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
@@ -77,7 +78,7 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaFigure>> queryByPage(@Valid MetaFigureQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaFigureBO>> queryByPage(@Valid MetaFigureQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaFigure metaFigure = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigure.class);
         
@@ -85,7 +86,9 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaFigureMapper.queryAllByLimit(metaFigure, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaFigure> metaFigures = this.metaFigureMapper.queryAllByLimit(metaFigure, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaFigures, MetaFigureBO.class), page);
     }
 
     /**

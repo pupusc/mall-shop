@@ -5,7 +5,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaProducerQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaProducerProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.entity.MetaProducer;
+import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerQueryByIdResVO;
@@ -44,7 +44,7 @@ public class MetaProducerController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaProducerQueryByPageResVO>> queryByPage(@RequestBody MetaProducerQueryByPageReqVO pageRequest) {
         MetaProducerQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaProducerQueryByPageReqBO.class);
-        BusinessResponse<List<MetaProducer>> list = this.metaProducerProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaProducerBO>> list = this.metaProducerProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -56,7 +56,7 @@ public class MetaProducerController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaProducerQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaProducer> resBO = this.metaProducerProvider.queryById(id.getId());
+        BusinessResponse<MetaProducerBO> resBO = this.metaProducerProvider.queryById(id.getId());
         BusinessResponse<MetaProducerQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         result.setContext(JSON.parseObject(JSON.toJSONString(resBO.getContext()), MetaProducerQueryByIdResVO.class));
 
@@ -75,7 +75,7 @@ public class MetaProducerController {
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaProducerAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
-        MetaProducer addReqBO = new MetaProducer();
+        MetaProducerBO addReqBO = new MetaProducerBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaProducerProvider.insert(addReqBO).getContext());
     }
@@ -89,7 +89,7 @@ public class MetaProducerController {
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaProducerEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
-        MetaProducer editReqVBO = new MetaProducer();
+        MetaProducerBO editReqVBO = new MetaProducerBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaProducerProvider.update(editReqVBO);
         return BusinessResponse.success(true);

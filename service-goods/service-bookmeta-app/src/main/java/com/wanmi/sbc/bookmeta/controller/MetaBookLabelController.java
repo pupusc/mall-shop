@@ -7,7 +7,7 @@ import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelQueryByIdResVO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
+import com.wanmi.sbc.bookmeta.bo.MetaBookLabelBO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookLabelQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
@@ -41,7 +41,7 @@ public class MetaBookLabelController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookLabelQueryByPageResVO>> queryByPage(@RequestBody MetaBookLabelQueryByPageReqVO pageRequest) {
         MetaBookLabelQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookLabelQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookLabel>> list = this.metaBookLabelProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookLabelBO>> list = this.metaBookLabelProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaBookLabelController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookLabelQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookLabel> resBO = this.metaBookLabelProvider.queryById(id.getId());
+        BusinessResponse<MetaBookLabelBO> resBO = this.metaBookLabelProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaBookLabelController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookLabelAddReqVO addReqVO) {
-        MetaBookLabel addReqBO = new MetaBookLabel();
+        MetaBookLabelBO addReqBO = new MetaBookLabelBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookLabelProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaBookLabelController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookLabelEditReqVO editReqVO) {
-        MetaBookLabel editReqVBO = new MetaBookLabel();
+        MetaBookLabelBO editReqVBO = new MetaBookLabelBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookLabelProvider.update(editReqVBO);
         return BusinessResponse.success(true);

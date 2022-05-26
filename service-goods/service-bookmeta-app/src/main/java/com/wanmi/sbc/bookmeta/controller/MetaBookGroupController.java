@@ -9,7 +9,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookGroupEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByPageResVO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookGroup;
+import com.wanmi.sbc.bookmeta.bo.MetaBookGroupBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +41,7 @@ public class MetaBookGroupController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookGroupQueryByPageResVO>> queryByPage(@RequestBody MetaBookGroupQueryByPageReqVO pageRequest) {
         MetaBookGroupQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookGroupQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookGroup>> list = this.metaBookGroupProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookGroupBO>> list = this.metaBookGroupProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaBookGroupController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookGroupQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookGroup> resBO = this.metaBookGroupProvider.queryById(id.getId());
+        BusinessResponse<MetaBookGroupBO> resBO = this.metaBookGroupProvider.queryById(id.getId());
         BusinessResponse<MetaBookGroupQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         result.setContext(JSON.parseObject(JSON.toJSONString(resBO.getContext()), MetaBookGroupQueryByIdResVO.class));
 
@@ -72,7 +72,7 @@ public class MetaBookGroupController {
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookGroupAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
-        MetaBookGroup addReqBO = new MetaBookGroup();
+        MetaBookGroupBO addReqBO = new MetaBookGroupBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookGroupProvider.insert(addReqBO).getContext());
     }
@@ -86,7 +86,7 @@ public class MetaBookGroupController {
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookGroupEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
-        MetaBookGroup editReqVBO = new MetaBookGroup();
+        MetaBookGroupBO editReqVBO = new MetaBookGroupBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookGroupProvider.update(editReqVBO);
         return BusinessResponse.success(true);

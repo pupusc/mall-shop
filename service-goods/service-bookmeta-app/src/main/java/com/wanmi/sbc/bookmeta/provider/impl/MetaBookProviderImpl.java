@@ -2,6 +2,7 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
@@ -90,7 +91,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBook>> queryByPage(@Valid MetaBookQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookBO>> queryByPage(@Valid MetaBookQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBook metaBook = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBook.class);
         
@@ -98,7 +99,8 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookMapper.queryAllByLimit(metaBook, page.getOffset(), page.getPageSize()), page);
+        List<MetaBook> metaBooks = this.metaBookMapper.queryAllByLimit(metaBook, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBooks, MetaBookBO.class), page);
     }
 
     /**

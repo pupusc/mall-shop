@@ -5,7 +5,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.entity.MetaLabel;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByIdResVO;
@@ -45,7 +45,7 @@ public class MetaLabelController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaLabelQueryByPageResVO>> queryByPage(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
         MetaLabelQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaLabelQueryByPageReqBO.class);
-        BusinessResponse<List<MetaLabel>> list = this.metaLabelProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaLabelBO>> list = this.metaLabelProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -57,7 +57,7 @@ public class MetaLabelController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaLabelQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaLabel> resBO = this.metaLabelProvider.queryById(id.getId());
+        BusinessResponse<MetaLabelBO> resBO = this.metaLabelProvider.queryById(id.getId());
         BusinessResponse<MetaLabelQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         result.setContext(JSON.parseObject(JSON.toJSONString(resBO.getContext()), MetaLabelQueryByIdResVO.class));
 
@@ -76,7 +76,7 @@ public class MetaLabelController {
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaLabelAddReqVO addReqVO) {
         addReqVO.setPath(StringSplitUtil.join(addReqVO.getPathList(), PATH_SPLIT_SYMBOL));
-        MetaLabel addReqBO = new MetaLabel();
+        MetaLabelBO addReqBO = new MetaLabelBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaLabelProvider.insert(addReqBO).getContext());
     }
@@ -90,7 +90,7 @@ public class MetaLabelController {
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaLabelEditReqVO editReqVO) {
         editReqVO.setPath(StringSplitUtil.join(editReqVO.getPathList(), PATH_SPLIT_SYMBOL));
-        MetaLabel editReqVBO = new MetaLabel();
+        MetaLabelBO editReqVBO = new MetaLabelBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaLabelProvider.update(editReqVBO);
         return BusinessResponse.success(true);

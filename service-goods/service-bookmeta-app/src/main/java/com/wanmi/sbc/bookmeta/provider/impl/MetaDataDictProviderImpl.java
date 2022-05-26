@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaDataDictBO;
 import com.wanmi.sbc.bookmeta.bo.MetaDataDictQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.entity.MetaDataDict;
 import com.wanmi.sbc.bookmeta.mapper.MetaDataDictMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaDataDictProvider;
-import com.wanmi.sbc.bookmeta.entity.MetaDataDict;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class MetaDataDictProviderImpl implements MetaDataDictProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaDataDict> queryById(Integer id) {
-        return BusinessResponse.success(this.metaDataDictMapper.queryById(id));
+    public BusinessResponse<MetaDataDictBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaDataDictMapper.queryById(id), MetaDataDictBO.class));
     }
 
     /**
@@ -44,7 +46,7 @@ public class MetaDataDictProviderImpl implements MetaDataDictProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaDataDict>> queryByPage(@Valid MetaDataDictQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaDataDictBO>> queryByPage(@Valid MetaDataDictQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaDataDict metaDataDict = JSON.parseObject(JSON.toJSONString(pageRequest), MetaDataDict.class);
         
@@ -52,7 +54,9 @@ public class MetaDataDictProviderImpl implements MetaDataDictProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaDataDictMapper.queryAllByLimit(metaDataDict, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaDataDict> metaDataDicts = this.metaDataDictMapper.queryAllByLimit(metaDataDict, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaDataDicts, MetaDataDictBO.class), page);
     }
 
     /**
@@ -62,8 +66,8 @@ public class MetaDataDictProviderImpl implements MetaDataDictProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaDataDict metaDataDict) {
-        this.metaDataDictMapper.insertSelective(metaDataDict);
+    public BusinessResponse<Integer> insert(@Valid MetaDataDictBO metaDataDict) {
+        this.metaDataDictMapper.insertSelective(DO2BOUtils.objA2objB(metaDataDict, MetaDataDict.class));
         return BusinessResponse.success(metaDataDict.getId());
     }
 
@@ -74,8 +78,8 @@ public class MetaDataDictProviderImpl implements MetaDataDictProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaDataDict metaDataDict) {
-        return BusinessResponse.success(this.metaDataDictMapper.update(metaDataDict) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaDataDictBO metaDataDict) {
+        return BusinessResponse.success(this.metaDataDictMapper.update(DO2BOUtils.objA2objB(metaDataDict, MetaDataDict.class)) > 0);
     }
 
     /**

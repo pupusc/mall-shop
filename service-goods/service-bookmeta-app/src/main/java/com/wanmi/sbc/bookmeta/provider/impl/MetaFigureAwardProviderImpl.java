@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureAwardBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAwardQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureAwardMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureAwardProvider;
-import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class MetaFigureAwardProviderImpl implements MetaFigureAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaFigureAward> queryById(Integer id) {
-        return BusinessResponse.success(this.metaFigureAwardMapper.queryById(id));
+    public BusinessResponse<MetaFigureAwardBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaFigureAwardMapper.queryById(id), MetaFigureAwardBO.class));
     }
 
     /**
@@ -44,7 +46,7 @@ public class MetaFigureAwardProviderImpl implements MetaFigureAwardProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaFigureAward>> queryByPage(@Valid MetaFigureAwardQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaFigureAwardBO>> queryByPage(@Valid MetaFigureAwardQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaFigureAward metaFigureAward = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigureAward.class);
         
@@ -52,7 +54,9 @@ public class MetaFigureAwardProviderImpl implements MetaFigureAwardProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaFigureAwardMapper.queryAllByLimit(metaFigureAward, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaFigureAward> figureAwards = this.metaFigureAwardMapper.queryAllByLimit(metaFigureAward, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(figureAwards, MetaFigureAwardBO.class), page);
     }
 
     /**
@@ -62,8 +66,8 @@ public class MetaFigureAwardProviderImpl implements MetaFigureAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaFigureAward metaFigureAward) {
-        this.metaFigureAwardMapper.insertSelective(metaFigureAward);
+    public BusinessResponse<Integer> insert(@Valid MetaFigureAwardBO metaFigureAward) {
+        this.metaFigureAwardMapper.insertSelective(DO2BOUtils.objA2objB(metaFigureAward, MetaFigureAward.class));
         return BusinessResponse.success(metaFigureAward.getId());
     }
 
@@ -74,8 +78,8 @@ public class MetaFigureAwardProviderImpl implements MetaFigureAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaFigureAward metaFigureAward) {
-        return BusinessResponse.success(this.metaFigureAwardMapper.update(metaFigureAward) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaFigureAwardBO metaFigureAward) {
+        return BusinessResponse.success(this.metaFigureAwardMapper.update(DO2BOUtils.objA2objB(metaFigureAward, MetaFigureAward.class)) > 0);
     }
 
     /**

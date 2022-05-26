@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookExtendBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookExtendQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.provider.MetaBookExtendProvider;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExtend;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookExtendMapper;
+import com.wanmi.sbc.bookmeta.provider.MetaBookExtendProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class MetaBookExtendProviderImpl implements MetaBookExtendProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaBookExtend> queryById(Integer id) {
-        return BusinessResponse.success(this.metaBookExtendMapper.queryById(id));
+    public BusinessResponse<MetaBookExtendBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookExtendMapper.queryById(id), MetaBookExtendBO.class));
     }
 
     /**
@@ -44,7 +46,7 @@ public class MetaBookExtendProviderImpl implements MetaBookExtendProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookExtend>> queryByPage(@Valid MetaBookExtendQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookExtendBO>> queryByPage(@Valid MetaBookExtendQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookExtend metaBookExtend = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookExtend.class);
         
@@ -52,7 +54,8 @@ public class MetaBookExtendProviderImpl implements MetaBookExtendProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookExtendMapper.queryAllByLimit(metaBookExtend, page.getOffset(), page.getPageSize()), page);
+        List<MetaBookExtend> metaBookExtends = this.metaBookExtendMapper.queryAllByLimit(metaBookExtend, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBookExtends, MetaBookExtendBO.class), page);
     }
 
     /**
@@ -62,8 +65,8 @@ public class MetaBookExtendProviderImpl implements MetaBookExtendProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaBookExtend metaBookExtend) {
-        this.metaBookExtendMapper.insertSelective(metaBookExtend);
+    public BusinessResponse<Integer> insert(@Valid MetaBookExtendBO metaBookExtend) {
+        this.metaBookExtendMapper.insertSelective(DO2BOUtils.objA2objB(metaBookExtend, MetaBookExtend.class));
         return BusinessResponse.success(metaBookExtend.getId());
     }
 
@@ -74,8 +77,8 @@ public class MetaBookExtendProviderImpl implements MetaBookExtendProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookExtend metaBookExtend) {
-        return BusinessResponse.success(this.metaBookExtendMapper.update(metaBookExtend) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaBookExtendBO metaBookExtend) {
+        return BusinessResponse.success(this.metaBookExtendMapper.update(DO2BOUtils.objA2objB(metaBookExtend, MetaBookExtend.class)) > 0);
     }
 
     /**

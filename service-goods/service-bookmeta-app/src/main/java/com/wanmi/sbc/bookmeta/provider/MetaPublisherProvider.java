@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaPublisherQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
+import com.wanmi.sbc.bookmeta.bo.MetaPublisherBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaPublisherProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaPublisher/queryById")
-    BusinessResponse<MetaPublisher> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaPublisherBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaPublisherProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaPublisher/queryByPage")
-    BusinessResponse<List<MetaPublisher>> queryByPage(@RequestBody @Valid MetaPublisherQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaPublisherBO>> queryByPage(@RequestBody @Valid MetaPublisherQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaPublisherProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaPublisher/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaPublisher metaPublisher);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaPublisherBO metaPublisher);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaPublisherProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaPublisher/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaPublisher metaPublisher);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaPublisherBO metaPublisher);
 
     /**
      * 通过主键删除数据

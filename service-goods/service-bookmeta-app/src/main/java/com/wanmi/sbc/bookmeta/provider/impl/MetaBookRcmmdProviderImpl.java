@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
@@ -57,8 +58,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaBookRcmmd> queryById(Integer id) {
-        return BusinessResponse.success(this.metaBookRcmmdMapper.queryById(id));
+    public BusinessResponse<MetaBookRcmmdBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookRcmmdMapper.queryById(id), MetaBookRcmmdBO.class));
     }
 
     /**
@@ -68,7 +69,7 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookRcmmd>> queryByPage(@Valid MetaBookRcmmdQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookRcmmdBO>> queryByPage(@Valid MetaBookRcmmdQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookRcmmd metaBookRcmmd = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookRcmmd.class);
         
@@ -76,7 +77,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookRcmmdMapper.queryAllByLimit(metaBookRcmmd, page.getOffset(), page.getPageSize()), page);
+        List<MetaBookRcmmd> rcmmds = this.metaBookRcmmdMapper.queryAllByLimit(metaBookRcmmd, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(rcmmds, MetaBookRcmmdBO.class), page);
     }
 
     /**
@@ -86,8 +88,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaBookRcmmd metaBookRcmmd) {
-        this.metaBookRcmmdMapper.insertSelective(metaBookRcmmd);
+    public BusinessResponse<Integer> insert(@Valid MetaBookRcmmdBO metaBookRcmmd) {
+        this.metaBookRcmmdMapper.insertSelective(DO2BOUtils.objA2objB(metaBookRcmmd, MetaBookRcmmd.class));
         return BusinessResponse.success(metaBookRcmmd.getId());
     }
 
@@ -98,8 +100,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookRcmmd metaBookRcmmd) {
-        return BusinessResponse.success(this.metaBookRcmmdMapper.update(metaBookRcmmd) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaBookRcmmdBO metaBookRcmmd) {
+        return BusinessResponse.success(this.metaBookRcmmdMapper.update(DO2BOUtils.objA2objB(metaBookRcmmd, MetaBookRcmmd.class)) > 0);
     }
 
     /**

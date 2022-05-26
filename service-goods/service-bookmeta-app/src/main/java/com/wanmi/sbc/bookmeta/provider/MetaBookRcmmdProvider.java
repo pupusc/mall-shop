@@ -2,7 +2,7 @@ package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +28,7 @@ public interface MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/queryById")
-    BusinessResponse<MetaBookRcmmd> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaBookRcmmdBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -36,7 +36,7 @@ public interface MetaBookRcmmdProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/queryByPage")
-    BusinessResponse<List<MetaBookRcmmd>> queryByPage(@RequestBody @Valid MetaBookRcmmdQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookRcmmdBO>> queryByPage(@RequestBody @Valid MetaBookRcmmdQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -45,7 +45,7 @@ public interface MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookRcmmd metaBookRcmmd);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookRcmmdBO metaBookRcmmd);
 
     /**
      * 修改数据
@@ -54,7 +54,7 @@ public interface MetaBookRcmmdProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookRcmmd/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookRcmmd metaBookRcmmd);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookRcmmdBO metaBookRcmmd);
 
     /**
      * 通过主键删除数据

@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookClumpBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookClumpQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
+import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaBookClump> queryById(Integer id) {
-        return BusinessResponse.success(this.metaBookClumpMapper.queryById(id));
+    public BusinessResponse<MetaBookClumpBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookClumpMapper.queryById(id), MetaBookClumpBO.class));
     }
 
     /**
@@ -44,7 +46,7 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookClump>> queryByPage(@Valid MetaBookClumpQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookClumpBO>> queryByPage(@Valid MetaBookClumpQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookClump metaBookClump = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookClump.class);
         
@@ -52,7 +54,8 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookClumpMapper.queryAllByLimit(metaBookClump, page.getOffset(), page.getPageSize()), page);
+        List<MetaBookClump> metaBookClumps = this.metaBookClumpMapper.queryAllByLimit(metaBookClump, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBookClumps, MetaBookClumpBO.class), page);
     }
 
     /**
@@ -62,8 +65,8 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaBookClump metaBookClump) {
-        this.metaBookClumpMapper.insertSelective(metaBookClump);
+    public BusinessResponse<Integer> insert(@Valid MetaBookClumpBO metaBookClump) {
+        this.metaBookClumpMapper.insertSelective(DO2BOUtils.objA2objB(metaBookClump, MetaBookClump.class));
         return BusinessResponse.success(metaBookClump.getId());
     }
 
@@ -74,8 +77,8 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookClump metaBookClump) {
-        return BusinessResponse.success(this.metaBookClumpMapper.update(metaBookClump) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaBookClumpBO metaBookClump) {
+        return BusinessResponse.success(this.metaBookClumpMapper.update(DO2BOUtils.objA2objB(metaBookClump, MetaBookClump.class)) > 0);
     }
 
     /**

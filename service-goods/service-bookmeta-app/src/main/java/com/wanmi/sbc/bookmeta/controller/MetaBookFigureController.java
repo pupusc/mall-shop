@@ -9,7 +9,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookFigureEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookFigureQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookFigureQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookFigureQueryByPageResVO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
+import com.wanmi.sbc.bookmeta.bo.MetaBookFigureBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +41,7 @@ public class MetaBookFigureController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookFigureQueryByPageResVO>> queryByPage(@RequestBody MetaBookFigureQueryByPageReqVO pageRequest) {
         MetaBookFigureQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookFigureQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookFigure>> list = this.metaBookFigureProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookFigureBO>> list = this.metaBookFigureProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaBookFigureController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookFigureQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookFigure> resBO = this.metaBookFigureProvider.queryById(id.getId());
+        BusinessResponse<MetaBookFigureBO> resBO = this.metaBookFigureProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaBookFigureController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookFigureAddReqVO addReqVO) {
-        MetaBookFigure addReqBO = new MetaBookFigure();
+        MetaBookFigureBO addReqBO = new MetaBookFigureBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookFigureProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaBookFigureController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookFigureEditReqVO editReqVO) {
-        MetaBookFigure editReqVBO = new MetaBookFigure();
+        MetaBookFigureBO editReqVBO = new MetaBookFigureBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookFigureProvider.update(editReqVBO);
         return BusinessResponse.success(true);

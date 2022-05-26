@@ -6,7 +6,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBook;
+import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +40,7 @@ public interface MetaBookProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBook/queryByPage")
-    BusinessResponse<List<MetaBook>> queryByPage(@RequestBody @Valid MetaBookQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookBO>> queryByPage(@RequestBody @Valid MetaBookQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据

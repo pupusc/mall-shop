@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookGroupBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookGroupQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.provider.MetaBookGroupProvider;
 import com.wanmi.sbc.bookmeta.entity.MetaBookGroup;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookGroupMapper;
+import com.wanmi.sbc.bookmeta.provider.MetaBookGroupProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaBookGroup> queryById(Integer id) {
-        return BusinessResponse.success(this.metaBookGroupMapper.queryById(id));
+    public BusinessResponse<MetaBookGroupBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookGroupMapper.queryById(id), MetaBookGroupBO.class));
     }
 
     /**
@@ -44,7 +46,7 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookGroup>> queryByPage(@Valid MetaBookGroupQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookGroupBO>> queryByPage(@Valid MetaBookGroupQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookGroup metaBookGroup = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookGroup.class);
         
@@ -52,7 +54,8 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookGroupMapper.queryAllByLimit(metaBookGroup, page.getOffset(), page.getPageSize()), page);
+        List<MetaBookGroup> metaBookGroups = this.metaBookGroupMapper.queryAllByLimit(metaBookGroup, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBookGroups, MetaBookGroupBO.class), page);
     }
 
     /**
@@ -62,8 +65,8 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaBookGroup metaBookGroup) {
-        this.metaBookGroupMapper.insertSelective(metaBookGroup);
+    public BusinessResponse<Integer> insert(@Valid MetaBookGroupBO metaBookGroup) {
+        this.metaBookGroupMapper.insertSelective(DO2BOUtils.objA2objB(metaBookGroup, MetaBookGroup.class));
         return BusinessResponse.success(metaBookGroup.getId());
     }
 
@@ -74,8 +77,8 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookGroup metaBookGroup) {
-        return BusinessResponse.success(this.metaBookGroupMapper.update(metaBookGroup) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaBookGroupBO metaBookGroup) {
+        return BusinessResponse.success(this.metaBookGroupMapper.update(DO2BOUtils.objA2objB(metaBookGroup, MetaBookGroup.class)) > 0);
     }
 
     /**

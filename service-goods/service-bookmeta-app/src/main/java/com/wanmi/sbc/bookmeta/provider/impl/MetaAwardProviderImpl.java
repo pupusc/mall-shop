@@ -1,16 +1,18 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaAwardBO;
 import com.wanmi.sbc.bookmeta.bo.MetaAwardQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.mapper.MetaAwardMapper;
+import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,8 +35,9 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaAward> queryById(Integer id) {
-        return BusinessResponse.success(this.metaAwardMapper.queryById(id));
+    public BusinessResponse<MetaAwardBO> queryById(Integer id) {
+        MetaAward entity = this.metaAwardMapper.queryById(id);
+        return BusinessResponse.success(DO2BOUtils.objA2objB(entity, MetaAwardBO.class));
     }
 
     /**
@@ -44,7 +47,7 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaAward>> queryByPage(@Valid MetaAwardQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaAwardBO>> queryByPage(@Valid MetaAwardQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaAward metaAward = JSON.parseObject(JSON.toJSONString(pageRequest), MetaAward.class);
         
@@ -52,7 +55,9 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaAwardMapper.queryAllByLimit(metaAward, page.getOffset(), page.getPageSize()), page);
+
+        List<MetaAward> metaAwards = this.metaAwardMapper.queryAllByLimit(metaAward, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaAwards, MetaAwardBO.class), page);
     }
 
     /**
@@ -62,8 +67,8 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaAward metaAward) {
-        this.metaAwardMapper.insertSelective(metaAward);
+    public BusinessResponse<Integer> insert(@Valid MetaAwardBO metaAward) {
+        this.metaAwardMapper.insertSelective(DO2BOUtils.objA2objB(metaAward, MetaAward.class));
         return BusinessResponse.success(metaAward.getId());
     }
 
@@ -74,8 +79,8 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaAward metaAward) {
-        return BusinessResponse.success(this.metaAwardMapper.update(metaAward) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaAwardBO metaAward) {
+        return BusinessResponse.success(this.metaAwardMapper.update(DO2BOUtils.objA2objB(metaAward, MetaAward.class)) > 0);
     }
 
     /**

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAwardQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureAwardProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureAwardBO;
 import com.wanmi.sbc.bookmeta.vo.MetaFigureAwardQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaFigureAwardQueryByPageResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaFigureAwardQueryByIdResVO;
@@ -41,7 +41,7 @@ public class MetaFigureAwardController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaFigureAwardQueryByPageResVO>> queryByPage(@RequestBody MetaFigureAwardQueryByPageReqVO pageRequest) {
         MetaFigureAwardQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigureAwardQueryByPageReqBO.class);
-        BusinessResponse<List<MetaFigureAward>> list = this.metaFigureAwardProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaFigureAwardBO>> list = this.metaFigureAwardProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaFigureAwardController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaFigureAwardQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaFigureAward> resBO = this.metaFigureAwardProvider.queryById(id.getId());
+        BusinessResponse<MetaFigureAwardBO> resBO = this.metaFigureAwardProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaFigureAwardController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaFigureAwardAddReqVO addReqVO) {
-        MetaFigureAward addReqBO = new MetaFigureAward();
+        MetaFigureAwardBO addReqBO = new MetaFigureAwardBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaFigureAwardProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaFigureAwardController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaFigureAwardEditReqVO editReqVO) {
-        MetaFigureAward editReqVBO = new MetaFigureAward();
+        MetaFigureAwardBO editReqVBO = new MetaFigureAwardBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaFigureAwardProvider.update(editReqVBO);
         return BusinessResponse.success(true);

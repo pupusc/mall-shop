@@ -1,7 +1,9 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaAwardBO;
 import com.wanmi.sbc.bookmeta.bo.MetaAwardQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaAwardAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaAwardEditReqVO;
@@ -9,8 +11,6 @@ import com.wanmi.sbc.bookmeta.vo.MetaAwardQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaAwardQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaAwardQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.entity.MetaAward;
-import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +44,7 @@ public class MetaAwardController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaAwardQueryByPageResVO>> queryByPage(@RequestBody MetaAwardQueryByPageReqVO pageRequest) {
         MetaAwardQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaAwardQueryByPageReqBO.class);
-        BusinessResponse<List<MetaAward>> list = this.metaAwardProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaAwardBO>> list = this.metaAwardProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -56,7 +56,7 @@ public class MetaAwardController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaAwardQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaAward> resBO = this.metaAwardProvider.queryById(id.getId());
+        BusinessResponse<MetaAwardBO> resBO = this.metaAwardProvider.queryById(id.getId());
         BusinessResponse<MetaAwardQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         result.setContext(JSON.parseObject(JSON.toJSONString(resBO.getContext()), MetaAwardQueryByIdResVO.class));
 
@@ -75,7 +75,7 @@ public class MetaAwardController {
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaAwardAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
-        MetaAward addReqBO = new MetaAward();
+        MetaAwardBO addReqBO = new MetaAwardBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaAwardProvider.insert(addReqBO).getContext());
     }
@@ -89,7 +89,7 @@ public class MetaAwardController {
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaAwardEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
-        MetaAward editReqVBO = new MetaAward();
+        MetaAwardBO editReqVBO = new MetaAwardBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaAwardProvider.update(editReqVBO);
         return BusinessResponse.success(true);

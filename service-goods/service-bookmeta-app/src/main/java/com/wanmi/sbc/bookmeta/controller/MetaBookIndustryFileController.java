@@ -9,7 +9,7 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookIndustryFileQueryByPageResVO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookIndustryFile;
+import com.wanmi.sbc.bookmeta.bo.MetaBookIndustryFileBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +41,7 @@ public class MetaBookIndustryFileController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookIndustryFileQueryByPageResVO>> queryByPage(@RequestBody MetaBookIndustryFileQueryByPageReqVO pageRequest) {
         MetaBookIndustryFileQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookIndustryFileQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookIndustryFile>> list = this.metaBookIndustryFileProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookIndustryFileBO>> list = this.metaBookIndustryFileProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaBookIndustryFileController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookIndustryFileQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookIndustryFile> resBO = this.metaBookIndustryFileProvider.queryById(id.getId());
+        BusinessResponse<MetaBookIndustryFileBO> resBO = this.metaBookIndustryFileProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaBookIndustryFileController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookIndustryFileAddReqVO addReqVO) {
-        MetaBookIndustryFile addReqBO = new MetaBookIndustryFile();
+        MetaBookIndustryFileBO addReqBO = new MetaBookIndustryFileBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookIndustryFileProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaBookIndustryFileController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookIndustryFileEditReqVO editReqVO) {
-        MetaBookIndustryFile editReqVBO = new MetaBookIndustryFile();
+        MetaBookIndustryFileBO editReqVBO = new MetaBookIndustryFileBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookIndustryFileProvider.update(editReqVBO);
         return BusinessResponse.success(true);

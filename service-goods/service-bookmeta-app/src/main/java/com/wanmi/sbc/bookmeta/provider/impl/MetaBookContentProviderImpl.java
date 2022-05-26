@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookContentBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookContentByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookContentQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
@@ -45,8 +46,8 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<MetaBookContent> queryById(Integer id) {
-        return BusinessResponse.success(this.metaBookContentMapper.queryById(id));
+    public BusinessResponse<MetaBookContentBO> queryById(Integer id) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB(this.metaBookContentMapper.queryById(id), MetaBookContentBO.class));
     }
 
     /**
@@ -56,7 +57,7 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookContent>> queryByPage(@Valid MetaBookContentQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookContentBO>> queryByPage(@Valid MetaBookContentQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookContent metaBookContent = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookContent.class);
         
@@ -64,7 +65,8 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        return BusinessResponse.success(this.metaBookContentMapper.queryAllByLimit(metaBookContent, page.getOffset(), page.getPageSize()), page);
+        List<MetaBookContent> metaBookContents = this.metaBookContentMapper.queryAllByLimit(metaBookContent, page.getOffset(), page.getPageSize());
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBookContents, MetaBookContentBO.class), page);
     }
 
     /**
@@ -74,8 +76,8 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Integer> insert(@Valid MetaBookContent metaBookContent) {
-        this.metaBookContentMapper.insertSelective(metaBookContent);
+    public BusinessResponse<Integer> insert(@Valid MetaBookContentBO metaBookContent) {
+        this.metaBookContentMapper.insertSelective(DO2BOUtils.objA2objB(metaBookContent, MetaBookContent.class));
         return BusinessResponse.success(metaBookContent.getId());
     }
 
@@ -86,8 +88,8 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
      * @return 实例对象
      */
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookContent metaBookContent) {
-        return BusinessResponse.success(this.metaBookContentMapper.update(metaBookContent) > 0);
+    public BusinessResponse<Boolean> update(@Valid MetaBookContentBO metaBookContent) {
+        return BusinessResponse.success(this.metaBookContentMapper.update(DO2BOUtils.objA2objB(metaBookContent, MetaBookContent.class)) > 0);
     }
 
     /**
@@ -102,8 +104,8 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
     }
 
     @Override
-    public BusinessResponse<List<MetaBookContent>> queryByBookId(Integer bookId) {
-        return BusinessResponse.success(selectByBookId(bookId));
+    public BusinessResponse<List<MetaBookContentBO>> queryByBookId(Integer bookId) {
+        return BusinessResponse.success(DO2BOUtils.objA2objB4List(selectByBookId(bookId), MetaBookContentBO.class));
     }
 
     @Transactional

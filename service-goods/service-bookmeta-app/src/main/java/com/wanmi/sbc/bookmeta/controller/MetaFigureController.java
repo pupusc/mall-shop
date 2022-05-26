@@ -5,7 +5,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaFigure;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaFigureAddReqVO;
@@ -49,7 +49,7 @@ public class MetaFigureController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaFigureQueryByPageResVO>> queryByPage(@RequestBody MetaFigureQueryByPageReqVO pageRequest) {
         MetaFigureQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigureQueryByPageReqBO.class);
-        BusinessResponse<List<MetaFigure>> list = this.metaFigureProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaFigureBO>> list = this.metaFigureProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 

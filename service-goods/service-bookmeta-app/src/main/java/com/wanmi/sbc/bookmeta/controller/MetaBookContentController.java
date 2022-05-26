@@ -3,7 +3,7 @@ package com.wanmi.sbc.bookmeta.controller;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookContentByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookContentQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookContent;
+import com.wanmi.sbc.bookmeta.bo.MetaBookContentBO;
 import com.wanmi.sbc.bookmeta.enums.BookContentTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookContentProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
@@ -52,7 +52,7 @@ public class MetaBookContentController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookContentQueryByPageResVO>> queryByPage(@RequestBody MetaBookContentQueryByPageReqVO pageRequest) {
         MetaBookContentQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookContentQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookContent>> list = this.metaBookContentProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookContentBO>> list = this.metaBookContentProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -64,7 +64,7 @@ public class MetaBookContentController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookContentQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookContent> resBO = this.metaBookContentProvider.queryById(id.getId());
+        BusinessResponse<MetaBookContentBO> resBO = this.metaBookContentProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -76,7 +76,7 @@ public class MetaBookContentController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookContentAddReqVO addReqVO) {
-        MetaBookContent addReqBO = new MetaBookContent();
+        MetaBookContentBO addReqBO = new MetaBookContentBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookContentProvider.insert(addReqBO).getContext());
     }
@@ -89,7 +89,7 @@ public class MetaBookContentController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookContentEditReqVO editReqVO) {
-        MetaBookContent editReqVBO = new MetaBookContent();
+        MetaBookContentBO editReqVBO = new MetaBookContentBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookContentProvider.update(editReqVBO);
         return BusinessResponse.success(true);
@@ -112,7 +112,7 @@ public class MetaBookContentController {
      */
     @PostMapping("queryByBookId")
     public BusinessResponse<MetaBookContentByBookIdVO> queryByBookId(@RequestBody IntegerIdVO id) {
-        List<MetaBookContent> boList = this.metaBookContentProvider.queryByBookId(id.getId()).getContext();
+        List<MetaBookContentBO> boList = this.metaBookContentProvider.queryByBookId(id.getId()).getContext();
         MetaBookContentByBookIdVO voResult = new MetaBookContentByBookIdVO();
 
         if (CollectionUtils.isEmpty(boList)) {
@@ -120,7 +120,7 @@ public class MetaBookContentController {
         }
 
         voResult.setBookId(id.getId());
-        for (MetaBookContent item : boList) {
+        for (MetaBookContentBO item : boList) {
             MetaBookContentByBookIdVO.MetaBookContentVO content = new MetaBookContentByBookIdVO.MetaBookContentVO();
             content.setId(item.getId());
             content.setFigureId(item.getFigureId());

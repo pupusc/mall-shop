@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookIndustryFileQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookIndustryFile;
+import com.wanmi.sbc.bookmeta.bo.MetaBookIndustryFileBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaBookIndustryFileProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookIndustryFile/queryById")
-    BusinessResponse<MetaBookIndustryFile> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaBookIndustryFileBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaBookIndustryFileProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBookIndustryFile/queryByPage")
-    BusinessResponse<List<MetaBookIndustryFile>> queryByPage(@RequestBody @Valid MetaBookIndustryFileQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookIndustryFileBO>> queryByPage(@RequestBody @Valid MetaBookIndustryFileQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaBookIndustryFileProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookIndustryFile/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookIndustryFile metaBookIndustryFile);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookIndustryFileBO metaBookIndustryFile);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaBookIndustryFileProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookIndustryFile/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookIndustryFile metaBookIndustryFile);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookIndustryFileBO metaBookIndustryFile);
 
     /**
      * 通过主键删除数据

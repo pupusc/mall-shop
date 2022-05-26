@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookFigureQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
+import com.wanmi.sbc.bookmeta.bo.MetaBookFigureBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public interface MetaBookFigureProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookFigure/queryById")
-    BusinessResponse<MetaBookFigure> queryById(@RequestBody @NotNull Integer id);
+    BusinessResponse<MetaBookFigureBO> queryById(@RequestBody @NotNull Integer id);
 
     /**
      * 分页查询
@@ -33,7 +33,7 @@ public interface MetaBookFigureProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBookFigure/queryByPage")
-    BusinessResponse<List<MetaBookFigure>> queryByPage(@RequestBody @Valid MetaBookFigureQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookFigureBO>> queryByPage(@RequestBody @Valid MetaBookFigureQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据
@@ -42,7 +42,7 @@ public interface MetaBookFigureProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookFigure/insert") 
-    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookFigure metaBookFigure);
+    BusinessResponse<Integer> insert(@RequestBody @Valid MetaBookFigureBO metaBookFigure);
 
     /**
      * 修改数据
@@ -51,7 +51,7 @@ public interface MetaBookFigureProvider {
      * @return 实例对象
      */
     @PostMapping("/goods/${application.goods.version}/metaBookFigure/update")
-    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookFigure metaBookFigure);
+    BusinessResponse<Boolean> update(@RequestBody @Valid MetaBookFigureBO metaBookFigure);
 
     /**
      * 通过主键删除数据

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaDataDictQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaDataDictProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.bookmeta.entity.MetaDataDict;
+import com.wanmi.sbc.bookmeta.bo.MetaDataDictBO;
 import com.wanmi.sbc.bookmeta.vo.MetaDataDictQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaDataDictQueryByPageResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaDataDictQueryByIdResVO;
@@ -41,7 +41,7 @@ public class MetaDataDictController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaDataDictQueryByPageResVO>> queryByPage(@RequestBody MetaDataDictQueryByPageReqVO pageRequest) {
         MetaDataDictQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaDataDictQueryByPageReqBO.class);
-        BusinessResponse<List<MetaDataDict>> list = this.metaDataDictProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaDataDictBO>> list = this.metaDataDictProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -53,7 +53,7 @@ public class MetaDataDictController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaDataDictQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaDataDict> resBO = this.metaDataDictProvider.queryById(id.getId());
+        BusinessResponse<MetaDataDictBO> resBO = this.metaDataDictProvider.queryById(id.getId());
         return JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
     }
 
@@ -65,7 +65,7 @@ public class MetaDataDictController {
      */
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaDataDictAddReqVO addReqVO) {
-        MetaDataDict addReqBO = new MetaDataDict();
+        MetaDataDictBO addReqBO = new MetaDataDictBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaDataDictProvider.insert(addReqBO).getContext());
     }
@@ -78,7 +78,7 @@ public class MetaDataDictController {
      */
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaDataDictEditReqVO editReqVO) {
-        MetaDataDict editReqVBO = new MetaDataDict();
+        MetaDataDictBO editReqVBO = new MetaDataDictBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaDataDictProvider.update(editReqVBO);
         return BusinessResponse.success(true);

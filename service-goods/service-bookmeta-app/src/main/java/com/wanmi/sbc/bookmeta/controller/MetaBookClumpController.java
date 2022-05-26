@@ -1,7 +1,9 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookClumpBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookClumpQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookClumpAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookClumpEditReqVO;
@@ -9,8 +11,6 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookClumpQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookClumpQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookClumpQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
-import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +44,7 @@ public class MetaBookClumpController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaBookClumpQueryByPageResVO>> queryByPage(@RequestBody MetaBookClumpQueryByPageReqVO pageRequest) {
         MetaBookClumpQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookClumpQueryByPageReqBO.class);
-        BusinessResponse<List<MetaBookClump>> list = this.metaBookClumpProvider.queryByPage(pageReqBO);
+        BusinessResponse<List<MetaBookClumpBO>> list = this.metaBookClumpProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }
 
@@ -56,7 +56,7 @@ public class MetaBookClumpController {
      */
     @PostMapping("queryById")
     public BusinessResponse<MetaBookClumpQueryByIdResVO> queryById(@RequestBody IntegerIdVO id) {
-        BusinessResponse<MetaBookClump> resBO = this.metaBookClumpProvider.queryById(id.getId());
+        BusinessResponse<MetaBookClumpBO> resBO = this.metaBookClumpProvider.queryById(id.getId());
         BusinessResponse<MetaBookClumpQueryByIdResVO> result = JSON.parseObject(JSON.toJSONString(resBO), BusinessResponse.class);
         result.setContext(JSON.parseObject(JSON.toJSONString(resBO.getContext()), MetaBookClumpQueryByIdResVO.class));
 
@@ -75,7 +75,7 @@ public class MetaBookClumpController {
     @PostMapping("add")
     public BusinessResponse<Integer> add(@RequestBody MetaBookClumpAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
-        MetaBookClump addReqBO = new MetaBookClump();
+        MetaBookClumpBO addReqBO = new MetaBookClumpBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
         return BusinessResponse.success(this.metaBookClumpProvider.insert(addReqBO).getContext());
     }
@@ -89,7 +89,7 @@ public class MetaBookClumpController {
     @PostMapping("edit")
     public BusinessResponse<Boolean> edit(@RequestBody MetaBookClumpEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
-        MetaBookClump editReqVBO = new MetaBookClump();
+        MetaBookClumpBO editReqVBO = new MetaBookClumpBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaBookClumpProvider.update(editReqVBO);
         return BusinessResponse.success(true);
