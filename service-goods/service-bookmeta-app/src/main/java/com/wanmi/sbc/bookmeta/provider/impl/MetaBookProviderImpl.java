@@ -18,8 +18,8 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import javafx.util.Pair;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -121,7 +121,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         //标签
         insertBookLabel(insert.getId(), metaBook.getLabelIds(), now);
         //人物
-        insertBookFigure(insert.getId(), metaBook.getFigures().stream().map(item -> new Pair<>(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
+        insertBookFigure(insert.getId(), metaBook.getFigures().stream().map(item -> Pair.of(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
         return BusinessResponse.success(insert.getId());
     }
 
@@ -153,7 +153,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         //标签
         insertBookLabel(metaBookBO.getId(), metaBookBO.getLabelIds(), now);
         //人物
-        insertBookFigure(metaBookBO.getId(), metaBookBO.getFigures().stream().map(item -> new Pair<>(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
+        insertBookFigure(metaBookBO.getId(), metaBookBO.getFigures().stream().map(item -> Pair.of(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
 
         update.setUpdateTime(now);
         this.metaBookMapper.update(update);

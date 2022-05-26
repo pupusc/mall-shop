@@ -78,6 +78,6 @@ public interface MetaBookContentProvider {
      * 书籍内容编辑（出版内容）
      */
     @PostMapping("/goods/${application.goods.version}/metaBookContent/editByBookId")
-    BusinessResponse<Boolean> editByBookId(@RequestParam Integer bookId, @RequestBody List<MetaBookContentByBookIdReqBO> editReqBO);
+    BusinessResponse<Boolean> editByBookId(@RequestParam("bookId") Integer bookId, @RequestBody List<MetaBookContentByBookIdReqBO> editReqBO);
 
 }
