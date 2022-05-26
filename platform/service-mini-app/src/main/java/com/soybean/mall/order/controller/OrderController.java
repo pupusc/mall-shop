@@ -304,7 +304,7 @@ public class OrderController {
             List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
             WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
             sku.setOutSkuId(tradeItemParam.getSkuId());
-            sku.setStockNum(wxStockNum - tradeItemParam.getStock().intValue());
+            sku.setStockNum(wxStockNum - tradeItemParam.getNum().intValue());
             skus.add(sku);
             wxUpdateProductWithoutAuditRequest.setSkus(skus);
             BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
