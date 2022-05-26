@@ -260,7 +260,7 @@ public class OrderController {
                     wxGoodsApiController.getProductDetail(tradeItemParam.getSpuId());
             for (WxGetProductDetailResponse.Sku sku : productDetail.getContext().getSkus()) {
                 wxOutSkuId2StockMap.put(sku.getOutSkuId(), sku.getStockNum());
-                if (Objects.equals(tradeItemParam.getSkuId(), sku.getOutSkuId()) && tradeItemParam.getStock() > sku.getStockNum()) {
+                if (Objects.equals(tradeItemParam.getSkuId(), sku.getOutSkuId()) && tradeItemParam.getNum() > sku.getStockNum()) {
                     throw new SbcRuntimeException("K-000001", tradeItemParam.getSkuName() + " 库存不足");
                 }
             }
