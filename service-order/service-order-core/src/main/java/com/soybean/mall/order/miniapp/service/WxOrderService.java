@@ -626,16 +626,23 @@ public class WxOrderService {
             throw new SbcRuntimeException("K-050421");
         }
 
+        //获取订单信息
+        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+        log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxDetailAfterSaleResponseBaseResponse));
+        if (!wxDetailAfterSaleResponseBaseResponse.getContext().isSuccess()) {
+            throw new SbcRuntimeException("K-050427");
+        }
+        //退款成功
+        if (Objects.equals(wxDetailAfterSaleResponseBaseResponse.getContext().getAfterSalesOrder().getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_NINE.getCode())) {
+            //表示已经退款，直接修改订单状态即可
+            throw new SbcRuntimeException("K-100104");
+        }
+
         //如果订单为退货退款，同时状态为2的时候，则修改微信订单为退款
         if (Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
-            //获取订单信息
-            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
-            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
-            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
-            log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxDetailAfterSaleResponseBaseResponse));
-            if (!wxDetailAfterSaleResponseBaseResponse.getContext().isSuccess()) {
-                throw new SbcRuntimeException("K-050427");
-            }
+
             WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
             WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
 
