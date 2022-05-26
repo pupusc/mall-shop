@@ -247,13 +247,8 @@ public class OrderController {
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
         wxOrderPaymentVO.setCouponFlag(trades.get(0).getCouponFlag());
-        //0元支付不需要生成预支付单
-        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
-            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-            return wxOrderPaymentVO;
-        }
 
-        //1、获取商品的库存
+        //1、获取商品的库存 此处应该有一个锁机制的，但是当前没有比较好的锁key
         Map<String, Integer> wxOutSkuId2StockMap = new HashMap<>();
         for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
             BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
@@ -266,33 +261,49 @@ public class OrderController {
             }
         }
 
-        //2 下单
-        if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
-            //生成预支付订单
-            WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
-            req.setAppid(appId);
-            BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
-            if(prepayResult == null || prepayResult.getContext().isEmpty()){
-                return wxOrderPaymentVO;
+        //0元支付不需要生成预支付单
+        if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
+            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+        } else if (trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) < 0) {
+            throw new SbcRuntimeException("K-000001", "下单金额有误请重新下单");
+        } else {
+            //2 下单
+            if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
+                //生成预支付订单
+                WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
+                req.setAppid(appId);
+                BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+                if(prepayResult == null || prepayResult.getContext().isEmpty()){
+                    return wxOrderPaymentVO;
+                }
+                wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+                wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
+                wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+                wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
+                wxOrderPaymentVO.setSignType("MD5");
+            }else{
+                //视频号订单
+                GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
+                getPaymentParamsRequest.setTid(trades.get(0).getId());
+                BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
+                if(response == null || response.getContext() ==null){
+                    throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
+                }
+                wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
+                wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
+                wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
+                wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
+                wxOrderPaymentVO.setSignType(response.getContext().getSignType());
             }
-            wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
-            wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
-            wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
-            wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
-            wxOrderPaymentVO.setSignType("MD5");
-        }else{
-            //视频号订单
-            GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
-            getPaymentParamsRequest.setTid(trades.get(0).getId());
-            BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
-            if(response == null || response.getContext() ==null){
-                throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
+
+            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+            String prepayId = wxOrderPaymentVO.getPrepayId();
+            String ppid = "";
+            if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
+                ppid = prepayId.substring(10,prepayId.length());
             }
-            wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
-            wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
-            wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
-            wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
-            wxOrderPaymentVO.setSignType(response.getContext().getSignType());
+            wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
+            wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         }
 
         //3、扣减商品库存[此处异常不做处理，只做记录]
@@ -311,17 +322,7 @@ public class OrderController {
             log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", trades.get(0).getId(), JSON.toJSONString(wxResponseBaseBaseResponse));
         }
 
-
-        wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-        String prepayId = wxOrderPaymentVO.getPrepayId();
-        String ppid = "";
-        if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
-            ppid = prepayId.substring(10,prepayId.length());
-        }
-        wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
-        wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         return wxOrderPaymentVO;
-
     }
 
 
