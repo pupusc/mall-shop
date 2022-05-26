@@ -3,10 +3,7 @@ package com.soybean.mall.order.miniapp.service;
 import com.alibaba.fastjson.JSON;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
-import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
-import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
@@ -61,9 +58,6 @@ public class TradeOrderService {
 
     @Autowired
     private WxOrderService wxOrderService;
-
-    @Autowired
-    private WxGoodsApiController wxGoodsApiController;
 
 
 
@@ -273,44 +267,11 @@ public class TradeOrderService {
         try {
 
             wxCreateOrderRequest = wxOrderService.buildRequest(trade);
-
-            //1、获取商品的库存
-            Map<String, Integer> wxOutSkuId2StockMap = new HashMap<>();
-            for (WxProductInfoDTO productInfo : wxCreateOrderRequest.getOrderDetail().getProductInfos()) {
-                BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
-                        wxGoodsApiController.getProductDetail(productInfo.getOutProductId());
-                for (WxGetProductDetailResponse.Sku sku : productDetail.getContext().getSkus()) {
-                    wxOutSkuId2StockMap.put(sku.getOutSkuId(), sku.getStockNum());
-                    if (Objects.equals(productInfo.getOutSkuId(), sku.getOutSkuId()) && productInfo.getProductNum() > sku.getStockNum()) {
-                        throw new SbcRuntimeException("K-050466", new Object[]{productDetail.getContext().getTitle()});
-                    }
-                }
-            }
-
-
-            //2、先创建订单
             BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
             log.info("微信小程序订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
             if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
                 wxOrderService.addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
                 return null;
-            }
-
-
-            //3、扣减商品库存
-            for (WxProductInfoDTO productInfo : wxCreateOrderRequest.getOrderDetail().getProductInfos()) {
-                WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
-                wxUpdateProductWithoutAuditRequest.setOutProductId(productInfo.getOutProductId());
-                Integer wxStockNum = wxOutSkuId2StockMap.get(productInfo.getOutSkuId());
-
-                List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
-                WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
-                sku.setOutSkuId(productInfo.getOutSkuId());
-                sku.setStockNum(wxStockNum - productInfo.getProductNum().intValue());
-                skus.add(sku);
-                wxUpdateProductWithoutAuditRequest.setSkus(skus);
-                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
-                log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", tid, JSON.toJSONString(wxResponseBaseBaseResponse));
             }
         } catch (Exception e) {
             log.error("微信小程序创建订单失败，tid：{}", tid, e);
@@ -321,15 +282,5 @@ public class TradeOrderService {
         return wxOrderService.getPaymentParams(trade);
 
     }
-
-
-
-
-
-
-
-
-
-
 
 }

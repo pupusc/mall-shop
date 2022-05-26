@@ -16,6 +16,11 @@ import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductInfoDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
@@ -158,6 +163,9 @@ public class OrderController {
     @Autowired
     private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
 
+    @Autowired
+    private WxGoodsApiController wxGoodsApiController;
+
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
@@ -244,7 +252,21 @@ public class OrderController {
             wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
             return wxOrderPaymentVO;
         }
-        //小程序订单
+
+        //1、获取商品的库存
+        Map<String, Integer> wxOutSkuId2StockMap = new HashMap<>();
+        for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+            BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
+                    wxGoodsApiController.getProductDetail(tradeItemParam.getSpuId());
+            for (WxGetProductDetailResponse.Sku sku : productDetail.getContext().getSkus()) {
+                wxOutSkuId2StockMap.put(sku.getOutSkuId(), sku.getStockNum());
+                if (Objects.equals(tradeItemParam.getSkuId(), sku.getOutSkuId()) && tradeItemParam.getStock() > sku.getStockNum()) {
+                    throw new SbcRuntimeException("K-000001", tradeItemParam.getSkuName() + " 库存不足");
+                }
+            }
+        }
+
+        //2 下单
         if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
             //生成预支付订单
             WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
@@ -272,6 +294,23 @@ public class OrderController {
             wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
             wxOrderPaymentVO.setSignType(response.getContext().getSignType());
         }
+
+        //3、扣减商品库存[此处异常不做处理，只做记录]
+        for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+            WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+            wxUpdateProductWithoutAuditRequest.setOutProductId(tradeItemParam.getSpuId());
+            Integer wxStockNum = wxOutSkuId2StockMap.get(tradeItemParam.getSkuId());
+
+            List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+            WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+            sku.setOutSkuId(tradeItemParam.getSkuId());
+            sku.setStockNum(wxStockNum - tradeItemParam.getStock().intValue());
+            skus.add(sku);
+            wxUpdateProductWithoutAuditRequest.setSkus(skus);
+            BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
+            log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", trades.get(0).getId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+        }
+
 
         wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
         String prepayId = wxOrderPaymentVO.getPrepayId();
