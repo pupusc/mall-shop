@@ -244,6 +244,13 @@ public class OrderController {
         }
     }
 
+    /**
+     * 处理下单
+     * @param trades
+     * @param openId
+     * @param miniProgramScene
+     * @return
+     */
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
         wxOrderPaymentVO.setCouponFlag(trades.get(0).getCouponFlag());
