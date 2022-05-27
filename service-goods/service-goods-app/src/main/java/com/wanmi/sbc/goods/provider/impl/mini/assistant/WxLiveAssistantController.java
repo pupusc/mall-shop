@@ -327,7 +327,7 @@ public class WxLiveAssistantController implements WxLiveAssistantProvider {
         if (assistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.NO_SYNC.getCode()
                 && now.isAfter(startBufferTime) && now.isBefore(assistantModel.getEndTime())) {
             hasAssistantTouch = 1;
-        } else if (assistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.SYNC.getCode() && now.isAfter(assistantModel.getEndTime())) {
+        } else if (assistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.SYNC.getCode()) {
             hasAssistantTouch = 1;
         }
         return hasAssistantTouch;
