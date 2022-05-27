@@ -610,6 +610,7 @@ public class WxLiveAssistantService {
             goodsInfo.setMarketPrice(wxLiveAssistantGoodsInfoConfigVo.getWxPrice());
             goodsInfo.setStock(wxLiveAssistantGoodsInfoConfigVo.getStock());
             goodsInfo.setStockSyncFlag(0); //强制不进行同步
+            goodsInfo.setAddedFlag(AddedFlag.YES.toValue());
 
 //            goodsInfoRepository.updateMarketPriceAndStockAndStockSyncFlagById(wxLiveAssistantGoodsInfoConfigVo.getWxPrice(), wxLiveAssistantGoodsInfoConfigVo.getStock(), 0, goodsInfo.getGoodsInfoId());
         }
