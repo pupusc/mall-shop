@@ -506,9 +506,9 @@ public class WxLiveAssistantService {
         if (wxLiveAssistantModel.getHasAssistantGoodsValid() == null || wxLiveAssistantModel.getHasAssistantGoodsValid() == HasAssistantGoodsValidEnum.NO_SYNC.getCode()) {
             throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "请先开启同步，才能重新关闭");
         }
-        if (LocalDateTime.now().isBefore(wxLiveAssistantModel.getEndTime())) {
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播期间不能关闭同步");
-        }
+//        if (LocalDateTime.now().isBefore(wxLiveAssistantModel.getEndTime())) {
+//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "直播期间不能关闭同步");
+//        }
 
         /**
          * 获取直播计划商品列表

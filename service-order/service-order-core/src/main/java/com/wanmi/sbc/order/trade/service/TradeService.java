@@ -3446,7 +3446,7 @@ public class TradeService {
             Integer timeoutSwitch = timeoutCancelConfig.getStatus();
             if (timeoutSwitch == 1) {
                 //视频号、小程序订单
-                if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+                if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                     int outTime = 60; //1小时
                     try {
                         // 查询设置中订单超时时间
