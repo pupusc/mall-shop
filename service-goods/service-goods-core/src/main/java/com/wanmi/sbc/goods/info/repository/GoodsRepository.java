@@ -302,8 +302,8 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
 
     @Modifying
     @Transactional
-    @Query("update Goods set stock=?1,skuMinMarketPrice=?2 where goodsId = ?3")
-    void updateStockAndSkuMinMarketPriceByGoodsId(Long stock, BigDecimal skuMinMarketPrice, String goodsId);
+    @Query("update Goods set stock=?1,skuMinMarketPrice=?2, addedFlag = ?3 where goodsId = ?4")
+    void updateStockAndSkuMinMarketPriceByGoodsId(Long stock, BigDecimal skuMinMarketPrice,Integer addedFlag, String goodsId);
 
     @Modifying
     @Transactional

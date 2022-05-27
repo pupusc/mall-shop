@@ -619,7 +619,7 @@ public class WxLiveAssistantService {
 
         //更新goods
         goodsId2AssistantGoodsConfigMap.forEach((K, V) -> {
-            goodsRepository.updateStockAndSkuMinMarketPriceByGoodsId(V.getSumStock(), V.getSkuMiniMarketPrice(), V.getGoodsId());
+            goodsRepository.updateStockAndSkuMinMarketPriceByGoodsId(V.getSumStock(), V.getSkuMiniMarketPrice(),AddedFlag.YES.toValue(), V.getGoodsId());
         });
 
         for (GoodsInfo goodsInfo : goodsInfoList) {
