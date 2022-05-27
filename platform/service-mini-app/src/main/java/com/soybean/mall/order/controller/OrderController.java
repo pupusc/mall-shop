@@ -260,11 +260,11 @@ public class OrderController {
         for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
             BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
                     wxGoodsApiController.getProductDetail(tradeItemParam.getSpuId());
+            if (productDetail.getContext() == null) {
+                continue;
+            }
             for (WxGetProductDetailResponse.Sku sku : productDetail.getContext().getSkus()) {
                 wxOutSkuId2StockMap.put(sku.getOutSkuId(), sku.getStockNum());
-                if (Objects.equals(tradeItemParam.getSkuId(), sku.getOutSkuId()) && tradeItemParam.getNum() > sku.getStockNum()) {
-                    throw new SbcRuntimeException("K-000001", tradeItemParam.getSkuName() + " 库存不足");
-                }
             }
         }
 
@@ -315,6 +315,9 @@ public class OrderController {
 
         //3、扣减商品库存[此处异常不做处理，只做记录]
         for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+            if (wxOutSkuId2StockMap.get(tradeItemParam.getSkuId()) == null) {
+                continue;
+            }
             WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
             wxUpdateProductWithoutAuditRequest.setOutProductId(tradeItemParam.getSpuId());
             Integer wxStockNum = wxOutSkuId2StockMap.get(tradeItemParam.getSkuId());
