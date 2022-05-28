@@ -73,27 +73,8 @@
         ORDER BY create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
-    <!--查询指定行数据-->
-    <select id="queryAllByLimitExt" resultType="com.wanmi.sbc.bookmeta.entity.MetaLabelExt">
-        SELECT
-            t1.id,
-            t1.name,
-            t1.status,
-            t1.create_time AS createTime,
-            t1.update_time AS updateTime,
-            t1.del_flag AS delFlag,
-            t1.descr,
-            t1.seq,
-            t1.parent_id AS parentId,
-            t1.type,
-            t1.scene,
-            t1.path,
-            CONCAT_WS("_", t3.`name`, t2.`name`) AS pathName
-        FROM
-            meta_label t1
-            LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
-            LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
-        WHERE t1.type = 2
+
+    <sql id="entityQueryCondition">
         <if test="metaLabel.id != null">
             and t1.id = #{metaLabel.id}
         </if>
@@ -131,6 +112,30 @@
             and t1.path = #{metaLabel.path}
         </if>
         and t1.del_flag = 0
+    </sql>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimitExt" resultType="com.wanmi.sbc.bookmeta.entity.MetaLabelExt">
+        SELECT
+            t1.id,
+            t1.name,
+            t1.status,
+            t1.create_time AS createTime,
+            t1.update_time AS updateTime,
+            t1.del_flag AS delFlag,
+            t1.descr,
+            t1.seq,
+            t1.parent_id AS parentId,
+            t1.type,
+            t1.scene,
+            t1.path,
+            CONCAT_WS("_", t3.`name`, t2.`name`) AS pathName
+        FROM
+            meta_label t1
+            LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
+            LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
+        WHERE t1.type = 2
+        <include refid="entityQueryCondition" />
         ORDER BY t1.create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
@@ -138,46 +143,21 @@
     <!--统计总行数-->
     <select id="count" resultType="java.lang.Long">
         select count(1)
-        from meta_label
+        from meta_label t1
         <where>
-            <if test="id != null">
-                and id = #{id}
-            </if>
-            <if test="name != null and name != ''">
-                and name like concat('%', #{name}, '%')
-            </if>
-            <if test="status != null">
-                and status = #{status}
-            </if>
-            <if test="createTime != null">
-                and create_time = #{createTime}
-            </if>
-            <if test="updateTime != null">
-                and update_time = #{updateTime}
-            </if>
-            <if test="delFlag != null">
-                and del_flag = #{delFlag}
-            </if>
-            <if test="descr != null and descr != ''">
-                and descr = #{descr}
-            </if>
-            <if test="seq != null">
-                and seq = #{seq}
-            </if>
-            <if test="parentId != null">
-                and parent_id = #{parentId}
-            </if>
-            <if test="type != null">
-                and type = #{type}
-            </if>
-            <if test="scene != null">
-                and scene = #{scene}
-            </if>
-            <if test="path != null and path != ''">
-                and path = #{path}
-            </if>
-            and del_flag = 0
+            <include refid="entityQueryCondition" />
         </where>
+    </select>
+
+    <select id="countExt" resultType="java.lang.Integer">
+        SELECT
+            count(1)
+        FROM
+            meta_label t1
+            LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
+            LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
+        WHERE t1.type = 2
+        <include refid="entityQueryCondition" />
     </select>
 
     <!--新增所有列-->

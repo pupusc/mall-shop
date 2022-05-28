@@ -54,7 +54,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         Page page = pageRequest.getPage();
         MetaLabel metaLabel = JSON.parseObject(JSON.toJSONString(pageRequest), MetaLabel.class);
         
-        page.setTotalCount((int) this.metaLabelMapper.count(metaLabel));
+        page.setTotalCount((int) this.metaLabelMapper.countExt(metaLabel));
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }

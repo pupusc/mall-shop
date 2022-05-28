@@ -60,11 +60,11 @@ public class MetaLabelController {
             voList = boResult.getContext().stream().map(item -> {
                 MetaLabelQueryByPageResVO resVO = new MetaLabelQueryByPageResVO();
                 BeanUtils.copyProperties(item, resVO);
-                resVO.setPathList(StringSplitUtil.split(resVO.getPathName(), PATH_SPLIT_SYMBOL))
+                resVO.setPathList(StringSplitUtil.split(resVO.getPathName(), PATH_SPLIT_SYMBOL));
                 return resVO;
             }).collect(Collectors.toList());
         }
-        return BusinessResponse.success(voList);
+        return BusinessResponse.success(voList, boResult.getPage());
     }
 
     /**

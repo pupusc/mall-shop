@@ -41,7 +41,7 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
      * @param metaLabel 查询条件
      * @return 总行数
      */
-    long count(MetaLabel metaLabel);
+    long count(@Param("metaLabel") MetaLabel metaLabel);
 
     /**
      * 新增数据
@@ -83,6 +83,8 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
      * @return 影响行数
      */
     int deleteById(Integer id);
+
+    int countExt(@Param("metaLabel") MetaLabel metaLabel);
 
     List<MetaLabelExt> queryAllByLimitExt(@Param("metaLabel") MetaLabel metaLabel, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 }
