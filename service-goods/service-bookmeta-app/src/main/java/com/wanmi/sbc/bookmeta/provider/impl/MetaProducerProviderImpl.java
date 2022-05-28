@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaProducerMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaProducerProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,7 +81,15 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaProducerBO metaProducer) {
-        return BusinessResponse.success(this.metaProducerMapper.update(DO2BOUtils.objA2objB(metaProducer, MetaProducer.class)) > 0);
+        MetaProducer entity = this.metaProducerMapper.selectByPrimaryKey(metaProducer.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaProducer.getName());
+        entity.setImage(metaProducer.getImage());
+        entity.setDescr(metaProducer.getDescr());
+        this.metaProducerMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
     }
 
     /**

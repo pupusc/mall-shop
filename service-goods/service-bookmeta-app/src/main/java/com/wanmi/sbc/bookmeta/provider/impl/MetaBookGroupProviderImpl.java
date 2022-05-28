@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaBookGroupMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookGroupProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,7 +80,16 @@ public class MetaBookGroupProviderImpl implements MetaBookGroupProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaBookGroupBO metaBookGroup) {
-        return BusinessResponse.success(this.metaBookGroupMapper.update(DO2BOUtils.objA2objB(metaBookGroup, MetaBookGroup.class)) > 0);
+        MetaBookGroup entity = this.metaBookGroupMapper.selectByPrimaryKey(metaBookGroup.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaBookGroup.getName());
+        entity.setImage(metaBookGroup.getImage());
+        entity.setDescr(metaBookGroup.getDescr());
+        entity.setType(metaBookGroup.getType());
+        this.metaBookGroupMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
     }
 
     /**

@@ -1,8 +1,10 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 标签(MetaLabel)实体类
@@ -13,7 +15,7 @@ import lombok.Data;
 @Data
 public class MetaLabelBO implements Serializable {
     private static final long serialVersionUID = -96793554573604763L;
-         
+
     private Integer id;
     /**
      * 名称

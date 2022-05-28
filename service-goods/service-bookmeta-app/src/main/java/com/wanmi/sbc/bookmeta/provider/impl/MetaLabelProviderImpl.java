@@ -88,7 +88,20 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
     public BusinessResponse<Boolean> update(@Valid MetaLabelBO metaLabelBO) {
         MetaLabel metaLabel = DO2BOUtils.objA2objB(metaLabelBO, MetaLabel.class);
         validate(metaLabel, false);
-        return BusinessResponse.success(this.metaLabelMapper.update(metaLabel) > 0);
+
+        MetaLabel entity = this.metaLabelMapper.selectByPrimaryKey(metaLabelBO.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setParentId(metaLabelBO.getParentId());
+        entity.setPath(metaLabelBO.getPath());
+        entity.setName(metaLabelBO.getName());
+        entity.setSeq(metaLabel.getSeq());
+        entity.setScene(metaLabel.getScene());
+        entity.setDescr(metaLabel.getDescr());
+        entity.setStatus(metaLabel.getStatus());
+        this.metaLabelMapper.updateByPrimaryKey(metaLabel);
+        return BusinessResponse.success(true);
     }
 
     private void validate(MetaLabel metaLabel, boolean newly) {

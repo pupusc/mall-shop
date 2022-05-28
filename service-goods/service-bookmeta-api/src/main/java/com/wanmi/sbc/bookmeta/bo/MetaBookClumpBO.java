@@ -15,7 +15,7 @@ import java.util.Date;
 @Data
 public class MetaBookClumpBO implements Serializable {
     private static final long serialVersionUID = 410758902116412645L;
-    @NotNull
+
     private Integer id;
     /**
      * 出版社id

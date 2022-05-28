@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaAwardMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,7 +82,15 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaAwardBO metaAward) {
-        return BusinessResponse.success(this.metaAwardMapper.update(DO2BOUtils.objA2objB(metaAward, MetaAward.class)) > 0);
+        MetaAward entity = this.metaAwardMapper.selectByPrimaryKey(metaAward.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaAward.getName());
+        entity.setImage(metaAward.getImage());
+        entity.setDescr(metaAward.getDescr());
+        this.metaAwardMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
     }
 
     /**

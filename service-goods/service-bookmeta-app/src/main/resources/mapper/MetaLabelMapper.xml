@@ -134,8 +134,9 @@
             meta_label t1
             LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
             LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
-        WHERE t1.type = 2
-        <include refid="entityQueryCondition" />
+        <where>
+            <include refid="entityQueryCondition" />
+        </where>
         ORDER BY t1.create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
@@ -156,8 +157,9 @@
             meta_label t1
             LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
             LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
-        WHERE t1.type = 2
-        <include refid="entityQueryCondition" />
+        <where>
+            <include refid="entityQueryCondition" />
+        </where>
     </select>
 
     <!--新增所有列-->

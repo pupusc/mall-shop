@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaPublisherProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,7 +81,16 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaPublisherBO metaPublisher) {
-        return BusinessResponse.success(this.metaPublisherMapper.update(DO2BOUtils.objA2objB(metaPublisher, MetaPublisher.class)) > 0);
+        MetaPublisher entity = this.metaPublisherMapper.selectByPrimaryKey(metaPublisher.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaPublisher.getName());
+        entity.setImage(metaPublisher.getImage());
+        entity.setDescr(metaPublisher.getDescr());
+        entity.setBuildTime(metaPublisher.getBuildTime());
+        this.metaPublisherMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
     }
 
     /**
