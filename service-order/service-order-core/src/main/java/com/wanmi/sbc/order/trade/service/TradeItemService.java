@@ -23,6 +23,7 @@ import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
@@ -114,6 +115,9 @@ public class TradeItemService {
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
 
 
     /**
@@ -548,22 +552,26 @@ public class TradeItemService {
         //累积积分数量，将剩余扣给最后一个元素
         Long splitPointsTotal = 0L;
 
+        //视频号渠道不能使用积分也不能参加分摊
+        List<String> skuIdList = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
         // 积分和名单商品不能使用积分，也不参与分摊
-//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-//        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
-//        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
-//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-//            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
-//            for (TradeItem tradeItem : tradeItems) {
-//                if(blackListGoodsId.contains(tradeItem.getSpuId())) {
-//                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
-//                }
-//            }
-//        }
-//        if(pointsPriceTotal.compareTo(totalPrice) > 0){
-//            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
-//        }
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            List<String> blackListGoodsId = context.getPointNotSplitBlackListModel().getGoodsIdList();
+            for (TradeItem tradeItem : tradeItems) {
+                if(blackListGoodsId.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))) {
+                    totalPrice = totalPrice.subtract(tradeItem.getSplitPrice());
+                }
+            }
+        }
+        if(pointsPriceTotal.compareTo(totalPrice) > 0){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "积分超过使用限制");
+        }
 
         for (int i = 0; i < size; i++) {
             TradeItem tradeItem = tradeItems.get(i);

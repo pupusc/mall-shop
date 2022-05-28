@@ -20,7 +20,15 @@ public interface WxLiveAssistantGoodsRepository extends JpaRepository<WxLiveAssi
      * 查找商品是否存在于还未开播的直播计划中
      */
     @Query(value = "select lg.* from t_wx_live_assistant as l join t_wx_live_assistant_goods as lg on lg.assist_id=l.id where lg.goods_id in ?1 and l.del_flag=0 and lg.del_flag=0 and now() <= l.end_time", nativeQuery = true)
+    List<WxLiveAssistantGoodsModel> listAssistantGoodsByGoodsIds(List<String> goodsIds);
+
+
+    /**
+     * 查找商品是否存在已经开播的直播计划中
+     */
+    @Query(value = "select lg.* from t_wx_live_assistant as l join t_wx_live_assistant_goods as lg on lg.assist_id=l.id where lg.goods_id in ?1 and l.has_assistant_goods_valid = 1 and l.del_flag=0 and lg.del_flag=0 and now() <= l.end_time", nativeQuery = true)
     List<WxLiveAssistantGoodsModel> findTimeConflictGoods(List<String> goodsIds);
+
 
     default Specification<WxLiveAssistantGoodsModel> buildSearchCondition(WxLiveAssistantSearchRequest wxLiveAssistantSearchRequest){
         return (Specification<WxLiveAssistantGoodsModel>) (root, criteriaQuery, criteriaBuilder) -> {

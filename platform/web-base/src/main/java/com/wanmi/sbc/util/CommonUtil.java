@@ -8,6 +8,7 @@ import com.wanmi.sbc.common.base.VASEntity;
 import com.wanmi.sbc.common.constant.VASStatus;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.Platform;
+import com.wanmi.sbc.common.enums.TerminalScene;
 import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -171,7 +172,8 @@ public final class CommonUtil {
      */
     public TerminalSource getTerminal() {
         String terminal = HttpUtil.getRequest().getHeader("terminal");
-        return TerminalSource.getTerminalSource(terminal);
+        String terminalScene = HttpUtil.getRequest().getHeader("terminalScene");
+        return TerminalSource.getTerminalSource(terminal, TerminalScene.getTerminalScene(terminalScene));
     }
 
     /**

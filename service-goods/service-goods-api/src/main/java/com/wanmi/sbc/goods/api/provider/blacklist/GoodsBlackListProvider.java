@@ -2,16 +2,15 @@ package com.wanmi.sbc.goods.api.provider.blacklist;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListCacheProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListProviderRequest;
+import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.goods.api.request.blacklist.*;
+import com.wanmi.sbc.goods.api.request.blacklist.response.GoodsBlackListData;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 黑名单列表信息
@@ -36,6 +35,12 @@ public interface GoodsBlackListProvider {
     BaseResponse delete(@PathVariable("id") Integer id);
 
     /**
+     * 启用停用黑名单
+     */
+    @PostMapping("/goods/${application.goods.version}/goods-black-list/update")
+    BaseResponse update(@RequestBody GoodsBlackListCreateOrUpdateRequest goodsBlackListCreateOrUpdateRequest);
+
+    /**
      * 刷新黑名单
      * @param goodsBlackListPageProviderRequest
      * @return
@@ -43,6 +48,13 @@ public interface GoodsBlackListProvider {
     @PostMapping("/goods/${application.goods.version}/goods-black-list/flushBlackListCache")
     BaseResponse<GoodsBlackListPageProviderResponse> flushBlackListCache(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListPageProviderRequest);
 
+    /**
+     * 获取黑名单列表其中一类
+     * @param goodsBlackListCacheProviderRequest
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/goods-black-list/list")
+    BaseResponse<MicroServicePage<GoodsBlackListData>> list(@RequestBody GoodsBlackListCacheProviderRequest goodsBlackListCacheProviderRequest);
 
     /**
      * 获取黑名单列表

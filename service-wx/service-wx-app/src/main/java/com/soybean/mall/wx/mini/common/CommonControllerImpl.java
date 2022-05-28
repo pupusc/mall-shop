@@ -1,5 +1,6 @@
 package com.soybean.mall.wx.mini.common;
 
+import com.soybean.mall.wx.mini.common.bean.request.UrlschemeRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
@@ -26,6 +27,11 @@ public class CommonControllerImpl implements CommonController {
     @Override
     public BaseResponse sendMessage(WxSendMessageRequest request) {
         return BaseResponse.success(wxService.sendMessage(request));
+    }
+
+    @Override
+    public BaseResponse<String> urlschemeGenerate(UrlschemeRequest request) {
+        return wxService.urlschemeGenerate(request);
     }
 
 }

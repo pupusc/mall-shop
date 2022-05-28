@@ -31,7 +31,7 @@ public class BaseRequest implements Serializable {
     private Long baseStoreId;
 
     /**
-     * 获取源头 1 H5 2 小程序 3 主站 4 销售渠道
+     * 获取源头 1 H5 2 小程序 3 视频号 4 销售渠道
      */
 //    private Integer goodsChannelType;
 

@@ -39,7 +39,7 @@ public class ImageRequest {
     /**
      * 图片跳转链接
      */
-    @NotBlank(groups = ImageRequest.Add.class, message = "图片跳转地址不能为空")
+//    @NotBlank(groups = ImageRequest.Add.class, message = "图片跳转地址不能为空")
     private String imgHref;
 
     /**
@@ -58,6 +58,10 @@ public class ImageRequest {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    /**
+     * 业务id
+     */
+    private String businessId;
 
     public interface Add{}
     public interface Update{}

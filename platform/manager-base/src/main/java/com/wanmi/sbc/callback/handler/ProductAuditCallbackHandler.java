@@ -24,12 +24,13 @@ public class ProductAuditCallbackHandler implements CallbackHandler {
     }
 
     @Override
-    public void handle(Map<String, Object> paramMap) {
+    public String handle(Map<String, Object> paramMap) {
         BaseResponse<Boolean> response = wxMiniGoodsProvider.auditCallback(paramMap);
         if(response.getContext()){
 //            Map<String, String> auditResult = (Map<String, String>) paramMap.get("OpenProductSpuAudit");
 //            String goodsId = auditResult.get("out_product_id");
 //            esGoodsStockProvider.updateWxAuditStatus(goodsId);
         }
+        return CommonHandlerUtil.SUCCESS;
     }
 }

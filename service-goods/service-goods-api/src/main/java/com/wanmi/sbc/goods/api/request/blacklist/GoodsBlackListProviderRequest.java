@@ -5,6 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -27,11 +28,11 @@ public class GoodsBlackListProviderRequest implements Serializable {
     /**
      * 业务id
      */
-    @NotBlank
-    private String businessId;
+    @NotNull
+    private List<String> businessId;
 
     /**
-     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4 会员不打折商品
+     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品 5、库存编码 6、积分黑名单 7、底部分类 8、首页商品搜索所有场景不展示 9、首页商品搜索非知识顾问不展示
      */
     @NotNull
     private Integer businessCategory;

@@ -73,19 +73,25 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
-//    public static final String STOCK_SYNC_TIME_PREFIX = "STOCK_SYNC_TIME";
+    /**
+     * 冻结库存信息
+     */
+    public static final String GOODS_INFO_STOCK_FREEZE_PREFIX = "GOODS_INFO_FREEZE_STOCK_";
+
+    /**
+     * 库存锁信息
+     */
+    public static final String GOODS_INFO_STOCK_LOCK_PREFIX = "GOODS_INFO_STOCK_LOCK_";
+
+
+//    public static final String GOODS_INFO_STOCK_HIS_PREFIX = "GOODS_INFO_STOCK_HIS_";
 
     public static final String GOODS_STOCK_SYNC_MAX_TMP_ID = "GOODS_STOCK_SYNC_MAX_TMP_ID";
 
     /**
      * 上一次第三方库存缓存
      */
-    public static final String GOODS_INFO_LAST_STOCK_PREFIX = "GOODS_INFO_LAST_STOCK_";
-
-    /**
-     * 冻结库存
-     */
-    public static final String GOODS_INFO_FREEZE_STOCK = "GOODS_INFO_FREEZE_STOCK";
+//    public static final String GOODS_INFO_LAST_STOCK_PREFIX = "GOODS_INFO_LAST_STOCK_";
 
     /**
      * LinkedMall---验证支付并自动退款， 后缀为订单id
@@ -115,4 +121,14 @@ public final class RedisKeyConstant {
     // 商品投票
     public static final String KEY_GOODS_VOTE_NUMBER = "KEY_GOODS_VOTE_NUMBER";
 
+
+    /**
+     * 评论数量缓存
+     */
+    public static final String KEY_GOODS_EVALUATE = "KEY_GOODS_EVALUATE:";
+
+    /**
+     * 评论数量缓存
+     */
+    public static final String KEY_GOODS_INFO_EVALUATE = "KEY_GOODS_INFO_EVALUATE:";
 }

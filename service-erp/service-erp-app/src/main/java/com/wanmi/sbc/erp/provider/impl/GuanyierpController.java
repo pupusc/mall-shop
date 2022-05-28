@@ -139,14 +139,17 @@ public class GuanyierpController implements GuanyierpProvider {
         if(optionalErpGoodsInfo.isPresent()) {
             ERPGoods erpGoods=  optionalErpGoodsInfo.get().getItems().get(0);
             erpGoods.getSkus().stream().forEach(erpGoodsInfo -> {
-                ERPGoodsInfoVO erpGoodsInfoVO = ERPGoodsInfoVO.builder()
-                        .itemSkuName(erpGoodsInfo.getName())
-                        .skuCode(erpGoodsInfo.getCode())
-                        .costPrice(erpGoodsInfo.getCostPrice())
-                        .stockStatusCode(erpGoodsInfo.getStockStatusCode())
-                        .itemCode(erpGoods.getCode())
-                        .itemName(erpGoods.getName())
-                        .build();
+                ERPGoodsInfoVO erpGoodsInfoVO = new ERPGoodsInfoVO();
+                erpGoodsInfoVO.setItemSkuName(erpGoodsInfo.getName());
+                erpGoodsInfoVO.setSkuCode(erpGoodsInfo.getCode());
+                erpGoodsInfoVO.setCostPrice(erpGoodsInfo.getCostPrice());
+                erpGoodsInfoVO.setStockStatusCode(erpGoodsInfo.getStockStatusCode());
+                erpGoodsInfoVO.setItemCode(erpGoods.getCode());
+                erpGoodsInfoVO.setItemName(erpGoods.getName());
+                //如果库存状态为空则设置为spu的库存状态
+                if (StringUtils.isBlank(erpGoodsInfo.getStockStatusCode())) {
+                    erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
+                }
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
             });
         }
@@ -219,7 +222,7 @@ public class GuanyierpController implements GuanyierpProvider {
             DeliveryStatusResponse deliveryStatusResponse = this.packageDeliveryData(optionalDeliveryQueryResponse);
             return BaseResponse.success(deliveryStatusResponse);
         }
-        return BaseResponse.success(DeliveryStatusResponse.builder().build());
+        return BaseResponse.success(DeliveryStatusResponse.builder().deliveryInfoVOList(new ArrayList<>()).build());
     }
 
 
@@ -325,6 +328,7 @@ public class GuanyierpController implements GuanyierpProvider {
                 .receiverAddress(requst.getReceiverAddress())
                 .expressName(Objects.nonNull(requst.getExpressName())  ? requst.getExpressName(): null)
                 .expressNum(Objects.nonNull(requst.getExpressNum()) ? requst.getExpressNum() : null)
+//                .note("duanlsh这个是一个退货备注")
                 .build();
         Optional<ERPBaseResponse> optionalERPBaseResponse = guanyierpService.createReturnTrade(erpReturnTradeCreateRequest);
         if (optionalERPBaseResponse.isPresent() && optionalERPBaseResponse.get().isSuccess()){

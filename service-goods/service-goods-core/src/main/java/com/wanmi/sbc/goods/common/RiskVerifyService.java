@@ -2,34 +2,21 @@ package com.wanmi.sbc.goods.common;
 
 import com.alibaba.fastjson.JSON;
 import com.aliyuncs.utils.StringUtils;
-import com.google.gson.JsonObject;
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.common.util.StringUtil;
 import com.wanmi.sbc.goods.api.request.common.ImageAuditRequest;
 import com.wanmi.sbc.goods.api.request.common.ImageVerifyRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsAuditQueryRequest;
-import com.wanmi.sbc.goods.bean.enums.GoodsAdAuditStatus;
+import com.wanmi.sbc.goods.api.response.goods.GoodsImageAuditResponse;
 import com.wanmi.sbc.goods.common.model.root.RiskVerify;
 import com.wanmi.sbc.goods.common.repository.RiskVerifyRepository;
 import com.wanmi.sbc.goods.fandeng.ExternalService;
-import com.wanmi.sbc.goods.info.model.root.GoodsStockSync;
-import com.wanmi.sbc.goods.info.model.root.GoodsSync;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
 import com.wanmi.sbc.goods.info.request.GoodsStockSyncQueryRequest;
-import com.wanmi.sbc.goods.api.response.goods.GoodsImageAuditResponse;
-import com.wanmi.sbc.goods.info.request.GoodsSyncQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @Service

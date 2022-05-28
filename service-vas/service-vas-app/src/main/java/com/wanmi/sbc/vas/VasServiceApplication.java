@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import java.net.InetAddress;
 
 
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
 //@EnableTransactionManagement
 @EnableAsync
 @EnableDiscoveryClient

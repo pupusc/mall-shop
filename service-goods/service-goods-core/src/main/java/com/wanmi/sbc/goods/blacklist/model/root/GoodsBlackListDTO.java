@@ -41,7 +41,7 @@ public class GoodsBlackListDTO {
     private String businessId;
 
     /**
-     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品 5、库存编码 6、积分黑名单
+     * 业务分类 1 新品榜 2 畅销排行榜 3 特价书榜 4、不显示会员价的商品 5、库存编码 6、积分黑名单 7、底部分类 8、首页商品搜索H5和领阅不展示 9、首页商品搜索H5不展示 10、下单优惠券黑名单
      */
     @Column(name = "business_category")
     private Integer businessCategory;
@@ -51,7 +51,6 @@ public class GoodsBlackListDTO {
      */
     @Column(name = "business_type")
     private Integer businessType;
-
 
     /**
      * 版本号
@@ -77,13 +76,5 @@ public class GoodsBlackListDTO {
      */
     @Column(name = "del_flag")
     private Integer delFlag;
-
-
-
-
-
-
-
-
 
 }

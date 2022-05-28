@@ -21,9 +21,12 @@ public class WxDeliverySendRequest implements Serializable {
      */
     @JSONField(name ="finish_all_delivery")
     private Integer finishAllDelivery;
+
     @JSONField(name ="delivery_list")
     private List<WxDeliveryInfo> deliveryList;
 
+    @JSONField(name = "ship_done_time")
+    private String shipDoneTime;
     @Data
     public static class WxDeliveryInfo {
         /**

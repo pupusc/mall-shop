@@ -1,6 +1,7 @@
 package com.wanmi.sbc.order;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.order.api.provider.trade.TradeSettingProvider;
@@ -107,9 +108,17 @@ public class TradeSettingController {
                     if (trade.getStatus() == 0) {
                         operateLogMQUtil.convertAndSend("订单", "修改订单设置", "修改订单设置：订单失效时间设为关");
                     } else {
+                        String str = "";
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(trade.getContext());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+                        if (minuteObj == null) {
+                            str = timeoutCancelConfigJsonObj.get("hour") + "小时";
+                        } else {
+                            str = minuteObj + "分钟";
+                        }
+
                         operateLogMQUtil.convertAndSend("订单", "修改订单设置",
-                                "修改订单设置：订单失效时间设为开,时间为" + trade.getContext().substring(8,
-                                        trade.getContext().length() - 1) + "小时");
+                                "修改订单设置：订单失效时间设为开,时间为" + str);
                     }
                 }
                 continue;

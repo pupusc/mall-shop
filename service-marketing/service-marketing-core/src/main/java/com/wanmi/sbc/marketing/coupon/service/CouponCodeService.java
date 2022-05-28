@@ -21,16 +21,21 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.api.response.level.CustomerLevelByCustomerIdAndStoreIdResponse;
 import com.wanmi.sbc.customer.api.response.store.ListStoreByIdsResponse;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.brand.GoodsBrandQueryProvider;
 import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
 import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByIdsRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
@@ -171,6 +176,9 @@ public class CouponCodeService {
     private DistributionCacheService distributionCacheService;
 
     @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
     private ClassifyProvider classifyProvider;
     
 
@@ -179,6 +187,9 @@ public class CouponCodeService {
 
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
+
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
 
     /**
      * 根据条件查询优惠券码列表
@@ -265,6 +276,23 @@ public class CouponCodeService {
         };
     }
 
+    /**
+     * 获取优惠券黑名单
+     * @return
+     */
+    private List<String> listUnUseCouponBlackList () {
+        List<String> unUseCouponBlackList = new ArrayList<>();
+        //获取黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Collections.singletonList(GoodsBlackListCategoryEnum.UN_USE_GOODS_COUPON.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> goodsBlackListPageProviderResponseBaseResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse context = goodsBlackListPageProviderResponseBaseResponse.getContext();
+        if (context.getUnUseCouponBlackListModel() != null && !CollectionUtils.isEmpty(context.getUnUseCouponBlackListModel().getGoodsIdList())) {
+            unUseCouponBlackList.addAll(context.getUnUseCouponBlackListModel().getGoodsIdList());
+        }
+        return unUseCouponBlackList;
+    }
 
     /**
      * 查询使用优惠券页需要的优惠券列表
@@ -272,9 +300,28 @@ public class CouponCodeService {
     @Transactional
     public List<CouponCodeVO> listCouponCodeForUse(CouponCodeListForUseRequest request) {
 
+        //视频号黑名单
+        List<String> skuIdList = request.getTradeItems().stream().map(TradeItemInfo::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
+        List<TradeItemInfo> filterTradeItemInfoList = new ArrayList<>();
+        List<String> unUseCouponBlackList = this.listUnUseCouponBlackList();
+        for (TradeItemInfo tradeItem : request.getTradeItems()) {
+            if (unUseCouponBlackList.contains(tradeItem.getSpuId())) {
+                continue;
+            }
+            if (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId())) {
+                continue;
+            }
+            filterTradeItemInfoList.add(tradeItem);
+        }
+        request.setTradeItems(filterTradeItemInfoList);
+
+
         // 1.设置tradeItem的storeCateIds
         List<TradeItemInfo> tradeItemInfos = request.getTradeItems();
         List<String> goodsIds = tradeItemInfos.stream().map(TradeItemInfo::getSpuId).distinct().collect(Collectors.toList());
+        //获取商品spuId 获取商品所在分类列表
         Map<String, List<Integer>> storeCateIdMap = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds).getContext();
         tradeItemInfos.forEach(item -> {
             List<Integer> cateIds = storeCateIdMap.get(item.getSpuId());
@@ -290,17 +337,28 @@ public class CouponCodeService {
         // 3.循环处理每个优惠券
         TradeCouponSnapshot checkInfo = new TradeCouponSnapshot();
         if(CollectionUtils.isNotEmpty(couponCodeVos)) {
-            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
-            if(listBaseResponse.getContext() != null){
-                List<ClassifyProviderResponse> classifies = listBaseResponse.getContext();
-                for (CouponCodeVO couponCodeVO : couponCodeVos) {
-                    for (ClassifyProviderResponse classify : classifies) {
-                        if (couponCodeVO.getStoreId().equals(classify.getId().longValue())) {
-                            couponCodeVO.setStoreName(classify.getClassifyName());
-                        }
+            BaseResponse<ListStoreByIdsResponse> baseResponse =
+                    storeQueryProvider.listByIds(new ListStoreByIdsRequest(couponCodeVos.stream().map(CouponCodeVO::getStoreId).collect(Collectors.toList())));
+            List<StoreVO> storeVOList = baseResponse.getContext().getStoreVOList();
+            for (CouponCodeVO couponCodeVO : couponCodeVos) {
+                for (StoreVO storeVO : storeVOList) {
+                    if (couponCodeVO.getStoreId().equals(storeVO.getStoreId())) {
+                        couponCodeVO.setStoreName(storeVO.getStoreName());
                     }
                 }
             }
+
+//            BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassify();
+//            if(listBaseResponse.getContext() != null){
+//                List<ClassifyProviderResponse> classifies = listBaseResponse.getContext();
+//                for (CouponCodeVO couponCodeVO : couponCodeVos) {
+//                    for (ClassifyProviderResponse classify : classifies) {
+//                        if (couponCodeVO.getStoreId().equals(classify.getId().longValue())) {
+//                            couponCodeVO.setStoreName(classify.getClassifyName());
+//                        }
+//                    }
+//                }
+//            }
             List<CouponMarketingScope> allScopeList = couponMarketingScopeRepository.findByCouponIdIn(
                     couponCodeVos.stream().map(vo -> vo.getCouponId()).collect(Collectors.toList())
             );

@@ -84,7 +84,7 @@ public class TradeFSMService {
             }else  if (PayState.UNCONFIRMED==trade.getTradeState().getPayState()) {
                 orderInvoiceModifyOrderStatusRequest.setPayOrderStatus(PayOrderStatus.TOCONFIRM);
             }
-            log.info("订单开票更新订单状态，订单编号 {},订单当前状态：{}，更新之后的状态：{}", trade.getId(),trade.getTradeState().getFlowState(),flowState);
+            log.info("订单开票更新订单状态，订单编号 {},订单当前状态：{}，支付状态：{}", trade.getId(),trade.getTradeState().getFlowState(),trade.getTradeState().getPayState());
             orderInvoiceService.updateOrderStatus(orderInvoiceModifyOrderStatusRequest);
         }
         return true;

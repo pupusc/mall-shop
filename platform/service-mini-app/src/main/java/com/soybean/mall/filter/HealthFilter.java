@@ -15,8 +15,8 @@ import java.io.IOException;
  * @author Liang Jun
  * @date 2022-03-08 02:25:00
  */
-@Order(-1000)
-@Component
+//@Order(-1000)
+//@Component
 public class HealthFilter extends OncePerRequestFilter {
     private static String HEALTH_URI = "/";
     private static String HEALTH_METHOD = "HEAD";

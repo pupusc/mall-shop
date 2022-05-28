@@ -1,5 +1,4 @@
 package com.wanmi.sbc.goods;
-import com.google.common.collect.Lists;
 
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -13,7 +12,12 @@ import com.wanmi.sbc.customer.api.request.company.CompanyInfoByIdRequest;
 import com.wanmi.sbc.customer.bean.vo.CompanyInfoVO;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.provider.standard.EsStandardProvider;
-import com.wanmi.sbc.elastic.api.request.goods.*;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsDeleteByIdsRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoModifyAddedStatusRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInfoRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsInitProviderGoodsInfoRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySalesNumBySpuIdRequest;
+import com.wanmi.sbc.elastic.api.request.goods.EsGoodsModifySortNoBySpuIdRequest;
 import com.wanmi.sbc.elastic.api.request.standard.EsStandardInitRequest;
 import com.wanmi.sbc.erp.api.provider.GuanyierpProvider;
 import com.wanmi.sbc.erp.api.request.SynGoodsInfoRequest;
@@ -40,24 +44,50 @@ import com.wanmi.sbc.goods.api.request.cate.GoodsCateByIdsRequest;
 import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.freight.FreightTemplateGoodsExistsByIdRequest;
-import com.wanmi.sbc.goods.api.request.goods.*;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByConditionRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsByIdRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAddedStatusRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAllRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyFreightTempRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifyShamSalesNumRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsModifySortNoRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
-import com.wanmi.sbc.goods.api.request.storecate.StoreCateListByGoodsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleNotEndResponse;
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleNotEndResponse;
 import com.wanmi.sbc.goods.api.response.brand.GoodsBrandByIdResponse;
 import com.wanmi.sbc.goods.api.response.cate.GoodsCateByIdResponse;
 import com.wanmi.sbc.goods.api.response.freight.FreightTemplateGoodsByIdResponse;
-import com.wanmi.sbc.goods.api.response.goods.*;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddAllResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsAddResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.*;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyGiftVO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsBrandVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCateVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.goods.service.GoodsExcelService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.operatedatalog.OperateDataLogQueryProvider;
@@ -82,7 +112,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletInputStream;
@@ -90,7 +126,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -184,6 +227,9 @@ public class GoodsController {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+    
+    @Value("${fdds.provider.id}")
+    private Long fddsProviderId;
 
 
 
@@ -202,29 +248,38 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
+
+        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
         &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
-        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
-        goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
-                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
-                    }
-                } else {
-                    throw new SbcRuntimeException("K-800003");
-                }
-            }
-        });
 
+        //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
+        if (!fddsProviderId.equals(request.getGoods().getProviderId())) {
+            List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
+            goodsInfoDTOS.forEach(goodsInfoDTO -> {
+                if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo()) && !goodsInfoDTO.getCombinedCommodity()) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
+                    }
+                }
+            });
+        }
+        
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
             request.getGoods().setGoodsBuyTypes(GOODS_BUY_TYPES);
@@ -323,30 +378,37 @@ public class GoodsController {
     @ApiOperation(value = "同时新增商品基本和商品设价")
     @RequestMapping(value = "/spu/price", method = RequestMethod.POST)
     public BaseResponse<String> spuDetail(@RequestBody @Valid GoodsAddAllRequest request) {
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
+
+        request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
+        //request.getGoods().setProviderId(defaultProviderId);
+
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //查询ERP编码信息,校验sku填写的erp编码是否在查询的erp编码中
-        List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
-        goodsInfoDTOS.forEach(goodsInfoDTO -> {
-            if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
-                List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
-                if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
-                    List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
-                    if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
-                        throw new SbcRuntimeException("K-800002");
+        if (!fddsProviderId.equals(request.getGoods().getProviderId())) {
+            List<GoodsInfoDTO> goodsInfoDTOS= request.getGoodsInfos();
+            goodsInfoDTOS.forEach(goodsInfoDTO -> {
+                if (StringUtils.isNotBlank(goodsInfoDTO.getErpGoodsInfoNo())) {
+                    List<ERPGoodsInfoVO> erpGoodsInfoVOList=guanyierpProvider.syncGoodsInfo(SynGoodsInfoRequest.builder().spuCode(goodsInfoDTO.getErpGoodsNo()).build()).getContext().getErpGoodsInfoVOList();
+                    if (CollectionUtils.isNotEmpty(erpGoodsInfoVOList)) {
+                        List<String> skuCodes=erpGoodsInfoVOList.stream().map(erpGoodsInfoVO -> erpGoodsInfoVO.getSkuCode()).distinct().collect(Collectors.toList());
+                        if (!skuCodes.contains(goodsInfoDTO.getErpGoodsInfoNo())) {
+                            throw new SbcRuntimeException("K-800002");
+                        }
+                    } else {
+                        throw new SbcRuntimeException("K-800003");
                     }
-                } else {
-                    throw new SbcRuntimeException("K-800003");
                 }
-            }
-        });
-
-
+            });
+        }
 
         // 添加默认值, 适应云掌柜新增商品没有设置购买方式, 导致前台不展示购买方式问题
         if (StringUtils.isBlank(request.getGoods().getGoodsBuyTypes())) {
@@ -405,6 +467,11 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
+
         request.setUpdatePerson(commonUtil.getOperatorId());
         //todo 改为让前端传过来
         //request.getGoods().setProviderId(defaultProviderId);
@@ -936,7 +1003,16 @@ public class GoodsController {
     @RequestMapping(value = "/spu/price", method = RequestMethod.PUT)
     public BaseResponse editSpuPrice(@RequestBody @Valid GoodsModifyAllRequest request) {
         request.setUpdatePerson(commonUtil.getOperatorId());
-        request.getGoods().setProviderId(defaultProviderId);
+
+        if (Objects.isNull(request.getGoods().getProviderId())) {
+            return BaseResponse.error("供应商id不能为空");
+        }
+        //验证组合商品包
+        checkGoodsPack(request.getEditType(),
+                Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
+                Objects.isNull(request.getGoodsPackDetails()) ? 0 : request.getGoodsPackDetails().size());
+        //request.getGoods().setProviderId(defaultProviderId);
+
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
                 &&( request.getGoods().getGoodsType() != GoodsType.CYCLE_BUY.toValue() && request.getGoods().getGoodsType() == GoodsType.REAL_GOODS.toValue() )) {
@@ -974,6 +1050,22 @@ public class GoodsController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    private void checkGoodsPack(Integer editType, int mainSkuSize, int childSkuSize) {
+        if (Objects.isNull(editType)) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "编辑类型不能为空");
+        }
+        //打包商品
+        if (Integer.valueOf(3).equals(editType)) {
+            if (mainSkuSize != 1) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "组合商品的主商品sku数量必须是1");
+            }
+        } else {
+            if (childSkuSize != 0) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "非组合商品的子商品数量必须是0");
+            }
+        }
+    }
+
     /**
      * @description 商家后台获取商品详情信息
      * @param goodsId
@@ -987,6 +1079,8 @@ public class GoodsController {
         GoodsViewByIdRequest request = new GoodsViewByIdRequest();
         request.setGoodsId(goodsId);
         request.setShowLabelFlag(true);
+        request.setShowGoodsPackFlag(true);
+
         GoodsViewByIdResponse response = goodsQueryProvider.getViewById(request).getContext();
 
         //周期购商品 封装周期购信息
@@ -1054,6 +1148,20 @@ public class GoodsController {
             operateDataLogList = operateDataLogListResponse.getOperateDataLogVOList();
         }
         response.setOperateDataLogVOList(operateDataLogList);
+
+        //前端编辑类型：1普通商品；2直充商品；3打包商品；
+        if (CollectionUtils.isNotEmpty(response.getGoodsPackDetails())) {
+            response.getGoodsPackDetails().forEach(item -> item.setFddsGoodsFlag(fddsProviderId.equals(item.getProviderId())));
+            response.setGoodsPackDetails(response.getGoodsPackDetails().stream()
+                            .filter(item -> !item.getPackId().equals(item.getGoodsId())).collect(Collectors.toList())
+            );
+            response.setEditType(3);
+        } else if (fddsProviderId.equals(response.getGoods().getProviderId())) {
+            response.setEditType(2);
+        } else {
+            response.setEditType(1);
+        }
+
         return BaseResponse.success(response);
     }
 

@@ -2,9 +2,13 @@ package com.soybean.mall.wx.mini.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.wx.mini.common.bean.request.UrlschemeRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
 import com.soybean.mall.wx.mini.common.bean.request.WxUploadImageRequest;
+import com.soybean.mall.wx.mini.common.bean.response.UrlschemeResponse;
 import com.soybean.mall.wx.mini.common.bean.response.WxUploadImageResponse;
+import com.soybean.mall.wx.mini.customerserver.request.WxCustomerServerOnlineRequest;
+import com.soybean.mall.wx.mini.customerserver.response.WxCustomerServerOnlineResponse;
 import com.soybean.mall.wx.mini.goods.bean.request.WxAddProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxDeleteProductRequest;
 import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
@@ -14,6 +18,8 @@ import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
+import com.wanmi.sbc.common.base.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,8 +66,16 @@ public class WxService {
     private static final String GET_PAYMENT_PARAMS_URL="https://api.weixin.qq.com/shop/order/getpaymentparams";
     private static final String UPLOAD_RETURN_INFO="https://api.weixin.qq.com/shop/ecaftersale/uploadreturninfo";
     private static final String LIST_AFTER_SALE="https://api.weixin.qq.com/shop/ecaftersale/get_list";
+    private static final String CUSTOMER_SERVER_ONLINE_URL="https://api.weixin.qq.com/cgi-bin/customservice/getonlinekflist";
+    public static final String API_WEIXIN_WXA_GENERATESCHEME = "https://api.weixin.qq.com/wxa/generatescheme";
+    public static final String CANCEL_ORDER_URL = "https://api.weixin.qq.com/shop/order/close";
+    public static final String GET_VIDEO_ORDER_URL = "https://api.weixin.qq.com/shop/order/get";
+    public static final String AFTER_SALE_UPDATE_URL = "https://api.weixin.qq.com/shop/ecaftersale/update";
+
 
     private static final HttpHeaders defaultHeader;
+
+
     static {
         defaultHeader = new HttpHeaders();
         defaultHeader.setContentType(MediaType.APPLICATION_JSON);
@@ -232,13 +246,17 @@ public class WxService {
         return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 
-    public WxCreateOrderResponse getOrder(WxOrderDetailRequest request){
+    /**
+     * 获取订单详情
+     * @param request
+     * @return
+     */
+    public WxVideoOrderDetailResponse getDetail(WxOrderDetailRequest request){
         String accessToken = getAccessToken();
-        String url = "https://api.weixin.qq.com/shop/order/get".concat("?access_token=").concat(accessToken);
-
+        String url = GET_VIDEO_ORDER_URL.concat("?access_token=").concat(accessToken);
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
-        return sendRequest(url, HttpMethod.POST, entity, WxCreateOrderResponse.class);
+        return sendRequest(url, HttpMethod.POST, entity, WxVideoOrderDetailResponse.class);
     }
 
 
@@ -285,7 +303,7 @@ public class WxService {
     }
 
     /**
-     * 生成售后单-新版
+     * 视频号-生成售后单-新版
      */
     public WxCreateNewAfterSaleResponse createNewAfterSale(WxCreateNewAfterSaleRequest wxCreateNewAfterSaleRequest){
         String url = AFTER_SALE_CREATE_URL.concat("?access_token=").concat(getAccessToken());
@@ -325,7 +343,7 @@ public class WxService {
     }
 
     /**
-     * 售后单-取消售后🤮
+     * 视频号-售后单-取消售后🤮
      */
     public WxResponseBase cancelAfterSale(WxDealAftersaleNeedOpenidRequest wxDealAftersaleNeedOpenidRequest){
         String url = AFTER_SALE_CANCEL_URL.concat("?access_token=").concat(getAccessToken());
@@ -379,5 +397,55 @@ public class WxService {
         String reqJsonStr = JSONObject.toJSONString(request);
         HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
         return sendRequest(url, HttpMethod.POST, entity, WxListAfterSaleResponse.class);
+    }
+
+    /**
+     * 客服在线信息
+     */
+    public WxCustomerServerOnlineResponse listCustomerServerOnline(WxCustomerServerOnlineRequest request) {
+        String url = CUSTOMER_SERVER_ONLINE_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxCustomerServerOnlineResponse.class);
+    }
+
+    /**
+     * 生成小程序的schemeurl
+     * @param request
+     * @return
+     */
+    public BaseResponse<String> urlschemeGenerate(UrlschemeRequest request) {
+        String url = API_WEIXIN_WXA_GENERATESCHEME.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        UrlschemeResponse urlschemeResponse = sendRequest(url, HttpMethod.POST, entity, UrlschemeResponse.class);
+        if(urlschemeResponse.isSuccess()){
+            return BaseResponse.success(urlschemeResponse.getOpenlink());
+        }
+        return BaseResponse.error(urlschemeResponse.getErrcode()+"  "+ urlschemeResponse.getErrmsg());
+    }
+
+
+    /**
+     * 关闭订单
+     * @param request
+     * @return
+     */
+    public WxResponseBase cancelOrder(WxOrderCancelRequest request) {
+        String url = CANCEL_ORDER_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
+    }
+
+
+    /**
+     * 视频号 - 更新售后订单
+     */
+    public WxResponseBase updateAfterSaleOrder(WxAfterSaleUpdateRequest request) {
+        String url = AFTER_SALE_UPDATE_URL.concat("?access_token=").concat(getAccessToken());
+        String reqJsonStr = JSONObject.toJSONString(request);
+        HttpEntity<String> entity = new HttpEntity<>(reqJsonStr, defaultHeader);
+        return sendRequest(url, HttpMethod.POST, entity, WxResponseBase.class);
     }
 }

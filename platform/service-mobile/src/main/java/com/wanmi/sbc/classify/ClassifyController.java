@@ -16,10 +16,14 @@ import com.wanmi.sbc.elastic.api.request.goods.SortCustomBuilder;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.enums.BookFlagEnum;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.classify.ClassifyCollectionProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelGoodsIdProviderResponse;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
@@ -85,9 +89,8 @@ public class ClassifyController {
     @Autowired
     private CommonUtil commonUtil;
 
-    @Value("${exclude-classifyIdStr:000}")
-    private String excludeClassifyIdStr;
-
+//    @Value("${exclude-classifyIdStr:000}")
+//    private String excludeClassifyIdStr;
 
     private static final Integer page_size = 80;
 
@@ -102,6 +105,9 @@ public class ClassifyController {
 
     @Autowired
     private  RefreshConfig refreshConfig;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
 
 
     /**
@@ -140,10 +146,14 @@ public class ClassifyController {
         ClassifyCollectionProviderRequest classifyCollectionProviderRequest = new ClassifyCollectionProviderRequest();
         classifyCollectionProviderRequest.setParentIdColl(Collections.singleton(0));
         BaseResponse<List<ClassifyProviderResponse>> listBaseResponse = classifyProvider.listClassifyNoChildByParentId(classifyCollectionProviderRequest);
-        List<String> excludeClassifyIdList = new ArrayList<>() ;
-        if (!StringUtils.isEmpty(excludeClassifyIdStr)) {
-            String[] excludeClassifyIdAttr = excludeClassifyIdStr.split(",");
-            excludeClassifyIdList.addAll(Arrays.asList(excludeClassifyIdAttr));
+        List<String> excludeClassifyIdList = new ArrayList<>();
+        //黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.CLASSIFT_AT_BOTTOM.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> blackListRes = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse blackList = blackListRes.getContext();
+        if(blackList != null && !CollectionUtils.isEmpty(blackList.getClassifyAtBottomBlackListModel().getSecondClassifyIdList())){
+            excludeClassifyIdList = blackList.getClassifyAtBottomBlackListModel().getSecondClassifyIdList();
         }
         for (ClassifyProviderResponse classifyProviderResponseParam : listBaseResponse.getContext()) {
             if (excludeClassifyIdList.contains(classifyProviderResponseParam.getId() + "")) {

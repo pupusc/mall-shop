@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.bean.wx.vo.assistant;
 
 import lombok.Data;
 
+
 @Data
 public class WxLiveAssistantVo {
 
@@ -16,6 +17,17 @@ public class WxLiveAssistantVo {
      * 商品数量
      */
     private Integer goodsCount;
+
+    /**
+     * 是否直播计划商品有效0 不同步 1同步
+     */
+    private Integer hasAssistantGoodsValid;
+
+    /**
+     * 是否直播计划的开始同步/结束同步按钮可以触发 0 不可以 1可以
+     */
+    private Integer hasAssistantTouch;
+
 
     /**
      * 开始时间

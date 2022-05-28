@@ -60,12 +60,14 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/add")
     public BaseResponse addAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
-        BaseResponse<Long> response = wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            sendDelayMessage(response.getContext(), wxLiveAssistantCreateRequest.getEndTime());
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<Long> response = wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            sendDelayMessage(response.getContext(), wxLiveAssistantCreateRequest.getEndTime());
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.addAssistant(wxLiveAssistantCreateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -76,18 +78,20 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/delete")
     public BaseResponse deleteAssistant(@RequestParam Long id){
-        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteAssistant(id);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            List<String> goodsIds = response.getContext();
-            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
-            if(CollectionUtils.isNotEmpty(goodsIds)){
-                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
-                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
-            }
-//            resetEsStock(response.getContext());
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<List<String>> response = wxLiveAssistantProvider.deleteAssistant(id);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            List<String> goodsIds = response.getContext();
+//            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+//            if(CollectionUtils.isNotEmpty(goodsIds)){
+//                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+//                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+//            }
+////            resetEsStock(response.getContext());
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.deleteAssistant(id);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -98,15 +102,17 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/update")
     public BaseResponse updateAssistant(@RequestBody WxLiveAssistantCreateRequest wxLiveAssistantCreateRequest){
-        BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
-        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
-            Map<String, String> context = response.getContext();
-            if(context.get("endTime") != null){
-                sendDelayMessage(Long.parseLong(context.get("id")), wxLiveAssistantCreateRequest.getEndTime());
-            }
-            return BaseResponse.SUCCESSFUL();
-        }
-        return BaseResponse.FAILED();
+//        BaseResponse<Map<String, String>> response = wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
+//        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+//            Map<String, String> context = response.getContext();
+//            if(context.get("endTime") != null){
+//                sendDelayMessage(Long.parseLong(context.get("id")), wxLiveAssistantCreateRequest.getEndTime());
+//            }
+//            return BaseResponse.SUCCESSFUL();
+//        }
+//        return BaseResponse.FAILED();
+        wxLiveAssistantProvider.updateAssistant(wxLiveAssistantCreateRequest);
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -128,7 +134,16 @@ public class GoodsLiveAssistantController {
      */
     @PostMapping("/assistant/addGoods")
     public BaseResponse addGoods(@RequestBody WxLiveAssistantGoodsCreateRequest wxLiveAssistantGoodsCreateRequest){
-        return wxLiveAssistantProvider.addGoods(wxLiveAssistantGoodsCreateRequest);
+        BaseResponse<List<String>> response = wxLiveAssistantProvider.addGoods(wxLiveAssistantGoodsCreateRequest);
+        if(response.getCode().equals(CommonErrorCode.SUCCESSFUL)){
+            List<String> goodsIds = response.getContext();
+            log.info("商品es更新: {}", Arrays.toString(goodsIds.toArray()));
+            if(CollectionUtils.isNotEmpty(goodsIds)){
+                esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIds).build());
+                esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
+            }
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -148,9 +163,8 @@ public class GoodsLiveAssistantController {
                 esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIds).build());
             }
 //            resetEsStock(response.getContext());
-            return BaseResponse.SUCCESSFUL();
         }
-        return BaseResponse.FAILED();
+        return BaseResponse.SUCCESSFUL();
     }
 
     /**
@@ -201,6 +215,41 @@ public class GoodsLiveAssistantController {
     }
 
     /**
+     * 开启同步
+     * @param wxLiveAssistantId
+     *
+     * @menu 小程序
+     * @return
+     */
+    @GetMapping("/assistant/open-assistant-goods-valid/{wxLiveAssistantId}")
+    public BaseResponse open(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
+        List<String> goodsIdList = wxLiveAssistantProvider.openAssistantGoodsValid(wxLiveAssistantId).getContext();
+        if(CollectionUtils.isNotEmpty(goodsIdList)){
+            esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIdList).build());
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIdList).build());
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    /**
+     * 关闭同步
+     * @param wxLiveAssistantId
+     *
+     * @menu 小程序
+     * @return
+     */
+    @GetMapping("/assistant/close-assistant-goods-valid/{wxLiveAssistantId}")
+    public BaseResponse close(@PathVariable("wxLiveAssistantId") Long wxLiveAssistantId){
+        List<String> goodsIdList = wxLiveAssistantProvider.closeAssistantGoodsValid(wxLiveAssistantId).getContext();
+        if(CollectionUtils.isNotEmpty(goodsIdList)){
+            esGoodsInfoElasticProvider.deleteByGoods(EsGoodsDeleteByIdsRequest.builder().deleteIds(goodsIdList).build());
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsIds(goodsIdList).build());
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    /**
      * @description 查询直播计划商品是否在直播计划中
      * @param goodsId
      * @menu 小程序
@@ -218,32 +267,32 @@ public class GoodsLiveAssistantController {
         return BaseResponse.success(false);
     }
 
-    private void sendDelayMessage(Long assistantId, String endTimeStr){
-        log.info("发送直播助手延时消息: {},{}", assistantId, endTimeStr);
-        LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
-        LocalDateTime now2 = LocalDateTime.now();
-        Duration duration2 = Duration.between(now2, endTime);
+//    private void sendDelayMessage(Long assistantId, String endTimeStr){
+//        log.info("发送直播助手延时消息: {},{}", assistantId, endTimeStr);
+//        LocalDateTime endTime = LocalDateTime.parse(endTimeStr, df);
+//        LocalDateTime now2 = LocalDateTime.now();
+//        Duration duration2 = Duration.between(now2, endTime);
+//
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("assistantId", assistantId);
+//        map.put("time", endTime.format(df));
+//        map.put("event_type", 1);
+//        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
+//    }
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("assistantId", assistantId);
-        map.put("time", endTime.format(df));
-        map.put("event_type", 1);
-        wxMiniMessageProducer.sendDelay(map, duration2.toMillis());
-    }
-
-    public void resetEsStock(Map<String, Map<String, Integer>> map){
-
-        if(map != null && !map.isEmpty()){
-            Map<String, Integer> skusMap = map.get("skus");
-            if(!skusMap.isEmpty()){
-                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
-                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-            }
-            Map<String, Integer> spusMap = map.get("spus");
-            if(!spusMap.isEmpty()){
-                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
-                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-            }
-        }
-    }
+//    public void resetEsStock(Map<String, Map<String, Integer>> map){
+//
+//        if(map != null && !map.isEmpty()){
+//            Map<String, Integer> skusMap = map.get("skus");
+//            if(!skusMap.isEmpty()){
+//                EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
+//                esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
+//            }
+//            Map<String, Integer> spusMap = map.get("spus");
+//            if(!spusMap.isEmpty()){
+//                EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
+//                esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
+//            }
+//        }
+//    }
 }

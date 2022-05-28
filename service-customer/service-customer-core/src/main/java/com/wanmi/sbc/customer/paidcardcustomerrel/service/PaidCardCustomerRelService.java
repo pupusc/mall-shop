@@ -121,7 +121,7 @@ public class PaidCardCustomerRelService {
 
 
 	/**
-	 * 分页查询付费会员
+	 * 批量数据的时候使用 分页查询付费会员
 	 * @author xuhai
 	 */
 	public List<PaidCardCustomerRel> pageByMaxAutoId(PaidCardCustomerRelQueryRequest request){
@@ -131,6 +131,23 @@ public class PaidCardCustomerRelService {
 //		Page<PaidCardCustomerRel> all = paidCardCustomerRelRepository.findAll(build, pageable);
 //		return all.getContent();
 		return paidCardCustomerRelRepository.pageByMaxAutoId(request.getPaidCardIdList(), request.getCurrentTime(), request.getMaxTmpId(), request.getPageSize());
+	}
+
+	/**
+	 * 获取30天即将过期的会员卡信息
+	 * @author xuhai
+	 */
+	public List<PaidCardCustomerRel> pageSendMsgFlagByEndTimeAndMaxAutoId(PaidCardCustomerRelQueryRequest request){
+		return paidCardCustomerRelRepository.pageSendMsgFlagByEndTimeAndMaxAutoId(request.getEndTimeEnd(), request.getMaxTmpId(), request.getPageSize());
+	}
+
+
+	/**
+	 * 获取已经过期的会员卡信息
+	 * @author xuhai
+	 */
+	public List<PaidCardCustomerRel> pageSendExpireMsgFlagByEndTimeAndMaxAutoId(PaidCardCustomerRelQueryRequest request){
+		return paidCardCustomerRelRepository.pageSendExpireMsgFlagByEndTimeAndMaxAutoId(request.getEndTimeEnd(), request.getMaxTmpId(), request.getPageSize());
 	}
 	
 	/** 
@@ -142,6 +159,9 @@ public class PaidCardCustomerRelService {
 				PaidCardCustomerRelWhereCriteriaBuilder.build(queryReq),
 				queryReq.getSort());
 	}
+
+
+
 
 	/**
 	 * 将实体包装成VO

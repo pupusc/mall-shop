@@ -17,6 +17,7 @@ import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.WxGoodsSearchRequest;
+import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantGoodsUpdateVo;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.request.GoodsInfoQueryRequest;
@@ -52,6 +53,9 @@ public class WxGoodsService {
 
     @Value("${wx.mini.goods.path}")
     private String wxGoodsPath;
+
+    @Value("${wx.mini.goods.direct.path}")
+    private String wxGoodsDirectPath;
 
     @Autowired
     private WxGoodsRepository wxGoodsRepository;
@@ -153,8 +157,12 @@ public class WxGoodsService {
     public void toAudit(WxGoodsCreateRequest createRequest){
         WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(createRequest.getGoodsId(), DeleteFlag.NO);
         if(wxGoodsModel == null) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品不存在");
-        if(wxGoodsModel.getWxCategory() == null || wxGoodsModel.getIsbnImg() == null || wxGoodsModel.getPublisherImg() == null)
-            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品类目、ISBN图、出版社图必填");
+        if(StringUtils.isEmpty(wxGoodsModel.getWxCategory())) {
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "微信类目必填");
+        }
+        if(wxGoodsModel.getWxCategory().startsWith("135835", 7) && (StringUtils.isEmpty(wxGoodsModel.getIsbnImg()) || StringUtils.isEmpty(wxGoodsModel.getPublisherImg()))){
+            throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "图书类商品ISBN图、出版社图必填");
+        }
         if(wxGoodsModel.getNeedToAudit() == 0) throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, "商品无需审核");
 
         Goods goods = goodsService.findByGoodsId(createRequest.getGoodsId());
@@ -185,7 +193,14 @@ public class WxGoodsService {
             }
         }else if(wxGoodsModel.getNeedToAudit() == 2){
             //需要免审更新
-            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goods, goodsInfos));
+            List<WxLiveAssistantGoodsUpdateVo> wxLiveAssistantGoodsUpdateVoList = new ArrayList<>();
+            for (GoodsInfo goodsInfo : goodsInfos) {
+                WxLiveAssistantGoodsUpdateVo wxLiveAssistantGoodsUpdateVo = new WxLiveAssistantGoodsUpdateVo();
+                wxLiveAssistantGoodsUpdateVo.setGoodsInfoId(goodsInfo.getGoodsInfoId());
+                wxLiveAssistantGoodsUpdateVo.setWxPrice(goodsInfo.getMarketPrice());
+                wxLiveAssistantGoodsUpdateVo.setWxStock(goodsInfo.getStock());
+            }
+            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goods.getGoodsId(), wxLiveAssistantGoodsUpdateVoList));
             if(!baseResponse.getContext().isSuccess()){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
             }
@@ -198,12 +213,12 @@ public class WxGoodsService {
     /**
      * 微信免审
      */
-    public void toAudit(Goods goods){
-        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goods.getGoodsId(), DeleteFlag.NO);
+    public void toAudit(String goodsId, List<WxLiveAssistantGoodsUpdateVo> wxLiveAssistantGoodsUpdateVoList){
+        WxGoodsModel wxGoodsModel = wxGoodsRepository.findByGoodsIdAndDelFlag(goodsId, DeleteFlag.NO);
         if(wxGoodsModel != null && wxGoodsModel.getPlatformProductId() != null){
             //需要免审更新
-            List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(goods.getGoodsId()).delFlag(DeleteFlag.NO.toValue()).build());
-            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goods, goodsInfos));
+//            List<GoodsInfo> goodsInfos = goodsInfoService.findByParams(GoodsInfoQueryRequest.builder().goodsId(goodsId).delFlag(DeleteFlag.NO.toValue()).build());
+            BaseResponse<WxResponseBase> baseResponse = wxGoodsApiController.updateGoodsWithoutAudit(createWxUpdateProductWithoutAuditRequest(goodsId, wxLiveAssistantGoodsUpdateVoList));
             if(!baseResponse.getContext().isSuccess()){
                 throw new SbcRuntimeException(CommonErrorCode.SPECIFIED, baseResponse.getContext().getErrmsg());
             }
@@ -349,11 +364,14 @@ public class WxGoodsService {
         addProductRequest.setOutProductId(goods.getGoodsId());
         addProductRequest.setTitle(goods.getGoodsName());
         addProductRequest.setPath(wxGoodsPath.concat("?spuId=").concat(goods.getGoodsId()));
+        addProductRequest.setDirectPath(wxGoodsDirectPath.concat("?spuId=").concat(goods.getGoodsId()));
         addProductRequest.setHeadImg(Collections.singletonList(exchangeWxImgUrl(goods.getGoodsImg())));
-        List<String> qualificationics = new ArrayList<>();
-        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
-        qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
-        addProductRequest.setQualificationics(qualificationics);
+        if(StringUtils.isNotEmpty(wxGoodsModel.getIsbnImg()) && StringUtils.isNotEmpty(wxGoodsModel.getPublisherImg())){
+            List<String> qualificationics = new ArrayList<>();
+            qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getIsbnImg()));
+            qualificationics.add(exchangeWxImgUrl(wxGoodsModel.getPublisherImg()));
+            addProductRequest.setQualificationics(qualificationics);
+        }
         //商品详情截取图片
         String detail;
         if(StringUtils.isNotEmpty(goods.getGoodsMobileDetail())){
@@ -384,26 +402,29 @@ public class WxGoodsService {
         return addProductRequest;
     }
 
-    public WxUpdateProductWithoutAuditRequest createWxUpdateProductWithoutAuditRequest(Goods goods, List<GoodsInfo> goodsInfos){
+    public WxUpdateProductWithoutAuditRequest createWxUpdateProductWithoutAuditRequest(String goodsId, List<WxLiveAssistantGoodsUpdateVo> wxLiveAssistantGoodsUpdateVoList){
         WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
-        wxUpdateProductWithoutAuditRequest.setOutProductId(goods.getGoodsId());
-        wxUpdateProductWithoutAuditRequest.setSkus(createSkusWithoutAudit(goodsInfos));
+        wxUpdateProductWithoutAuditRequest.setOutProductId(goodsId);
+        wxUpdateProductWithoutAuditRequest.setSkus(this.createSkusWithoutAudit(wxLiveAssistantGoodsUpdateVoList));
         return wxUpdateProductWithoutAuditRequest;
     }
 
-    public List<WxUpdateProductWithoutAuditRequest.Sku> createSkusWithoutAudit(List<GoodsInfo> goodsInfos){
+    public List<WxUpdateProductWithoutAuditRequest.Sku> createSkusWithoutAudit(List<WxLiveAssistantGoodsUpdateVo> wxLiveAssistantGoodsUpdateVoList){
         List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
-        for (GoodsInfo goodsInfo : goodsInfos) {
+        for (WxLiveAssistantGoodsUpdateVo wxLiveAssistantGoodsUpdateParam : wxLiveAssistantGoodsUpdateVoList) {
             WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
-            sku.setOutSkuId(goodsInfo.getGoodsInfoId());
-            BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
+            sku.setOutSkuId(wxLiveAssistantGoodsUpdateParam.getGoodsInfoId());
+            BigDecimal price = wxLiveAssistantGoodsUpdateParam.getWxPrice().multiply(BigDecimal.valueOf(100));
             sku.setMarketPrice(price);
             sku.setSalePrice(price);
-            sku.setStockNum(goodsInfo.getStock() == null ? 0 : goodsInfo.getStock().intValue());
+            sku.setBarcode("樊登读书--barcode");
+            sku.setSkuCode("樊登读书--skuCode");
+            sku.setStockNum(wxLiveAssistantGoodsUpdateParam.getWxStock() == null ? 0 : wxLiveAssistantGoodsUpdateParam.getWxStock().intValue());
             skus.add(sku);
         }
         return skus;
     }
+
 
     private List<WxAddProductRequest.Sku> createSkus(Goods goods, List<GoodsInfo> goodsInfos){
         List<WxAddProductRequest.Sku> skus = new ArrayList<>();
@@ -416,7 +437,15 @@ public class WxGoodsService {
             sku.setSalePrice(price);
             sku.setMarketPrice(price);
             sku.setStockNum(goodsInfo.getStock().intValue());
-//            sku.setSkuAttrs();
+            List<WxAddProductRequest.SkuAttrs> skuAttrsList = new ArrayList<>();
+            WxAddProductRequest.SkuAttrs skuAttrs = new WxAddProductRequest.SkuAttrs();
+            sku.setSkuCode("樊登读书SkuCode");
+            sku.setBarcode("樊登读书barcode");
+
+            skuAttrs.setAttrKey("樊登读书Key");
+            skuAttrs.setAttrValue("樊登读书value");
+            skuAttrsList.add(skuAttrs);
+            sku.setSkuAttrs(skuAttrsList);
             skus.add(sku);
         }
         return skus;

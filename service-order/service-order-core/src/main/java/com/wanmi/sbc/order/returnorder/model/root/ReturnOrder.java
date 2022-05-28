@@ -81,6 +81,16 @@ public class ReturnOrder implements Serializable {
     private String tid;
 
     /**
+     * 视频号售后id
+     */
+    private String aftersaleId;
+
+//    /**
+//     * 视频号流程中断 true 表示中断,临时使用中断操作
+//     */
+//    private Boolean interrupt;
+
+    /**
      * 樊登用户id
      */
     private String fanDengUserNo;
@@ -349,6 +359,18 @@ public class ReturnOrder implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime updateTime;
 
+
+
+    /**
+     * 小程序订单场景1小程序2视频号
+     */
+    private Integer miniProgramScene;
+
+
+    /**
+     * 强制拒绝退款
+     */
+    private Integer forceReject;
 
 
     /**

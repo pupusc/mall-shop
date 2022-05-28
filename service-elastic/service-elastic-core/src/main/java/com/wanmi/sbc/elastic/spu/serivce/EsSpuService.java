@@ -157,7 +157,7 @@ public class EsSpuService {
                             .filter(i -> Objects.nonNull(i.getSupplyPrice()))
                             .map(GoodsInfoNestVO::getSupplyPrice).min(BigDecimal::compareTo).orElse(spu.getSupplyPrice()));
                     spu.setProviderName(g.getProviderName());
-                    spu.setGoodsChannelTypeSet(g.getGoodsChannelTypeSet());
+                    spu.setGoodsChannelTypeList(g.getGoodsChannelTypeList());
                     return spu;
                 }).collect(Collectors.toList());
 

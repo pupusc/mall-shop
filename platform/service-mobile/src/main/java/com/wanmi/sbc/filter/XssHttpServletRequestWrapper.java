@@ -111,8 +111,9 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         //缓存请求body
         try {
             requestBody = StreamUtils.copyToByteArray(servletRequest.getInputStream());
+            logger.info("XssHttpServletRequestWrapper requestURI:{} requestBody {}", servletRequest.getRequestURI(), new String(requestBody, "UTF-8"));
         } catch (IOException e) {
-            System.out.println(e);
+            logger.error("XssHttpServletRequestWrapper " , e);
         }
     }
 

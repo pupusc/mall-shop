@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -511,10 +511,30 @@ public class TradeItemVO implements Serializable, Cloneable {
     private TradeReturnVO tradeReturn;
 
     /**
+     * 打包id
+     */
+    private String packId;
+
+    /**
      * 库存
      */
     @ApiModelProperty(value = "库存")
     private Long stock;
+
+    /**
+     * 引导文案
+     */
+    private String guideText;
+
+    /**
+     * 引导图片
+     */
+    private String guideImg;
+
+    /**
+     * 显示电话输入框
+     */
+    private Boolean showPhoneNum = false;
 
     /**
      * 营销优惠商品结算Bean

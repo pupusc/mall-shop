@@ -3,12 +3,12 @@ package com.wanmi.sbc.goods.info.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
-import com.google.common.collect.Lists;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.EnableStatus;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
@@ -31,8 +31,8 @@ import com.wanmi.sbc.goods.api.request.pointsgoods.PointsGoodsQueryRequest;
 import com.wanmi.sbc.goods.api.request.virtualcoupon.VirtualCouponGoodsRequest;
 import com.wanmi.sbc.goods.api.request.virtualcoupon.VirtualCouponQueryRequest;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
-import com.wanmi.sbc.goods.appointmentsale.service.AppointmentSaleService;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
@@ -46,7 +46,6 @@ import com.wanmi.sbc.goods.bean.enums.SaleType;
 import com.wanmi.sbc.goods.bean.enums.UnAddedFlagReason;
 import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.goods.bookingsale.service.BookingSaleService;
 import com.wanmi.sbc.goods.brand.model.root.GoodsBrand;
 import com.wanmi.sbc.goods.brand.repository.ContractBrandRepository;
 import com.wanmi.sbc.goods.brand.repository.GoodsBrandRepository;
@@ -63,6 +62,7 @@ import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.classify.repository.ClassifyGoodsRelRepository;
 import com.wanmi.sbc.goods.classify.repository.ClassifyRepository;
 import com.wanmi.sbc.goods.common.GoodsCommonService;
+import com.wanmi.sbc.goods.common.GoodsPackDetailRepository;
 import com.wanmi.sbc.goods.distributor.goods.repository.DistributiorGoodsInfoRepository;
 import com.wanmi.sbc.goods.fandeng.SiteSearchService;
 import com.wanmi.sbc.goods.freight.model.root.FreightTemplateGoods;
@@ -80,10 +80,8 @@ import com.wanmi.sbc.goods.info.reponse.GoodsEditResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsQueryResponse;
 import com.wanmi.sbc.goods.info.reponse.GoodsResponse;
 import com.wanmi.sbc.goods.info.repository.GoodsInfoRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsPriceSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
-import com.wanmi.sbc.goods.info.repository.GoodsStockSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRelationRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsSyncRepository;
 import com.wanmi.sbc.goods.info.repository.GoodsVoteRepository;
@@ -123,7 +121,6 @@ import com.wanmi.sbc.goods.standard.repository.StandardSkuRepository;
 import com.wanmi.sbc.goods.standard.service.StandardImportService;
 import com.wanmi.sbc.goods.storecate.model.root.StoreCateGoodsRela;
 import com.wanmi.sbc.goods.storecate.repository.StoreCateGoodsRelaRepository;
-import com.wanmi.sbc.goods.storecate.repository.StoreCateRepository;
 import com.wanmi.sbc.goods.storegoodstab.model.root.GoodsTabRela;
 import com.wanmi.sbc.goods.storegoodstab.model.root.StoreGoodsTab;
 import com.wanmi.sbc.goods.storegoodstab.repository.GoodsTabRelaRepository;
@@ -140,6 +137,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
@@ -231,9 +229,6 @@ public class GoodsService {
     private StoreCateGoodsRelaRepository storeCateGoodsRelaRepository;
 
     @Autowired
-    private StoreCateRepository storeCateRepository;
-
-    @Autowired
     private ClassifyRepository classifyRepository;
 
     @Autowired
@@ -300,12 +295,6 @@ public class GoodsService {
     private GoodsIntervalPriceService goodsIntervalPriceService;
 
     @Autowired
-    private AppointmentSaleService appointmentSaleService;
-
-    @Autowired
-    private BookingSaleService bookingSaleService;
-
-    @Autowired
     private StandardImportService standardImportService;
 
     @Autowired
@@ -320,6 +309,7 @@ public class GoodsService {
 //
 //    @Autowired
 //    private GoodsPriceSyncRepository goodsPriceSyncRepository;
+
     @Autowired
     private ClassifyGoodsRelRepository classifyGoodsRelRepository;
 
@@ -340,6 +330,9 @@ public class GoodsService {
 
     @Autowired
     private SiteSearchService siteSearchService;
+
+    @Autowired
+    private GoodsPackDetailRepository goodsPackDetailRepository;
 
 
     /**
@@ -1908,9 +1901,104 @@ public class GoodsService {
             goodsSyncRelationRepository.save(goodsSyncRelation);
 
         }
+        //商品打包处理
+        handGoodsPack(saveRequest);
         //商品推送到站内搜索
         siteSearchService.siteSearchBookResNotify(Arrays.asList(goods.getGoodsId()));
         return goodsId;
+    }
+
+    private void handGoodsPack(GoodsSaveRequest saveRequest) {
+        if (CollectionUtils.isEmpty(saveRequest.getGoodsPackDetails())) {
+            return;
+        }
+        //参数验证主商品
+        if (CollectionUtils.isEmpty(saveRequest.getGoodsInfos())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku信息不能为空");
+        }
+        if (saveRequest.getGoodsInfos().size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包主商品sku数量不能大于1");
+        }
+        //参数验证子商品
+        for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
+            if (Objects.isNull(item.getGoodsId())) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的spuId不能为空");
+            }
+            if (Objects.isNull(item.getGoodsInfoId())) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的skuId不能为空");
+            }
+            if (Objects.isNull(item.getCount())) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的组合数量不能为空");
+            }
+            if (Objects.isNull(item.getShareRate())) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例不能为空");
+            }
+            if (item.getShareRate().compareTo(BigDecimal.ZERO) < 0) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "打包子商品的分配比例不能为负");
+            }
+        }
+
+        String mainSpuId = saveRequest.getGoodsInfos().get(0).getGoodsId();
+        String mainSkuId = saveRequest.getGoodsInfos().get(0).getGoodsInfoId();
+
+        //验证主商品不能存在子商品身份
+        GoodsPackDetailDTO detailDTO = new GoodsPackDetailDTO();
+        detailDTO.setDelFlag(0);
+        detailDTO.setGoodsId(mainSpuId);
+        List<GoodsPackDetailDTO> packDetialsByGoods = goodsPackDetailRepository.findAll(Example.of(detailDTO));
+        Optional<GoodsPackDetailDTO> childRecord = packDetialsByGoods.stream().filter(item -> item.getGoodsId().equals(mainSpuId) && !item.getPackId().equals(mainSpuId)).findFirst();
+        if (childRecord.isPresent()) {
+            Optional<Goods> packGoods = goodsRepository.findById(childRecord.get().getPackId());
+            if (!packGoods.isPresent()) {
+                log.warn("根据id查询商品不存在, goodsId = {}", childRecord.get().getPackId());
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+            }
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "当前主商品已存在于其他商品包中:" + packGoods.get().getGoodsName());
+        }
+
+        //验证子商品不能存在主商品身份
+        List<String> packIds = saveRequest.getGoodsPackDetails().stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList());
+        List<GoodsPackDetailDTO> packDetails = goodsPackDetailRepository.listByPackIds(packIds);
+        packDetails = packDetails.stream().filter(item -> item.getPackId().equals(item.getGoodsId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(packDetails)) {
+            List<String> goodsIds = packDetails.stream().map(GoodsPackDetailDTO::getGoodsId).distinct().collect(Collectors.toList());
+            List<Goods> goodsList = goodsRepository.findAllById(goodsIds);
+            if (CollectionUtils.isEmpty(goodsList)) {
+                log.warn("根据ids查询商品不存在, goodsIds = {}", JSON.toJSONString(goodsIds));
+                throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+            }
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "组合中含有主商品:" + goodsList.stream().map(Goods::getGoodsName).collect(Collectors.joining("、")));
+        }
+
+        //删除关联的打包数据
+        goodsPackDetailRepository.removeAllByPackId(mainSpuId);
+
+        BigDecimal sumRate = new BigDecimal(100);
+        List<GoodsPackDetailDTO> insertList = new ArrayList<>();
+        for (GoodsPackDetailDTO item : saveRequest.getGoodsPackDetails()) {
+            sumRate = sumRate.subtract(item.getShareRate());
+            GoodsPackDetailDTO childGoods = new GoodsPackDetailDTO();
+            childGoods.setPackId(mainSpuId);
+            childGoods.setGoodsId(item.getGoodsId());
+            childGoods.setGoodsInfoId(item.getGoodsInfoId());
+            childGoods.setCount(item.getCount());
+            childGoods.setShareRate(item.getShareRate());
+            insertList.add(childGoods);
+        }
+        if (sumRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new SbcRuntimeException("组合商品拆分比例总和不能超出上限");
+        }
+
+        GoodsPackDetailDTO mainGoods = new GoodsPackDetailDTO();
+        mainGoods.setGoodsId(mainSpuId);
+        mainGoods.setGoodsInfoId(mainSkuId);
+        mainGoods.setPackId(mainSpuId);
+        mainGoods.setCount(1);
+        mainGoods.setShareRate(sumRate);
+        insertList.add(mainGoods);
+        if (goodsPackDetailRepository.saveAll(insertList).size() != insertList.size()) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "打包数据保存失败");
+        }
     }
 
     /**
@@ -2579,6 +2667,9 @@ public class GoodsService {
         returnMap.put("oldGoodsInfos", oldGoodsInfos);
         returnMap.put("oldGoods", oldGoods);
         returnMap.put("isDealGoodsVendibility", isDealGoodsVendibility);
+
+        //商品打包处理
+        handGoodsPack(saveRequest);
 
         siteSearchService.siteSearchBookResNotify(Arrays.asList(newGoods.getGoodsId()));
         return returnMap;

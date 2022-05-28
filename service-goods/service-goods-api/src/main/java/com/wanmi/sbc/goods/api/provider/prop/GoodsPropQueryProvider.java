@@ -1,13 +1,26 @@
 package com.wanmi.sbc.goods.api.provider.prop;
 
 import com.wanmi.sbc.common.base.BaseResponse;
-import com.wanmi.sbc.goods.api.request.prop.*;
-import com.wanmi.sbc.goods.api.response.prop.*;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListAllByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListByGoodsIdsRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListIndexByCateIdRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropListInitSortRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropQueryIsChildNodeRequest;
+import com.wanmi.sbc.goods.api.request.prop.GoodsPropQueryPropDetailsOverStepRequest;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListAllByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListByGoodsIdsResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListIndexByCateIdResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropListInitSortResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryIsChildNodeResponse;
+import com.wanmi.sbc.goods.api.response.prop.GoodsPropQueryPropDetailsOverStepResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author: wanggang
@@ -66,4 +79,6 @@ public interface GoodsPropQueryProvider {
     @PostMapping("/goods/${application.goods.version}/prop/list-by-cate-id")
     BaseResponse<GoodsPropListByCateIdResponse> listByCateId(@RequestBody @Valid GoodsPropListByCateIdRequest goodsPropListByCateIdRequest);
 
+    @PostMapping("/goods/${application.goods.version}/prop/list-by-goods-ids")
+    BaseResponse<List<GoodsPropListByGoodsIdsResponse>> listByGoodsIds(@RequestBody @Valid GoodsPropListByGoodsIdsRequest goodsPropListByGoodsIdsRequest);
 }

@@ -25,7 +25,6 @@ public class BlackListCategoryProviderResponse implements Serializable {
      */
     private List<String> goodsIdList;
 
-
     /**
      * 不进行分类的值列表
      */

@@ -3,11 +3,13 @@ package com.wanmi.sbc.goods.api.provider.info;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.info.*;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * <p>对商品info操作接口</p>
@@ -183,4 +185,6 @@ public interface GoodsInfoProvider {
     @PostMapping("/goods/${application.goods.version}/info/provider-goods-stock-sync")
     BaseResponse<ProviderGoodsStockSyncResponse> providerGoodsStockSync(@RequestBody @Valid ProviderGoodsStockSyncRequest request);
 
+    @PostMapping("/goods/${application.goods.version}/decry-freeze-stock")
+    BaseResponse decryFreezeStock(@RequestBody List<GoodsInfoMinusStockDTO> releaseFrozenStockList);
 }

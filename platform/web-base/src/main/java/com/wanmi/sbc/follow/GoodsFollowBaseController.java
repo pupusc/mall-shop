@@ -3,6 +3,7 @@ package com.wanmi.sbc.follow;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.SortType;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.enterpriseinfo.EnterpriseInfoQueryProvider;
@@ -210,6 +211,9 @@ public class GoodsFollowBaseController {
     public BaseResponse add(@Validated({FollowAdd.class}) @RequestBody FollowSaveRequest request) {
         request.setCustomerId(commonUtil.getOperatorId());
         request.setTerminalSource(commonUtil.getTerminal());
+        if (StringUtils.isBlank(request.getCustomerId())) {
+            throw new SbcRuntimeException("K-010110");
+        }
         followProvider.save(request);
        //goodsCustomerFollowService.save(request);
         return BaseResponse.SUCCESSFUL();

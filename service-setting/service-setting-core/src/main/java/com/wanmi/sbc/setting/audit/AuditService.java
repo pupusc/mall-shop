@@ -1,5 +1,7 @@
 package com.wanmi.sbc.setting.audit;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.Constants;
@@ -16,6 +18,7 @@ import com.wanmi.sbc.setting.config.Config;
 import com.wanmi.sbc.setting.config.ConfigRepository;
 import com.wanmi.sbc.setting.util.SpecificationUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -236,10 +239,30 @@ public class AuditService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void modifyTradeConfigs(List<TradeConfigDTO> tradeConfigDTOList) {
-        tradeConfigDTOList.forEach(tradeSettingRequest -> configRepository
-                .updateStatusByTypeAndConfigKey(tradeSettingRequest.getConfigType().toString(),
-                        tradeSettingRequest.getConfigKey().toString(), tradeSettingRequest.getStatus(),
-                        tradeSettingRequest.getContext()));
+        for (TradeConfigDTO tradeSettingRequest : tradeConfigDTOList) {
+            if (ConfigType.ORDER_SETTING_TIMEOUT_CANCEL.equals(tradeSettingRequest.getConfigType())
+                && ConfigKey.ORDERSETTING.equals(tradeSettingRequest.getConfigKey())) {
+                if (StringUtils.isBlank(tradeSettingRequest.getContext())) {
+                    throw new SbcRuntimeException("K-000009");
+                }
+                JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(tradeSettingRequest.getContext());
+                Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+                if (minuteObj == null) {
+                    throw new SbcRuntimeException("K-000009");
+                }
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("hour", 1);
+                jsonObject.put("minute", minuteObj);
+                tradeSettingRequest.setContext(jsonObject.toJSONString());
+            }
+            configRepository.updateStatusByTypeAndConfigKey(tradeSettingRequest.getConfigType().toString(),
+                            tradeSettingRequest.getConfigKey().toString(), tradeSettingRequest.getStatus(),
+                            tradeSettingRequest.getContext());
+        }
+//        tradeConfigDTOList.forEach(tradeSettingRequest -> configRepository
+//                .updateStatusByTypeAndConfigKey(tradeSettingRequest.getConfigType().toString(),
+//                        tradeSettingRequest.getConfigKey().toString(), tradeSettingRequest.getStatus(),
+//                        tradeSettingRequest.getContext()));
     }
 
     /**

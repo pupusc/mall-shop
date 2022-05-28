@@ -413,6 +413,11 @@ public class TradeItemDTO implements Serializable, Cloneable {
      */
     private TradeReturnDTO tradeReturn;
 
+    /**
+     * 打包信息
+     */
+    private String packId;
+
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();

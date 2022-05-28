@@ -6,6 +6,7 @@ import com.wanmi.sbc.order.returnorder.fsm.action.CloseRefundAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.CompleteReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundRejectAction;
 import com.wanmi.sbc.order.returnorder.fsm.action.RefundReturnAction;
+import com.wanmi.sbc.order.returnorder.fsm.action.RemedyReturnAction;
 import com.wanmi.sbc.order.returnorder.fsm.event.ReturnEvent;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import org.springframework.beans.factory.BeanFactory;
@@ -33,6 +34,9 @@ public class CloseRefundBuilder implements Builder {
 
     @Autowired
     private CompleteReturnAction completeReturnAction;
+
+    @Autowired
+    private RemedyReturnAction remedyReturnAction;
 
     @Override
     public ReturnFlowState supportState() {
@@ -66,6 +70,13 @@ public class CloseRefundBuilder implements Builder {
             .source(ReturnFlowState.REFUND_FAILED).target(ReturnFlowState.COMPLETED)
             .event(ReturnEvent.REFUND)
             .action(refundReturnAction)
+
+            //退款失败 -> 更新信息
+            .and()
+            .withInternal()
+            .source(ReturnFlowState.REFUND_FAILED)
+            .event(ReturnEvent.REMEDY)
+            .action(remedyReturnAction)
         ;
 
         return builder.build();

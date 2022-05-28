@@ -4,6 +4,7 @@ import com.aliyuncs.linkedmall.model.v20180116.QueryItemInventoryResponse;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
 import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
@@ -34,7 +35,9 @@ import com.wanmi.sbc.elastic.bean.dto.goods.EsGoodsInfoDTO;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.elastic.bean.vo.goods.GoodsInfoNestVO;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.bookingsale.BookingSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.distributor.goods.DistributorGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
@@ -46,6 +49,7 @@ import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleAndBookingSaleRequest;
 import com.wanmi.sbc.goods.api.request.appointmentsale.AppointmentSaleInProgressRequest;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.bookingsale.BookingSaleInProgressRequest;
 import com.wanmi.sbc.goods.api.request.distributor.goods.DistributorGoodsInfoListByCustomerIdAndGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsDetailProperBySkuIdRequest;
@@ -61,6 +65,7 @@ import com.wanmi.sbc.goods.api.request.info.GoodsInfoSmallProgramCodeRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsIntervalPriceByCustomerIdRequest;
 import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.appointmentsale.AppointmentSaleAndBookingSaleResponse;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.distributor.goods.DistributorGoodsInfoListByCustomerIdAndGoodsIdResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsDetailProperResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsDetailSimpleResponse;
@@ -255,14 +260,17 @@ public class GoodsBaseController {
     @Value("${know.ordinary.good.ids:}")
     private String goodIds;
 
-    @Value("${search.unshow.goodsIds:}")
-    private String searchUnShowGoodsIds;
+//    @Value("${search.unshow.goodsIds:}")
+//    private String searchUnShowGoodsIds;
 
-    @Value("${search.all.unshow.goodsIds:}")
-    private String searchAllUnShowGoodsIds;
+//    @Value("${search.all.unshow.goodsIds:}")
+//    private String searchAllUnShowGoodsIds;
 
     @Autowired
     private AtmosphereService atmosphereService;
+
+    @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
     /**
      * @description 商品分页(ES级)
      * @menu 商城配合知识顾问
@@ -433,6 +441,7 @@ public class GoodsBaseController {
         return BaseResponse.success(detail(null,skuId, null, Boolean.FALSE));
     }
 
+
     @ApiOperation(value = "未登录时,查询Spu商品详情")
     @ApiImplicitParam(paramType = "path", dataType = "String", name = "skuId", value = "skuId", required = true)
     @RequestMapping(value = "/unLogin/spu/{skuId}", method = RequestMethod.GET)
@@ -453,29 +462,33 @@ public class GoodsBaseController {
         //获取商品渠道
         queryRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
 
-
         if (queryRequest.getIsFix()) {
             queryRequest.setGoodsIds(Arrays.asList(goodIds.split(",")));
         }
 
         List<String> unGoodsIds = new ArrayList<>();
-        if (!StringUtils.isBlank(searchAllUnShowGoodsIds)) {
-            log.info("---->>> 全部都不搜索过滤的 goodsId is {}", searchAllUnShowGoodsIds);
-            String[] searchUnShowGoodsIdAttr = searchAllUnShowGoodsIds.split(",");
-            unGoodsIds.addAll(Arrays.asList(searchUnShowGoodsIdAttr));
+        //黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.GOODS_SESRCH_AT_INDEX.getCode()));
+        BaseResponse<GoodsBlackListPageProviderResponse> blackListRes = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+        GoodsBlackListPageProviderResponse blackList = blackListRes.getContext();
+        if(blackList != null && !CollectionUtils.isEmpty(blackList.getGoodsSearchAtIndexBlackListModel().getGoodsIdList())){
+            unGoodsIds = blackList.getGoodsSearchAtIndexBlackListModel().getGoodsIdList();
+            log.info("---->>> 全部都不搜索过滤的 goodsId is {}", unGoodsIds);
         }
-
         //非知识顾问
         if (queryRequest.getCpsSpecial() != null && queryRequest.getCpsSpecial() == 0 ) {
-            if (!StringUtils.isBlank(searchUnShowGoodsIds)) {
-                log.info("---->>> 搜索过滤的 goodsId is {}", searchUnShowGoodsIds);
-                String[] searchUnShowGoodsIdAttr = searchUnShowGoodsIds.split(",");
-                unGoodsIds.addAll(Arrays.asList(searchUnShowGoodsIdAttr));
+            //黑名单
+            goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode()));
+            blackListRes = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest);
+            blackList = blackListRes.getContext();
+            if(blackList != null && !CollectionUtils.isEmpty(blackList.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList())){
+                log.info("---->>> 全部都不搜索过滤的 goodsId is {}", unGoodsIds);
+                unGoodsIds.addAll(blackList.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList());
             }
         } else {
             queryRequest.setSortFlag(11); //添加排序
         }
-
         if (!CollectionUtils.isEmpty(unGoodsIds)) {
             queryRequest.setUnGoodsIds(unGoodsIds);
         }
@@ -704,12 +717,18 @@ public class GoodsBaseController {
      * fullMarketing
      */
     private GoodsViewByIdResponse detail(String spuId,String skuId, CustomerVO customer, Boolean fullMarketing) {
-
+        //获取源头
+        TerminalSource terminal = commonUtil.getTerminal();
         String customerId = null;
         if (Objects.nonNull(customer) && StringUtils.isNotBlank(customer.getCustomerId())) {
             customerId = customer.getCustomerId();
         }
         GoodsViewByIdResponse response = goodsDetailBaseInfoNew(spuId,skuId, customerId);
+        if (CollectionUtils.isEmpty(response.getGoods().getGoodsChannelTypeSet())
+            || !response.getGoods().getGoodsChannelTypeSet().contains(terminal.getCode().toString())) {
+            throw new SbcRuntimeException("K-030025"); //K-030025=商品不可访问
+        }
+
         if (response.getGoods().getCpsSpecial() != null && response.getGoods().getCpsSpecial() == 1) {
             if (customer == null || StringUtils.isEmpty(customer.getFanDengUserNo())) {
                 throw new SbcRuntimeException(GoodsErrorCode.NOT_EXIST);

@@ -301,6 +301,16 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
     void updateStockByGoodsId(Long stock, String goodsId);
 
     @Modifying
+    @Transactional
+    @Query("update Goods set stock=?1,skuMinMarketPrice=?2, addedFlag = ?3 where goodsId = ?4")
+    void updateStockAndSkuMinMarketPriceByGoodsId(Long stock, BigDecimal skuMinMarketPrice,Integer addedFlag, String goodsId);
+
+    @Modifying
+    @Transactional
+    @Query("update Goods set addedFlag = ?1, skuMinMarketPrice=?2 where goodsId = ?3")
+    void updateSkuMinMarketPriceByGoodsId(Integer addedFlag, BigDecimal skuMinMarketPrice, String goodsId);
+
+    @Modifying
     @Query(value = "UPDATE goods SET cate_id=:cateId WHERE goods_source=:source AND third_cate_id=:thirdCateId",nativeQuery = true)
     void updateThirdCateMap(@Param("source") int source, @Param("thirdCateId") long thirdCateId, @Param("cateId") long cateId);
 
@@ -435,6 +445,6 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * @param providerId
      * @return
      */
-    @Query(value = "select tmp_id, erp_goods_no from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
+    @Query(value = "select tmp_id, erp_goods_no,goods_id from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
     List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }

@@ -7,6 +7,7 @@ import com.soybean.mall.wx.mini.user.bean.request.WxGetUserPhoneAndOpenIdRequest
 import com.soybean.mall.wx.mini.user.bean.response.WxGetUserPhoneAndOpenIdResponse;
 import com.soybean.mall.wx.mini.user.controller.WxUserApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
@@ -79,6 +80,10 @@ public class UserController {
         wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(null);
         BaseResponse<WxGetUserPhoneAndOpenIdResponse> phoneAndOpenid = wxUserApiController.getPhoneAndOpenid(wxGetUserPhoneAndOpenIdRequest);
 
+        if (StringUtils.isBlank(phoneAndOpenid.getContext().getPhoneNumber())) {
+            throw new SbcRuntimeException("K-220001", "微信授权电话获取失败");
+        }
+
         NoDeleteCustomerGetByAccountRequest accountRequest = new NoDeleteCustomerGetByAccountRequest();
         accountRequest.setCustomerAccount(phoneAndOpenid.getContext().getPhoneNumber());
         NoDeleteCustomerGetByAccountResponse newCustomerVO = customerQueryProvider.getNoDeleteCustomerByAccount(accountRequest).getContext();
@@ -97,7 +102,7 @@ public class UserController {
             unionId = newCustomerVO.getWxMiniUnionId();
             openId = newCustomerVO.getWxMiniOpenId();
         }
-        if(!newUser && (openId == null || unionId == null)){
+        if(!newUser && (StringUtils.isBlank(openId) || StringUtils.isBlank(unionId))){
             // 如果不是新用户，但是没有openid，先调微信获取，再保存到用户信息中
             wxGetUserPhoneAndOpenIdRequest.setCodeForPhone(null);
             wxGetUserPhoneAndOpenIdRequest.setCodeForOpenid(codeForOpenid);
@@ -107,7 +112,7 @@ public class UserController {
             customerProvider.modifyCustomerOpenIdAndUnionId(newCustomerVO.getCustomerId(), openId, unionId);
         }
         FanDengWxAuthLoginRequest authLoginRequest = FanDengWxAuthLoginRequest.builder().unionId(unionId).openId(openId).areaCode("+86").registerSource("IntegralMall")
-                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).build();
+                .mobile(phoneAndOpenid.getContext().getPhoneNumber()).serviceType(101).build();
         BaseResponse<FanDengWxAuthLoginResponse.WxAuthLoginData> wxAuthLoginDataBaseResponse = externalProvider.wxAuthLogin(authLoginRequest);
         LoginResponse loginResponse = afterWxAuthLogin(wxAuthLoginDataBaseResponse.getContext(), phoneAndOpenid.getContext().getPhoneNumber(), openId, unionId);
         return BaseResponse.success(loginResponse);

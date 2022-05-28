@@ -46,6 +46,8 @@ public class ImageController implements ImageProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+    
+
 
     @Override
     public BaseResponse<MicroServicePage<ImageProviderResponse>> list(ImagePageProviderRequest imagePageProviderRequest) {
@@ -110,5 +112,11 @@ public class ImageController implements ImageProvider {
             result.add(imageProviderResponse);
         }
         return result;
+    }
+
+    @Override
+    public BaseResponse delete(Integer imageId) {
+        imageService.delete(imageId);
+        return BaseResponse.SUCCESSFUL();
     }
 }

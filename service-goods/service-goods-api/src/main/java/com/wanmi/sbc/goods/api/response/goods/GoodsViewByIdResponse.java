@@ -1,14 +1,25 @@
 package com.wanmi.sbc.goods.api.response.goods;
 
-import com.wanmi.sbc.goods.bean.vo.*;
-import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsPackDetailDTO;
+import com.wanmi.sbc.goods.bean.vo.CycleBuyVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsCustomerPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsImageVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsIntervalPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsPropDetailRelVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsTabRelaVO;
+import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.StoreGoodsTabVO;
+import com.wanmi.sbc.goods.bean.vo.TagVO;
 import com.wanmi.sbc.setting.bean.vo.OperateDataLogVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.Tag;
 import lombok.Data;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 
@@ -134,6 +145,13 @@ public class GoodsViewByIdResponse implements Serializable {
     @ApiModelProperty(value = "商品额外属性")
     private Map<String, String> extProps;
 
+    /**
+     * 打包商品
+     */
+    private List<GoodsPackDetailResponse> goodsPackDetails;
 
-
+    /**
+     * 编辑类型：1普通商品；2直充商品；3打包商品；
+     */
+    private Integer editType;
 }

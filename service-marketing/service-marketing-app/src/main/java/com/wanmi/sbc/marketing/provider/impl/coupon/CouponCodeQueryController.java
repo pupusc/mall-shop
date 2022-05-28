@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.*;
+import com.wanmi.sbc.marketing.api.response.config.MarketingNacosConfigResponse;
 import com.wanmi.sbc.marketing.api.response.coupon.*;
 import com.wanmi.sbc.marketing.bean.dto.CouponCodeDTO;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
@@ -14,13 +15,17 @@ import com.wanmi.sbc.marketing.coupon.request.CouponCodeWillExpireRequest;
 import com.wanmi.sbc.marketing.coupon.response.CouponCodeQueryResponse;
 import com.wanmi.sbc.marketing.coupon.service.CouponCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,12 +34,16 @@ import java.util.List;
  */
 @Validated
 @RestController
+@RefreshScope
 public class CouponCodeQueryController implements CouponCodeQueryProvider {
 
     @Autowired
     private CouponCodeService couponCodeService;
     @Autowired
     private TradeItemInfoMapper tradeItemInfoMapper;
+
+    @Value("${coupon.mini.ids:[]}")
+    private List<String> couponIds;
 
     /**
      * 根据客户id查询使用优惠券列表
@@ -151,5 +160,21 @@ public class CouponCodeQueryController implements CouponCodeQueryProvider {
     @Override
     public BaseResponse<List<CouponCodeVO>> listWillExpireByCustomerIds(CouponCodeByCustomerIdsRequest request) {
         return BaseResponse.success(couponCodeService.getWillExpireCouponCode(KsBeanUtil.convert(request, CouponCodeWillExpireRequest.class)));
+    }
+
+
+    /**
+     * 获取配置信息
+     * @return
+     */
+    @Override
+    public BaseResponse<MarketingNacosConfigResponse> getMiniAppConfig() {
+        MarketingNacosConfigResponse result = new MarketingNacosConfigResponse();
+        if(CollectionUtils.isEmpty(couponIds)) {
+            result.setAppMiniCouponIdList(new ArrayList<>());
+        } else {
+            result.setAppMiniCouponIdList(couponIds);
+        }
+        return BaseResponse.success(result);
     }
 }

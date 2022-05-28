@@ -39,4 +39,9 @@ public class RedisKeyUtil {
      * 特价书
      */
     public final static String KEY_HOME_SPECIAL_OFFER_BOOK_LIST = "KEY_HOME_SPECIAL_OFFER_BOOK_LIST";
+
+    /**
+     * 支付检测key
+     */
+    public final static String KEY_PAY_CHECK_LOCK = "KEY_PAY_CHECK_LOCK";
 }

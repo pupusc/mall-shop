@@ -18,14 +18,12 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Column;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * 商品SKU实体类
@@ -754,7 +752,19 @@ public class GoodsInfoVO implements Serializable {
     private LocalDateTime promotionEndTime;
 
     /**
-     * 商品渠道 1 H5 2、小程序 3、普通分类
+     * 商品渠道 1 H5 2、小程序 3、视频号
      */
     private List<String> goodsChannelTypeSet;
+
+    private String goodsChannelType;
+
+    /**
+     * 是否是打包商品
+     */
+    private boolean packGoodsFlag;
+
+    /**
+     * 是否是直充商品
+     */
+    private boolean fddsGoodsFlag;
 }

@@ -5,18 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
-import com.soybean.mall.order.enums.MiniOrderOperateType;
-import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
-import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
-import com.soybean.mall.order.miniapp.service.TradeOrderService;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.prize.service.OrderCouponService;
-import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
-import com.soybean.mall.wx.mini.common.controller.CommonController;
-import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
-import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -63,12 +56,12 @@ import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.OsUtil;
 import com.wanmi.sbc.common.util.UUIDUtil;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
-import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.distribution.DistributionCustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.email.CustomerEmailQueryProvider;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
 import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.paidcard.PaidCardSaveProvider;
+import com.wanmi.sbc.customer.api.provider.paidcardcustomerrel.PaidCardCustomerRelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.points.CustomerPointsDetailSaveProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.detail.CustomerDetailListByConditionRequest;
@@ -80,8 +73,10 @@ import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointLockRequest;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointRequest;
 import com.wanmi.sbc.customer.api.request.invoice.CustomerInvoiceByIdAndDelFlagRequest;
 import com.wanmi.sbc.customer.api.request.level.CustomerLevelByCustomerIdAndStoreIdRequest;
+import com.wanmi.sbc.customer.api.request.paidcardcustomerrel.PaidCardCustomerRelListRequest;
 import com.wanmi.sbc.customer.api.request.points.CustomerPointsDetailAddRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
+import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.detail.CustomerDetailGetCustomerIdResponse;
 import com.wanmi.sbc.customer.api.response.fandeng.FanDengConsumeResponse;
@@ -104,6 +99,8 @@ import com.wanmi.sbc.customer.bean.vo.CustomerLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.customer.bean.vo.DistributionCustomerSimVO;
 import com.wanmi.sbc.customer.bean.vo.DistributorLevelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardCustomerRelVO;
+import com.wanmi.sbc.customer.bean.vo.PaidCardVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.appointmentsale.AppointmentSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.appointmentsalegoods.AppointmentSaleGoodsProvider;
@@ -128,6 +125,7 @@ import com.wanmi.sbc.goods.api.request.cyclebuy.CycleBuyByGoodsIdRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsByIdRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
+import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoBatchPlusStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
@@ -136,7 +134,9 @@ import com.wanmi.sbc.goods.api.request.restrictedrecord.RestrictedRecordBatchAdd
 import com.wanmi.sbc.goods.api.response.bookingsale.BookingSaleByIdResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByIdsResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoPlusStockDTO;
 import com.wanmi.sbc.goods.bean.dto.GoodsPlusStockDTO;
@@ -170,7 +170,6 @@ import com.wanmi.sbc.marketing.api.provider.grouponactivity.GrouponActivityQuery
 import com.wanmi.sbc.marketing.api.provider.grouponrecord.GrouponRecordProvider;
 import com.wanmi.sbc.marketing.api.provider.marketingsuits.MarketingSuitsQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
-import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingTradePluginProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeBatchModifyRequest;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeReturnByIdRequest;
@@ -201,18 +200,26 @@ import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
+import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsCouponTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.PointsTradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeAccountRecordRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePayOnlineCallBackRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateListTradeRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeAccountRecordResponse;
 import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
-import com.wanmi.sbc.order.bean.dto.*;
+import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
+import com.wanmi.sbc.order.bean.dto.GeneralInvoiceDTO;
+import com.wanmi.sbc.order.bean.dto.SpecialInvoiceDTO;
+import com.wanmi.sbc.order.bean.dto.StoreCommitInfoDTO;
+import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
+import com.wanmi.sbc.order.bean.dto.TradeUpdateDTO;
 import com.wanmi.sbc.order.bean.enums.AuditState;
 import com.wanmi.sbc.order.bean.enums.BackRestrictedType;
 import com.wanmi.sbc.order.bean.enums.BookingType;
@@ -377,13 +384,13 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -442,8 +449,6 @@ public class TradeService {
     @Autowired
     private ReturnOrderRepository returnOrderRepository;
     @Autowired
-    private CustomerQueryProvider customerQueryProvider;
-    @Autowired
     private PayOrderRepository payOrderRepository;
     @Autowired
     private ReceivableRepository receivableRepository;
@@ -453,8 +458,6 @@ public class TradeService {
     private OsUtil osUtil;
     @Autowired
     private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
-    @Autowired
-    private MarketingPluginProvider marketingPluginProvider;
     @Autowired
     private TradeItemService tradeItemService;
     @Autowired
@@ -625,11 +628,6 @@ public class TradeService {
     @Value("${whiteOrder:1234}")
     private String whiteOrder;
 
-    @Autowired
-    private WxOrderApiController wxOrderApiController;
-
-    @Autowired
-    private CommonController wxCommonController;
 
     public static final String FMT_TIME_1 = "yyyy-MM-dd HH:mm:ss";
 
@@ -640,16 +638,15 @@ public class TradeService {
     private String createOrderSendMsgLinkUrl;
 
     @Autowired
-    private TradeOrderService tradeOrderService;
-
-    @Autowired
-    private MiniOrderOperateResultRepository miniOrderOperateResultRepository;
-
-    @Autowired
     private WxOrderService wxOrderService;
+    @Autowired
+    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
     @Autowired
     private OrderCouponService orderCouponService;
+
+    @Autowired
+    private OrderConfigProperties orderConfigProperties;
 
     /**
      * 新增文档
@@ -778,7 +775,7 @@ public class TradeService {
 
 
     /**
-     * C端下单
+     * C端下单 TODO 作废啦
      */
     @Transactional
     @GlobalTransactional
@@ -788,6 +785,10 @@ public class TradeService {
         CustomerSimplifyOrderCommitVO customer =
                 verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
         tradeCommitRequest.setCustomer(customer);
+
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
 
         Operator operator = tradeCommitRequest.getOperator();
         List<TradeItemGroup> tradeItemGroups = tradeItemService.find(tradeCommitRequest.getTerminalToken());
@@ -853,6 +854,8 @@ public class TradeService {
         dealPoints(trades, tradeCommitRequest);
         // 预售补充尾款价格
         dealTailPrice(trades, tradeCommitRequest);
+        //打包价格
+        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
         // 3.批量提交订单
         List<TradeCommitResult> successResults;
         if (tradeGroup != null) {
@@ -937,6 +940,9 @@ public class TradeService {
             orderProducerService.cancelOrder(trade.getId(), 0L);
             throw new SbcRuntimeException("K-050102");
         }
+        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+            throw new SbcRuntimeException("K-050215");
+        }
         // 验证用户
         CustomerSimplifyOrderCommitVO customer =
                 verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
@@ -985,6 +991,8 @@ public class TradeService {
         TradeGroup tradeGroup = tradeGroupService.wrapperTradeGroup(trades, tradeCommitRequest, grouponForm);
         // 处理积分抵扣
         dealPoints(trades, tradeCommitRequest);
+
+        dealGoodsPackDetail(trades, tradeCommitRequest, customer);
 
         // 3.批量提交订单
         List<TradeCommitResult> successResults = new ArrayList<>();
@@ -1079,10 +1087,10 @@ public class TradeService {
 
         CycleBuyInfoDTO cycleBuyInfoDTO=null;
         if (trade.getCycleBuyFlag()){
-             cycleBuyInfoDTO=KsBeanUtil.convert(trade.getTradeCycleBuyInfo(),CycleBuyInfoDTO.class);
-             List<String> giftIds= trade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
-             if (CollectionUtils.isNotEmpty(giftIds)){
-                 cycleBuyInfoDTO.setCycleBuyGifts(giftIds);
+            cycleBuyInfoDTO=KsBeanUtil.convert(trade.getTradeCycleBuyInfo(),CycleBuyInfoDTO.class);
+            List<String> giftIds= trade.getGifts().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(giftIds)){
+                cycleBuyInfoDTO.setCycleBuyGifts(giftIds);
             }
 
         }
@@ -1317,97 +1325,186 @@ public class TradeService {
         List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
 
         // 2.遍历各个店铺下单信息
-        tradeCommitRequest.getStoreCommitInfoList().forEach(
-                i -> {
-                    TradeItemGroup group = tradeItemGroupsMap.get(i.getStoreId());
+        for (StoreCommitInfoDTO storeCommitInfoParam : tradeCommitRequest.getStoreCommitInfoList()) {
+            TradeItemGroup group = tradeItemGroupsMap.get(storeCommitInfoParam.getStoreId());
 
 //                    填充分销商品审核状态
-                    group.getTradeItems().forEach(item -> {
-                        GoodsInfoVO goodsInfoVO =
-                                goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
-                        if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
-                            item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
-                        }
-                        item.setProviderName(group.getSupplier().getStoreName());
-                    });
-                    // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
-                    Invoice invoice = Invoice.builder()
-                            .generalInvoice(KsBeanUtil.convert(i.getGeneralInvoice(), GeneralInvoice.class))
-                            .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
-                            .address(i.getInvoiceAddressDetail())
-                            .addressId(i.getInvoiceAddressId())
-                            .email(i.getInvoiceEmail())
-                            .projectId(i.getInvoiceProjectId())
-                            .projectName(i.getInvoiceProjectName())
-                            .projectUpdateTime(i.getInvoiceProjectUpdateTime())
-                            .type(i.getInvoiceType())
-                            .sperator(i.isSpecialInvoiceAddress())
-                            .updateTime(i.getInvoiceAddressUpdateTime())
-                            .taxNo(setInvoiceTaxNo(i.getInvoiceType(), i.getGeneralInvoice(), i.getSpecialInvoice()))
-                            .build();
-                    if (storeMap.get(group.getSupplier().getStoreId()) == null) {
-                        throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
-                    }
-                    //周期购使用单品运费
-                    DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
-                            ? DefaultFlag.YES
-                            : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
-                    group.getSupplier().setFreightTemplateType(freightTemplateType);
-
-                    // 2.2.【公共方法】下单信息验证, 将信息包装成订单
-                    trades.add(this.validateAndWrapperTrade(new Trade(),
-                            TradeParams.builder()
-                                    .backendFlag(false) //表示前端操作
-                                    .commitFlag(true) //表示下单
-                                    .marketingList(group.getTradeMarketingList())
-                                    .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
-                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
-                                    .couponCodeId(i.getCouponCodeId())
-                                    .tradePrice(new TradePrice())
-                                    .tradeItems(group.getTradeItems())
-                                    .oldGifts(Collections.emptyList())//下单,非修改订单
-                                    .oldTradeItems(Collections.emptyList())//下单,非修改订单
-                                    .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
-                                    .customer(customer)
-                                    .supplier(group.getSupplier())
-                                    .seller(null) //客户下单
-                                    .consigneeId(tradeCommitRequest.getConsigneeId())
-                                    .detailAddress(tradeCommitRequest.getConsigneeAddress())
-                                    .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
-                                    .consignee(null) //客户下单,不可填写临时收货地址
-                                    .invoice(invoice)
-                                    .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
-                                    .deliverWay(i.getDeliverWay())
-                                    .payType(i.getPayType())
-                                    .buyerRemark(i.getBuyerRemark())
-                                    .sellerRemark(null) //客户下单,无卖家备注
-                                    .encloses(i.getEncloses())
-                                    .ip(tradeCommitRequest.getOperator().getIp())
-                                    .platform(Platform.CUSTOMER)
-                                    .forceCommit(tradeCommitRequest.isForceCommit())
-                                    .orderSource(tradeCommitRequest.getOrderSource())
-                                    .distributeChannel(tradeCommitRequest.getDistributeChannel())
-                                    .storeBagsFlag(group.getStoreBagsFlag())
-                                    .shopName(tradeCommitRequest.getShopName())
-                                    .isDistributor(tradeCommitRequest.getIsDistributor())
-                                    .storeOpenFlag(i.getStoreOpenFlag())
-                                    .openFlag(tradeCommitRequest.getOpenFlag())
-                                    .grouponForm(group.getGrouponForm())
-                                    .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
-                                            ? null : tradeCommitRequest.getShareUserId())
-                                    .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
-                                    .suitMarketingFlag(group.getSuitMarketingFlag())
-                                    .suitScene(group.getSuitScene())
-                                    .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
-                                    .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
-                                    .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
-                                    .cycleBuyInfo(group.getCycleBuyInfo())
-                                    .promoteUserId(tradeCommitRequest.getPromoteUserId())
-                                    .source(tradeCommitRequest.getSource())
-                                    .miniProgramScene(tradeCommitRequest.getMiniProgramScene())
-                                    .build()));
+            group.getTradeItems().forEach(item -> {
+                GoodsInfoVO goodsInfoVO =
+                        goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
+                if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
+                    item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
                 }
-        );
+                item.setProviderName(group.getSupplier().getStoreName());
+            });
+            // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
+            Invoice invoice = Invoice.builder()
+                    .generalInvoice(KsBeanUtil.convert(storeCommitInfoParam.getGeneralInvoice(), GeneralInvoice.class))
+                    .specialInvoice(KsBeanUtil.convert(storeCommitInfoParam.getSpecialInvoice(), SpecialInvoice.class))
+                    .address(storeCommitInfoParam.getInvoiceAddressDetail())
+                    .addressId(storeCommitInfoParam.getInvoiceAddressId())
+                    .email(storeCommitInfoParam.getInvoiceEmail())
+                    .projectId(storeCommitInfoParam.getInvoiceProjectId())
+                    .projectName(storeCommitInfoParam.getInvoiceProjectName())
+                    .projectUpdateTime(storeCommitInfoParam.getInvoiceProjectUpdateTime())
+                    .type(storeCommitInfoParam.getInvoiceType())
+                    .sperator(storeCommitInfoParam.isSpecialInvoiceAddress())
+                    .updateTime(storeCommitInfoParam.getInvoiceAddressUpdateTime())
+                    .taxNo(setInvoiceTaxNo(storeCommitInfoParam.getInvoiceType(), storeCommitInfoParam.getGeneralInvoice(), storeCommitInfoParam.getSpecialInvoice()))
+                    .build();
+            if (storeMap.get(group.getSupplier().getStoreId()) == null) {
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+            }
+            //周期购使用单品运费
+            DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
+                    ? DefaultFlag.YES
+                    : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
+            group.getSupplier().setFreightTemplateType(freightTemplateType);
+
+            // 2.2.【公共方法】下单信息验证, 将信息包装成订单
+            trades.add(this.validateAndWrapperTrade(new Trade(),
+                    TradeParams.builder()
+                            .backendFlag(false) //表示前端操作
+                            .commitFlag(true) //表示下单
+                            .marketingList(group.getTradeMarketingList())
+                            .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+                            .emallSessionId(tradeCommitRequest.getEmallSessionId())
+                            .couponCodeId(storeCommitInfoParam.getCouponCodeId())
+                            .tradePrice(new TradePrice())
+                            .tradeItems(group.getTradeItems())
+                            .oldGifts(Collections.emptyList())//下单,非修改订单
+                            .oldTradeItems(Collections.emptyList())//下单,非修改订单
+                            .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
+                            .customer(customer)
+                            .supplier(group.getSupplier())
+                            .seller(null) //客户下单
+                            .consigneeId(tradeCommitRequest.getConsigneeId())
+                            .detailAddress(tradeCommitRequest.getConsigneeAddress())
+                            .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
+                            .consignee(null) //客户下单,不可填写临时收货地址
+                            .invoice(invoice)
+                            .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
+                            .deliverWay(storeCommitInfoParam.getDeliverWay())
+                            .payType(storeCommitInfoParam.getPayType())
+                            .buyerRemark(storeCommitInfoParam.getBuyerRemark())
+                            .sellerRemark(null) //客户下单,无卖家备注
+                            .encloses(storeCommitInfoParam.getEncloses())
+                            .ip(tradeCommitRequest.getOperator().getIp())
+                            .platform(Platform.CUSTOMER)
+                            .forceCommit(tradeCommitRequest.isForceCommit())
+                            .orderSource(tradeCommitRequest.getOrderSource())
+                            .distributeChannel(tradeCommitRequest.getDistributeChannel())
+                            .storeBagsFlag(group.getStoreBagsFlag())
+                            .shopName(tradeCommitRequest.getShopName())
+                            .isDistributor(tradeCommitRequest.getIsDistributor())
+                            .storeOpenFlag(storeCommitInfoParam.getStoreOpenFlag())
+                            .openFlag(tradeCommitRequest.getOpenFlag())
+                            .grouponForm(group.getGrouponForm())
+                            .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
+                                    ? null : tradeCommitRequest.getShareUserId())
+                            .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
+                            .suitMarketingFlag(group.getSuitMarketingFlag())
+                            .suitScene(group.getSuitScene())
+                            .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
+                            .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
+                            .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
+                            .cycleBuyInfo(group.getCycleBuyInfo())
+                            .promoteUserId(tradeCommitRequest.getPromoteUserId() == null ? "" : tradeCommitRequest.getPromoteUserId().toString())
+                            .source(tradeCommitRequest.getSource() == null ? "" : tradeCommitRequest.getSource().toString())
+                            .miniProgramScene(tradeCommitRequest.getMiniProgramScene())
+                            .build()));
+        }
+
+//        tradeCommitRequest.getStoreCommitInfoList().forEach(
+//                i -> {
+//                    TradeItemGroup group = tradeItemGroupsMap.get(i.getStoreId());
+//
+////                    填充分销商品审核状态
+//                    group.getTradeItems().forEach(item -> {
+//                        GoodsInfoVO goodsInfoVO =
+//                                goodsInfoVOList.stream().filter(g -> g.getGoodsInfoId().equals(item.getSkuId())).findFirst().orElse(null);
+//                        if (Objects.nonNull(goodsInfoVO) && Objects.nonNull(goodsInfoVO.getDistributionGoodsAudit()) && Objects.isNull(item.getDistributionGoodsAudit())) {
+//                            item.setDistributionGoodsAudit(goodsInfoVO.getDistributionGoodsAudit());
+//                        }
+//                        item.setProviderName(group.getSupplier().getStoreName());
+//                    });
+//                    // 2.1.组装发票信息(缺少联系人,联系方式), 统一入参, 方便调用公共方法
+//                    Invoice invoice = Invoice.builder()
+//                            .generalInvoice(KsBeanUtil.convert(i.getGeneralInvoice(), GeneralInvoice.class))
+//                            .specialInvoice(KsBeanUtil.convert(i.getSpecialInvoice(), SpecialInvoice.class))
+//                            .address(i.getInvoiceAddressDetail())
+//                            .addressId(i.getInvoiceAddressId())
+//                            .email(i.getInvoiceEmail())
+//                            .projectId(i.getInvoiceProjectId())
+//                            .projectName(i.getInvoiceProjectName())
+//                            .projectUpdateTime(i.getInvoiceProjectUpdateTime())
+//                            .type(i.getInvoiceType())
+//                            .sperator(i.isSpecialInvoiceAddress())
+//                            .updateTime(i.getInvoiceAddressUpdateTime())
+//                            .taxNo(setInvoiceTaxNo(i.getInvoiceType(), i.getGeneralInvoice(), i.getSpecialInvoice()))
+//                            .build();
+//                    if (storeMap.get(group.getSupplier().getStoreId()) == null) {
+//                        throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+//                    }
+//                    //周期购使用单品运费
+//                    DefaultFlag freightTemplateType = Objects.nonNull(group.getCycleBuyInfo())
+//                            ? DefaultFlag.YES
+//                            : storeMap.get(group.getSupplier().getStoreId()).getFreightTemplateType();
+//                    group.getSupplier().setFreightTemplateType(freightTemplateType);
+//
+//                    // 2.2.【公共方法】下单信息验证, 将信息包装成订单
+//                    trades.add(this.validateAndWrapperTrade(new Trade(),
+//                            TradeParams.builder()
+//                                    .backendFlag(false) //表示前端操作
+//                                    .commitFlag(true) //表示下单
+//                                    .marketingList(group.getTradeMarketingList())
+//                                    .directChargeMobile(tradeCommitRequest.getDirectChargeMobile())
+//                                    .emallSessionId(tradeCommitRequest.getEmallSessionId())
+//                                    .couponCodeId(i.getCouponCodeId())
+//                                    .tradePrice(new TradePrice())
+//                                    .tradeItems(group.getTradeItems())
+//                                    .oldGifts(Collections.emptyList())//下单,非修改订单
+//                                    .oldTradeItems(Collections.emptyList())//下单,非修改订单
+//                                    .storeLevel(storeLevelMap.get(group.getSupplier().getStoreId()))
+//                                    .customer(customer)
+//                                    .supplier(group.getSupplier())
+//                                    .seller(null) //客户下单
+//                                    .consigneeId(tradeCommitRequest.getConsigneeId())
+//                                    .detailAddress(tradeCommitRequest.getConsigneeAddress())
+//                                    .consigneeUpdateTime(tradeCommitRequest.getConsigneeUpdateTime())
+//                                    .consignee(null) //客户下单,不可填写临时收货地址
+//                                    .invoice(invoice)
+//                                    .invoiceConsignee(null) //客户下单,不可填写发票临时收货地址
+//                                    .deliverWay(i.getDeliverWay())
+//                                    .payType(i.getPayType())
+//                                    .buyerRemark(i.getBuyerRemark())
+//                                    .sellerRemark(null) //客户下单,无卖家备注
+//                                    .encloses(i.getEncloses())
+//                                    .ip(tradeCommitRequest.getOperator().getIp())
+//                                    .platform(Platform.CUSTOMER)
+//                                    .forceCommit(tradeCommitRequest.isForceCommit())
+//                                    .orderSource(tradeCommitRequest.getOrderSource())
+//                                    .distributeChannel(tradeCommitRequest.getDistributeChannel())
+//                                    .storeBagsFlag(group.getStoreBagsFlag())
+//                                    .shopName(tradeCommitRequest.getShopName())
+//                                    .isDistributor(tradeCommitRequest.getIsDistributor())
+//                                    .storeOpenFlag(i.getStoreOpenFlag())
+//                                    .openFlag(tradeCommitRequest.getOpenFlag())
+//                                    .grouponForm(group.getGrouponForm())
+//                                    .shareUserId(customer.getCustomerId().equals(tradeCommitRequest.getShareUserId())
+//                                            ? null : tradeCommitRequest.getShareUserId())
+//                                    .isFlashSaleGoods(tradeCommitRequest.getIsFlashSaleGoods())
+//                                    .suitMarketingFlag(group.getSuitMarketingFlag())
+//                                    .suitScene(group.getSuitScene())
+//                                    .isBookingSaleGoods(tradeCommitRequest.getIsBookingSaleGoods())
+//                                    .tailNoticeMobile(tradeCommitRequest.getTailNoticeMobile())
+//                                    .goodsInfoViewByIdsResponse(goodsInfoViewByIdsResponse)
+//                                    .cycleBuyInfo(group.getCycleBuyInfo())
+//                                    .promoteUserId(tradeCommitRequest.getPromoteUserId())
+//                                    .source(tradeCommitRequest.getSource())
+//                                    .build()));
+//                }
+//        );
         return trades;
     }
 
@@ -1479,6 +1576,11 @@ public class TradeService {
         return taxNo;
     }
 
+    /**
+     * 分摊积分信息
+     * @param trades
+     * @param tradeCommitRequest
+     */
     public void dealPoints(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
         SystemPointsConfigQueryResponse pointsConfig = systemPointsConfigService.querySettingCache();
         final BigDecimal pointWorth = BigDecimal.valueOf(pointsConfig.getPointsWorth());
@@ -1562,7 +1664,11 @@ public class TradeService {
         }
     }
 
-
+    /**
+     * 分摊知豆
+     * @param trades
+     * @param tradeCommitRequest
+     */
     public void dealKnowledge(List<Trade> trades, TradeCommitRequest tradeCommitRequest) {
 
         if (tradeCommitRequest.getKnowledge() == null || tradeCommitRequest.getKnowledge() <= 0) {
@@ -1620,6 +1726,250 @@ public class TradeService {
         });
 
     }
+
+
+    /**
+     * 处理打包商品
+     */
+    public void dealGoodsPackDetail(List<Trade> trades, TradeCommitRequest tradeCommitRequest, CustomerSimplifyOrderCommitVO customer) {
+        if (CollectionUtils.isEmpty(trades)) {
+            return;
+        }
+        Trade trade = trades.get(0);
+        //判断打包商品
+        //获取商品的打包信息，
+        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+
+        List<String> childGoodsInfoIdList = new ArrayList<>();
+
+        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+                goodsPackDetailListTmp.add(goodsPackDetailParam);
+                childGoodsInfoIdList.add(goodsPackDetailParam.getGoodsInfoId());
+            }
+        }
+
+//        GoodsInfoListByConditionRequest goodsInfoListByConditionRequest = new GoodsInfoListByConditionRequest();
+//        goodsInfoListByConditionRequest.setGoodsInfoIds(childGoodsInfoIdList);
+//        BaseResponse<GoodsInfoListByConditionResponse> goodsInfoListByConditionResponseBaseResponse =
+//                goodsInfoQueryProvider.listByCondition(goodsInfoListByConditionRequest);
+//        GoodsInfoListByConditionResponse context = goodsInfoListByConditionResponseBaseResponse.getContext();
+//        Map<String, GoodsInfoVO> skuId2GoodsInfoMap
+//                = context.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity(), (k1, k2) -> k1));
+
+        List<TradeItem> tradeItemListTmp = new ArrayList<>();
+        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
+                //拆分
+                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
+                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
+                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
+                BigDecimal rateAll = new BigDecimal("100");
+
+                //优先计算 子商品的价格，最后计算主要商品的价格；
+                BigDecimal surplusSplitPrice = splitPrice;
+                BigDecimal surplusPoint = new BigDecimal(points + "");
+                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
+
+                //获取子商品信息
+                List<TradeItemDTO> TradeItemDTOList = new ArrayList<>();
+                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+                        TradeItemDTOList.add(TradeItemDTO.builder().skuId(goodsPackDetailTmp.getGoodsInfoId()).num(Long.valueOf(goodsPackDetailTmp.getCount())).build());
+                    }
+                }
+
+                TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+                tradePurchaseRequest.setCustomer(customer);
+                tradePurchaseRequest.setTradeItems(TradeItemDTOList);
+                tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+
+                List<TradeItemGroup> tradeItemGroups = this.getTradeItemList(tradePurchaseRequest);
+                List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
+                Map<String, TradeItem> skuId2TradeItemMap = tradeItems.stream().collect(Collectors.toMap(TradeItem::getSkuId, Function.identity(), (k1, k2) -> k1));
+
+                GoodsPackDetailResponse mainGoodsPackDetailTmp = null;
+                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,2, RoundingMode.HALF_UP);
+                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
+                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate()).divide(rateAll,0, RoundingMode.HALF_UP);
+
+                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
+                        surplusPoint = surplusPoint.subtract(pointsTmp);
+                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
+
+                        TradeItem tradeItem = skuId2TradeItemMap.get(goodsPackDetailTmp.getGoodsInfoId());
+                        tradeItem.setOid(generatorService.generateOid());
+//                        if (StringUtils.isBlank(tradeItem.getAdminId())) {
+//                            tradeItem.setAdminId(String.format("%d", goodsPackDetailTmp.getSupplier().getSupplierId()));
+//                        }
+                        tradeItem.setSplitPrice(splitPriceTmp);
+                        tradeItem.setPoints(pointsTmp.longValue());
+                        tradeItem.setKnowledge(knowledgeTmp.longValue());
+
+                        if (tradeItem.getPoints() > 0) {
+                            tradeItem.setPointsPrice(pointsTmp.divide(new BigDecimal("100")));
+                        } else if (tradeItem.getKnowledge() > 0) {
+                            tradeItem.setPointsPrice(knowledgeTmp.divide(new BigDecimal("100")));
+                        } else {
+                            tradeItem.setPointsPrice(BigDecimal.ZERO);
+                        }
+
+                        BigDecimal sumPrice = tradeItem.getSplitPrice().add(tradeItem.getPointsPrice());
+                        tradeItem.setPrice(sumPrice.divide(new BigDecimal(tradeItem.getNum()+""), 2, RoundingMode.HALF_UP));
+                        tradeItem.setPackId(goodsPackDetailTmp.getPackId());
+                        tradeItemListTmp.add(tradeItem); // add1
+                        log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItem.getSpuId(), tradeItem.getPackId());
+                    } else {
+                        mainGoodsPackDetailTmp = goodsPackDetailTmp;
+                    }
+                }
+
+
+                tradeItemParam.setSplitPrice(surplusSplitPrice);
+                tradeItemParam.setPoints(surplusPoint.longValue());
+                tradeItemParam.setKnowledge(surplusKnowledge.longValue());
+
+                if (tradeItemParam.getPoints() > 0) {
+                    tradeItemParam.setPointsPrice(surplusPoint.divide(new BigDecimal("100")));
+                } else if (tradeItemParam.getKnowledge() > 0) {
+                    tradeItemParam.setPointsPrice(surplusKnowledge.divide(new BigDecimal("100")));
+                } else {
+                    tradeItemParam.setPointsPrice(BigDecimal.ZERO);
+                }
+
+                BigDecimal sumPrice = tradeItemParam.getSplitPrice().add(tradeItemParam.getPointsPrice());
+                tradeItemParam.setPrice(sumPrice.divide(new BigDecimal(tradeItemParam.getNum()+""), 2, RoundingMode.HALF_UP));  //此处计算不正确
+                tradeItemParam.setPackId(mainGoodsPackDetailTmp == null ? tradeItemParam.getSpuId() : mainGoodsPackDetailTmp.getPackId());
+
+                log.info("TradeService.dealGoodsPackDetail goods_Id:{} packId:{}", tradeItemParam.getSpuId(), tradeItemParam.getPackId());
+            }
+            tradeItemListTmp.add(tradeItemParam); // add2
+        }
+        trade.setTradeItems(tradeItemListTmp);
+    }
+
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+    public List<TradeItemGroup> getTradeItemList(TradePurchaseRequest request) {
+        List<String> skuIds = request.getTradeItems().stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+        String customerId = request.getCustomer().getCustomerId();
+
+        //查询是否购买付费会员卡
+        List<PaidCardCustomerRelVO> paidCardCustomerRelVOList = paidCardCustomerRelQueryProvider
+                .listCustomerRelFullInfo(PaidCardCustomerRelListRequest.builder()
+                        .customerId(customerId)
+                        .delFlag(DeleteFlag.NO)
+                        .endTimeFlag(LocalDateTime.now())
+                        .build())
+                .getContext();
+        PaidCardVO paidCardVO = new PaidCardVO();
+        if (CollectionUtils.isNotEmpty(paidCardCustomerRelVOList)) {
+            paidCardVO = paidCardCustomerRelVOList.stream()
+                    .map(PaidCardCustomerRelVO::getPaidCardVO)
+                    .min(Comparator.comparing(PaidCardVO::getDiscountRate)).get();
+        }
+        GoodsInfoResponse response = tradeGoodsService.getGoodsResponse(skuIds, request.getCustomer());
+//        for (GoodsVO goods : response.getGoodses()) {
+//            log.info("TradeService getTradeItemList goods:{} goods.getGoodsChannelTypeSet() :{} "
+//                    , goods.getGoodsChannelType()
+//                    , JSON.toJSONString(goods.getGoodsChannelTypeSet()));
+//        }
+        for (GoodsVO goodsVo : response.getGoodses()) {
+            log.info("TradeService getTradeItemList goodsInfo:{} goodsInfo.getGoodsChannelTypeSet() :{} request.getGoodsChannelTypeSet():{}"
+                    , goodsVo.getGoodsChannelType()
+                    , JSON.toJSONString(goodsVo.getGoodsChannelTypeSet())
+                    , JSON.toJSONString(request.getGoodsChannelTypeSet()));
+            if (!goodsVo.getGoodsChannelTypeSet().contains(request.getGoodsChannelTypeSet().get(0).toString())) {
+                throw new SbcRuntimeException("K-050216");
+            }
+        }
+
+
+        Map<String, GoodsVO> goodsMap = response.getGoodses().stream().filter(goods -> goods.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, Integer> cpsSpecialMap = response.getGoodsInfos().stream().collect(Collectors.toMap(goodsInfo -> goodsInfo.getGoodsInfoId(), goodsInfo2 -> goodsMap.get(goodsInfo2.getGoodsId()).getCpsSpecial()));
+        List<TradeItem> tradeItems = KsBeanUtil.convert(request.getTradeItems(), TradeItem.class);
+        //获取付费会员价
+        if (Objects.nonNull(paidCardVO.getDiscountRate())) {
+            for (GoodsInfoVO goodsInfoVO : response.getGoodsInfos()) {
+                goodsInfoVO.setSalePrice(goodsInfoVO.getMarketPrice().multiply(paidCardVO.getDiscountRate()));
+            }
+//            if (CollectionUtils.isNotEmpty(tradeItems)) {
+//                for (TradeItem tradeItem : tradeItems) {
+//                    if (Objects.nonNull(tradeItem.getPrice())) {
+//                        tradeItem.setPrice(tradeItem.getPrice().multiply(paidCardVO.getDiscountRate()));
+//                    }
+//                }
+//            }
+        }
+        verifyService.verifyGoods(tradeItems, Collections.emptyList(), KsBeanUtil.convert(response, TradeGoodsListVO.class), null, true, null);
+        verifyService.verifyStore(response.getGoodsInfos().stream().map(GoodsInfoVO::getStoreId).collect(Collectors.toList()));
+        Map<String, GoodsInfoVO> goodsInfoVOMap = response.getGoodsInfos().stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, Function.identity()));
+        tradeItems.stream().forEach(tradeItem -> {
+            tradeItem.setCpsSpecial(cpsSpecialMap.get(tradeItem.getSkuId()));
+            tradeItem.setGoodsType(GoodsType.fromValue(goodsInfoVOMap.get(tradeItem.getSkuId()).getGoodsType()));
+            tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
+            tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
+            tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
+        });
+
+        tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, response.getGoodsInfos(), customerId);
+        for (TradeItem tradeItem : tradeItems) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if (priceByGoodsId.getContext() != null) {
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+        }
+
+
+
+        // 校验商品限售信息
+        TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();
+        tradeItemGroupVOS.setTradeItems(tradeItems);
+        tradeGoodsService.validateRestrictedGoods(tradeItemGroupVOS, request.getCustomer());
+
+        //订单商品渠道校验信息
+
+        //商品按店铺分组
+        Map<Long, List<TradeItem>> map = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getStoreId));
+        List<TradeItemGroup> itemGroups = new ArrayList<>();
+        map.forEach((key,value)->{
+            StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(key)
+                    .build())
+                    .getContext().getStoreVO();
+            DefaultFlag freightTemplateType = store.getFreightTemplateType();
+            Supplier supplier = Supplier.builder()
+                    .storeId(store.getStoreId())
+                    .storeName(store.getStoreName())
+                    .isSelf(store.getCompanyType() == BoolFlag.NO)
+                    .supplierCode(store.getCompanyInfo().getCompanyCode())
+                    .supplierId(store.getCompanyInfo().getCompanyInfoId())
+                    .supplierName(store.getCompanyInfo().getSupplierName())
+                    .freightTemplateType(freightTemplateType)
+                    .build();
+            for (TradeItem tradeItem : value) {
+                tradeItem.setProviderName(store.getSupplierName());
+            }
+            TradeItemGroup tradeItemGroup = new TradeItemGroup();
+            tradeItemGroup.setTradeItems(value);
+            tradeItemGroup.setSupplier(supplier);
+            tradeItemGroup.setTradeMarketingList(new ArrayList<>());
+            itemGroups.add(tradeItemGroup);
+        });
+        return itemGroups;
+    }
+
+
     /**
      * 调用校验与封装单个订单信息 - [后端代客下单]
      * 业务员app/商家-共用
@@ -1961,7 +2311,9 @@ public class TradeService {
         // 校验组合购活动信息
         dealSuitOrder(trade, tradeParams);
 
+        //构建订单满系营销对象 优惠券
         this.wrapperMarketingForCommit(trade, tradeParams);
+
         long count = tradeParams.getTradeItems().stream().filter(tradeItem -> Objects.nonNull(tradeItem.getGoodsType())
                 && (GoodsType.VIRTUAL_COUPON.equals(tradeItem.getGoodsType())
                 || GoodsType.VIRTUAL_GOODS.equals( tradeItem.getGoodsType()))).count();
@@ -2070,6 +2422,71 @@ public class TradeService {
         } else {
             tradePrice.setTotalPrice(tradePrice.getTotalPrice().add(deliveryPrice));//应付金额 = 应付+运费
         }
+//
+//        //判断打包商品
+//        //获取商品的打包信息，
+//        List<String> mainGoodsIdList = trade.getTradeItems().stream().map(TradeItem::getSpuId).collect(Collectors.toList());
+//        BaseResponse<List<GoodsPackDetailResponse>> packResponse = goodsQueryProvider.listPackDetailByPackIds(new PackDetailByPackIdsRequest(mainGoodsIdList));
+//        List<GoodsPackDetailResponse> goodsPackDetailList = packResponse.getContext();
+//
+//        Map<String, List<GoodsPackDetailResponse>> packId2GoodsPackDetailMap = new HashMap<>();
+//        if (!CollectionUtils.isEmpty(goodsPackDetailList)) {
+//            for (GoodsPackDetailResponse goodsPackDetailParam : goodsPackDetailList) {
+//                List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.computeIfAbsent(goodsPackDetailParam.getPackId(), k -> new ArrayList<>());
+//                goodsPackDetailListTmp.add(goodsPackDetailParam);
+//            }
+//        }
+//
+//        tradeParams.getTradeItems().forEach(t -> {
+//            t.setOid(generatorService.generateOid());
+//            if (StringUtils.isBlank(t.getAdminId())) {
+//                t.setAdminId(String.format("%d", tradeParams.getSupplier().getSupplierId()));
+//            }
+//        });
+//
+//        List<TradeItem> tradeItemListTmp = new ArrayList<>();
+//        for (TradeItem tradeItemParam : trade.getTradeItems()) {
+//            List<GoodsPackDetailResponse> goodsPackDetailListTmp = packId2GoodsPackDetailMap.get(tradeItemParam.getSpuId());
+//            if (CollectionUtils.isNotEmpty(goodsPackDetailListTmp)) {
+//                //拆分
+//                BigDecimal splitPrice = tradeItemParam.getSplitPrice() == null ? BigDecimal.ZERO : tradeItemParam.getSplitPrice();
+//                Long points = tradeItemParam.getPoints() == null ? 0L : tradeItemParam.getPoints();
+//                Long knowledge = tradeItemParam.getKnowledge() == null ? 0L : tradeItemParam.getKnowledge();
+//                BigDecimal rateAll = new BigDecimal("100");
+//
+//                //优先计算 子商品的价格，最后计算主要商品的价格；
+//                BigDecimal surplusSplitPrice = splitPrice;
+//                BigDecimal surplusPoint = new BigDecimal(splitPrice + "");
+//                BigDecimal surplusKnowledge = new BigDecimal(knowledge + "");
+////                GoodsPackDetailResponse mainGoodsPackDetail;
+//
+//                for (GoodsPackDetailResponse goodsPackDetailTmp : goodsPackDetailListTmp) {
+//                    if (!Objects.equals(goodsPackDetailTmp.getGoodsId(), goodsPackDetailTmp.getPackId())) {
+//                        BigDecimal splitPriceTmp = splitPrice.multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal pointsTmp = new BigDecimal(points + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//                        BigDecimal knowledgeTmp = new BigDecimal(knowledge + "").multiply(goodsPackDetailTmp.getShareRate().divide(rateAll,2, RoundingMode.HALF_UP));
+//
+//                        surplusSplitPrice = surplusSplitPrice.subtract(splitPriceTmp);
+//                        surplusPoint = surplusPoint.subtract(pointsTmp);
+//                        surplusKnowledge = surplusKnowledge.subtract(knowledgeTmp);
+//                    } /*else {
+//                        mainGoodsPackDetail = goodsPackDetailTmp;
+//                    }*/
+//                }
+//
+//                PackRecord packRecord = tradeItemParam.getPackRecord();
+//                if (packRecord == null) {
+//                    packRecord = new PackRecord();
+//                }
+//                packRecord.setPackId(tradeItemParam.getSpuId());
+//                packRecord.setPackPoint(surplusPoint.longValue());
+//                packRecord.setPackKnowLedge(surplusKnowledge.longValue());
+//                packRecord.setPackSplitPrice(surplusSplitPrice);
+//                tradeItemParam.setPackRecord(packRecord);
+//            } else {
+//                tradeItemListTmp.add(tradeItemParam);
+//            }
+//        }
         return trade;
     }
 
@@ -2973,7 +3390,7 @@ public class TradeService {
                 auditState = AuditState.CHECKED;
             } else {
                 //商家 boss 初始化状态是不需要审核的
-                if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER) {
+                if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER || operator.getPlatform() == Platform.WX_VIDEO) {
                     flowState = FlowState.AUDIT;
                     auditState = AuditState.CHECKED;
                 } else {
@@ -3028,13 +3445,37 @@ public class TradeService {
                     tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             Integer timeoutSwitch = timeoutCancelConfig.getStatus();
             if (timeoutSwitch == 1) {
-                // 查询设置中订单超时时间
-                Integer hours =
-                        Integer.valueOf(JSON.parseObject(timeoutCancelConfig.getContext()).get("hour").toString());
-                if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
+                //视频号、小程序订单
+                if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                    int outTime = 60; //1小时
+                    try {
+                        // 查询设置中订单超时时间
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
+                        if (minuteObj != null) {
+                            outTime = Integer.parseInt(minuteObj.toString());
+                        }
+                    } catch (Exception ex) {
+                        log.error("TradeService timeoutCancelConfig error", ex);
+                    }
+                    trade.setOrderTimeOut(LocalDateTime.now().plusMinutes(outTime));
+                    orderProducerService.cancelOrder(trade.getId(), outTime * 60 * 1000L);
+                } else  if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
+                    // 查询设置中订单超时时间
+                    int outTime = 60; //1小时
+                    try {
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(timeoutCancelConfig.getContext());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+                        if (minuteObj != null) {
+                            outTime = Integer.parseInt(minuteObj.toString());
+                        }
+                    } catch (Exception ex) {
+                        log.error("TradeService timeoutCancelConfig error", ex);
+                    }
+
                     // 发送非拼团单取消订单延迟队列;
-                    trade.setOrderTimeOut(LocalDateTime.now().plusHours(hours));
-                    orderProducerService.cancelOrder(trade.getId(), hours * 60 * 60 * 1000L);
+                    trade.setOrderTimeOut(LocalDateTime.now().plusMinutes(outTime));
+                    orderProducerService.cancelOrder(trade.getId(), outTime * 60 * 1000L);
                 }
             }
         }
@@ -3435,7 +3876,7 @@ public class TradeService {
                 .sourceId(trade.getId())
                 .sourceType(NumberUtils.INTEGER_ONE)
                 .build()).getContext().getDeductionCode();
-         externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
+        externalProvider.pointDeduct(FanDengPointDeductRequest.builder()
                 .deductCode(deductCode).build());
 
         // 扣除商品库存、积分商品可兑换数量
@@ -3723,7 +4164,7 @@ public class TradeService {
         if (tradePrice.getDeliveryPrice() == null) {
             boolean virtualCouponGoods = Objects.isNull(trade.getIsVirtualCouponGoods())
                     || Boolean.FALSE.equals(trade.getIsVirtualCouponGoods());
-             deliveryPrice = virtualCouponGoods ? tradeService.calcTradeFreight(trade.getConsignee(), trade.getSupplier(),
+            deliveryPrice = virtualCouponGoods ? tradeService.calcTradeFreight(trade.getConsignee(), trade.getSupplier(),
                     trade.getDeliverWay(),
                     tradePrice.getTotalPrice(), trade.getTradeItems(), trade.getGifts()) : BigDecimal.ZERO;
             tradePrice.setDeliveryPrice(deliveryPrice);
@@ -3848,11 +4289,15 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             bookingSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         //状态变更
         StateRequest stateRequest = StateRequest
@@ -3871,6 +4316,16 @@ public class TradeService {
         orderProducerService.backRestrictedPurchaseNum(trade.getId(), null, BackRestrictedType.ORDER_CANCEL);
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
+
+        //视频号
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
+                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
+                return;
+            }
+            WxVideoOrderDetailResponse wechatVideoOrder = wxOrderService.getWechatVideoOrder(trade);
+            wxOrderService.releaseWechatVideoStock(wechatVideoOrder);
+        }
     }
 
     /**
@@ -4947,63 +5402,63 @@ public class TradeService {
                 trade.getTradeState().setDeliverStatus(DeliverStatus.SHIPPED);
                 trade.getTradeState().setFlowState(FlowState.DELIVERED);
 
-                    //修改商品的发货状态和发货数量
-                    trade.getTradeItems().forEach(tradeItem -> {
+                //修改商品的发货状态和发货数量
+                trade.getTradeItems().forEach(tradeItem -> {
+                    tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
+                    tradeItem.setDeliveredNum(tradeItem.getNum());
+                });
+
+                //修改赠品的发货状态和发货数量
+                trade.getGifts().forEach(tradeItem -> {
+                    tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
+                    tradeItem.setDeliveredNum(tradeItem.getNum());
+                });
+
+            } else {
+                trade.appendTradeEventLog(TradeEventLog
+                        .builder()
+                        .operator(operator)
+                        .eventType(FlowState.DELIVERED_PART.getDescription())
+                        .eventDetail(String.format("订单[%s],虚拟商品已自动全部发货", trade.getId()))
+                        .eventTime(LocalDateTime.now())
+                        .build());
+                tradeDeliver.setStatus(DeliverStatus.SHIPPED);
+                trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
+                trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
+                trade.addTradeDeliver(tradeDeliver);
+                //修改商品的发货状态和发货数量
+                trade.getTradeItems().forEach(tradeItem -> {
+                    if (tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON || tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS) {
                         tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
                         tradeItem.setDeliveredNum(tradeItem.getNum());
-                    });
+                    }
+                });
 
-                    //修改赠品的发货状态和发货数量
-                    trade.getGifts().forEach(tradeItem -> {
+                //修改赠品的发货状态和发货数量
+                trade.getGifts().forEach(tradeItem -> {
+                    if (tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON || tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS) {
                         tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
                         tradeItem.setDeliveredNum(tradeItem.getNum());
-                    });
+                    }
+                });
+            }
 
-                } else {
-                    trade.appendTradeEventLog(TradeEventLog
-                            .builder()
-                            .operator(operator)
-                            .eventType(FlowState.DELIVERED_PART.getDescription())
-                            .eventDetail(String.format("订单[%s],虚拟商品已自动全部发货", trade.getId()))
-                            .eventTime(LocalDateTime.now())
-                            .build());
-                    tradeDeliver.setStatus(DeliverStatus.SHIPPED);
-                    trade.getTradeState().setDeliverStatus(DeliverStatus.PART_SHIPPED);
-                    trade.getTradeState().setFlowState(FlowState.DELIVERED_PART);
-                    trade.addTradeDeliver(tradeDeliver);
-                    //修改商品的发货状态和发货数量
-                    trade.getTradeItems().forEach(tradeItem -> {
-                        if (tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON || tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS) {
-                            tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                            tradeItem.setDeliveredNum(tradeItem.getNum());
-                        }
-                    });
-
-                    //修改赠品的发货状态和发货数量
-                    trade.getGifts().forEach(tradeItem -> {
-                        if (tradeItem.getGoodsType() == GoodsType.VIRTUAL_COUPON || tradeItem.getGoodsType() == GoodsType.VIRTUAL_GOODS) {
-                            tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                            tradeItem.setDeliveredNum(tradeItem.getNum());
-                        }
-                    });
-                }
-
-                providerTradeService.updateProviderTrade(trade);
+            providerTradeService.updateProviderTrade(trade);
 
         }
     }
 
-        /**
-         * 生成发货记录
-         *
-         * @param trade
-         * @param
-         * @return
-         */
-        private TradeDeliver tradeDeliverGenerate(Trade trade, boolean isAllVirtual) {
-            // 生成ID
-            TradeDeliver tradeDeliver = new TradeDeliver();
-            tradeDeliver.setDeliverId(generatorService.generate("TD"));
+    /**
+     * 生成发货记录
+     *
+     * @param trade
+     * @param
+     * @return
+     */
+    private TradeDeliver tradeDeliverGenerate(Trade trade, boolean isAllVirtual) {
+        // 生成ID
+        TradeDeliver tradeDeliver = new TradeDeliver();
+        tradeDeliver.setDeliverId(generatorService.generate("TD"));
 
         tradeDeliver.setTradeId(trade.getId());
         tradeDeliver.setConsignee(trade.getConsignee());
@@ -5015,20 +5470,20 @@ public class TradeService {
                         && (GoodsType.VIRTUAL_COUPON.equals(tradeItem.getGoodsType()) ||
                         GoodsType.VIRTUAL_GOODS.equals(tradeItem.getGoodsType())))
                 .map(tradeItem -> {
-                if (isAllVirtual) {
-                    tradeItem.setDeliveredNum(tradeItem.getNum());
-                }
-                tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                return ShippingItem.builder()
-                        .itemNum(tradeItem.getNum())
-                        .itemName(tradeItem.getSkuName())
-                        .skuId(tradeItem.getSkuId())
-                        .skuNo(tradeItem.getSkuNo())
-                        .spuId(tradeItem.getSpuId())
-                        .unit(tradeItem.getUnit())
-                        .pic(tradeItem.getPic())
-                        .specDetails(tradeItem.getSpecDetails())
-                        .build();
+                    if (isAllVirtual) {
+                        tradeItem.setDeliveredNum(tradeItem.getNum());
+                    }
+                    tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
+                    return ShippingItem.builder()
+                            .itemNum(tradeItem.getNum())
+                            .itemName(tradeItem.getSkuName())
+                            .skuId(tradeItem.getSkuId())
+                            .skuNo(tradeItem.getSkuNo())
+                            .spuId(tradeItem.getSpuId())
+                            .unit(tradeItem.getUnit())
+                            .pic(tradeItem.getPic())
+                            .specDetails(tradeItem.getSpecDetails())
+                            .build();
 
                 }).collect(Collectors.toList());
         tradeDeliver.setShippingItems(shippingItems);
@@ -5037,373 +5492,374 @@ public class TradeService {
                         && (GoodsType.VIRTUAL_COUPON.equals(tradeItem.getGoodsType()) ||
                         GoodsType.VIRTUAL_GOODS.equals(tradeItem.getGoodsType())))
                 .map(tradeItem -> {
-                if (isAllVirtual) {
-                    tradeItem.setDeliveredNum(tradeItem.getNum());
-                }
-                tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
-                return ShippingItem.builder()
-                        .itemNum(tradeItem.getNum())
-                        .itemName(tradeItem.getSkuName())
-                        .skuId(tradeItem.getSkuId())
-                        .skuNo(tradeItem.getSkuNo())
-                        .spuId(tradeItem.getSpuId())
-                        .unit(tradeItem.getUnit())
-                        .specDetails(tradeItem.getSpecDetails())
-                        .pic(tradeItem.getPic())
-                        .build();
-
-            }).collect(Collectors.toList());
-            tradeDeliver.setGiftItemList(shippingItems);
-            return tradeDeliver;
-        }
-
-
-        /**
-         * 更新预约/预售购买数量
-         *
-         * @param trade
-         */
-        @Transactional
-        @GlobalTransactional
-        public void changeActivityBuyCount(Trade trade) {
-            trade.getTradeItems().forEach(tradeItemVO -> {
-                if (Objects.nonNull(tradeItemVO.getIsAppointmentSaleGoods()) && tradeItemVO.getIsAppointmentSaleGoods() && trade.getTradeState().getPayState() == PayState.PAID) {
-                    // appointmentBuyCount:customerId:appointmentSaleId:skuNo
-                    String appointmentBuyCountKey =
-                            "appointmentBuyCount:" + trade.getBuyer().getId() + ":" + tradeItemVO.getAppointmentSaleId() + ":" + tradeItemVO.getSkuNo();
-                    if (!redisService.hasKey(appointmentBuyCountKey)) {
-                        // 预约购买去重，同一个账户同一活动同一个商品只记一次
-                        appointmentSaleGoodsProvider.updateBuyCount(AppointmentSaleGoodsCountRequest.builder()
-                                .appointmentSaleId(tradeItemVO.getAppointmentSaleId()).stock(1L).goodsInfoId(tradeItemVO.getSkuId()).build());
-                        AppointmentSaleVO appointmentSaleVO = appointmentSaleQueryProvider.getById(
-                                (AppointmentSaleByIdRequest.builder().id(tradeItemVO.getAppointmentSaleId()).storeId(tradeItemVO.getStoreId()).build())).getContext().getAppointmentSaleVO();
-                        ConfigVO timeoutCancelConfig =
-                                tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
-                        Integer hours =
-                                Integer.valueOf(JSON.parseObject(timeoutCancelConfig.getContext()).get("hour").toString()) + 1;
-                        long seconds =
-                                Duration.between(LocalDateTime.now(), appointmentSaleVO.getSnapUpEndTime()).toMillis() / 1000 + (hours * 60 * 60 * 1000L);
-                        redisService.setString(appointmentBuyCountKey, "1", seconds);
+                    if (isAllVirtual) {
+                        tradeItem.setDeliveredNum(tradeItem.getNum());
                     }
-                }
-            });
-            if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && Objects.isNull(trade.getBookingType())) {
-                TradeItem tradeItem = trade.getTradeItems().get(0);
-                BookingSaleByIdRequest bookingSaleByIdRequest = new BookingSaleByIdRequest();
-                bookingSaleByIdRequest.setId(tradeItem.getBookingSaleId());
-                BookingSaleByIdResponse bookingSaleResponse =
-                        bookingSaleQueryProvider.getById(bookingSaleByIdRequest).getContext();
-                if (Objects.nonNull(bookingSaleResponse) && Objects.nonNull(bookingSaleResponse.getBookingSaleVO())) {
-                    trade.setBookingType(BookingType.fromValue(bookingSaleResponse.getBookingSaleVO().getBookingType()));
-                }
-            }
-            if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.FULL_MONEY) {
-                if (trade.getTradeState().getPayState() == PayState.PAID) {
-                    TradeItem tradeItem = trade.getTradeItems().get(0);
-                    bookingSaleGoodsProvider.addBookingPayCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
-                            bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
-                }
-            }
-            if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY) {
-                TradeItem tradeItem = trade.getTradeItems().get(0);
-                if (trade.getTradeState().getPayState() == PayState.PAID_EARNEST) {
-                    bookingSaleGoodsProvider.addBookinghandSelCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
-                            bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
-                }
-                if (trade.getTradeState().getPayState() == PayState.PAID) {
-                    bookingSaleGoodsProvider.addBookingTailCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
-                            bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
-                }
+                    tradeItem.setDeliverStatus(DeliverStatus.SHIPPED);
+                    return ShippingItem.builder()
+                            .itemNum(tradeItem.getNum())
+                            .itemName(tradeItem.getSkuName())
+                            .skuId(tradeItem.getSkuId())
+                            .skuNo(tradeItem.getSkuNo())
+                            .spuId(tradeItem.getSpuId())
+                            .unit(tradeItem.getUnit())
+                            .specDetails(tradeItem.getSpecDetails())
+                            .pic(tradeItem.getPic())
+                            .build();
 
+                }).collect(Collectors.toList());
+        tradeDeliver.setGiftItemList(shippingItems);
+        return tradeDeliver;
+    }
+
+
+    /**
+     * 更新预约/预售购买数量
+     *
+     * @param trade
+     */
+    @Transactional
+    @GlobalTransactional
+    public void changeActivityBuyCount(Trade trade) {
+        trade.getTradeItems().forEach(tradeItemVO -> {
+            if (Objects.nonNull(tradeItemVO.getIsAppointmentSaleGoods()) && tradeItemVO.getIsAppointmentSaleGoods() && trade.getTradeState().getPayState() == PayState.PAID) {
+                // appointmentBuyCount:customerId:appointmentSaleId:skuNo
+                String appointmentBuyCountKey =
+                        "appointmentBuyCount:" + trade.getBuyer().getId() + ":" + tradeItemVO.getAppointmentSaleId() + ":" + tradeItemVO.getSkuNo();
+                if (!redisService.hasKey(appointmentBuyCountKey)) {
+                    // 预约购买去重，同一个账户同一活动同一个商品只记一次
+                    appointmentSaleGoodsProvider.updateBuyCount(AppointmentSaleGoodsCountRequest.builder()
+                            .appointmentSaleId(tradeItemVO.getAppointmentSaleId()).stock(1L).goodsInfoId(tradeItemVO.getSkuId()).build());
+                    AppointmentSaleVO appointmentSaleVO = appointmentSaleQueryProvider.getById(
+                            (AppointmentSaleByIdRequest.builder().id(tradeItemVO.getAppointmentSaleId()).storeId(tradeItemVO.getStoreId()).build())).getContext().getAppointmentSaleVO();
+                    ConfigVO timeoutCancelConfig =
+                            tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
+                    //TODO 此处没有使用到，没有修改掉 duanlsh
+                    Integer hours =
+                            Integer.valueOf(JSON.parseObject(timeoutCancelConfig.getContext()).get("hour").toString()) + 1;
+                    long seconds =
+                            Duration.between(LocalDateTime.now(), appointmentSaleVO.getSnapUpEndTime()).toMillis() / 1000 + (hours * 60 * 60 * 1000L);
+                    redisService.setString(appointmentBuyCountKey, "1", seconds);
+                }
+            }
+        });
+        if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && Objects.isNull(trade.getBookingType())) {
+            TradeItem tradeItem = trade.getTradeItems().get(0);
+            BookingSaleByIdRequest bookingSaleByIdRequest = new BookingSaleByIdRequest();
+            bookingSaleByIdRequest.setId(tradeItem.getBookingSaleId());
+            BookingSaleByIdResponse bookingSaleResponse =
+                    bookingSaleQueryProvider.getById(bookingSaleByIdRequest).getContext();
+            if (Objects.nonNull(bookingSaleResponse) && Objects.nonNull(bookingSaleResponse.getBookingSaleVO())) {
+                trade.setBookingType(BookingType.fromValue(bookingSaleResponse.getBookingSaleVO().getBookingType()));
             }
         }
+        if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.FULL_MONEY) {
+            if (trade.getTradeState().getPayState() == PayState.PAID) {
+                TradeItem tradeItem = trade.getTradeItems().get(0);
+                bookingSaleGoodsProvider.addBookingPayCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
+                        bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
+            }
+        }
+        if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY) {
+            TradeItem tradeItem = trade.getTradeItems().get(0);
+            if (trade.getTradeState().getPayState() == PayState.PAID_EARNEST) {
+                bookingSaleGoodsProvider.addBookinghandSelCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
+                        bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
+            }
+            if (trade.getTradeState().getPayState() == PayState.PAID) {
+                bookingSaleGoodsProvider.addBookingTailCount(BookingSaleGoodsCountRequest.builder().goodsInfoId(tradeItem.getSkuId()).
+                        bookingSaleId(tradeItem.getBookingSaleId()).stock(tradeItem.getNum()).build());
+            }
 
-        private void updateProviderTrade(Trade trade) {
-            String parentId = trade.getId();
-            List<ProviderTrade> tradeList = providerTradeService.findListByParentId(parentId);
+        }
+    }
+
+    private void updateProviderTrade(Trade trade) {
+        String parentId = trade.getId();
+        List<ProviderTrade> tradeList = providerTradeService.findListByParentId(parentId);
 //            List<ProviderTrade> tradeList222 = providerTradeService.findListByParentIdList(Arrays.asList(parentId));
-            if (CollectionUtils.isNotEmpty(tradeList)) {
-                tradeList.forEach(childTradeVO -> {
-                    childTradeVO.getTradeState().setPayState(trade.getTradeState().getPayState());
-                    childTradeVO.getTradeState().setFlowState(trade.getTradeState().getFlowState());
-                    //子订单拼团信息更新
-                    if (Objects.nonNull(trade.getTradeGroupon()) && Objects.equals(GrouponOrderStatus.COMPLETE,
-                            trade.getTradeGroupon().getGrouponOrderStatus())) {
-                        childTradeVO.setTradeGroupon(trade.getTradeGroupon());
-                        childTradeVO.getTradeState().setFlowState(FlowState.AUDIT);
-                        childTradeVO.getTradeGroupon().setGrouponOrderStatus(GrouponOrderStatus.COMPLETE);
-                        childTradeVO.getTradeGroupon().setGrouponSuccessTime(LocalDateTime.now());
-                    }
-                    TradeUpdateRequest tradeUpdateRequest = new TradeUpdateRequest(KsBeanUtil.convert(childTradeVO,
-                            TradeUpdateDTO.class));
-                    providerTradeService.updateProviderTrade(tradeUpdateRequest);
-                });
-            }
-        }
-
-
-        /**
-         * 发送订单支付、订单完成MQ消息
-         *
-         * @param trade
-         */
-        private void sendMQForOrderPayedAndComplete(Trade trade) {
-            TradeVO tradeVO = KsBeanUtil.convert(trade, TradeVO.class);
-            orderProducerService.sendMQForOrderPayedAndComplete(tradeVO);
-        }
-
-        /**
-         * 订单支付后，发送MQ消息
-         *
-         * @param trade
-         */
-        private void sendMQForOrderPayed(Trade trade) {
-            // trade对象转tradeVO对象
-            TradeVO tradeVO = KsBeanUtil.convert(trade, TradeVO.class);
-            orderProducerService.sendMQForOrderPayed(tradeVO);
-
-            String customerId = trade.getBuyer().getId();
-            String pic = trade.getTradeItems().get(0).getPic();
-            String account = trade.getBuyer().getAccount();
-
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", NodeType.ORDER_PROGRESS_RATE.toValue());
-            map.put("id", trade.getId());
-            map.put("node", OrderProcessType.ORDER_PAY_SUCCESS.toValue());
-            MessageMQRequest messageMQRequest = new MessageMQRequest();
-            messageMQRequest.setNodeType(NodeType.ORDER_PROGRESS_RATE.toValue());
-            messageMQRequest.setNodeCode(OrderProcessType.ORDER_PAY_SUCCESS.getType());
-            messageMQRequest.setParams(Lists.newArrayList(trade.getTradeItems().get(0).getSkuName()));
-            messageMQRequest.setRouteParam(map);
-            messageMQRequest.setCustomerId(customerId);
-            messageMQRequest.setPic(pic);
-            messageMQRequest.setMobile(account);
-            orderProducerService.sendMessage(messageMQRequest);
-
-            //推广订单节点触发
-            if (trade.getDistributorId() != null) {
-                map.put("type", NodeType.DISTRIBUTION.toValue());
-                map.put("node", DistributionType.PROMOTE_ORDER_PAY_SUCCESS.toValue());
-                List<String> params = Lists.newArrayList(trade.getDistributorName(),
-                        trade.getTradeItems().get(0).getSkuName(),
-                        trade.getCommission().toString());
-                this.sendMessage(NodeType.DISTRIBUTION, DistributionType.PROMOTE_ORDER_PAY_SUCCESS, params,
-                        map, trade.getInviteeId(), pic, account);
-            }
-
-        }
-
-        /**
-         * 0 元订单默认支付
-         *
-         * @param trade
-         * @param payWay
-         *
-         */
-        @Transactional(rollbackFor = Exception.class)
-        @GlobalTransactional
-        public boolean tradeDefaultPay(Trade trade, PayWay payWay) {
-            String tid = trade.getId();
-            if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY) {
-                PayOrder payOrder;
-                if (StringUtils.isBlank(trade.getTailOrderNo())) {
-                    if (Objects.isNull(trade.getTradePrice().getEarnestPrice()) || trade.getTradePrice().getEarnestPrice().compareTo
-                            (BigDecimal.ZERO) != 0) {
-                        throw new SbcRuntimeException("K-050407");
-                    }
-                    payOrder = payOrderService.findPayOrderByOrderCode(tid).orElse(null);
-                } else {
-                    if (Objects.isNull(trade.getTradePrice().getTailPrice()) || trade.getTradePrice().getTailPrice().compareTo
-                            (BigDecimal.ZERO) != 0) {
-                        throw new SbcRuntimeException("K-050407");
-                    }
-                    payOrder = payOrderService.findPayOrderByOrderCode(trade.getTailOrderNo()).orElse(null);
+        if (CollectionUtils.isNotEmpty(tradeList)) {
+            tradeList.forEach(childTradeVO -> {
+                childTradeVO.getTradeState().setPayState(trade.getTradeState().getPayState());
+                childTradeVO.getTradeState().setFlowState(trade.getTradeState().getFlowState());
+                //子订单拼团信息更新
+                if (Objects.nonNull(trade.getTradeGroupon()) && Objects.equals(GrouponOrderStatus.COMPLETE,
+                        trade.getTradeGroupon().getGrouponOrderStatus())) {
+                    childTradeVO.setTradeGroupon(trade.getTradeGroupon());
+                    childTradeVO.getTradeState().setFlowState(FlowState.AUDIT);
+                    childTradeVO.getTradeGroupon().setGrouponOrderStatus(GrouponOrderStatus.COMPLETE);
+                    childTradeVO.getTradeGroupon().setGrouponSuccessTime(LocalDateTime.now());
                 }
-                ReceivableAddRequest receivableAddRequest;
-                if (Objects.nonNull(payOrder) && payOrder.getPayType() == PayType.OFFLINE) {
-                    receivableAddRequest = ReceivableAddRequest.builder().accountId(Constants.DEFAULT_RECEIVABLE_ACCOUNT)
-                            .createTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1))
-                            .payOrderId(payOrder.getPayOrderId()).build();
-                } else {
-                    receivableAddRequest = ReceivableAddRequest.builder().payChannelId(Constants
-                            .DEFAULT_RECEIVABLE_ACCOUNT).payChannel("默认支付").createTime(DateUtil.format(LocalDateTime.now(),
-                            DateUtil.FMT_TIME_1))
-                            .payOrderId(payOrder.getPayOrderId()).build();
-                }
-                this.addReceivable(receivableAddRequest, Platform.PLATFORM).ifPresent(pay ->
-                        this.payCallBack(tid, BigDecimal.ZERO,
-                                Operator.builder().adminId("0").name("system").account("system").platform
-                                        (Platform.PLATFORM).build(), payWay)
-                );
-            } else {
-                if (Objects.isNull(trade.getTradePrice().getTotalPrice()) || trade.getTradePrice().getTotalPrice().compareTo
+                TradeUpdateRequest tradeUpdateRequest = new TradeUpdateRequest(KsBeanUtil.convert(childTradeVO,
+                        TradeUpdateDTO.class));
+                providerTradeService.updateProviderTrade(tradeUpdateRequest);
+            });
+        }
+    }
+
+
+    /**
+     * 发送订单支付、订单完成MQ消息
+     *
+     * @param trade
+     */
+    private void sendMQForOrderPayedAndComplete(Trade trade) {
+        TradeVO tradeVO = KsBeanUtil.convert(trade, TradeVO.class);
+        orderProducerService.sendMQForOrderPayedAndComplete(tradeVO);
+    }
+
+    /**
+     * 订单支付后，发送MQ消息
+     *
+     * @param trade
+     */
+    private void sendMQForOrderPayed(Trade trade) {
+        // trade对象转tradeVO对象
+        TradeVO tradeVO = KsBeanUtil.convert(trade, TradeVO.class);
+        orderProducerService.sendMQForOrderPayed(tradeVO);
+
+        String customerId = trade.getBuyer().getId();
+        String pic = trade.getTradeItems().get(0).getPic();
+        String account = trade.getBuyer().getAccount();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", NodeType.ORDER_PROGRESS_RATE.toValue());
+        map.put("id", trade.getId());
+        map.put("node", OrderProcessType.ORDER_PAY_SUCCESS.toValue());
+        MessageMQRequest messageMQRequest = new MessageMQRequest();
+        messageMQRequest.setNodeType(NodeType.ORDER_PROGRESS_RATE.toValue());
+        messageMQRequest.setNodeCode(OrderProcessType.ORDER_PAY_SUCCESS.getType());
+        messageMQRequest.setParams(Lists.newArrayList(trade.getTradeItems().get(0).getSkuName()));
+        messageMQRequest.setRouteParam(map);
+        messageMQRequest.setCustomerId(customerId);
+        messageMQRequest.setPic(pic);
+        messageMQRequest.setMobile(account);
+        orderProducerService.sendMessage(messageMQRequest);
+
+        //推广订单节点触发
+        if (trade.getDistributorId() != null) {
+            map.put("type", NodeType.DISTRIBUTION.toValue());
+            map.put("node", DistributionType.PROMOTE_ORDER_PAY_SUCCESS.toValue());
+            List<String> params = Lists.newArrayList(trade.getDistributorName(),
+                    trade.getTradeItems().get(0).getSkuName(),
+                    trade.getCommission().toString());
+            this.sendMessage(NodeType.DISTRIBUTION, DistributionType.PROMOTE_ORDER_PAY_SUCCESS, params,
+                    map, trade.getInviteeId(), pic, account);
+        }
+
+    }
+
+    /**
+     * 0 元订单默认支付
+     *
+     * @param trade
+     * @param payWay
+     *
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
+    public boolean tradeDefaultPay(Trade trade, PayWay payWay) {
+        String tid = trade.getId();
+        if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY) {
+            PayOrder payOrder;
+            if (StringUtils.isBlank(trade.getTailOrderNo())) {
+                if (Objects.isNull(trade.getTradePrice().getEarnestPrice()) || trade.getTradePrice().getEarnestPrice().compareTo
                         (BigDecimal.ZERO) != 0) {
                     throw new SbcRuntimeException("K-050407");
                 }
-                PayOrder payOrder = payOrderService.findPayOrderByOrderCode(tid).orElse(null);
-                ReceivableAddRequest receivableAddRequest = null;
-                if (Objects.nonNull(payOrder) && payOrder.getPayType() == PayType.OFFLINE) {
-                    receivableAddRequest = ReceivableAddRequest.builder().accountId(Constants.DEFAULT_RECEIVABLE_ACCOUNT)
-                            .createTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1))
-                            .payOrderId(trade.getPayOrderId()).build();
-                } else {
-                    receivableAddRequest = ReceivableAddRequest.builder().payChannelId(Constants
-                            .DEFAULT_RECEIVABLE_ACCOUNT).payChannel("默认支付").createTime(DateUtil.format(LocalDateTime.now(),
-                            DateUtil.FMT_TIME_1))
-                            .payOrderId(trade.getPayOrderId()).build();
+                payOrder = payOrderService.findPayOrderByOrderCode(tid).orElse(null);
+            } else {
+                if (Objects.isNull(trade.getTradePrice().getTailPrice()) || trade.getTradePrice().getTailPrice().compareTo
+                        (BigDecimal.ZERO) != 0) {
+                    throw new SbcRuntimeException("K-050407");
                 }
-                this.addReceivable(receivableAddRequest, Platform.PLATFORM).ifPresent(pay ->
-                        this.payCallBack(tid, BigDecimal.ZERO,
-                                Operator.builder().adminId("0").name("system").account("system").platform
-                                        (Platform.PLATFORM).build(), payWay)
-                );
+                payOrder = payOrderService.findPayOrderByOrderCode(trade.getTailOrderNo()).orElse(null);
+            }
+            ReceivableAddRequest receivableAddRequest;
+            if (Objects.nonNull(payOrder) && payOrder.getPayType() == PayType.OFFLINE) {
+                receivableAddRequest = ReceivableAddRequest.builder().accountId(Constants.DEFAULT_RECEIVABLE_ACCOUNT)
+                        .createTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1))
+                        .payOrderId(payOrder.getPayOrderId()).build();
+            } else {
+                receivableAddRequest = ReceivableAddRequest.builder().payChannelId(Constants
+                        .DEFAULT_RECEIVABLE_ACCOUNT).payChannel("默认支付").createTime(DateUtil.format(LocalDateTime.now(),
+                        DateUtil.FMT_TIME_1))
+                        .payOrderId(payOrder.getPayOrderId()).build();
+            }
+            this.addReceivable(receivableAddRequest, Platform.PLATFORM).ifPresent(pay ->
+                    this.payCallBack(tid, BigDecimal.ZERO,
+                            Operator.builder().adminId("0").name("system").account("system").platform
+                                    (Platform.PLATFORM).build(), payWay)
+            );
+        } else {
+            if (Objects.isNull(trade.getTradePrice().getTotalPrice()) || trade.getTradePrice().getTotalPrice().compareTo
+                    (BigDecimal.ZERO) != 0) {
+                throw new SbcRuntimeException("K-050407");
+            }
+            PayOrder payOrder = payOrderService.findPayOrderByOrderCode(tid).orElse(null);
+            ReceivableAddRequest receivableAddRequest = null;
+            if (Objects.nonNull(payOrder) && payOrder.getPayType() == PayType.OFFLINE) {
+                receivableAddRequest = ReceivableAddRequest.builder().accountId(Constants.DEFAULT_RECEIVABLE_ACCOUNT)
+                        .createTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1))
+                        .payOrderId(trade.getPayOrderId()).build();
+            } else {
+                receivableAddRequest = ReceivableAddRequest.builder().payChannelId(Constants
+                        .DEFAULT_RECEIVABLE_ACCOUNT).payChannel("默认支付").createTime(DateUtil.format(LocalDateTime.now(),
+                        DateUtil.FMT_TIME_1))
+                        .payOrderId(trade.getPayOrderId()).build();
+            }
+            this.addReceivable(receivableAddRequest, Platform.PLATFORM).ifPresent(pay ->
+                    this.payCallBack(tid, BigDecimal.ZERO,
+                            Operator.builder().adminId("0").name("system").account("system").platform
+                                    (Platform.PLATFORM).build(), payWay)
+            );
 
-                //同步第三方订单
-                if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
-                    orderProducerService.sendMQForThirdPlatformSync(trade.getId());
-                }
+            //同步第三方订单
+            if (ThirdPlatformType.LINKED_MALL.equals(trade.getThirdPlatformType())) {
+                orderProducerService.sendMQForThirdPlatformSync(trade.getId());
             }
-            if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
-                log.info("定金预售:0元定单======>订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
-            }else {
-                log.info("推送0元订单到ERP系统,订单号:{}",tid);
-                //推送订单到ERP系统()
-                providerTradeService.defalutPayOrderAsycToERP(tid);
-            }
-            sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
-            orderCouponService.addCouponRecord(trade);
-            return true;
+        }
+        if (trade.getBookingType() == BookingType.EARNEST_MONEY && trade.getTradeState().getFlowState() == FlowState.WAIT_PAY_TAIL){
+            log.info("定金预售:0元定单======>订单号:{},订单类型:{},订单状态：{}",trade.getId(),trade.getBookingType(),trade.getTradeState().getFlowState());
+        }else {
+            log.info("推送0元订单到ERP系统,订单号:{}",tid);
+            //推送订单到ERP系统()
+            providerTradeService.defalutPayOrderAsycToERP(tid);
+        }
+        sensorsDataService.sendPaySuccessEvent(Arrays.asList(trade));
+        orderCouponService.addCouponRecord(trade);
+        return true;
+    }
+
+    /**
+     * 0元订单批量支付
+     *
+     * @param trades
+     * @param payWay
+     * @return true|false
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @GlobalTransactional
+    public void tradeDefaultPayBatch(List<Trade> trades, PayWay payWay) {
+        trades.forEach(i -> this.tradeDefaultPay(i, payWay));
+    }
+
+    /**
+     * 新增线下收款单(包含线上线下的收款单)
+     *
+     * @param receivableAddRequest receivableAddRequest
+     * @param platform             platform
+     * @return 收款单
+     */
+    @Transactional
+    public Optional<PayOrder> addReceivable(ReceivableAddRequest receivableAddRequest, Platform platform) {
+        PayOrder payOrder = payOrderRepository.findById(receivableAddRequest.getPayOrderId()).orElse(null);
+        if (Objects.isNull(payOrder) || DeleteFlag.YES.equals(payOrder.getDelFlag())) {
+            throw new SbcRuntimeException("K-070001");
+        }
+        if (!CollectionUtils.isEmpty(receivableRepository.findByDelFlagAndPayOrderId(DeleteFlag.NO, payOrder
+                .getPayOrderId()))) {
+            throw new SbcRuntimeException("K-070005");
         }
 
-        /**
-         * 0元订单批量支付
-         *
-         * @param trades
-         * @param payWay
-         * @return true|false
-         */
-        @Transactional(rollbackFor = Exception.class)
-        @GlobalTransactional
-        public void tradeDefaultPayBatch(List<Trade> trades, PayWay payWay) {
-            trades.forEach(i -> this.tradeDefaultPay(i, payWay));
-        }
-
-        /**
-         * 新增线下收款单(包含线上线下的收款单)
-         *
-         * @param receivableAddRequest receivableAddRequest
-         * @param platform             platform
-         * @return 收款单
-         */
-        @Transactional
-        public Optional<PayOrder> addReceivable(ReceivableAddRequest receivableAddRequest, Platform platform) {
-            PayOrder payOrder = payOrderRepository.findById(receivableAddRequest.getPayOrderId()).orElse(null);
-            if (Objects.isNull(payOrder) || DeleteFlag.YES.equals(payOrder.getDelFlag())) {
-                throw new SbcRuntimeException("K-070001");
-            }
-            if (!CollectionUtils.isEmpty(receivableRepository.findByDelFlagAndPayOrderId(DeleteFlag.NO, payOrder
-                    .getPayOrderId()))) {
-                throw new SbcRuntimeException("K-070005");
-            }
-
-            /**1.创建收款单*/
-            Receivable receivable = new Receivable();
-            BeanUtils.copyProperties(receivableAddRequest, receivable);
-            receivable.setOfflineAccountId(receivableAddRequest.getAccountId());
-            String createTime = receivableAddRequest.getCreateTime();
-            // 2020-06-02T11:41:31.123
-            if (createTime.contains("T")) {
+        /**1.创建收款单*/
+        Receivable receivable = new Receivable();
+        BeanUtils.copyProperties(receivableAddRequest, receivable);
+        receivable.setOfflineAccountId(receivableAddRequest.getAccountId());
+        String createTime = receivableAddRequest.getCreateTime();
+        // 2020-06-02T11:41:31.123
+        if (createTime.contains("T")) {
+            receivable.setCreateTime(LocalDateTime.parse(createTime));
+        } else {
+            if (createTime.length() == 10) {
+                receivable.setCreateTime(LocalDateTime.of(LocalDate.parse(createTime,
+                        DateTimeFormatter.ofPattern(DateUtil.FMT_DATE_1)), LocalTime.MIN));
+            } else if (createTime.length() == DateUtil.FMT_TIME_1.length()) {
+                receivable.setCreateTime(LocalDateTime.parse(createTime,
+                        DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1)));
+            } else {
                 receivable.setCreateTime(LocalDateTime.parse(createTime));
-            } else {
-                if (createTime.length() == 10) {
-                    receivable.setCreateTime(LocalDateTime.of(LocalDate.parse(createTime,
-                            DateTimeFormatter.ofPattern(DateUtil.FMT_DATE_1)), LocalTime.MIN));
-                } else if (createTime.length() == DateUtil.FMT_TIME_1.length()) {
-                    receivable.setCreateTime(LocalDateTime.parse(createTime,
-                            DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1)));
-                } else {
-                    receivable.setCreateTime(LocalDateTime.parse(createTime));
-                }
             }
-
-            receivable.setDelFlag(DeleteFlag.NO);
-            receivable.setReceivableNo(generatorService.generateSid());
-            receivable.setPayChannel(receivableAddRequest.getPayChannel());
-            receivable.setPayChannelId(receivableAddRequest.getPayChannelId());
-
-            //这里往缓存里面写
-            payOrder.setReceivable(receivableRepository.saveAndFlush(receivable));
-            /**2.更改支付单状态*/
-            PayOrderStatus status;
-            if (osUtil.isS2b()) {
-                status = platform == Platform.PLATFORM ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
-            } else {
-                status = platform == Platform.BOSS ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
-            }
-            if (PayType.ONLINE.equals(payOrder.getPayType())) {
-                status = PayOrderStatus.PAYED;
-            }
-            payOrder.setPayOrderStatus(status);
-            payOrderService.updatePayOrder(receivableAddRequest.getPayOrderId(), status);
-
-
-            return Optional.of(payOrder);
         }
 
-        /**
-         * 新增线下收款单(包含线上线下的收款单)(包含支付回调)
-         *
-         * @param receivableAddRequest receivableAddRequest
-         * @param platform             platform
-         * @return 收款单
-         */
-        @Transactional
-        @GlobalTransactional
-        public void addReceivable(ReceivableAddRequest receivableAddRequest, Platform platform, Operator operator) {
-            PayOrder payOrder = payOrderRepository.findById(receivableAddRequest.getPayOrderId()).orElse(null);
-            if (Objects.isNull(payOrder) || DeleteFlag.YES.equals(payOrder.getDelFlag())) {
-                throw new SbcRuntimeException("K-070001");
-            }
-            if (!CollectionUtils.isEmpty(receivableRepository.findByDelFlagAndPayOrderId(DeleteFlag.NO, payOrder
-                    .getPayOrderId()))) {
-                throw new SbcRuntimeException("K-070005");
-            }
+        receivable.setDelFlag(DeleteFlag.NO);
+        receivable.setReceivableNo(generatorService.generateSid());
+        receivable.setPayChannel(receivableAddRequest.getPayChannel());
+        receivable.setPayChannelId(receivableAddRequest.getPayChannelId());
 
-            /**1.创建收款单*/
-            Receivable receivable = new Receivable();
-            BeanUtils.copyProperties(receivableAddRequest, receivable);
-            receivable.setOfflineAccountId(receivableAddRequest.getAccountId());
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            if (receivableAddRequest.getCreateTime().length() == 10) {
-                receivable.setCreateTime(LocalDateTime.of(LocalDate.parse(receivableAddRequest.getCreateTime(),
-                        formatter), LocalTime.MIN));
-            } else {
-                receivable.setCreateTime(LocalDateTime.parse(receivableAddRequest.getCreateTime(),
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            }
-            receivable.setDelFlag(DeleteFlag.NO);
-            receivable.setReceivableNo(generatorService.generateSid());
-            receivable.setPayChannel(receivableAddRequest.getPayChannel());
-            receivable.setPayChannelId(receivableAddRequest.getPayChannelId());
-
-            //这里往缓存里面写
-            payOrder.setReceivable(receivableRepository.saveAndFlush(receivable));
-            /**2.更改支付单状态*/
-            PayOrderStatus status;
-            if (osUtil.isS2b()) {
-                status = platform == Platform.PLATFORM ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
-            } else {
-                status = platform == Platform.BOSS ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
-            }
-            if (PayType.ONLINE.equals(payOrder.getPayType())) {
-                status = PayOrderStatus.PAYED;
-            }
-            payOrder.setPayOrderStatus(status);
-            payOrderService.updatePayOrder(receivableAddRequest.getPayOrderId(), status);
-            Optional.of(payOrder).ifPresent(p ->
-                    this.payCallBack(p.getOrderCode(), p.getPayOrderPrice(), operator, PayWay.CASH));
-
+        //这里往缓存里面写
+        payOrder.setReceivable(receivableRepository.saveAndFlush(receivable));
+        /**2.更改支付单状态*/
+        PayOrderStatus status;
+        if (osUtil.isS2b()) {
+            status = platform == Platform.PLATFORM ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
+        } else {
+            status = platform == Platform.BOSS ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
         }
+        if (PayType.ONLINE.equals(payOrder.getPayType())) {
+            status = PayOrderStatus.PAYED;
+        }
+        payOrder.setPayOrderStatus(status);
+        payOrderService.updatePayOrder(receivableAddRequest.getPayOrderId(), status);
+
+
+        return Optional.of(payOrder);
+    }
+
+    /**
+     * 新增线下收款单(包含线上线下的收款单)(包含支付回调)
+     *
+     * @param receivableAddRequest receivableAddRequest
+     * @param platform             platform
+     * @return 收款单
+     */
+    @Transactional
+    @GlobalTransactional
+    public void addReceivable(ReceivableAddRequest receivableAddRequest, Platform platform, Operator operator) {
+        PayOrder payOrder = payOrderRepository.findById(receivableAddRequest.getPayOrderId()).orElse(null);
+        if (Objects.isNull(payOrder) || DeleteFlag.YES.equals(payOrder.getDelFlag())) {
+            throw new SbcRuntimeException("K-070001");
+        }
+        if (!CollectionUtils.isEmpty(receivableRepository.findByDelFlagAndPayOrderId(DeleteFlag.NO, payOrder
+                .getPayOrderId()))) {
+            throw new SbcRuntimeException("K-070005");
+        }
+
+        /**1.创建收款单*/
+        Receivable receivable = new Receivable();
+        BeanUtils.copyProperties(receivableAddRequest, receivable);
+        receivable.setOfflineAccountId(receivableAddRequest.getAccountId());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        if (receivableAddRequest.getCreateTime().length() == 10) {
+            receivable.setCreateTime(LocalDateTime.of(LocalDate.parse(receivableAddRequest.getCreateTime(),
+                    formatter), LocalTime.MIN));
+        } else {
+            receivable.setCreateTime(LocalDateTime.parse(receivableAddRequest.getCreateTime(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        receivable.setDelFlag(DeleteFlag.NO);
+        receivable.setReceivableNo(generatorService.generateSid());
+        receivable.setPayChannel(receivableAddRequest.getPayChannel());
+        receivable.setPayChannelId(receivableAddRequest.getPayChannelId());
+
+        //这里往缓存里面写
+        payOrder.setReceivable(receivableRepository.saveAndFlush(receivable));
+        /**2.更改支付单状态*/
+        PayOrderStatus status;
+        if (osUtil.isS2b()) {
+            status = platform == Platform.PLATFORM ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
+        } else {
+            status = platform == Platform.BOSS ? PayOrderStatus.PAYED : PayOrderStatus.TOCONFIRM;
+        }
+        if (PayType.ONLINE.equals(payOrder.getPayType())) {
+            status = PayOrderStatus.PAYED;
+        }
+        payOrder.setPayOrderStatus(status);
+        payOrderService.updatePayOrder(receivableAddRequest.getPayOrderId(), status);
+        Optional.of(payOrder).ifPresent(p ->
+                this.payCallBack(p.getOrderCode(), p.getPayOrderPrice(), operator, PayWay.CASH));
+
+    }
 
 
     /**
@@ -5592,7 +6048,7 @@ public class TradeService {
         // 2.调用营销插件，并设置满系营销信息
         if (CollectionUtils.isNotEmpty(requests)) {
             List<TradeMarketingWrapperVO> voList = marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
-                            .wraperDTOList(requests).build()).getContext().getWraperVOList();
+                    .wraperDTOList(requests).build()).getContext().getWraperVOList();
             if (CollectionUtils.isNotEmpty(voList)) {
                 voList.forEach(tradeMarketingWrapperVO -> {
                     tradeMarketings.add(tradeMarketingWrapperVO.getTradeMarketing());
@@ -5715,7 +6171,7 @@ public class TradeService {
      * @param orderAuditSwitch
      */
     private void createPayOrder(Trade trade, Operator operator, Boolean orderAuditSwitch) {
-        if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.SUPPLIER ||
+        if (operator.getPlatform() == Platform.BOSS || operator.getPlatform() == Platform.WX_VIDEO || operator.getPlatform() == Platform.SUPPLIER ||
                 !orderAuditSwitch) {
             createPayOrder(trade);
         }
@@ -6286,6 +6742,19 @@ public class TradeService {
             return;
         }
 
+        //校验是有视频号支付订单信息
+        WxVideoOrderDetailResponse context = null;
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            context = wxOrderService.getWechatVideoOrder(trade);
+            if (context != null) {
+                WxVideoOrderDetailResponse.PayInfo payInfo = context.getOrder().getOrderDetail().getPayInfo();
+                if (payInfo != null) {
+                    log.info("==========视频号订单超时未支付取消，订单已支付取消失败，订单Id为：{}", baseTid);
+                    return;
+                }
+            }
+        }
+
         if (trade.getTradeState().getAuditState() == AuditState.CHECKED) {
             //删除支付单
             // payOrderService.deleteByPayOrderId(trade.getPayOrderId());
@@ -6303,10 +6772,14 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
             bookingSaleGoodsOrderAddStock(trade);
         }
 
@@ -6331,7 +6804,9 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
         //小程序发送取消消息
-        wxOrderService.sendWxCancelOrderMessage(trade);
+        if (context != null) {
+            wxOrderService.sendWxCancelOrderMessage(trade, context);
+        }
     }
 
     /**
@@ -6356,10 +6831,14 @@ public class TradeService {
             verifyService.addFlashSaleGoodsStock(trade.getTradeItems(), trade.getBuyer().getId());
             //秒杀商品参与活动不扣减库存改造，下单时要同时加库存
             verifyService.addSkuListStock(trade.getTradeItems());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         // 取消订单退还用户的已抢购数量
         String havePanicBuyingKey =
@@ -7126,6 +7605,8 @@ public class TradeService {
      * @param trade
      */
     private void splitProvideTrade(Trade trade) {
+
+        log.info("TradeService splitProvideTrade trade:{} ", JSON.toJSONString(trade));
         List<TradeItem> tradeItemList = trade.getTradeItems();
         List<TradeItem> gifts = trade.getGifts();
 
@@ -7141,7 +7622,7 @@ public class TradeService {
                 goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder().goodsInfoIds(goodsInfoIdList).build());
         BaseResponse<GoodsListByIdsResponse> goodsListResponse = goodsQueryProvider
                 .listByIds(GoodsListByIdsRequest.builder().goodsIds(goodsIdList).build());
-        List<GoodsVO> goodsVOList = goodsListResponse.getContext().getGoodsVOList();
+//        List<GoodsVO> goodsVOList = goodsListResponse.getContext().getGoodsVOList();
         List<GoodsInfoVO> goodsInfoVOList = listByIdsResponse.getContext().getGoodsInfos();
         tradeItemList.forEach(tradeItem -> goodsInfoVOList.forEach(goodsInfoVO -> {
             if (tradeItem.getSkuId().equals(goodsInfoVO.getGoodsInfoId())) {
@@ -7157,6 +7638,8 @@ public class TradeService {
                 tradeItem.setProviderSkuNo(goodsInfoVO.getProviderGoodsInfoNo());
             }
         }));
+
+        log.info("TradeService splitProvideTrade tradeItemList {} ", JSON.toJSONString(tradeItemList));
 
         if (CollectionUtils.isNotEmpty(gifts)) {
             gifts.forEach(tradeItem -> goodsInfoVOList.forEach(goodsInfoVO -> {
@@ -7283,7 +7766,7 @@ public class TradeService {
                 // 筛选当前供应商的订单商品信息
                 List<TradeItem> providerTradeItems =
                         tradeItemList.stream().filter(tradeItem -> providerId.equals(tradeItem.getProviderId())).collect(Collectors.toList());
-
+                log.info("TradeService splitProvideTrade providerId:{} tradeItem:{}", providerId, JSON.toJSONString(providerTradeItems));
                 providerTrade.setTradeItems(providerTradeItems);
                 // 原订单所属商家名称
                 providerTrade.setSupplierName(trade.getSupplier().getSupplierName());
@@ -7317,6 +7800,7 @@ public class TradeService {
                 //积分价
                 Long buyPoints = NumberUtils.LONG_ZERO;
                 for (TradeItem providerTradeItem : providerTradeItems) {
+                    log.info("TradeService.splitProvideTrade providerTradeItem packId:{}", providerTradeItem.getPackId());
                     if (!OrderType.POINTS_ORDER.equals(trade.getOrderType())) {
                         //积分
                         if (Objects.nonNull(providerTradeItem.getBuyPoint())) {
@@ -7444,7 +7928,7 @@ public class TradeService {
                     Map<Long, BigDecimal> splitDeliverPriceMap = new HashMap<>();
                     splitDeliverPriceMap.put(providerId, tradePrice.getDeliveryPrice());
                     tradePrice.setSplitDeliveryPrice(splitDeliverPriceMap);
-                    
+
                 }
 
                 providerTrade.setTradePrice(tradePrice);
@@ -8051,19 +8535,21 @@ public class TradeService {
                 }
                 //支付回调处理成功
                 //payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.SUCCESS);
+                wxOrderService.orderReportCache(trade.getId());
                 sensorsDataService.sendPaySuccessEvent(trades);
-                log.info("微信支付异步通知回调end---------");
+
+                log.info("TradeService wxPayCallBack 微信支付异步通知回调end---------");
             } catch (Exception e) {
-                log.error("微信支付异步通知回调end2---------", e);
+                log.error("TradeService wxPayCallBack 微信支付异步通知回调 异常---------", e);
                 //支付处理结果回写回执支付结果表
-               // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
+                // payCallBackResultService.updateStatus(businessId, PayCallBackResultStatus.FAILED);
             } finally {
                 //解锁
                 rLock.unlock();
             }
         } catch (Exception ex) {
             //失败回执表更新
-            log.error(ex.getMessage());
+            log.error("TradeService wxPayCallBack 微信支付异步通知回调异常" ,ex);
         }
 
     }
@@ -8104,4 +8590,28 @@ public class TradeService {
         payCallbackOnline(trades, operator, false);
     }
 
+    /**
+     * 更新发票的类型
+     * @param autoUpdateInvoiceRequest
+     * @return
+     */
+    @GlobalTransactional
+    public BaseResponse updateInvoice(AutoUpdateInvoiceRequest autoUpdateInvoiceRequest) {
+        mongoTemplate.updateMulti(new Query(Criteria.where("_id").is(autoUpdateInvoiceRequest.getTradeId())),
+                new Update().set("invoice.type", InvoiceType.ELECTRONIC.toValue()), Trade.class);
+        Optional<OrderInvoice> byOrderNo = orderInvoiceService.findByOrderNo(autoUpdateInvoiceRequest.getTradeId());
+        if(byOrderNo.isPresent()){
+            OrderInvoice orderInvoice = byOrderNo.get();
+            if(InvoiceState.WAIT.equals(orderInvoice.getInvoiceState())) {
+                orderInvoiceService.updateOrderInvoiceState(Lists.newArrayList(orderInvoice.getOrderInvoiceId()));
+            }
+            log.info("orderInvoice tradeNo:{}, origin state:{}",autoUpdateInvoiceRequest.getTradeId(), orderInvoice.getInvoiceState());
+        }else{
+            OrderInvoiceSaveRequest saveRequest = new OrderInvoiceSaveRequest();
+            saveRequest.setInvoiceType(InvoiceType.ELECTRONIC);
+            saveRequest.setOrderNo(autoUpdateInvoiceRequest.getTradeId());
+            orderInvoiceService.generateOrderInvoice(saveRequest,"system", InvoiceState.ALREADY);
+        }
+        return BaseResponse.SUCCESSFUL();
+    }
 }

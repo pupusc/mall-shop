@@ -17,7 +17,7 @@ public enum TerminalSource {
 
     H5(1, "H5", "H5"),
     MINIPROGRAM(2, "MINIPROGRAM", "小程序"),
-    MALL_NORMAL(3, "NORMAL", "商城-普通分类"),
+    MALL_NORMAL(3, "MINIPROGRAM_VIDEO", "商城-视频号"),
     FDDS_DELIVER(4, "FDDS_DELIVER", "樊登读书-实物履约"),
     SUPPLIER(10, "SUPPLIER", "商家后台"),
     PC(11, "PC", "PC"),
@@ -38,12 +38,28 @@ public enum TerminalSource {
     }
 
 
-    public static TerminalSource getTerminalSource(String name) {
+//    public static TerminalSource getTerminalSource(String name) {
+//        for (TerminalSource terminal : values()) {
+//            if (terminal.getMessage().equals(name)) {
+//                return terminal;
+//            }
+//        }
+//        return TerminalSource.H5;
+//    }
+
+    public static TerminalSource getTerminalSource(String name, TerminalScene terminalScene) {
+        TerminalSource terminalResult = TerminalSource.H5;
         for (TerminalSource terminal : values()) {
             if (terminal.getMessage().equals(name)) {
-                return terminal;
+                terminalResult = terminal;
+                break;
             }
         }
-        return TerminalSource.H5;
+        if (terminalResult == TerminalSource.MINIPROGRAM) {
+            if (TerminalScene.WECHAT_VIDEO == terminalScene) {
+                terminalResult = TerminalSource.MALL_NORMAL;
+            }
+        }
+        return terminalResult;
     }
 }

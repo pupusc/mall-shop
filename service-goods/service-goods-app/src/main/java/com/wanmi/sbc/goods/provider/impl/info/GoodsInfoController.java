@@ -10,6 +10,7 @@ import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.info.*;
 import com.wanmi.sbc.goods.ares.GoodsAresService;
 import com.wanmi.sbc.goods.bean.dto.DistributionGoodsInfoModifyDTO;
+import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.GoodsSource;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
@@ -19,6 +20,7 @@ import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.request.GoodsInfoSaveRequest;
 import com.wanmi.sbc.goods.info.service.GoodsInfoService;
+import com.wanmi.sbc.goods.info.service.GoodsInfoStockService;
 import com.wanmi.sbc.goods.info.service.GoodsService;
 import com.wanmi.sbc.goods.price.model.root.GoodsCustomerPrice;
 import com.wanmi.sbc.goods.price.model.root.GoodsIntervalPrice;
@@ -70,6 +72,9 @@ public class GoodsInfoController implements GoodsInfoProvider {
 
     @Autowired
     private StandardSkuRepository standardSkuRepository;
+
+    @Autowired
+    private GoodsInfoStockService goodsInfoStockService;
 
     /**
      * 根据商品sku编号批量删除商品sku信息
@@ -396,5 +401,16 @@ public class GoodsInfoController implements GoodsInfoProvider {
         goodsInfoService.updateGoodsInfoSupplyPriceAndStock(goodsInfoList);
         return BaseResponse.success(ProviderGoodsStockSyncResponse.builder()
                 .goodsInfoList(KsBeanUtil.convert(goodsInfoList, GoodsInfoVO.class)).build());
+    }
+
+    /**
+     * 释放冻结库存
+     * @param releaseFrozenStockList
+     * @return
+     */
+    @Override
+    public BaseResponse decryFreezeStock(List<GoodsInfoMinusStockDTO> releaseFrozenStockList){
+        goodsInfoStockService.decryFreezeStock(releaseFrozenStockList);
+        return BaseResponse.SUCCESSFUL();
     }
 }

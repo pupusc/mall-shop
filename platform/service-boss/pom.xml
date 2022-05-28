@@ -19,7 +19,11 @@
             <artifactId>mall-common-log</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-spring</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-common</artifactId>
@@ -114,6 +118,12 @@
             <artifactId>log4j-core</artifactId>
             <groupId>org.apache.logging.log4j</groupId>
             <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
