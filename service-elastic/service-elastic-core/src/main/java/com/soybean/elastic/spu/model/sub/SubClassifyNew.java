@@ -1,5 +1,6 @@
-package com.soybean.elastic.goods.model.sub;
+package com.soybean.elastic.spu.model.sub;
 
+import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -10,6 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * Date       : 2022/5/19 2:53 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
+@Data
 public class SubClassifyNew {
 
     @Field(type = FieldType.Long)

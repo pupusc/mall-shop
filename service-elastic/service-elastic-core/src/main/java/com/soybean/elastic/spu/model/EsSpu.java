@@ -1,11 +1,10 @@
-package com.soybean.elastic.goods.model;
+package com.soybean.elastic.spu.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.soybean.elastic.goods.model.sub.SubBookAttrNew;
-import com.soybean.elastic.goods.model.sub.SubClassifyNew;
-import com.soybean.elastic.goods.model.sub.SubEsBookListModelNew;
-import com.soybean.elastic.goods.model.sub.SubEsGoodsInfoNew;
+import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.spu.model.sub.SubEsBookListModelNew;
+import com.soybean.elastic.spu.model.sub.SubEsSku;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -19,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 /**
  * Description: 新的es 商品搜索引擎
  * Company    : 上海黄豆网络科技有限公司
@@ -28,15 +28,12 @@ import java.util.List;
  ********************************************************************/
 
 @Data
-@Document(indexName = "es_goods_new", type = "es_goods_new")
-public class EsGoodsNew {
+//@Document(indexName = "es_goods_new", type = "es_goods_new")
+@Document(indexName = "es_goods_new")
+public class EsSpu {
 
-    /**
-     * id
-     */
+
     @Id
-    private String id;
-
     @Field(type = FieldType.Keyword)
     private String spuId;
 
@@ -45,14 +42,35 @@ public class EsGoodsNew {
      * ik_max_word 会对文本做最细 力度的拆分
      * ik_smart：会对文本做最粗粒度的拆分
      */
-    @Field(type = FieldType.Text, analyzer = "ik_smart", searchAnalyzer = "ik_smart")
-    private String goodsName;
+    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+    private String spuName;
+
+
+    /**
+     * 商品副标题
+     * ik_max_word 会对文本做最细 力度的拆分
+     * ik_smart：会对文本做最粗粒度的拆分
+     */
+    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+    private String spuSubName;
 
     /**
      * 商品分类 1 图书 2 商品
      */
-    @Field(type = FieldType.Integer)
-    private Integer goodsCategory;
+    @Field(type = FieldType.Long)
+    private Integer spuCategory;
+
+    /**
+     * 商品渠道
+     */
+    @Field(type = FieldType.Long)
+    private List<Integer> spuChannels;
+
+    /**
+     * 审核状态 0: 未审核1 审核通过2审核失败3禁用中
+     */
+    @Field(type = FieldType.Long)
+    private Integer spuAuditType;
 
     /**
      * 评论数量
@@ -64,7 +82,7 @@ public class EsGoodsNew {
      * 好评数
      */
     @Field(type = FieldType.Long)
-    private Long favorableCommentNum;
+    private Long favorCommentNum;
 
     /**
      * 销量
@@ -73,7 +91,7 @@ public class EsGoodsNew {
     private Long salesNum;
 
     /**
-     * 销售价格
+     * 销售价格(最小sku价格)
      */
     @Field(type = FieldType.Double)
     private BigDecimal salesPrice;
@@ -82,7 +100,7 @@ public class EsGoodsNew {
     /**
      * 上下架状态 0 未上架 1 已上架 2 部分上架
      */
-    @Field(type = FieldType.Integer)
+    @Field(type = FieldType.Long)
     private Integer addedFlag;
 
     /**
@@ -112,15 +130,15 @@ public class EsGoodsNew {
     /**
      * 0未删除 1已删除
      */
-    @Field(type = FieldType.Integer)
-    private Integer deleteFlag;
+    @Field(type = FieldType.Long)
+    private Integer delFlag;
 
 
     /**
      * sku列表
      */
     @Field(type = FieldType.Nested)
-    private List<SubEsGoodsInfoNew> goodsInfos;
+    private List<SubEsSku> goodsInfos;
 
 
     /**
@@ -131,20 +149,18 @@ public class EsGoodsNew {
 
 
     /**
-     * 榜单
-     */
-    @Field(type = FieldType.Nested)
-    private List<SubEsBookListModelNew> rankingListModels;
-
-    /**
      * 店铺分类
      */
-    @Field(type = FieldType.Nested)
-    private List<SubClassifyNew> classifys;
+    @Field(type = FieldType.Keyword)
+    private List<String> classifyNames;
+
 
     /**
-     * 图书属性
+     * 店铺二级分类
      */
-    @Field(type = FieldType.Object)
-    private SubBookAttrNew bookAttrs;
+    @Field(type = FieldType.Keyword)
+    private List<String> classifySecondNames;
+
+
+
 }
