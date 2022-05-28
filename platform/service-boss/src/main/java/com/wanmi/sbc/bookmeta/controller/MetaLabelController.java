@@ -1,16 +1,17 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageResVO;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,8 +46,17 @@ public class MetaLabelController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaLabelQueryByPageResVO>> queryByPage(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
         MetaLabelQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaLabelQueryByPageReqBO.class);
-        BusinessResponse<List<MetaLabelBO>> list = this.metaLabelProvider.queryByPage(pageReqBO);
-        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
+        BusinessResponse<List<MetaLabelBO>> boResult = this.metaLabelProvider.queryByPage(pageReqBO);
+
+        if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {
+            return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
+        }
+
+        List<MetaLabelQueryByPageResVO> voList = JSON.parseObject(JSON.toJSONString(boResult.getContext()), List.class);
+        if (voList != null) {
+            voList.forEach(item-> item.setPathList(StringSplitUtil.split(item.getPathName(), PATH_SPLIT_SYMBOL)));
+        }
+        return BusinessResponse.success(voList);
     }
 
     /**

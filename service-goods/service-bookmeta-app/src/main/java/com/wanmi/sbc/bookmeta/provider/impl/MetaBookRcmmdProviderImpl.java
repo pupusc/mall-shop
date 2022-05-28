@@ -28,6 +28,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -191,7 +192,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         return bookLabels.stream().map(MetaBookLabel::getLabelId).filter(item->labelIds.contains(item)).collect(Collectors.toList());
     }
 
-    private void updateFitIdsByBookId(Integer bookId, List<Integer> editFitTargetIds) {
+    private void updateFitIdsByBookId(Integer bookId, List<Integer> fitTargetIds) {
+        List<Integer> editFitTargetIds = fitTargetIds != null ? fitTargetIds : new ArrayList<>();
         List<MetaBookLabel> bookLabels = getBookLabels(bookId);
         List<Integer> allFitLabelIds = getFitTargetLabelIds();
         List<Integer> bookFitLabelIds = bookLabels.stream().map(MetaBookLabel::getLabelId).filter(item->allFitLabelIds.contains(item)).collect(Collectors.toList());

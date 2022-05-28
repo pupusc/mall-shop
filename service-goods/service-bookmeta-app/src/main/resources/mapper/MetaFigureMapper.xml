@@ -47,7 +47,7 @@
                 and type = #{metaFigure.type}
             </if>
             <if test="metaFigure.name != null and metaFigure.name != ''">
-                and name = #{metaFigure.name}
+                and name like concat('%', #{metaFigure.name}, '%')
             </if>
             <if test="metaFigure.englishName != null and metaFigure.englishName != ''">
                 and english_name = #{metaFigure.englishName}
@@ -102,6 +102,7 @@
             </if>
             and del_flag = 0
         </where>
+        ORDER BY create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
 
@@ -117,7 +118,7 @@
                 and type = #{type}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="englishName != null and englishName != ''">
                 and english_name = #{englishName}

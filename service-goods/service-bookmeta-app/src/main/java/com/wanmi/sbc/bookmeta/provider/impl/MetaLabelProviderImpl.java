@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
+import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
@@ -58,7 +59,8 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
 
-        List<MetaLabel> labels = this.metaLabelMapper.queryAllByLimit(metaLabel, page.getOffset(), page.getPageSize());
+        //List<MetaLabel> labels = this.metaLabelMapper.queryAllByLimit(metaLabel, page.getOffset(), page.getPageSize());
+        List<MetaLabelExt> labels = this.metaLabelMapper.queryAllByLimitExt(metaLabel, page.getOffset(), page.getPageSize());
         return BusinessResponse.success(DO2BOUtils.objA2objB4List(labels, MetaLabelBO.class), page);
     }
 

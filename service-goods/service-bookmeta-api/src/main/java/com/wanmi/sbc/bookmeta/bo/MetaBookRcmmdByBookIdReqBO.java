@@ -32,7 +32,7 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
     /**
      * 适读对象id
      */
-    private List<Integer> fitTargetIds;
+    private List<Integer> fitTargetIds = new ArrayList<>();
     /**
      * 推荐列表
      */

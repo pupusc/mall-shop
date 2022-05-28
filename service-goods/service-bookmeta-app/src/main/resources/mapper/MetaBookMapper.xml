@@ -134,6 +134,7 @@
             </if>
             and del_flag = 0
         </where>
+        ORDER BY create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
 
@@ -227,6 +228,140 @@
                 and language_id = #{languageId}
             </if>
             and del_flag = 0
+        </where>
+    </select>
+
+    <sql id="entityQueryCondition">
+        <if test="metaBook.id != null">
+            and t1.id = #{metaBook.id}
+        </if>
+        <if test="metaBook.isbn != null and metaBook.isbn != ''">
+            and t1.isbn = #{metaBook.isbn}
+        </if>
+        <if test="metaBook.name != null and metaBook.name != ''">
+            and t1.name = #{metaBook.name}
+        </if>
+        <if test="metaBook.subName != null and metaBook.subName != ''">
+            and t1.sub_name = #{metaBook.subName}
+        </if>
+        <if test="metaBook.originName != null and metaBook.originName != ''">
+            and t1.origin_name = #{metaBook.originName}
+        </if>
+        <if test="metaBook.publisherId != null">
+            and t1.publisher_id = #{metaBook.publisherId}
+        </if>
+        <if test="metaBook.producerId != null">
+            and t1.producer_id = #{metaBook.producerId}
+        </if>
+        <if test="metaBook.bookGroupId != null">
+            and t1.book_group_id = #{metaBook.bookGroupId}
+        </if>
+        <if test="metaBook.bindId != null">
+            and t1.bind_id = #{metaBook.bindId}
+        </if>
+        <if test="metaBook.paperId != null">
+            and t1.paper_id = #{metaBook.paperId}
+        </if>
+        <if test="metaBook.publishTime != null">
+            and t1.publish_time = #{metaBook.publishTime}
+        </if>
+        <if test="metaBook.publishBatch != null">
+            and t1.publish_batch = #{metaBook.publishBatch}
+        </if>
+        <if test="metaBook.printTime != null">
+            and t1.print_time = #{metaBook.printTime}
+        </if>
+        <if test="metaBook.printBatch != null">
+            and t1.print_batch = #{metaBook.printBatch}
+        </if>
+        <if test="metaBook.pageCount != null">
+            and t1.page_count = #{metaBook.pageCount}
+        </if>
+        <if test="metaBook.wordCount != null">
+            and t1.word_count = #{metaBook.wordCount}
+        </if>
+        <if test="metaBook.price != null">
+            and t1.price = #{metaBook.price}
+        </if>
+        <if test="metaBook.sizeLength != null">
+            and t1.size_length = #{metaBook.sizeLength}
+        </if>
+        <if test="metaBook.sizeWidth != null">
+            and t1.size_width = #{metaBook.sizeWidth}
+        </if>
+        <if test="metaBook.printSheet != null">
+            and t1.print_sheet = #{metaBook.printSheet}
+        </if>
+        <if test="metaBook.fitAgeMin != null">
+            and t1.fit_age_min = #{metaBook.fitAgeMin}
+        </if>
+        <if test="metaBook.fitAgeMax != null">
+            and t1.fit_age_max = #{metaBook.fitAgeMax}
+        </if>
+        <if test="metaBook.createTime != null">
+            and t1.create_time = #{metaBook.createTime}
+        </if>
+        <if test="metaBook.updateTime != null">
+            and t1.update_time = #{metaBook.updateTime}
+        </if>
+        <if test="metaBook.delFlag != null">
+            and t1.del_flag = #{metaBook.delFlag}
+        </if>
+        <if test="metaBook.bookClumpId != null">
+            and t1.book_clump_id = #{metaBook.bookClumpId}
+        </if>
+        <if test="metaBook.bookGroupDescr != null and metaBook.bookGroupDescr != ''">
+            and t1.book_group_descr = #{metaBook.bookGroupDescr}
+        </if>
+        <if test="metaBook.languageId != null">
+            and t1.language_id = #{metaBook.languageId}
+        </if>
+        and t1.del_flag = 0
+    </sql>
+
+    <select id="countExt" resultType="java.lang.Integer">
+        SELECT
+            count(DISTINCT t1.id)
+        FROM
+            meta_book t1
+            LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
+            LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
+            LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
+        <where>
+            <include refid="entityQueryCondition" />
+
+            <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
+                and t1.name like concat('%', #{metaBook.nameLike}, '%')
+            </if>
+            <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
+                and t4.name like concat('%', #{metaBook.authorLike}, '%')
+            </if>
+            <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
+                and t2.name like concat('%', #{metaBook.publisherLike}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="queryAllByLimitExt" resultMap="MetaBookMap">
+        SELECT
+            DISTINCT t1.id,
+            t1.*
+        FROM
+            meta_book t1
+            LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
+            LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
+            LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
+        <where>
+            <include refid="entityQueryCondition" />
+
+            <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
+                and t1.name like concat('%', #{metaBook.nameLike}, '%')
+            </if>
+            <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
+                and t4.name like concat('%', #{metaBook.authorLike}, '%')
+            </if>
+            <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
+                and t2.name like concat('%', #{metaBook.publisherLike}, '%')
+            </if>
         </where>
     </select>
 

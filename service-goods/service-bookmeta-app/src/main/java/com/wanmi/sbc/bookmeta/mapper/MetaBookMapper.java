@@ -1,9 +1,11 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
+import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
 import java.util.List;
 
 /**
@@ -82,5 +84,8 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      */
     int deleteById(Integer id);
 
+    int countExt(@Param("metaBook") MetaBookExt metaBook);
+
+    List<MetaBook> queryAllByLimitExt(@Param("metaBook") MetaBookExt metaBook, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
 }
 

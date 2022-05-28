@@ -34,7 +34,7 @@ public class MetaBookEditReqVO implements Serializable {
     /**
      * 标签列表
      */
-    private List<Integer> labelIds = new ArrayList<>();
+    private List<Integer> labelIdList = new ArrayList<>();
     /**
      * 作者id列表
      */

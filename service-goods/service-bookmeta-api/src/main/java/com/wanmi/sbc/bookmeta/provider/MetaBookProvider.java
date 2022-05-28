@@ -1,12 +1,12 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +22,7 @@ import java.util.List;
  * @author Liang Jun
  * @since 2022-05-23 22:54:32
  */
-@FeignClient(value = "${application.goods.name}", contextId = "MetaBookProvider")
+@FeignClient(value = "${application.goods.name}", contextId = "MetaBookProvider", url = "http://127.0.0.1:8950")
 public interface MetaBookProvider {
 
     /**

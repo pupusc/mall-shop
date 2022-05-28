@@ -114,22 +114,52 @@ public class MetaBookQueryByIdResBO implements Serializable {
     /**
      * 标签
      */
-    private List<Integer> labelIds = new ArrayList<>();
+    private List<BookLabel> bookLabels = new ArrayList<>();
     /**
      * 人物列表
      */
-    private List<Figure> figures = new ArrayList<>();
+    private List<BookFigure> bookFigures = new ArrayList<>();
 
     @Data
-    public static class Figure {
+    public static class BookFigure {
         /**
          * 人物id
          */
         private Integer figureId;
         /**
+         * 人物名称
+         */
+        private String figureName;
+        /**
          * 类型：1作者；2译者；3绘画人；
          */
         private Integer figureType;
+    }
+
+    @Data
+    public static class BookLabel {
+        /**
+         * 标签id
+         */
+        private Integer labelId;
+        /**
+         * 标签名称
+         */
+        private String labelName;
+        /**
+         * 标签目录
+         */
+        private String labelPath;
+        /**
+         * 标签分类
+         */
+        private List<LabelCate> labelCates;
+    }
+
+    @Data
+    public static class LabelCate {
+        private Integer id;
+        private String name;
     }
 }
 

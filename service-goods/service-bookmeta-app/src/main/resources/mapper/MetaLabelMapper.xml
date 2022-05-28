@@ -36,7 +36,7 @@
                 and id = #{metaLabel.id}
             </if>
             <if test="metaLabel.name != null and metaLabel.name != ''">
-                and name = #{metaLabel.name}
+                and name like concat('%', #{metaLabel.name}, '%')
             </if>
             <if test="metaLabel.status != null">
                 and status = #{metaLabel.status}
@@ -70,6 +70,68 @@
             </if>
             and del_flag = 0
         </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+    <!--查询指定行数据-->
+    <select id="queryAllByLimitExt" resultType="com.wanmi.sbc.bookmeta.entity.MetaLabelExt">
+        SELECT
+            t1.id,
+            t1.name,
+            t1.status,
+            t1.create_time AS createTime,
+            t1.update_time AS updateTime,
+            t1.del_flag AS delFlag,
+            t1.descr,
+            t1.seq,
+            t1.parent_id AS parentId,
+            t1.type,
+            t1.scene,
+            t1.path,
+            CONCAT_WS("_", t3.`name`, t2.`name`) AS pathName
+        FROM
+            meta_label t1
+            LEFT JOIN meta_label t2 ON t2.id = t1.parent_id AND t2.type = 1
+            LEFT JOIN meta_label t3 ON t3.id = t2.parent_id AND t3.type = 1
+        WHERE t1.type = 2
+        <if test="metaLabel.id != null">
+            and t1.id = #{metaLabel.id}
+        </if>
+        <if test="metaLabel.name != null and metaLabel.name != ''">
+            and t1.name like concat('%', #{metaLabel.name}, '%')
+        </if>
+        <if test="metaLabel.status != null">
+            and t1.status = #{metaLabel.status}
+        </if>
+        <if test="metaLabel.createTime != null">
+            and t1.create_time = #{metaLabel.createTime}
+        </if>
+        <if test="metaLabel.updateTime != null">
+            and t1.update_time = #{metaLabel.updateTime}
+        </if>
+        <if test="metaLabel.delFlag != null">
+            and t1.del_flag = #{metaLabel.delFlag}
+        </if>
+        <if test="metaLabel.descr != null and metaLabel.descr != ''">
+            and t1.descr = #{metaLabel.descr}
+        </if>
+        <if test="metaLabel.seq != null">
+            and t1.seq = #{metaLabel.seq}
+        </if>
+        <if test="metaLabel.parentId != null">
+            and t1.parent_id = #{metaLabel.parentId}
+        </if>
+        <if test="metaLabel.type != null">
+            and t1.type = #{metaLabel.type}
+        </if>
+        <if test="metaLabel.scene != null">
+            and t1.scene = #{metaLabel.scene}
+        </if>
+        <if test="metaLabel.path != null and metaLabel.path != ''">
+            and t1.path = #{metaLabel.path}
+        </if>
+        and t1.del_flag = 0
+        ORDER BY t1.create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
 
@@ -82,7 +144,7 @@
                 and id = #{id}
             </if>
             <if test="name != null and name != ''">
-                and name = #{name}
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="status != null">
                 and status = #{status}

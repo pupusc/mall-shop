@@ -9,12 +9,18 @@ import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
+import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
+import com.wanmi.sbc.bookmeta.entity.MetaFigure;
+import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
+import com.wanmi.sbc.bookmeta.service.MetaBookService;
+import com.wanmi.sbc.bookmeta.service.MetaFigureService;
+import com.wanmi.sbc.bookmeta.service.MetaLabelService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -23,14 +29,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +57,12 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     private MetaBookLabelMapper metaBookLabelMapper;
     @Resource
     private MetaBookFigureMapper metaBookFigureMapper;
+    @Resource
+    private MetaBookService metaBookService;
+    @Resource
+    private MetaLabelService metaLabelService;
+    @Resource
+    private MetaFigureService metaFigureService;
 
     /**
      * 通过ID查询单条数据
@@ -64,21 +79,49 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         MetaBookQueryByIdResBO metaBookBO = new MetaBookQueryByIdResBO();
         BeanUtils.copyProperties(metaBookDO, metaBookBO);
         //标签
-        MetaBookLabel queryLabel = new MetaBookLabel();
-        queryLabel.setBookId(id);
-        queryLabel.setDelFlag(0);
-        List<MetaBookLabel> labels = this.metaBookLabelMapper.select(queryLabel);
-        metaBookBO.setLabelIds(labels.stream().map(MetaBookLabel::getLabelId).collect(Collectors.toList()));
+        List<Integer> bookLabelIds = metaBookService.listBookLabelId(id);
+        List<MetaLabel> bookLabels = metaLabelService.listLabelById(bookLabelIds);
+
+        List<Integer> parentLabelIds = new ArrayList<>();
+        for (MetaLabel bookLabel : bookLabels) {
+            if (StringUtils.hasText(bookLabel.getPath())) {
+                for (String pid : bookLabel.getPath().split("_")) {
+                    parentLabelIds.add(Integer.valueOf(pid));
+                }
+            }
+        }
+        List<MetaLabel> parentLabels = metaLabelService.listLabelById(parentLabelIds);
+        Map<String, MetaLabel> parentLabelM = parentLabels.stream().collect(Collectors.toMap(item->item.getId().toString(), item -> item, (a, b) -> a));
+
+        for (MetaLabel bookLabel : bookLabels) {
+            MetaBookQueryByIdResBO.BookLabel labelBO = new MetaBookQueryByIdResBO.BookLabel();
+            labelBO.setLabelId(bookLabel.getId());
+            labelBO.setLabelName(bookLabel.getName());
+            labelBO.setLabelPath(bookLabel.getPath());
+            labelBO.setLabelCates(new ArrayList<>());
+            List<MetaBookQueryByIdResBO.LabelCate> labelCates = labelBO.getLabelCates();
+            for (String pid : bookLabel.getPath().split("_")) {
+                MetaBookQueryByIdResBO.LabelCate labelCate = new MetaBookQueryByIdResBO.LabelCate();
+                labelCate.setId(Integer.valueOf(pid));
+                labelCate.setName(parentLabelM.get(pid) == null ? "N/A" : parentLabelM.get(pid).getName());
+            }
+            metaBookBO.getBookLabels().add(labelBO);
+        }
+
         //人物
         MetaBookFigure queryFigure = new MetaBookFigure();
         queryFigure.setBookId(id);
         queryFigure.setDelFlag(0);
-        List<MetaBookFigure> figures = this.metaBookFigureMapper.select(queryFigure);
-        metaBookBO.setFigures(figures.stream().map(item -> {
-            MetaBookQueryByIdResBO.Figure figure = new MetaBookQueryByIdResBO.Figure();
-            figure.setFigureId(item.getFigureId());
-            figure.setFigureType(item.getFigureType());
-            return figure;
+        List<MetaBookFigure> bookFigures = this.metaBookFigureMapper.select(queryFigure);
+        List<MetaFigure> figures = metaFigureService.listFigureById(bookFigures.stream().map(MetaBookFigure::getFigureId).collect(Collectors.toList()));
+        Map<Integer, MetaFigure> figureM = figures.stream().collect(Collectors.toMap(MetaFigure::getId, item -> item, (a, b) -> b));
+
+        metaBookBO.setBookFigures(bookFigures.stream().map(item -> {
+            MetaBookQueryByIdResBO.BookFigure bookFigure = new MetaBookQueryByIdResBO.BookFigure();
+            bookFigure.setFigureId(item.getFigureId());
+            bookFigure.setFigureType(item.getFigureType());
+            bookFigure.setFigureName(figureM.get(item.getFigureId())==null ? null : figureM.get(item.getFigureId()).getName());
+            return bookFigure;
         }).collect(Collectors.toList()));
 
         return BusinessResponse.success(metaBookBO);
@@ -93,13 +136,13 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     @Override
     public BusinessResponse<List<MetaBookBO>> queryByPage(@Valid MetaBookQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
-        MetaBook metaBook = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBook.class);
+        MetaBookExt metaBook = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookExt.class);
         
-        page.setTotalCount((int) this.metaBookMapper.count(metaBook));
+        page.setTotalCount(this.metaBookMapper.countExt(metaBook));
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
-        List<MetaBook> metaBooks = this.metaBookMapper.queryAllByLimit(metaBook, page.getOffset(), page.getPageSize());
+        List<MetaBook> metaBooks = this.metaBookMapper.queryAllByLimitExt(metaBook, page.getOffset(), page.getPageSize());
         return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBooks, MetaBookBO.class), page);
     }
 
