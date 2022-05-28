@@ -8,6 +8,8 @@ import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,7 +80,17 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaBookClumpBO metaBookClump) {
-        return BusinessResponse.success(this.metaBookClumpMapper.update(DO2BOUtils.objA2objB(metaBookClump, MetaBookClump.class)) > 0);
+        MetaBookClump entity = this.metaBookClumpMapper.selectByPrimaryKey(metaBookClump.getId());
+        if (entity == null) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
+        }
+        entity.setName(metaBookClump.getName());
+        entity.setDescr(metaBookClump.getDescr());
+        entity.setImage(metaBookClump.getImage());
+        entity.setPublisherId(metaBookClump.getPublisherId());
+        entity.setVolumeCount(metaBookClump.getVolumeCount());
+        this.metaBookClumpMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
     }
 
     /**

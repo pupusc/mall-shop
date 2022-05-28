@@ -13,13 +13,16 @@ import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageResVO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 标签(MetaLabel)表控制层
@@ -52,9 +55,14 @@ public class MetaLabelController {
             return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
         }
 
-        List<MetaLabelQueryByPageResVO> voList = JSON.parseObject(JSON.toJSONString(boResult.getContext()), List.class);
-        if (voList != null) {
-            voList.forEach(item-> item.setPathList(StringSplitUtil.split(item.getPathName(), PATH_SPLIT_SYMBOL)));
+        List<MetaLabelQueryByPageResVO> voList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(boResult.getContext())) {
+            voList = boResult.getContext().stream().map(item -> {
+                MetaLabelQueryByPageResVO resVO = new MetaLabelQueryByPageResVO();
+                BeanUtils.copyProperties(item, resVO);
+                resVO.setPathList(StringSplitUtil.split(resVO.getPathName(), PATH_SPLIT_SYMBOL))
+                return resVO;
+            }).collect(Collectors.toList());
         }
         return BusinessResponse.success(voList);
     }

@@ -1,8 +1,10 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 丛书(MetaBookClump)实体类
@@ -13,7 +15,7 @@ import lombok.Data;
 @Data
 public class MetaBookClumpBO implements Serializable {
     private static final long serialVersionUID = 410758902116412645L;
-         
+    @NotNull
     private Integer id;
     /**
      * 出版社id
