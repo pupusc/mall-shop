@@ -100,7 +100,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         entity.setScene(metaLabel.getScene());
         entity.setDescr(metaLabel.getDescr());
         entity.setStatus(metaLabel.getStatus());
-        this.metaLabelMapper.updateByPrimaryKey(metaLabel);
+        this.metaLabelMapper.updateByPrimaryKey(entity);
         return BusinessResponse.success(true);
     }
 
