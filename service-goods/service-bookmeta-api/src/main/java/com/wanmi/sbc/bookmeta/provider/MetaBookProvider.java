@@ -22,7 +22,7 @@ import java.util.List;
  * @author Liang Jun
  * @since 2022-05-23 22:54:32
  */
-@FeignClient(value = "${application.goods.name}", contextId = "MetaBookProvider", url = "http://127.0.0.1:8950")
+@FeignClient(value = "${application.goods.name}", contextId = "MetaBookProvider")
 public interface MetaBookProvider {
 
     /**
