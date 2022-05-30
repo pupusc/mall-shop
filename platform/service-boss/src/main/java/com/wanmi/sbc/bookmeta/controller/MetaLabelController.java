@@ -3,6 +3,7 @@ package com.wanmi.sbc.bookmeta.controller;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelAddReqVO;
@@ -48,7 +49,38 @@ public class MetaLabelController {
      */
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaLabelQueryByPageResVO>> queryByPage(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
-        MetaLabelQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaLabelQueryByPageReqBO.class);
+        MetaLabelQueryByPageReqBO pageReqBO = new MetaLabelQueryByPageReqBO();
+        BeanUtils.copyProperties(pageRequest, pageReqBO);
+        pageReqBO.setType(LabelTypeEnum.LABEL.getCode());
+
+        BusinessResponse<List<MetaLabelBO>> boResult = this.metaLabelProvider.queryByPage(pageReqBO);
+        if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {
+            return BusinessResponse.error(boResult.getCode(), boResult.getMessage());
+        }
+
+        List<MetaLabelQueryByPageResVO> voList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(boResult.getContext())) {
+            voList = boResult.getContext().stream().map(item -> {
+                MetaLabelQueryByPageResVO resVO = new MetaLabelQueryByPageResVO();
+                BeanUtils.copyProperties(item, resVO);
+                resVO.setPathList(StringSplitUtil.split(resVO.getPathName(), PATH_SPLIT_SYMBOL));
+                return resVO;
+            }).collect(Collectors.toList());
+        }
+        return BusinessResponse.success(voList, boResult.getPage());
+    }
+
+    /**
+     * 标签分类-分页查询
+     *
+     * @param pageRequest 分页对象
+     * @return 查询结果
+     */
+    @PostMapping("queryCateByPage")
+    public BusinessResponse<List<MetaLabelQueryByPageResVO>> queryCateByPage(@RequestBody MetaLabelQueryByPageReqVO pageRequest) {
+        MetaLabelQueryByPageReqBO pageReqBO = new MetaLabelQueryByPageReqBO();
+        BeanUtils.copyProperties(pageRequest, pageReqBO);
+        pageReqBO.setType(LabelTypeEnum.CATEGORY.getCode());
         BusinessResponse<List<MetaLabelBO>> boResult = this.metaLabelProvider.queryByPage(pageReqBO);
 
         if (!CommonErrorCode.SUCCESSFUL.equals(boResult.getCode())) {

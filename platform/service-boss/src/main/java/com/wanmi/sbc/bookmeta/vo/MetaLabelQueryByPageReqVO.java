@@ -29,10 +29,6 @@ public class MetaLabelQueryByPageReqVO implements Serializable {
      */
     private Integer parentId;
     /**
-     * 类型：1目录；2标签；
-     */
-    private Integer type;
-    /**
      * 场景：1适读对象；
      */
     private Integer scene;
