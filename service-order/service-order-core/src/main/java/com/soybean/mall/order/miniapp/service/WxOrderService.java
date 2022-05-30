@@ -884,13 +884,16 @@ public class WxOrderService {
         //获取发货信息
         Map<String, ReturnType> skuId2ReturnTypeMap = new HashMap<>();
         Map<String, Boolean> skuId2CanAfterSaleMap = new HashMap<>();
-        if (context.getOrder().getDeliveryDetail() != null) {
+        WxVideoOrderDetailResponse.DeliveryDetail deliveryDetail = context.getOrder().getDeliveryDetail();
+        if (deliveryDetail != null) {
             for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
                 skuId2CanAfterSaleMap.put(productInfo.getOutSkuId(), productInfo.getCanAfterSale());
             }
-            for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : context.getOrder().getDeliveryDetail().getDeliveryInfos()) {
-                for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
-                    skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+            if (!CollectionUtils.isEmpty(deliveryDetail.getDeliveryInfos())) {
+                for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : deliveryDetail.getDeliveryInfos()) {
+                    for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
+                        skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+                    }
                 }
             }
         }
