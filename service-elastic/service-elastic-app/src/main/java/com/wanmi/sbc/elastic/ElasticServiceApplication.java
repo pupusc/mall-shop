@@ -9,18 +9,19 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.net.InetAddress;
 
 
-@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@SpringBootApplication(scanBasePackages = {"com.wanmi.sbc", "com.soybean.elastic"})
 @EnableAsync
 @EnableDiscoveryClient
 @Slf4j
-@EnableFeignClients(basePackages = {"com.wanmi.sbc"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.elastic"})
 @PropertySource(value = {"api-application.properties"}, factory = CompositePropertySourceFactory.class)
-
+@EnableElasticsearchRepositories(basePackages = {"com.soybean.elastic","com.wanmi.sbc"})
 public class ElasticServiceApplication {
 
     public static void main(String[] args) throws Exception {

@@ -16,18 +16,18 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class SubEsBookListModelNew {
 
     @Field(type = FieldType.Long)
-    private Long id;
+    private Long bookListId;
 
     /**
      * 书单类型 1 排行榜 2 书单
      */
     @Field(type = FieldType.Long)
-    private Integer bookListModelType;
+    private Integer bookListCategory;
 
     /**
      * ik_max_word 会对文本做最细 力度的拆分
      * ik_smart：会对文本做最粗粒度的拆分
      */
     @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
-    private String bookListModelName;
+    private String bookListName;
 }

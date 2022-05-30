@@ -46,7 +46,7 @@ public class SubBookNew {
      * 作者
      */
     @Field(type = FieldType.Keyword)
-    private List<String> authorName;
+    private List<String> authorNames;
 
     /**
      * 出版社

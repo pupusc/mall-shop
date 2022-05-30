@@ -3,8 +3,9 @@ package com.soybean.elastic.spu.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.spu.model.sub.SubClassifyNew;
 import com.soybean.elastic.spu.model.sub.SubEsBookListModelNew;
-import com.soybean.elastic.spu.model.sub.SubEsSku;
+import com.soybean.elastic.spu.model.sub.SubEsSkuNew;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -29,8 +30,8 @@ import java.util.List;
 
 @Data
 //@Document(indexName = "es_goods_new", type = "es_goods_new")
-@Document(indexName = "es_goods_new")
-public class EsSpu {
+@Document(indexName = "es_spu_new")
+public class EsSpuNew {
 
 
     @Id
@@ -138,7 +139,7 @@ public class EsSpu {
      * sku列表
      */
     @Field(type = FieldType.Nested)
-    private List<SubEsSku> goodsInfos;
+    private List<SubEsSkuNew> skus;
 
 
     /**
@@ -151,15 +152,15 @@ public class EsSpu {
     /**
      * 店铺分类
      */
-    @Field(type = FieldType.Keyword)
-    private List<String> classifyNames;
+    @Field(type = FieldType.Object)
+    private List<SubClassifyNew> classifys;
 
 
     /**
      * 店铺二级分类
      */
-    @Field(type = FieldType.Keyword)
-    private List<String> classifySecondNames;
+    @Field(type = FieldType.Object)
+    private List<SubClassifyNew> classifySeconds;
 
 
 

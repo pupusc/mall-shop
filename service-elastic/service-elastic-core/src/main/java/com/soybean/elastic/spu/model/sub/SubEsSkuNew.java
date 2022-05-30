@@ -21,7 +21,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SubEsSku {
+public class SubEsSkuNew {
 
     @Field(type = FieldType.Keyword)
     private String skuId;
