@@ -884,7 +884,7 @@ public class WxOrderService {
         //获取发货信息
         Map<String, ReturnType> skuId2ReturnTypeMap = new HashMap<>();
         Map<String, Boolean> skuId2CanAfterSaleMap = new HashMap<>();
-        if (context.getOrder() != null) {
+        if (context.getOrder().getDeliveryDetail() != null) {
             for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
                 skuId2CanAfterSaleMap.put(productInfo.getOutSkuId(), productInfo.getCanAfterSale());
             }
