@@ -9,6 +9,7 @@ import com.sbc.wanmi.erp.bean.enums.ERPTradePushStatus;
 import com.sbc.wanmi.erp.bean.enums.ReturnTradeType;
 import com.sbc.wanmi.erp.bean.vo.ERPTradePaymentVO;
 import com.sbc.wanmi.erp.bean.vo.ReturnTradeItemVO;
+import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
 import com.soybean.mall.wx.mini.order.bean.request.WxDealAftersaleRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
@@ -2127,16 +2128,18 @@ public class ReturnOrderService {
             if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 //自动发货
                 autoDeliver(returnOrderId, operator);
-            }
-
-            if (StringUtils.isNotBlank(returnOrder.getAftersaleId())) {
+            } else {
+                if (StringUtils.isBlank(returnOrder.getAftersaleId())) {
+                    throw new SbcRuntimeException("K-050427");
+                }
+                //小程序订单
                 WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
                 wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
                 BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
                 WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
                 if (context != null) {
                     WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-                    if (Objects.equals(afterSalesOrder.getType(), 2) ) {
+                    if (Objects.equals(afterSalesOrder.getType(), AfterSalesTypeEnum.RETURN.getCode()) ) {
                         this.addWxAfterSale(returnOrder,null, WxAfterSaleOperateType.RETURN, "退单审核");
                     }
                 }
