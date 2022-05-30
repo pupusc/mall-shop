@@ -860,13 +860,45 @@ public class WxOrderService {
      *
      * @param returnOrder
      */
-    public String addEcAfterSale(ReturnOrder returnOrder) {
+    public String addEcAfterSale(ReturnOrder returnOrder, Trade trade) {
 
         String aftersaleId = "";
         if (!this.isVideoAfterSaleContinueValid(returnOrder)) {
             return aftersaleId;
         }
 
+        if (returnOrder.getReturnItems().size() > 1) {
+            throw new SbcRuntimeException("K-050429");
+        }
+
+        //查询订单的商品信息
+        WxOrderDetailRequest wxOrderDetailRequest = new WxOrderDetailRequest();
+        wxOrderDetailRequest.setOutOrderId(returnOrder.getTid());
+        wxOrderDetailRequest.setOpenid(trade.getBuyer().getOpenId());
+        BaseResponse<WxVideoOrderDetailResponse> orderDetailResponse = wxOrderApiController.getDetail(wxOrderDetailRequest);
+        WxVideoOrderDetailResponse context = orderDetailResponse.getContext();
+        if (!context.isSuccess()) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+
+        //获取发货信息
+        Map<String, ReturnType> skuId2ReturnTypeMap = new HashMap<>();
+        for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : context.getOrder().getDeliveryDetail().getDeliveryInfos()) {
+            for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
+                skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+            }
+        }
+
+        //判断当前售后类型是否正确
+        ReturnItem item = returnOrder.getReturnItems().get(0);
+        ReturnType returnType = skuId2ReturnTypeMap.get(item.getSkuId());
+        //表示退款
+        if (returnType == null && !Objects.equals(returnOrder.getReturnType(), ReturnType.REFUND)) {
+            throw new SbcRuntimeException("K-050430");
+        }
+        if (returnType != null && !Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
+            throw new SbcRuntimeException("K-050431");
+        }
 
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
         request.setOutOrderId(returnOrder.getTid());
@@ -875,20 +907,19 @@ public class WxOrderService {
         request.setType(Objects.equals(ReturnType.RETURN, returnOrder.getReturnType()) ? 2 : 1);
         request.setRefundReason(returnOrder.getDescription());
         request.setRefundReasonType(getReasonType(returnOrder.getReturnReason()));
-        for (ReturnItem item : returnOrder.getReturnItems()) {
-            request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
-            WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
-            productInfo.setOutProductId(item.getSpuId());
-            productInfo.setOutSkuId(item.getSkuId());
-            productInfo.setProductCnt(item.getNum());
-            request.setProductInfo(productInfo);
-            BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
-            log.info("WxOrderService addEcAfterSale 微信小程序创建售后request:{},response:{}", request, response);
-            if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
-                log.error("WxOrderService addEcAfterSale error : {}", JSON.toJSONString(response));
-            } else {
-                aftersaleId = response.getContext().getAftersaleId().toString();
-            }
+
+        request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
+        WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
+        productInfo.setOutProductId(item.getSpuId());
+        productInfo.setOutSkuId(item.getSkuId());
+        productInfo.setProductCnt(item.getNum());
+        request.setProductInfo(productInfo);
+        BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
+        log.info("WxOrderService addEcAfterSale 微信小程序创建售后request:{},response:{}", request, response);
+        if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
+            log.error("WxOrderService addEcAfterSale error : {}", JSON.toJSONString(response));
+        } else {
+            aftersaleId = response.getContext().getAftersaleId().toString();
         }
         return aftersaleId;
     }

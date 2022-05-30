@@ -32,6 +32,11 @@ public class WxVideoOrderDetailResponse extends WxResponseBase {
         @JSONField(name = "order_detail")
         private OrderDetail orderDetail;
 
+        /**
+         * 发货对象信息
+         */
+        @JSONField(name = "delivery_detail")
+        private DeliveryDetail deliveryDetail;
     }
 
     @Data
@@ -74,5 +79,30 @@ public class WxVideoOrderDetailResponse extends WxResponseBase {
 
         @JSONField(name = "pay_method_type")
         private Integer payMethodType;
+    }
+
+
+
+    @Data
+    public static class DeliveryDetail{
+
+        @JSONField(name = "delivery_list")
+        private List<DeliveryInfo> deliveryInfos;
+    }
+
+    @Data
+    public static class DeliveryInfo {
+        @JSONField(name = "product_info_list")
+        private List<DeliveryProduct> deliveryProducts;
+    }
+
+    @Data
+    public static class DeliveryProduct {
+
+        @JSONField(name = "out_product_id")
+        private String outProductId;
+
+        @JSONField(name = "out_sku_id")
+        private String outSkuId;
     }
 }

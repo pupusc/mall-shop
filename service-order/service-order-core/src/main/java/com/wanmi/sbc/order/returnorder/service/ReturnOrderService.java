@@ -1216,10 +1216,9 @@ public class ReturnOrderService {
 
             }
             
-            //先取消之前的售后单
             String aftersaleId = "";
             if (StringUtils.isBlank(newReturnOrder.getAftersaleId())) {
-                aftersaleId = wxOrderService.addEcAfterSale(newReturnOrder);
+                aftersaleId = wxOrderService.addEcAfterSale(newReturnOrder, trade);
             } else {
                 aftersaleId = newReturnOrder.getAftersaleId();
             }
