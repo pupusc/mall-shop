@@ -883,11 +883,18 @@ public class WxOrderService {
 
         //获取发货信息
         Map<String, ReturnType> skuId2ReturnTypeMap = new HashMap<>();
-        for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : context.getOrder().getDeliveryDetail().getDeliveryInfos()) {
-            for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
-                skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+        Map<String, Boolean> skuId2CanAfterSaleMap = new HashMap<>();
+        if (context.getOrder() != null) {
+            for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
+                skuId2CanAfterSaleMap.put(productInfo.getOutSkuId(), productInfo.getCanAfterSale());
+            }
+            for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : context.getOrder().getDeliveryDetail().getDeliveryInfos()) {
+                for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
+                    skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+                }
             }
         }
+
 
         //判断当前售后类型是否正确
         ReturnItem item = returnOrder.getReturnItems().get(0);
@@ -898,6 +905,10 @@ public class WxOrderService {
         }
         if (returnType != null && !Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
             throw new SbcRuntimeException("K-050431");
+        }
+
+        if (skuId2CanAfterSaleMap.get(item.getSkuId()) != null && !skuId2CanAfterSaleMap.get(item.getSkuId())) {
+            throw new SbcRuntimeException("K-050432", new Object[]{item.getSkuName()});
         }
 
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();

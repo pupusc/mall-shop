@@ -72,6 +72,12 @@ public class WxVideoOrderDetailResponse extends WxResponseBase {
          */
         @JSONField(name = "product_cnt")
         private Integer productCnt;
+
+        /**
+         * 是否可以售后
+         */
+        @JSONField(name = "can_after_sale")
+        private Boolean canAfterSale;
     }
 
     @Data
