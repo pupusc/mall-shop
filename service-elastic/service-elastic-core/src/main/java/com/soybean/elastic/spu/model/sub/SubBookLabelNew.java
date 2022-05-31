@@ -4,39 +4,40 @@ import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.util.List;
-
 /**
- * Description: 活动信息
+ * Description: 图书标签信息
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/5/29 12:40 上午
+ * Date       : 2022/5/31 5:01 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SubActivityNew {
+public class SubBookLabelNew {
 
     /**
-     * 活动id
+     * 1级标签
      */
+    @Field(type = FieldType.Integer)
+    private Integer fTagId;
+
     @Field(type = FieldType.Keyword)
-    private String activityId;
+    private String fTagName;
 
     /**
-     * 活动名称
+     * 2级标签
      */
+    @Field(type = FieldType.Integer)
+    private Integer sTagId;
+
     @Field(type = FieldType.Keyword)
-    private String activityName;
+    private String sTagName;
 
     /**
-     * 活动类别 1 优惠券活动 2 促销活动
+     * 3级标签
      */
-    @Field(type = FieldType.Long)
-    private Integer activityCategory;
+    @Field(type = FieldType.Integer)
+    private Integer tageId;
 
-    /**
-     * 优惠券id
-     */
     @Field(type = FieldType.Keyword)
-    private List<String> couponIds;
+    private String tagName;
 }

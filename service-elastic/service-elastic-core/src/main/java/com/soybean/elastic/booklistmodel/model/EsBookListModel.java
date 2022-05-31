@@ -1,7 +1,8 @@
-package com.soybean.elastic.spu.model.sub;
+package com.soybean.elastic.booklistmodel.model;
 
 import com.soybean.elastic.spu.constant.ConstantUtil;
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -13,7 +14,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SubEsBookListModelNew {
+@Document(indexName = "es_book_list_new")
+public class EsBookListModel {
 
     @Field(type = FieldType.Long)
     private Long bookListId;

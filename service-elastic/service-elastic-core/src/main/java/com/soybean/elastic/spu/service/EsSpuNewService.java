@@ -6,8 +6,7 @@ import java.time.LocalDateTime;
 
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubClassifyNew;
-import com.soybean.elastic.spu.model.sub.SubEsBookListModelNew;
-import com.soybean.elastic.spu.model.sub.SubEsSkuNew;
+import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.spu.repository.EsSpuRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ public class EsSpuNewService {
         esSpu.setSpuSubName("石头记");
         esSpu.setSpuCategory(1);
         esSpu.setSpuChannels(Arrays.asList(1,2,3));
-        esSpu.setSpuAuditType(1);
+//        esSpu.setSpuAuditType(1);
         esSpu.setCommentNum(10L);
         esSpu.setFavorCommentNum(8L);
         esSpu.setSalesNum(15L);
@@ -63,17 +62,17 @@ public class EsSpuNewService {
 
         List<SubClassifyNew> classifyNewList = new ArrayList<>();
         SubClassifyNew classifyNew = new SubClassifyNew();
-        classifyNew.setId(123L);
+//        classifyNew.setId(123L);
         classifyNew.setClassifyName("四大名著");
         classifyNewList.add(classifyNew);
 
         classifyNew = new SubClassifyNew();
-        classifyNew.setId(1234L);
+//        classifyNew.setId(1234L);
         classifyNew.setClassifyName("国学");
         classifyNewList.add(classifyNew);
 
         classifyNew = new SubClassifyNew();
-        classifyNew.setId(1235L);
+//        classifyNew.setId(1235L);
         classifyNew.setClassifyName("国学");
         classifyNewList.add(classifyNew);
 
@@ -81,42 +80,28 @@ public class EsSpuNewService {
         esSpu.setClassifys(classifyNewList);
 
 
-        esSpu.setClassifySeconds(Lists.newArrayList());
+//        esSpu.setClassifySeconds(Lists.newArrayList());
 
-        List<SubEsBookListModelNew> bookListModelNews = new ArrayList<>();
-        SubEsBookListModelNew bookListModelNew = new SubEsBookListModelNew();
+        List<EsBookListModel> bookListModelNews = new ArrayList<>();
+        EsBookListModel bookListModelNew = new EsBookListModel();
         bookListModelNew.setBookListName("国学");
         bookListModelNew.setBookListCategory(1);
         bookListModelNew.setBookListId(2L);
         bookListModelNews.add(bookListModelNew);
 
-        bookListModelNew = new SubEsBookListModelNew();
+        bookListModelNew = new EsBookListModel();
         bookListModelNew.setBookListName("推荐");
         bookListModelNew.setBookListCategory(2);
         bookListModelNew.setBookListId(3L);
         bookListModelNews.add(bookListModelNew);
 
-        bookListModelNew = new SubEsBookListModelNew();
+        bookListModelNew = new EsBookListModel();
         bookListModelNew.setBookListName("必看书籍");
         bookListModelNew.setBookListCategory(2);
         bookListModelNew.setBookListId(3L);
         bookListModelNews.add(bookListModelNew);
 
         bookListModelNews.add(bookListModelNew);
-        esSpu.setBookListModels(bookListModelNews);
-
-        List<SubEsSkuNew> skuList = new ArrayList<>();
-        SubEsSkuNew subEsSku = new SubEsSkuNew();
-        subEsSku.setSkuId(UUID.randomUUID().toString().replace("-", ""));
-        subEsSku.setSkuName("红楼梦1卷");
-        subEsSku.setSkuSubName("石头记");
-        subEsSku.setCommentNum(10L);
-        subEsSku.setProviderId(2183L);
-        subEsSku.setFavorCommentNum(5L);
-        subEsSku.setAddedFlag(0);
-        subEsSku.setDelFlag(0);
-        subEsSku.setAddedTime(LocalDateTime.now());
-        subEsSku.setCreateTime(LocalDateTime.now());
 
         SubBookNew subBookNew = new SubBookNew();
         subBookNew.setIsbn("123123");
@@ -127,18 +112,12 @@ public class EsSpuNewService {
         subBookNew.setPublisher("中国人民出版社");
         subBookNew.setProducer("中国中信出版社");
         subBookNew.setClumpName("精装");
-        subBookNew.setAwardNames(Arrays.asList("一等奖", "二等奖"));
+//        subBookNew.setAwardNames(Arrays.asList("一等奖", "二等奖"));
         subBookNew.setGroupName("");
         subBookNew.setSeriesName("");
         subBookNew.setBindingName("");
-        subBookNew.setTagNames(Lists.newArrayList());
-        subBookNew.setTagSecondNames(Lists.newArrayList());
-
-        subEsSku.setBook(subBookNew);
-        subEsSku.setActivitys(Lists.newArrayList());
-
-        skuList.add(subEsSku);
-        esSpu.setSkus(skuList);
+//        subBookNew.setTagNames(Lists.newArrayList());
+//        subBookNew.setTagSecondNames(Lists.newArrayList());
 
         result.add(esSpu);
         esSpuRepository.saveAll(result);

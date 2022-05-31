@@ -49,6 +49,12 @@ public class SubBookNew {
     private List<String> authorNames;
 
     /**
+     * 评分
+     */
+    @Field(type = FieldType.Double)
+    private Double score;
+
+    /**
      * 出版社
      */
     @Field(type = FieldType.Keyword)
@@ -69,8 +75,8 @@ public class SubBookNew {
     /**
      * 奖项名称
      */
-    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
-    private List<String> awardNames;
+    @Field(type = FieldType.Object)
+    private List<SubAwardNew> awards;
 
     /**
      * 书组名称
@@ -93,12 +99,7 @@ public class SubBookNew {
     /**
      * 标签
      */
-    @Field(type = FieldType.Keyword)
-    private List<String> tagNames;
+    @Field(type = FieldType.Object)
+    private List<SubBookLabelNew> tags;
 
-    /**
-     * 标签二级分类
-     */
-    @Field(type = FieldType.Keyword)
-    private List<String> tagSecondNames;
 }

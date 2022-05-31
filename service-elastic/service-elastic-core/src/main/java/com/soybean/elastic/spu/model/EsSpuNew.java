@@ -3,9 +3,8 @@ package com.soybean.elastic.spu.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.spu.model.sub.SubBookNew;
 import com.soybean.elastic.spu.model.sub.SubClassifyNew;
-import com.soybean.elastic.spu.model.sub.SubEsBookListModelNew;
-import com.soybean.elastic.spu.model.sub.SubEsSkuNew;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -30,7 +29,7 @@ import java.util.List;
 
 @Data
 //@Document(indexName = "es_goods_new", type = "es_goods_new")
-@Document(indexName = "es_spu_new")
+@Document(indexName = "es_book_list_model")
 public class EsSpuNew {
 
 
@@ -68,10 +67,16 @@ public class EsSpuNew {
     private List<Integer> spuChannels;
 
     /**
-     * 审核状态 0: 未审核1 审核通过2审核失败3禁用中
+     * 主播推荐列表 1、樊登讲书 2非凡精读 3樊登直播 4李蕾慢读
      */
     @Field(type = FieldType.Long)
-    private Integer spuAuditType;
+    private List<Integer> anchorRecoms;
+
+//    /**
+//     * 审核状态 0: 未审核1 审核通过2审核失败3禁用中
+//     */
+//    @Field(type = FieldType.Long)
+//    private Integer spuAuditType;
 
     /**
      * 评论数量
@@ -134,19 +139,8 @@ public class EsSpuNew {
     @Field(type = FieldType.Long)
     private Integer delFlag;
 
-
-    /**
-     * sku列表
-     */
     @Field(type = FieldType.Nested)
-    private List<SubEsSkuNew> skus;
-
-
-    /**
-     * 书单
-     */
-    @Field(type = FieldType.Nested)
-    private List<SubEsBookListModelNew> bookListModels;
+    private SubBookNew book;
 
 
     /**
@@ -154,14 +148,6 @@ public class EsSpuNew {
      */
     @Field(type = FieldType.Object)
     private List<SubClassifyNew> classifys;
-
-
-    /**
-     * 店铺二级分类
-     */
-    @Field(type = FieldType.Object)
-    private List<SubClassifyNew> classifySeconds;
-
 
 
 }
