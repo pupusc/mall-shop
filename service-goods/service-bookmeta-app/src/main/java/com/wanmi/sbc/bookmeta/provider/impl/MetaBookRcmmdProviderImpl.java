@@ -17,6 +17,7 @@ import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
+import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
@@ -59,6 +60,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
     private MetaBookMapper metaBookMapper;
     @Resource
     private MetaFigureService metaFigureService;
+    @Resource
+    private MetaBookService metaBookService;
 
     /**
      * 通过ID查询单条数据
@@ -287,6 +290,15 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
             for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO rcmmdBO : figureList) {
                 if (figureMap.get(rcmmdBO.getBizId()) != null) {
                     rcmmdBO.setName(figureMap.get(rcmmdBO.getBizId()).getName());
+                }
+            }
+        }
+        if (!bookList.isEmpty()) {
+            List<Integer> bookIds = bookList.stream().map(item -> item.getBizId()).collect(Collectors.toList());
+            Map<Integer, MetaBook> bookMap = this.metaBookService.listEntityByIds(bookIds).stream().collect(Collectors.toMap(MetaBook::getId, item -> item, (a, b) -> a));
+            for (MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO rcmmdBO : bookList) {
+                if (bookMap.get(rcmmdBO.getBizId()) != null) {
+                    rcmmdBO.setName(bookMap.get(rcmmdBO.getBizId()).getName());
                 }
             }
         }

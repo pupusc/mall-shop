@@ -3,8 +3,10 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
+import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.common.base.BusinessResponse;
@@ -101,6 +103,15 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         entity.setDescr(metaLabel.getDescr());
         entity.setStatus(metaLabel.getStatus());
         this.metaLabelMapper.updateByPrimaryKey(entity);
+        return BusinessResponse.success(true);
+    }
+
+    @Override
+    public BusinessResponse<Boolean> updateStatus(MetaLabelUpdateStatusReqBO metaLabel) {
+        MetaLabel update = new MetaLabel();
+        update.setId(metaLabel.getId());
+        update.setStatus(Boolean.TRUE.equals(metaLabel.getEnable()) ? LabelStatusEnum.ENABLE.getCode() : LabelStatusEnum.DISABLE.getCode());
+        this.metaLabelMapper.updateByPrimaryKeySelective(update);
         return BusinessResponse.success(true);
     }
 

@@ -2,9 +2,7 @@ package com.wanmi.sbc.bookmeta.bo;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * 标签(MetaLabel)实体类
@@ -25,18 +23,6 @@ public class MetaLabelBO implements Serializable {
      * 状态：1启用；2停用；
      */     
     private Integer status;
-    /**
-     * 创建时间
-     */     
-    private Date createTime;
-    /**
-     * 更新时间
-     */     
-    private Date updateTime;
-    /**
-     * 删除标识
-     */     
-    private Integer delFlag;
     /**
      * 说明
      */     

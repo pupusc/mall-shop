@@ -1,12 +1,15 @@
 package com.wanmi.sbc.bookmeta.provider;
 
-import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
-import javax.validation.constraints.NotNull;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -52,6 +55,15 @@ public interface MetaLabelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/metaLabel/update")
     BusinessResponse<Boolean> update(@RequestBody @Valid MetaLabelBO metaLabel);
+
+    /**
+     * 修改数据
+     *
+     * @param metaLabel 实例对象
+     * @return 实例对象
+     */
+    @PostMapping("/goods/${application.goods.version}/metaLabel/updateStatus")
+    BusinessResponse<Boolean> updateStatus(@RequestBody @Valid MetaLabelUpdateStatusReqBO metaLabel);
 
     /**
      * 通过主键删除数据

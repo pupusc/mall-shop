@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -73,7 +74,7 @@ public class MetaAwardController {
      * @return 新增结果
      */
     @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaAwardAddReqVO addReqVO) {
+    public BusinessResponse<Integer> add(@RequestBody @Valid MetaAwardAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaAwardBO addReqBO = new MetaAwardBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
@@ -87,7 +88,7 @@ public class MetaAwardController {
      * @return 编辑结果
      */
     @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaAwardEditReqVO editReqVO) {
+    public BusinessResponse<Boolean> edit(@RequestBody @Valid MetaAwardEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaAwardBO editReqVBO = new MetaAwardBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);

@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.bookmeta.bo.MetaProducerQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaProducer;
+import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaProducerMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaProducerProvider;
+import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -69,6 +71,7 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaProducerBO metaProducer) {
+        ParamValidator.validPropValueExist("name", metaProducer.getName(), "id", metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
         this.metaProducerMapper.insertSelective(DO2BOUtils.objA2objB(metaProducer, MetaProducer.class));
         return BusinessResponse.success(metaProducer.getId());
     }
@@ -81,6 +84,7 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaProducerBO metaProducer) {
+        ParamValidator.validPropValueExist("name", metaProducer.getName(), "id", metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
         MetaProducer entity = this.metaProducerMapper.selectByPrimaryKey(metaProducer.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

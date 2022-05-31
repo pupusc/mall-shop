@@ -6,6 +6,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaPublisherQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaPublisherProvider;
+import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -69,6 +70,7 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaPublisherBO metaPublisher) {
+        ParamValidator.validPropValueExist("name", metaPublisher.getName(), "id", metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
         this.metaPublisherMapper.insertSelective(DO2BOUtils.objA2objB(metaPublisher, MetaPublisher.class));
         return BusinessResponse.success(metaPublisher.getId());
     }
@@ -81,6 +83,7 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaPublisherBO metaPublisher) {
+        ParamValidator.validPropValueExist("name", metaPublisher.getName(), "id", metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
         MetaPublisher entity = this.metaPublisherMapper.selectByPrimaryKey(metaPublisher.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

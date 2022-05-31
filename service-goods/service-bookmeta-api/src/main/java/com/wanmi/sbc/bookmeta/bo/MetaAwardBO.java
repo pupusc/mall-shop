@@ -1,8 +1,11 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 奖项(MetaAward)实体类
@@ -13,11 +16,13 @@ import lombok.Data;
 @Data
 public class MetaAwardBO implements Serializable {
     private static final long serialVersionUID = 280630643071795080L;
-         
+
+    @NotNull
     private Integer id;
     /**
      * 名称
-     */     
+     */
+    @NotBlank
     private String name;
     /**
      * 图片

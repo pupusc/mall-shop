@@ -1,16 +1,16 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.bookmeta.bo.MetaProducerQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaProducerProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
-import com.wanmi.sbc.common.base.BusinessResponse;
-import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaProducerQueryByPageResVO;
+import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -73,10 +74,11 @@ public class MetaProducerController {
      * @return 新增结果
      */
     @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaProducerAddReqVO addReqVO) {
+    public BusinessResponse<Integer> add(@RequestBody @Valid MetaProducerAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaProducerBO addReqBO = new MetaProducerBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
+        addReqBO.setName(addReqVO.getName().trim());
         return BusinessResponse.success(this.metaProducerProvider.insert(addReqBO).getContext());
     }
 
@@ -87,10 +89,11 @@ public class MetaProducerController {
      * @return 编辑结果
      */
     @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaProducerEditReqVO editReqVO) {
+    public BusinessResponse<Boolean> edit(@RequestBody @Valid MetaProducerEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaProducerBO editReqVBO = new MetaProducerBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);
+        editReqVBO.setName(editReqVO.getName().trim());
         this.metaProducerProvider.update(editReqVBO);
         return BusinessResponse.success(true);
     }

@@ -6,6 +6,8 @@ import com.wanmi.sbc.bookmeta.bo.MetaAwardQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.mapper.MetaAwardMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaAwardProvider;
+import com.wanmi.sbc.bookmeta.service.MetaAwardService;
+import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -29,6 +31,8 @@ import java.util.List;
 public class MetaAwardProviderImpl implements MetaAwardProvider {
     @Resource
     private MetaAwardMapper metaAwardMapper;
+    @Resource
+    private MetaAwardService metaAwardService;
 
     /**
      * 通过ID查询单条数据
@@ -70,6 +74,7 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaAwardBO metaAward) {
+        ParamValidator.validPropValueExist("name", metaAward.getName(), "id", metaAward.getId(), metaAwardMapper, MetaAward.class);
         this.metaAwardMapper.insertSelective(DO2BOUtils.objA2objB(metaAward, MetaAward.class));
         return BusinessResponse.success(metaAward.getId());
     }
@@ -82,6 +87,7 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaAwardBO metaAward) {
+        ParamValidator.validPropValueExist("name", metaAward.getName(), "id", metaAward.getId(), metaAwardMapper, MetaAward.class);
         MetaAward entity = this.metaAwardMapper.selectByPrimaryKey(metaAward.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

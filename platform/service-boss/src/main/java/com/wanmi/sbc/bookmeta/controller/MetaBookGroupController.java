@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookGroupBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookGroupQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.provider.MetaBookGroupProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
@@ -9,12 +10,15 @@ import com.wanmi.sbc.bookmeta.vo.MetaBookGroupEditReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaBookGroupQueryByPageResVO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookGroupBO;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -70,7 +74,8 @@ public class MetaBookGroupController {
      * @return 新增结果
      */
     @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaBookGroupAddReqVO addReqVO) {
+    public BusinessResponse<Integer> add(@RequestBody @Valid MetaBookGroupAddReqVO addReqVO) {
+        addReqVO.setName(addReqVO.getName().trim());
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaBookGroupBO addReqBO = new MetaBookGroupBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
@@ -84,7 +89,8 @@ public class MetaBookGroupController {
      * @return 编辑结果
      */
     @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaBookGroupEditReqVO editReqVO) {
+    public BusinessResponse<Boolean> edit(@RequestBody @Valid MetaBookGroupEditReqVO editReqVO) {
+        editReqVO.setName(editReqVO.getName().trim());
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaBookGroupBO editReqVBO = new MetaBookGroupBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);

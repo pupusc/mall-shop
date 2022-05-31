@@ -42,195 +42,6 @@
             and del_flag = 0
     </select>
 
-    <!--查询指定行数据-->
-    <select id="queryAllByLimit" resultMap="MetaBookMap">
-        select
-          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id
-        from meta_book
-        <where>
-            <if test="metaBook.id != null">
-                and id = #{metaBook.id}
-            </if>
-            <if test="metaBook.isbn != null and metaBook.isbn != ''">
-                and isbn = #{metaBook.isbn}
-            </if>
-            <if test="metaBook.name != null and metaBook.name != ''">
-                and name = #{metaBook.name}
-            </if>
-            <if test="metaBook.subName != null and metaBook.subName != ''">
-                and sub_name = #{metaBook.subName}
-            </if>
-            <if test="metaBook.originName != null and metaBook.originName != ''">
-                and origin_name = #{metaBook.originName}
-            </if>
-            <if test="metaBook.publisherId != null">
-                and publisher_id = #{metaBook.publisherId}
-            </if>
-            <if test="metaBook.producerId != null">
-                and producer_id = #{metaBook.producerId}
-            </if>
-            <if test="metaBook.bookGroupId != null">
-                and book_group_id = #{metaBook.bookGroupId}
-            </if>
-            <if test="metaBook.bindId != null">
-                and bind_id = #{metaBook.bindId}
-            </if>
-            <if test="metaBook.paperId != null">
-                and paper_id = #{metaBook.paperId}
-            </if>
-            <if test="metaBook.publishTime != null">
-                and publish_time = #{metaBook.publishTime}
-            </if>
-            <if test="metaBook.publishBatch != null">
-                and publish_batch = #{metaBook.publishBatch}
-            </if>
-            <if test="metaBook.printTime != null">
-                and print_time = #{metaBook.printTime}
-            </if>
-            <if test="metaBook.printBatch != null">
-                and print_batch = #{metaBook.printBatch}
-            </if>
-            <if test="metaBook.pageCount != null">
-                and page_count = #{metaBook.pageCount}
-            </if>
-            <if test="metaBook.wordCount != null">
-                and word_count = #{metaBook.wordCount}
-            </if>
-            <if test="metaBook.price != null">
-                and price = #{metaBook.price}
-            </if>
-            <if test="metaBook.sizeLength != null">
-                and size_length = #{metaBook.sizeLength}
-            </if>
-            <if test="metaBook.sizeWidth != null">
-                and size_width = #{metaBook.sizeWidth}
-            </if>
-            <if test="metaBook.printSheet != null">
-                and print_sheet = #{metaBook.printSheet}
-            </if>
-            <if test="metaBook.fitAgeMin != null">
-                and fit_age_min = #{metaBook.fitAgeMin}
-            </if>
-            <if test="metaBook.fitAgeMax != null">
-                and fit_age_max = #{metaBook.fitAgeMax}
-            </if>
-            <if test="metaBook.createTime != null">
-                and create_time = #{metaBook.createTime}
-            </if>
-            <if test="metaBook.updateTime != null">
-                and update_time = #{metaBook.updateTime}
-            </if>
-            <if test="metaBook.delFlag != null">
-                and del_flag = #{metaBook.delFlag}
-            </if>
-            <if test="metaBook.bookClumpId != null">
-                and book_clump_id = #{metaBook.bookClumpId}
-            </if>
-            <if test="metaBook.bookGroupDescr != null and metaBook.bookGroupDescr != ''">
-                and book_group_descr = #{metaBook.bookGroupDescr}
-            </if>
-            <if test="metaBook.languageId != null">
-                and language_id = #{metaBook.languageId}
-            </if>
-            and del_flag = 0
-        </where>
-        ORDER BY create_time DESC
-        limit #{limitIndex}, #{limitSize}
-    </select>
-
-    <!--统计总行数-->
-    <select id="count" resultType="java.lang.Long">
-        select count(1)
-        from meta_book
-        <where>
-            <if test="id != null">
-                and id = #{id}
-            </if>
-            <if test="isbn != null and isbn != ''">
-                and isbn = #{isbn}
-            </if>
-            <if test="name != null and name != ''">
-                and name = #{name}
-            </if>
-            <if test="subName != null and subName != ''">
-                and sub_name = #{subName}
-            </if>
-            <if test="originName != null and originName != ''">
-                and origin_name = #{originName}
-            </if>
-            <if test="publisherId != null">
-                and publisher_id = #{publisherId}
-            </if>
-            <if test="producerId != null">
-                and producer_id = #{producerId}
-            </if>
-            <if test="bookGroupId != null">
-                and book_group_id = #{bookGroupId}
-            </if>
-            <if test="bindId != null">
-                and bind_id = #{bindId}
-            </if>
-            <if test="paperId != null">
-                and paper_id = #{paperId}
-            </if>
-            <if test="publishTime != null">
-                and publish_time = #{publishTime}
-            </if>
-            <if test="publishBatch != null">
-                and publish_batch = #{publishBatch}
-            </if>
-            <if test="printTime != null">
-                and print_time = #{printTime}
-            </if>
-            <if test="printBatch != null">
-                and print_batch = #{printBatch}
-            </if>
-            <if test="pageCount != null">
-                and page_count = #{pageCount}
-            </if>
-            <if test="wordCount != null">
-                and word_count = #{wordCount}
-            </if>
-            <if test="price != null">
-                and price = #{price}
-            </if>
-            <if test="sizeLength != null">
-                and size_length = #{sizeLength}
-            </if>
-            <if test="sizeWidth != null">
-                and size_width = #{sizeWidth}
-            </if>
-            <if test="printSheet != null">
-                and print_sheet = #{printSheet}
-            </if>
-            <if test="fitAgeMin != null">
-                and fit_age_min = #{fitAgeMin}
-            </if>
-            <if test="fitAgeMax != null">
-                and fit_age_max = #{fitAgeMax}
-            </if>
-            <if test="createTime != null">
-                and create_time = #{createTime}
-            </if>
-            <if test="updateTime != null">
-                and update_time = #{updateTime}
-            </if>
-            <if test="delFlag != null">
-                and del_flag = #{delFlag}
-            </if>
-            <if test="bookClumpId != null">
-                and book_clump_id = #{bookClumpId}
-            </if>
-            <if test="bookGroupDescr != null and bookGroupDescr != ''">
-                and book_group_descr = #{bookGroupDescr}
-            </if>
-            <if test="languageId != null">
-                and language_id = #{languageId}
-            </if>
-            and del_flag = 0
-        </where>
-    </select>
-
     <sql id="entityQueryCondition">
         <if test="metaBook.id != null">
             and t1.id = #{metaBook.id}
@@ -319,9 +130,22 @@
         and t1.del_flag = 0
     </sql>
 
-    <select id="countExt" resultType="java.lang.Integer">
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookMap">
+        select
+          id, isbn, name, sub_name, origin_name, publisher_id, producer_id, book_group_id, bind_id, paper_id, publish_time, publish_batch, print_time, print_batch, page_count, word_count, price, size_length, size_width, print_sheet, fit_age_min, fit_age_max, create_time, update_time, del_flag, book_clump_id, book_group_descr, language_id
+        from meta_book t1
+        <where>
+            <include refid="entityQueryCondition" />
+        </where>
+        ORDER BY t1.create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <select id="queryAllByLimitExt" resultMap="MetaBookMap">
         SELECT
-            count(DISTINCT t1.id)
+            DISTINCT t1.id,
+            t1.*
         FROM
             meta_book t1
             LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
@@ -340,11 +164,22 @@
                 and t2.name like concat('%', #{metaBook.publisherLike}, '%')
             </if>
         </where>
+        ORDER BY t1.create_time DESC
+        limit #{limitIndex}, #{limitSize}
     </select>
-    <select id="queryAllByLimitExt" resultMap="MetaBookMap">
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book t1
+        <where>
+            <include refid="entityQueryCondition" />
+        </where>
+    </select>
+
+    <select id="countExt" resultType="java.lang.Integer">
         SELECT
-            DISTINCT t1.id,
-            t1.*
+            count(DISTINCT t1.id)
         FROM
             meta_book t1
             LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0

@@ -1,9 +1,11 @@
 package com.wanmi.sbc.bookmeta.service;
 
+import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
@@ -19,13 +21,15 @@ import java.util.stream.Collectors;
 @Service
 public class MetaBookService {
     @Autowired
+    private MetaBookMapper metaBookMapper;
+    @Autowired
     private MetaBookLabelMapper metaBookLabelMapper;
     @Autowired
     private MetaBookFigureMapper metaBookFigureMapper;
 
     public List<Integer> listBookLabelId(Integer id) {
         if (id == null) {
-            return Collections.emptyList();
+            return Collections.EMPTY_LIST;
         }
         MetaBookLabel query = new MetaBookLabel();
         query.setBookId(id);
@@ -36,10 +40,20 @@ public class MetaBookService {
 
     public List<MetaBookFigure> listBookFigureByIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.EMPTY_LIST;
         }
         Example example = new Example(MetaBookFigure.class);
-        example.createCriteria().andEqualTo("delFlag", 0).andIn("bookId", ids);
+        example.createCriteria().andEqualTo("delFlag", 0).andIn("bookId", ids.stream().distinct().collect(Collectors.toList()));
         return metaBookFigureMapper.selectByExample(example);
+    }
+
+    public List<MetaBook> listEntityByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
+
+        Example example = new Example(MetaBook.class);
+        example.createCriteria().andEqualTo("delFlag", 0).andIn("id", ids.stream().distinct().collect(Collectors.toList()));
+        return metaBookMapper.selectByExample(example);
     }
 }

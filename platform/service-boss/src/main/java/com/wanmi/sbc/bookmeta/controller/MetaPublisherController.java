@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -73,7 +74,7 @@ public class MetaPublisherController {
      * @return 新增结果
      */
     @PostMapping("add")
-    public BusinessResponse<Integer> add(@RequestBody MetaPublisherAddReqVO addReqVO) {
+    public BusinessResponse<Integer> add(@RequestBody @Valid MetaPublisherAddReqVO addReqVO) {
         addReqVO.setImage(StringSplitUtil.join(addReqVO.getImageList()));
         MetaPublisherBO addReqBO = new MetaPublisherBO();
         BeanUtils.copyProperties(addReqVO, addReqBO);
@@ -87,7 +88,7 @@ public class MetaPublisherController {
      * @return 编辑结果
      */
     @PostMapping("edit")
-    public BusinessResponse<Boolean> edit(@RequestBody MetaPublisherEditReqVO editReqVO) {
+    public BusinessResponse<Boolean> edit(@RequestBody @Valid MetaPublisherEditReqVO editReqVO) {
         editReqVO.setImage(StringSplitUtil.join(editReqVO.getImageList()));
         MetaPublisherBO editReqVBO = new MetaPublisherBO();
         BeanUtils.copyProperties(editReqVO, editReqVBO);

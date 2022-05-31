@@ -6,6 +6,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaBookClumpQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
+import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -68,6 +69,7 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaBookClumpBO metaBookClump) {
+        ParamValidator.validPropValueExist("name", metaBookClump.getName(), "id", metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
         this.metaBookClumpMapper.insertSelective(DO2BOUtils.objA2objB(metaBookClump, MetaBookClump.class));
         return BusinessResponse.success(metaBookClump.getId());
     }
@@ -80,6 +82,7 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaBookClumpBO metaBookClump) {
+        ParamValidator.validPropValueExist("name", metaBookClump.getName(), "id", metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
         MetaBookClump entity = this.metaBookClumpMapper.selectByPrimaryKey(metaBookClump.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

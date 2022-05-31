@@ -41,7 +41,7 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      * @param metaBook 查询条件
      * @return 总行数
      */
-    long count(MetaBook metaBook);
+    long count(@Param("metaBook") MetaBook metaBook);
 
     /**
      * 新增数据

@@ -1,11 +1,12 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.io.Serializable;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * 书组(MetaBookGroup)实体类
@@ -25,6 +26,7 @@ public class MetaBookGroupAddReqVO implements Serializable {
     /**
      * 名称
      */
+    @NotBlank
     private String name;
     /**
      * 图片

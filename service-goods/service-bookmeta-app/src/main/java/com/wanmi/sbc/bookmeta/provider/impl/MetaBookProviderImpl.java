@@ -104,11 +104,11 @@ public class MetaBookProviderImpl implements MetaBookProvider {
             labelBO.setLabelName(bookLabel.getName());
             labelBO.setLabelPath(bookLabel.getPath());
             labelBO.setLabelCates(new ArrayList<>());
-            List<MetaBookQueryByIdResBO.LabelCate> labelCates = labelBO.getLabelCates();
             for (String pid : bookLabel.getPath().split("_")) {
                 MetaBookQueryByIdResBO.LabelCate labelCate = new MetaBookQueryByIdResBO.LabelCate();
                 labelCate.setId(Integer.valueOf(pid));
                 labelCate.setName(parentLabelM.get(pid) == null ? "N/A" : parentLabelM.get(pid).getName());
+                labelBO.getLabelCates().add(labelCate);
             }
             metaBookBO.getBookLabels().add(labelBO);
         }

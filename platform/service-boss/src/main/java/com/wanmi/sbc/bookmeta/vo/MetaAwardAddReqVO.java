@@ -1,11 +1,12 @@
 package com.wanmi.sbc.bookmeta.vo;
 
+import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.io.Serializable;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * 奖项(MetaAward)实体类
@@ -21,6 +22,7 @@ public class MetaAwardAddReqVO implements Serializable {
     /**
      * 名称
      */
+    @NotBlank
     private String name;
     /**
      * 图片

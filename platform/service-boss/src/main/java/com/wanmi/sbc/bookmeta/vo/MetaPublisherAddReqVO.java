@@ -7,6 +7,8 @@ import java.util.List;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * 出版社(MetaPublisher)实体类
  *
@@ -21,6 +23,7 @@ public class MetaPublisherAddReqVO implements Serializable {
     /**
      * 名称
      */
+    @NotBlank
     private String name;
     /**
      * 图片

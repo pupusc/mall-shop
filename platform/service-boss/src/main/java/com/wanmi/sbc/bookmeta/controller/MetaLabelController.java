@@ -3,11 +3,13 @@ package com.wanmi.sbc.bookmeta.controller;
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelBO;
 import com.wanmi.sbc.bookmeta.bo.MetaLabelQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaLabelUpdateStatusReqBO;
 import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelAddReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelEditReqVO;
+import com.wanmi.sbc.bookmeta.vo.MetaLabelEditStatusReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByIdResVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageReqVO;
 import com.wanmi.sbc.bookmeta.vo.MetaLabelQueryByPageResVO;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -144,6 +147,20 @@ public class MetaLabelController {
         BeanUtils.copyProperties(editReqVO, editReqVBO);
         this.metaLabelProvider.update(editReqVBO);
         return BusinessResponse.success(true);
+    }
+
+    /**
+     * 标签-编辑数据
+     *
+     * @param editReqVO 实体
+     * @return 编辑结果
+     */
+    @PostMapping("editStatus")
+    public BusinessResponse<Boolean> editStatus(@RequestBody @Valid MetaLabelEditStatusReqVO editReqVO) {
+        MetaLabelUpdateStatusReqBO reqBO =  new MetaLabelUpdateStatusReqBO();
+        reqBO.setId(editReqVO.getId());
+        reqBO.setEnable(Integer.valueOf(1).equals(editReqVO.getStatus()));
+        return this.metaLabelProvider.updateStatus(reqBO);
     }
 
     /**
