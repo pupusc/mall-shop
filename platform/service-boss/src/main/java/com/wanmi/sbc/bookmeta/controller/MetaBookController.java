@@ -1,12 +1,11 @@
 package com.wanmi.sbc.bookmeta.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
 import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
@@ -30,9 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 书籍(MetaBook)表控制层
@@ -64,8 +65,30 @@ public class MetaBookController {
         pageReqBO.setAuthorLike(pageRequest.getAuthorName());
         pageReqBO.setPublisherLike(pageRequest.getPublisherName());
         pageReqBO.setPage(pageRequest.getPage());
-        BusinessResponse<List<MetaBookBO>> list = this.metaBookProvider.queryByPage(pageReqBO);
-        return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
+        pageReqBO.setFillFigureName(true);
+        pageReqBO.setFillPublisherName(true);
+
+        BusinessResponse<List<MetaBookQueryByPageResBO>> resultBO = this.metaBookProvider.queryByPage(pageReqBO);
+        if (!CommonErrorCode.SUCCESSFUL.equals(resultBO.getCode())) {
+            return BusinessResponse.error(resultBO.getCode(), resultBO.getMessage());
+        }
+        if (CollectionUtils.isEmpty(resultBO.getContext())) {
+            return BusinessResponse.success(Collections.EMPTY_LIST, resultBO.getPage());
+        }
+
+        List<MetaBookQueryByPageResVO> resultVO = resultBO.getContext().stream().map(item -> {
+            MetaBookQueryByPageResVO resVO = new MetaBookQueryByPageResVO();
+            BeanUtils.copyProperties(item, resVO);
+            //人物
+            if (CollectionUtils.isNotEmpty(item.getBookFigures())) {
+                List<MetaBookQueryByPageResBO.BookFigure> authors = item.getBookFigures().stream()
+                        .filter(figure -> BookFigureTypeEnum.AUTHOR.getCode().equals(figure.getFigureType())).collect(Collectors.toList());
+                resVO.setAuthorName(authors.stream().map(author -> author.getFigureName()).collect(Collectors.joining("/")));
+            }
+            return resVO;
+        }).collect(Collectors.toList());
+
+        return BusinessResponse.success(resultVO, resultBO.getPage());
     }
 
     /**

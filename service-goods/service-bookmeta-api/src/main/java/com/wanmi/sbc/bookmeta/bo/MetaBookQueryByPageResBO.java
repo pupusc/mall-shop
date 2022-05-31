@@ -1,8 +1,10 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 书籍(MetaBook)实体类
@@ -11,7 +13,7 @@ import lombok.Data;
  * @since 2022-05-26 13:54:06
  */
 @Data
-public class MetaBookBO implements Serializable {
+public class MetaBookQueryByPageResBO implements Serializable {
     private static final long serialVersionUID = 793734853132313686L;
          
     private Integer id;
@@ -121,5 +123,22 @@ public class MetaBookBO implements Serializable {
      * 语言
      */     
     private Integer languageId;
+
+    /**
+     * 出版社名称
+     */
+    private String publisherName;
+
+    /**
+     * 书籍人物
+     */
+    private List<BookFigure> bookFigures;
+
+    @Data
+    public static class BookFigure {
+        private Integer figureId;
+        private Integer figureType;
+        private String figureName;
+    }
 }
 

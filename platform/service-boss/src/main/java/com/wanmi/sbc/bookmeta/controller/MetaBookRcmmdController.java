@@ -1,9 +1,9 @@
 package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdByBookIdReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookRcmmdBO;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
@@ -129,6 +129,7 @@ public class MetaBookRcmmdController {
             rcmmdVO.setBizType(item.getBizType());
             rcmmdVO.setBizTime(item.getBizTime());
             rcmmdVO.setDescr(item.getDescr());
+            rcmmdVO.setName(item.getName());
             if (BookRcmmdTypeEnum.AWARD.getCode().equals(item.getBizType())) {
                 voResult.getAwardList().add(rcmmdVO);
             } else if (BookRcmmdTypeEnum.EDITOR.getCode().equals(item.getBizType())) {

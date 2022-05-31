@@ -45,6 +45,10 @@ public class MetaBookRcmmdByBookIdReqBO implements Serializable {
          */
         private Integer id;
         /**
+         * 名称
+         */
+        private String name;
+        /**
          * 书籍id
          */
         private Integer bookId;

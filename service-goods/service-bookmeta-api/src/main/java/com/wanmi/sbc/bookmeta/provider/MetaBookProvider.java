@@ -1,7 +1,7 @@
 package com.wanmi.sbc.bookmeta.provider;
 
 import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
@@ -40,7 +40,7 @@ public interface MetaBookProvider {
      * @return 查询结果
      */
     @PostMapping("/goods/${application.goods.version}/metaBook/queryByPage")
-    BusinessResponse<List<MetaBookBO>> queryByPage(@RequestBody @Valid MetaBookQueryByPageReqBO pageRequest);
+    BusinessResponse<List<MetaBookQueryByPageResBO>> queryByPage(@RequestBody @Valid MetaBookQueryByPageReqBO pageRequest);
 
     /**
      * 新增数据

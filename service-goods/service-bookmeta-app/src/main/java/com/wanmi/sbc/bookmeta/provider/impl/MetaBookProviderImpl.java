@@ -2,11 +2,11 @@ package com.wanmi.sbc.bookmeta.provider.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaBookAddReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaBookBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditPublishInfoReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaBookQueryByPageResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaBookQueryPublishInfoResBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
@@ -14,6 +14,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
+import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
@@ -21,6 +22,7 @@ import com.wanmi.sbc.bookmeta.provider.MetaBookProvider;
 import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.bookmeta.service.MetaLabelService;
+import com.wanmi.sbc.bookmeta.service.MetaPublisherService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +66,8 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     private MetaLabelService metaLabelService;
     @Resource
     private MetaFigureService metaFigureService;
+    @Resource
+    private MetaPublisherService metaPublisherService;
 
     /**
      * 通过ID查询单条数据
@@ -113,7 +118,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         queryFigure.setBookId(id);
         queryFigure.setDelFlag(0);
         List<MetaBookFigure> bookFigures = this.metaBookFigureMapper.select(queryFigure);
-        List<MetaFigure> figures = metaFigureService.listFigureById(bookFigures.stream().map(MetaBookFigure::getFigureId).collect(Collectors.toList()));
+        List<MetaFigure> figures = metaFigureService.listFigureByIds(bookFigures.stream().map(MetaBookFigure::getFigureId).collect(Collectors.toList()));
         Map<Integer, MetaFigure> figureM = figures.stream().collect(Collectors.toMap(MetaFigure::getId, item -> item, (a, b) -> b));
 
         metaBookBO.setBookFigures(bookFigures.stream().map(item -> {
@@ -134,7 +139,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
      * @return 查询结果
      */
     @Override
-    public BusinessResponse<List<MetaBookBO>> queryByPage(@Valid MetaBookQueryByPageReqBO pageRequest) {
+    public BusinessResponse<List<MetaBookQueryByPageResBO>> queryByPage(@Valid MetaBookQueryByPageReqBO pageRequest) {
         Page page = pageRequest.getPage();
         MetaBookExt metaBook = JSON.parseObject(JSON.toJSONString(pageRequest), MetaBookExt.class);
         
@@ -143,7 +148,15 @@ public class MetaBookProviderImpl implements MetaBookProvider {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
         List<MetaBook> metaBooks = this.metaBookMapper.queryAllByLimitExt(metaBook, page.getOffset(), page.getPageSize());
-        return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaBooks, MetaBookBO.class), page);
+        List<MetaBookQueryByPageResBO> metaBookQueryByPageResBOS = DO2BOUtils.objA2objB4List(metaBooks, MetaBookQueryByPageResBO.class);
+
+        if (Boolean.TRUE.equals(pageRequest.getFillFigureName())) {
+            fillFigureName(metaBookQueryByPageResBOS);
+        }
+        if (Boolean.TRUE.equals(pageRequest.getFillPublisherName())) {
+            fillPublisherName(metaBookQueryByPageResBOS);
+        }
+        return BusinessResponse.success(metaBookQueryByPageResBOS, page);
     }
 
     /**
@@ -309,5 +322,56 @@ public class MetaBookProviderImpl implements MetaBookProvider {
             }).collect(Collectors.toList());
             metaBookFigureMapper.insertBatch(bookFigures);
         }
+    }
+
+    private void fillFigureName(List<MetaBookQueryByPageResBO> metaBookQueryByPageResBOS) {
+        if (CollectionUtils.isEmpty(metaBookQueryByPageResBOS)) {
+            return;
+        }
+
+        List<Integer> bookIds = metaBookQueryByPageResBOS.stream().map(MetaBookQueryByPageResBO::getId).distinct().collect(Collectors.toList());
+        List<MetaBookFigure> bookFigures = this.metaBookService.listBookFigureByIds(bookIds);
+        if (bookFigures.isEmpty()) {
+            return;
+        }
+        List<MetaFigure> figures = this.metaFigureService.listFigureByIds(bookFigures.stream().map(MetaBookFigure::getFigureId).distinct().collect(Collectors.toList()));
+        if (figures.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, List<MetaBookFigure>> bookFigureGroup = bookFigures.stream().collect(Collectors.groupingBy(MetaBookFigure::getBookId));
+        Map<Integer, MetaFigure> figureMap = figures.stream().collect(Collectors.toMap(MetaFigure::getId, item -> item, (a, b) -> a));
+
+        for (MetaBookQueryByPageResBO item : metaBookQueryByPageResBOS) {
+            item.setBookFigures(new ArrayList<>());
+            if (CollectionUtils.isEmpty(bookFigureGroup.get(item.getId()))) {
+                continue;
+            }
+            for (MetaBookFigure bookFigure : bookFigureGroup.get(item.getId())) {
+                MetaBookQueryByPageResBO.BookFigure bookFigureBO = new MetaBookQueryByPageResBO.BookFigure();
+                bookFigureBO.setFigureId(bookFigure.getFigureId());
+                bookFigureBO.setFigureType(bookFigure.getFigureType());
+                bookFigureBO.setFigureName(figureMap.getOrDefault(bookFigure.getFigureId(), new MetaFigure()).getName());
+                item.getBookFigures().add(bookFigureBO);
+            }
+        }
+    }
+
+    private void fillPublisherName(List<MetaBookQueryByPageResBO> metaBookQueryByPageResBOS) {
+        if (CollectionUtils.isEmpty(metaBookQueryByPageResBOS)) {
+            return;
+        }
+        List<Integer> publisherIds = metaBookQueryByPageResBOS.stream().map(MetaBookQueryByPageResBO::getPublisherId)
+                .filter(item-> Objects.nonNull(item)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(publisherIds)) {
+            return;
+        }
+        List<MetaPublisher> publishers = this.metaPublisherService.listEntityByIds(publisherIds);
+        Map<Integer, MetaPublisher> publisherMap = publishers.stream().collect(Collectors.toMap(MetaPublisher::getId, item -> item, (a, b) -> a));
+        metaBookQueryByPageResBOS.stream().filter(item->Objects.nonNull(item.getPublisherId())).forEach(item->{
+            if (publisherMap.get(item.getPublisherId()) != null) {
+                item.setPublisherName(publisherMap.get(item.getPublisherId()).getName());
+            }
+        });
     }
 }

@@ -70,6 +70,10 @@ public class MetaBookRcmmdByBookIdVO implements Serializable {
          */
         private Integer id;
         /**
+         * 名称
+         */
+        private String name;
+        /**
          * 业务id
          */
         private Integer bizId;

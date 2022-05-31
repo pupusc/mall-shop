@@ -28,6 +28,10 @@ public class MetaBookQueryByPageReqBO implements Serializable {
      * 出版社
      */
     private String publisherLike;
+
+    private Boolean fillFigureName = false;
+
+    private Boolean fillPublisherName = false;
     /**
      * 分页参数
      */

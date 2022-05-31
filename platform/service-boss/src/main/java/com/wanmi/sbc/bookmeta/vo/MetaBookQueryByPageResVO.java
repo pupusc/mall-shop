@@ -1,8 +1,9 @@
 package com.wanmi.sbc.bookmeta.vo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 书籍(MetaBook)实体类
@@ -113,5 +114,14 @@ public class MetaBookQueryByPageResVO implements Serializable {
      * 删除标识
      */
     private Integer delFlag;
+
+    /**
+     * 作者名称
+     */
+    private String authorName;
+    /**
+     * 出版社名称
+     */
+    private String publisherName;
 }
 
