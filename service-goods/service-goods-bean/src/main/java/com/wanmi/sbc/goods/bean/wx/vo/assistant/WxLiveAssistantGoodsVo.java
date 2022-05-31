@@ -36,10 +36,22 @@ public class WxLiveAssistantGoodsVo {
      * 商品价格
      */
     private String marketPrice;
+
+    /**
+     * 微信商品价格
+     */
+    private String wxMarketPrice;
+
     /**
      * 商品库存
      */
     private Integer stock;
+
+    /**
+     * 商品库存
+     */
+    private Integer wxStock;
+
     /**
      * skus
      */
@@ -68,6 +80,15 @@ public class WxLiveAssistantGoodsVo {
          * sku库存
          */
         private Integer stock;
+
+        /**
+         * 微信sku价格
+         */
+        private String wxMarketPrice;
+        /**
+         * 微信sku库存
+         */
+        private Integer wxStock;
         /**
          * 商品规格
          */

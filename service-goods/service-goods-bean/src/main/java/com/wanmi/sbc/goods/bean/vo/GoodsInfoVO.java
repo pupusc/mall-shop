@@ -752,7 +752,7 @@ public class GoodsInfoVO implements Serializable {
     private LocalDateTime promotionEndTime;
 
     /**
-     * 商品渠道 1 H5 2、小程序 3、普通分类
+     * 商品渠道 1 H5 2、小程序 3、视频号
      */
     private List<String> goodsChannelTypeSet;
 

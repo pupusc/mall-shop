@@ -22,15 +22,19 @@ public enum AfterSalesStateEnum {
     AFTER_SALES_STATE_TWO(2, "商家受理退款申请中"),
     AFTER_SALES_STATE_THREE(3, "商家拒绝退款"),
     AFTER_SALES_STATE_FOUR(4, "商家拒绝退货退款"),
-    AFTER_SALES_STATE_FIVE(5, "待买家退货"),
-    AFTER_SALES_STATE_FIX(6, "售后单关闭"),
-    AFTER_SALES_STATE_SEVEN(7, "待商家收货"),
-    AFTER_SALES_STATE_EIGHT(8, "平台退款中"),
-    AFTER_SALES_STATE_NINE(9, "退款成功"),
-    AFTER_SALES_STATE_TEN(10, "平台受理退款申请中"),
-    AFTER_SALES_STATE_ELEVEN(11, "平台介入处理完成"),
-    AFTER_SALES_STATE_TWELVE(12, "商家受理退货申请中"),
-    AFTER_SALES_STATE_THIRTEEN(13, "平台处理退货申请中");
+    AFTER_SALES_STATE_FIVE(5, "商家拒绝退货"),
+    AFTER_SALES_STATE_FIX(6, "待用户退货"),
+    AFTER_SALES_STATE_SEVEN(7, "售后单关闭"),
+    AFTER_SALES_STATE_EIGHT(8, "待商家收货"),
+    AFTER_SALES_STATE_ELEVEN(11, "平台退款中"),
+    AFTER_SALES_STATE_THIRTEEN(13, "退款成功"),
+    AFTER_SALES_STATE_TWENTY_ONE(21, "平台处理退款申请中"),
+    AFTER_SALES_STATE_TWENTY_THREE(23, "商家处理退货申请中"),
+    AFTER_SALES_STATE_TWENTY_FOUR(24, "平台处理退货申请中"),
+    AFTER_SALES_STATE_TWENTY_FIVE(25, "平台处理退货申请中"),
+
+
+    ;
 
     private Integer code;
 

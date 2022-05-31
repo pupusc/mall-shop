@@ -28,6 +28,7 @@ import com.wanmi.sbc.goods.api.provider.cate.GoodsCateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.classify.ClassifyProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.brand.GoodsBrandListRequest;
@@ -187,6 +188,9 @@ public class CouponCodeService {
     @Autowired
     private GoodsQueryProvider goodsQueryProvider;
 
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
+
     /**
      * 根据条件查询优惠券码列表
      */
@@ -296,10 +300,17 @@ public class CouponCodeService {
     @Transactional
     public List<CouponCodeVO> listCouponCodeForUse(CouponCodeListForUseRequest request) {
 
+        //视频号黑名单
+        List<String> skuIdList = request.getTradeItems().stream().map(TradeItemInfo::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
         List<TradeItemInfo> filterTradeItemInfoList = new ArrayList<>();
         List<String> unUseCouponBlackList = this.listUnUseCouponBlackList();
         for (TradeItemInfo tradeItem : request.getTradeItems()) {
             if (unUseCouponBlackList.contains(tradeItem.getSpuId())) {
+                continue;
+            }
+            if (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId())) {
                 continue;
             }
             filterTradeItemInfoList.add(tradeItem);

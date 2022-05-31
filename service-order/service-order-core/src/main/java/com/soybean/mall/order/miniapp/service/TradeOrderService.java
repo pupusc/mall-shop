@@ -1,42 +1,26 @@
 package com.soybean.mall.order.miniapp.service;
 
 import com.alibaba.fastjson.JSON;
-import com.google.gson.Gson;
-import com.soybean.mall.order.api.request.order.CreateWxOrderAndPayRequest;
 import com.soybean.mall.order.bean.dto.WxLogisticsInfoDTO;
-import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
-import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
-import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
-import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
-import com.soybean.mall.order.trade.model.OrderReportDetailDTO;
-import com.soybean.mall.wx.mini.common.bean.request.WxSendMessageRequest;
-import com.soybean.mall.wx.mini.common.controller.CommonController;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxDeliveryReceiveRequest;
 import com.soybean.mall.wx.mini.order.bean.request.WxDeliverySendRequest;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderPayRequest;
-import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.DateUtil;
-import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.order.bean.enums.DeliverStatus;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.bean.enums.PayState;
-import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.trade.model.entity.TradeDeliver;
-import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.entity.value.ShippingItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.ArrayStack;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -50,8 +34,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -277,12 +260,12 @@ public class TradeOrderService {
             throw new SbcRuntimeException("K-050100", new Object[]{tid});
         }
         if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
-            return null;
+            throw new SbcRuntimeException("K-050144", new Object[]{tid});
         }
         log.info("微信小程序订单创建并获取支付参数start,tid:{}",tid);
         WxCreateOrderRequest wxCreateOrderRequest = null;
         try {
-            //先创建订单
+
             wxCreateOrderRequest = wxOrderService.buildRequest(trade);
             BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
             log.info("微信小程序订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
@@ -299,15 +282,5 @@ public class TradeOrderService {
         return wxOrderService.getPaymentParams(trade);
 
     }
-
-
-
-
-
-
-
-
-
-
 
 }

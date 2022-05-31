@@ -16,6 +16,11 @@ import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
 import com.soybean.mall.vo.WxOrderPaymentVO;
 import com.soybean.mall.vo.WxProductInfoVO;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
+import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
+import com.soybean.mall.wx.mini.order.bean.dto.WxProductInfoDTO;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
@@ -43,6 +48,7 @@ import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
@@ -154,6 +160,12 @@ public class OrderController {
     @Autowired
     private WxPayProvider wxPayProvider;
 
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
+
+    @Autowired
+    private WxGoodsApiController wxGoodsApiController;
+
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
@@ -210,15 +222,18 @@ public class OrderController {
                 tradeCommitRequest.setDistributeChannel(channel);
                 tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
                 BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
-
+                log.info("OrderController commit result: {}", JSON.toJSONString(orderCommitResponseBaseResponse));
+                if (!CommonErrorCode.SUCCESSFUL.equals(orderCommitResponseBaseResponse.getCode())) {
+                    throw new SbcRuntimeException(orderCommitResponseBaseResponse.getCode(), orderCommitResponseBaseResponse.getMessage());
+                }
                 successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
             } else {
-                throw new SbcRuntimeException("K-000001");
+                throw new SbcRuntimeException("K-000001", "操作频繁");
             }
             return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
         } catch (InterruptedException ex) {
             log.error("OrderController commit InterruptedException", ex);
-            throw new SbcRuntimeException("K-000001");
+            throw new SbcRuntimeException("K-000001",  "操作频繁");
         } catch (Exception e) {
             log.error("OrderController commit Exception ", e);
             throw e;
@@ -229,53 +244,95 @@ public class OrderController {
         }
     }
 
+    /**
+     * 处理下单
+     * @param trades
+     * @param openId
+     * @param miniProgramScene
+     * @return
+     */
     private WxOrderPaymentVO getOrderPaymentResult(List<OrderCommitResultVO> trades,String openId,Integer miniProgramScene){
         WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
         wxOrderPaymentVO.setCouponFlag(trades.get(0).getCouponFlag());
+
+        //1、获取商品的库存 此处应该有一个锁机制的，但是当前没有比较好的锁key
+        Map<String, Integer> wxOutSkuId2StockMap = new HashMap<>();
+        for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+            BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
+                    wxGoodsApiController.getProductDetail(tradeItemParam.getSpuId());
+            if (productDetail.getContext() == null) {
+                continue;
+            }
+            for (WxGetProductDetailResponse.Sku sku : productDetail.getContext().getSkus()) {
+                wxOutSkuId2StockMap.put(sku.getOutSkuId(), sku.getStockNum());
+            }
+        }
+
         //0元支付不需要生成预支付单
         if(trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0))==0){
             wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-            return wxOrderPaymentVO;
-        }
-        //小程序订单
-        if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
-            //生成预支付订单
-            WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
-            req.setAppid(appId);
-            BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
-            if(prepayResult == null || prepayResult.getContext().isEmpty()){
-                return wxOrderPaymentVO;
+        } else if (trades.get(0).getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) < 0) {
+            throw new SbcRuntimeException("K-000001", "下单金额有误请重新下单");
+        } else {
+            //2 下单
+            if(Objects.equals(miniProgramScene,1) || miniProgramScene ==null){
+                //生成预支付订单
+                WxPayForJSApiRequest req = wxPayCommon(openId,trades.get(0).getId());
+                req.setAppid(appId);
+                BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+                if(prepayResult == null || prepayResult.getContext().isEmpty()){
+                    return wxOrderPaymentVO;
+                }
+                wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+                wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
+                wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+                wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
+                wxOrderPaymentVO.setSignType("MD5");
+            }else{
+                //视频号订单
+                GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
+                getPaymentParamsRequest.setTid(trades.get(0).getId());
+                BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
+                if(response == null || response.getContext() ==null){
+                    throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
+                }
+                wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
+                wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
+                wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
+                wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
+                wxOrderPaymentVO.setSignType(response.getContext().getSignType());
             }
-            wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
-            wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
-            wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
-            wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
-            wxOrderPaymentVO.setSignType("MD5");
-        }else{
-            //视频号订单
-            GetPaymentParamsRequest getPaymentParamsRequest = new GetPaymentParamsRequest();
-            getPaymentParamsRequest.setTid(trades.get(0).getId());
-            BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(getPaymentParamsRequest);
-            if(response == null || response.getContext() ==null){
-                return  wxOrderPaymentVO;
+
+            wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
+            String prepayId = wxOrderPaymentVO.getPrepayId();
+            String ppid = "";
+            if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
+                ppid = prepayId.substring(10,prepayId.length());
             }
-            wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
-            wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
-            wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
-            wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
-            wxOrderPaymentVO.setSignType(response.getContext().getSignType());
+            wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
+            wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         }
 
-        wxOrderPaymentVO.setOrderInfo(convertResult(trades,openId));
-        String prepayId = wxOrderPaymentVO.getPrepayId();
-        String ppid = "";
-        if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
-            ppid = prepayId.substring(10,prepayId.length());
+        //3、扣减商品库存[此处异常不做处理，只做记录]
+        for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+            if (wxOutSkuId2StockMap.get(tradeItemParam.getSkuId()) == null) {
+                continue;
+            }
+            WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+            wxUpdateProductWithoutAuditRequest.setOutProductId(tradeItemParam.getSpuId());
+            Integer wxStockNum = wxOutSkuId2StockMap.get(tradeItemParam.getSkuId());
+
+            List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+            WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+            sku.setOutSkuId(tradeItemParam.getSkuId());
+            sku.setStockNum(wxStockNum - tradeItemParam.getNum().intValue());
+            skus.add(sku);
+            wxUpdateProductWithoutAuditRequest.setSkus(skus);
+            BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
+            log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", trades.get(0).getId(), JSON.toJSONString(wxResponseBaseBaseResponse));
         }
-        wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
-        wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
+
         return wxOrderPaymentVO;
-
     }
 
 
@@ -401,6 +458,10 @@ public class OrderController {
                         KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
                         store.getStoreId(), true)).getContext().getTradeItems();
 
+        //视频号黑名单
+        List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
         List<String> blackListGoodsIdList = new ArrayList<>();
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -416,7 +477,7 @@ public class OrderController {
             if(priceByGoodsId.getContext() != null){
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
-            if(blackListGoodsIdList.contains(tradeItem.getSpuId())){
+            if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
                 tradeItem.setInPointBlackList(true);
             }
             //设置是否显示输入框

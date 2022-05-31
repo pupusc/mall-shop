@@ -5,8 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.collect.Lists;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.prize.service.OrderCouponService;
+import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
+import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import com.thoughtworks.xstream.io.xml.XppDriver;
@@ -197,6 +200,7 @@ import com.wanmi.sbc.marketing.bean.vo.TradeCouponVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.api.constant.JmsDestinationConstants;
+import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.wanmi.sbc.order.api.enums.OrderTagEnum;
 import com.wanmi.sbc.order.api.request.paycallbackresult.PayCallBackResultQueryRequest;
 import com.wanmi.sbc.order.api.request.trade.AutoUpdateInvoiceRequest;
@@ -640,6 +644,9 @@ public class TradeService {
 
     @Autowired
     private OrderCouponService orderCouponService;
+
+    @Autowired
+    private OrderConfigProperties orderConfigProperties;
 
     /**
      * 新增文档
@@ -3438,7 +3445,22 @@ public class TradeService {
                     tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             Integer timeoutSwitch = timeoutCancelConfig.getStatus();
             if (timeoutSwitch == 1) {
-                if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
+                //视频号、小程序订单
+                if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                    int outTime = 60; //1小时
+                    try {
+                        // 查询设置中订单超时时间
+                        JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
+                        Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
+                        if (minuteObj != null) {
+                            outTime = Integer.parseInt(minuteObj.toString());
+                        }
+                    } catch (Exception ex) {
+                        log.error("TradeService timeoutCancelConfig error", ex);
+                    }
+                    trade.setOrderTimeOut(LocalDateTime.now().plusMinutes(outTime));
+                    orderProducerService.cancelOrder(trade.getId(), outTime * 60 * 1000L);
+                } else  if (Objects.nonNull(trade.getGrouponFlag()) && !trade.getGrouponFlag()) {
                     // 查询设置中订单超时时间
                     int outTime = 60; //1小时
                     try {
@@ -4267,11 +4289,15 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
             bookingSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         //状态变更
         StateRequest stateRequest = StateRequest
@@ -4290,6 +4316,16 @@ public class TradeService {
         orderProducerService.backRestrictedPurchaseNum(trade.getId(), null, BackRestrictedType.ORDER_CANCEL);
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, false);
+
+        //视频号
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (StringUtils.isBlank(trade.getBuyer().getOpenId())) {
+                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
+                return;
+            }
+            WxVideoOrderDetailResponse wechatVideoOrder = wxOrderService.getWechatVideoOrder(trade);
+            wxOrderService.releaseWechatVideoStock(wechatVideoOrder);
+        }
     }
 
     /**
@@ -6706,6 +6742,19 @@ public class TradeService {
             return;
         }
 
+        //校验是有视频号支付订单信息
+        WxVideoOrderDetailResponse context = null;
+        if (Objects.equals(trade.getChannelType(),ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            context = wxOrderService.getWechatVideoOrder(trade);
+            if (context != null) {
+                WxVideoOrderDetailResponse.PayInfo payInfo = context.getOrder().getOrderDetail().getPayInfo();
+                if (payInfo != null) {
+                    log.info("==========视频号订单超时未支付取消，订单已支付取消失败，订单Id为：{}", baseTid);
+                    return;
+                }
+            }
+        }
+
         if (trade.getTradeState().getAuditState() == AuditState.CHECKED) {
             //删除支付单
             // payOrderService.deleteByPayOrderId(trade.getPayOrderId());
@@ -6723,10 +6772,14 @@ public class TradeService {
         //是否是秒杀抢购商品订单
         if (Objects.nonNull(trade.getIsFlashSaleGoods()) && trade.getIsFlashSaleGoods()) {
             flashSaleGoodsOrderAddStock(trade);
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
             bookingSaleGoodsOrderAddStock(trade);
         }
 
@@ -6751,7 +6804,9 @@ public class TradeService {
         // 取消供应商订单
         providerTradeService.providerCancel(tid, operator, true);
         //小程序发送取消消息
-        wxOrderService.sendWxCancelOrderMessage(trade);
+        if (context != null) {
+            wxOrderService.sendWxCancelOrderMessage(trade, context);
+        }
     }
 
     /**
@@ -6776,10 +6831,14 @@ public class TradeService {
             verifyService.addFlashSaleGoodsStock(trade.getTradeItems(), trade.getBuyer().getId());
             //秒杀商品参与活动不扣减库存改造，下单时要同时加库存
             verifyService.addSkuListStock(trade.getTradeItems());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         } else {
             //释放库存
             verifyService.addSkuListStock(trade.getTradeItems());
             verifyService.addSkuListStock(trade.getGifts());
+            //释放冻结
+            verifyService.releaseFrozenStock(trade.getTradeItems());
         }
         // 取消订单退还用户的已抢购数量
         String havePanicBuyingKey =

@@ -71,6 +71,7 @@ import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodsrestrictedsale.GoodsRestrictedSaleQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goodstobeevaluate.GoodsTobeEvaluateQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.provider.prop.GoodsPropQueryProvider;
@@ -521,6 +522,9 @@ public class TradeBaseController {
 
     @Autowired
     private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
+    private VideoChannelSetFilterControllerProvider videoChannelSetFilterControllerProvider;
 
     /**
      * @description 商城配合知识顾问
@@ -2142,6 +2146,13 @@ public class TradeBaseController {
             }
         }
 
+        //视频号黑名单
+        Map<String, Boolean> goodsId2VideoChannelMap = new HashMap<>();
+        for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
+            List<String> skuIdList = tradeConfirmItem.getTradeItems().stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
+            goodsId2VideoChannelMap.putAll(videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext());
+        }
+
         List<String> blackListGoodsIdList = new ArrayList<>();
         // 积分和名单商品不能使用积分，也不参与分摊
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -2154,7 +2165,7 @@ public class TradeBaseController {
         for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
             List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
             for (TradeItemVO tradeItem : tradeItems) {
-                if(blackListGoodsIdList.contains(tradeItem.getSpuId())){
+                if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
                     tradeItem.setInPointBlackList(true);
                 }
             }

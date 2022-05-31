@@ -2863,13 +2863,6 @@ public class GoodsInfoService {
 
 
         }
-
-
-
-        //查询促销价
-        List<String> erpGoodsNoList = new ArrayList<>();
-
-
     }
 
     /**

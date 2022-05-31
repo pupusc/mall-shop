@@ -4,12 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.soybean.mall.order.bean.vo.MiniProgramOrderReportVO;
+import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.enums.MiniOrderOperateType;
 import com.soybean.mall.wx.mini.enums.AfterSalesStateEnum;
 import com.soybean.mall.wx.mini.enums.AfterSalesTypeEnum;
+import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRequest;
+import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
+import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
 import com.soybean.mall.wx.mini.order.bean.response.WxDetailAfterSaleResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
-import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.order.api.enums.MiniProgramSceneType;
 import com.soybean.mall.order.miniapp.model.root.MiniOrderOperateResult;
 import com.soybean.mall.order.miniapp.repository.MiniOrderOperateResultRepository;
@@ -22,7 +25,6 @@ import com.soybean.mall.wx.mini.order.bean.enums.WxAfterSaleReasonType;
 import com.soybean.mall.wx.mini.order.bean.request.*;
 import com.soybean.mall.wx.mini.order.bean.response.GetPaymentParamsResponse;
 import com.soybean.mall.wx.mini.order.bean.response.WxCreateNewAfterSaleResponse;
-import com.soybean.mall.wx.mini.order.bean.response.WxCreateOrderResponse;
 import com.soybean.mall.wx.mini.order.controller.WxOrderApiController;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.ChannelType;
@@ -34,13 +36,10 @@ import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
-import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.service.TradeCacheService;
-import com.wanmi.sbc.setting.bean.enums.ConfigType;
-import com.wanmi.sbc.setting.bean.vo.ConfigVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -70,9 +69,6 @@ public class WxOrderService {
 
     @Autowired
     private TradeRepository tradeRepository;
-
-    @Autowired
-    private ReturnOrderRepository returnOrderRepository;
 
     @Autowired
     private TradeCacheService tradeCacheService;
@@ -109,6 +105,12 @@ public class WxOrderService {
 
     @Value("${wx.order.list.url}")
     private String orderListUrl;
+
+    @Autowired
+    private OrderConfigProperties orderConfigProperties;
+
+    @Autowired
+    private WxGoodsApiController wxGoodsApiController;
 
     /**
      * 视频号售后公共部分
@@ -385,7 +387,7 @@ public class WxOrderService {
         return result;
     }
 
-    public void sendWxCancelOrderMessage(Trade trade){
+    public void sendWxCancelOrderMessage(Trade trade, WxVideoOrderDetailResponse context){
         if(!Objects.equals(trade.getChannelType(),ChannelType.MINIAPP)){
             return;
         }
@@ -397,18 +399,9 @@ public class WxOrderService {
                     log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 自动取消openid为空", trade.getId(), trade.getBuyer().getOpenId());
                     return;
                 }
-                WxOrderDetailRequest request = new WxOrderDetailRequest();
-                request.setOutOrderId(trade.getId());
-                request.setOpenid(trade.getBuyer().getOpenId());
-                BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
-                WxVideoOrderDetailResponse context = detail.getContext();
-                if (context == null || context.getOrder() == null) {
-                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
-                    return;
-                }
 
                 if (context.getOrder().getStatus() != 10) {
-                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
+                    log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单状态为：{} 不可以自动取消微信订单", trade.getId(), trade.getBuyer().getOpenId(), context.getOrder().getStatus());
                     return;
                 }
                 WxOrderCancelRequest wxOrderCancelRequest = new WxOrderCancelRequest();
@@ -416,7 +409,8 @@ public class WxOrderService {
                 wxOrderCancelRequest.setOpenid(trade.getBuyer().getOpenId());
                 wxOrderCancelRequest.setOrderId(context.getOrder().getOrderId());
                 BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.cancelOrder(wxOrderCancelRequest);
-                log.error("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 取消结果为：{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 取消结果为：{}", trade.getId(), trade.getBuyer().getOpenId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                this.releaseWechatVideoStock(context);
 
             } else {
                 WxSendMessageRequest request = new WxSendMessageRequest();
@@ -445,49 +439,99 @@ public class WxOrderService {
       }
     }
 
+    /**
+     * 释放库存，添加trycatch 防止异常影响数据，此处添加try catch
+     * @param context
+     */
+    public void releaseWechatVideoStock(WxVideoOrderDetailResponse context) {
+        if (context == null) {
+            return;
+        }
 
-    public void createWxOrder(String tid) {
-        Trade trade = tradeRepository.findById(tid).orElse(null);
-        if (trade == null) {
-            throw new SbcRuntimeException("K-050100", new Object[]{tid});
-        }
-        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
-            return;
-        }
-        log.info("微信小程序订单创建start,tid:{}", tid);
-        WxCreateOrderRequest wxCreateOrderRequest = null;
         try {
-            //先创建订单
-            wxCreateOrderRequest = this.buildRequest(trade);
-            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
-            log.info("微信小程序0元订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
-            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
-                addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-                return;
+            //1、获取商品的库存
+            for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
+                // 获取总的库存信息
+                BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
+                        wxGoodsApiController.getProductDetail(productInfo.getOutProductId());
+                for (WxGetProductDetailResponse.Sku skuParam : productDetail.getContext().getSkus()) {
+                    if (Objects.equals(productInfo.getOutSkuId(), skuParam.getOutSkuId())) {
+                        WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+                        wxUpdateProductWithoutAuditRequest.setOutProductId(productInfo.getOutProductId());
+
+                        List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+                        WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+                        sku.setOutSkuId(productInfo.getOutSkuId());
+                        sku.setStockNum(skuParam.getStockNum() + productInfo.getProductCnt());
+                        skus.add(sku);
+                        wxUpdateProductWithoutAuditRequest.setSkus(skus);
+                        BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
+                        log.error("微信小程序 视频号取消订单 {} 释放库存返回的结果为 {}", context.getOrder().getOutOrderId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                    }
+                }
             }
-        } catch (Exception e) {
-            log.error("微信小程序创建订单失败，tid：{}", tid, e);
-            addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
-            return;
+        } catch (Exception ex) {
+            log.error("视频号取消订单 {} 增加库存异常", context.getOrder().getOutOrderId());
         }
     }
+
+    /**
+     * 获取微信视频号订单信息
+     * @param trade
+     */
+    public WxVideoOrderDetailResponse getWechatVideoOrder(Trade trade) {
+        WxOrderDetailRequest request = new WxOrderDetailRequest();
+        request.setOutOrderId(trade.getId());
+        request.setOpenid(trade.getBuyer().getOpenId());
+        BaseResponse<WxVideoOrderDetailResponse> detail = wxOrderApiController.getDetail(request);
+        WxVideoOrderDetailResponse context = detail.getContext();
+        log.info("WxOrderService sendWxCancelOrderMessage orderId:{} openId:{} 获取微信订单信息为空", trade.getId(), trade.getBuyer().getOpenId());
+        return context;
+    }
+
+//    public void createWxOrder(String tid) {
+//        Trade trade = tradeRepository.findById(tid).orElse(null);
+//        if (trade == null) {
+//            throw new SbcRuntimeException("K-050100", new Object[]{tid});
+//        }
+//        if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
+//            return;
+//        }
+//        log.info("微信小程序订单创建start,tid:{}", tid);
+//        WxCreateOrderRequest wxCreateOrderRequest = null;
+//        try {
+//            //先创建订单
+//            wxCreateOrderRequest = this.buildRequest(trade);
+//            BaseResponse<WxCreateOrderResponse> orderResult = wxOrderApiController.addOrder(wxCreateOrderRequest);
+//            log.info("微信小程序0元订单创建，request:{},response:{}", wxCreateOrderRequest, orderResult);
+//            if (orderResult == null || orderResult.getContext() == null || !orderResult.getContext().isSuccess()) {
+//                addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), (orderResult != null ? JSON.toJSONString(orderResult) : "空"), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+//                return;
+//            }
+//        } catch (Exception e) {
+//            log.error("微信小程序创建订单失败，tid：{}", tid, e);
+//            addMiniOrderOperateResult(JSON.toJSONString(wxCreateOrderRequest), e.getMessage(), MiniOrderOperateType.ADD_ORDER.getIndex(), tid);
+//            return;
+//        }
+//    }
 
     public WxCreateOrderRequest buildRequest(Trade trade) {
 
         int outTime = 60; //1小时
         try {
-            ConfigVO timeoutCancelConfig =
-                    tradeCacheService.getTradeConfigByType(ConfigType.ORDER_SETTING_TIMEOUT_CANCEL);
             // 查询设置中订单超时时间
-            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(timeoutCancelConfig.getContext());
-            Object minuteObj = timeoutCancelConfigJsonObj.get("minute");
+            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
+            Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
             if (minuteObj != null) {
-                outTime = Integer.parseInt(minuteObj.toString());
+                int tmpOutTime = Integer.parseInt(minuteObj.toString());
+                if (tmpOutTime >= 15 && tmpOutTime <= (24 * 60)) {
+                    outTime = tmpOutTime;
+                }
             }
         } catch (Exception ex) {
             log.error("TradeService timeoutCancelConfig error", ex);
         }
-
+        log.info("WxOrderService buildRequest 订单：{} 超时是:{}分钟", trade.getId(), outTime );
         WxCreateOrderRequest result = new WxCreateOrderRequest();
         result.setOutOrderId(trade.getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1));
@@ -582,37 +626,49 @@ public class WxOrderService {
             throw new SbcRuntimeException("K-050421");
         }
 
-        //如果订单为退货退款，同时状态为2的时候，则修改微信订单为退款
-        if (Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
-            //获取订单信息
-            WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
-            wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
-            BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
-            log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxDetailAfterSaleResponseBaseResponse));
-            if (!wxDetailAfterSaleResponseBaseResponse.getContext().isSuccess()) {
-                throw new SbcRuntimeException("K-050427");
-            }
-            WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
-            WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
-
-            //售后订单为退款,
-            if (Objects.equals(afterSalesOrder.getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_TWO.getCode())) {
-                //2表示退款，当前为退货退款状态，则修改订单为退款状态；
-                WxAfterSaleUpdateRequest request = new WxAfterSaleUpdateRequest();
-                request.setAftersaleId(afterSalesOrder.getAftersaleId());
-                request.setOrderamt(afterSalesOrder.getOrderamt());
-                request.setOpenid(afterSalesOrder.getOpenid());
-                request.setType(AfterSalesTypeEnum.REFUND.getCode());
-                request.setRefundReason(afterSalesOrder.getRefundReason());
-                request.setRefundReasonType(afterSalesOrder.getRefundReasonType());
-                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.updateAfterSaleOrder(request);
-                log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxResponseBaseBaseResponse));
-                if (!wxResponseBaseBaseResponse.getContext().isSuccess()) {
-                    throw new SbcRuntimeException("K-050428");
-                }
-            }
-
+        //获取订单信息
+        WxDealAftersaleRequest wxDealAftersaleRequest = new WxDealAftersaleRequest();
+        wxDealAftersaleRequest.setAftersaleId(Long.valueOf(returnOrder.getAftersaleId()));
+        BaseResponse<WxDetailAfterSaleResponse> wxDetailAfterSaleResponseBaseResponse = wxOrderApiController.detailAfterSale(wxDealAftersaleRequest);
+        log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxDetailAfterSaleResponseBaseResponse));
+        if (!wxDetailAfterSaleResponseBaseResponse.getContext().isSuccess()) {
+            throw new SbcRuntimeException("K-050427");
         }
+
+        if (Objects.equals(wxDetailAfterSaleResponseBaseResponse.getContext().getAfterSalesOrder().getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_ELEVEN.getCode())) {
+            throw new SbcRuntimeException("K-050433");
+        }
+
+        //退款成功
+        if (Objects.equals(wxDetailAfterSaleResponseBaseResponse.getContext().getAfterSalesOrder().getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_THIRTEEN.getCode())) {
+            //表示已经退款，直接修改订单状态即可
+            throw new SbcRuntimeException("K-100104");
+        }
+
+//        //如果订单为退货退款，同时状态为2的时候，则修改微信订单为退款
+//        if (Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
+//
+//            WxDetailAfterSaleResponse context = wxDetailAfterSaleResponseBaseResponse.getContext();
+//            WxDetailAfterSaleResponse.AfterSalesOrder afterSalesOrder = context.getAfterSalesOrder();
+//
+//            //售后订单为退款,
+//            if (Objects.equals(afterSalesOrder.getStatus(), AfterSalesStateEnum.AFTER_SALES_STATE_TWO.getCode())) {
+//                //2表示退款，当前为退货退款状态，则修改订单为退款状态；
+//                WxAfterSaleUpdateRequest request = new WxAfterSaleUpdateRequest();
+//                request.setAftersaleId(afterSalesOrder.getAftersaleId());
+//                request.setOrderamt(afterSalesOrder.getOrderamt());
+//                request.setOpenid(afterSalesOrder.getOpenid());
+//                request.setType(AfterSalesTypeEnum.REFUND.getCode());
+//                request.setRefundReason(afterSalesOrder.getRefundReason());
+//                request.setRefundReasonType(afterSalesOrder.getRefundReasonType());
+//                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxOrderApiController.updateAfterSaleOrder(request);
+//                log.info("WxOrderService afterSaleId {} 运营退货退款 结果信息为：{}", returnOrder.getAftersaleId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+//                if (!wxResponseBaseBaseResponse.getContext().isSuccess()) {
+//                    throw new SbcRuntimeException("K-050428");
+//                }
+//            }
+//
+//        }
 
 
         WxDealAftersaleRequest request = new WxDealAftersaleRequest();
@@ -809,13 +865,59 @@ public class WxOrderService {
      *
      * @param returnOrder
      */
-    public String addEcAfterSale(ReturnOrder returnOrder) {
+    public String addEcAfterSale(ReturnOrder returnOrder, Trade trade) {
 
         String aftersaleId = "";
         if (!this.isVideoAfterSaleContinueValid(returnOrder)) {
             return aftersaleId;
         }
 
+        if (returnOrder.getReturnItems().size() > 1) {
+            throw new SbcRuntimeException("K-050429");
+        }
+
+        //查询订单的商品信息
+        WxOrderDetailRequest wxOrderDetailRequest = new WxOrderDetailRequest();
+        wxOrderDetailRequest.setOutOrderId(returnOrder.getTid());
+        wxOrderDetailRequest.setOpenid(trade.getBuyer().getOpenId());
+        BaseResponse<WxVideoOrderDetailResponse> orderDetailResponse = wxOrderApiController.getDetail(wxOrderDetailRequest);
+        WxVideoOrderDetailResponse context = orderDetailResponse.getContext();
+        if (!context.isSuccess()) {
+            throw new SbcRuntimeException("K-050100", new Object[]{returnOrder.getTid()});
+        }
+
+        //获取发货信息
+        Map<String, ReturnType> skuId2ReturnTypeMap = new HashMap<>();
+        Map<String, Boolean> skuId2CanAfterSaleMap = new HashMap<>();
+        WxVideoOrderDetailResponse.DeliveryDetail deliveryDetail = context.getOrder().getDeliveryDetail();
+        if (deliveryDetail != null) {
+            for (WxVideoOrderDetailResponse.ProductInfos productInfo : context.getOrder().getOrderDetail().getProductInfos()) {
+                skuId2CanAfterSaleMap.put(productInfo.getOutSkuId(), productInfo.getCanAfterSale());
+            }
+            if (!CollectionUtils.isEmpty(deliveryDetail.getDeliveryInfos())) {
+                for (WxVideoOrderDetailResponse.DeliveryInfo deliveryInfo : deliveryDetail.getDeliveryInfos()) {
+                    for (WxVideoOrderDetailResponse.DeliveryProduct deliveryProduct : deliveryInfo.getDeliveryProducts()) {
+                        skuId2ReturnTypeMap.put(deliveryProduct.getOutSkuId(), ReturnType.RETURN);
+                    }
+                }
+            }
+        }
+
+
+        //判断当前售后类型是否正确
+        ReturnItem item = returnOrder.getReturnItems().get(0);
+        ReturnType returnType = skuId2ReturnTypeMap.get(item.getSkuId());
+        //表示退款
+        if (returnType == null && !Objects.equals(returnOrder.getReturnType(), ReturnType.REFUND)) {
+            throw new SbcRuntimeException("K-050430");
+        }
+        if (returnType != null && !Objects.equals(returnOrder.getReturnType(), ReturnType.RETURN)) {
+            throw new SbcRuntimeException("K-050431");
+        }
+
+        if (skuId2CanAfterSaleMap.get(item.getSkuId()) != null && !skuId2CanAfterSaleMap.get(item.getSkuId())) {
+            throw new SbcRuntimeException("K-050432", new Object[]{item.getSkuName()});
+        }
 
         WxCreateNewAfterSaleRequest request = new WxCreateNewAfterSaleRequest();
         request.setOutOrderId(returnOrder.getTid());
@@ -824,20 +926,19 @@ public class WxOrderService {
         request.setType(Objects.equals(ReturnType.RETURN, returnOrder.getReturnType()) ? 2 : 1);
         request.setRefundReason(returnOrder.getDescription());
         request.setRefundReasonType(getReasonType(returnOrder.getReturnReason()));
-        for (ReturnItem item : returnOrder.getReturnItems()) {
-            request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
-            WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
-            productInfo.setOutProductId(item.getSpuId());
-            productInfo.setOutSkuId(item.getSkuId());
-            productInfo.setProductCnt(item.getNum());
-            request.setProductInfo(productInfo);
-            BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
-            log.info("WxOrderService addEcAfterSale 微信小程序创建售后request:{},response:{}", request, response);
-            if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
-                log.error("WxOrderService addEcAfterSale error : {}", JSON.toJSONString(response));
-            } else {
-                aftersaleId = response.getContext().getAftersaleId().toString();
-            }
+
+        request.setOrderamt(returnOrder.getReturnPrice().getApplyPrice().multiply(new BigDecimal(100)).longValue());
+        WxCreateNewAfterSaleRequest.ProductInfo productInfo = new WxCreateNewAfterSaleRequest.ProductInfo();
+        productInfo.setOutProductId(item.getSpuId());
+        productInfo.setOutSkuId(item.getSkuId());
+        productInfo.setProductCnt(item.getNum());
+        request.setProductInfo(productInfo);
+        BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
+        log.info("WxOrderService addEcAfterSale 微信小程序创建售后request:{},response:{}", request, response);
+        if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
+            log.error("WxOrderService addEcAfterSale error : {}", JSON.toJSONString(response));
+        } else {
+            aftersaleId = response.getContext().getAftersaleId().toString();
         }
         return aftersaleId;
     }

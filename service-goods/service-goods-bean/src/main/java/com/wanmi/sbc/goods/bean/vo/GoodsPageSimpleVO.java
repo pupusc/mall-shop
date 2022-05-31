@@ -326,5 +326,5 @@ public class GoodsPageSimpleVO implements Serializable {
     /**
      * 销售qudao
      */
-    private List<Integer> goodsChannelTypeSet;
+    private List<Integer> goodsChannelTypeList;
 }
