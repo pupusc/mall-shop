@@ -75,7 +75,7 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaAwardBO metaAward) {
-        ParamValidator.validPropValueExist("name", metaAward.getName(), "id", metaAward.getId(), metaAwardMapper, MetaAward.class);
+        ParamValidator.validPropValueExist("name", metaAward.getName(), metaAward.getId(), metaAwardMapper, MetaAward.class);
         this.metaAwardMapper.insertSelective(DO2BOUtils.objA2objB(metaAward, MetaAward.class));
         return BusinessResponse.success(metaAward.getId());
     }
@@ -88,7 +88,7 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaAwardBO metaAward) {
-        ParamValidator.validPropValueExist("name", metaAward.getName(), "id", metaAward.getId(), metaAwardMapper, MetaAward.class);
+        ParamValidator.validPropValueExist("name", metaAward.getName(), metaAward.getId(), metaAwardMapper, MetaAward.class);
         MetaAward entity = this.metaAwardMapper.selectByPrimaryKey(metaAward.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

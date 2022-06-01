@@ -12,18 +12,18 @@ import tk.mybatis.mapper.entity.Example;
  */
 public class ParamValidator {
 
-    public static <T> void validPropValueExist(String propName , String propValue, String pkName, Integer pkValue, Mapper<T> mapper, Class<T> entityClass) {
+    public static <T> void validPropValueExist(String propName, String propValue, Integer pkValue, Mapper<T> mapper, Class<T> entityClass) {
         if (StringUtils.isBlank(propValue)) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "名称不能为空");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, propName + "属性不能为空");
         }
         Example example = new Example(entityClass);
         Example.Criteria criteria = example.createCriteria().andEqualTo(propName, propValue).andNotEqualTo("delFlag", 1);
         if (pkValue != null) {
-            criteria.andNotEqualTo(pkName, pkValue);
+            criteria.andNotEqualTo("id", pkValue);
         }
         int count = mapper.selectCountByExample(example);
         if (count > 0) {
-            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "名称已经存在");
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, propName + "属性已经存在");
         }
     }
 }

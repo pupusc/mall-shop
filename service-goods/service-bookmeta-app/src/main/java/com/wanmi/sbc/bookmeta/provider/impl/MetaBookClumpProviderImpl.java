@@ -73,7 +73,7 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaBookClumpBO metaBookClump) {
-        ParamValidator.validPropValueExist("name", metaBookClump.getName(), "id", metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
+        ParamValidator.validPropValueExist("name", metaBookClump.getName(), metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
         this.metaBookClumpMapper.insertSelective(DO2BOUtils.objA2objB(metaBookClump, MetaBookClump.class));
         return BusinessResponse.success(metaBookClump.getId());
     }
@@ -86,7 +86,7 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaBookClumpBO metaBookClump) {
-        ParamValidator.validPropValueExist("name", metaBookClump.getName(), "id", metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
+        ParamValidator.validPropValueExist("name", metaBookClump.getName(), metaBookClump.getId(), this.metaBookClumpMapper, MetaBookClump.class);
         MetaBookClump entity = this.metaBookClumpMapper.selectByPrimaryKey(metaBookClump.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

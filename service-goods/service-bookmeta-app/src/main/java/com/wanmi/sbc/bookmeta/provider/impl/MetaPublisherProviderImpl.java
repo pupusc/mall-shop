@@ -73,7 +73,7 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaPublisherBO metaPublisher) {
-        ParamValidator.validPropValueExist("name", metaPublisher.getName(), "id", metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
+        ParamValidator.validPropValueExist("name", metaPublisher.getName(), metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
         this.metaPublisherMapper.insertSelective(DO2BOUtils.objA2objB(metaPublisher, MetaPublisher.class));
         return BusinessResponse.success(metaPublisher.getId());
     }
@@ -86,7 +86,7 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaPublisherBO metaPublisher) {
-        ParamValidator.validPropValueExist("name", metaPublisher.getName(), "id", metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
+        ParamValidator.validPropValueExist("name", metaPublisher.getName(), metaPublisher.getId(), this.metaPublisherMapper, MetaPublisher.class);
         MetaPublisher entity = this.metaPublisherMapper.selectByPrimaryKey(metaPublisher.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

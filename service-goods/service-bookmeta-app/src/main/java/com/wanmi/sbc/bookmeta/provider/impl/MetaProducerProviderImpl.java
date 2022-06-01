@@ -73,7 +73,7 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaProducerBO metaProducer) {
-        ParamValidator.validPropValueExist("name", metaProducer.getName(), "id", metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
+        ParamValidator.validPropValueExist("name", metaProducer.getName(), metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
         this.metaProducerMapper.insertSelective(DO2BOUtils.objA2objB(metaProducer, MetaProducer.class));
         return BusinessResponse.success(metaProducer.getId());
     }
@@ -86,7 +86,7 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaProducerBO metaProducer) {
-        ParamValidator.validPropValueExist("name", metaProducer.getName(), "id", metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
+        ParamValidator.validPropValueExist("name", metaProducer.getName(), metaProducer.getId(), this.metaProducerMapper, MetaProducer.class);
         MetaProducer entity = this.metaProducerMapper.selectByPrimaryKey(metaProducer.getId());
         if (entity == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);

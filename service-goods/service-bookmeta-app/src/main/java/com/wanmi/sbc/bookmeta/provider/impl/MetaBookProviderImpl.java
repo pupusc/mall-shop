@@ -169,7 +169,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     @Transactional
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaBookAddReqBO metaBook) {
-        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), "id", metaBook.getId(), this.metaBookMapper, MetaBook.class);
+        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), metaBook.getId(), this.metaBookMapper, MetaBook.class);
         Date now = new Date();
         MetaBook insert = new MetaBook();
         BeanUtils.copyProperties(metaBook, insert);
@@ -194,7 +194,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     @Transactional
     @Override
     public BusinessResponse<Boolean> update(@Valid MetaBookEditReqBO metaBook) {
-        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), "id", metaBook.getId(), this.metaBookMapper, MetaBook.class);
+        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), metaBook.getId(), this.metaBookMapper, MetaBook.class);
         if (metaBook.getId() == null) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
