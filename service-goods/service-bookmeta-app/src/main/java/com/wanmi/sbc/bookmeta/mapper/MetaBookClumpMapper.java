@@ -82,5 +82,6 @@ public interface MetaBookClumpMapper extends Mapper<MetaBookClump> {
      */
     int deleteById(Integer id);
 
+    int removePublisherId(Integer id);
 }
 

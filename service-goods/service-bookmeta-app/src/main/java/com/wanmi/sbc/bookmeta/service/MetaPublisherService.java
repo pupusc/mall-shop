@@ -39,8 +39,7 @@ public class MetaPublisherService {
             return;
         }
         this.metaPublisherMapper.deleteById(id);
-        metaBookMapper.removePublisherId(id);
-        //丛书关联多个出版社
-        // TODO: 2022/6/1
+        this.metaBookMapper.removePublisherId(id);
+        this.metaBookClumpMapper.removePublisherId(id);
     }
 }

@@ -166,5 +166,9 @@
         update meta_book_clump set del_flag = 1 where id = #{id}
     </delete>
 
+    <!--删除关联出品方-->
+    <update id="removePublisherId">
+        update meta_book set publisher_id = null where publisher_id = #{id}
+    </update>
 </mapper>
 
