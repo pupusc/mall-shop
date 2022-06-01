@@ -1,7 +1,12 @@
 package com.wanmi.sbc.bookmeta.service;
 
+import com.wanmi.sbc.bookmeta.entity.MetaBookContent;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
+import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
 import com.wanmi.sbc.bookmeta.entity.MetaFigure;
+import com.wanmi.sbc.bookmeta.enums.BookContentTypeEnum;
+import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
+import com.wanmi.sbc.bookmeta.mapper.MetaBookContentMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureMapper;
 import org.springframework.stereotype.Service;
@@ -10,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +31,8 @@ public class MetaFigureService {
     private MetaFigureMapper metaFigureMapper;
     @Resource
     private MetaBookFigureMapper metaBookFigureMapper;
+    @Resource
+    private MetaBookContentMapper metaBookContentMapper;
 
     public List<MetaFigure> listFigureByIds(List<Integer> ids) {
         if (CollectionUtils.isEmpty(ids)) {
@@ -53,9 +61,23 @@ public class MetaFigureService {
             return;
         }
         this.metaFigureMapper.deleteById(id);
-        //书籍关联人物
+        //书籍人物
         MetaBookFigure metaBookFigure = new MetaBookFigure();
         metaBookFigure.setFigureId(id);
         this.metaBookFigureMapper.delete(metaBookFigure);
+        //人物推荐
+        Example example = new Example(MetaBookRcmmd.class);
+        example.createCriteria().andEqualTo("bizId", id)
+                .andIn("bizType", Arrays.asList(
+                        BookRcmmdTypeEnum.EDITOR.getCode(),
+                        BookRcmmdTypeEnum.MEDIA.getCode(),
+                        BookRcmmdTypeEnum.ORGAN.getCode(),
+                        BookRcmmdTypeEnum.EXPERT.getCode()));
+        this.metaBookFigureMapper.deleteByExample(example);
+        //出版内容（作序人）
+        MetaBookContent metaBookContent = new MetaBookContent();
+        metaBookContent.setFigureId(id);
+        metaBookContent.setType(BookContentTypeEnum.PRELUDE.getCode());
+        this.metaBookContentMapper.delete(metaBookContent);
     }
 }

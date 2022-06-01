@@ -23,6 +23,7 @@ import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.bookmeta.service.MetaLabelService;
 import com.wanmi.sbc.bookmeta.service.MetaPublisherService;
+import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -168,6 +169,7 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     @Transactional
     @Override
     public BusinessResponse<Integer> insert(@Valid MetaBookAddReqBO metaBook) {
+        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), "id", metaBook.getId(), this.metaBookMapper, MetaBook.class);
         Date now = new Date();
         MetaBook insert = new MetaBook();
         BeanUtils.copyProperties(metaBook, insert);
@@ -186,17 +188,18 @@ public class MetaBookProviderImpl implements MetaBookProvider {
     /**
      * 修改数据
      *
-     * @param metaBookBO 实例对象
+     * @param metaBook 实例对象
      * @return 实例对象
      */
     @Transactional
     @Override
-    public BusinessResponse<Boolean> update(@Valid MetaBookEditReqBO metaBookBO) {
-        if (metaBookBO.getId() == null) {
+    public BusinessResponse<Boolean> update(@Valid MetaBookEditReqBO metaBook) {
+        ParamValidator.validPropValueExist("isbn", metaBook.getIsbn(), "id", metaBook.getId(), this.metaBookMapper, MetaBook.class);
+        if (metaBook.getId() == null) {
             throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
         }
         //查询
-        MetaBook metaBookDO = this.metaBookMapper.selectByPrimaryKey(metaBookBO.getId());
+        MetaBook metaBookDO = this.metaBookMapper.selectByPrimaryKey(metaBook.getId());
         if (metaBookDO == null) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS);
         }
@@ -204,14 +207,14 @@ public class MetaBookProviderImpl implements MetaBookProvider {
         MetaBook update = new MetaBook();
         BeanUtils.copyProperties(metaBookDO, update);
         //如果是更新基础信息
-        update.setIsbn(metaBookBO.getIsbn());
-        update.setName(metaBookBO.getName());
-        update.setSubName(metaBookBO.getSubName());
-        update.setOriginName(metaBookBO.getOriginName());
+        update.setIsbn(metaBook.getIsbn());
+        update.setName(metaBook.getName());
+        update.setSubName(metaBook.getSubName());
+        update.setOriginName(metaBook.getOriginName());
         //标签
-        insertBookLabel(metaBookBO.getId(), metaBookBO.getLabelIds(), now);
+        insertBookLabel(metaBook.getId(), metaBook.getLabelIds(), now);
         //人物
-        insertBookFigure(metaBookBO.getId(), metaBookBO.getFigures().stream().map(item -> Pair.of(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
+        insertBookFigure(metaBook.getId(), metaBook.getFigures().stream().map(item -> Pair.of(item.getFigureId(), item.getFigureType())).collect(Collectors.toList()), now);
 
         update.setUpdateTime(now);
         this.metaBookMapper.update(update);

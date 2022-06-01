@@ -2,6 +2,8 @@ package com.wanmi.sbc.bookmeta.service;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
+import com.wanmi.sbc.bookmeta.enums.LabelSceneEnum;
+import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Liang Jun
@@ -43,5 +46,23 @@ public class MetaLabelService {
         MetaBookLabel metaBookLabel = new MetaBookLabel();
         metaBookLabel.setLabelId(id);
         this.metaBookLabelMapper.delete(metaBookLabel);
+    }
+
+    /**
+     * 适读对象标签
+     */
+    public List<MetaLabel> getFitTargetLabels() {
+        MetaLabel queryLabel = new MetaLabel();
+        queryLabel.setType(LabelTypeEnum.LABEL.getCode());
+        queryLabel.setScene(LabelSceneEnum.FIT_TARGET.getCode());
+        queryLabel.setDelFlag(0);
+        return  metaLabelMapper.select(queryLabel);
+    }
+
+    /**
+     * 适读对象标签
+     */
+    public List<Integer> getFitTargetLabelIds() {
+        return getFitTargetLabels().stream().map(MetaLabel::getId).collect(Collectors.toList());
     }
 }

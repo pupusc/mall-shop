@@ -14,6 +14,7 @@ import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
@@ -119,19 +120,23 @@ public class MetaBookContentProviderImpl implements MetaBookContentProvider {
         delete.setBookId(bookId);
         this.metaBookContentMapper.delete(delete);
 
-        if (CollectionUtils.isNotEmpty(editReqBO)) {
-            Date curr = new Date();
-            List<MetaBookContent> insertList = editReqBO.stream().map(item -> {
-                MetaBookContent insert = new MetaBookContent();
-                insert.setBookId(bookId);
-                insert.setFigureId(item.getFigureId());
-                insert.setType(item.getType());
-                insert.setContent(item.getContent());
-                insert.setCreateTime(curr);
-                insert.setUpdateTime(curr);
-                insert.setDelFlag(0);
-                return insert;
-            }).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(editReqBO)) {
+            return BusinessResponse.success(true);
+        }
+        Date curr = new Date();
+        List<MetaBookContent> insertList = editReqBO.stream().filter(
+                item-> StringUtils.isNotBlank(item.getContent())).map(item -> {
+                    MetaBookContent insert = new MetaBookContent();
+                    insert.setBookId(bookId);
+                    insert.setFigureId(item.getFigureId());
+                    insert.setType(item.getType());
+                    insert.setContent(item.getContent());
+                    insert.setCreateTime(curr);
+                    insert.setUpdateTime(curr);
+                    insert.setDelFlag(0);
+                    return insert;
+        }).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(insertList)) {
             this.metaBookContentMapper.insertBatch(insertList);
         }
         return BusinessResponse.success(true);

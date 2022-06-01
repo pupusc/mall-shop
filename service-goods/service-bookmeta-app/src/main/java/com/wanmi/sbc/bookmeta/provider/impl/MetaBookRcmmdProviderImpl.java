@@ -10,8 +10,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
 import com.wanmi.sbc.bookmeta.entity.MetaFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
-import com.wanmi.sbc.bookmeta.enums.LabelSceneEnum;
-import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
+import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
@@ -19,6 +18,7 @@ import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookRcmmdProvider;
 import com.wanmi.sbc.bookmeta.service.MetaBookService;
 import com.wanmi.sbc.bookmeta.service.MetaFigureService;
+import com.wanmi.sbc.bookmeta.service.MetaLabelService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -62,6 +62,8 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
     private MetaFigureService metaFigureService;
     @Resource
     private MetaBookService metaBookService;
+    @Resource
+    private MetaLabelService metaLabelService;
 
     /**
      * 通过ID查询单条数据
@@ -140,7 +142,7 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         result.setFitAgeMax(metaBook.getFitAgeMax());
         result.setFitAgeMin(metaBook.getFitAgeMin());
         //适读对象
-        result.setFitTargetIds(getFitIdsByBookId(bookId));
+        result.setFitTargetIds(getEnableFitIdsByBookId(bookId));
         //推荐信息
         MetaBookRcmmd queryBookRcmmd = new MetaBookRcmmd();
         queryBookRcmmd.setBookId(bookId);
@@ -195,20 +197,22 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         return BusinessResponse.success(true);
     }
 
-    private List<Integer> getFitIdsByBookId(Integer bookId) {
+    private List<Integer> getEnableFitIdsByBookId(Integer bookId) {
         List<MetaBookLabel> bookLabels = getBookLabels(bookId);
         if (CollectionUtils.isEmpty(bookLabels)) {
             return Collections.EMPTY_LIST;
         }
         //适读对象标签
-        List<Integer> labelIds = getFitTargetLabelIds();
+        List<Integer> labelIds = metaLabelService.getFitTargetLabels().stream()
+                .filter(item-> LabelStatusEnum.ENABLE.getCode().equals(item.getStatus()))
+                .map(MetaLabel::getId).collect(Collectors.toList());
         return bookLabels.stream().map(MetaBookLabel::getLabelId).filter(item->labelIds.contains(item)).collect(Collectors.toList());
     }
 
     private void updateFitIdsByBookId(Integer bookId, List<Integer> fitTargetIds) {
         List<Integer> editFitTargetIds = fitTargetIds != null ? fitTargetIds : new ArrayList<>();
         List<MetaBookLabel> bookLabels = getBookLabels(bookId);
-        List<Integer> allFitLabelIds = getFitTargetLabelIds();
+        List<Integer> allFitLabelIds = metaLabelService.getFitTargetLabelIds();
         List<Integer> bookFitLabelIds = bookLabels.stream().map(MetaBookLabel::getLabelId).filter(item->allFitLabelIds.contains(item)).collect(Collectors.toList());
         //没变化不更新
         if (editFitTargetIds.containsAll(bookFitLabelIds) && bookFitLabelIds.containsAll(editFitTargetIds)) {
@@ -247,16 +251,6 @@ public class MetaBookRcmmdProviderImpl implements MetaBookRcmmdProvider {
         query.setBookId(bookId);
         query.setDelFlag(0);
         return metaBookLabelMapper.select(query);
-    }
-    /**
-     * 适读对象标签
-     */
-    private List<Integer> getFitTargetLabelIds() {
-        MetaLabel queryLabel = new MetaLabel();
-        queryLabel.setType(LabelTypeEnum.LABEL.getCode());
-        queryLabel.setScene(LabelSceneEnum.FIT_TARGET.getCode());
-        queryLabel.setDelFlag(0);
-        return metaLabelMapper.select(queryLabel).stream().map(MetaLabel::getId).collect(Collectors.toList());
     }
 
     private void fillRcmmdName(List<MetaBookRcmmdByBookIdReqBO.MetaBookRcmmdBO> rcmmdBOs) {

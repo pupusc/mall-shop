@@ -2,9 +2,9 @@ package com.wanmi.sbc.bookmeta.vo;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,11 +18,13 @@ public class MetaBookAddReqVO implements Serializable {
     private static final long serialVersionUID = 451774430772321139L;
     
     private Integer id;
-    
+
+    @NotBlank
     private String isbn;
     /**
      * 名称
      */
+    @NotBlank
     private String name;
     /**
      * 副名称
