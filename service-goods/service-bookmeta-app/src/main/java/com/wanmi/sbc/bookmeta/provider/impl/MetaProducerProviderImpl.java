@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaProducerBO;
 import com.wanmi.sbc.bookmeta.bo.MetaProducerQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaProducer;
-import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaProducerMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaProducerProvider;
+import com.wanmi.sbc.bookmeta.service.MetaProducerService;
 import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
@@ -31,6 +31,8 @@ import java.util.List;
 public class MetaProducerProviderImpl implements MetaProducerProvider {
     @Resource
     private MetaProducerMapper metaProducerMapper;
+    @Resource
+    private MetaProducerService metaProducerService;
 
     /**
      * 通过ID查询单条数据
@@ -104,6 +106,7 @@ public class MetaProducerProviderImpl implements MetaProducerProvider {
      */
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaProducerMapper.deleteById(id) > 0);
+        this.metaProducerService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }

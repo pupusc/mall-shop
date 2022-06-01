@@ -1,8 +1,9 @@
 package com.wanmi.sbc.bookmeta.bo;
 
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 人物(MetaFigure)实体类
@@ -91,5 +92,9 @@ public class MetaFigureBO implements Serializable {
      * 删除标识
      */     
     private Integer delFlag;
+    /**
+     * 所属朝代
+     */
+    private Integer dynastyId;
 }
 

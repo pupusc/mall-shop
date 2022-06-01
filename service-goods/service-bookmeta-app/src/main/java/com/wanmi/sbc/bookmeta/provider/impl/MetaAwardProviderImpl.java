@@ -12,6 +12,7 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -105,8 +106,10 @@ public class MetaAwardProviderImpl implements MetaAwardProvider {
      * @param id 主键
      * @return 是否成功
      */
+    @Transactional
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaAwardMapper.deleteById(id) > 0);
+        this.metaAwardService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }

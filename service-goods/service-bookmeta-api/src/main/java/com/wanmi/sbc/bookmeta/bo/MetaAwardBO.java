@@ -3,7 +3,6 @@ package com.wanmi.sbc.bookmeta.bo;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -17,7 +16,6 @@ import java.util.Date;
 public class MetaAwardBO implements Serializable {
     private static final long serialVersionUID = 280630643071795080L;
 
-    @NotNull
     private Integer id;
     /**
      * 名称

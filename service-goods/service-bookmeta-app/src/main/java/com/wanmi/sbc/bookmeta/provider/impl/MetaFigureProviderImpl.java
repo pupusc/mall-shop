@@ -11,6 +11,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureAwardMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
+import com.wanmi.sbc.bookmeta.service.MetaFigureService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -41,6 +42,8 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
     private MetaFigureMapper metaFigureMapper;
     @Resource
     private MetaFigureAwardMapper metaFigureAwardMapper;
+    @Resource
+    private MetaFigureService metaFigureService;
 
     /**
      * 通过ID查询单条数据
@@ -169,6 +172,7 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
      */
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaFigureMapper.deleteById(id) > 0);
+        this.metaFigureService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }

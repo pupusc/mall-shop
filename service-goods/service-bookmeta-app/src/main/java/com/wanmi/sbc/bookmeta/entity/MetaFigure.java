@@ -11,14 +11,13 @@ import javax.persistence.Table;
  * 人物(MetaFigure)实体类
  *
  * @author Liang Jun
- * @since 2022-05-26 01:28:20
+ * @since 2022-06-01 15:02:59
  */
 @Table(name = "meta_figure")
 public class MetaFigure implements Serializable {
-    private static final long serialVersionUID = -14714089093310248L;
+    private static final long serialVersionUID = -83395116140008348L;
          
-    @Id
-    @GeneratedValue(generator = "JDBC")
+    @Column(name = "id")
     private Integer id;
     /**
      * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
@@ -46,7 +45,7 @@ public class MetaFigure implements Serializable {
     @Column(name = "image")
     private String image;
     /**
-     * 国籍
+     * 所属国家
      */     
     @Column(name = "country")
     private String country;
@@ -115,6 +114,11 @@ public class MetaFigure implements Serializable {
      */     
     @Column(name = "del_flag")
     private Integer delFlag;
+    /**
+     * 所属朝代
+     */     
+    @Column(name = "dynasty_id")
+    private Integer dynastyId;
 
 
     public Integer getId() {
@@ -275,6 +279,14 @@ public class MetaFigure implements Serializable {
 
     public void setDelFlag(Integer delFlag) {
         this.delFlag = delFlag;
+    }
+
+    public Integer getDynastyId() {
+        return dynastyId;
+    }
+
+    public void setDynastyId(Integer dynastyId) {
+        this.dynastyId = dynastyId;
     }
 
 }

@@ -39,7 +39,11 @@ public class MetaFigureAddReqVO implements Serializable {
      */
     private String image;
     /**
-     * 国籍
+     * 朝代
+     */
+    private Integer dynastyId;
+    /**
+     * 国家
      */
     private String country;
     /**

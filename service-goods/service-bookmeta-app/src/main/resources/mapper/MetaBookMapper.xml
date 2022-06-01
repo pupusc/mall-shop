@@ -344,5 +344,24 @@
         update meta_book set del_flag = 1 where id = #{id}
     </delete>
 
+    <!--删除关联丛书-->
+    <update id="removeBookClumpId">
+        update meta_book set book_clump_id = null where book_clump_id = #{id}
+    </update>
+
+    <!--删除关联书组-->
+    <update id="removeBookGroupId">
+        update meta_book set book_group_id = null where book_group_id = #{id}
+    </update>
+
+    <!--删除关联出品方-->
+    <update id="removeProducerId">
+        update meta_book set producer_id = null where producer_id = #{id}
+    </update>
+
+    <!--删除关联出品方-->
+    <update id="removePublisherId">
+        update meta_book set publisher_id = null where publisher_id = #{id}
+    </update>
 </mapper>
 

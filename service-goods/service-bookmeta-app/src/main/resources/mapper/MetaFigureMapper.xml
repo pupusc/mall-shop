@@ -23,12 +23,13 @@
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="dynastyId" column="dynasty_id" jdbcType="INTEGER"/>
     </resultMap>
 
     <!--查询单个-->
     <select id="queryById" resultMap="MetaFigureMap">
         select
-          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag
+          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag, dynasty_id
         from meta_figure
         where id = #{id}
             and del_flag = 0
@@ -37,7 +38,7 @@
     <!--查询指定行数据-->
     <select id="queryAllByLimit" resultMap="MetaFigureMap">
         select
-          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag
+          id, type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag, dynasty_id
         from meta_figure
         <where>
             <if test="metaFigure.id != null">
@@ -47,7 +48,7 @@
                 and type = #{metaFigure.type}
             </if>
             <if test="metaFigure.name != null and metaFigure.name != ''">
-                and name like concat('%', #{metaFigure.name}, '%')
+                and name = #{metaFigure.name}
             </if>
             <if test="metaFigure.englishName != null and metaFigure.englishName != ''">
                 and english_name = #{metaFigure.englishName}
@@ -100,9 +101,11 @@
             <if test="metaFigure.delFlag != null">
                 and del_flag = #{metaFigure.delFlag}
             </if>
+            <if test="metaFigure.dynastyId != null">
+                and dynasty_id = #{metaFigure.dynastyId}
+            </if>
             and del_flag = 0
         </where>
-        ORDER BY create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
 
@@ -118,7 +121,7 @@
                 and type = #{type}
             </if>
             <if test="name != null and name != ''">
-                and name like concat('%', #{name}, '%')
+                and name = #{name}
             </if>
             <if test="englishName != null and englishName != ''">
                 and english_name = #{englishName}
@@ -171,29 +174,32 @@
             <if test="delFlag != null">
                 and del_flag = #{delFlag}
             </if>
+            <if test="dynastyId != null">
+                and dynasty_id = #{dynastyId}
+            </if>
             and del_flag = 0
         </where>
     </select>
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
-        values (#{type}, #{name}, #{englishName}, #{formerName}, #{image}, #{country}, #{provinceCode}, #{cityCode}, #{districtCode}, #{graduateSchool}, #{jobPost}, #{jobTitle}, #{diploma}, #{researchField}, #{introduce}, #{birthTime}, #{createTime}, #{updateTime}, #{delFlag})
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag, dynasty_id)
+        values (#{type}, #{name}, #{englishName}, #{formerName}, #{image}, #{country}, #{provinceCode}, #{cityCode}, #{districtCode}, #{graduateSchool}, #{jobPost}, #{jobTitle}, #{diploma}, #{researchField}, #{introduce}, #{birthTime}, #{createTime}, #{updateTime}, #{delFlag}, #{dynastyId})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag, dynasty_id)
         values
         <foreach collection="entities" item="entity" separator=",">
-        (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.dynastyId})
         </foreach>
     </insert>
 
     <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag)
+        insert into meta_figure(type, name, english_name, former_name, image, country, province_code, city_code, district_code, graduate_school, job_post, job_title, diploma, research_field, introduce, birth_time, create_time, update_time, del_flag, dynasty_id)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+            (#{entity.type}, #{entity.name}, #{entity.englishName}, #{entity.formerName}, #{entity.image}, #{entity.country}, #{entity.provinceCode}, #{entity.cityCode}, #{entity.districtCode}, #{entity.graduateSchool}, #{entity.jobPost}, #{entity.jobTitle}, #{entity.diploma}, #{entity.researchField}, #{entity.introduce}, #{entity.birthTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.dynastyId})
         </foreach>
         on duplicate key update
         type = values(type),
@@ -214,7 +220,8 @@
         birth_time = values(birth_time),
         create_time = values(create_time),
         update_time = values(update_time),
-        del_flag = values(del_flag)
+        del_flag = values(del_flag),
+        dynasty_id = values(dynasty_id)
     </insert>
 
     <!--通过主键修改数据-->
@@ -277,6 +284,9 @@
             </if>
             <if test="delFlag != null">
                 del_flag = #{delFlag},
+            </if>
+            <if test="dynastyId != null">
+                dynasty_id = #{dynastyId},
             </if>
         </set>
         where id = #{id}

@@ -43,6 +43,10 @@ public class MetaFigureQueryByIdResBO implements Serializable {
      */
     private String country;
     /**
+     * 朝代
+     */
+    private Integer dynastyId;
+    /**
      * 省份编码
      */
     private String provinceCode;

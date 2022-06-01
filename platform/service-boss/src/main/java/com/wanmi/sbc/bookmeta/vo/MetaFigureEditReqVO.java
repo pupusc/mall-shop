@@ -41,7 +41,11 @@ public class MetaFigureEditReqVO implements Serializable {
      */
     private String image;
     /**
-     * 国籍
+     * 朝代id
+     */
+    private Integer dynastyId;
+    /**
+     * 国家
      */
     private String country;
     /**

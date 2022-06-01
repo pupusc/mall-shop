@@ -39,9 +39,13 @@ public class MetaFigureQueryByIdResVO implements Serializable {
      */
     private String image;
     /**
-     * 国籍
+     * 国家
      */
     private String country;
+    /**
+     * 朝代id
+     */
+    private Integer dynastyId;
     /**
      * 省份编码
      */

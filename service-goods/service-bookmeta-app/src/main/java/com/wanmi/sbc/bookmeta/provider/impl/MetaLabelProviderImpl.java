@@ -9,6 +9,7 @@ import com.wanmi.sbc.bookmeta.entity.MetaLabelExt;
 import com.wanmi.sbc.bookmeta.enums.LabelStatusEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaLabelProvider;
+import com.wanmi.sbc.bookmeta.service.MetaLabelService;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -33,6 +34,8 @@ import java.util.List;
 public class MetaLabelProviderImpl implements MetaLabelProvider {
     @Resource
     private MetaLabelMapper metaLabelMapper;
+    @Resource
+    private MetaLabelService metaLabelService;
 
     /**
      * 通过ID查询单条数据
@@ -137,6 +140,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
      */
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaLabelMapper.deleteById(id) > 0);
+        this.metaLabelService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }

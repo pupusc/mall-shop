@@ -87,5 +87,13 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
     int countExt(@Param("metaBook") MetaBookExt metaBook);
 
     List<MetaBook> queryAllByLimitExt(@Param("metaBook") MetaBookExt metaBook, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    int removeBookClumpId(Integer id);
+
+    int removeBookGroupId(Integer id);
+
+    int removeProducerId(Integer id);
+
+    int removePublisherId(Integer id);
 }
 

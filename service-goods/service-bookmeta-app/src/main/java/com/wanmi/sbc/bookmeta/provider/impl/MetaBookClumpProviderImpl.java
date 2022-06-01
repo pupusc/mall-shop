@@ -6,11 +6,13 @@ import com.wanmi.sbc.bookmeta.bo.MetaBookClumpQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookClumpMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaBookClumpProvider;
+import com.wanmi.sbc.bookmeta.service.MetaBookClumpService;
 import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +32,8 @@ import java.util.List;
 public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
     @Resource
     private MetaBookClumpMapper metaBookClumpMapper;
+    @Resource
+    private MetaBookClumpService metaBookClumpService;
 
     /**
      * 通过ID查询单条数据
@@ -102,8 +106,10 @@ public class MetaBookClumpProviderImpl implements MetaBookClumpProvider {
      * @param id 主键
      * @return 是否成功
      */
+    @Transactional
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaBookClumpMapper.deleteById(id) > 0);
+        metaBookClumpService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }

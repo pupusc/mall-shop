@@ -6,6 +6,7 @@ import com.wanmi.sbc.bookmeta.bo.MetaPublisherQueryByPageReqBO;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper;
 import com.wanmi.sbc.bookmeta.provider.MetaPublisherProvider;
+import com.wanmi.sbc.bookmeta.service.MetaPublisherService;
 import com.wanmi.sbc.bookmeta.service.ParamValidator;
 import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
@@ -30,6 +31,8 @@ import java.util.List;
 public class MetaPublisherProviderImpl implements MetaPublisherProvider {
     @Resource
     private MetaPublisherMapper metaPublisherMapper;
+    @Resource
+    private MetaPublisherService metaPublisherService;
 
     /**
      * 通过ID查询单条数据
@@ -104,6 +107,7 @@ public class MetaPublisherProviderImpl implements MetaPublisherProvider {
      */
     @Override
     public BusinessResponse<Boolean> deleteById(Integer id) {
-        return BusinessResponse.success(this.metaPublisherMapper.deleteById(id) > 0);
+        metaPublisherService.deleteById(id);
+        return BusinessResponse.success(true);
     }
 }
