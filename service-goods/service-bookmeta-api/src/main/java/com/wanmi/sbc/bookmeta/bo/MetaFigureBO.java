@@ -41,6 +41,10 @@ public class MetaFigureBO implements Serializable {
      */     
     private String country;
     /**
+     * 所属朝代
+     */
+    private Integer dynastyId;
+    /**
      * 省份编码
      */     
     private String provinceCode;
@@ -92,9 +96,5 @@ public class MetaFigureBO implements Serializable {
      * 删除标识
      */     
     private Integer delFlag;
-    /**
-     * 所属朝代
-     */
-    private Integer dynastyId;
 }
 
