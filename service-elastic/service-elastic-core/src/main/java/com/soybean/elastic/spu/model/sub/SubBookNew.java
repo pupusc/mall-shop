@@ -1,6 +1,6 @@
 package com.soybean.elastic.spu.model.sub;
 
-import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.collect.constant.ConstantUtil;
 import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;

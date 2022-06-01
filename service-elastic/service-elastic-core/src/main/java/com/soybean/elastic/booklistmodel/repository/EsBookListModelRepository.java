@@ -12,5 +12,5 @@ import org.springframework.stereotype.Repository;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Repository
-public interface EsBookListModelRepository extends ElasticsearchRepository<EsBookListModel, String> {
+public interface EsBookListModelRepository extends ElasticsearchRepository<EsBookListModel, Long> {
 }

@@ -1,4 +1,4 @@
-package com.soybean.elastic.spu.constant;
+package com.soybean.elastic.collect.constant;
 
 /**
  * Description:

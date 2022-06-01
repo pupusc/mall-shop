@@ -2,7 +2,7 @@ package com.soybean.elastic.spu.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.collect.constant.ConstantUtil;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
 import com.soybean.elastic.spu.model.sub.SubClassifyNew;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
@@ -29,7 +29,7 @@ import java.util.List;
 
 @Data
 //@Document(indexName = "es_goods_new", type = "es_goods_new")
-@Document(indexName = "es_book_list_model")
+@Document(indexName = "es_spu_new", type = "es_spu_new")
 public class EsSpuNew {
 
 

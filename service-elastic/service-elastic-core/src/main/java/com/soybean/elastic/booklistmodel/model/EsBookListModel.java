@@ -3,10 +3,11 @@ package com.soybean.elastic.booklistmodel.model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.elastic.booklistmodel.model.sub.SubEsBookListSpuNew;
-import com.soybean.elastic.spu.constant.ConstantUtil;
+import com.soybean.elastic.collect.constant.ConstantUtil;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -23,9 +24,10 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-@Document(indexName = "es_book_list_model")
+@Document(indexName = "es_book_list_model", type = "es_book_list_model")
 public class EsBookListModel {
 
+    @Id
     @Field(type = FieldType.Long)
     private Long bookListId;
 

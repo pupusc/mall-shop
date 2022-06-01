@@ -1,10 +1,11 @@
-package com.soybean.elastic.spu.service;
+package com.soybean.elastic.collect.service;
+
 
 import com.soybean.elastic.spu.model.EsSpuNew;
-import org.apache.poi.ss.formula.functions.T;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Description:
@@ -16,5 +17,20 @@ import java.util.List;
 public abstract class AbstractCollect {
 
 
-    public abstract <T> List<T> collect(LocalDateTime lastCollectTime);
+    /**
+     * 采集商品id
+     * @param lastCollectTime
+     * @param now
+     * @param <F>
+     * @return
+     */
+    public abstract <F> Set<F> collectSpuId(LocalDateTime lastCollectTime, LocalDateTime now);
+
+
+    /**
+     * 采集信息
+     * @return
+     */
+    public abstract <F> List<F> collect(List<F> list);
+
 }
