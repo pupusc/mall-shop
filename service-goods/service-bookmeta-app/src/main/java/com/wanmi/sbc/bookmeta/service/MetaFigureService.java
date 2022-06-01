@@ -8,6 +8,7 @@ import com.wanmi.sbc.bookmeta.enums.BookContentTypeEnum;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookContentMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,8 @@ public class MetaFigureService {
     private MetaBookFigureMapper metaBookFigureMapper;
     @Resource
     private MetaBookContentMapper metaBookContentMapper;
+    @Resource
+    private MetaBookRcmmdMapper metaBookRcmmdMapper;
 
     public List<MetaFigure> listFigureByIds(List<Integer> ids) {
         if (CollectionUtils.isEmpty(ids)) {
@@ -73,7 +76,7 @@ public class MetaFigureService {
                         BookRcmmdTypeEnum.MEDIA.getCode(),
                         BookRcmmdTypeEnum.ORGAN.getCode(),
                         BookRcmmdTypeEnum.EXPERT.getCode()));
-        this.metaBookFigureMapper.deleteByExample(example);
+        this.metaBookRcmmdMapper.deleteByExample(example);
         //出版内容（作序人）
         MetaBookContent metaBookContent = new MetaBookContent();
         metaBookContent.setFigureId(id);
