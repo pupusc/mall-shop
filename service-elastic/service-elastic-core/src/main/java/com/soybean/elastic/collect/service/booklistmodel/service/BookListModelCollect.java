@@ -2,9 +2,15 @@ package com.soybean.elastic.collect.service.booklistmodel.service;
 
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CollectBookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -24,17 +30,22 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
 
     @Override
     public Set<Long> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
-        Set<Long> result = new HashSet<>();
 
-        return result;
+        return null;
     }
 
     @Override
     public <F> List<F> collect(List<F> list) {
+        List<Integer> bookListModelIdList = new ArrayList<>();
         for (F f : list) {
             EsBookListModel esBookListModel = (EsBookListModel) f;
-            esBookListModel.setBookListName("这个是一个书单" + new Random().nextInt());
+            bookListModelIdList.add(esBookListModel.getBookListId().intValue());
         }
+
+        //根据id获取书单信息
+
+        //根据id获取商品信息
+
         return list;
     }
 }

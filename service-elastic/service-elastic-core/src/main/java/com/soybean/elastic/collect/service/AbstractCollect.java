@@ -2,8 +2,10 @@ package com.soybean.elastic.collect.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +19,7 @@ import java.util.Set;
 @Slf4j
 public abstract class AbstractCollect {
 
+    public static final Integer MAX_PAGE_SIZE = 500;
 
     /**
      * 采集商品id
@@ -61,11 +64,21 @@ public abstract class AbstractCollect {
      * 初始化增量数据
      * @return
      */
-    public <T> List<T> incrementalLoads(List<T> list) {
+    public <T> void incrementalLoads(List<T> list) {
         long beginTime = beforeCollect();
-        List<T> collect = collect(list);
+        int from = 0;
+        while (list.size() >= AbstractCollect.MAX_PAGE_SIZE) {
+            collect(list.subList(from, from + AbstractCollect.MAX_PAGE_SIZE));
+            from += AbstractCollect.MAX_PAGE_SIZE;
+        }
+
+        List<T> ts = list.subList(from, list.size());
+        if (!CollectionUtils.isEmpty(ts)) {
+            collect(ts);
+        }
+
         afterCollect(beginTime, "collect");
-        return collect;
+//        return null;
     }
 
 
