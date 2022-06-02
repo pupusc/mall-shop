@@ -122,7 +122,7 @@
                 and type = #{type}
             </if>
             <if test="name != null and name != ''">
-                and name like concat('%', #{name}, '%'
+                and name like concat('%', #{name}, '%')
             </if>
             <if test="englishName != null and englishName != ''">
                 and english_name = #{englishName}
