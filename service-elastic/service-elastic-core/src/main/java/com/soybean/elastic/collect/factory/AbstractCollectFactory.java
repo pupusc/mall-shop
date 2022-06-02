@@ -81,13 +81,13 @@ public abstract class AbstractCollectFactory {
 //        this.after(bulkCollect(keySet, collectMap));
 //    }
 
-    protected  <S> void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer maxSize) {
+    protected  <S> void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize) {
 
         Set<String> spuIdResultSet = new HashSet<>();
         for (String key : collectMap.keySet()) {
             AbstractCollect spuCollect = collectMap.get(key);
             Set<String> spuIdTmpSet = spuCollect.incrementalLoadSpuId(lastCollectTime, now);
-            if (spuIdTmpSet.size() < maxSize) {
+            if (spuIdTmpSet.size() < minSize) {
                 spuIdResultSet.addAll(spuIdTmpSet);
                 continue;
             }

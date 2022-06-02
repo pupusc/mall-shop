@@ -5,16 +5,13 @@ import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Description:
@@ -46,11 +43,10 @@ public class CollectFactory extends AbstractCollectFactory{
 
     @PostConstruct
     public void initSpuCollect() {
-//        System.out.println(">>>>>>>>>" + spuCollectMap);
         LocalDateTime now = LocalDateTime.now();
-        int maxSize = 50;
+        int minSize = 50;
         LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-        super.load(spuCollectMap, lastCollectTime, now, maxSize);
+        super.load(spuCollectMap, lastCollectTime, now, minSize);
     }
 
 
