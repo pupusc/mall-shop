@@ -169,9 +169,7 @@ public class BookListGoodsPublishService {
     }
 
 
-    public List<BookListGoodsPublishLinkModelResponse> collectPublishBookListModel() {
 
-    }
 
 
     private Specification<BookListGoodsPublishDTO> packageWhere(Collection<Integer> bookListIdCollection, Integer bookListId, Integer categoryId, String spuId) {

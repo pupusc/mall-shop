@@ -262,8 +262,4 @@ public class BookListModelController implements BookListModelProvider {
         return BaseResponse.success(collect);
     }
 
-
-    public BaseResponse<BookListGoodsPublishProviderResponse> collectBookListModel(@RequestBody CollectBookListModelProviderRequest request){
-        bookListGoodsPublishService.list()
-    }
 }

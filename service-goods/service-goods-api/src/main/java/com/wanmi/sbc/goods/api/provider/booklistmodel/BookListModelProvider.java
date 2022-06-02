@@ -147,11 +147,4 @@ public interface BookListModelProvider {
     @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
     BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
 
-    /**
-     * 采集书单
-     * @return
-     */
-    @PostMapping("/goods/${application.goods.version}/booklistmodel/collectBookListModel")
-    BaseResponse<BookListGoodsPublishProviderResponse> collectBookListModel(@RequestBody CollectBookListModelProviderRequest request);
-
 }
