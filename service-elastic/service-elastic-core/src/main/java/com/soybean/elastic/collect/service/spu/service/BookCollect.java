@@ -2,6 +2,7 @@ package com.soybean.elastic.collect.service.spu.service;
 
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
+import com.soybean.elastic.spu.model.sub.SubBookNew;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,7 +35,9 @@ public class BookCollect extends AbstractSpuCollect {
     public <T> List<T> collect(List<T> list) {
         for (T t : list) {
             EsSpuNew esSpuNew = (EsSpuNew) t;
-            esSpuNew.setSpuName("我是张三");
+            SubBookNew subBookNew = new SubBookNew();
+            subBookNew.setBookName("图书信息");
+            esSpuNew.setBook(subBookNew);
         }
         return list;
     }
