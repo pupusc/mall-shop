@@ -169,6 +169,11 @@ public class BookListGoodsPublishService {
     }
 
 
+    public List<BookListGoodsPublishLinkModelResponse> collectPublishBookListModel() {
+
+    }
+
+
     private Specification<BookListGoodsPublishDTO> packageWhere(Collection<Integer> bookListIdCollection, Integer bookListId, Integer categoryId, String spuId) {
         return new Specification<BookListGoodsPublishDTO>() {
             final List<Predicate> predicateList = new ArrayList<>();

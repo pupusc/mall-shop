@@ -53,7 +53,7 @@ public abstract class AbstractCollect {
     public <F> Set<F> incrementalLoadSpuId(LocalDateTime lastCollectTime, LocalDateTime now) {
         long beginTime = beforeCollect();
         Set<F> result = collectId(lastCollectTime, now);
-        afterCollect(beginTime, "collectSpuId");
+        afterCollect(beginTime, "collectId");
         return result;
     }
 

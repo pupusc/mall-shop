@@ -6,6 +6,7 @@ import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CollectBookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -258,5 +260,10 @@ public class BookListModelController implements BookListModelProvider {
         List<BookListModelDTO> list = bookListModelService.findPublishBook();
         List<Integer> collect = list.stream().map(ex -> ex.getId()).collect(Collectors.toList());
         return BaseResponse.success(collect);
+    }
+
+
+    public BaseResponse<BookListGoodsPublishProviderResponse> collectBookListModel(@RequestBody CollectBookListModelProviderRequest request){
+        bookListGoodsPublishService.list()
     }
 }

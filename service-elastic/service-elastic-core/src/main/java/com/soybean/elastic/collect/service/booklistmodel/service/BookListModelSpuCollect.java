@@ -3,6 +3,8 @@ package com.soybean.elastic.collect.service.booklistmodel.service;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,9 +26,14 @@ import java.util.UUID;
 @Service
 public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
+    @Autowired
+    private BookListModelProvider bookListModelProvider;
 
     @Override
     public Set<Long> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
+
+        bookListModelProvider.listByPage()
+
         Set<Long> result = new HashSet<>();
         result.add(new Random().nextLong());
         return result;

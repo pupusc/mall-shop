@@ -4,6 +4,7 @@ package com.wanmi.sbc.goods.api.provider.booklistmodel;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
+import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CollectBookListModelProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CountBookListModelGroupProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListMixProviderRequest;
 import com.wanmi.sbc.goods.api.request.booklistmodel.BookListModelBySpuIdCollQueryRequest;
@@ -145,4 +146,12 @@ public interface BookListModelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
     BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
+
+    /**
+     * 采集书单
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/booklistmodel/collectBookListModel")
+    BaseResponse<BookListGoodsPublishProviderResponse> collectBookListModel(@RequestBody CollectBookListModelProviderRequest request);
+
 }
