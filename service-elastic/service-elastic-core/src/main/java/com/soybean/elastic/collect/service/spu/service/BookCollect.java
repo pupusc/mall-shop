@@ -23,7 +23,7 @@ public class BookCollect extends AbstractSpuCollect {
 
 
     @Override
-    public Set<String> collectSpuId(LocalDateTime lastCollectTime, LocalDateTime now) {
+    public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<String> result = new HashSet<>();
         result.add(UUID.randomUUID().toString());
         return result;

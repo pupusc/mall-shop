@@ -43,7 +43,7 @@ public class CollectSpuFactory extends AbstractCollectFactory {
     }
 
     @PostConstruct
-    public void initSpuCollect() {
+    public void init() {
         LocalDateTime now = LocalDateTime.now();
         int minSize = 50;
         LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
@@ -52,7 +52,7 @@ public class CollectSpuFactory extends AbstractCollectFactory {
 
 
     @Override
-    protected <S> void after(List<S> modelList) {
+    protected <S> void after(List<S> modelList, LocalDateTime now) {
         if (CollectionUtils.isEmpty(modelList)) {
             return;
         }

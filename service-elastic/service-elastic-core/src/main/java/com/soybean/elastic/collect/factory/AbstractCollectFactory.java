@@ -22,20 +22,36 @@ import java.util.Set;
 public abstract class AbstractCollectFactory {
 
     /**
-     * 打包类信息
+     * 根据key生成要拼装的对象信息
      * @param <S>
      * @return
      */
     protected abstract <S> S packModelId(Object key);
 
     /**
-     * 过滤类信息
+     * 该类优先加载, 如果不指定则无序加载
      * @return
      */
-    protected abstract Class<?> firstLoadCls();
+    protected Class<?> firstLoadCls(){
+        return Object.class;
+    }
+
 
     /**
-     * 获取采集结果
+     * 对外提供方法
+     */
+    public abstract void init();
+
+    /**
+     * 采集完数据 后续处理
+     * @param modelList
+     * @param now
+     * @param <S>
+     */
+    protected abstract <S> void after(List<S> modelList, LocalDateTime now);
+
+    /**
+     * 限量采集数据
      * @param keySet
      * @return
      */
@@ -72,14 +88,14 @@ public abstract class AbstractCollectFactory {
         return result;
     }
 
-
-//    protected abstract before();
-
-//    protected  <S> void load(Set<String> keySet, Map<String, ? extends AbstractCollect> collectMap) {
-//        this.after(bulkCollect(keySet, collectMap));
-//    }
-
-    protected  <S> void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize) {
+    /**
+     *
+     * @param collectMap  实现类列表
+     * @param lastCollectTime 上一次存储时间
+     * @param now 当前时间
+     * @param minSize 最小处理数量[只要超过该值就会调用 after 方法]
+     */
+    protected  void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize) {
 
         Set<Object> spuIdResultSet = new HashSet<>();
         for (String key : collectMap.keySet()) {
@@ -89,15 +105,15 @@ public abstract class AbstractCollectFactory {
                 spuIdResultSet.addAll(spuIdTmpSet);
                 continue;
             }
-            this.after(bulkCollect(spuIdResultSet, collectMap));
+            this.after(bulkCollect(spuIdResultSet, collectMap), now);
             spuIdResultSet.clear();
         }
 
         if (!CollectionUtils.isEmpty(spuIdResultSet)) {
-            this.after(bulkCollect(spuIdResultSet, collectMap));
+            this.after(bulkCollect(spuIdResultSet, collectMap), now);
         }
     }
 
-    protected abstract <S> void after(List<S> modelList);
+
 
 }

@@ -23,9 +23,9 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
 
 
     @Override
-    public Set<Long> collectSpuId(LocalDateTime lastCollectTime, LocalDateTime now) {
+    public Set<Long> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<Long> result = new HashSet<>();
-        result.add(new Random().nextLong());
+
         return result;
     }
 

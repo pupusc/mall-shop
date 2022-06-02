@@ -25,7 +25,7 @@ public abstract class AbstractCollect {
      * @param <F>
      * @return
      */
-    public abstract <F> Set<F> collectSpuId(LocalDateTime lastCollectTime, LocalDateTime now);
+    public abstract <F> Set<F> collectId(LocalDateTime lastCollectTime, LocalDateTime now);
 
 
     /**
@@ -52,7 +52,7 @@ public abstract class AbstractCollect {
      */
     public <F> Set<F> incrementalLoadSpuId(LocalDateTime lastCollectTime, LocalDateTime now) {
         long beginTime = beforeCollect();
-        Set<F> result = collectSpuId(lastCollectTime, now);
+        Set<F> result = collectId(lastCollectTime, now);
         afterCollect(beginTime, "collectSpuId");
         return result;
     }
