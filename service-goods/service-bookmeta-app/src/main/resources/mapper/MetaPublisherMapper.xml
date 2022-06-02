@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaPublisherMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaPublisher" id="MetaPublisherMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="buildTime" column="build_time" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaPublisherMap">
+        select
+          id, name, image, build_time, create_time, update_time, del_flag, descr
+        from meta_publisher
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaPublisherMap">
+        select
+          id, name, image, build_time, create_time, update_time, del_flag, descr
+        from meta_publisher
+        <where>
+            <if test="metaPublisher.id != null">
+                and id = #{metaPublisher.id}
+            </if>
+            <if test="metaPublisher.name != null and metaPublisher.name != ''">
+                and name like concat('%', #{metaPublisher.name}, '%')
+            </if>
+            <if test="metaPublisher.image != null and metaPublisher.image != ''">
+                and image = #{metaPublisher.image}
+            </if>
+            <if test="metaPublisher.buildTime != null">
+                and build_time = #{metaPublisher.buildTime}
+            </if>
+            <if test="metaPublisher.createTime != null">
+                and create_time = #{metaPublisher.createTime}
+            </if>
+            <if test="metaPublisher.updateTime != null">
+                and update_time = #{metaPublisher.updateTime}
+            </if>
+            <if test="metaPublisher.delFlag != null">
+                and del_flag = #{metaPublisher.delFlag}
+            </if>
+            <if test="metaPublisher.descr != null and metaPublisher.descr != ''">
+                and descr = #{metaPublisher.descr}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_publisher
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="image != null and image != ''">
+                and image = #{image}
+            </if>
+            <if test="buildTime != null">
+                and build_time = #{buildTime}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_publisher(name, image, build_time, create_time, update_time, del_flag, descr)
+        values (#{name}, #{image}, #{buildTime}, #{createTime}, #{updateTime}, #{delFlag}, #{descr})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_publisher(name, image, build_time, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.name}, #{entity.image}, #{entity.buildTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_publisher(name, image, build_time, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.name}, #{entity.image}, #{entity.buildTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+        on duplicate key update
+        name = values(name),
+        image = values(image),
+        build_time = values(build_time),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        descr = values(descr)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_publisher
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="image != null and image != ''">
+                image = #{image},
+            </if>
+            <if test="buildTime != null">
+                build_time = #{buildTime},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="descr != null and descr != ''">
+                descr = #{descr},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_publisher set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

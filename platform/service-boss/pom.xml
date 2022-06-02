@@ -125,6 +125,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-api</artifactId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
