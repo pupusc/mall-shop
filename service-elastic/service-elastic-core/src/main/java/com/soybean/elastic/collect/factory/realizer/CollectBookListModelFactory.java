@@ -1,7 +1,8 @@
-package com.soybean.elastic.collect.factory;
+package com.soybean.elastic.collect.factory.realizer;
 
 import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
+import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
 import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelCollect;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
@@ -24,7 +25,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-public class CollectBookListModelFactory extends AbstractCollectFactory{
+public class CollectBookListModelFactory extends AbstractCollectFactory {
 
 
     @Autowired

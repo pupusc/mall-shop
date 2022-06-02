@@ -1,6 +1,7 @@
-package com.soybean.elastic.collect.factory;
+package com.soybean.elastic.collect.factory.realizer;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
@@ -21,7 +22,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-public class CollectSpuFactory extends AbstractCollectFactory{
+public class CollectSpuFactory extends AbstractCollectFactory {
 
 
     @Autowired
