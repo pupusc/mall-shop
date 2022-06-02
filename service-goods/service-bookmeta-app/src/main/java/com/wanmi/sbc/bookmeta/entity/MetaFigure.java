@@ -1,11 +1,11 @@
 package com.wanmi.sbc.bookmeta.entity;
 
-import java.util.Date;
-import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 人物(MetaFigure)实体类
@@ -16,8 +16,9 @@ import javax.persistence.Table;
 @Table(name = "meta_figure")
 public class MetaFigure implements Serializable {
     private static final long serialVersionUID = -83395116140008348L;
-         
-    @Column(name = "id")
+
+    @Id
+    @GeneratedValue(generator = "JDBC")
     private Integer id;
     /**
      * 类型：1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
