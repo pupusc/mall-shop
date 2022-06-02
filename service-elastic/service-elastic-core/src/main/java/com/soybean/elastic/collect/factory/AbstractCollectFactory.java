@@ -23,11 +23,10 @@ public abstract class AbstractCollectFactory {
 
     /**
      * 打包类信息
-     * @param k
      * @param <S>
      * @return
      */
-    protected abstract <S> S packModel(String k);
+    protected abstract <S> S packModelId(Object key);
 
     /**
      * 过滤类信息
@@ -40,23 +39,22 @@ public abstract class AbstractCollectFactory {
      * @param keySet
      * @return
      */
-    private <S> List<S> bulkCollect(Set<String> keySet, Map<String, ? extends AbstractCollect> collectMap) {
+    private <S> List<S> bulkCollect(Set<Object> keySet, Map<String, ? extends AbstractCollect> collectMap) {
 
         List<S> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(keySet)) {
             return result;
         }
 
-        List<S> spuIdList = new ArrayList<>();
-        for (String s : keySet) {
-            spuIdList.add(this.packModel(s));
+        for (Object s : keySet) {
+            result.add(this.packModelId(s));
         }
 
         for (String keyChild : collectMap.keySet()) {
             //采集数据
             AbstractCollect collectChild = collectMap.get(keyChild);
             if (collectChild.getClass() == this.firstLoadCls()) {
-                result.addAll(collectChild.incrementalLoads(spuIdList));
+                collectChild.incrementalLoads(result);
                 break;
             }
         }
@@ -68,7 +66,7 @@ public abstract class AbstractCollectFactory {
                 if (collectChild.getClass() == this.firstLoadCls()) {
                     continue;
                 }
-                result.addAll(collectChild.incrementalLoads(spuIdList));
+                collectChild.incrementalLoads(result);
             }
         }
         return result;
@@ -83,10 +81,10 @@ public abstract class AbstractCollectFactory {
 
     protected  <S> void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize) {
 
-        Set<String> spuIdResultSet = new HashSet<>();
+        Set<Object> spuIdResultSet = new HashSet<>();
         for (String key : collectMap.keySet()) {
             AbstractCollect spuCollect = collectMap.get(key);
-            Set<String> spuIdTmpSet = spuCollect.incrementalLoadSpuId(lastCollectTime, now);
+            Set<Object> spuIdTmpSet = spuCollect.incrementalLoadSpuId(lastCollectTime, now);
             if (spuIdTmpSet.size() < minSize) {
                 spuIdResultSet.addAll(spuIdTmpSet);
                 continue;

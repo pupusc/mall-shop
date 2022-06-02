@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SubEsBookListSpuNew {
+public class EsBookListSubSpuNew {
 
     @Field(type = FieldType.Keyword)
     private String spuId;

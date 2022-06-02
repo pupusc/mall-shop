@@ -1,10 +1,13 @@
 package com.soybean.elastic.collect.service.booklistmodel.service;
 
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
+import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -19,7 +22,7 @@ import java.util.UUID;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-public class BookListModelCollect extends AbstractBookListModelCollect {
+public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
 
     @Override
@@ -33,7 +36,9 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
     public <F> List<F> collect(List<F> list) {
         for (F f : list) {
             EsBookListModel esBookListModel = (EsBookListModel) f;
-            esBookListModel.setBookListName("这个是一个书单" + new Random().nextInt());
+            EsBookListSubSpuNew esBookListSubSpuNew = new EsBookListSubSpuNew();
+            esBookListSubSpuNew.setSpuId(UUID.randomUUID().toString());
+            esBookListModel.setSpus(Collections.singletonList(esBookListSubSpuNew));
         }
         return list;
     }

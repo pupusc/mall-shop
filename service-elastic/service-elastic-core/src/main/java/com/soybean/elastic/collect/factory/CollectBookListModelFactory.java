@@ -1,6 +1,9 @@
 package com.soybean.elastic.collect.factory;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.booklistmodel.model.EsBookListModel;
+import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelCollect;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
@@ -21,24 +24,24 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-public class CollectFactory extends AbstractCollectFactory{
+public class CollectBookListModelFactory extends AbstractCollectFactory{
 
 
     @Autowired
-    private Map<String, AbstractSpuCollect> spuCollectMap;
+    private Map<String, AbstractBookListModelCollect> bookListModelCollectMap;
 
 
     @Override
-    protected EsSpuNew packModel(String k) {
-        EsSpuNew esSpuNew = new EsSpuNew();
-        esSpuNew.setSpuId(k);
-        return esSpuNew;
+    protected EsBookListModel packModelId(Object k) {
+        EsBookListModel esBookListModel = new EsBookListModel();
+        esBookListModel.setBookListId((long)k);
+        return esBookListModel;
     }
 
 
     @Override
     protected Class<?> firstLoadCls() {
-        return SpuCollect.class;
+        return BookListModelCollect.class;
     }
 
     @PostConstruct
@@ -46,7 +49,7 @@ public class CollectFactory extends AbstractCollectFactory{
         LocalDateTime now = LocalDateTime.now();
         int minSize = 50;
         LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-        super.load(spuCollectMap, lastCollectTime, now, minSize);
+        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
     }
 
 
@@ -57,7 +60,7 @@ public class CollectFactory extends AbstractCollectFactory{
         }
 
         for (S s : modelList) {
-            System.out.println(JSON.toJSONString(s) + "<<<<<<<<<<<<<<<<<,");
+            System.out.println(JSON.toJSONString(s) + ">>>>>>>>>>>>>>");
         }
     }
 

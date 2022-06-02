@@ -2,7 +2,7 @@ package com.soybean.elastic.booklistmodel.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.soybean.elastic.booklistmodel.model.sub.SubEsBookListSpuNew;
+import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.constant.ConstantUtil;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
@@ -77,5 +77,5 @@ public class EsBookListModel {
      * 商品信息
      */
     @Field(type = FieldType.Nested)
-    private List<SubEsBookListSpuNew> spus;
+    private List<EsBookListSubSpuNew> spus;
 }
