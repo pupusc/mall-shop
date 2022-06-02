@@ -371,7 +371,7 @@ public class GoodsStockService {
             if (Arrays.asList("1", "3", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
                 erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
                         ? 0 : erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode());
-            } else if (Collections.singletonList("0").contains(erpGoodsInfoParam.getStockStatusCode())) {
+            } else if (Objects.equals("0", erpGoodsInfoParam.getStockStatusCode())) {
                 isCalculateStock = false;
             } else {
                 log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} stockStatusCode is not 1、2、3、4", erpGoodsCodeNo);
