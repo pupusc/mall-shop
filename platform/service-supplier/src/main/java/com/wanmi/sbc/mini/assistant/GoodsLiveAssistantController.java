@@ -43,8 +43,8 @@ public class GoodsLiveAssistantController {
 
     @Autowired
     private WxLiveAssistantProvider wxLiveAssistantProvider;
-    @Autowired
-    private WxMiniMessageProducer wxMiniMessageProducer;
+//    @Autowired
+//    private WxMiniMessageProducer wxMiniMessageProducer;
     @Autowired
     private EsGoodsStockProvider esGoodsStockProvider;
     @Autowired
