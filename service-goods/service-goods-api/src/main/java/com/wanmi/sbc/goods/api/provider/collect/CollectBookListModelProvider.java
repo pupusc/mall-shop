@@ -35,6 +35,7 @@ public interface CollectBookListModelProvider {
     /**
      * 获取书单列表
      */
+    @PostMapping("/goods/${application.goods.version}/collect/collectBookListId")
     BaseResponse<List<BookListModelProviderResponse>> collectBookListId(@RequestBody CollectBookListModelProviderRequest request);
 
 
@@ -43,6 +44,7 @@ public interface CollectBookListModelProvider {
      * @param request
      * @return
      */
+    @PostMapping("/goods/${application.goods.version}/collect/collectBookListByBookListIds")
     BaseResponse<List<BookListModelProviderResponse>> collectBookListByBookListIds(@RequestBody CollectBookListModelProviderRequest request);
 
 }
