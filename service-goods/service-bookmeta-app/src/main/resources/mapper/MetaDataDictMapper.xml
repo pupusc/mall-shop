@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaDataDictMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaDataDict" id="MetaDataDictMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="cate" column="cate" jdbcType="VARCHAR"/>
+        <result property="value" column="value" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaDataDictMap">
+        select
+          id, create_time, update_time, del_flag, name, cate, value
+        from meta_data_dict
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaDataDictMap">
+        select
+          id, create_time, update_time, del_flag, name, cate, value
+        from meta_data_dict
+        <where>
+            <if test="metaDataDict.id != null">
+                and id = #{metaDataDict.id}
+            </if>
+            <if test="metaDataDict.createTime != null">
+                and create_time = #{metaDataDict.createTime}
+            </if>
+            <if test="metaDataDict.updateTime != null">
+                and update_time = #{metaDataDict.updateTime}
+            </if>
+            <if test="metaDataDict.delFlag != null">
+                and del_flag = #{metaDataDict.delFlag}
+            </if>
+            <if test="metaDataDict.name != null and metaDataDict.name != ''">
+                and name = #{metaDataDict.name}
+            </if>
+            <if test="metaDataDict.cate != null and metaDataDict.cate != ''">
+                and cate = #{metaDataDict.cate}
+            </if>
+            <if test="metaDataDict.value != null and metaDataDict.value != ''">
+                and value = #{metaDataDict.value}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_data_dict
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+            <if test="cate != null and cate != ''">
+                and cate = #{cate}
+            </if>
+            <if test="value != null and value != ''">
+                and value = #{value}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_data_dict(create_time, update_time, del_flag, name, cate, value)
+        values (#{createTime}, #{updateTime}, #{delFlag}, #{name}, #{cate}, #{value})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_data_dict(create_time, update_time, del_flag, name, cate, value)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.name}, #{entity.cate}, #{entity.value})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_data_dict(create_time, update_time, del_flag, name, cate, value)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.name}, #{entity.cate}, #{entity.value})
+        </foreach>
+        on duplicate key update
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        name = values(name),
+        cate = values(cate),
+        value = values(value)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_data_dict
+        <set>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="cate != null and cate != ''">
+                cate = #{cate},
+            </if>
+            <if test="value != null and value != ''">
+                value = #{value},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_data_dict set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

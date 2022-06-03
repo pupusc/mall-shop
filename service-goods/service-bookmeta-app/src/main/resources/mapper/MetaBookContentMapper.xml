@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookContentMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookContent" id="MetaBookContentMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="figureId" column="figure_id" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookContentMap">
+        select
+          id, book_id, type, figure_id, content, create_time, update_time, del_flag
+        from meta_book_content
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookContentMap">
+        select
+          id, book_id, type, figure_id, content, create_time, update_time, del_flag
+        from meta_book_content
+        <where>
+            <if test="metaBookContent.id != null">
+                and id = #{metaBookContent.id}
+            </if>
+            <if test="metaBookContent.bookId != null">
+                and book_id = #{metaBookContent.bookId}
+            </if>
+            <if test="metaBookContent.type != null">
+                and type = #{metaBookContent.type}
+            </if>
+            <if test="metaBookContent.figureId != null">
+                and figure_id = #{metaBookContent.figureId}
+            </if>
+            <if test="metaBookContent.content != null and metaBookContent.content != ''">
+                and content = #{metaBookContent.content}
+            </if>
+            <if test="metaBookContent.createTime != null">
+                and create_time = #{metaBookContent.createTime}
+            </if>
+            <if test="metaBookContent.updateTime != null">
+                and update_time = #{metaBookContent.updateTime}
+            </if>
+            <if test="metaBookContent.delFlag != null">
+                and del_flag = #{metaBookContent.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_content
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="bookId != null">
+                and book_id = #{bookId}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="figureId != null">
+                and figure_id = #{figureId}
+            </if>
+            <if test="content != null and content != ''">
+                and content = #{content}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_content(book_id, type, figure_id, content, create_time, update_time, del_flag)
+        values (#{bookId}, #{type}, #{figureId}, #{content}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_content(book_id, type, figure_id, content, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.bookId}, #{entity.type}, #{entity.figureId}, #{entity.content}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_content(book_id, type, figure_id, content, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.bookId}, #{entity.type}, #{entity.figureId}, #{entity.content}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        book_id = values(book_id),
+        type = values(type),
+        figure_id = values(figure_id),
+        content = values(content),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_content
+        <set>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="figureId != null">
+                figure_id = #{figureId},
+            </if>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_content set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

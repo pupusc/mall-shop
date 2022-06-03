@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd" id="MetaBookRcmmdMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bizId" column="biz_id" jdbcType="INTEGER"/>
+        <result property="bizType" column="biz_type" jdbcType="INTEGER"/>
+        <result property="bizTime" column="biz_time" jdbcType="TIMESTAMP"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookRcmmdMap">
+        select
+          id, biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id
+        from meta_book_rcmmd
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookRcmmdMap">
+        select
+          id, biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id
+        from meta_book_rcmmd
+        <where>
+            <if test="metaBookRcmmd.id != null">
+                and id = #{metaBookRcmmd.id}
+            </if>
+            <if test="metaBookRcmmd.bizId != null">
+                and biz_id = #{metaBookRcmmd.bizId}
+            </if>
+            <if test="metaBookRcmmd.bizType != null">
+                and biz_type = #{metaBookRcmmd.bizType}
+            </if>
+            <if test="metaBookRcmmd.bizTime != null">
+                and biz_time = #{metaBookRcmmd.bizTime}
+            </if>
+            <if test="metaBookRcmmd.createTime != null">
+                and create_time = #{metaBookRcmmd.createTime}
+            </if>
+            <if test="metaBookRcmmd.updateTime != null">
+                and update_time = #{metaBookRcmmd.updateTime}
+            </if>
+            <if test="metaBookRcmmd.delFlag != null">
+                and del_flag = #{metaBookRcmmd.delFlag}
+            </if>
+            <if test="metaBookRcmmd.descr != null and metaBookRcmmd.descr != ''">
+                and descr = #{metaBookRcmmd.descr}
+            </if>
+            <if test="metaBookRcmmd.bookId != null">
+                and book_id = #{metaBookRcmmd.bookId}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_rcmmd
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="bizId != null">
+                and biz_id = #{bizId}
+            </if>
+            <if test="bizType != null">
+                and biz_type = #{bizType}
+            </if>
+            <if test="bizTime != null">
+                and biz_time = #{bizTime}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            <if test="bookId != null">
+                and book_id = #{bookId}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_rcmmd(biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id)
+        values (#{bizId}, #{bizType}, #{bizTime}, #{createTime}, #{updateTime}, #{delFlag}, #{descr}, #{bookId})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_rcmmd(biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.bizId}, #{entity.bizType}, #{entity.bizTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.bookId})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_rcmmd(biz_id, biz_type, biz_time, create_time, update_time, del_flag, descr, book_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.bizId}, #{entity.bizType}, #{entity.bizTime}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr}, #{entity.bookId})
+        </foreach>
+        on duplicate key update
+        biz_id = values(biz_id),
+        biz_type = values(biz_type),
+        biz_time = values(biz_time),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        descr = values(descr),
+        book_id = values(book_id)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_rcmmd
+        <set>
+            <if test="bizId != null">
+                biz_id = #{bizId},
+            </if>
+            <if test="bizType != null">
+                biz_type = #{bizType},
+            </if>
+            <if test="bizTime != null">
+                biz_time = #{bizTime},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="descr != null and descr != ''">
+                descr = #{descr},
+            </if>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_rcmmd set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

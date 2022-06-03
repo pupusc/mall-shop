@@ -368,10 +368,10 @@ public class GoodsStockService {
             boolean isCalculateStock = true;
 
             int erpStockQty = 9999;
-            if (Arrays.asList("1", "3").contains(erpGoodsInfoParam.getStockStatusCode())) {
+            if (Arrays.asList("1", "3", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
                 erpStockQty = erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode()) == null
                         ? 0 : erpSkuCode2ErpStockQtyMap.get(erpGoodsInfoParam.getSkuCode());
-            } else if (Arrays.asList("0", "2").contains(erpGoodsInfoParam.getStockStatusCode())) {
+            } else if (Objects.equals("0", erpGoodsInfoParam.getStockStatusCode())) {
                 isCalculateStock = false;
             } else {
                 log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} stockStatusCode is not 1、2、3、4", erpGoodsCodeNo);
