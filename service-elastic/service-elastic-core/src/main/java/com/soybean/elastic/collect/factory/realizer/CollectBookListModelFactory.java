@@ -11,6 +11,7 @@ import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.repository.EsSpuRepository;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +75,10 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
             EsBookListModel esBookListModel = (EsBookListModel) s;
 //            esBookListModel.setBookListId(12313123L);
 //            esBookListModel.setBookListName("红楼梦；四大名著");
+            if (!Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.RANKING_LIST.getCode())
+                    .contains(esBookListModel.getBookListBusinessType())) {
+                continue;
+            }
             result.add(esBookListModel);
         }
         esBookListModelRepository.saveAll(result);

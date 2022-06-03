@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.request.booklistgoodspublish;
+package com.wanmi.sbc.goods.api.request.collect;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -8,7 +8,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,7 +18,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class CollectBookListModelProviderRequest implements Serializable {
+public class CollectSpuProviderReq implements Serializable {
 
     private int pageSize = 100;
 
@@ -38,13 +37,7 @@ public class CollectBookListModelProviderRequest implements Serializable {
     private LocalDateTime endTime;
 
     /**
-     * 书单列表
+     * 商品id列表
      */
-    private List<Integer> bookListModelIds;
-
-    /**
-     * 业务类型
-     */
-    private List<Integer> businesstypes;
-
+    private List<String> spuIds;
 }

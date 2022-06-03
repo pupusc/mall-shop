@@ -35,7 +35,7 @@ public class EsBookListModel {
      * 书单类型 1 排行榜 2 书单
      */
     @Field(type = FieldType.Integer)
-    private Integer bookListCategory;
+    private Integer bookListBusinessType;;
 
     /**
      * ik_max_word 会对文本做最细 力度的拆分

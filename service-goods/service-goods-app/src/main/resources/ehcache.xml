@@ -10,6 +10,7 @@
            eternal="false"
            maxEntriesLocalHeap="0"
            timeToLiveSeconds="60"
+           maxElementsInMemory="1000"
            copyOnRead="true" copyOnWrite="true">
         <copyStrategy class="net.sf.ehcache.store.compound.ReadWriteSerializationCopyStrategy"/>
     </cache>
@@ -17,6 +18,7 @@
     <cache name="GOODS_LABEL_LIST"
            eternal="false"
            maxEntriesLocalHeap="0"
+           maxElementsInMemory="1000"
            timeToLiveSeconds="300">
     </cache>
 

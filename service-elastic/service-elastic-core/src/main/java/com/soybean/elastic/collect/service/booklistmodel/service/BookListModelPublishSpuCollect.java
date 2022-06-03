@@ -4,7 +4,8 @@ import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
 import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
-import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CollectBookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
+import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
 
     private List<CollectBookListGoodsPublishResponse> listCollectBookListGoodsPublish(LocalDateTime beginTime, LocalDateTime endtime) {
         //获取商品列表
-        CollectBookListModelProviderRequest request = new CollectBookListModelProviderRequest();
+        CollectBookListModelProviderReq request = new CollectBookListModelProviderReq();
         request.setBeginTime(beginTime);
         request.setEndTime(endtime);
         request.setPageSize(MAX_PAGE_SIZE);
@@ -63,7 +64,7 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
         List<Integer> bookListModelIdList = list.stream().map(ex -> ((EsBookListModel)ex).getBookListId().intValue()).collect(Collectors.toList());
 
         //根据商品id获取商品信息
-        CollectBookListModelProviderRequest collectBookListModelProviderRequest = new CollectBookListModelProviderRequest();
+        CollectBookListModelProviderReq collectBookListModelProviderRequest = new CollectBookListModelProviderReq();
         collectBookListModelProviderRequest.setBookListModelIds(bookListModelIdList);
         List<CollectBookListGoodsPublishResponse> context =
                 collectBookListModelProvider.collectBookListGoodsPublishIdByBookListIds(collectBookListModelProviderRequest).getContext();
