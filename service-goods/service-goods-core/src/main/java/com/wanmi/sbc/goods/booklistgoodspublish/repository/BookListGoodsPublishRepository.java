@@ -56,5 +56,17 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
      * @return
      */
     @Query(value = "select * from t_book_list_goods_publish where update_time >=?1 and update_time < ?2 and category = ?3 order by update_time desc limit ?4", nativeQuery = true)
-    List<BookListGoodsPublishDTO> collectListGoodsPublish(LocalDateTime beginTime, LocalDateTime endTime, Integer category, Integer pageSize);
+    List<BookListGoodsPublishDTO> collectBookListGoodsPublishId(LocalDateTime beginTime, LocalDateTime endTime, Integer category, Integer pageSize);
+
+
+    /**
+     * 根据id采集数据
+     * @return
+     */
+    @Query(value = "select * from t_book_list_goods_publish where book_list_id in ?1", nativeQuery = true)
+    List<BookListGoodsPublishDTO> collectBookListGoodsPublishIdByBookListIds(List<Integer> bookListIds);
 }
+
+}
+
+

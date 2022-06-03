@@ -3,6 +3,7 @@ package com.wanmi.sbc.goods.provider.impl.collect;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.CollectBookListModelProviderRequest;
+import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
 import com.wanmi.sbc.goods.collect.CollectBookListModelService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,26 @@ public class CollectBookListModelController implements CollectBookListModelProvi
     private CollectBookListModelService collectBookListModelService;
 
     @Override
-    public BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublish(@RequestBody CollectBookListModelProviderRequest request){
-        return BaseResponse.success(collectBookListModelService.collectBookListGoodsPublish(request));
+    public BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublishId(@RequestBody CollectBookListModelProviderRequest request){
+        return BaseResponse.success(collectBookListModelService.collectBookListGoodsPublishId(request));
     }
+
+
+    @Override
+    public BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublishIdByBookListIds(@RequestBody CollectBookListModelProviderRequest request){
+        return BaseResponse.success(collectBookListModelService.collectBookListGoodsPublishIdByBookListIds(request));
+    }
+
+
+    @Override
+    public BaseResponse<List<BookListModelProviderResponse>> collectBookListId(@RequestBody CollectBookListModelProviderRequest request){
+        return BaseResponse.success(collectBookListModelService.collectBookListId(request));
+    }
+
+
+    @Override
+    public BaseResponse<List<BookListModelProviderResponse>> collectBookListByBookListIds(@RequestBody CollectBookListModelProviderRequest request){
+        return BaseResponse.success(collectBookListModelService.collectBookListByBookListIds(request));
+    }
+
 }

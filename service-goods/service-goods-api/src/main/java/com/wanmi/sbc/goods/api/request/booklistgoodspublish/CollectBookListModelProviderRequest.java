@@ -9,6 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Description:
@@ -36,5 +37,14 @@ public class CollectBookListModelProviderRequest implements Serializable {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    /**
+     * 书单列表
+     */
+    private List<Integer> bookListModelIds;
+
+    /**
+     * 业务类型
+     */
+    private List<Integer> businesstypes;
 
 }

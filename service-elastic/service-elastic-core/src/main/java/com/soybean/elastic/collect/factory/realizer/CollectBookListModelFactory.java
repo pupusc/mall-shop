@@ -6,6 +6,7 @@ import com.soybean.elastic.booklistmodel.repository.EsBookListModelRepository;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
 import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelCollect;
+import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelPublishSpuCollect;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
@@ -49,7 +50,7 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
 
     @Override
     protected Class<?> firstLoadCls() {
-        return BookListModelCollect.class;
+        return BookListModelPublishSpuCollect.class;
     }
 
 

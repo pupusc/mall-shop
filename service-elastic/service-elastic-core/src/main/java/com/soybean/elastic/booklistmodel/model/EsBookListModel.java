@@ -51,12 +51,20 @@ public class EsBookListModel {
     private String bookListDesc;
 
     /**
-     * 发布时间
+     * 创建时间
      */
     @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime publishTime;
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime updateTime;
 
 
     /**
