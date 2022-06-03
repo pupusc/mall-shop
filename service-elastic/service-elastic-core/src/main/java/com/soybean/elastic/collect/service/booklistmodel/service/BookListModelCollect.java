@@ -77,6 +77,9 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
             esBookListModel.setBookListName(bookListModel.getName());
             esBookListModel.setBookListDesc(bookListModel.getDesc());
             esBookListModel.setBookListBusinessType(bookListModel.getBusinessType());
+            esBookListModel.setDelFlag(bookListModel.getDelFlag());
+            esBookListModel.setHasTop(bookListModel.getHasTop());
+            esBookListModel.setPublishState(bookListModel.getPublishState());
             esBookListModel.setCreateTime(LocalDateTime.ofInstant(bookListModel.getCreateTime().toInstant(), ZoneId.systemDefault()));
             esBookListModel.setUpdateTime(LocalDateTime.ofInstant(bookListModel.getUpdateTime().toInstant(), ZoneId.systemDefault()));
         }

@@ -51,6 +51,18 @@ public class EsBookListModel {
     private String bookListDesc;
 
     /**
+     * 是否置顶 0否 1 是
+     */
+    @Field(type = FieldType.Integer)
+    private Integer hasTop;
+
+    /**
+     * 发布状态 0 草稿 1 已编辑未发布 2 已发布
+     */
+    @Field(type = FieldType.Integer)
+    private Integer publishState;
+
+    /**
      * 创建时间
      */
     @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
@@ -74,6 +86,12 @@ public class EsBookListModel {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime indexTime;
+
+    /**
+     * 删除 已删除：1，未删除：0
+     */
+    @Field(type = FieldType.Integer)
+    private Integer delFlag;
 
     /**
      * 商品总数量
