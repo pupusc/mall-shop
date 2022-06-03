@@ -21,7 +21,6 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
      * 书单关联发布表，获取结果信息
      * @param businessTypeList
      * @param category
-     * @param spuId
      * @return
      */
     @Query("select new com.wanmi.sbc.goods.booklistgoodspublish.response.BookListGoodsPublishLinkModelResponse " +
@@ -65,7 +64,6 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
      */
     @Query(value = "select * from t_book_list_goods_publish where book_list_id in ?1", nativeQuery = true)
     List<BookListGoodsPublishDTO> collectBookListGoodsPublishIdByBookListIds(List<Integer> bookListIds);
-}
 
 }
 
