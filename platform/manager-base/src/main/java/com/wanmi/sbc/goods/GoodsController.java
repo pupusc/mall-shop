@@ -248,6 +248,7 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+
         //验证组合商品包
         checkGoodsPack(request.getEditType(),
                 Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
@@ -255,6 +256,26 @@ public class GoodsController {
 
         request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
         request.setUpdatePerson(commonUtil.getOperatorId());
+
+        //设置库存
+        if (!CollectionUtils.isEmpty(request.getGoodsInfos())) {
+            long goodsStock = 0L;
+            for (GoodsInfoDTO goodsInfo : request.getGoodsInfos()) {
+                if (goodsInfo.getStockSyncFlag() == null) {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+                //非库存同步
+                if (goodsInfo.getStockSyncFlag() == 0) {
+                    if (goodsInfo.getTotalStock() == null || goodsInfo.getTotalStock() < 0) {
+                        throw new SbcRuntimeException("K-050415");
+                    } else {
+                        goodsInfo.setStock(goodsInfo.getTotalStock());
+                        goodsStock = goodsStock + goodsInfo.getTotalStock();
+                    }
+                }
+            }
+            request.getGoods().setStock(goodsStock);
+        }
 
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
@@ -293,9 +314,9 @@ public class GoodsController {
         }
 
         if (!Objects.isNull(fId)){
-        //判断运费模板是否存在
-        freightTemplateGoodsQueryProvider.existsById(
-                FreightTemplateGoodsExistsByIdRequest.builder().freightTempId(fId).build());
+            //判断运费模板是否存在
+            freightTemplateGoodsQueryProvider.existsById(
+                    FreightTemplateGoodsExistsByIdRequest.builder().freightTempId(fId).build());
         }
         request.getGoods().setCompanyInfoId(commonUtil.getCompanyInfoId());
         request.getGoods().setCompanyType(companyInfo.getCompanyType());
@@ -541,6 +562,27 @@ public class GoodsController {
                 }
             }
         }
+
+        //设置库存
+        if (!CollectionUtils.isEmpty(request.getGoodsInfos())) {
+            long goodsStock = 0L;
+            for (GoodsInfoVO goodsInfo : request.getGoodsInfos()) {
+                if (goodsInfo.getStockSyncFlag() == null) {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+                //非库存同步
+                if (goodsInfo.getStockSyncFlag() == 0) {
+                    if (goodsInfo.getTotalStock() == null || goodsInfo.getTotalStock() < 0) {
+                        throw new SbcRuntimeException("K-050415");
+                    } else {
+                        goodsInfo.setStock(goodsInfo.getTotalStock());
+                        goodsStock = goodsStock + goodsInfo.getTotalStock();
+                    }
+                }
+            }
+            request.getGoods().setStock(goodsStock);
+        }
+
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
 
         //同步库存 不判断是否自动同步，交给同步方法处理
@@ -1141,6 +1183,21 @@ public class GoodsController {
                 response.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
             }
         }
+
+        if (CollectionUtils.isEmpty(response.getGoodsInfos())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+            //获取冻结
+            String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfo.getGoodsInfoId());
+            long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+            long goodsInfoStock = goodsInfo.getStock() == null ? 0L : goodsInfo.getStock();
+            goodsInfo.setTotalStock(goodsInfoStock + freezeStock);
+            goodsInfo.setStock(goodsInfoStock);
+            goodsInfo.setFreezeStock(freezeStock);
+        }
+
         OperateDataLogListResponse operateDataLogListResponse =
                 operateDataLogQueryProvider.list(OperateDataLogListRequest.builder().operateId(goodsId).delFlag(DeleteFlag.NO).build()).getContext();
         List<OperateDataLogVO> operateDataLogList = new ArrayList<OperateDataLogVO>();
