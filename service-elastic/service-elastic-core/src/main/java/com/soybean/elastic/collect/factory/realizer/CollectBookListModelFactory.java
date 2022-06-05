@@ -58,10 +58,20 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
 
     @PostConstruct
     public void init() {
-        LocalDateTime now = LocalDateTime.now();
-        int minSize = 50;
-        LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
+        while (true) {
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            LocalDateTime now = LocalDateTime.now();
+                    int minSize = 50;
+                    LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
+                    super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
+
+
+        }
+
     }
 
 

@@ -103,22 +103,23 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
     @Override
     public <F> List<F> collect(List<F> list) {
-        List<String> spuIdList = new ArrayList<>();
+        Set<String> spuIdSet = new HashSet<>();
         for (F f : list) {
             EsBookListModel esBookListModel = (EsBookListModel) f;
             if (CollectionUtils.isEmpty(esBookListModel.getSpus())) {
                 break;
             }
             for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
-                spuIdList.add(esBookListSubSpuNew.getSpuId());
+                spuIdSet.add(esBookListSubSpuNew.getSpuId());
             }
         }
-        if (CollectionUtils.isEmpty(spuIdList)) {
+        if (CollectionUtils.isEmpty(spuIdSet)) {
             return list;
         }
         CollectSpuProviderReq req = new CollectSpuProviderReq();
-        req.setSpuIds(spuIdList);
+        req.setSpuIds(new ArrayList<>(spuIdSet));
         List<GoodsVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
+        spuIdSet.clear(); // 辅助GC
         if (CollectionUtils.isEmpty(context)) {
             return list;
         }

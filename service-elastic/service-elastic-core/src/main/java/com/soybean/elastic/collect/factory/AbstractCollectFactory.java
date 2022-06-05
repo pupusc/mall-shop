@@ -21,6 +21,8 @@ import java.util.Set;
  ********************************************************************/
 public abstract class AbstractCollectFactory {
 
+    public static final String INDEX_ES_BOOK_LIST_MODEL = "es_book_list_model";
+
     /**
      * 根据key生成要拼装的对象信息
      * @param <S>

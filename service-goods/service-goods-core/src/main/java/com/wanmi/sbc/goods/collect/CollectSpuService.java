@@ -8,8 +8,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Description:
@@ -31,11 +34,13 @@ public class CollectSpuService {
      * @return
      */
     public List<GoodsVO> collectSpuIdByTime(CollectSpuProviderReq req) {
-        List<Goods> goodsList = goodsRepository.collectSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
+        List<Map<String, Object>> goodsMapList = goodsRepository.collectSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
         List<GoodsVO> result = new ArrayList<>();
-        for (Goods goods : goodsList) {
+        for (Map<String, Object> goodsMapParam : goodsMapList) {
             GoodsVO goodsVO = new GoodsVO();
-            BeanUtils.copyProperties(goods, goodsVO);
+            goodsVO.setGoodsId(goodsMapParam.get("goods_id").toString());
+            goodsVO.setUpdateTime(goodsMapParam.get("update_time") != null ?  ((Timestamp)goodsMapParam.get("update_time")).toLocalDateTime() : null);
+            result.add(goodsVO);
         }
         return result;
     }
@@ -46,11 +51,12 @@ public class CollectSpuService {
      * @return
      */
     public List<GoodsVO> collectSpuBySpuIds(CollectSpuProviderReq req) {
-        List<Goods> goodsList = goodsRepository.collectSpuBySpuIds(req.getSpuIds());
+        List<Goods> goodsList = goodsRepository.findAllByGoodsIdIn(req.getSpuIds());
         List<GoodsVO> result = new ArrayList<>();
         for (Goods goods : goodsList) {
             GoodsVO goodsVO = new GoodsVO();
             BeanUtils.copyProperties(goods, goodsVO);
+            result.add(goodsVO);
         }
         return result;
     }

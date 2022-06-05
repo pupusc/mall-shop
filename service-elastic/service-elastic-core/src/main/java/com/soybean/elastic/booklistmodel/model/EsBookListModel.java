@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.constant.ConstantUtil;
+import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -24,7 +25,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-@Document(indexName = "es_book_list_model", type = "es_book_list_model")
+@Document(indexName = AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL, type = AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL)
 public class EsBookListModel {
 
     @Id

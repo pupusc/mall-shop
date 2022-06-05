@@ -19,7 +19,7 @@ public interface CollectBookListModelProvider {
      * 获取发布的商品列表
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/collect/collectBookListGoodsPublishId")
+    @PostMapping("/goods/${application.goods.version}/collect/booklist/collectBookListGoodsPublishId")
     BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublishId(@RequestBody CollectBookListModelProviderReq request);
 
 
@@ -28,7 +28,7 @@ public interface CollectBookListModelProvider {
      * 根据id获取发布的商品列表
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/collect/collectBookListGoodsPublishIdByBookListIds")
+    @PostMapping("/goods/${application.goods.version}/collect/booklist/collectBookListGoodsPublishIdByBookListIds")
     BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublishIdByBookListIds(@RequestBody CollectBookListModelProviderReq request);
 
 
@@ -37,14 +37,14 @@ public interface CollectBookListModelProvider {
      * 根据商品id获取发布的商品列表
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/collect/collectBookListGoodsPublishIdBySpuIds")
+    @PostMapping("/goods/${application.goods.version}/collect/booklist/collectBookListGoodsPublishIdBySpuIds")
     BaseResponse<List<CollectBookListGoodsPublishResponse>> collectBookListGoodsPublishIdBySpuIds(@RequestBody CollectBookListModelProviderReq request);
 
 
     /**
      * 获取书单列表
      */
-    @PostMapping("/goods/${application.goods.version}/collect/collectBookListId")
+    @PostMapping("/goods/${application.goods.version}/collect/booklist/collectBookListId")
     BaseResponse<List<BookListModelProviderResponse>> collectBookListId(@RequestBody CollectBookListModelProviderReq request);
 
 
@@ -53,7 +53,7 @@ public interface CollectBookListModelProvider {
      * @param request
      * @return
      */
-    @PostMapping("/goods/${application.goods.version}/collect/collectBookListByBookListIds")
+    @PostMapping("/goods/${application.goods.version}/collect/booklist/collectBookListByBookListIds")
     BaseResponse<List<BookListModelProviderResponse>> collectBookListByBookListIds(@RequestBody CollectBookListModelProviderReq request);
 
 }
