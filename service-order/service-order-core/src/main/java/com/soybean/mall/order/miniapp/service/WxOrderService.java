@@ -938,7 +938,7 @@ public class WxOrderService {
         if(response == null || response.getContext() ==null){
             throw new SbcRuntimeException("K-050415");
         } else if (!response.getContext().isSuccess()) {
-            throw new SbcRuntimeException(response.getContext().getErrcode(), response.getContext().getErrmsg());
+            throw new SbcRuntimeException(null, response.getContext().getErrcode().toString(), response.getContext().getErrmsg());
         } else {
             aftersaleId = response.getContext().getAftersaleId().toString();
         }

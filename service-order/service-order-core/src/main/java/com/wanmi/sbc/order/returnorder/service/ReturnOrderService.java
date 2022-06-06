@@ -1202,9 +1202,10 @@ public class ReturnOrderService {
             if (count + giftsCount == newReturnOrder.getReturnItems().size() + newReturnOrder.getReturnGifts().size()) {
                 virtualFlag = true;
             }
-            String aftersaleId = "";
+
             if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
                     && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                String aftersaleId = "";
                 //只有代客退单才做校验
                 if (Platform.WX_VIDEO != operator.getPlatform() && returnOrder.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
                     for (ReturnOrder returnOrderParam : returnOrderList) {
@@ -1221,13 +1222,12 @@ public class ReturnOrderService {
                     aftersaleId = newReturnOrder.getAftersaleId();
                 }
 
+                //保存退单
+                if (StringUtils.isNotBlank(aftersaleId)) {
+                    newReturnOrder.setAftersaleId(aftersaleId);
+                }
             }
-            
 
-            //保存退单
-            if (StringUtils.isNotBlank(aftersaleId)) {
-                newReturnOrder.setAftersaleId(aftersaleId);
-            }
             newReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
             returnOrderService.addReturnOrder(newReturnOrder);
 
