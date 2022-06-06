@@ -105,6 +105,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-api</artifactId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-app</artifactId>
+            <version>fandeng-4.1.7-release</version>
+        </dependency>
     </dependencies>
 
     <build>

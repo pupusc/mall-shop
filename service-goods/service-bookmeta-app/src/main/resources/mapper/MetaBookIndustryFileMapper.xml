@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookIndustryFileMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookIndustryFile" id="MetaBookIndustryFileMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="fileUrl" column="file_url" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+        <result property="descr" column="descr" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookIndustryFileMap">
+        select
+          id, file_url, status, create_time, update_time, del_flag, descr
+        from meta_book_industry_file
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookIndustryFileMap">
+        select
+          id, file_url, status, create_time, update_time, del_flag, descr
+        from meta_book_industry_file
+        <where>
+            <if test="metaBookIndustryFile.id != null">
+                and id = #{metaBookIndustryFile.id}
+            </if>
+            <if test="metaBookIndustryFile.fileUrl != null and metaBookIndustryFile.fileUrl != ''">
+                and file_url = #{metaBookIndustryFile.fileUrl}
+            </if>
+            <if test="metaBookIndustryFile.status != null">
+                and status = #{metaBookIndustryFile.status}
+            </if>
+            <if test="metaBookIndustryFile.createTime != null">
+                and create_time = #{metaBookIndustryFile.createTime}
+            </if>
+            <if test="metaBookIndustryFile.updateTime != null">
+                and update_time = #{metaBookIndustryFile.updateTime}
+            </if>
+            <if test="metaBookIndustryFile.delFlag != null">
+                and del_flag = #{metaBookIndustryFile.delFlag}
+            </if>
+            <if test="metaBookIndustryFile.descr != null and metaBookIndustryFile.descr != ''">
+                and descr = #{metaBookIndustryFile.descr}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_industry_file
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="fileUrl != null and fileUrl != ''">
+                and file_url = #{fileUrl}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="descr != null and descr != ''">
+                and descr = #{descr}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_file(file_url, status, create_time, update_time, del_flag, descr)
+        values (#{fileUrl}, #{status}, #{createTime}, #{updateTime}, #{delFlag}, #{descr})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_file(file_url, status, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.fileUrl}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_industry_file(file_url, status, create_time, update_time, del_flag, descr)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.fileUrl}, #{entity.status}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag}, #{entity.descr})
+        </foreach>
+        on duplicate key update
+        file_url = values(file_url),
+        status = values(status),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag),
+        descr = values(descr)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_industry_file
+        <set>
+            <if test="fileUrl != null and fileUrl != ''">
+                file_url = #{fileUrl},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+            <if test="descr != null and descr != ''">
+                descr = #{descr},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_industry_file set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

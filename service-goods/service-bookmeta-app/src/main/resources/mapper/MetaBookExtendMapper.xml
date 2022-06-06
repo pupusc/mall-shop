@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanmi.sbc.bookmeta.mapper.MetaBookExtendMapper">
+
+    <resultMap type="com.wanmi.sbc.bookmeta.entity.MetaBookExtend" id="MetaBookExtendMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="bookId" column="book_id" jdbcType="INTEGER"/>
+        <result property="propName" column="prop_name" jdbcType="VARCHAR"/>
+        <result property="propValue" column="prop_value" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="MetaBookExtendMap">
+        select
+          id, book_id, prop_name, prop_value, create_time, update_time, del_flag
+        from meta_book_extend
+        where id = #{id}
+            and del_flag = 0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="MetaBookExtendMap">
+        select
+          id, book_id, prop_name, prop_value, create_time, update_time, del_flag
+        from meta_book_extend
+        <where>
+            <if test="metaBookExtend.id != null">
+                and id = #{metaBookExtend.id}
+            </if>
+            <if test="metaBookExtend.bookId != null">
+                and book_id = #{metaBookExtend.bookId}
+            </if>
+            <if test="metaBookExtend.propName != null and metaBookExtend.propName != ''">
+                and prop_name = #{metaBookExtend.propName}
+            </if>
+            <if test="metaBookExtend.propValue != null and metaBookExtend.propValue != ''">
+                and prop_value = #{metaBookExtend.propValue}
+            </if>
+            <if test="metaBookExtend.createTime != null">
+                and create_time = #{metaBookExtend.createTime}
+            </if>
+            <if test="metaBookExtend.updateTime != null">
+                and update_time = #{metaBookExtend.updateTime}
+            </if>
+            <if test="metaBookExtend.delFlag != null">
+                and del_flag = #{metaBookExtend.delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+        ORDER BY create_time DESC
+        limit #{limitIndex}, #{limitSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from meta_book_extend
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="bookId != null">
+                and book_id = #{bookId}
+            </if>
+            <if test="propName != null and propName != ''">
+                and prop_name = #{propName}
+            </if>
+            <if test="propValue != null and propValue != ''">
+                and prop_value = #{propValue}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="delFlag != null">
+                and del_flag = #{delFlag}
+            </if>
+            and del_flag = 0
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_extend(book_id, prop_name, prop_value, create_time, update_time, del_flag)
+        values (#{bookId}, #{propName}, #{propValue}, #{createTime}, #{updateTime}, #{delFlag})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_extend(book_id, prop_name, prop_value, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.bookId}, #{entity.propName}, #{entity.propValue}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into meta_book_extend(book_id, prop_name, prop_value, create_time, update_time, del_flag)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.bookId}, #{entity.propName}, #{entity.propValue}, #{entity.createTime}, #{entity.updateTime}, #{entity.delFlag})
+        </foreach>
+        on duplicate key update
+        book_id = values(book_id),
+        prop_name = values(prop_name),
+        prop_value = values(prop_value),
+        create_time = values(create_time),
+        update_time = values(update_time),
+        del_flag = values(del_flag)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update meta_book_extend
+        <set>
+            <if test="bookId != null">
+                book_id = #{bookId},
+            </if>
+            <if test="propName != null and propName != ''">
+                prop_name = #{propName},
+            </if>
+            <if test="propValue != null and propValue != ''">
+                prop_value = #{propValue},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        update meta_book_extend set del_flag = 1 where id = #{id}
+    </delete>
+
+</mapper>
+

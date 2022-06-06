@@ -17,6 +17,8 @@
         <maven.compiler.target>8</maven.compiler.target>
         <service.common.version>fandeng-4.1.7-release</service.common.version>
         <mall.common.log.version>0.0.1-SNAPSHOT</mall.common.log.version>
+        <mybatis-spring-boot-starter.version>2.1.1</mybatis-spring-boot-starter.version>
+        <mapper-spring-boot-starter.version>2.1.5</mapper-spring-boot-starter.version>
     </properties>
 
     <dependencyManagement>
@@ -39,6 +41,16 @@
             </dependency>
 
             <!--三方jar包管理-->
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis-spring-boot-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tk.mybatis</groupId>
+                <artifactId>mapper-spring-boot-starter</artifactId>
+                <version>${mapper-spring-boot-starter.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
