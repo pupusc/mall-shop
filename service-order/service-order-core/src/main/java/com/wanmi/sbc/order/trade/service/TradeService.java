@@ -6750,7 +6750,7 @@ public class TradeService {
                 WxVideoOrderDetailResponse.PayInfo payInfo = context.getOrder().getOrderDetail().getPayInfo();
                 if (payInfo != null) {
                     log.info("==========视频号订单超时未支付取消，订单已支付取消失败，订单Id为：{}", baseTid);
-                    return;
+//                    return;
                 }
             }
         }
@@ -8133,6 +8133,7 @@ public class TradeService {
         List<PayCallBackOnlineBatch> payCallBackOnlineBatchList = trades.stream().map(trade -> {
             //每笔订单做是否合并支付标识
             trade.getPayInfo().setMergePay(isMergePay);
+            int a = 10/0;
             tradeService.updateTrade(trade);
             if (Objects.nonNull(trade.getIsBookingSaleGoods()) && trade.getIsBookingSaleGoods() && trade.getBookingType() == BookingType.EARNEST_MONEY &&
                     StringUtils.isNotEmpty(trade.getTailOrderNo()) && StringUtils.isNotEmpty(trade.getTailPayOrderId())) {
