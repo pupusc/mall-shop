@@ -34,6 +34,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -411,6 +412,19 @@ public class GoodsInfoController implements GoodsInfoProvider {
     @Override
     public BaseResponse decryFreezeStock(List<GoodsInfoMinusStockDTO> releaseFrozenStockList){
         goodsInfoStockService.decryFreezeStock(releaseFrozenStockList);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+    @Override
+    public BaseResponse updateStockSyncFlagById(Integer stockSyncFlag, String goodsInfoId) {
+        goodsInfoService.updateStockSyncFlagById(stockSyncFlag, goodsInfoId);
+        return BaseResponse.SUCCESSFUL();
+    }
+
+
+    @Override
+    public BaseResponse updateCostPriceSyncFlagById(Integer stockSyncFlag, String goodsInfoId) {
+        goodsInfoService.updateCostPriceSyncFlagById(stockSyncFlag, goodsInfoId);
         return BaseResponse.SUCCESSFUL();
     }
 }

@@ -561,11 +561,20 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     int updateCostPriceAndStockById(BigDecimal costPrice, Long stock, String goodsInfoId);
 
     /**
-     * 更新库存和价格
+     * 更新库存同步状态
      * @return
      */
     @Modifying
     @Transactional
-    @Query(value = "update GoodsInfo gi set gi.marketPrice=?1, gi.stock=?2, gi.stockSyncFlag=?3 where gi.goodsInfoId=?4")
-    int updateMarketPriceAndStockAndStockSyncFlagById(BigDecimal marketPrice, Long stock, Integer stockSyncFlag, String goodsInfoId);
+    @Query(value = "update GoodsInfo gi set gi.stockSyncFlag=?1 where gi.goodsInfoId=?2")
+    int updateStockSyncFlagById(Integer stockSyncFlag, String goodsInfoId);
+
+    /**
+     * 更新库存同步状态
+     * @return
+     */
+    @Modifying
+    @Transactional
+    @Query(value = "update GoodsInfo gi set gi.costPriceSyncFlag=?1 where gi.goodsInfoId=?2")
+    int updateCostPriceSyncFlagById(Integer costPriceSyncFlag, String goodsInfoId);
 }
