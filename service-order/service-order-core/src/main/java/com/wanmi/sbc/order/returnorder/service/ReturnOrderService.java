@@ -2124,8 +2124,9 @@ public class ReturnOrderService {
                     .build();
             returnFSMService.changeState(request);
 
+
             //视频号不进行自动发货
-            if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (!Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 //自动发货
                 autoDeliver(returnOrderId, operator);
             } else {
