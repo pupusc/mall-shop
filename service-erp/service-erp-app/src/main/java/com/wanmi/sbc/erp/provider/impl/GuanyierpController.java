@@ -65,13 +65,14 @@ public class GuanyierpController implements GuanyierpProvider {
 
     /**
      * 获取商品库存
-     * @param startTime
+     * @param pageNum
+     * @param pageSize
      * @param erpGoodNo
      * @return
      */
     @Override
-    public BaseResponse<ErpStockVo> listWareHoseStock(String startTime, String erpGoodNo){
-        return BaseResponse.success(guanyierpService.listWareHoseStock(startTime, erpGoodNo));
+    public BaseResponse<ErpStockVo> listWareHoseStock(Integer pageNum, Integer pageSize, String erpGoodNo){
+        return BaseResponse.success(guanyierpService.listWareHoseStock(pageNum, pageSize, erpGoodNo));
     }
 
 //    /**
