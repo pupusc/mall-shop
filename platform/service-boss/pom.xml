@@ -57,6 +57,7 @@
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
+            <version>1.4.1</version>
         </dependency>
         <!-- module -->
         <!-- tool -->
@@ -129,6 +130,12 @@
             <groupId>com.wanmi.sbc</groupId>
             <artifactId>service-bookmeta-api</artifactId>
             <version>${wm.micro.service.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.soybean.mall</groupId>
+            <artifactId>mall-common-teamwork</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
