@@ -58,6 +58,6 @@ public class WxGetProductDetailResponse extends WxResponseBase {
         private String marketPrice;
         //库存
         @JSONField(name = "stock_num")
-        private Integer stockNum;
+        private Long stockNum;
     }
 }

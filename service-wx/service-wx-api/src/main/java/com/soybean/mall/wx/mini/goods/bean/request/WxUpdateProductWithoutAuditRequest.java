@@ -27,7 +27,7 @@ public class WxUpdateProductWithoutAuditRequest extends WxResponseBase {
         @JSONField(name = "market_price")
         private BigDecimal marketPrice;
         @JSONField(name = "stock_num")
-        private Integer stockNum;
+        private Long stockNum;
         /**
          * 条形码
          */
