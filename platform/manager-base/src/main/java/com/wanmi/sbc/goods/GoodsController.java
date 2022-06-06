@@ -115,6 +115,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -1581,7 +1582,7 @@ public class GoodsController {
      * 库存同步开启/库存同步关闭
      * @return
      */
-    @PostMapping("/spuGoodsInfoSync/{goodsInfoId}")
+    @GetMapping("/spuGoodsInfoSync/{goodsInfoId}")
     public BaseResponse spuGoodsInfoStockSync(@PathVariable("goodsInfoId") String goodsInfoId) {
         //获取商品信息
         GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
@@ -1619,7 +1620,7 @@ public class GoodsController {
      * 库存同步开启/库存同步关闭
      * @return
      */
-    @PostMapping("/spuGoodsInfoCostPriceSync/{goodsInfoId}")
+    @GetMapping("/spuGoodsInfoCostPriceSync/{goodsInfoId}")
     public BaseResponse spuGoodsInfoCostPriceSync(@PathVariable("goodsInfoId") String goodsInfoId) {
         //获取商品信息
         GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
