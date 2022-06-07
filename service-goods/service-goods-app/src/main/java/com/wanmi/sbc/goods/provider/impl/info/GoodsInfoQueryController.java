@@ -2,6 +2,7 @@ package com.wanmi.sbc.goods.provider.impl.info;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterpriseGoodsInfoPageRequest;
@@ -56,6 +57,7 @@ import com.wanmi.sbc.goods.info.request.GoodsInfoRequest;
 import com.wanmi.sbc.goods.info.service.GoodsCacheService;
 import com.wanmi.sbc.goods.info.service.GoodsInfoService;
 import com.wanmi.sbc.goods.info.service.LinkedMallGoodsService;
+import com.wanmi.sbc.goods.redis.RedisService;
 import com.wanmi.sbc.goods.spec.service.GoodsInfoSpecDetailRelService;
 import com.wanmi.sbc.goods.util.mapper.GoodsInfoMapper;
 import com.wanmi.sbc.goods.util.mapper.GoodsMapper;
@@ -102,6 +104,9 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
 
     @Autowired
     private GoodsInfoSpecDetailRelService goodsInfoSpecDetailRelService;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 分页查询商品sku视图列表
@@ -210,6 +215,7 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         GoodsInfoViewByIdResponse response = GoodsInfoConvert.toGoodsInfoViewByGoodsInfoEditResponse(editResponse);
         //在设置未开启商品抵扣下清零buyPoint
         systemPointsConfigService.clearBuyPoinsForSku(response.getGoodsInfo());
+
 
         if (StringUtils.isNotBlank(response.getGoods().getLabelIdStr())) {
             String labelId=response.getGoods().getLabelIdStr().replace(",","");
@@ -331,6 +337,16 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         if(Boolean.TRUE.equals(request.getFillLmInfoFlag())){
             linkedMallGoodsService.fillLmStock(response.getGoodsInfos());
         }
+        //填充库存
+        if (CollectionUtils.isNotEmpty(response.getGoodsInfos())) {
+            for (GoodsInfoVO goodsParam : response.getGoodsInfos()) {
+                //获取冻结
+                String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsParam.getGoodsInfoId());
+                long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+                goodsParam.setTotalStock(freezeStock + goodsParam.getStock());
+                goodsParam.setFreezeStock(freezeStock);
+            }
+        }
         return BaseResponse.success(response);
     }
 
@@ -415,6 +431,15 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
             //是否填充LM库存
             if(Boolean.TRUE.equals(request.getFillLmInfoFlag())){
                 linkedMallGoodsService.fillLmStock(goodsInfoVOS);
+            }
+
+            //填充库存
+            for (GoodsInfoVO goodsParam : goodsInfoVOS) {
+                //获取冻结
+                String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsParam.getGoodsInfoId());
+                long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+                goodsParam.setTotalStock(freezeStock + goodsParam.getStock());
+                goodsParam.setFreezeStock(freezeStock);
             }
         }
         return BaseResponse.success(GoodsInfoByGoodsIdresponse.builder().goodsInfoVOList(goodsInfoVOS).build());

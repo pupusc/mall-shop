@@ -1205,6 +1205,7 @@ public class ReturnOrderService {
 
             if (Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP)
                     && Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+                String aftersaleId = "";
                 //只有代客退单才做校验
                 if (Platform.WX_VIDEO != operator.getPlatform() && returnOrder.getReturnPrice().getApplyPrice().compareTo(BigDecimal.ZERO) > 0) {
                     for (ReturnOrder returnOrderParam : returnOrderList) {
@@ -1215,18 +1216,18 @@ public class ReturnOrderService {
                     }
                 }
 
+                if (StringUtils.isBlank(newReturnOrder.getAftersaleId())) {
+                    aftersaleId = wxOrderService.addEcAfterSale(newReturnOrder, trade);
+                } else {
+                    aftersaleId = newReturnOrder.getAftersaleId();
+                }
+
+                //保存退单
+                if (StringUtils.isNotBlank(aftersaleId)) {
+                    newReturnOrder.setAftersaleId(aftersaleId);
+                }
             }
-            
-            String aftersaleId = "";
-            if (StringUtils.isBlank(newReturnOrder.getAftersaleId())) {
-                aftersaleId = wxOrderService.addEcAfterSale(newReturnOrder, trade);
-            } else {
-                aftersaleId = newReturnOrder.getAftersaleId();
-            }
-            //保存退单
-            if (StringUtils.isNotBlank(aftersaleId)) {
-                newReturnOrder.setAftersaleId(aftersaleId);
-            }
+
             newReturnOrder.setReturnFlowState(ReturnFlowState.INIT);
             returnOrderService.addReturnOrder(newReturnOrder);
 
@@ -2124,8 +2125,9 @@ public class ReturnOrderService {
                     .build();
             returnFSMService.changeState(request);
 
+
             //视频号不进行自动发货
-            if (!Objects.equals(returnOrder.getChannelType(), ChannelType.MINIAPP) && !Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
+            if (!Objects.equals(trade.getMiniProgramScene(), MiniProgramSceneType.WECHAT_VIDEO.getIndex())) {
                 //自动发货
                 autoDeliver(returnOrderId, operator);
             } else {

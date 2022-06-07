@@ -241,15 +241,20 @@ public class GuanyierpService {
      * TEST20211224001
      *  获取多仓库存 cancel
      */
-    public ErpStockVo listWareHoseStock(String startTime, String erpGoodsNo) {
-        Integer pageNum = 1;
-        Integer pageSize = 100;
-        log.info("GuanyierpService listWareHoseStock begin startTime:{} erpGoodsNo: {}, pageNum:{}, pageSize: {}", startTime, erpGoodsNo, pageNum, pageSize);
+    public ErpStockVo listWareHoseStock(Integer pageNum, Integer pageSize, String erpGoodsNo) {
+        if (pageNum == null) {
+            pageNum = 1;
+        }
+        if (pageSize == null) {
+            pageSize = 100;
+        }
+        log.info("GuanyierpService listWareHoseStock begin erpGoodsNo: {}, pageNum:{}, pageSize: {}", erpGoodsNo, pageNum, pageSize);
         long beginTime = System.currentTimeMillis();
         Map<String, String> request = new HashMap<>();
         request.put("appkey", appkey);
         request.put("sessionkey", sessionkey);
         request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
+        request.put("page_no", pageNum.toString());
         request.put("page_size", pageSize.toString());
         request.put("item_code",erpGoodsNo); //商品
         request.put("cancel", "1"); //不返回停用的库存

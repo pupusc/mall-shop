@@ -85,7 +85,7 @@ public class GuanYiYunService extends AbstractCRMService {
                         response.getContext().getDeliveryInfoVOList().stream().forEach(deliveryInfoVO -> {
                             if (deliveryInfoVO.getDeliveryStatus().equals(DeliveryStatus.DELIVERY_COMPLETE)){
                                 log.error("订单:{} 周期购管易云已经发货，不能申请退款", tradeVO.getId());
-                                throw new SbcRuntimeException("K-050106");
+                                throw new SbcRuntimeException(null, "K-050106", "周期购管易云已经发货，不能申请退款");
                             }
                         });
                     }
@@ -141,7 +141,7 @@ public class GuanYiYunService extends AbstractCRMService {
                         log.info("管易云取消订单 子订单号：{} 商品:{} 拦截成功", returnOrderVO.getPtid(),tradeItemParam.getSkuId());
                     } else {
                         //取消商品失败
-                        throw new SbcRuntimeException("K-050141", new Object[]{returnOrderVO.getPtid(), tradeItemParam.getSpuName()});
+                        throw new SbcRuntimeException(null, "K-050141", String.format( "订单%s中的商品 %s 取消失败", returnOrderVO.getPtid(), tradeItemParam.getSpuName()));
                     }
                 }
 //

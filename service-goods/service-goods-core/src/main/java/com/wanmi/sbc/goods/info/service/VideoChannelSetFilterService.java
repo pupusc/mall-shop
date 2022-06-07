@@ -44,10 +44,10 @@ public class VideoChannelSetFilterService {
         for (GoodsInfo goodsInfoParam : goodsInfoList) {
             String goodsChannelType = goodsInfoParam.getGoodsChannelType();
             if (StringUtils.isEmpty(goodsChannelType)) {
-                log.error("VideoChannelSetFilterService filterVideoChannelSet goodsId:{} channelType is empty", goodsInfoParam.getGoodsId());
+                log.info("VideoChannelSetFilterService filterVideoChannelSet goodsId:{} channelType is empty", goodsInfoParam.getGoodsId());
                 continue;
             }
-            log.error("VideoChannelSetFilterService filterVideoChannelSet goodsId:{} channelType {}", goodsInfoParam.getGoodsId(), goodsInfoParam.getGoodsChannelType());
+            log.info("VideoChannelSetFilterService filterVideoChannelSet goodsId:{} channelType {}", goodsInfoParam.getGoodsId(), goodsInfoParam.getGoodsChannelType());
             Boolean goodsIdResult = result.get(goodsInfoParam.getGoodsId());
             if (goodsIdResult == null || !goodsIdResult) {
                 String[] goodsChannelTypeAttr = goodsChannelType.split(",");

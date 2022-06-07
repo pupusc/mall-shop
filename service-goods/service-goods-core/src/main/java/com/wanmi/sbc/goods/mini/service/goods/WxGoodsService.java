@@ -419,7 +419,7 @@ public class WxGoodsService {
             sku.setSalePrice(price);
             sku.setBarcode("樊登读书--barcode");
             sku.setSkuCode("樊登读书--skuCode");
-            sku.setStockNum(wxLiveAssistantGoodsUpdateParam.getWxStock() == null ? 0 : wxLiveAssistantGoodsUpdateParam.getWxStock().intValue());
+            sku.setStockNum(wxLiveAssistantGoodsUpdateParam.getWxStock() == null ? 0L : wxLiveAssistantGoodsUpdateParam.getWxStock());
             skus.add(sku);
         }
         return skus;
@@ -436,7 +436,7 @@ public class WxGoodsService {
             BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
             sku.setSalePrice(price);
             sku.setMarketPrice(price);
-            sku.setStockNum(goodsInfo.getStock().intValue());
+            sku.setStockNum(goodsInfo.getStock());
             List<WxAddProductRequest.SkuAttrs> skuAttrsList = new ArrayList<>();
             WxAddProductRequest.SkuAttrs skuAttrs = new WxAddProductRequest.SkuAttrs();
             sku.setSkuCode("樊登读书SkuCode");

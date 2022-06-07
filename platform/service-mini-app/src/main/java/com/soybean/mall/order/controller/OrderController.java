@@ -256,7 +256,7 @@ public class OrderController {
         wxOrderPaymentVO.setCouponFlag(trades.get(0).getCouponFlag());
 
         //1、获取商品的库存 此处应该有一个锁机制的，但是当前没有比较好的锁key
-        Map<String, Integer> wxOutSkuId2StockMap = new HashMap<>();
+        Map<String, Long> wxOutSkuId2StockMap = new HashMap<>();
         for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
             BaseResponse<WxGetProductDetailResponse.Spu> productDetail =
                     wxGoodsApiController.getProductDetail(tradeItemParam.getSpuId());
@@ -314,22 +314,26 @@ public class OrderController {
         }
 
         //3、扣减商品库存[此处异常不做处理，只做记录]
-        for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
-            if (wxOutSkuId2StockMap.get(tradeItemParam.getSkuId()) == null) {
-                continue;
-            }
-            WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
-            wxUpdateProductWithoutAuditRequest.setOutProductId(tradeItemParam.getSpuId());
-            Integer wxStockNum = wxOutSkuId2StockMap.get(tradeItemParam.getSkuId());
+        try {
+            for (TradeItemVO tradeItemParam : trades.get(0).getTradeItems()) {
+                if (wxOutSkuId2StockMap.get(tradeItemParam.getSkuId()) == null) {
+                    continue;
+                }
+                WxUpdateProductWithoutAuditRequest wxUpdateProductWithoutAuditRequest = new WxUpdateProductWithoutAuditRequest();
+                wxUpdateProductWithoutAuditRequest.setOutProductId(tradeItemParam.getSpuId());
+                Long wxStockNum = wxOutSkuId2StockMap.get(tradeItemParam.getSkuId());
 
-            List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
-            WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
-            sku.setOutSkuId(tradeItemParam.getSkuId());
-            sku.setStockNum(wxStockNum - tradeItemParam.getNum().intValue());
-            skus.add(sku);
-            wxUpdateProductWithoutAuditRequest.setSkus(skus);
-            BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
-            log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", trades.get(0).getId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+                List<WxUpdateProductWithoutAuditRequest.Sku> skus = new ArrayList<>();
+                WxUpdateProductWithoutAuditRequest.Sku sku = new WxUpdateProductWithoutAuditRequest.Sku();
+                sku.setOutSkuId(tradeItemParam.getSkuId());
+                sku.setStockNum(wxStockNum - tradeItemParam.getNum().intValue());
+                skus.add(sku);
+                wxUpdateProductWithoutAuditRequest.setSkus(skus);
+                BaseResponse<WxResponseBase> wxResponseBaseBaseResponse = wxGoodsApiController.updateGoodsWithoutAudit(wxUpdateProductWithoutAuditRequest);
+                log.error("微信小程序创建订单 {} 扣减库存返回的结果为 {}", trades.get(0).getId(), JSON.toJSONString(wxResponseBaseBaseResponse));
+            }
+        } catch (Exception ex) {
+            log.error("OrderController getOrderPaymentResult execute exception", ex);
         }
 
         return wxOrderPaymentVO;

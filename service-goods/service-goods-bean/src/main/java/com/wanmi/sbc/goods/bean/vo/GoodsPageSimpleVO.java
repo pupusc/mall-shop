@@ -177,6 +177,16 @@ public class GoodsPageSimpleVO implements Serializable {
     private Long stock;
 
     /**
+     * 总库存数量
+     */
+    private Long totalStock;
+
+    /**
+     * 总结库存
+     */
+    private Long freezeStock;
+
+    /**
      * 一对多关系，多个SKU编号
      */
     @ApiModelProperty(value = "一对多关系，多个SKU编号")

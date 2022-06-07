@@ -5,6 +5,7 @@ import com.alipay.api.domain.GoodsInfo;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.base.Operator;
+import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.enums.StoreType;
@@ -61,6 +62,7 @@ import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.request.grouponactivity.GrouponActivityListSpuIdRequest;
 import com.wanmi.sbc.marketing.api.request.market.MarketingIdRequest;
 import com.wanmi.sbc.marketing.api.response.markup.MarkupSkuIdsResponse;
+import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.util.CommonUtil;
 import com.wanmi.sbc.util.OperateLogMQUtil;
 import io.swagger.annotations.Api;
@@ -109,16 +111,11 @@ public class StoreGoodsController {
     private GoodsSupplierExcelProvider goodsSupplierExcelProvider;
 
     @Autowired
-    private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
-
-    @Autowired
     private EsGoodsInfoElasticQueryProvider esGoodsInfoElasticQueryProvider;
 
     @Autowired
     private CompanyInfoQueryProvider companyInfoQueryProvider;
 
-    @Autowired
-    private StoreCateQueryProvider storeCateQueryProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -155,11 +152,12 @@ public class StoreGoodsController {
     @Autowired
     private ClassifyProvider classifyProvider;
 
-    @Autowired
-    private WxLiveAssistantProvider wxLiveAssistantProvider;
 
     @Autowired
     private WxMiniGoodsProvider wxMiniGoodsProvider;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 查询商品
@@ -228,6 +226,20 @@ public class StoreGoodsController {
         EsSpuPageResponse response = pageResponse.getContext();
         List<GoodsPageSimpleVO> goodses = response.getGoodsPage().getContent();
         if(CollectionUtils.isNotEmpty(goodses)) {
+            //计算库存
+
+            for (GoodsPageSimpleVO goodsParam : goodses) {
+                long totalFreezeStock = 0L;
+                for (String goodsInfoId : goodsParam.getGoodsInfoIds()) {
+                    //获取冻结
+                    String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId);
+                    long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+                    totalFreezeStock += freezeStock;
+                }
+                goodsParam.setFreezeStock(totalFreezeStock);
+                goodsParam.setTotalStock(totalFreezeStock + goodsParam.getStock());
+            }
+
             Map<String, List<GoodsPageSimpleVO>> goodsGroup = goodses.stream().collect(Collectors.groupingBy(GoodsPageSimpleVO::getGoodsId));
             List<String> goodsIds = new ArrayList<>(goodsGroup.keySet());
             BaseResponse<Map<String, List<Integer>>> mapBaseResponse = classifyProvider.searchGroupedClassifyIdByGoodsId(goodsIds);
