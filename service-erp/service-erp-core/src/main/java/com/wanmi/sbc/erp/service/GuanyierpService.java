@@ -254,6 +254,7 @@ public class GuanyierpService {
         request.put("appkey", appkey);
         request.put("sessionkey", sessionkey);
         request.put("method", GuanyierpContants.GOODS_STOCK_METHOD);
+        request.put("page_no", pageNum.toString());
         request.put("page_size", pageSize.toString());
         request.put("item_code",erpGoodsNo); //商品
         request.put("cancel", "1"); //不返回停用的库存

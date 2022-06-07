@@ -436,7 +436,7 @@ public class WxGoodsService {
             BigDecimal price = goodsInfo.getMarketPrice().multiply(BigDecimal.valueOf(100));
             sku.setSalePrice(price);
             sku.setMarketPrice(price);
-            sku.setStockNum(goodsInfo.getStock().intValue());
+            sku.setStockNum(goodsInfo.getStock());
             List<WxAddProductRequest.SkuAttrs> skuAttrsList = new ArrayList<>();
             WxAddProductRequest.SkuAttrs skuAttrs = new WxAddProductRequest.SkuAttrs();
             sku.setSkuCode("樊登读书SkuCode");
