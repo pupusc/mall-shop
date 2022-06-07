@@ -941,8 +941,10 @@ public class WxOrderService {
         request.setProductInfo(productInfo);
         BaseResponse<WxCreateNewAfterSaleResponse> response = wxOrderApiController.createNewAfterSale(request);
         log.info("WxOrderService addEcAfterSale 微信小程序创建售后request:{},response:{}", request, response);
-        if(response == null || response.getContext() ==null || !response.getContext().isSuccess()){
-            log.error("WxOrderService addEcAfterSale error : {}", JSON.toJSONString(response));
+        if(response == null || response.getContext() ==null){
+            throw new SbcRuntimeException("K-050415");
+        } else if (!response.getContext().isSuccess()) {
+            throw new SbcRuntimeException(null, response.getContext().getErrcode().toString(), response.getContext().getErrmsg());
         } else {
             aftersaleId = response.getContext().getAftersaleId().toString();
         }

@@ -152,6 +152,7 @@ public class EsSpuService {
                     if(tempGoodsInfo!= null && Objects.nonNull(tempGoodsInfo.getBuyPoint())) {
                         spu.setBuyPoint(tempGoodsInfo.getBuyPoint());
                     }
+                    spu.setGoodsInfoIds(g.getGoodsInfos().stream().map(GoodsInfoNestVO::getGoodsInfoId).collect(Collectors.toList()));
                     //取SKU最小供货价
                     spu.setSupplyPrice(g.getGoodsInfos().stream()
                             .filter(i -> Objects.nonNull(i.getSupplyPrice()))
