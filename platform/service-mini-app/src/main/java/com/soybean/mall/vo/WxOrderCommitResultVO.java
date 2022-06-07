@@ -1,8 +1,12 @@
 package com.soybean.mall.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.soybean.mall.wx.mini.order.bean.dto.*;
 import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +14,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -31,6 +36,13 @@ public class WxOrderCommitResultVO implements Serializable {
     private WxAddressInfoVO addressInfo;
     @JSONField(serialize = false)
     private Boolean prePay = true;
+
+    /**
+     * 超时未支付取消订单时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime orderTimeOut;
 
 
     @Data
