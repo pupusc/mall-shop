@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -289,5 +291,53 @@ public class RedisService {
             LOGGER.error("putString value to redis fail...", e);
         }
         return false;
+    }
+
+    /**
+     * 新增hash
+     * @param key
+     * @param hashKey
+     * @param hashValue
+     * @param second
+     */
+    public void putHash(String key, String hashKey, String hashValue, long second) {
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
+        redisTemplate.opsForHash().put(key, hashKey, hashValue);
+        redisTemplate.expire(key, second, TimeUnit.SECONDS);
+    }
+
+
+    /**
+     * 获取hash
+     * @param key
+     * @param hashKey
+     */
+    public String getHashValue(String key, String hashKey) {
+        String hashValue = null;
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
+        if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
+            hashValue = (String) redisTemplate.opsForHash().get(key, hashKey);
+        }
+        return hashValue;
+    }
+
+    /**
+     * 获取hash
+     * @param key
+     * 
+     */
+    public Map<Object, Object> getHashValue(String key) {
+        Map<Object, Object> entries = new HashMap<>();
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            entries = redisTemplate.opsForHash().entries(key);
+        }
+        return entries;
     }
 }
