@@ -153,7 +153,7 @@ public class GuanyierpController implements GuanyierpProvider {
                     erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
                 }
                 //成本价
-                if (erpGoods.getCostPrice() != null && erpGoods.getCostPrice().compareTo(new BigDecimal("0")) <= 0) {
+                if (erpGoods.getCostPrice() != null && erpGoods.getCostPrice().compareTo(new BigDecimal("0")) > 0) {
                     erpGoodsInfoVO.setCostPrice(erpGoods.getCostPrice());
                 }
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
