@@ -321,11 +321,7 @@ public class GoodsStockService {
      * @param startTime
      */
     private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String goodsId, String erpGoodsCodeNo, String startTime) {
-        BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(startTime, erpGoodsCodeNo);
-        ErpStockVo erpStockInfo = listWareHoseStock.getContext();
-        if (erpStockInfo.getStocks() == null) {
-            erpStockInfo.setStocks(new ArrayList<>());
-        }
+
         //获取仓库黑名单
         List<String> unStaticsKey = new ArrayList<>();
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -336,9 +332,27 @@ public class GoodsStockService {
             unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
         }
 
+        int pageNum = 1;
+        int pageSize = 100;
+        List<ERPGoodsInfoVO> result = new ArrayList<>(100);
+        while (true) {
+            BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(pageNum, pageSize, erpGoodsCodeNo);
+            ErpStockVo erpStockInfo = listWareHoseStock.getContext();
+            if (erpStockInfo.getStocks() == null) {
+                erpStockInfo.setStocks(new ArrayList<>());
+            }
+            int cycleCount = erpStockInfo.getTotal() / pageSize;
+            int remainder = erpStockInfo.getTotal() % pageSize;
+            cycleCount += remainder > 0 ? 1 : 0;
+            pageNum++;
+            result.addAll(erpStockInfo.getStocks());
+            if (pageNum > cycleCount) {
+                break;
+            }
+        }
 
         Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
-        for (ERPGoodsInfoVO erpGoodsInfoVo : erpStockInfo.getStocks()) {
+        for (ERPGoodsInfoVO erpGoodsInfoVo : result) {
             if (erpGoodsInfoVo.getDel() || unStaticsKey.contains(erpGoodsInfoVo.getWarehouseCode())) {
                 log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{}  itemCode:{} itemName:{} skuCode:{} skuName:{} warehouseCode:{} is del or blackList contain this so continue",
                         erpGoodsCodeNo, erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemName(), erpGoodsInfoVo.getItemCode(), erpGoodsInfoVo.getItemSkuName(), erpGoodsInfoVo.getWarehouseCode());

@@ -66,7 +66,7 @@ public class BoKuService extends AbstractCRMService{
             //表示调用第三方接口异常或者 订单没有推送过去。
             if (deliveryStatusResponse == null || deliveryStatusResponse.getContext() == null) {
                 log.error("BoKuService bizSupplierClient getDeliveryStatus tradeId:{} pid: {} result content is null 获取订单信息的时候异常", tradeVO.getId(), providerTradeParam.getId());
-                throw new SbcRuntimeException("K-050143", new Object[]{"获取博库订单信息失败"});
+                throw new SbcRuntimeException(null, "K-050143", "获取博库订单信息失败,请重试");
             }
 
             //博库已经取消，本地没有取消
@@ -96,8 +96,11 @@ public class BoKuService extends AbstractCRMService{
                     cancelOrderRequest.setType(1); //单品
                     cancelOrderRequest.setErpGoodsInfoNo(tradeItemVO.getErpSkuNo());
                     BaseResponse<CancelOrderResponse> response = bizSupplierClient.cancelOrder(cancelOrderRequest);
-                    if(response == null || response.getContext() == null || !Objects.equals(response.getContext().getStatus(),1)){
-                        throw new SbcRuntimeException("K-050143", new Object[]{response !=null && response.getContext() != null && StringUtils.isNotEmpty(response.getContext().getErrorMsg())?response.getContext().getErrorMsg():"订单取消失败"});
+                    if (response == null || response.getContext() == null) {
+                        throw new SbcRuntimeException(null, "K-050143", "取消博库售后订单失败");
+                    }
+                    if(!Objects.equals(response.getContext().getStatus(),1)){
+                        throw new SbcRuntimeException(null, "K-050143", "订单取消失败 " + (StringUtils.isNotEmpty(response.getContext().getErrorMsg()) ? response.getContext().getErrorMsg() : ""));
                     }
                 }
             } else {
@@ -108,7 +111,7 @@ public class BoKuService extends AbstractCRMService{
                         throw new SbcRuntimeException("K-000009");
                     }
                     if (!DeliverStatus.SHIPPED.equals(tradeItemVO.getDeliverStatus())) {
-                        throw new SbcRuntimeException("K-050511");
+                        throw new SbcRuntimeException(null, "K-050511", "退单中包含已经发货的商品行，请同步订单后重新发起售后");
                     }
                 }
             }

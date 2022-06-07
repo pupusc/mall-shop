@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,13 +66,14 @@ public class GuanyierpController implements GuanyierpProvider {
 
     /**
      * 获取商品库存
-     * @param startTime
+     * @param pageNum
+     * @param pageSize
      * @param erpGoodNo
      * @return
      */
     @Override
-    public BaseResponse<ErpStockVo> listWareHoseStock(String startTime, String erpGoodNo){
-        return BaseResponse.success(guanyierpService.listWareHoseStock(startTime, erpGoodNo));
+    public BaseResponse<ErpStockVo> listWareHoseStock(Integer pageNum, Integer pageSize, String erpGoodNo){
+        return BaseResponse.success(guanyierpService.listWareHoseStock(pageNum, pageSize, erpGoodNo));
     }
 
 //    /**
@@ -149,6 +151,10 @@ public class GuanyierpController implements GuanyierpProvider {
                 //如果库存状态为空则设置为spu的库存状态
                 if (StringUtils.isBlank(erpGoodsInfo.getStockStatusCode())) {
                     erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
+                }
+                //成本价
+                if (erpGoods.getCostPrice() != null && erpGoods.getCostPrice().compareTo(new BigDecimal("0")) > 0) {
+                    erpGoodsInfoVO.setCostPrice(erpGoods.getCostPrice());
                 }
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
             });

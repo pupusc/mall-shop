@@ -78,6 +78,16 @@ public class GoodsInfoVO implements Serializable {
     private Long stock;
 
     /**
+     * 总库存数量
+     */
+    private Long totalStock;
+
+    /**
+     * 冻结库存数量
+     */
+    private Long freezeStock;
+
+    /**
      * 商品市场价
      */
     @ApiModelProperty(value = "商品市场价")

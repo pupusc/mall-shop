@@ -1,8 +1,10 @@
 package com.soybean.mall.wx.mini.goods.bean.response;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.soybean.mall.wx.mini.constant.ConstantUtil;
 import lombok.Data;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @Data
@@ -56,8 +58,23 @@ public class WxGetProductDetailResponse extends WxResponseBase {
         //市场价
         @JSONField(name = "market_price")
         private String marketPrice;
+
         //库存
         @JSONField(name = "stock_num")
-        private Integer stockNum;
+        private BigInteger tmpStockNum;
+
+        public void setTmpStockNum(BigInteger tmpStockNum) {
+            this.tmpStockNum = tmpStockNum;
+            if (tmpStockNum.compareTo(new BigInteger(ConstantUtil.WX_MAX_STOCK + "")) > 0) {
+                this.stockNum = ConstantUtil.WX_MAX_STOCK;
+            }
+        }
+
+        private Long stockNum;
+
+        public void setStockNum(Long stockNum) {
+            this.stockNum = stockNum;
+            this.tmpStockNum = new BigInteger(stockNum + "");
+        }
     }
 }

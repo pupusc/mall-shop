@@ -2916,4 +2916,24 @@ public class GoodsInfoService {
 //        page.setContent(list);
 //        return page;
 //    }
+
+    /**
+     * 更新库存同步专题
+     * @param stockSyncFlag
+     * @param goodsInfoId
+     * @return
+     */
+    public int updateStockSyncFlagById(Integer stockSyncFlag, String goodsInfoId){
+        return goodsInfoRepository.updateStockSyncFlagById(stockSyncFlag, goodsInfoId);
+    }
+
+    /**
+     * 更新价格同步
+     * @param costPriceSyncFlag
+     * @param goodsInfoId
+     * @return
+     */
+    public int updateCostPriceSyncFlagById(Integer costPriceSyncFlag, String goodsInfoId) {
+        return goodsInfoRepository.updateCostPriceSyncFlagById(costPriceSyncFlag, goodsInfoId);
+    }
 }

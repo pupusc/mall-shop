@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSON;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -31,6 +32,7 @@ import com.wanmi.sbc.goods.api.provider.cyclebuy.CycleBuyQueryProvider;
 import com.wanmi.sbc.goods.api.provider.freight.FreightTemplateGoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.info.GoodsInfoProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
 import com.wanmi.sbc.goods.api.provider.storecate.StoreCateQueryProvider;
@@ -59,6 +61,7 @@ import com.wanmi.sbc.goods.api.request.goods.GoodsModifySortNoRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsViewByIdRequest;
 import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoByIdRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
 import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.request.storecate.StoreCateByStoreCateIdRequest;
@@ -73,6 +76,7 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsByIdResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsModifyResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsViewByIdResponse;
+import com.wanmi.sbc.goods.api.response.info.GoodsInfoByIdResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.api.response.storecate.StoreCateByStoreCateIdResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
@@ -88,6 +92,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsSpecDetailVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsSpecVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsTagVo;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.response.GoodsInfoStockSyncRes;
 import com.wanmi.sbc.goods.service.GoodsExcelService;
 import com.wanmi.sbc.redis.RedisService;
 import com.wanmi.sbc.setting.api.provider.operatedatalog.OperateDataLogQueryProvider;
@@ -112,6 +117,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -160,6 +166,9 @@ public class GoodsController {
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
+
+    @Autowired
+    private GoodsInfoProvider goodsInfoProvider;
 
     @Autowired
     private CompanyInfoQueryProvider companyInfoQueryProvider;
@@ -248,6 +257,7 @@ public class GoodsController {
         if (!StringUtils.isBlank(request.getGoods().getDeliverNotice()) && request.getGoods().getDeliverNotice().length() > 15) {
             throw new SbcRuntimeException("K-030011");
         }
+
         //验证组合商品包
         checkGoodsPack(request.getEditType(),
                 Objects.isNull(request.getGoodsInfos()) ? 0 : request.getGoodsInfos().size(),
@@ -255,6 +265,26 @@ public class GoodsController {
 
         request.getGoods().setProviderId(Integer.valueOf(2).equals(request.getEditType()) ? fddsProviderId : defaultProviderId);
         request.setUpdatePerson(commonUtil.getOperatorId());
+
+        //设置库存
+        if (!CollectionUtils.isEmpty(request.getGoodsInfos())) {
+            long goodsStock = 0L;
+            for (GoodsInfoDTO goodsInfo : request.getGoodsInfos()) {
+                if (goodsInfo.getStockSyncFlag() == null) {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+                //非库存同步
+                if (goodsInfo.getStockSyncFlag() == 0) {
+                    if (goodsInfo.getTotalStock() == null || goodsInfo.getTotalStock() < 0) {
+                        throw new SbcRuntimeException("K-050415");
+                    } else {
+                        goodsInfo.setStock(goodsInfo.getTotalStock());
+                        goodsStock = goodsStock + goodsInfo.getTotalStock();
+                    }
+                }
+            }
+            request.getGoods().setStock(goodsStock);
+        }
 
         Long fId = request.getGoods().getFreightTempId();
         if ((request.getGoods() == null || CollectionUtils.isEmpty(request.getGoodsInfos()) || Objects.isNull(fId))
@@ -293,9 +323,9 @@ public class GoodsController {
         }
 
         if (!Objects.isNull(fId)){
-        //判断运费模板是否存在
-        freightTemplateGoodsQueryProvider.existsById(
-                FreightTemplateGoodsExistsByIdRequest.builder().freightTempId(fId).build());
+            //判断运费模板是否存在
+            freightTemplateGoodsQueryProvider.existsById(
+                    FreightTemplateGoodsExistsByIdRequest.builder().freightTempId(fId).build());
         }
         request.getGoods().setCompanyInfoId(commonUtil.getCompanyInfoId());
         request.getGoods().setCompanyType(companyInfo.getCompanyType());
@@ -541,20 +571,47 @@ public class GoodsController {
                 }
             }
         }
+
+        //设置库存
+        if (!CollectionUtils.isEmpty(request.getGoodsInfos())) {
+            long goodsStock = 0L;
+            for (GoodsInfoVO goodsInfo : request.getGoodsInfos()) {
+                if (goodsInfo.getStockSyncFlag() == null) {
+                    throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+                }
+                //非库存同步
+                if (goodsInfo.getStockSyncFlag() == 0) {
+                    if (goodsInfo.getTotalStock() == null || goodsInfo.getTotalStock() < 0) {
+                        throw new SbcRuntimeException("K-050415");
+                    } else {
+                        //获取冻结
+                        String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfo.getGoodsInfoId());
+                        long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+                        long stock = goodsInfo.getTotalStock() - freezeStock;
+                        if (stock < 0) {
+                            throw new SbcRuntimeException(null, "K-050415", "商品可售库存小于0");
+                        }
+                        goodsInfo.setStock(stock);
+                        goodsStock  += goodsInfo.getStock();
+                    }
+                }
+            }
+            request.getGoods().setStock(goodsStock);
+        }
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
 
-        //同步库存 不判断是否自动同步，交给同步方法处理
-        if(!Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
-            goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(request.getGoods().getGoodsId()));
-        }  else {
-            //同步库存 不判断是否自动同步，交给同步方法处理
-            GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
-            guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(request.getGoods().getGoodsId()));
-            guanYiSyncGoodsStockRequest.setStartTime("");
-            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
-            guanYiSyncGoodsStockRequest.setPageSize(0);
-            goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
-        }
+//        //同步库存 不判断是否自动同步，交给同步方法处理
+//        if(!Objects.equals(request.getGoods().getProviderId(),defaultProviderId)) {
+//            goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(request.getGoods().getGoodsId()));
+//        }  else {
+//            //同步库存 不判断是否自动同步，交给同步方法处理
+//            GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+//            guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(request.getGoods().getGoodsId()));
+//            guanYiSyncGoodsStockRequest.setStartTime("");
+//            guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+//            guanYiSyncGoodsStockRequest.setPageSize(0);
+//            goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+//        }
 
         Map<String, Object> returnMap = response.getReturnMap();
         if (CollectionUtils.isNotEmpty((List<String>) returnMap.get("delStoreGoodsInfoIds"))) {
@@ -1141,6 +1198,21 @@ public class GoodsController {
                 response.getGoods().setStoreCateIds(cateIds.stream().map(Integer::longValue).collect(Collectors.toList()));
             }
         }
+
+        if (CollectionUtils.isEmpty(response.getGoodsInfos())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        for (GoodsInfoVO goodsInfo : response.getGoodsInfos()) {
+            //获取冻结
+            String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfo.getGoodsInfoId());
+            long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+            long goodsInfoStock = goodsInfo.getStock() == null ? 0L : goodsInfo.getStock();
+            goodsInfo.setTotalStock(goodsInfoStock + freezeStock);
+            goodsInfo.setStock(goodsInfoStock);
+            goodsInfo.setFreezeStock(freezeStock);
+        }
+
         OperateDataLogListResponse operateDataLogListResponse =
                 operateDataLogQueryProvider.list(OperateDataLogListRequest.builder().operateId(goodsId).delFlag(DeleteFlag.NO).build()).getContext();
         List<OperateDataLogVO> operateDataLogList = new ArrayList<OperateDataLogVO>();
@@ -1514,10 +1586,87 @@ public class GoodsController {
         goodsExcelService.downErrExcel(commonUtil.getOperatorId(), ext);
     }
 
-//    @PostMapping("/decryLastStock")
-//    public String decryLastStock(@RequestBody Map<String, Long> datas) {
-//        goodsProvider.decryLastStock(datas);
-//        return "ok";
-//    }
+    /**
+     * 库存同步开启/库存同步关闭
+     * @return
+     */
+    @GetMapping("/spuGoodsInfoSync/{goodsInfoId}")
+    public BaseResponse spuGoodsInfoStockSync(@PathVariable("goodsInfoId") String goodsInfoId) {
+        //获取商品信息
+        GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
+        goodsInfoByIdRequest.setGoodsInfoId(goodsInfoId);
+        GoodsInfoByIdResponse context = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+        if (StringUtils.isBlank(context.getGoodsInfoId())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
 
+        if (context.getStockSyncFlag() != 1) {
+            //更新为同步
+            goodsInfoProvider.updateStockSyncFlagById(1, goodsInfoId);
+            String goodsId = context.getGoodsId();
+            if(!Objects.equals(context.getProviderId(),defaultProviderId)) {
+                goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(goodsId));
+            }  else {
+                //同步库存 不判断是否自动同步，交给同步方法处理
+                GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+                guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
+                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+                guanYiSyncGoodsStockRequest.setPageSize(0);
+                goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+            }
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
+            context = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+        }
+        return BaseResponse.success(this.packageGoodsInfoSync(goodsInfoId, context));
+    }
+
+
+    private GoodsInfoStockSyncRes packageGoodsInfoSync(String goodsInfoId, GoodsInfoByIdResponse context) {
+        GoodsInfoStockSyncRes goodsInfoStockSyncRes = new GoodsInfoStockSyncRes();
+        //获取冻结
+        String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsInfoId);
+        long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
+        goodsInfoStockSyncRes.setTotalStock(freezeStock + context.getStock());
+        goodsInfoStockSyncRes.setFreezeStock(freezeStock);
+        goodsInfoStockSyncRes.setStock(context.getStock());
+        goodsInfoStockSyncRes.setCostPrice(context.getCostPrice().toString());
+        return goodsInfoStockSyncRes;
+    }
+
+    /**
+     * 库存同步开启/库存同步关闭
+     * @return
+     */
+    @GetMapping("/spuGoodsInfoCostPriceSync/{goodsInfoId}")
+    public BaseResponse spuGoodsInfoCostPriceSync(@PathVariable("goodsInfoId") String goodsInfoId) {
+        //获取商品信息
+        GoodsInfoByIdRequest goodsInfoByIdRequest = new GoodsInfoByIdRequest();
+        goodsInfoByIdRequest.setGoodsInfoId(goodsInfoId);
+        GoodsInfoByIdResponse context = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+        if (StringUtils.isBlank(context.getGoodsInfoId())) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR);
+        }
+
+        //更新表结构为
+        if (context.getCostPriceSyncFlag() != 1) {
+            //更新为同步
+            goodsInfoProvider.updateCostPriceSyncFlagById(1, goodsInfoId);
+            String goodsId = context.getGoodsId();
+            if(!Objects.equals(context.getProviderId(),defaultProviderId)) {
+                goodsProvider.syncGoodsStockAndCostPrice(Collections.singletonList(goodsId));
+            }  else {
+                //同步库存 不判断是否自动同步，交给同步方法处理
+                GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
+                guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
+                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
+                guanYiSyncGoodsStockRequest.setPageSize(0);
+                goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
+            }
+            esGoodsInfoElasticProvider.initEsGoodsInfo(EsGoodsInfoRequest.builder().goodsId(goodsId).build());
+            context = goodsInfoQueryProvider.getById(goodsInfoByIdRequest).getContext();
+        }
+        return BaseResponse.success(this.packageGoodsInfoSync(goodsInfoId, context));
+    }
 }

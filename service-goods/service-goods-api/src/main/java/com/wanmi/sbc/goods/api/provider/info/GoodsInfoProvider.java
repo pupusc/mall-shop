@@ -5,6 +5,8 @@ import com.wanmi.sbc.goods.api.request.info.*;
 import com.wanmi.sbc.goods.api.response.info.*;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoMinusStockDTO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -187,4 +189,24 @@ public interface GoodsInfoProvider {
 
     @PostMapping("/goods/${application.goods.version}/decry-freeze-stock")
     BaseResponse decryFreezeStock(@RequestBody List<GoodsInfoMinusStockDTO> releaseFrozenStockList);
+
+
+    /**
+     * 开启库存同步
+     * @param stockSyncFlag
+     * @param goodsInfoId
+     * @return
+     */
+    @GetMapping("/goods/${application.goods.version}/info/updateStockSyncFlagById/{stockSyncFlag}/{goodsInfoId}")
+    BaseResponse updateStockSyncFlagById(@PathVariable("stockSyncFlag") Integer stockSyncFlag, @PathVariable("goodsInfoId") String goodsInfoId);
+
+
+    /**
+     * 开启价格同步
+     * @param stockSyncFlag
+     * @param goodsInfoId
+     * @return
+     */
+    @GetMapping("/goods/${application.goods.version}/info/updateCostPriceSyncFlagById/{stockSyncFlag}/{goodsInfoId}")
+    BaseResponse updateCostPriceSyncFlagById(@PathVariable("stockSyncFlag") Integer stockSyncFlag, @PathVariable("goodsInfoId") String goodsInfoId);
 }

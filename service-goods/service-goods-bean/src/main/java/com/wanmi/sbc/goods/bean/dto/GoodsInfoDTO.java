@@ -80,6 +80,12 @@ public class GoodsInfoDTO implements Serializable {
     @ApiModelProperty(value = "商品库存")
     private Long stock;
 
+
+    /**
+     * 总库存数量
+     */
+    private Long totalStock;
+
     /**
      * 商品市场价
      */
