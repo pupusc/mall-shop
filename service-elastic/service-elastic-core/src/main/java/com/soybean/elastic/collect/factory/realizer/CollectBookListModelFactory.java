@@ -89,6 +89,7 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
                     .contains(esBookListModel.getBookListBusinessType())) {
                 continue;
             }
+            esBookListModel.setIndexTime(now);
             result.add(esBookListModel);
         }
         esBookListModelRepository.saveAll(result);

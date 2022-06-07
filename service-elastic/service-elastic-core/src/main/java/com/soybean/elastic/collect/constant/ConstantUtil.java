@@ -13,10 +13,10 @@ public class ConstantUtil {
     /**
      * analyzer
      */
-    public static final String ES_DEFAULT_ANALYZER = "ik_smart";
+    public static final String ES_DEFAULT_ANALYZER = "ik_max_word";
 
     /**
      * analyzer
      */
-    public static final String ES_DEFAULT_SEARCH_ANALYZER = "ik_smart";
+    public static final String ES_DEFAULT_SEARCH_ANALYZER = "ik_max_word";
 }

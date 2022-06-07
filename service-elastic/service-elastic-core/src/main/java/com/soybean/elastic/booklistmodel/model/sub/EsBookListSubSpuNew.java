@@ -1,8 +1,11 @@
 package com.soybean.elastic.booklistmodel.model.sub;
 
+import com.soybean.elastic.collect.constant.ConstantUtil;
 import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import java.util.List;
 
 /**
  * Description:
@@ -20,7 +23,7 @@ public class EsBookListSubSpuNew {
     /**
      * 商品标题
      */
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
     private String spuName;
 
     /**
@@ -28,4 +31,10 @@ public class EsBookListSubSpuNew {
      */
     @Field(type = FieldType.Integer, index = false)
     private Integer sortNum;
+
+    /**
+     * 商品渠道类型
+     */
+    @Field(type = FieldType.Integer)
+    private List<String> channelTypes;
 }

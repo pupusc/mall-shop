@@ -7,17 +7,17 @@ import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
-import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -103,40 +103,51 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
     @Override
     public <F> List<F> collect(List<F> list) {
-        Set<String> spuIdSet = new HashSet<>();
+
         for (F f : list) {
             EsBookListModel esBookListModel = (EsBookListModel) f;
             if (CollectionUtils.isEmpty(esBookListModel.getSpus())) {
                 break;
             }
+
+            List<String> spuIdList = new ArrayList<>();
             for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
-                spuIdSet.add(esBookListSubSpuNew.getSpuId());
+                spuIdList.add(esBookListSubSpuNew.getSpuId());
             }
-        }
-        if (CollectionUtils.isEmpty(spuIdSet)) {
-            return list;
-        }
-        CollectSpuProviderReq req = new CollectSpuProviderReq();
-        req.setSpuIds(new ArrayList<>(spuIdSet));
-        List<GoodsVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
-        spuIdSet.clear(); // 辅助GC
-        if (CollectionUtils.isEmpty(context)) {
-            return list;
-        }
-        Map<String, GoodsVO> spuId2GoodsVoMap = context.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
-        for (F f : list) {
-            EsBookListModel esBookListModel = (EsBookListModel) f;
-            if (CollectionUtils.isEmpty(esBookListModel.getSpus())) {
-                break;
+
+            Map<String, GoodsVO> spuId2GoodsVoMap = new HashMap<>();
+            int cycleCount = spuIdList.size() / MAX_PAGE_SIZE;
+            int remainder = spuIdList.size() % MAX_PAGE_SIZE;
+            cycleCount += remainder > 0 ? 1 : 0;
+
+            for (int i = 0; i<cycleCount; i++) {
+                spuId2GoodsVoMap.putAll(this.mapGoodsVo(spuIdList.subList(i * MAX_PAGE_SIZE, Math.min((i + 1) * MAX_PAGE_SIZE, spuIdList.size()))));
             }
-            for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
-                GoodsVO goodsVO = spuId2GoodsVoMap.get(esBookListSubSpuNew.getSpuId());
-                if (goodsVO == null) {
-                    continue;
+
+            if (spuId2GoodsVoMap.size() > 0) {
+                for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
+                    GoodsVO goodsVO = spuId2GoodsVoMap.get(esBookListSubSpuNew.getSpuId());
+                    if (goodsVO == null) {
+                        continue;
+                    }
+                    esBookListSubSpuNew.setSpuName(goodsVO.getGoodsName());
+                    esBookListSubSpuNew.setChannelTypes(StringUtils.isNotBlank(goodsVO.getGoodsChannelType()) ? Arrays.asList(goodsVO.getGoodsChannelType().split(",")) : new ArrayList<>());
                 }
-                esBookListSubSpuNew.setSpuName(goodsVO.getGoodsName());
+//                spuIdSet.clear(); //辅助GC
+//                spuId2GoodsVoMap.clear(); //辅助GC
             }
         }
         return list;
+    }
+
+
+    private Map<String, GoodsVO> mapGoodsVo(List<String> spuIdList) {
+        CollectSpuProviderReq req = new CollectSpuProviderReq();
+        req.setSpuIds(spuIdList);
+        List<GoodsVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
+        if (CollectionUtils.isEmpty(context)) {
+            return new HashMap<>();
+        }
+        return context.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
     }
 }
