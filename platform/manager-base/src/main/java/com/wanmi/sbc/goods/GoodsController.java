@@ -1,5 +1,6 @@
 package com.wanmi.sbc.goods;
 
+import com.alibaba.fastjson.JSON;
 import com.sbc.wanmi.erp.bean.vo.ERPGoodsInfoVO;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
@@ -591,13 +592,15 @@ public class GoodsController {
                             throw new SbcRuntimeException(null, "K-050415", "商品可售库存小于0");
                         }
                         goodsInfo.setStock(stock);
-                        goodsStock = goodsStock + goodsInfo.getTotalStock();
+                        goodsStock  += goodsInfo.getStock();
+
+                        log.info("--->> GoodsController edit 123123 :{} freezeStock;{}, goodsStock:{}" , stock, freezeStock, goodsStock);
                     }
                 }
             }
             request.getGoods().setStock(goodsStock);
         }
-
+        log.info("--->> GoodsController edit :{}" , JSON.toJSONString(request));
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
 
 //        //同步库存 不判断是否自动同步，交给同步方法处理
