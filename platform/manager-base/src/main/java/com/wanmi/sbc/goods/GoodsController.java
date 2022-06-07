@@ -593,14 +593,11 @@ public class GoodsController {
                         }
                         goodsInfo.setStock(stock);
                         goodsStock  += goodsInfo.getStock();
-
-                        log.info("--->> GoodsController edit 123123 :{} freezeStock;{}, goodsStock:{}" , stock, freezeStock, goodsStock);
                     }
                 }
             }
             request.getGoods().setStock(goodsStock);
         }
-        log.info("--->> GoodsController edit :{}" , JSON.toJSONString(request));
         GoodsModifyResponse response = goodsProvider.modify(request).getContext();
 
 //        //同步库存 不判断是否自动同步，交给同步方法处理
