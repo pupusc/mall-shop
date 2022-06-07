@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -47,6 +48,12 @@ public class ERPGoods implements Serializable {
      */
     @JsonProperty("stock_status_code")
     private String stockStatusCode;
+
+    /**
+     * 成本价
+     */
+    @JsonProperty("cost_price")
+    private BigDecimal costPrice;
 
     /**
      * skus列表
