@@ -14,6 +14,7 @@ import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
 import com.wanmi.sbc.bookmeta.enums.DataDictCateEnum;
 import com.wanmi.sbc.bookmeta.enums.FigureTypeEnum;
+import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookContentMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
@@ -36,6 +37,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tk.mybatis.mapper.entity.Example;
@@ -49,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +80,8 @@ public class BookImportProviderImpl {
     @Autowired
     private MetaBookLabelMapper metaBookLabelMapper;
 
+    private AtomicBoolean started = new AtomicBoolean(false);
+
     Map<String, MetaPublisher> publisherMap = new HashMap<>();
     Map<String, MetaDataDict> bindMap = new HashMap<>();
     Map<String, MetaDataDict> paperMap = new HashMap<>();
@@ -84,30 +89,56 @@ public class BookImportProviderImpl {
     Map<String, MetaLabel> labelMap = new HashMap<>();
 
     @Transactional
+    @PostMapping("/goods/${application.goods.version}/metaBook/importStop")
+    public BusinessResponse<Boolean> importStop(String fileName) {
+        log.info("停止正在导入的任务...");
+        return BusinessResponse.success(this.started.getAndSet(false));
+    }
+
+    @Transactional
     @PostMapping("/goods/${application.goods.version}/metaBook/import")
     public BusinessResponse<Boolean> importBook(String fileName) throws Exception {
+        if (!started.compareAndSet(false, true)) {
+            return BusinessResponse.error(CommonErrorCode.FAILED, "导入任务已经正在执行当中....");
+        }
         log.info("========================图书基础库，导入数据开始：========================");
-        Workbook workbook = WorkbookFactory.create(new File(fileName));
-
-        Sheet sheet = workbook.getSheetAt(0);
-        if (sheet == null) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "表格sheet不存在");
+        long timeBgn = System.currentTimeMillis();
+        try {
+            Workbook workbook = WorkbookFactory.create(new File(fileName));
+            Sheet sheet = workbook.getSheetAt(0);
+            if (sheet == null) {
+                throw new SbcRuntimeException(CommonErrorCode.FAILED, "表格sheet不存在");
+            }
+            //获得当前sheet的开始行
+            int firstRowNum = sheet.getFirstRowNum();
+            //获得当前sheet的结束行
+            int lastRowNum = sheet.getLastRowNum();
+            if (lastRowNum < 1) {
+                throw new SbcRuntimeException(CommonErrorCode.FAILED, "表格内容为空");
+            }
+            initCache();
+            importBook(sheet, firstRowNum, lastRowNum);
+        } finally {
+            destroy();
+            started.set(false);
         }
-        //获得当前sheet的开始行
-        int firstRowNum = sheet.getFirstRowNum();
-        //获得当前sheet的结束行
-        int lastRowNum = sheet.getLastRowNum();
-        if (lastRowNum < 1) {
-            throw new SbcRuntimeException(CommonErrorCode.FAILED, "表格内容为空");
-        }
+        long timeEnd = System.currentTimeMillis();
+        log.info("========================图书基础库，导入数据完成！耗时：{}ms========================", timeEnd-timeBgn);
+        return BusinessResponse.success(true);
+    }
 
-        initCache();
+    private void importBook(Sheet sheet, int firstRowNum, int lastRowNum) {
         int maxCell = ExcelCellInfo.max_size;
         //循环除了第一行的所有行
         for (int rowNum = firstRowNum + 1; rowNum <= lastRowNum; rowNum++) {
+            if (!started.get()) {
+                return;
+            }
+            log.info("导入单条数据开始：row={}", rowNum);
             //获得当前行
             Row row = sheet.getRow(rowNum);
             if (row == null) {
+                log.info("空行忽略不处理...");
                 continue;
             }
             Cell[] cells = new Cell[maxCell];
@@ -124,10 +155,11 @@ public class BookImportProviderImpl {
             }
             //数据都为空，则跳过去
             if (!isNotEmpty) {
+                log.info("空行忽略不处理...");
                 continue;
             }
-            String isbn = cells[ExcelCellInfo.index_isbn].getStringCellValue();
-            String name = cells[ExcelCellInfo.index_name].getStringCellValue();
+            String isbn = ExcelHelper.getValue(cells[ExcelCellInfo.index_isbn]);
+            String name = ExcelHelper.getValue(cells[ExcelCellInfo.index_name]);
             //必填项验证
             if (StringUtils.isBlank(isbn)) {
                 log.error("导入数据失败：书籍的isbn不能为空, row={}", rowNum);
@@ -147,46 +179,41 @@ public class BookImportProviderImpl {
             MetaBook book = new MetaBook();
             book.setIsbn(isbn);
             book.setName(name);
-            book.setPrice(cells[ExcelCellInfo.index_price].getNumericCellValue());
-            book.setSubName(cells[ExcelCellInfo.index_sub_name].getStringCellValue());
-            book.setOriginName(cells[ExcelCellInfo.index_origin_name].getStringCellValue());
+            book.setPrice(parsePrice(ExcelHelper.getValue(cells[ExcelCellInfo.index_price])));
+            book.setSubName(ExcelHelper.getValue(cells[ExcelCellInfo.index_sub_name]));
+            book.setOriginName(ExcelHelper.getValue(cells[ExcelCellInfo.index_origin_name]));
             //出版社
-            book.setPublisherId(createPublisher(cells[ExcelCellInfo.index_publisher].getStringCellValue()));
+            book.setPublisherId(createPublisher(ExcelHelper.getValue(cells[ExcelCellInfo.index_publisher])));
             //装帧
-            book.setBindId(createBind(cells[ExcelCellInfo.index_bind].getStringCellValue()));
-            book.setPublishTime(parsePublishTime(cells[ExcelCellInfo.index_publish_time].getStringCellValue()));
-            book.setPageCount(parsePageCount(cells[ExcelCellInfo.index_page_count].getStringCellValue()));
-            book.setPaperId(createPaper(cells[ExcelCellInfo.index_paper].getStringCellValue()));
-            this.metaBookMapper.insertSelective(book);
-
+            book.setBindId(createBind(ExcelHelper.getValue(cells[ExcelCellInfo.index_bind])));
+            book.setPublishTime(parsePublishTime(ExcelHelper.getValue(cells[ExcelCellInfo.index_publish_time])));
+            book.setPageCount(parsePageCount(ExcelHelper.getValue(cells[ExcelCellInfo.index_page_count])));
+            book.setPaperId(createPaper(ExcelHelper.getValue(cells[ExcelCellInfo.index_paper])));
+            book.setSizeFolio(ExcelHelper.getValue(cells[ExcelCellInfo.index_folio]));
             if (this.metaBookMapper.insertSelective(book) != 1) {
                 log.error("导入数据失败：插入数据库没有成功，row={}", rowNum);
                 throw new SbcRuntimeException(CommonErrorCode.FAILED, "生成书籍数据失败");
             }
 
             //作者、作者简介
-            createFigure(book.getId(), cells[ExcelCellInfo.index_author].getStringCellValue(), cells[ExcelCellInfo.index_author_descr].getStringCellValue(),
+            createFigure(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_author]), ExcelHelper.getValue(cells[ExcelCellInfo.index_author_descr]),
                     FigureTypeEnum.AUTHOR, BookFigureTypeEnum.AUTHOR);
             //译者
-            createFigure(book.getId(), cells[ExcelCellInfo.index_translator].getStringCellValue(), null, FigureTypeEnum.AUTHOR, BookFigureTypeEnum.TRANSLATOR);
+            createFigure(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_translator]), null, FigureTypeEnum.AUTHOR, BookFigureTypeEnum.TRANSLATOR);
             //简介
-            createContent(book.getId(), cells[ExcelCellInfo.index_introduce].getStringCellValue(), BookContentTypeEnum.INTRODUCE);
+            createContent(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_introduce]), BookContentTypeEnum.INTRODUCE);
             //目录
-            createContent(book.getId(), cells[ExcelCellInfo.index_catalogue].getStringCellValue(), BookContentTypeEnum.CATALOGUE);
+            createContent(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_catalogue]), BookContentTypeEnum.CATALOGUE);
             //前言
-            createContent(book.getId(), cells[ExcelCellInfo.index_preface].getStringCellValue(), BookContentTypeEnum.PREFACE);
+            createContent(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_preface]), BookContentTypeEnum.PREFACE);
             //编辑推荐
-            createRcmmd(book.getId(), cells[ExcelCellInfo.index_editor_rcmmd].getStringCellValue(), BookRcmmdTypeEnum.EDITOR);
+            createRcmmd(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_editor_rcmmd]), BookRcmmdTypeEnum.EDITOR);
             //媒体推荐
-            createRcmmd(book.getId(), cells[ExcelCellInfo.index_media_rcmmd].getStringCellValue(), BookRcmmdTypeEnum.MEDIA);
+            createRcmmd(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_media_rcmmd]), BookRcmmdTypeEnum.MEDIA);
             //标签
-            createLabel(book.getId(), cells[ExcelCellInfo.index_label].getStringCellValue());
+            createLabel(book.getId(), ExcelHelper.getValue(cells[ExcelCellInfo.index_label]));
             log.info("导入单条数据结束：row={}", rowNum);
         }
-
-        destroy();
-        log.info("========================图书基础库，导入数据完成！========================");
-        return BusinessResponse.success(true);
     }
 
     private void createLabel(Integer bookId, String str) {
@@ -204,6 +231,9 @@ public class BookImportProviderImpl {
             bookLabel.setUpdateTime(now);
             return bookLabel;
         }).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(bookLabels)) {
+            return;
+        }
         this.metaBookLabelMapper.insertBatch(bookLabels);
     }
 
@@ -260,6 +290,19 @@ public class BookImportProviderImpl {
         this.metaBookFigureMapper.insertSelective(bookFigure);
     }
 
+    private Double parsePrice(String str) {
+        if (StringUtils.isBlank(str)) {
+            return null;
+        }
+        Double result = null;
+        try {
+            result = Double.valueOf(str);
+        } catch (Exception e) {
+            log.error("价格解析错误,content={}", str);
+        }
+        return result;
+    }
+
     private Integer parsePageCount(String str) {
         if (StringUtils.isBlank(str)) {
             return null;
@@ -268,7 +311,7 @@ public class BookImportProviderImpl {
         try {
             result = Integer.valueOf(str);
         } catch (Exception e) {
-            log.warn("");
+            log.error("页数解析错误,content={}", str);
         }
         return result;
     }
@@ -285,7 +328,7 @@ public class BookImportProviderImpl {
         try {
             date = dateFormat.parse(str.substring(0, 10));
         } catch (ParseException e) {
-            log.warn("出版日期格式解析错误，date = {}", str);
+            log.error("出版日期格式解析错误，date = {}", str);
         }
         return date;
     }
@@ -309,6 +352,7 @@ public class BookImportProviderImpl {
     private Map<String, MetaLabel> loadLabels() {
         MetaLabel metaLabel = new MetaLabel();
         metaLabel.setDelFlag(0);
+        metaLabel.setType(LabelTypeEnum.LABEL.getCode());
         List<MetaLabel> labels = this.metaLabelMapper.select(metaLabel);
         return labels.stream().collect(Collectors.toMap(MetaLabel::getName, item->item, (a,b)->a));
     }
@@ -387,7 +431,7 @@ public class BookImportProviderImpl {
     }
 
     private static class ExcelCellInfo {
-        static int max_size = 21;
+        static int max_size = 20;
         static int index_isbn = 0;
         static int index_price = 1;
         static int index_name = 2;
