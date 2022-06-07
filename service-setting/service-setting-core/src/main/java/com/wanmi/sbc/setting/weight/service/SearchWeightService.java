@@ -72,7 +72,13 @@ public class SearchWeightService {
         return result;
     }
 
-
+    /**
+     * 删除key
+     * @param key
+     */
+    public void delete(String key) {
+        redisService.delete(key);
+    }
 
     private Specification<SearchWeightModel> packageWhere() {
         return new Specification<SearchWeightModel>() {

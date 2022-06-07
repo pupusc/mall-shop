@@ -1,6 +1,7 @@
-package com.wanmi.sbc.setting.provider.impl;
+package com.wanmi.sbc.setting.provider.impl.weight;
 
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
 import com.wanmi.sbc.setting.weight.service.SearchWeightService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @RestController
-public class SearchWeightController {
+public class SearchWeightController implements SearchWeightProvider {
 
     @Autowired
     private SearchWeightService searchWeightService;
@@ -25,4 +26,12 @@ public class SearchWeightController {
     public BaseResponse<List<SearchWeightResp>> list(String key) {
         return BaseResponse.success(searchWeightService.list(key));
     }
+
+
+    @Override
+    public BaseResponse delete(String key) {
+        searchWeightService.delete(key);
+        return BaseResponse.SUCCESSFUL();
+    }
+
 }
