@@ -273,14 +273,8 @@ public class GoodsStockService {
             List<Goods> goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
 
             for (Goods goodsParam : goodsList) {
-                if (StringUtils.isBlank(goodsParam.getGoodsNo())) {
-                    List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(goodsParam.getGoodsId()));
-                    for (GoodsInfo goodsInfo : goodsInfoList) {
-                        if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
-                            goodsParam.setErpGoodsNo(goodsInfo.getErpGoodsNo());
-                            break;
-                        }
-                    }
+                if (StringUtils.isBlank(goodsParam.getErpGoodsNo())) {
+                    goodsParam.setErpGoodsNo(this.getErpGoodsNo(goodsParam.getGoodsId()));
                 }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getGoodsId(), goodsParam.getErpGoodsNo(), startTime));
             }
@@ -303,13 +297,7 @@ public class GoodsStockService {
                 }
 
                 if (StringUtils.isBlank(erpGoodsNo)) {
-                    List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(erpGoodsNo));
-                    for (GoodsInfo goodsInfo : goodsInfoList) {
-                        if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
-                            erpGoodsNo = goodsInfo.getErpGoodsNo();
-                            break;
-                        }
-                    }
+                    erpGoodsNo = this.getErpGoodsNo(goodsId);
                 }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsId, erpGoodsNo, startTime));
                 if (tmpId!= null && maxTmpId < tmpId) {
@@ -332,6 +320,23 @@ public class GoodsStockService {
         result.setGoodsInfoStockSyncList(tmpResult);
         log.info("GoodsStockService batchUpdateStock complete all cost: {} ms", (System.currentTimeMillis() - beginTime));
         return result;
+    }
+
+    /**
+     * 获取erpgoodsNo
+     * @param goodsId
+     * @return
+     */
+    private String getErpGoodsNo(String goodsId) {
+        String erpGoodsNo = "";
+        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(goodsId));
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
+                erpGoodsNo = goodsInfo.getErpGoodsNo();
+                break;
+            }
+        }
+        return erpGoodsNo;
     }
 
     /**
