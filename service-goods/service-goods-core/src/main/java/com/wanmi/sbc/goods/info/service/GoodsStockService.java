@@ -273,6 +273,15 @@ public class GoodsStockService {
             List<Goods> goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
 
             for (Goods goodsParam : goodsList) {
+                if (StringUtils.isBlank(goodsParam.getGoodsNo())) {
+                    List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(goodsParam.getGoodsId()));
+                    for (GoodsInfo goodsInfo : goodsInfoList) {
+                        if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
+                            goodsParam.setErpGoodsNo(goodsInfo.getErpGoodsNo());
+                            break;
+                        }
+                    }
+                }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getGoodsId(), goodsParam.getErpGoodsNo(), startTime));
             }
         } else {
@@ -290,6 +299,16 @@ public class GoodsStockService {
                     }
                     if ("goods_id".equals(entry.getKey()))  {
                         goodsId = entry.getValue().toString();
+                    }
+                }
+
+                if (StringUtils.isBlank(erpGoodsNo)) {
+                    List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(erpGoodsNo));
+                    for (GoodsInfo goodsInfo : goodsInfoList) {
+                        if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
+                            erpGoodsNo = goodsInfo.getErpGoodsNo();
+                            break;
+                        }
                     }
                 }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsId, erpGoodsNo, startTime));
