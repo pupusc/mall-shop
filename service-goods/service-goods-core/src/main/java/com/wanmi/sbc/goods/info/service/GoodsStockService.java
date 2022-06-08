@@ -321,7 +321,10 @@ public class GoodsStockService {
      * @param startTime
      */
     private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String goodsId, String erpGoodsCodeNo, String startTime) {
-
+        if (StringUtils.isBlank(erpGoodsCodeNo)) {
+            log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} goodsId:{} erpGoodsCodeNo is null return ", erpGoodsCodeNo, goodsId);
+            return new ArrayList<>();
+        }
         //获取仓库黑名单
         List<String> unStaticsKey = new ArrayList<>();
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -341,6 +344,8 @@ public class GoodsStockService {
             if (erpStockInfo.getStocks() == null) {
                 erpStockInfo.setStocks(new ArrayList<>());
             }
+            log.info("GoodsStockService batchUpdateStock pull warehostStock erpGoodsCodeNo:{} goodsId:{} pageNum:{} pageSize:{} total:{}", erpGoodsCodeNo, goodsId, pageNum, pageSize, erpStockInfo.getTotal());
+
             int cycleCount = erpStockInfo.getTotal() / pageSize;
             int remainder = erpStockInfo.getTotal() % pageSize;
             cycleCount += remainder > 0 ? 1 : 0;
