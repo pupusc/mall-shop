@@ -104,9 +104,10 @@ public class TradeOrderService {
                 pageSize = 200;
             }
             Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
-            log.info("TradeOrderService batchSyncDeliveryStatusToWechat param:{}", newCriteria);
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
+            log.info("TradeOrderService batchSyncDeliveryStatusToWechat param:{}", query);
+
             List<Trade> trades = mongoTemplate.find(query, Trade.class);
 
             /**
@@ -127,7 +128,7 @@ public class TradeOrderService {
             List<Trade> totalTradeList =
                     Stream.of(trades, cycleBuyTradeList).flatMap(Collection::stream).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(totalTradeList)) {
-                log.info("#批量同步发货状态到微信的订单:{}", totalTradeList);
+                log.info("#批量同步发货状态到微信的订单数量为:{}", totalTradeList.size());
                 totalTradeList.stream().forEach(trade -> {
                     syncDeliveryStatusToWechat(trade);
                     log.info("#批量同步发货状态到微信的订单:{}", trade);
