@@ -36,6 +36,7 @@ import org.springframework.util.ObjectUtils;
 
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,7 +73,7 @@ public class TradeOrderService {
      *
      * @param pageSize
      */
-    public void batchSyncDeliveryStatusToWechat(int pageSize, String ptid) {
+    public void batchSyncDeliveryStatusToWechat(int pageSize, String ptid, String startTime) {
         RLock lock = redissonClient.getLock(BATCH_UPDATE_DELIVERY_STATUS_TO_WECHAT_LOCKS);
         if (lock.isLocked()) {
             log.error("定时任务在执行中,下次执行.");
@@ -88,11 +89,16 @@ public class TradeOrderService {
             criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
             criterias.add(Criteria.where("tradeState.deliverStatus").ne(DeliverStatus.NOT_YET_SHIPPED.getStatusId()));
             criterias.add(Criteria.where("channelType").is(ChannelType.MINIAPP.toString()));
+            criterias.add(Criteria.where("miniProgramScene").is(2));
             criterias.add(Criteria.where("miniProgram.syncStatus").is(0));
             criterias.add(Criteria.where("cycleBuyFlag").is(false));
             //单个订单发货状态同步
             if (StringUtils.isNoneBlank(ptid)) {
                 criterias.add(Criteria.where("id").is(ptid));
+            }
+            if (StringUtils.isNotBlank(startTime)) {
+
+                criterias.add(Criteria.where("tradeState.payTime").gte(LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern(DateUtil.FMT_TIME_1))));
             }
             if (pageSize <= 0) {
                 pageSize = 200;
