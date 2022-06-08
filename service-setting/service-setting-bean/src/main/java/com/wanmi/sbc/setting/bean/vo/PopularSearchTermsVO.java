@@ -27,7 +27,11 @@ public class PopularSearchTermsVO implements Serializable {
      */
     @ApiModelProperty(value = "id")
     private Long id;
-
+    /**
+     * 搜索词类型 0-H5  1-小程序
+     */
+    @ApiModelProperty(value= "搜索词类型 0-H5  1-小程序")
+    private Integer popularChannel = 0;
     /**
      * 热门搜索词
      */
@@ -45,7 +49,17 @@ public class PopularSearchTermsVO implements Serializable {
      */
     @ApiModelProperty(value= "PC落地页")
     private String pcLandingPage;
+    /**
+     * 小程序热捜词
+     */
+    @ApiModelProperty(value = "小程序热捜词")
+    private String miniHotKeyword;
 
+    /**
+     * 小程序精选词
+     */
+    @ApiModelProperty(value = "小程序精选词")
+    private String miniSelectKeyword;
     /**
      * 排序号
      */

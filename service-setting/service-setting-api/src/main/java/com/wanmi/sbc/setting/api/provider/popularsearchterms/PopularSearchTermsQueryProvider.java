@@ -21,6 +21,6 @@ public interface PopularSearchTermsQueryProvider {
      * @return
      */
     @PostMapping("/setting/${application.setting.version}/popular_search_terms/list")
-    BaseResponse<PopularSearchTermsListResponse>listPopularSearchTerms();
+    BaseResponse<PopularSearchTermsListResponse>listPopularSearchTerms(Integer popularChannel);
 
 }

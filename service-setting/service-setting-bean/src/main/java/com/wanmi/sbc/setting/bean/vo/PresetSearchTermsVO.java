@@ -27,4 +27,10 @@ public class PresetSearchTermsVO implements Serializable {
      */
     @ApiModelProperty(value = "预置搜索词字")
     private String presetSearchKeyword;
+
+    /**
+     * 预置搜索词类型 0-H5  1-小程序
+     */
+    @ApiModelProperty(value = "预置搜索词类型")
+    private Integer presetChannel = 0;
 }
