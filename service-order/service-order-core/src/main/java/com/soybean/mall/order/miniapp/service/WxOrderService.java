@@ -37,6 +37,7 @@ import com.wanmi.sbc.order.returnorder.model.entity.ReturnAddress;
 import com.wanmi.sbc.order.returnorder.model.entity.ReturnItem;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
+import com.wanmi.sbc.order.trade.model.entity.value.Logistics;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.repository.TradeRepository;
 import com.wanmi.sbc.order.trade.service.TradeCacheService;
@@ -214,6 +215,7 @@ public class WxOrderService {
         if (!Objects.equals(trade.getChannelType(), ChannelType.MINIAPP)) {
             return null;
         }
+        Logistics logistics = trade.getTradeDelivers().get(0).getLogistics();
         WxSendMessageRequest request = new WxSendMessageRequest();
         request.setOpenId(trade.getBuyer().getOpenId());
         request.setTemplateId(orderDeliveryMsgTemplateId);
@@ -226,10 +228,10 @@ public class WxOrderService {
             put("value", filterChineseAndAlp(trade.getTradeItems().get(0).getSpuName()));
         }});
         map.put("phrase3", new HashMap<String, String>() {{
-            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticCompanyName());
+            put("value", logistics == null ? "无" : logistics.getLogisticCompanyName());
         }});
         map.put("character_string4", new HashMap<String, String>() {{
-            put("value", trade.getTradeDelivers().get(0).getLogistics().getLogisticNo());
+            put("value", logistics == null ? "无" : logistics.getLogisticNo());
         }});
         map.put("thing9", new HashMap<String, String>() {{
             put("value", StringUtils.isNotEmpty(trade.getBuyerRemark()) ? trade.getBuyerRemark() : "无");
