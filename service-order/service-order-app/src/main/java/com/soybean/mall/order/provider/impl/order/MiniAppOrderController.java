@@ -46,7 +46,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
      */
     @Override
     public BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request) {
-        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid());
+        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid(), request.getStartTime());
         return BaseResponse.SUCCESSFUL();
     }
 

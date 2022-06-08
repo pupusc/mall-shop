@@ -27,10 +27,14 @@ public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
         String[] paramterArray = params.split(",");
         int size = 0;
         String ptid = StringUtils.EMPTY;
+        String starTime = StringUtils.EMPTY;
         try {
             size = Integer.parseInt(paramterArray[0]);
-            if (paramterArray.length>1){
-                ptid = paramterArray[1];
+            if (paramterArray.length > 1) {
+                starTime = paramterArray[1];
+            }
+            if (paramterArray.length > 2){
+                ptid = paramterArray[2];
             }
         } catch (RuntimeException e) {
             log.error("调用小程序订单并同步到微信,参数错误,采用默认 200,{}", e);
@@ -38,6 +42,7 @@ public class OrderDeliveryStatusSyncJobHandler  extends IJobHandler {
         miniAppOrderProvider.batchSyncDeliveryStatusToWechat(ProviderTradeErpRequest.builder()
                 .pageSize(size)
                 .ptid(ptid)
+                .startTime(starTime)
                 .build());
         log.info("=====小程序订单并同步到微信end======");
         return SUCCESS;
