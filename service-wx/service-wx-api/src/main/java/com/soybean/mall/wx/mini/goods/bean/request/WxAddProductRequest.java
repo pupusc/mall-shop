@@ -89,6 +89,8 @@ public class WxAddProductRequest {
             this.tmpStockNum = tmpStockNum;
             if (tmpStockNum.compareTo(new BigInteger(ConstantUtil.WX_MAX_STOCK + "")) > 0) {
                 this.stockNum = ConstantUtil.WX_MAX_STOCK;
+            } else {
+                this.stockNum = tmpStockNum.longValue();
             }
         }
 
