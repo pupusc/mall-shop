@@ -41,8 +41,8 @@ public class CommonPackageModel {
             wxOrderItemResp.setSkuId(tradeItem.getSkuId());
             wxOrderItemResp.setTitle(tradeItem.getSpuName());
             wxOrderItemResp.setSpecs(tradeItem.getSpecDetails());
-            wxOrderItemResp.setSalePrice(tradeItem.getPrice().toString());
-            wxOrderItemResp.setPoints(tradeItem.getPoints().intValue());
+            wxOrderItemResp.setSalePrice(tradeItem.getPrice() == null ? "0" : tradeItem.getPrice().toString());
+            wxOrderItemResp.setPoints(tradeItem.getPoints() == null ? 0 : tradeItem.getPoints().intValue());
             wxOrderItemResp.setNum(tradeItem.getNum().intValue());
             wxOrderItemResp.setPic(tradeItem.getPic());
             wxOrderItemRespList.add(wxOrderItemResp);
