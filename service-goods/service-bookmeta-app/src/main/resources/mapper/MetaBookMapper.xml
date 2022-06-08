@@ -148,8 +148,7 @@
         JOIN
         (
             SELECT
-                DISTINCT t1.id,
-                t1.*
+                DISTINCT t1.id
             FROM
                 meta_book t1
                 LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
