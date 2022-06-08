@@ -66,7 +66,7 @@ public class CommonPackageModel {
             wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice().toString());
             wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice().toString());
             wxOrderPriceResp.setActualPrice(tradePrice.getTotalPrice().toString());
-            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice().toString());
+            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? "" : tradePrice.getPointsPrice().toString());
             wxOrderResp.setPayPrice(wxOrderPriceResp);
         }
 
