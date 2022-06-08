@@ -2,6 +2,8 @@ package com.soybean.mall.order.response.order;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -32,7 +34,7 @@ public class WxOrderItemResp {
     /**
      * 售价
      */
-    private String salePrice;
+    private BigDecimal salePrice;
 
     /**
      * 积分信息

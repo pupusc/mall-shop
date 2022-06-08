@@ -10,6 +10,7 @@ import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class CommonPackageModel {
             wxOrderItemResp.setSkuId(tradeItem.getSkuId());
             wxOrderItemResp.setTitle(tradeItem.getSpuName());
             wxOrderItemResp.setSpecs(tradeItem.getSpecDetails());
-            wxOrderItemResp.setSalePrice(tradeItem.getPrice() == null ? "0" : tradeItem.getPrice().toString());
+            wxOrderItemResp.setSalePrice(tradeItem.getPrice() == null ? new BigDecimal("0") : tradeItem.getPrice());
             wxOrderItemResp.setPoints(tradeItem.getPoints() == null ? 0 : tradeItem.getPoints().intValue());
             wxOrderItemResp.setNum(tradeItem.getNum().intValue());
             wxOrderItemResp.setPic(tradeItem.getPic());
@@ -62,11 +63,14 @@ public class CommonPackageModel {
         TradePriceVO tradePrice = tradeVO.getTradePrice();
         if (tradePrice != null) {
             WxOrderPriceResp wxOrderPriceResp = new WxOrderPriceResp();
-            wxOrderPriceResp.setOriginPrice(tradePrice.getOriginPrice().toString());
-            wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice().toString());
-            wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice().toString());
-            wxOrderPriceResp.setActualPrice(tradePrice.getTotalPrice().toString());
-            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? "" : tradePrice.getPointsPrice().toString());
+            wxOrderPriceResp.setOriginPrice(tradePrice.getOriginPrice() == null ? new BigDecimal("0") : tradePrice.getOriginPrice());
+            wxOrderPriceResp.setDiscountsPrice(tradePrice.getDiscountsPrice() == null ? new BigDecimal("0") : tradePrice.getDiscountsPrice());
+            wxOrderPriceResp.setVipDiscountPrice(tradePrice.getVipDiscountPrice() == null ? new BigDecimal("0") : tradePrice.getVipDiscountPrice());
+            wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? new BigDecimal("0") : tradePrice.getCouponPrice());
+            wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? new BigDecimal("0") : tradePrice.getDeliveryPrice());
+            wxOrderPriceResp.setActualPrice(tradePrice.getTotalPrice() == null ? new BigDecimal("0") : tradePrice.getTotalPrice());
+            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? new BigDecimal("0") : tradePrice.getPointsPrice());
+
             wxOrderResp.setPayPrice(wxOrderPriceResp);
         }
 
