@@ -28,7 +28,7 @@ public class PresetSearchTermsService {
      */
     public PresetSearchTerms add(PresetSearchTerms presetSearchTerms) {
         List<PresetSearchTerms> list = presetSearchTermsRepositoy.findAll();
-        if (list.size()>=1){
+        if (list.size()>=2){
             throw new SbcRuntimeException(SearchTermsErrorCode.PRESET_SEARCH_TERM_RESTRICTIONS);
         }
         presetSearchTermsRepositoy.save(presetSearchTerms);

@@ -40,7 +40,7 @@ public class PopularSearchTermsService {
      */
     public PopularSearchTermsVO add(PopularSearchTerms popularSearchTerms) {
         List<PopularSearchTerms> searchTerms =
-                popularSearchTermsRespository.findByDelFlagOrderBySortNumberAscCreateTimeDesc(DeleteFlag.NO);
+                popularSearchTermsRespository.findByDelFlagAndPopularChannelOrderBySortNumberAscCreateTimeDesc(DeleteFlag.NO, popularSearchTerms.getPopularChannel());
         if (CollectionUtils.isNotEmpty(searchTerms)){
             // 最多可设置20个热搜词
             if (searchTerms.size() >= 20){
@@ -87,6 +87,18 @@ public class PopularSearchTermsService {
         }else{
             terms.setPcLandingPage(null);
         }
+
+        if (popularSearchTerms.getMiniHotKeyword() != null) {
+            terms.setMiniHotKeyword(popularSearchTerms.getMiniHotKeyword());
+        }else{
+            terms.setMiniHotKeyword(null);
+        }
+        if (null != popularSearchTerms.getMiniSelectKeyword()) {
+            terms.setMiniSelectKeyword(popularSearchTerms.getMiniSelectKeyword());
+        }else{
+            terms.setMiniSelectKeyword(null);
+        }
+
         if (popularSearchTerms.getPopularSearchKeyword() != null) {
             terms.setPopularSearchKeyword(popularSearchTerms.getPopularSearchKeyword());
         }
@@ -121,9 +133,9 @@ public class PopularSearchTermsService {
      *
      * @return
      */
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms() {
+    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(Integer popularChannel) {
         List<PopularSearchTerms> popularSearchTermsList =
-                popularSearchTermsRespository.findByDelFlagOrderBySortNumberAscCreateTimeDesc(DeleteFlag.NO);
+                popularSearchTermsRespository.findByDelFlagAndPopularChannelOrderBySortNumberAscCreateTimeDesc(DeleteFlag.NO, popularChannel);
         List<PopularSearchTermsVO> popularSearchTerms = popularSearchTermsList.stream().map(popularSearch -> {
             PopularSearchTermsVO popularSearchTermsVO = new PopularSearchTermsVO();
             KsBeanUtil.copyPropertiesThird(popularSearch, popularSearchTermsVO);

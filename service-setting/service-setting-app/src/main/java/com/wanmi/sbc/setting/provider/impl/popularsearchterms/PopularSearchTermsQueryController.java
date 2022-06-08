@@ -21,7 +21,7 @@ public class PopularSearchTermsQueryController implements PopularSearchTermsQuer
     PopularSearchTermsService popularSearchTermsService;
 
     @Override
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms() {
-        return popularSearchTermsService.listPopularSearchTerms();
+    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(Integer popularChannel) {
+        return popularSearchTermsService.listPopularSearchTerms(popularChannel);
     }
 }

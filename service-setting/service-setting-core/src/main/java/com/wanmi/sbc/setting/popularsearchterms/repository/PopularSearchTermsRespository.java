@@ -43,7 +43,8 @@ public interface PopularSearchTermsRespository extends JpaRepository<PopularSear
      * @param delFlag
      * @return
      */
-    List<PopularSearchTerms> findByDelFlagOrderBySortNumberAscCreateTimeDesc(DeleteFlag delFlag);
+
+    List<PopularSearchTerms> findByDelFlagAndPopularChannelOrderBySortNumberAscCreateTimeDesc(DeleteFlag delFlag, Integer popularChannel);
 
     /**
      * 热门搜索词排序
