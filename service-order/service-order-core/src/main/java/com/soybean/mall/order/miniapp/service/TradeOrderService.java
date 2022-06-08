@@ -98,6 +98,7 @@ public class TradeOrderService {
                 pageSize = 200;
             }
             Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
+            log.info("TradeOrderService batchSyncDeliveryStatusToWechat param:{}", newCriteria);
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<Trade> trades = mongoTemplate.find(query, Trade.class);
