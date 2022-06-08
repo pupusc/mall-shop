@@ -3,11 +3,13 @@ package com.soybean.elastic.booklistmodel.service;
 
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.wanmi.sbc.common.util.EsConstants;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 
 /**
  * Description:
@@ -53,10 +56,11 @@ public class EsBookListModelService {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+//        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
         boolQb.should(matchQuery("bookListName", key)).
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost));
-        boolQb.should(matchQuery("spuName", key)).
-                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost));
+        boolQb.should(nestedQuery("spus", matchQuery("spuName", key)
+                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
 
 
 
