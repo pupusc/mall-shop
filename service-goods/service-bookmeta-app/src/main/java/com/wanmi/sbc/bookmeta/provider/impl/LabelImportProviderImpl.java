@@ -125,7 +125,7 @@ public class LabelImportProviderImpl {
                 cate1.setScene(0);
                 cate1.setSeq(0);
                 cate1.setStatus(1);
-                cate1.setPath(null);
+                cate1.setPath("");
                 cate1.setName(cate1Name);
                 cate1.setDescr("一级分类");
                 this.metaLabelMapper.insertSelective(cate1);
