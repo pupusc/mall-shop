@@ -40,7 +40,7 @@ public class SubBookNew {
      * 简介
      */
     @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
-    private String briefIntroduce;
+    private String bookDesc;
 
     /**
      * 作者

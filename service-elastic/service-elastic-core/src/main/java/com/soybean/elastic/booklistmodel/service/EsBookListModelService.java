@@ -73,7 +73,7 @@ public class EsBookListModelService {
 //        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuCommonSearchCriterialBuilder(request);
         boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword())).
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost));
-        boolQb.should(nestedQuery("spus", matchQuery("spuName", esKeyWordQueryProviderReq.getKeyword())
+        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
                 .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
 
         return boolQb;
@@ -90,7 +90,7 @@ public class EsBookListModelService {
             return fieldSortBuilders;
         }
         if (sortQueryProviderReq.getBooklistSortType() == BookListSortType.UPDATE_TIME) {
-            FieldSortBuilder order = new FieldSortBuilder("").order(SortOrder.DESC);
+            FieldSortBuilder order = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.add(order);
         }
         return fieldSortBuilders;
@@ -128,7 +128,7 @@ public class EsBookListModelService {
 
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        boolQb.must(nestedQuery("spus", termsQuery("spuId", req.getSpuIds()), ScoreMode.None));
+        boolQb.must(nestedQuery("spus", termsQuery("spus.spuId", req.getSpuIds()), ScoreMode.None));
 
         return boolQb;
     }

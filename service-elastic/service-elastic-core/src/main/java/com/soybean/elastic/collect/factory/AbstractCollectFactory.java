@@ -23,6 +23,8 @@ public abstract class AbstractCollectFactory {
 
     public static final String INDEX_ES_BOOK_LIST_MODEL = "es_book_list_model";
 
+    public static final String INDEX_ES_SPU_NEW = "es_spu_new";
+
     /**
      * 根据key生成要拼装的对象信息
      * @param <S>

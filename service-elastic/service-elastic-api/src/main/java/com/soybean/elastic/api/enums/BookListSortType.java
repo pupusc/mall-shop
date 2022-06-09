@@ -25,7 +25,7 @@ public enum BookListSortType {
     private String message;
 
 
-    public static BookListSortType BookListSortType(Integer code) {
+    public static BookListSortType get(Integer code) {
         for (BookListSortType bookListSortType : values()) {
             if (Objects.equals(bookListSortType.getCode(), code)) {
                 return bookListSortType;

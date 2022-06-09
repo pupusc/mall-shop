@@ -2,6 +2,7 @@ package com.soybean.elastic.api.req;
 
 import com.soybean.common.req.CommonPageQueryReq;
 import com.soybean.elastic.api.enums.BookListSortType;
+import com.soybean.elastic.api.enums.SpuSortType;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -19,7 +20,7 @@ public class EsSortQueryProviderReq extends CommonPageQueryReq {
     /**
      * 排序类型 0 默认
      */
-    private int spuSortType;
+    private SpuSortType spuSortType;
 
     /**
      * 书单排序 0默认
