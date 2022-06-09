@@ -132,6 +132,7 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
                     }
                     esBookListSubSpuNew.setSpuName(goodsVO.getGoodsName());
                     esBookListSubSpuNew.setChannelTypes(StringUtils.isNotBlank(goodsVO.getGoodsChannelType()) ? Arrays.asList(goodsVO.getGoodsChannelType().split(",")) : new ArrayList<>());
+                    esBookListSubSpuNew.setUnBackgroundPic(goodsVO.getGoodsUnBackImg());
                 }
 //                spuIdSet.clear(); //辅助GC
 //                spuId2GoodsVoMap.clear(); //辅助GC

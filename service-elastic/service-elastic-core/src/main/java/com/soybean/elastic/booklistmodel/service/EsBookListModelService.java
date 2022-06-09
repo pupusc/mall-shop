@@ -1,7 +1,10 @@
 package com.soybean.elastic.booklistmodel.service;
 
 
+import com.soybean.elastic.api.enums.BookListSortType;
+import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
+import com.soybean.elastic.api.req.EsSortQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
@@ -14,6 +17,7 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -29,6 +33,7 @@ import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description:
@@ -49,11 +54,11 @@ public class EsBookListModelService {
     private SearchWeightProvider searchWeightProvider;
 
     /**
-     * 设置条件信息
+     * 设置搜索的条件信息
      * @param esKeyWordQueryProviderReq
      * @return
      */
-    private BoolQueryBuilder packageQueryCondition(EsKeyWordQueryProviderReq esKeyWordQueryProviderReq) {
+    private BoolQueryBuilder packageKeyWordQueryCondition(EsKeyWordQueryProviderReq esKeyWordQueryProviderReq) {
         float defaultBoost = 0f;
         List<SearchWeightResp> context = searchWeightProvider.list(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_KEY).getContext();
         Map<String, Float> searchWeightMap = new HashMap<>();
@@ -74,13 +79,20 @@ public class EsBookListModelService {
         return boolQb;
     }
 
+
+
     /**
      * 设置排序
      */
-    private List<FieldSortBuilder> packageSort() {
+    private List<FieldSortBuilder> packageSort(EsSortQueryProviderReq sortQueryProviderReq) {
         List<FieldSortBuilder> fieldSortBuilders = new ArrayList<>();
-//        FieldSortBuilder order = new FieldSortBuilder("").order(SortOrder.ASC);
-//        fieldSortBuilders.add(order);
+        if (sortQueryProviderReq.getBooklistSortType() == null) {
+            return fieldSortBuilders;
+        }
+        if (sortQueryProviderReq.getBooklistSortType() == BookListSortType.UPDATE_TIME) {
+            FieldSortBuilder order = new FieldSortBuilder("").order(SortOrder.DESC);
+            fieldSortBuilders.add(order);
+        }
         return fieldSortBuilders;
     }
 
@@ -97,12 +109,46 @@ public class EsBookListModelService {
         //分页 从0开始
         builder.withPageable(PageRequest.of(esKeyWordQueryProviderReq.getPageNum(), esKeyWordQueryProviderReq.getPageSize()));
         //查询 条件
-        builder.withQuery(this.packageQueryCondition(esKeyWordQueryProviderReq));
-        //排序
-        for (FieldSortBuilder sortBuilder : this.packageSort()) {
-            builder.withSort(sortBuilder);
-        }
+        builder.withQuery(this.packageKeyWordQueryCondition(esKeyWordQueryProviderReq));
 
+
+        NativeSearchQuery build = builder.build();
+        log.info("--->>> EsBookListModelService.listKeyWorldEsBookListModel DSL: {}", build.getQuery().toString());
+        AggregatedPage<EsBookListModelResp> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsBookListModelResp.class);
+        return new CommonPageResp<>(resultQueryPage.getTotalElements(), resultQueryPage.getContent());
+    }
+
+
+    /**
+     * 设置普通搜索的条件信息
+     * @param req
+     * @return
+     */
+    private BoolQueryBuilder packageQueryCondition(EsBookListQueryProviderReq req) {
+
+        //查询条件
+        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        boolQb.must(nestedQuery("spus", termsQuery("spuId", req.getSpuIds()), ScoreMode.None));
+
+        return boolQb;
+    }
+
+    /**
+     * 书单/榜单搜索
+     * @param request
+     * @return
+     */
+    public CommonPageResp<List<EsBookListModelResp>> listEsBookListModel(EsBookListQueryProviderReq request) {
+        NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
+        builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
+
+        //分页 从0开始
+        builder.withPageable(PageRequest.of(request.getPageNum(), request.getPageSize()));
+        builder.withQuery(this.packageQueryCondition(request));
+        //排序
+        for (FieldSortBuilder fieldSortBuilder : this.packageSort(request)) {
+            builder.withSort(fieldSortBuilder);
+        }
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsBookListModelService.listEsBookListModel DSL: {}", build.getQuery().toString());
         AggregatedPage<EsBookListModelResp> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsBookListModelResp.class);

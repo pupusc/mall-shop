@@ -37,6 +37,24 @@ public class SearchController {
     @Autowired
     private BookListSearchService bookListSearchService;
 
+    @PostMapping("/keyword")
+    public BaseResponse keywordSearch(String key) {
+
+        //查询榜单
+        BookListKeyWordQueryReq bookListKeyWordQueryReq = new BookListKeyWordQueryReq();
+        bookListKeyWordQueryReq.setSpuNum(3);
+        bookListKeyWordQueryReq.setBookListBusinessType(1);
+        bookListKeyWordQueryReq.setKeyword(key);
+        List<BookListSpuResp> bookListSpuList = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext().getContent();
+        //查询书单
+        bookListKeyWordQueryReq = new BookListKeyWordQueryReq();
+        bookListKeyWordQueryReq.setSpuNum(5);
+        bookListKeyWordQueryReq.setBookListBusinessType(2);
+        bookListKeyWordQueryReq.setKeyword(key);
+        List<BookListSpuResp> rankBookListSpuList = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext().getContent();
+        return BaseResponse.SUCCESSFUL();
+    }
+
     /**
      * 搜索 获取书单/榜单
      * @param request
@@ -52,7 +70,7 @@ public class SearchController {
 
 
     /**
-     * 搜索 获取书单/榜单
+     * 搜索 获取商品/图书
      * @param request
      * @return
      */

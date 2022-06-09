@@ -1,6 +1,7 @@
 package com.soybean.elastic.api.provider.booklistmodel;
 
 
+import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
@@ -22,4 +23,13 @@ public interface EsBookListModelProvider {
      */
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listKeyWorldEsBookListModel")
     BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordQueryProviderReq request);
+
+
+    /**
+     * 书单信息搜索
+     * @param request
+     * @return
+     */
+    @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listEsBookListModel")
+    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listEsBookListModel(EsBookListQueryProviderReq request);
 }
