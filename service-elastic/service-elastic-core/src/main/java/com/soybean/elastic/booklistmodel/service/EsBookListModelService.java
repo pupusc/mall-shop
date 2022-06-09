@@ -3,8 +3,7 @@ package com.soybean.elastic.booklistmodel.service;
 
 import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
-import com.soybean.elastic.api.resp.EsCommonPageResp;
-import com.soybean.elastic.booklistmodel.model.EsBookListModel;
+import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
@@ -90,7 +89,7 @@ public class EsBookListModelService {
      * @param esKeyWordQueryProviderReq
      * @return
      */
-    public EsCommonPageResp<List<EsBookListModelResp>> listKeyWorldEsBookListModel(EsKeyWordQueryProviderReq esKeyWordQueryProviderReq){
+    public CommonPageResp<List<EsBookListModelResp>> listKeyWorldEsBookListModel(EsKeyWordQueryProviderReq esKeyWordQueryProviderReq){
 
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
         builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
@@ -107,6 +106,6 @@ public class EsBookListModelService {
         NativeSearchQuery build = builder.build();
         log.info("--->>> EsBookListModelService.listEsBookListModel DSL: {}", build.getQuery().toString());
         AggregatedPage<EsBookListModelResp> resultQueryPage = elasticsearchTemplate.queryForPage(build, EsBookListModelResp.class);
-        return new EsCommonPageResp<>(resultQueryPage.getTotalElements(), resultQueryPage.getContent());
+        return new CommonPageResp<>(resultQueryPage.getTotalElements(), resultQueryPage.getContent());
     }
 }

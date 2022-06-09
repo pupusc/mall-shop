@@ -3,7 +3,7 @@ package com.soybean.elastic.provider.impl.booklistmodel;
 import com.soybean.elastic.api.provider.booklistmodel.EsBookListModelProvider;
 import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
-import com.soybean.elastic.api.resp.EsCommonPageResp;
+import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.booklistmodel.service.EsBookListModelService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class EsBookListModelController implements EsBookListModelProvider {
     private EsBookListModelService esBookListModelService;
 
     @Override
-    public BaseResponse<EsCommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(EsKeyWordQueryProviderReq request) {
+    public BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(EsKeyWordQueryProviderReq request) {
         return BaseResponse.success(esBookListModelService.listKeyWorldEsBookListModel(request));
     }
 }

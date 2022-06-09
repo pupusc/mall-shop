@@ -3,7 +3,7 @@ package com.soybean.elastic.api.provider.booklistmodel;
 
 import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
-import com.soybean.elastic.api.resp.EsCommonPageResp;
+import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,5 +21,5 @@ public interface EsBookListModelProvider {
      * @return
      */
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listKeyWorldEsBookListModel")
-    BaseResponse<EsCommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordQueryProviderReq request);
+    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordQueryProviderReq request);
 }

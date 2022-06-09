@@ -2,7 +2,7 @@ package com.soybean.mall.goods.controller;
 
 import com.soybean.elastic.api.provider.booklistmodel.EsBookListModelProvider;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
-import com.soybean.elastic.api.resp.EsCommonPageResp;
+import com.soybean.common.resp.CommonPageResp;
 import com.soybean.mall.goods.req.BookListKeyWordQueryReq;
 import com.soybean.mall.goods.response.BookListSpuResp;
 import com.soybean.mall.goods.service.BookListSearchService;
@@ -34,7 +34,7 @@ public class SearchController {
 
 
     public void keywordBookListSearch(@Validated @RequestBody BookListKeyWordQueryReq request) {
-        EsCommonPageResp<List<EsBookListModelResp>> context = esBookListModelProvider.listKeyWorldEsBookListModel(request).getContext();
+        CommonPageResp<List<EsBookListModelResp>> context = esBookListModelProvider.listKeyWorldEsBookListModel(request).getContext();
         List<BookListSpuResp> bookListSpuResps = bookListSearchService.listBookListSearch(context.getContent(), request.getSpuNum());
     }
 }

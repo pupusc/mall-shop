@@ -1,4 +1,4 @@
-package com.soybean.elastic.api.resp;
+package com.soybean.common.resp;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EsCommonPageResp<S> implements Serializable {
+public class CommonPageResp<S> implements Serializable {
 
     /**
      * 总数量
