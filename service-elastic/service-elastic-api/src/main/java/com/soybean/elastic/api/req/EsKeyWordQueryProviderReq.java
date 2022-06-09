@@ -2,6 +2,8 @@ package com.soybean.elastic.api.req;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
@@ -15,5 +17,6 @@ public class EsKeyWordQueryProviderReq extends EsCommonPageQueryReq {
     /**
      * 关键字
      */
+    @NotBlank
     private String keyword;
 }
