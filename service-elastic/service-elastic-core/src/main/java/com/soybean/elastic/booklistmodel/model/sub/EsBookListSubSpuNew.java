@@ -27,6 +27,18 @@ public class EsBookListSubSpuNew {
     private String spuName;
 
     /**
+     * 商品主图
+     */
+    @Field(type = FieldType.Keyword, index = false)
+    private String pic;
+
+    /**
+     * 无背景图
+     */
+    @Field(type = FieldType.Keyword, index = false)
+    private String unBackgroundPic;
+
+    /**
      * 排序
      */
     @Field(type = FieldType.Integer, index = false)

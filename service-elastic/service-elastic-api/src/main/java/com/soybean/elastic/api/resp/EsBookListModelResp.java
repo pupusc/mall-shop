@@ -81,6 +81,16 @@ public class EsBookListModelResp implements Serializable {
         private String spuName;
 
         /**
+         * 商品主图
+         */
+        private String pic;
+
+        /**
+         * 无背景图
+         */
+        private String unBackgroundPic;
+
+        /**
          * 排序
          */
         private Integer sortNum;

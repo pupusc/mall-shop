@@ -34,9 +34,13 @@ public class BookListSpuResp {
      */
     private String bookListDesc;
 
+    /**
+     * 商品列表
+     */
+    private List<Spu> spus;
 
     @Data
-    public class Spu {
+    public static class Spu {
 
         private String spuId;
 
@@ -49,7 +53,7 @@ public class BookListSpuResp {
         /**
          * 无背景图
          */
-        private String spuUnBackgroundPic;
+        private String unBackgroundPic;
 
         /**
          * 排序

@@ -14,18 +14,11 @@ import javax.validation.constraints.NotNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListKeyWordQueryReq extends EsKeyWordQueryProviderReq {
+public class SpuKeyWordQueryReq extends EsKeyWordQueryProviderReq {
 
     /**
-     * 商品数量
+     * 商品分类 1 图书 2 商品
      */
     @NotNull
-    @Min(1)
-    private Integer spuNum;
-
-    /**
-     * 书单/榜单类型 1榜单 2书单
-     */
-    @NotNull
-    private Integer bookListBusinessType;
+    private Integer spuCategory;
 }

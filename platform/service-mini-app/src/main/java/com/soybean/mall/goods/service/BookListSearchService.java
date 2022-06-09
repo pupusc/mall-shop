@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,21 +72,8 @@ public class BookListSearchService {
             bookList2SpuMap.put(esBookListModelParam.getBookListId().intValue(), spuSet);
         }
 
-        //需要搜索的书单的商品
-        Map<Integer, List<EsBookListModelResp.Spu>> integerSetMap = this.filterSpu(bookList2SpuMap, spuNum);
-        //替换书单中的商品信息
-        for (EsBookListModelResp esBookListModelResp : esBookListModelRespList) {
-            List<EsBookListModelResp.Spu> spus = integerSetMap.get(esBookListModelResp.getBookListId().intValue());
-            if (CollectionUtils.isEmpty(spus)) {
-                spus = new ArrayList<>();
-            }
-            esBookListModelResp.setSpus(spus);
-        }
-
-        //获取商品信息 duanlsh TODO
-
         //获取书单商品信息
-        return this.packBookListSpuResp(esBookListModelRespList);
+        return this.packBookListSpuResp(esBookListModelRespList, this.filterSpu(bookList2SpuMap, spuNum));
     }
 
     /**
@@ -95,16 +81,29 @@ public class BookListSearchService {
      * @param esBookListModelRespList
      * @return
      */
-    private List<BookListSpuResp> packBookListSpuResp(List<EsBookListModelResp> esBookListModelRespList) {
+    private List<BookListSpuResp> packBookListSpuResp(List<EsBookListModelResp> esBookListModelRespList, Map<Integer, List<EsBookListModelResp.Spu>> bookListId2SpuMap) {
         List<BookListSpuResp> result = new ArrayList<>();
         for (EsBookListModelResp esBookListModelResp : esBookListModelRespList) {
             BookListSpuResp bookListSpuResp = new BookListSpuResp();
-            bookListSpuResp.setBookListId(esBookListModelResp.getBookListId());
-            bookListSpuResp.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
-            bookListSpuResp.setBookListName(esBookListModelResp.getBookListName());
-            bookListSpuResp.setBookListDesc(esBookListModelResp.getBookListDesc());
+            BeanUtils.copyProperties(esBookListModelResp, bookListSpuResp);
+//            bookListSpuResp.setBookListId(esBookListModelResp.getBookListId());
+//            bookListSpuResp.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
+//            bookListSpuResp.setBookListName(esBookListModelResp.getBookListName());
+//            bookListSpuResp.setBookListDesc(esBookListModelResp.getBookListDesc());
 
-            //填充商品信息 duanlsh TODO
+            List<BookListSpuResp.Spu> spuList = new ArrayList<>();
+            List<EsBookListModelResp.Spu> esBookListSpuList = bookListId2SpuMap.getOrDefault(esBookListModelResp.getBookListId().intValue(), new ArrayList<>());
+            for (EsBookListModelResp.Spu spuParam : esBookListSpuList) {
+                BookListSpuResp.Spu spu = new BookListSpuResp.Spu();
+                BeanUtils.copyProperties(spuParam, spu);
+//                spu.setSpuId(spuParam.getSpuId());
+//                spu.setPic(spuParam.getPic());
+//                spu.setUnBackgroundPic(spuParam.getUnBackgroundPic());
+//                spu.setSortNum(spuParam.getSortNum());
+//                spuList.add(spu);
+            }
+            bookListSpuResp.setSpus(spuList);
+            result.add(bookListSpuResp);
         }
         return result;
     }
