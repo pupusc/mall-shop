@@ -1,4 +1,4 @@
-package com.wanmi.sbc.popularsearchterms;
+package com.soybean.mall.popularsearchterms;
 
 
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -10,7 +10,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -33,7 +32,7 @@ public class PopularSearchTermsQueryController {
     @ApiOperation(value = "热门搜索词列表查询")
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms() {
-        return popularSearchTermsQueryProvider.listPopularSearchTerms(0);
+        return popularSearchTermsQueryProvider.listPopularSearchTerms(1);
     }
 
 }
