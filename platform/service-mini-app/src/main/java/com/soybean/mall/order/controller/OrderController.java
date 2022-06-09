@@ -636,7 +636,7 @@ public class OrderController {
      * @return
      */
     @PostMapping("/miniOrderPaymentParam")
-    public WxOrderPaymentVO miniOrderPaymentParams(@RequestBody OrderPaymentParamReq orderPaymentParamReq) {
+    public BaseResponse<WxOrderPaymentVO> miniOrderPaymentParams(@RequestBody OrderPaymentParamReq orderPaymentParamReq) {
 
         if (!Objects.equals(commonUtil.getTerminal(), TerminalSource.MALL_NORMAL)
             && !Objects.equals(commonUtil.getTerminal(), TerminalSource.MINIPROGRAM)) {
@@ -693,7 +693,7 @@ public class OrderController {
             wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
             wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
         }
-        return wxOrderPaymentVO;
+        return BaseResponse.success(wxOrderPaymentVO);
     }
 
 }
