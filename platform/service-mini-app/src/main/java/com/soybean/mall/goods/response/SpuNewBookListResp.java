@@ -13,7 +13,7 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SpuBookListResp {
+public class SpuNewBookListResp {
 
     private String spuId;
 
@@ -33,6 +33,12 @@ public class SpuBookListResp {
     private Integer spuCategory;
 
     /**
+     * 销售价格(最小sku价格)
+     */
+    private BigDecimal salesPrice;
+
+
+    /**
      * 主播推荐列表 1、樊登讲书 2非凡精读 3樊登直播 4李蕾慢读
      */
     private List<Integer> anchorRecoms;
@@ -47,10 +53,6 @@ public class SpuBookListResp {
      */
     private BookList bookList;
 
-    /**
-     * 销售价格(最小sku价格)
-     */
-    private BigDecimal salesPrice;
 
     /**
      * 商品库存
@@ -63,6 +65,10 @@ public class SpuBookListResp {
      */
     private Atmosphere atmosphere;
 
+    /**
+     * 图书信息
+     */
+    private Book book;
 
     /**
      * 书单或者榜单信息

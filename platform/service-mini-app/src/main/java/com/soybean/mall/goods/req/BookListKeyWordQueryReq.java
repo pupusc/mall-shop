@@ -1,6 +1,6 @@
 package com.soybean.mall.goods.req;
 
-import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListKeyWordQueryReq extends EsKeyWordQueryProviderReq {
+public class BookListKeyWordQueryReq extends EsKeyWordBookListQueryProviderReq {
 
     /**
      * 商品数量
@@ -23,9 +23,4 @@ public class BookListKeyWordQueryReq extends EsKeyWordQueryProviderReq {
     @Min(1)
     private Integer spuNum;
 
-    /**
-     * 书单/榜单类型 1榜单 2书单
-     */
-    @NotNull
-    private Integer bookListBusinessType;
 }

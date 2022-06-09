@@ -1,6 +1,5 @@
 package com.soybean.elastic.api.req;
 
-import com.soybean.common.req.CommonPageQueryReq;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -13,11 +12,17 @@ import javax.validation.constraints.NotBlank;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsKeyWordQueryProviderReq extends EsSortQueryProviderReq {
+public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderReq {
 
     /**
      * 关键字
      */
     @NotBlank
     private String keyword;
+
+    /**
+     * 书单类别
+     */
+    @NotBlank
+    private Integer searchSpuNewCategory;
 }

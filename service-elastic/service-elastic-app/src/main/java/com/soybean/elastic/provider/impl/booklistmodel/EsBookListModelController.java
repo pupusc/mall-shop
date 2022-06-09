@@ -2,7 +2,7 @@ package com.soybean.elastic.provider.impl.booklistmodel;
 
 import com.soybean.elastic.api.provider.booklistmodel.EsBookListModelProvider;
 import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
-import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.booklistmodel.service.EsBookListModelService;
@@ -26,7 +26,7 @@ public class EsBookListModelController implements EsBookListModelProvider {
     private EsBookListModelService esBookListModelService;
 
     @Override
-    public BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(EsKeyWordQueryProviderReq request) {
+    public BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(EsKeyWordBookListQueryProviderReq request) {
         return BaseResponse.success(esBookListModelService.listKeyWorldEsBookListModel(request));
     }
 

@@ -2,7 +2,7 @@ package com.soybean.elastic.api.req;
 
 import lombok.Data;
 
-import java.util.List;
+import javax.validation.constraints.NotBlank;
 
 /**
  * Description:
@@ -12,12 +12,14 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsBookListQueryProviderReq extends EsSortBookListQueryProviderReq {
+public class EsKeyWordBookListQueryProviderReq extends EsSortBookListQueryProviderReq {
 
     /**
-     * 商品id信息
+     * 关键字
      */
-    private List<String> spuIds;
+    @NotBlank
+    private String keyword;
 
-
+    @NotBlank
+    private Integer searchBookListCategory;
 }

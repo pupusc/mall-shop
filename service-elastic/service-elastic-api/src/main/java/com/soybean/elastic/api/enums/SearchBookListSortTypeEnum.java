@@ -14,7 +14,7 @@ import java.util.Objects;
  ********************************************************************/
 @Getter
 @AllArgsConstructor
-public enum BookListSortType {
+public enum SearchBookListSortTypeEnum {
 
     DEFAULT(0, "默认"),
     UPDATE_TIME(1, "更新时间排序")
@@ -25,8 +25,8 @@ public enum BookListSortType {
     private String message;
 
 
-    public static BookListSortType get(Integer code) {
-        for (BookListSortType bookListSortType : values()) {
+    public static SearchBookListSortTypeEnum get(Integer code) {
+        for (SearchBookListSortTypeEnum bookListSortType : values()) {
             if (Objects.equals(bookListSortType.getCode(), code)) {
                 return bookListSortType;
             }

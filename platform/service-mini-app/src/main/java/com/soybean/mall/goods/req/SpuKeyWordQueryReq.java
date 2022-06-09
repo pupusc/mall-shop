@@ -1,9 +1,9 @@
 package com.soybean.mall.goods.req;
 
-import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import lombok.Data;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -14,11 +14,7 @@ import javax.validation.constraints.NotNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class SpuKeyWordQueryReq extends EsKeyWordQueryProviderReq {
+public class SpuKeyWordQueryReq extends EsKeyWordSpuNewQueryProviderReq {
 
-    /**
-     * 商品分类 1 图书 2 商品
-     */
-    @NotNull
-    private Integer spuCategory;
+
 }

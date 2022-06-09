@@ -80,17 +80,17 @@ public class EsSpuNew {
 //    @Field(type = FieldType.Long)
 //    private Integer spuAuditType;
 
-    /**
-     * 评论数量
-     */
-    @Field(type = FieldType.Long)
-    private Long commentNum;
-
-    /**
-     * 好评数
-     */
-    @Field(type = FieldType.Long)
-    private Long favorCommentNum;
+//    /**
+//     * 评论数量
+//     */
+//    @Field(type = FieldType.Long)
+//    private Long commentNum;
+//
+//    /**
+//     * 好评数
+//     */
+//    @Field(type = FieldType.Long)
+//    private Long favorCommentNum;
 
     /**
      * 好评率

@@ -8,14 +8,10 @@ import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
-public enum SpuSortType {
+public enum SearchBookListCategoryEnum {
 
-    DEFAULT(0, "默认"),
-    SCORE(1, "书评人评分"),
-    NEW_ADDED(2, "新上"),
-    FAVOR_COMMENT(3, "好评"),
-    HIGH_PRICE(4, "高价"),
-    LOWER_PRICE(5, "低价"),
+    RANKING_LIST(1, "榜单"),
+    BOOK_LIST(2, "书单"),
     ;
 
     private Integer code;
@@ -23,8 +19,8 @@ public enum SpuSortType {
     private String message;
 
 
-    public static SpuSortType get(Integer code) {
-        for (SpuSortType spuSortType : values()) {
+    public static SearchBookListCategoryEnum get(Integer code) {
+        for (SearchBookListCategoryEnum spuSortType : values()) {
             if (Objects.equals(spuSortType.getCode(), code)) {
                 return spuSortType;
             }

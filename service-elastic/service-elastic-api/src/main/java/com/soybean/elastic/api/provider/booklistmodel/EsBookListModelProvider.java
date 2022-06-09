@@ -2,7 +2,7 @@ package com.soybean.elastic.api.provider.booklistmodel;
 
 
 import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
-import com.soybean.elastic.api.req.EsKeyWordQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -22,7 +22,7 @@ public interface EsBookListModelProvider {
      * @return
      */
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listKeyWorldEsBookListModel")
-    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordQueryProviderReq request);
+    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listKeyWorldEsBookListModel(@RequestBody @Valid EsKeyWordBookListQueryProviderReq request);
 
 
     /**

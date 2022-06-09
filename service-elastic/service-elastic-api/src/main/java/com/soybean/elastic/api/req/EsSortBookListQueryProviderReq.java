@@ -1,8 +1,8 @@
 package com.soybean.elastic.api.req;
 
+import com.soybean.common.req.CommonPageQueryReq;
+import com.soybean.elastic.api.enums.SearchBookListSortTypeEnum;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * Description:
@@ -12,12 +12,11 @@ import java.util.List;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class EsBookListQueryProviderReq extends EsSortBookListQueryProviderReq {
+public class EsSortBookListQueryProviderReq extends CommonPageQueryReq {
+
 
     /**
-     * 商品id信息
+     * 书单排序 0默认
      */
-    private List<String> spuIds;
-
-
+    private SearchBookListSortTypeEnum booklistSortType;
 }
