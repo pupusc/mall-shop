@@ -1,7 +1,10 @@
 package com.soybean.mall.goods.response;
 
+import com.soybean.common.resp.CommonPageResp;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * Description: 搜索结果首页
@@ -17,20 +20,20 @@ public class SearchHomeResp<S> {
     /**
      * 商品
      */
-    private SubSearchHomeResp spus;
+    private SubSearchHomeResp<CommonPageResp<List<SpuNewBookListResp>>> spus;
     /**
      * 图书
      */
-    private SubSearchHomeResp books;
+    private SubSearchHomeResp<CommonPageResp<List<SpuNewBookListResp>>> books;
 
     /**
      * 书单
      */
-    private SubSearchHomeResp bookLists;
+    private SubSearchHomeResp<CommonPageResp<List<SpuNewBookListResp>>> bookLists;
     /**
      * 榜单
      */
-    private SubSearchHomeResp rankingLists;
+    private SubSearchHomeResp<CommonPageResp<List<SpuNewBookListResp>>> rankingLists;
 
 
     @Data

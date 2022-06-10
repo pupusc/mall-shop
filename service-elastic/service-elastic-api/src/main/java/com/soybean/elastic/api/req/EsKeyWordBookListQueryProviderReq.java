@@ -20,6 +20,9 @@ public class EsKeyWordBookListQueryProviderReq extends EsSortBookListQueryProvid
     @NotBlank
     private String keyword;
 
+    /**
+     * 书单类别 1排行榜 2书单
+     */
     @NotBlank
     private Integer searchBookListCategory;
 }

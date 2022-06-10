@@ -21,7 +21,7 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     private String keyword;
 
     /**
-     * 书单类别
+     * 书单类别 1图书 2商品
      */
     @NotBlank
     private Integer searchSpuNewCategory;

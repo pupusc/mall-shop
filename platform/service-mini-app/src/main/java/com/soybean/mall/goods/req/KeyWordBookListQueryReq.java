@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class BookListKeyWordQueryReq extends EsKeyWordBookListQueryProviderReq {
+public class KeyWordBookListQueryReq extends EsKeyWordBookListQueryProviderReq {
 
     /**
      * 商品数量
