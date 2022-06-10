@@ -62,7 +62,7 @@ public class ImageController {
         ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
         imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
         imagePageProviderRequest.setStatus(StateEnum.RUNNING.getCode());
-        imagePageProviderRequest.setImageTypeList(Collections.singletonList(ImageTypeEnum.WX_SUBSCRIBE.getCode()));
+        imagePageProviderRequest.setImageTypeList(Collections.singletonList(commonImageReq.getImageType()));
         BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
         return BaseResponse.success(listBaseResponse.getContext());
     }
