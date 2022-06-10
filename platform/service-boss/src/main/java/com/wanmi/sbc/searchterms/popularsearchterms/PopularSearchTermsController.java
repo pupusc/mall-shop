@@ -24,9 +24,9 @@ import java.util.List;
 
 
 /**
- * <p>热门搜索词</p>
- * @author weiwenhao
- * @date 2019-04-18
+ * @menu 搜索功能
+ * @tag feature_d_v0
+ * @status done
  */
 @RestController
 @ApiModel
@@ -46,9 +46,10 @@ public class PopularSearchTermsController {
     private OperateLogMQUtil operateLogMQUtil;
 
     /**
-     * 新增热门搜索测
-     * @param request
-     * @return
+     * @description 小程序搜索词查询
+     * @menu  新增搜索词
+     * @tag feature_d_v0.09
+     * @status done
      */
     @ApiOperation(value = "新增热门搜索词")
     @RequestMapping(value = "/add",method = RequestMethod.POST)
@@ -63,9 +64,10 @@ public class PopularSearchTermsController {
     }
 
     /**
-     * 修改热门搜索词
-     * @param request
-     * @return
+     * @description 小程序搜索词查询
+     * @menu  修改搜索词
+     * @tag feature_d_v0.09
+     * @status done
      */
     @ApiOperation(value = "修改热门搜索词")
     @RequestMapping(value = "/modify",method = RequestMethod.POST)
