@@ -42,7 +42,9 @@ public class PopularSearchTermsQueryController {
     @RequestMapping(value ="/list",method = RequestMethod.POST)
     public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel) {
         operateLogMQUtil.convertAndSend("搜索词","热门搜索词列表查询","热门搜索词列表查询");
-
+        if (popularChannel == null) {
+            popularChannel = 0;
+        }
         return popularSearchTermsQueryProvider.listPopularSearchTerms(popularChannel);
     }
 }
