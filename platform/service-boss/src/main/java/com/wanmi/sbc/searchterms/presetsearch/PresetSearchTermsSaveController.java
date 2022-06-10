@@ -61,7 +61,7 @@ public class PresetSearchTermsSaveController {
     BaseResponse<PresetSearchTermsResponse> modify(@RequestBody @Valid List<PresetSearchTermsModifyRequest> requests){
         for (PresetSearchTermsModifyRequest request:requests) {
             operateLogMQUtil.convertAndSend("预置搜索词","编辑预置热门搜索词","编辑热门搜索词："+request.getPresetSearchKeyword());
-            searchTermsSaveProvider.modify(request)
+            searchTermsSaveProvider.modify(request);
         }
         return BaseResponse.SUCCESSFUL();
     }
