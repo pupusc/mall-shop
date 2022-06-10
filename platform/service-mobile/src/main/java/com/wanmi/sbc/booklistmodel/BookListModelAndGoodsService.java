@@ -370,7 +370,7 @@ public class BookListModelAndGoodsService {
         BigDecimal currentSalePrice = new BigDecimal("100000");
         BigDecimal currentMarketingPrice = new BigDecimal("100000");
         BigDecimal lineSalePrice = null;
-        Long stock = 0l;
+        long stock = 0l;
 
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
@@ -406,6 +406,10 @@ public class BookListModelAndGoodsService {
                         tempStock = 0L;
                     }
 
+                    if (tempStock > stock) {
+                        stock = tempStock;
+                    }
+
                     //会员价
                     if (goodsInfoParam.getSalePrice() != null && currentSalePrice.compareTo(goodsInfoParam.getSalePrice()) > 0) {
                         tmpSalePrice = goodsInfoParam.getSalePrice();
@@ -416,7 +420,7 @@ public class BookListModelAndGoodsService {
                     }
 
 
-                    if (tmpSalePrice != null || tmpMarketingPrice != null || tempStock > 0L) {
+                    if (tmpSalePrice != null || tmpMarketingPrice != null) {
                         currentSalePrice = tmpSalePrice;
                         currentMarketingPrice = tmpMarketingPrice;
                         goodsInfoId = goodsInfoParam.getGoodsInfoId();
