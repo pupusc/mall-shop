@@ -36,6 +36,11 @@ public class SearchWeightService {
     @Autowired
     private RedisService redisService;
 
+    /**
+     * 获取权重
+     * @param key
+     * @return
+     */
     public List<SearchWeightResp> list(String key) {
 
         List<SearchWeightResp> result = new ArrayList<>();
@@ -67,7 +72,13 @@ public class SearchWeightService {
         return result;
     }
 
-
+    /**
+     * 删除key
+     * @param key
+     */
+    public void delete(String key) {
+        redisService.delete(key);
+    }
 
     private Specification<SearchWeightModel> packageWhere() {
         return new Specification<SearchWeightModel>() {
