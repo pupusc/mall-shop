@@ -396,13 +396,14 @@ public class BookListModelAndGoodsService {
                 for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
                     BigDecimal tmpSalePrice = null;
                     BigDecimal tmpMarketingPrice = null;
+                    Long tempStock = 0L;
 
                     //获取库存
                     String stockRedis = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoParam.getGoodsInfoId());
-                    stock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
+                    tempStock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
                     //商品<5个不销售
-                    if(stock.compareTo(stockSize) <=0){
-                        stock = 0L;
+                    if(tempStock.compareTo(stockSize) <=0){
+                        tempStock = 0L;
                     }
 
                     //会员价
@@ -415,7 +416,7 @@ public class BookListModelAndGoodsService {
                     }
 
 
-                    if (tmpSalePrice != null || tmpMarketingPrice != null) {
+                    if (tmpSalePrice != null || tmpMarketingPrice != null || tempStock > 0L) {
                         currentSalePrice = tmpSalePrice;
                         currentMarketingPrice = tmpMarketingPrice;
                         goodsInfoId = goodsInfoParam.getGoodsInfoId();
