@@ -17,7 +17,8 @@ import java.util.Objects;
 public enum SearchBookListSortTypeEnum {
 
     DEFAULT(0, "默认"),
-    UPDATE_TIME(1, "更新时间排序")
+    UPDATE_TIME(1, "更新时间排序"),
+    HAS_TOP_UPDATE_TIME(2, "按照置顶、更新时间排序")
     ;
 
     private Integer code;

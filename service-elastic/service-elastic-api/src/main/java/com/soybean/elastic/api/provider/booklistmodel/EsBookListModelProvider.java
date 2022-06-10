@@ -31,5 +31,5 @@ public interface EsBookListModelProvider {
      * @return
      */
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listEsBookListModel")
-    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listEsBookListModel(EsBookListQueryProviderReq request);
+    BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listEsBookListModel(@RequestBody EsBookListQueryProviderReq request);
 }

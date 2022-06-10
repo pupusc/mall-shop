@@ -29,6 +29,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +95,10 @@ public class EsBookListModelService {
         if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.UPDATE_TIME) {
             FieldSortBuilder order = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.add(order);
+        } else if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.HAS_TOP_UPDATE_TIME) {
+            FieldSortBuilder order1 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
+            FieldSortBuilder order2 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
+            fieldSortBuilders.addAll(Arrays.asList(order1, order2));
         }
         return fieldSortBuilders;
     }
