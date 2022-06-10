@@ -54,6 +54,7 @@ public class PresetSearchTermsService {
         List<PresetSearchTermsVO> ListSearch = list.stream().map(search -> {
             PresetSearchTermsVO presetSearchTermsVO = new PresetSearchTermsVO();
             presetSearchTermsVO.setId(search.getId());
+            presetSearchTermsVO.setPresetChannel(search.getPresetChannel());
             presetSearchTermsVO.setPresetSearchKeyword(search.getPresetSearchKeyword());
             return presetSearchTermsVO;
         }).collect(Collectors.toList());

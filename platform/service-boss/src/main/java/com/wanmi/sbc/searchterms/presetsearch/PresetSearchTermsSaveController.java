@@ -19,9 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
- * 新增预置搜索词
+ * @menu 搜索功能
+ * @tag feature_d_v0
+ * @status done
  */
 @Api(tags = "PresetSearchTermsSaveController", description = "预置搜索词服务API")
 @RestController
@@ -48,20 +51,27 @@ public class PresetSearchTermsSaveController {
     }
 
     /**
-     * 编辑预置搜索词
-     * @param request
-     * @return
+     * @description 编辑预置搜索词
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
      */
     @ApiOperation(value = "编辑预置搜索词")
     @PostMapping("/modify")
-    BaseResponse<PresetSearchTermsResponse> modify(@RequestBody @Valid PresetSearchTermsModifyRequest request){
-        operateLogMQUtil.convertAndSend("预置搜索词","编辑预置热门搜索词","编辑热门搜索词："+request.getPresetSearchKeyword());
-        return searchTermsSaveProvider.modify(request);
+    BaseResponse<PresetSearchTermsResponse> modify(@RequestBody @Valid List<PresetSearchTermsModifyRequest> requests){
+        for (PresetSearchTermsModifyRequest request:requests) {
+            operateLogMQUtil.convertAndSend("预置搜索词","编辑预置热门搜索词","编辑热门搜索词："+request.getPresetSearchKeyword());
+            searchTermsSaveProvider.modify(request)
+        }
+        return BaseResponse.SUCCESSFUL();
     }
 
+
     /**
-     * 查询预置搜索词
-     * @return
+     * @description 查询预置搜索词
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
      */
     @ApiOperation(value = "查询预置搜索词")
     @PostMapping("/list")

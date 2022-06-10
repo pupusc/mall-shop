@@ -65,7 +65,7 @@ public class PopularSearchTermsController {
 
     /**
      * @description 小程序搜索词查询
-     * @menu  修改搜索词
+     * @menu  搜索功能
      * @tag feature_d_v0.09
      * @status done
      */
