@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * <p>热门搜索词</p>
- * @author weiwenhao
- * @date 2019-04-18
+ * @menu 搜索功能
+ * @tag feature_d_v0
+ * @status done
  */
 @RestController
 @ApiModel
@@ -32,7 +32,12 @@ public class PopularSearchTermsQueryController {
     @Autowired
     private OperateLogMQUtil operateLogMQUtil;
 
-
+    /**
+     * @description 小程序搜索词查询
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
+     */
     @ApiOperation(value = "热门搜索词列表查询")
     @RequestMapping(value ="/list",method = RequestMethod.POST)
     public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel) {
