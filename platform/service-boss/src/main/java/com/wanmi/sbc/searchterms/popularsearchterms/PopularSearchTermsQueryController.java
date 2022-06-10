@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @ApiModel
-@Api(value = "PopularSearchTermsQueryController",description = "热门搜索词查询服务API")
+@Api(value = "PopularSearchTermsQueryController", description = "热门搜索词查询服务API")
 @RequestMapping("/popular_search_terms")
 public class PopularSearchTermsQueryController {
 
@@ -34,14 +34,14 @@ public class PopularSearchTermsQueryController {
 
     /**
      * @description 小程序搜索词查询
-     * @menu  搜索功能
+     * @menu 搜索功能
      * @tag feature_d_v0.09
      * @status done
      */
     @ApiOperation(value = "热门搜索词列表查询")
-    @RequestMapping(value ="/list",method = RequestMethod.POST)
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
     public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel) {
-        operateLogMQUtil.convertAndSend("搜索词","热门搜索词列表查询","热门搜索词列表查询");
+        operateLogMQUtil.convertAndSend("搜索词", "热门搜索词列表查询", "热门搜索词列表查询");
         if (popularChannel == null) {
             popularChannel = 0;
         }
