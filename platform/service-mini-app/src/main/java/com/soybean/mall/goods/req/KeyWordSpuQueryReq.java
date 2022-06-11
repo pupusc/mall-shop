@@ -1,10 +1,8 @@
 package com.soybean.mall.goods.req;
 
-import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 
 /**
  * Description:

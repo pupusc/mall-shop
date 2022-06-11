@@ -61,6 +61,12 @@ public class SubBookNew {
     private String publisher;
 
     /**
+     * 定价
+     */
+    @Field(type = FieldType.Double)
+    private Double fixPrice;
+
+    /**
      * 出品方
      */
     @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)

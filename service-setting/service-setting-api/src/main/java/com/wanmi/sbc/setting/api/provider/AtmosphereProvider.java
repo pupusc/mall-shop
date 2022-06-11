@@ -29,6 +29,14 @@ public interface AtmosphereProvider {
     @PostMapping("/setting/${application.setting.version}/atmos/page")
     BaseResponse<MicroServicePage<AtmosphereDTO>> page(@RequestBody AtmosphereQueryRequest request);
 
+    /**
+     * 获取氛围图
+     * @param request
+     * @return
+     */
+    @PostMapping("/setting/${application.setting.version}/atmos/listAtmosphere")
+    BaseResponse<List<AtmosphereDTO>> listAtmosphere(@RequestBody AtmosphereQueryRequest request);
+
     @PostMapping("/setting/${application.setting.version}/atmos/delete")
     BaseResponse delete(@RequestBody AtmosphereDeleteRequest request);
 

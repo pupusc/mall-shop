@@ -117,6 +117,11 @@ public class EsSpuNewResp implements Serializable {
          */
         private String publisher;
 
+        /**
+         * 定价
+         */
+        private Double fixPrice;
+
 
         /**
          * 标签
@@ -136,7 +141,7 @@ public class EsSpuNewResp implements Serializable {
             /**
              * 3级标签
              */
-            private Integer tageId;
+            private Integer tagId;
 
             private String tagName;
         }

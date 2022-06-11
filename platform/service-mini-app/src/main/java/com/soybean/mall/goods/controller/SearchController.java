@@ -62,7 +62,7 @@ public class SearchController {
         KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
         spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
         spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
-        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT);
+        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
         CommonPageResp<List<SpuNewBookListResp>> bookPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
         searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("图书", bookPage));
 
@@ -70,7 +70,7 @@ public class SearchController {
         spuKeyWordQueryReq = new KeyWordSpuQueryReq();
         spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
         spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.SPU.getCode());
-        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT);
+        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
         CommonPageResp<List<SpuNewBookListResp>> spuPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
         searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("商品", spuPage));
 

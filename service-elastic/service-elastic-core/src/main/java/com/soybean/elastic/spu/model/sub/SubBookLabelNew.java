@@ -36,7 +36,7 @@ public class SubBookLabelNew {
      * 3级标签
      */
     @Field(type = FieldType.Integer)
-    private Integer tageId;
+    private Integer tagId;
 
     @Field(type = FieldType.Keyword)
     private String tagName;

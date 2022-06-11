@@ -71,7 +71,7 @@ public class EsBookListModelResp implements Serializable {
 
 
     @Data
-    public class Spu {
+    public static class Spu {
 
         private String spuId;
 
