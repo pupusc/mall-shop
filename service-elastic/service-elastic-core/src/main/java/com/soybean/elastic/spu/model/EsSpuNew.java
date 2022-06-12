@@ -65,8 +65,8 @@ public class EsSpuNew {
     /**
      * 商品渠道
      */
-    @Field(type = FieldType.Long)
-    private List<Integer> spuChannels;
+    @Field(type = FieldType.Integer)
+    private List<String> spuChannels;
 
     /**
      * 主播推荐列表
@@ -119,7 +119,7 @@ public class EsSpuNew {
     /**
      * 上下架状态 0 未上架 1 已上架 2 部分上架
      */
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Integer)
     private Integer addedFlag;
 
 
@@ -150,7 +150,7 @@ public class EsSpuNew {
     /**
      * 0未删除 1已删除
      */
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Integer)
     private Integer delFlag;
 
     /**
