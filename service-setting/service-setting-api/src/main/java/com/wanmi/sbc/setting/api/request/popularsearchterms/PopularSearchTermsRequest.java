@@ -61,7 +61,7 @@ public class PopularSearchTermsRequest extends SettingBaseRequest {
      */
     @ApiModelProperty(value="sort_number")
     @NotNull
-    private Long sortNumber;
+    private Long sortNumber = 1L;
 
     /**
      * 是否删除 0 否  1 是
