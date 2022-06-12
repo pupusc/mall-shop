@@ -14,24 +14,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * <p>热门搜索词</p>
- *
- * @author weiwenhao
- * @date 2019-04-20
+ * @menu 搜索功能
+ * @tag feature_d_v0
+ * @status done
  */
 @RestController
 @ApiModel
 @Api(value = "PopularSearchTermsQueryController", description = "热门搜索词查询服务API")
 @RequestMapping("/popular_search_terms")
-public class PopularSearchTermsQueryController {
+public class MiniPopularSearchTermsQueryController {
 
     @Autowired
     private PopularSearchTermsQueryProvider popularSearchTermsQueryProvider;
 
-
-    @ApiOperation(value = "热门搜索词列表查询")
-    @RequestMapping(value = "/list", method = RequestMethod.POST)
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms() {
+    /**
+     * @description 小程序端-热捜词
+     * @menu  搜索功能
+     * @tag feature_d_v0.09
+     * @status done
+     */
+    @ApiOperation(value = "小程序端-热捜词")
+    @RequestMapping(value = "/mini/list", method = RequestMethod.POST)
+    public BaseResponse<PopularSearchTermsListResponse> listMiniPopularSearchTerms() {
         return popularSearchTermsQueryProvider.listPopularSearchTerms(1);
     }
 
