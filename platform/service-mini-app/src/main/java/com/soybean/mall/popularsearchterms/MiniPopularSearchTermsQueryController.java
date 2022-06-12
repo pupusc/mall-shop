@@ -22,20 +22,20 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiModel
 @Api(value = "PopularSearchTermsQueryController", description = "热门搜索词查询服务API")
 @RequestMapping("/popular_search_terms")
-public class PopularSearchTermsQueryController {
+public class MiniPopularSearchTermsQueryController {
 
     @Autowired
     private PopularSearchTermsQueryProvider popularSearchTermsQueryProvider;
 
     /**
-     * @description 小程序搜索词查询
+     * @description 小程序端-热捜词
      * @menu  搜索功能
      * @tag feature_d_v0.09
      * @status done
      */
-    @ApiOperation(value = "热门搜索词列表查询")
-    @RequestMapping(value = "/list", method = RequestMethod.POST)
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms() {
+    @ApiOperation(value = "小程序端-热捜词")
+    @RequestMapping(value = "/mini/list", method = RequestMethod.POST)
+    public BaseResponse<PopularSearchTermsListResponse> listMiniPopularSearchTerms() {
         return popularSearchTermsQueryProvider.listPopularSearchTerms(1);
     }
 
