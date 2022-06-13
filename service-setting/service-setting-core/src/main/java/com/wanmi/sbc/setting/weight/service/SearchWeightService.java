@@ -86,7 +86,7 @@ public class SearchWeightService {
             public Predicate toPredicate(Root<SearchWeightModel> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 final List<Predicate> conditionList = new ArrayList<>();
                 //只是获取有效的
-                conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO));
+                conditionList.add(criteriaBuilder.equal(root.get("delFlag"), DeleteFlag.NO.toValue()));
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[0]));
             }
         };
