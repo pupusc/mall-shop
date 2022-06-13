@@ -1928,6 +1928,7 @@ public class TradeService {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if (priceByGoodsId.getContext() != null) {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+                tradeItem.setOriginalPrice(new BigDecimal(priceByGoodsId.getContext())); //设置原始价格
             }
         }
 
