@@ -20,6 +20,7 @@ public enum ImageTypeEnum {
     ADVERT_IMG(2, "首页广告图"),
     SELL_IMG(3, "首页卖点图"),
     WX_SUBSCRIBE(4, "直播订阅"),
+    WX_ORDER_PREPARE_AD(5, "准备支付页面广告图"),
     ;
 
     private final Integer code;

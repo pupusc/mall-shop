@@ -1,4 +1,4 @@
-package com.wanmi.sbc.goods.api.response.image;
+package com.soybean.mall.order.response.order;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -6,72 +6,52 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2021/10/22 2:11 上午
+ * Date       : 2022/6/7 5:25 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class ImageProviderResponse implements Serializable {
-
-    private Integer id;
+public class WxOrderResp {
 
     /**
-     * 名称
+     * 订单号
      */
-    private String name;
+    private String tid;
 
     /**
-     * 图片地址
-     */
-    private String imgUrl;
-
-    /**
-     * 图片跳转链接
-     */
-    private String imgHref;
-
-    /**
-     * 开始时间
+     * 下单时间
      */
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime beginTime;
+    private LocalDateTime createTime;
 
     /**
-     * 结束时间
+     * 订单超时时间
      */
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
-    private LocalDateTime endTime;
+    private LocalDateTime orderTimeOut;
+
 
     /**
-     * 启用状态 0未启用 1启用
+     * 支付信息
      */
-    private Integer publishState;
+    private WxOrderPayInfoResp payInfo;
 
     /**
-     * 业务id
+     * 商品列表信息
      */
-    private String businessId;
+    private List<WxOrderItemResp> items;
+
 
     /**
-     * 排序
+     * 价格信息
      */
-    private Integer orderNum;
-
-    /**
-     *  0未开始 1进行中 2 已结束
-     */
-    private Integer status;
-
-    /**
-     * 图片类型 1首页轮播 2 广告图片、3 首页卖点图 4 直播订阅图 5 订单准备支付页面图
-     */
-    private Integer imageType;
+    private WxOrderPriceResp payPrice;
 }

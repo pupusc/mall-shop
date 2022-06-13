@@ -287,7 +287,7 @@ public class TradeOrderService {
             return null;
         }
         log.info("微信小程序订单创建成功，获取支付参数start,tid:{}",tid);
-        return wxOrderService.getPaymentParams(trade);
+        return wxOrderService.getPaymentParams(trade.getBuyer().getOpenId(), trade.getId());
 
     }
 

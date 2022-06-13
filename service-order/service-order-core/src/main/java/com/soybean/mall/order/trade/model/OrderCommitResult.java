@@ -1,5 +1,9 @@
 package com.soybean.mall.order.trade.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
+import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
 import com.wanmi.sbc.order.trade.model.entity.value.Consignee;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
@@ -7,6 +11,7 @@ import lombok.Data;
 
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -29,5 +34,14 @@ public class OrderCommitResult implements Serializable {
     private TradePrice tradePrice;
 
     private Boolean couponFlag;
+
+    /**
+     * 超时未支付取消订单时间
+     */
+    @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+    private LocalDateTime orderTimeOut;
+
+
 
 }
