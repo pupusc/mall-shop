@@ -104,7 +104,7 @@ public class BookListSearchService {
 //                spu.setPic(spuParam.getPic());
 //                spu.setUnBackgroundPic(spuParam.getUnBackgroundPic());
 //                spu.setSortNum(spuParam.getSortNum());
-//                spuList.add(spu);
+                spuList.add(spu);
             }
             bookListSpuResp.setSpus(spuList);
             result.add(bookListSpuResp);
