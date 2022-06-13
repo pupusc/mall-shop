@@ -1921,16 +1921,17 @@ public class TradeService {
             tradeItem.setVirtualCouponId(goodsInfoVOMap.get(tradeItem.getSkuId()).getVirtualCouponId());
             tradeItem.setBuyPoint(goodsInfoVOMap.get(tradeItem.getSkuId()).getBuyPoint());
             tradeItem.setStoreId(goodsInfoVOMap.get(tradeItem.getSkuId()).getStoreId());
+            tradeItem.setMarketPrice(goodsInfoVOMap.get(tradeItem.getSkuId()).getMarketPrice());
         });
 
         tradeItems = tradeGoodsService.fillActivityPrice(tradeItems, response.getGoodsInfos(), customerId);
         for (TradeItem tradeItem : tradeItems) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if (priceByGoodsId.getContext() != null) {
-                log.info("TradeService customerId:{} originalPrice: {}", customerId, priceByGoodsId.getContext());
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
                 tradeItem.setOriginalPrice(new BigDecimal(priceByGoodsId.getContext())); //设置原始价格
             }
+
         }
 
 

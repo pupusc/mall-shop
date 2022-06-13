@@ -9,6 +9,7 @@ import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradePriceVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -59,17 +60,38 @@ public class CommonPackageModel {
             wxOrderResp.setPayInfo(wxOrderPayInfoResp);
         }
 
+        // originPrice 原始价格信息
+        BigDecimal sumOriginPriceTmp = BigDecimal.ZERO;
+        //原始售价
+        BigDecimal sumMarketPriceTmp = BigDecimal.ZERO;
+        for (TradeItemVO tradeItem : tradeVO.getTradeItems()) {
+            //如果是打包商品；
+            if (StringUtils.isNotBlank(tradeItem.getPackId())) {
+                if (!tradeItem.getSpuId().equals(tradeItem.getPackId())) {
+                    continue;
+                }
+            }
+            //获取总定价
+            sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPointsPrice());
+            sumMarketPriceTmp = sumMarketPriceTmp.add(tradeItem.getMarketPrice());
+        }
+
         //价格
         TradePriceVO tradePrice = tradeVO.getTradePrice();
         if (tradePrice != null) {
             WxOrderPriceResp wxOrderPriceResp = new WxOrderPriceResp();
-            wxOrderPriceResp.setOriginPrice(tradePrice.getOriginPrice() == null ? new BigDecimal("0") : tradePrice.getOriginPrice());
-            wxOrderPriceResp.setDiscountsPrice(tradePrice.getDiscountsPrice() == null ? new BigDecimal("0") : tradePrice.getDiscountsPrice());
-            wxOrderPriceResp.setVipDiscountPrice(tradePrice.getVipDiscountPrice() == null ? new BigDecimal("0") : tradePrice.getVipDiscountPrice());
-            wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? new BigDecimal("0") : tradePrice.getCouponPrice());
-            wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? new BigDecimal("0") : tradePrice.getDeliveryPrice());
-            wxOrderPriceResp.setActualPrice(tradePrice.getTotalPrice() == null ? new BigDecimal("0") : tradePrice.getTotalPrice());
-            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? new BigDecimal("0") : tradePrice.getPointsPrice());
+            //定价
+            BigDecimal originPrice = sumOriginPriceTmp.compareTo(BigDecimal.ZERO) > 0 ? sumOriginPriceTmp : tradePrice.getOriginPrice(); //定价金额
+            wxOrderPriceResp.setOriginPrice(originPrice); //定价
+            // 优惠金额 = 定价 - 售价
+            BigDecimal discountsPrice = sumMarketPriceTmp.compareTo(BigDecimal.ZERO) > 0 ? sumMarketPriceTmp : tradePrice.getDiscountsPrice();
+            wxOrderPriceResp.setDiscountsPrice(originPrice.subtract(discountsPrice));
+            BigDecimal actualPrice = tradePrice.getTotalPrice() == null ? BigDecimal.ZERO : tradePrice.getTotalPrice();
+            wxOrderPriceResp.setActualPrice(actualPrice); //折扣价
+            wxOrderPriceResp.setVipDiscountPrice(discountsPrice.subtract(actualPrice)); //优惠金额 售价 - 折扣价
+            wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? BigDecimal.ZERO : tradePrice.getCouponPrice());
+            wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice());
+            wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? BigDecimal.ZERO : tradePrice.getPointsPrice());
 
             wxOrderResp.setPayPrice(wxOrderPriceResp);
         }

@@ -194,6 +194,11 @@ public class TradeItemVO implements Serializable, Cloneable {
     private Double propPrice;
 
     /**
+     * 商品售价
+     */
+    private BigDecimal marketPrice;
+
+    /**
      * 定金
      */
     @ApiModelProperty(value = "定金")
