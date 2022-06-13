@@ -143,28 +143,32 @@
     </select>
 
     <select id="queryAllByLimitExt" resultMap="MetaBookMap">
-        SELECT
-            DISTINCT t1.id,
-            t1.*
-        FROM
-            meta_book t1
-            LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
-            LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
-            LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
-        <where>
-            <include refid="entityQueryCondition" />
+        SELECT w1.*
+        FROM meta_book w1
+        JOIN
+        (
+            SELECT
+                DISTINCT t1.id
+            FROM
+                meta_book t1
+                LEFT JOIN meta_publisher t2 ON t2.id=t1.publisher_id AND t2.del_flag=0
+                LEFT JOIN meta_book_figure t3 ON t3.book_id = t1.id AND t3.figure_type=1 AND t3.del_flag=0
+                LEFT JOIN meta_figure t4 ON t4.id = t3.figure_id
+            <where>
+                <include refid="entityQueryCondition" />
 
-            <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
-                and t1.name like concat('%', #{metaBook.nameLike}, '%')
-            </if>
-            <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
-                and t4.name like concat('%', #{metaBook.authorLike}, '%')
-            </if>
-            <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
-                and t2.name like concat('%', #{metaBook.publisherLike}, '%')
-            </if>
-        </where>
-        ORDER BY t1.create_time DESC
+                <if test="metaBook.nameLike != null and metaBook.nameLike != ''">
+                    and t1.name like concat('%', #{metaBook.nameLike}, '%')
+                </if>
+                <if test="metaBook.authorLike != null and metaBook.authorLike != ''">
+                    and t4.name like concat('%', #{metaBook.authorLike}, '%')
+                </if>
+                <if test="metaBook.publisherLike != null and metaBook.publisherLike != ''">
+                    and t2.name like concat('%', #{metaBook.publisherLike}, '%')
+                </if>
+            </where>
+        ) w2 ON w2.id = w1.id
+        ORDER BY w1.create_time DESC
         limit #{limitIndex}, #{limitSize}
     </select>
 

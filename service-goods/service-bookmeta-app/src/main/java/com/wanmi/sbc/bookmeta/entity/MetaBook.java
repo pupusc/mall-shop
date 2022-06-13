@@ -1,11 +1,11 @@
 package com.wanmi.sbc.bookmeta.entity;
 
-import java.util.Date;
-import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 书籍(MetaBook)实体类
@@ -108,6 +108,11 @@ public class MetaBook implements Serializable {
      */     
     @Column(name = "size_width")
     private Integer sizeWidth;
+    /**
+     * 开本
+     */
+    @Column(name = "size_folio")
+    private String sizeFolio;
     /**
      * 印张
      */     
@@ -379,5 +384,12 @@ public class MetaBook implements Serializable {
         this.languageId = languageId;
     }
 
+    public String getSizeFolio() {
+        return sizeFolio;
+    }
+
+    public void setSizeFolio(String sizeFolio) {
+        this.sizeFolio = sizeFolio;
+    }
 }
 

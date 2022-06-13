@@ -370,6 +370,7 @@ public class BookListModelAndGoodsService {
         BigDecimal currentSalePrice = new BigDecimal("100000");
         BigDecimal currentMarketingPrice = new BigDecimal("100000");
         BigDecimal lineSalePrice = null;
+        long stock = 0l;
 
         if (esGoodsVO != null) {
             if (!CollectionUtils.isEmpty(goodsInfoVOList)) {
@@ -395,6 +396,20 @@ public class BookListModelAndGoodsService {
                 for (GoodsInfoVO goodsInfoParam : goodsInfoVoListLast) {
                     BigDecimal tmpSalePrice = null;
                     BigDecimal tmpMarketingPrice = null;
+                    Long tempStock = 0L;
+
+                    //获取库存
+                    String stockRedis = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoParam.getGoodsInfoId());
+                    tempStock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
+                    //商品<5个不销售
+                    if(tempStock.compareTo(stockSize) <=0){
+                        tempStock = 0L;
+                    }
+
+                    if (tempStock > stock) {
+                        stock = tempStock;
+                    }
+
                     //会员价
                     if (goodsInfoParam.getSalePrice() != null && currentSalePrice.compareTo(goodsInfoParam.getSalePrice()) > 0) {
                         tmpSalePrice = goodsInfoParam.getSalePrice();
@@ -403,6 +418,7 @@ public class BookListModelAndGoodsService {
                     if (goodsInfoParam.getMarketPrice() != null && currentMarketingPrice.compareTo(goodsInfoParam.getMarketPrice()) > 0) {
                         tmpMarketingPrice = goodsInfoParam.getMarketPrice();
                     }
+
 
                     if (tmpSalePrice != null || tmpMarketingPrice != null) {
                         currentSalePrice = tmpSalePrice;
@@ -470,13 +486,7 @@ public class BookListModelAndGoodsService {
             }
         }
 
-        //获取库存
-        String stockRedis = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_PREFIX + goodsInfoId);
-        Long stock = StringUtils.isEmpty(stockRedis) ? 0L : Long.parseLong(stockRedis);
-        //商品<5个不销售
-        if(stock.compareTo(stockSize) <=0){
-            stock = 0L;
-        }
+
 
         //商品展示价格
 

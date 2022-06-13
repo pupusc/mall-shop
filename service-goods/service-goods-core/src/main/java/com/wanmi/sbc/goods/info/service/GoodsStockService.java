@@ -273,6 +273,9 @@ public class GoodsStockService {
             List<Goods> goodsList = goodsRepository.findAll(goodsQueryRequest.getWhereCriteria());
 
             for (Goods goodsParam : goodsList) {
+                if (StringUtils.isBlank(goodsParam.getErpGoodsNo())) {
+                    goodsParam.setErpGoodsNo(this.getErpGoodsNo(goodsParam.getGoodsId()));
+                }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsParam.getGoodsId(), goodsParam.getErpGoodsNo(), startTime));
             }
         } else {
@@ -291,6 +294,10 @@ public class GoodsStockService {
                     if ("goods_id".equals(entry.getKey()))  {
                         goodsId = entry.getValue().toString();
                     }
+                }
+
+                if (StringUtils.isBlank(erpGoodsNo)) {
+                    erpGoodsNo = this.getErpGoodsNo(goodsId);
                 }
                 tmpResult.addAll(this.executeBatchUpdateStock(goodsId, erpGoodsNo, startTime));
                 if (tmpId!= null && maxTmpId < tmpId) {
@@ -316,12 +323,32 @@ public class GoodsStockService {
     }
 
     /**
+     * 获取erpgoodsNo
+     * @param goodsId
+     * @return
+     */
+    private String getErpGoodsNo(String goodsId) {
+        String erpGoodsNo = "";
+        List<GoodsInfo> goodsInfoList = goodsInfoRepository.findByGoodsIdIn(Collections.singletonList(goodsId));
+        for (GoodsInfo goodsInfo : goodsInfoList) {
+            if (StringUtils.isNotBlank(goodsInfo.getErpGoodsNo())) {
+                erpGoodsNo = goodsInfo.getErpGoodsNo();
+                break;
+            }
+        }
+        return erpGoodsNo;
+    }
+
+    /**
      * 执行批量更新库存
      * @param erpGoodsCodeNo
      * @param startTime
      */
     private List<GoodsInfoStockSyncProviderResponse> executeBatchUpdateStock(String goodsId, String erpGoodsCodeNo, String startTime) {
-
+        if (StringUtils.isBlank(erpGoodsCodeNo)) {
+            log.info("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} goodsId:{} erpGoodsCodeNo is null return ", erpGoodsCodeNo, goodsId);
+            return new ArrayList<>();
+        }
         //获取仓库黑名单
         List<String> unStaticsKey = new ArrayList<>();
         GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
@@ -341,6 +368,8 @@ public class GoodsStockService {
             if (erpStockInfo.getStocks() == null) {
                 erpStockInfo.setStocks(new ArrayList<>());
             }
+            log.info("GoodsStockService batchUpdateStock pull warehostStock erpGoodsCodeNo:{} goodsId:{} pageNum:{} pageSize:{} total:{}", erpGoodsCodeNo, goodsId, pageNum, pageSize, erpStockInfo.getTotal());
+
             int cycleCount = erpStockInfo.getTotal() / pageSize;
             int remainder = erpStockInfo.getTotal() % pageSize;
             cycleCount += remainder > 0 ? 1 : 0;

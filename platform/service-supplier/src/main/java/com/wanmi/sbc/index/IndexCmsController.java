@@ -153,7 +153,7 @@ public class IndexCmsController {
      */
     @PostMapping("/image/search")
     public BaseResponse<Map<String, List<ImageProviderResponse>>> searchAdvert(@RequestBody ImagePageProviderRequest imagePageProviderRequest){
-        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode()));
+        imagePageProviderRequest.setImageTypeList(Arrays.asList(ImageTypeEnum.ADVERT_IMG.getCode(), ImageTypeEnum.SELL_IMG.getCode(), ImageTypeEnum.WX_ORDER_PREPARE_AD.getCode()));
         BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
         Map<String, List<ImageProviderResponse>> content = new HashMap<>();
         content.put("content", listBaseResponse.getContext());

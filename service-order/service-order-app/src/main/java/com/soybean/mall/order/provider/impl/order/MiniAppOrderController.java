@@ -46,7 +46,7 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
      */
     @Override
     public BaseResponse batchSyncDeliveryStatusToWechat(@RequestBody @Valid ProviderTradeErpRequest request) {
-        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid());
+        tradeOrderService.batchSyncDeliveryStatusToWechat(request.getPageSize(),request.getPtid(), request.getStartTime());
         return BaseResponse.SUCCESSFUL();
     }
 
@@ -87,8 +87,15 @@ public class MiniAppOrderController implements MiniAppOrderProvider {
 
 
     @Override
-    public BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(GetPaymentParamsRequest request) {
+    public BaseResponse<WxOrderPaymentParamsVO> createWxOrderAndGetPaymentsParams(GetPaymentParamsRequest request) {
         PaymentParamsDTO paymentParamsDTO = tradeOrderService.createWxOrderAndGetPaymentsParams(request.getTid());
+        return BaseResponse.success(KsBeanUtil.convert(paymentParamsDTO,WxOrderPaymentParamsVO.class));
+    }
+
+
+    @Override
+    public BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(String openId, String tid) {
+        PaymentParamsDTO paymentParamsDTO = wxOrderService.getPaymentParams(openId, tid);
         return BaseResponse.success(KsBeanUtil.convert(paymentParamsDTO,WxOrderPaymentParamsVO.class));
     }
 }

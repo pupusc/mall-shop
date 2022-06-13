@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -150,6 +151,10 @@ public class GuanyierpController implements GuanyierpProvider {
                 //如果库存状态为空则设置为spu的库存状态
                 if (StringUtils.isBlank(erpGoodsInfo.getStockStatusCode())) {
                     erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
+                }
+                //成本价
+                if (erpGoods.getCostPrice() != null && erpGoods.getCostPrice().compareTo(new BigDecimal("0")) > 0) {
+                    erpGoodsInfoVO.setCostPrice(erpGoods.getCostPrice());
                 }
                 erpGoodsInfoVOList.add(erpGoodsInfoVO);
             });
