@@ -72,10 +72,9 @@ public class CommonPackageModel {
                 }
             }
             //获取总定价
-            BigDecimal marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : tradeItem.getMarketPrice();
+            BigDecimal marketPrice = tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : (tradeItem.getMarketPrice().multiply(new BigDecimal(tradeItem.getNum() + "")));
             sumMarketPriceTmp = sumMarketPriceTmp.add(marketPrice);
-            sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPropPrice() == null ? marketPrice : new BigDecimal(tradeItem.getPropPrice()+""));
-
+            sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPropPrice() == null ? marketPrice : new BigDecimal(tradeItem.getPropPrice()+"").multiply( new BigDecimal(tradeItem.getNum() + "")));
         }
 
         //价格
@@ -89,8 +88,9 @@ public class CommonPackageModel {
             BigDecimal discountsPrice = sumMarketPriceTmp.compareTo(BigDecimal.ZERO) > 0 ? sumMarketPriceTmp : tradePrice.getDiscountsPrice();
             wxOrderPriceResp.setDiscountsPrice(originPrice.subtract(discountsPrice));
             BigDecimal actualPrice = tradePrice.getTotalPrice() == null ? BigDecimal.ZERO : tradePrice.getTotalPrice();
-            wxOrderPriceResp.setActualPrice(actualPrice); //折扣价
-            wxOrderPriceResp.setVipDiscountPrice(discountsPrice.subtract(actualPrice)); //优惠金额 售价 - 折扣价
+            wxOrderPriceResp.setActualPrice(actualPrice);
+            //折扣价 = 真实金额 - 折扣后的金额
+            wxOrderPriceResp.setVipDiscountPrice(discountsPrice.subtract(tradePrice.getOriginPrice())); //优惠金额 售价 - 折扣价
             wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? BigDecimal.ZERO : tradePrice.getCouponPrice());
             wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice());
             wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? BigDecimal.ZERO : tradePrice.getPointsPrice());
