@@ -90,7 +90,7 @@ public class CommonPackageModel {
             BigDecimal actualPrice = tradePrice.getTotalPrice() == null ? BigDecimal.ZERO : tradePrice.getTotalPrice();
             wxOrderPriceResp.setActualPrice(actualPrice);
             //折扣价 = 真实金额 - 折扣后的金额
-            wxOrderPriceResp.setVipDiscountPrice(discountsPrice.subtract(tradePrice.getOriginPrice())); //优惠金额 售价 - 折扣价
+            wxOrderPriceResp.setVipDiscountPrice(discountsPrice.subtract(tradePrice.getGoodsPrice())); //优惠金额 售价 - 折扣价
             wxOrderPriceResp.setCouponPrice(tradePrice.getCouponPrice() == null ? BigDecimal.ZERO : tradePrice.getCouponPrice());
             wxOrderPriceResp.setFreightPrice(tradePrice.getDeliveryPrice() == null ? BigDecimal.ZERO : tradePrice.getDeliveryPrice());
             wxOrderPriceResp.setPointsPrice(tradePrice.getPointsPrice() == null ? BigDecimal.ZERO : tradePrice.getPointsPrice());
