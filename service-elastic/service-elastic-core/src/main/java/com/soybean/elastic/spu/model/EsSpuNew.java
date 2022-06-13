@@ -65,8 +65,8 @@ public class EsSpuNew {
     /**
      * 商品渠道
      */
-    @Field(type = FieldType.Long)
-    private List<Integer> spuChannels;
+    @Field(type = FieldType.Integer)
+    private List<String> spuChannels;
 
     /**
      * 主播推荐列表
@@ -110,12 +110,18 @@ public class EsSpuNew {
     @Field(type = FieldType.Double)
     private BigDecimal salesPrice;
 
+    /**
+     * 知识顾问专享 0：不是，1：是
+     */
+    @Field(type = FieldType.Integer)
+    private Integer cpsSpecial;
 
     /**
      * 上下架状态 0 未上架 1 已上架 2 部分上架
      */
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Integer)
     private Integer addedFlag;
+
 
     /**
      * 上架时间
@@ -144,9 +150,16 @@ public class EsSpuNew {
     /**
      * 0未删除 1已删除
      */
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Integer)
     private Integer delFlag;
 
+    /**
+     * 审核状态 0待审核 1：已审核  2：审核失败 3：禁售中
+     */
+    private Integer auditStatus;
+    /**
+     * 图书信息
+     */
     @Field(type = FieldType.Nested)
     private SubBookNew book;
 

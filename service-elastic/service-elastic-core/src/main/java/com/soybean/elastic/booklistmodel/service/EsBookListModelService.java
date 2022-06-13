@@ -92,10 +92,10 @@ public class EsBookListModelService {
         if (sortQueryProviderReq.getBooklistSortType() == null) {
             return fieldSortBuilders;
         }
-        if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.UPDATE_TIME) {
+        if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.UPDATE_TIME.getCode()) {
             FieldSortBuilder order = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.add(order);
-        } else if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.HAS_TOP_UPDATE_TIME) {
+        } else if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.HAS_TOP_UPDATE_TIME.getCode()) {
             FieldSortBuilder order1 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             FieldSortBuilder order2 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.addAll(Arrays.asList(order1, order2));

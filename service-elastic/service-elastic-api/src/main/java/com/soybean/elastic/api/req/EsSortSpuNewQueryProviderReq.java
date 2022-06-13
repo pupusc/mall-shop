@@ -17,6 +17,6 @@ public class EsSortSpuNewQueryProviderReq extends CommonPageQueryReq {
     /**
      * 排序类型 0 默认
      */
-    private SearchSpuNewSortTypeEnum spuSortType;
+    private Integer spuSortType;
 
 }

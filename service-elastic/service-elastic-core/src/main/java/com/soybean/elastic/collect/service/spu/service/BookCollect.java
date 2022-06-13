@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Description:
+ * Description: 采集图书信息
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
  * Date       : 2022/6/1 2:59 下午

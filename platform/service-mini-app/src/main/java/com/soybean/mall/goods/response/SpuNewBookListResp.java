@@ -1,6 +1,8 @@
 package com.soybean.mall.goods.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.List;
 public class SpuNewBookListResp {
 
     private String spuId;
+
+    private String skuId;
 
     /**
      * 商品标题
@@ -39,9 +43,9 @@ public class SpuNewBookListResp {
 
 
     /**
-     * 主播推荐列表 1、樊登讲书 2非凡精读 3樊登直播 4李蕾慢读
+     * 主播推荐
      */
-    private List<Integer> anchorRecoms;
+    private String anchorRecomName;
 
     /**
      * 商品主图
@@ -74,7 +78,9 @@ public class SpuNewBookListResp {
      * 书单或者榜单信息
      */
     @Data
-    public class BookList {
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class BookList {
         /**
          * 书单名称
          */
@@ -90,7 +96,7 @@ public class SpuNewBookListResp {
      * 商品信息
      */
     @Data
-    public class Book {
+    public static class Book {
 
         /**
          * 作者信息
@@ -116,13 +122,13 @@ public class SpuNewBookListResp {
 
          * 图书标签
          */
-        private List<Tag> tags;
+        private List<BookTag> tags;
 
         /**
          * 图书标签
          */
         @Data
-        public class Tag {
+        public static class BookTag {
             /**
              * 标签id
              */
@@ -139,7 +145,7 @@ public class SpuNewBookListResp {
      * 氛围图信息
      */
     @Data
-    public class Atmosphere {
+    public static class Atmosphere {
         /**
          * 图片地址
          */
