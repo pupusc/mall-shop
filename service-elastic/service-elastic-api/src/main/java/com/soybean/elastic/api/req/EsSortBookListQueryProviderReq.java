@@ -18,5 +18,5 @@ public class EsSortBookListQueryProviderReq extends CommonPageQueryReq {
     /**
      * 书单排序 0默认
      */
-    private Integer booklistSortType;
+    private Integer booklistSortType = 0;
 }

@@ -3,6 +3,7 @@ package com.soybean.elastic.api.req;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * Description:
@@ -23,6 +24,6 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     /**
      * 书单类别 1图书 2商品
      */
-    @NotBlank
+    @NotNull
     private Integer searchSpuNewCategory;
 }

@@ -3,6 +3,7 @@ package com.soybean.elastic.api.req;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * Description:
@@ -23,6 +24,6 @@ public class EsKeyWordBookListQueryProviderReq extends EsSortBookListQueryProvid
     /**
      * 书单类别 1排行榜 2书单
      */
-    @NotBlank
+    @NotNull
     private Integer searchBookListCategory;
 }
