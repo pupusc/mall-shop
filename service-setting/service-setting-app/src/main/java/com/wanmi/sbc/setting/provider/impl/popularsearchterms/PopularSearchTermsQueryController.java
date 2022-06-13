@@ -5,6 +5,7 @@ import com.wanmi.sbc.setting.api.provider.popularsearchterms.PopularSearchTermsQ
 import com.wanmi.sbc.setting.api.response.popularsearchterms.PopularSearchTermsListResponse;
 import com.wanmi.sbc.setting.popularsearchterms.service.PopularSearchTermsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -21,7 +22,7 @@ public class PopularSearchTermsQueryController implements PopularSearchTermsQuer
     PopularSearchTermsService popularSearchTermsService;
 
     @Override
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(Integer popularChannel) {
+    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel) {
         if (popularChannel == null) {
             popularChannel = 0;
         }
