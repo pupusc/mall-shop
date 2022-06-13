@@ -17,6 +17,7 @@ import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.mall.goods.service.BookListSearchService;
 import com.soybean.mall.goods.service.SpuNewSearchService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,7 @@ import java.util.List;
 
 @RequestMapping("/search")
 @RestController
+@Slf4j
 public class SearchController {
 
     @Autowired
@@ -58,38 +60,54 @@ public class SearchController {
     @PostMapping("/keyword")
     public BaseResponse<SearchHomeResp> keywordSearch(@RequestBody KeyWordQueryReq keyWordQueryReq) {
         SearchHomeResp searchHomeResp = new SearchHomeResp();
-        //图书
-        KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
-        spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
-        spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
-        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
-        CommonPageResp<List<SpuNewBookListResp>> bookPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
-        searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("图书", bookPage));
+        try {
+            //图书
+            KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
+            spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
+            spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
+            spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
+            CommonPageResp<List<SpuNewBookListResp>> bookPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
+            searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("图书", bookPage));
+        } catch (Exception ex) {
+            log.error("SearchController keywordSearch book", ex);
+        }
 
-        //商品
-        spuKeyWordQueryReq = new KeyWordSpuQueryReq();
-        spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
-        spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.SPU.getCode());
-        spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
-        CommonPageResp<List<SpuNewBookListResp>> spuPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
-        searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("商品", spuPage));
+        try {
+            //商品
+            KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
+            spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
+            spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.SPU.getCode());
+            spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
+            CommonPageResp<List<SpuNewBookListResp>> spuPage = this.keywordSpuSearch(spuKeyWordQueryReq).getContext();
+            searchHomeResp.setSpus(new SearchHomeResp.SubSearchHomeResp<>("商品", spuPage));
+        } catch (Exception ex) {
+            log.error("SearchController keywordSearch spu", ex);
+        }
 
         //查询榜单
-        KeyWordBookListQueryReq bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
-        bookListKeyWordQueryReq.setSpuNum(3);
-        bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
-        bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
-        CommonPageResp<List<BookListSpuResp>> rankingListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
-        searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("榜单", rankingListPage));
+        try {
+            KeyWordBookListQueryReq bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
+            bookListKeyWordQueryReq.setSpuNum(3);
+            bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
+            bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
+            CommonPageResp<List<BookListSpuResp>> rankingListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
+            searchHomeResp.setRankingLists(new SearchHomeResp.SubSearchHomeResp<>("榜单", rankingListPage));
+        } catch (Exception ex) {
+            log.error("SearchController keywordSearch ranking", ex);
+        }
 
 
         //查询书单
-        bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
-        bookListKeyWordQueryReq.setSpuNum(5);
-        bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
-        bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
-        CommonPageResp<List<BookListSpuResp>> bookListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
-        searchHomeResp.setBooks(new SearchHomeResp.SubSearchHomeResp<>("书单", bookListPage));
+        try {
+            KeyWordBookListQueryReq bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
+            bookListKeyWordQueryReq.setSpuNum(5);
+            bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
+            bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
+            CommonPageResp<List<BookListSpuResp>> bookListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
+            searchHomeResp.setBookLists(new SearchHomeResp.SubSearchHomeResp<>("书单", bookListPage));
+        } catch (Exception ex) {
+            log.error("SearchController keywordSearch book_list", ex);
+        }
 
         return BaseResponse.success(searchHomeResp);
     }

@@ -90,20 +90,12 @@ public class BookListSearchService {
         for (EsBookListModelResp esBookListModelResp : esBookListModelRespList) {
             BookListSpuResp bookListSpuResp = new BookListSpuResp();
             BeanUtils.copyProperties(esBookListModelResp, bookListSpuResp);
-//            bookListSpuResp.setBookListId(esBookListModelResp.getBookListId());
-//            bookListSpuResp.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
-//            bookListSpuResp.setBookListName(esBookListModelResp.getBookListName());
-//            bookListSpuResp.setBookListDesc(esBookListModelResp.getBookListDesc());
 
             List<BookListSpuResp.Spu> spuList = new ArrayList<>();
             List<EsBookListModelResp.Spu> esBookListSpuList = bookListId2SpuMap.getOrDefault(esBookListModelResp.getBookListId().intValue(), new ArrayList<>());
             for (EsBookListModelResp.Spu spuParam : esBookListSpuList) {
                 BookListSpuResp.Spu spu = new BookListSpuResp.Spu();
                 BeanUtils.copyProperties(spuParam, spu);
-//                spu.setSpuId(spuParam.getSpuId());
-//                spu.setPic(spuParam.getPic());
-//                spu.setUnBackgroundPic(spuParam.getUnBackgroundPic());
-//                spu.setSortNum(spuParam.getSortNum());
                 spuList.add(spu);
             }
             bookListSpuResp.setSpus(spuList);
