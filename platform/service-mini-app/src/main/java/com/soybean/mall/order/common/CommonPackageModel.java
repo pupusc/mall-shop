@@ -72,7 +72,7 @@ public class CommonPackageModel {
                 }
             }
             //获取总定价
-            sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPointsPrice());
+            sumOriginPriceTmp = sumOriginPriceTmp.add(new BigDecimal(tradeItem.getPropPrice()+""));
             sumMarketPriceTmp = sumMarketPriceTmp.add(tradeItem.getMarketPrice());
         }
 
