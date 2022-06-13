@@ -5,6 +5,7 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.setting.api.response.popularsearchterms.PopularSearchTermsListResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
@@ -21,6 +22,6 @@ public interface PopularSearchTermsQueryProvider {
      * @return
      */
     @PostMapping("/setting/${application.setting.version}/popular_search_terms/list")
-    BaseResponse<PopularSearchTermsListResponse>listPopularSearchTerms(Integer popularChannel);
+    BaseResponse<PopularSearchTermsListResponse>listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel);
 
 }

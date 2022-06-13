@@ -22,7 +22,7 @@ public class PopularSearchTermsQueryController implements PopularSearchTermsQuer
     PopularSearchTermsService popularSearchTermsService;
 
     @Override
-    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(@RequestParam(value = "popularChannel", required = false) Integer popularChannel) {
+    public BaseResponse<PopularSearchTermsListResponse> listPopularSearchTerms(Integer popularChannel) {
         if (popularChannel == null) {
             popularChannel = 0;
         }
