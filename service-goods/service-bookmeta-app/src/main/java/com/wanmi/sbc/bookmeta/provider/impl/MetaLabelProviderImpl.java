@@ -122,7 +122,7 @@ public class MetaLabelProviderImpl implements MetaLabelProvider {
         Example example = new Example(MetaLabel.class);
         Example.Criteria criteria = example.createCriteria()
                 .andEqualTo("name", metaLabel.getName())
-                .andEqualTo("parentId", metaLabel.getParentId());
+                .andEqualTo("delFlag", 0);
         if (!newly) {
             criteria.andNotEqualTo("id", metaLabel.getId());
         }

@@ -41,7 +41,7 @@
         <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
         <tomcat-jdbc.version>9.0.10</tomcat-jdbc.version>
 
-        <fastjson.version>1.2.71</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <servlet-api.version>2.5</servlet-api.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <commons-collections.version>3.2.2</commons-collections.version>
@@ -391,4 +391,11 @@
             <url>http://maven.dushu365.com/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>nexus-dushu</id>
+            <url>http://maven.dushu365.com/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
 </project>
