@@ -21,7 +21,6 @@
         <oss.version>2.6.0</oss.version>
         <cos.version>5.6.8</cos.version>
         <java.version>8</java.version>
-        <fastjson.version>1.2.60</fastjson.version>
     </properties>
 
     <dependencies>
@@ -34,7 +33,6 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.huaweicloud</groupId>
