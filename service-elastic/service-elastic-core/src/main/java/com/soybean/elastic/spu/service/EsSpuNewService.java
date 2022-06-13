@@ -177,6 +177,7 @@ public class EsSpuNewService {
         builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
 
         //分页 从0开始
+        req.setPageNum(Math.max((req.getPageNum() - 1), 0));
         builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
         //查询 条件
         builder.withQuery(this.packageKeyWordQueryCondition(req));

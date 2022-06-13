@@ -3,7 +3,7 @@ package com.wanmi.sbc.goods.provider.impl.collect;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.collect.CollectSpuService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +28,13 @@ public class CollectSpuController implements CollectSpuProvider {
 
 
     @Override
-    public BaseResponse<List<GoodsVO>> collectSpuIdByTime(@RequestBody CollectSpuProviderReq req) {
+    public BaseResponse<List<CollectSpuVO>> collectSpuIdByTime(@RequestBody CollectSpuProviderReq req) {
         return BaseResponse.success(collectSpuService.collectSpuIdByTime(req));
     }
 
 
     @Override
-    public BaseResponse<List<GoodsVO>> collectSpuBySpuIds(@RequestBody CollectSpuProviderReq req) {
+    public BaseResponse<List<CollectSpuVO>> collectSpuBySpuIds(@RequestBody CollectSpuProviderReq req) {
         return BaseResponse.success(collectSpuService.collectSpuBySpuIds(req));
     }
 }

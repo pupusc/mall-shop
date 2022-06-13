@@ -6,6 +6,7 @@ import com.soybean.elastic.spu.model.EsSpuNew;
 import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
+import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class SpuCollect extends AbstractSpuCollect {
      * @param now
      * @return
      */
-    private List<GoodsVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
+    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
         CollectSpuProviderReq request = new CollectSpuProviderReq();
         request.setBeginTime(lastCollectTime);
         request.setEndTime(now);
@@ -50,12 +51,12 @@ public class SpuCollect extends AbstractSpuCollect {
 
     @Override
     public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
-        List<GoodsVO> goodsVOList = this.getSpuByTime(lastCollectTime, now);
-        Set<String> spuIdSet = goodsVOList.stream().map(GoodsVO::getGoodsId).collect(Collectors.toSet());
-        if (goodsVOList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = goodsVOList.get(0).getUpdateTime();
-            goodsVOList = this.getSpuByTime(updateTime, now);
-            spuIdSet.addAll(goodsVOList.stream().map(GoodsVO::getGoodsId).collect(Collectors.toSet()));
+        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now);
+        Set<String> spuIdSet = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet());
+        if (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
+            LocalDateTime updateTime = collectSpuVOList.get(0).getUpdateTime();
+            collectSpuVOList = this.getSpuByTime(updateTime, now);
+            spuIdSet.addAll(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet()));
         }
         return spuIdSet;
     }
@@ -67,27 +68,27 @@ public class SpuCollect extends AbstractSpuCollect {
         List<String> spuIdList = list.stream().map(t -> ((EsSpuNew) t).getSpuId()).collect(Collectors.toList());
         CollectSpuProviderReq req = new CollectSpuProviderReq();
         req.setSpuIds(spuIdList);
-        List<GoodsVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
+        List<CollectSpuVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
         if (CollectionUtils.isEmpty(context)) {
             return list;
         }
-        Map<String, GoodsVO> spuId2GoodsVoMap =
-                context.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        Map<String, CollectSpuVO> spuId2CollectGoodsVoMap =
+                context.stream().collect(Collectors.toMap(CollectSpuVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
         for (T t : list) {
             EsSpuNew esSpuNew = (EsSpuNew) t;
-            GoodsVO goodsVO = spuId2GoodsVoMap.get(esSpuNew.getSpuId());
-            if (goodsVO == null) {
+            CollectSpuVO collectSpuVO = spuId2CollectGoodsVoMap.get(esSpuNew.getSpuId());
+            if (collectSpuVO == null) {
                 continue;
             }
 
-            esSpuNew.setSpuId(goodsVO.getGoodsId());
-            esSpuNew.setSpuName(goodsVO.getGoodsName());
-            esSpuNew.setSpuSubName(goodsVO.getGoodsSubtitle());
+            esSpuNew.setSpuId(collectSpuVO.getGoodsId());
+            esSpuNew.setSpuName(collectSpuVO.getGoodsName());
+            esSpuNew.setSpuSubName(collectSpuVO.getGoodsSubtitle());
 //            esSpuNew.setSpuCategory(0);
-            esSpuNew.setSpuChannels(StringUtils.isNotBlank(goodsVO.getGoodsChannelType()) ? Arrays.asList(goodsVO.getGoodsChannelType().split(",")) : new ArrayList<>());
-            if (StringUtils.isNotBlank(goodsVO.getAnchorPushs())) {
+            esSpuNew.setChannelTypes(collectSpuVO.getGoodsChannelTypes());
+            if (!CollectionUtils.isEmpty(collectSpuVO.getAnchorPushs())) {
                 List<SubAnchorRecomNew> subAnchorRecomNewList = new ArrayList<>();
-                for (String s : goodsVO.getAnchorPushs().split(" ")) {
+                for (String s : collectSpuVO.getAnchorPushs()) {
                     AnchorPushEnum anchorPushEnum = AnchorPushEnum.getByCode(s);
                     if (anchorPushEnum == null) {
                         continue;
@@ -101,15 +102,15 @@ public class SpuCollect extends AbstractSpuCollect {
             }
 
 //            esSpuNew.setFavorCommentRate(0.0D);
-            esSpuNew.setSalesNum(goodsVO.getGoodsSalesNum());
-//            esSpuNew.setSalesPrice(goodsVO);
-            esSpuNew.setCpsSpecial(goodsVO.getCpsSpecial());
-            esSpuNew.setAddedFlag(goodsVO.getAddedFlag());
-            esSpuNew.setAddedTime(goodsVO.getAddedTime());
-            esSpuNew.setCreateTime(goodsVO.getCreateTime());
+            esSpuNew.setSalesNum(collectSpuVO.getGoodsSalesNum());
+            esSpuNew.setSalesPrice(collectSpuVO.getMiniSalesPrice());
+            esSpuNew.setCpsSpecial(collectSpuVO.getCpsSpecial());
+            esSpuNew.setAddedFlag(collectSpuVO.getAddedFlag());
+            esSpuNew.setAddedTime(collectSpuVO.getAddedTime());
+            esSpuNew.setCreateTime(collectSpuVO.getCreateTime());
 //            esSpuNew.setIndexTime(LocalDateTime.now());
-            esSpuNew.setDelFlag(goodsVO.getDelFlag().toValue());
-            esSpuNew.setAuditStatus(goodsVO.getAuditStatus().toValue());
+            esSpuNew.setDelFlag(collectSpuVO.getDelFlag().toValue());
+            esSpuNew.setAuditStatus(collectSpuVO.getAuditStatus().toValue());
 //            esSpuNew.setBook(new SubBookNew());
 //            esSpuNew.setClassifys(Lists.newArrayList());
 

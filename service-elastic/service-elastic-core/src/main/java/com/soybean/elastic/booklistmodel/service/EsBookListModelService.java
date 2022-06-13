@@ -73,7 +73,7 @@ public class EsBookListModelService {
         }
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-//        boolQb.must(matchQuery("spuCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
+        boolQb.must(matchQuery("bookListBusinessType", esKeyWordQueryProviderReq.getSearchBookListCategory()));
         boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
         boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
@@ -114,6 +114,7 @@ public class EsBookListModelService {
         builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
 
         //分页 从0开始
+        req.setPageNum(Math.max((req.getPageNum() - 1), 0));
         builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
         //查询 条件
         builder.withQuery(this.packageKeyWordQueryCondition(req));
@@ -163,6 +164,7 @@ public class EsBookListModelService {
         builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
 
         //分页 从0开始
+        request.setPageNum(Math.max((request.getPageNum() - 1), 0));
         builder.withPageable(PageRequest.of(request.getPageNum(), request.getPageSize()));
         builder.withQuery(this.packageQueryCondition(request));
         //排序

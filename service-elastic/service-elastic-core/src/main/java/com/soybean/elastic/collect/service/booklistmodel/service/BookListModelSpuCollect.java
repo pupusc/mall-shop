@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
+import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +49,7 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
      * @param now
      * @return
      */
-    private List<GoodsVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
+    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
         CollectSpuProviderReq request = new CollectSpuProviderReq();
         request.setBeginTime(lastCollectTime);
         request.setEndTime(now);
@@ -58,15 +59,15 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
     /**
      * 获取书单id列表信息
-     * @param goodsVOList
+     * @param collectSpuVOList
      * @return
      */
-    private Set<Long> getBookListModelId(List<GoodsVO> goodsVOList) {
+    private Set<Long> getBookListModelId(List<CollectSpuVO> collectSpuVOList) {
         Set<Long> bookListModelIdSet = new HashSet<>();
-        if (CollectionUtils.isEmpty(goodsVOList)) {
+        if (CollectionUtils.isEmpty(collectSpuVOList)) {
             return bookListModelIdSet;
         }
-        List<String> goodsIdList = goodsVOList.stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        List<String> goodsIdList = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList());
         //根据商品id 获取对应的书单
         CollectBookListModelProviderReq req = new CollectBookListModelProviderReq();
         req.setSpuIds(goodsIdList);
@@ -84,12 +85,12 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
      * @return
      */
     private Set<Long> collectBookListModelId(LocalDateTime lastCollectTime, LocalDateTime now) {
-        List<GoodsVO> goodsVOList = this.getSpuByTime(lastCollectTime, now);
-        Set<Long> bookListModelIdSet = this.getBookListModelId(goodsVOList);
-        while (goodsVOList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = goodsVOList.get(0).getUpdateTime();
-            goodsVOList = this.getSpuByTime(updateTime, now);
-            bookListModelIdSet.addAll(this.getBookListModelId(goodsVOList));
+        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now);
+        Set<Long> bookListModelIdSet = this.getBookListModelId(collectSpuVOList);
+        while (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
+            LocalDateTime updateTime = collectSpuVOList.get(0).getUpdateTime();
+            collectSpuVOList = this.getSpuByTime(updateTime, now);
+            bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList));
         }
         return bookListModelIdSet;
     }
@@ -115,24 +116,25 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
                 spuIdList.add(esBookListSubSpuNew.getSpuId());
             }
 
-            Map<String, GoodsVO> spuId2GoodsVoMap = new HashMap<>();
+            Map<String, CollectSpuVO> spuId2CollectSpuVoMap = new HashMap<>();
             int cycleCount = spuIdList.size() / MAX_PAGE_SIZE;
             int remainder = spuIdList.size() % MAX_PAGE_SIZE;
             cycleCount += remainder > 0 ? 1 : 0;
 
             for (int i = 0; i<cycleCount; i++) {
-                spuId2GoodsVoMap.putAll(this.mapGoodsVo(spuIdList.subList(i * MAX_PAGE_SIZE, Math.min((i + 1) * MAX_PAGE_SIZE, spuIdList.size()))));
+                spuId2CollectSpuVoMap.putAll(this.mapGoodsVo(spuIdList.subList(i * MAX_PAGE_SIZE, Math.min((i + 1) * MAX_PAGE_SIZE, spuIdList.size()))));
             }
 
-            if (spuId2GoodsVoMap.size() > 0) {
+            if (spuId2CollectSpuVoMap.size() > 0) {
                 for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
-                    GoodsVO goodsVO = spuId2GoodsVoMap.get(esBookListSubSpuNew.getSpuId());
-                    if (goodsVO == null) {
+                    CollectSpuVO collectSpuVO = spuId2CollectSpuVoMap.get(esBookListSubSpuNew.getSpuId());
+                    if (collectSpuVO == null) {
                         continue;
                     }
-                    esBookListSubSpuNew.setSpuName(goodsVO.getGoodsName());
-                    esBookListSubSpuNew.setChannelTypes(StringUtils.isNotBlank(goodsVO.getGoodsChannelType()) ? Arrays.asList(goodsVO.getGoodsChannelType().split(",")) : new ArrayList<>());
-                    esBookListSubSpuNew.setUnBackgroundPic(goodsVO.getGoodsUnBackImg());
+                    esBookListSubSpuNew.setSpuName(collectSpuVO.getGoodsName());
+                    esBookListSubSpuNew.setChannelTypes(collectSpuVO.getGoodsChannelTypes());
+                    esBookListSubSpuNew.setUnBackgroundPic(collectSpuVO.getGoodsUnBackImg());
+                    esBookListSubSpuNew.setPic(collectSpuVO.getMinSalePriceImg());
                 }
 //                spuIdSet.clear(); //辅助GC
 //                spuId2GoodsVoMap.clear(); //辅助GC
@@ -142,13 +144,13 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
     }
 
 
-    private Map<String, GoodsVO> mapGoodsVo(List<String> spuIdList) {
+    private Map<String, CollectSpuVO> mapGoodsVo(List<String> spuIdList) {
         CollectSpuProviderReq req = new CollectSpuProviderReq();
         req.setSpuIds(spuIdList);
-        List<GoodsVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
+        List<CollectSpuVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
         if (CollectionUtils.isEmpty(context)) {
             return new HashMap<>();
         }
-        return context.stream().collect(Collectors.toMap(GoodsVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
+        return context.stream().collect(Collectors.toMap(CollectSpuVO::getGoodsId, Function.identity(), (k1, k2) -> k1));
     }
 }

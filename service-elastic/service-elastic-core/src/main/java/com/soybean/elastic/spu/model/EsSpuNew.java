@@ -66,7 +66,7 @@ public class EsSpuNew {
      * 商品渠道
      */
     @Field(type = FieldType.Integer)
-    private List<String> spuChannels;
+    private List<String> channelTypes;
 
     /**
      * 主播推荐列表

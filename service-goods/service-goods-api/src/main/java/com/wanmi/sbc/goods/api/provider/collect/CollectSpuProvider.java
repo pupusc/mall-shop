@@ -5,7 +5,7 @@ package com.wanmi.sbc.goods.api.provider.collect;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ public interface CollectSpuProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/collect/spu/collectSpuIdByTime")
-    BaseResponse<List<GoodsVO>> collectSpuIdByTime(@RequestBody CollectSpuProviderReq req);
+    BaseResponse<List<CollectSpuVO>> collectSpuIdByTime(@RequestBody CollectSpuProviderReq req);
 
 
     /**
@@ -31,5 +31,5 @@ public interface CollectSpuProvider {
      * @return
      */
     @PostMapping("/goods/${application.goods.version}/collect/spu/collectSpuBySpuIds")
-    BaseResponse<List<GoodsVO>> collectSpuBySpuIds(@RequestBody CollectSpuProviderReq req);
+    BaseResponse<List<CollectSpuVO>> collectSpuBySpuIds(@RequestBody CollectSpuProviderReq req);
 }
