@@ -72,8 +72,8 @@ public class CommonPackageModel {
                 }
             }
             //获取总定价
-            sumOriginPriceTmp = sumOriginPriceTmp.add(new BigDecimal(tradeItem.getPropPrice()+""));
-            sumMarketPriceTmp = sumMarketPriceTmp.add(tradeItem.getMarketPrice());
+            sumOriginPriceTmp = sumOriginPriceTmp.add(tradeItem.getPropPrice() == null ? BigDecimal.ZERO : new BigDecimal(tradeItem.getPropPrice()+""));
+            sumMarketPriceTmp = sumMarketPriceTmp.add(tradeItem.getMarketPrice() == null ? BigDecimal.ZERO : tradeItem.getMarketPrice());
         }
 
         //价格
