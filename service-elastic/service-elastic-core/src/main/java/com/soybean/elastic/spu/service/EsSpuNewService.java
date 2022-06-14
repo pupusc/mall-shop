@@ -77,8 +77,10 @@ public class EsSpuNewService {
         boolQb.should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
         boolQb.should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));
 
-        boolQb.should(nestedQuery("anchorRecoms", matchQuery("anchorRecoms.recomName", req.getKeyword())
-                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)), ScoreMode.None));
+//        boolQb.should(nestedQuery("anchorRecoms", matchQuery("anchorRecoms.recomName", req.getKeyword())
+//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)), ScoreMode.None));
+        boolQb.should(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
+//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)), ScoreMode.None));
 
         if (Objects.equals(req.getSearchSpuNewCategory(), SearchSpuNewCategoryEnum.SPU.getCode())) {
             //商品
