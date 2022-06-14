@@ -71,7 +71,7 @@ public class EsSpuNew {
     /**
      * 主播推荐列表
      */
-    @Field(type = FieldType.Object)
+    @Field(type = FieldType.Nested)
     private List<SubAnchorRecomNew> anchorRecoms;
 
 //    /**
@@ -165,10 +165,10 @@ public class EsSpuNew {
     private SubBookNew book;
 
 
-//    /**
-//     * 店铺分类
-//     */
-//    @Field(type = FieldType.Nested)
+    /**
+     * 店铺分类
+     */
+    @Field(type = FieldType.Nested)
     private SubClassifyNew classify;
 
 
