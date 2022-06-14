@@ -41,21 +41,22 @@ public class SpuCollect extends AbstractSpuCollect {
      * @param now
      * @return
      */
-    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
+    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now, Integer fromId) {
         CollectSpuProviderReq request = new CollectSpuProviderReq();
         request.setBeginTime(lastCollectTime);
         request.setEndTime(now);
+        request.setFromId(fromId);
         request.setPageSize(MAX_PAGE_SIZE);
         return collectSpuProvider.collectSpuIdByTime(request).getContext();
     }
 
     @Override
     public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
-        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now);
+        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now, 0);
         Set<String> spuIdSet = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet());
         if (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = collectSpuVOList.get(0).getUpdateTime();
-            collectSpuVOList = this.getSpuByTime(updateTime, now);
+            Integer tmpId = collectSpuVOList.get(0).getTmpId();
+            collectSpuVOList = this.getSpuByTime(lastCollectTime, now, tmpId);
             spuIdSet.addAll(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet()));
         }
         return spuIdSet;

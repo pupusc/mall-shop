@@ -27,8 +27,8 @@ public interface ClassifyGoodsRelRepository extends JpaRepository<ClassifyGoodsR
      * 根据时间采集分类关系商品数据
      * @return
      */
-    @Query(value = "select * from t_classify_goods_rel where update_time >=?1 and update_time < ?2  order by update_time asc limit ?3", nativeQuery = true)
-    List<ClassifyGoodsRelDTO> collectClassifySpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer pageSize);
+    @Query(value = "select * from t_classify_goods_rel where update_time >=?1 and update_time < ?2 and id> ?3  order by id asc limit ?4", nativeQuery = true)
+    List<ClassifyGoodsRelDTO> collectClassifySpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId, Integer pageSize);
 
     /**
      * 根据spu id采集数据

@@ -20,6 +20,11 @@ public class CollectClassifyRelSpuResp {
     private Integer classifyId;
 
     /**
+     * 店铺分类关联对象id
+     */
+    private Integer classifySpuRelId;
+
+    /**
      * 采集店铺分类的商品信息
      */
     private String spuId;

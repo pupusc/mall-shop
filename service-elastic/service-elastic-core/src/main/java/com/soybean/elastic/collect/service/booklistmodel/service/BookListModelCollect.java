@@ -31,11 +31,12 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
     @Autowired
     private CollectBookListModelProvider collectBookListModelProvider;
 
-    private List<BookListModelProviderResponse> collectBookListId(LocalDateTime beginTime, LocalDateTime endtime) {
+    private List<BookListModelProviderResponse> collectBookListId(LocalDateTime beginTime, LocalDateTime endtime, Integer fromId) {
         //获取商品列表
         CollectBookListModelProviderReq request = new CollectBookListModelProviderReq();
         request.setBeginTime(beginTime);
         request.setEndTime(endtime);
+        request.setFromId(fromId);
         request.setPageSize(MAX_PAGE_SIZE);
         return collectBookListModelProvider.collectBookListId(request).getContext();
     }
@@ -43,14 +44,14 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
     @Override
     public Set<Long> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<Long> bookListModelIdSet = new HashSet<>();
-        List<BookListModelProviderResponse> collectBookListIdList = this.collectBookListId(lastCollectTime, now);
+        List<BookListModelProviderResponse> collectBookListIdList = this.collectBookListId(lastCollectTime, now, 0);
         for (BookListModelProviderResponse collectBookListParam : collectBookListIdList) {
             bookListModelIdSet.add(collectBookListParam.getId().longValue());
         }
         //可能没有获取完，再取一次
         while (collectBookListIdList.size() >= MAX_PAGE_SIZE) {
-            Date updateTime = collectBookListIdList.get(collectBookListIdList.size() - 1).getUpdateTime();
-            collectBookListIdList = this.collectBookListId(LocalDateTime.ofInstant(updateTime.toInstant(), ZoneId.systemDefault()), now);
+            Integer maxBookListId = collectBookListIdList.get(collectBookListIdList.size() - 1).getId();
+            collectBookListIdList = this.collectBookListId(lastCollectTime, now, maxBookListId);
             for (BookListModelProviderResponse collectBookListParam : collectBookListIdList) {
                 bookListModelIdSet.add(collectBookListParam.getId().longValue());
             }

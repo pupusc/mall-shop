@@ -46,11 +46,12 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
      * @param now
      * @return
      */
-    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now) {
+    private List<CollectSpuVO> getSpuByTime(LocalDateTime lastCollectTime, LocalDateTime now, Integer fromId) {
         CollectSpuProviderReq request = new CollectSpuProviderReq();
         request.setBeginTime(lastCollectTime);
         request.setEndTime(now);
         request.setPageSize(MAX_PAGE_SIZE);
+        request.setFromId(fromId);
         return collectSpuProvider.collectSpuIdByTime(request).getContext();
     }
 
@@ -82,11 +83,11 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
      * @return
      */
     private Set<Long> collectBookListModelId(LocalDateTime lastCollectTime, LocalDateTime now) {
-        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now);
+        List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now, 0);
         Set<Long> bookListModelIdSet = this.getBookListModelId(collectSpuVOList);
         while (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = collectSpuVOList.get(collectSpuVOList.size() -1).getUpdateTime();
-            collectSpuVOList = this.getSpuByTime(updateTime, now);
+            Integer tmpId = collectSpuVOList.get(collectSpuVOList.size() - 1).getTmpId();
+            collectSpuVOList = this.getSpuByTime(lastCollectTime, now, tmpId);
             bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList));
         }
         return bookListModelIdSet;

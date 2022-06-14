@@ -32,10 +32,11 @@ public class CollectClassifyRelSpuService {
      */
     public List<CollectClassifyRelSpuResp> collectClassifySpuIdByTime(CollectClassifyProviderReq req){
         List<ClassifyGoodsRelDTO> classifyGoodsRelDTOS =
-                classifyGoodsRelRepository.collectClassifySpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
+                classifyGoodsRelRepository.collectClassifySpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getFromId(), req.getPageSize());
         List<CollectClassifyRelSpuResp> result = new ArrayList<>();
         for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
             CollectClassifyRelSpuResp collectClassifyRelSpuResp = new CollectClassifyRelSpuDetailResp();
+            collectClassifyRelSpuResp.setClassifySpuRelId(classifyGoodsRelDTO.getId());
             collectClassifyRelSpuResp.setClassifyId(classifyGoodsRelDTO.getClassifyId());
             collectClassifyRelSpuResp.setSpuId(classifyGoodsRelDTO.getGoodsId());
             collectClassifyRelSpuResp.setUpdateTime(classifyGoodsRelDTO.getUpdateTime());

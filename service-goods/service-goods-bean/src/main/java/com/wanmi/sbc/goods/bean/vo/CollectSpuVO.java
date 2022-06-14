@@ -23,6 +23,11 @@ import java.util.List;
 public class CollectSpuVO {
 
     /**
+     * 自增id
+     */
+    private Integer tmpId;
+
+    /**
      * 商品id
      */
     private String goodsId;

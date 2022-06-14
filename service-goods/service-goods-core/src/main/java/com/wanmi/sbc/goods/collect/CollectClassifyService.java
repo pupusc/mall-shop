@@ -47,7 +47,7 @@ public class CollectClassifyService {
     public List<CollectClassifyRelSpuResp> collectClassifySpuIdByTime(CollectClassifyProviderReq req) {
         List<CollectClassifyRelSpuResp> result = new ArrayList<>();
         List<ClassifyDTO> classifyList =
-                classifyRepository.collectClassifyByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
+                classifyRepository.collectClassifyByTime(req.getBeginTime(), req.getEndTime(), req.getFromId(), req.getPageSize());
         List<Integer> firstClassifyIdList = new ArrayList<>();
         List<Integer> secondClassifyIdList = new ArrayList<>();
         for (ClassifyDTO classifyParam : classifyList) {

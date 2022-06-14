@@ -55,7 +55,7 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
         LocalDateTime now = LocalDateTime.now();
         int minSize = 50;
         LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-//        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
+        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
     }
 
 

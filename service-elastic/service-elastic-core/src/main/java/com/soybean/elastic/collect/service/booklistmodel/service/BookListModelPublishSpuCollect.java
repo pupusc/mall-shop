@@ -32,11 +32,12 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
     @Autowired
     private CollectBookListModelProvider collectBookListModelProvider;
 
-    private List<CollectBookListGoodsPublishResponse> listCollectBookListGoodsPublish(LocalDateTime beginTime, LocalDateTime endtime) {
+    private List<CollectBookListGoodsPublishResponse> listCollectBookListGoodsPublish(LocalDateTime beginTime, LocalDateTime endtime, Integer fromId) {
         //获取商品列表
         CollectBookListModelProviderReq request = new CollectBookListModelProviderReq();
         request.setBeginTime(beginTime);
         request.setEndTime(endtime);
+        request.setFromId(fromId);
         request.setPageSize(MAX_PAGE_SIZE);
         return collectBookListModelProvider.collectBookListGoodsPublishId(request).getContext();
     }
@@ -44,14 +45,14 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
     @Override
     public Set<Long> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<Long> booklistModelIdSet = new HashSet<>();
-        List<CollectBookListGoodsPublishResponse> collectBookListGoodsPublishResponseList = this.listCollectBookListGoodsPublish(lastCollectTime, now);
+        List<CollectBookListGoodsPublishResponse> collectBookListGoodsPublishResponseList = this.listCollectBookListGoodsPublish(lastCollectTime, now, 0);
         for (CollectBookListGoodsPublishResponse collectBookListGoodsPublishResponse : collectBookListGoodsPublishResponseList) {
             booklistModelIdSet.add(collectBookListGoodsPublishResponse.getBookListId().longValue());
         }
         //可能没有获取完，再取一次
         while (collectBookListGoodsPublishResponseList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = collectBookListGoodsPublishResponseList.get(collectBookListGoodsPublishResponseList.size() - 1).getUpdateTime();
-            collectBookListGoodsPublishResponseList = this.listCollectBookListGoodsPublish(updateTime, now);
+            Integer booklistGoodsRelId = collectBookListGoodsPublishResponseList.get(collectBookListGoodsPublishResponseList.size() - 1).getId();
+            collectBookListGoodsPublishResponseList = this.listCollectBookListGoodsPublish(lastCollectTime, now, booklistGoodsRelId);
             for (CollectBookListGoodsPublishResponse collectBookListGoodsPublishResponse : collectBookListGoodsPublishResponseList) {
                 booklistModelIdSet.add(collectBookListGoodsPublishResponse.getBookListId().longValue());
             }
