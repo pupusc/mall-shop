@@ -82,10 +82,10 @@ public class EsSpuNewService {
 
         if (Objects.equals(req.getSearchSpuNewCategory(), SearchSpuNewCategoryEnum.SPU.getCode())) {
             //商品
-            boolQb.should(nestedQuery("classifys", matchQuery("classify.classifyName", req.getKeyword())
+            boolQb.should(nestedQuery("classify", matchQuery("classify.classifyName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)), ScoreMode.None));
 
-            boolQb.should(nestedQuery("classifys", matchQuery("classify.fClassifyName", req.getKeyword())
+            boolQb.should(nestedQuery("classify", matchQuery("classify.fClassifyName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)), ScoreMode.None));
         } else {
             //图书商品
