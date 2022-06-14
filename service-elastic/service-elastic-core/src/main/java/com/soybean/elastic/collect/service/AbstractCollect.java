@@ -19,7 +19,7 @@ import java.util.Set;
 @Slf4j
 public abstract class AbstractCollect {
 
-    public static final Integer MAX_PAGE_SIZE = 100;
+    public static final Integer MAX_PAGE_SIZE = 30;
 
     /**
      * 采集商品id

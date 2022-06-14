@@ -15,8 +15,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class SubClassifyNew {
 
 
-    @Field(type = FieldType.Long)
-    private Long fClassifyId;
+    @Field(type = FieldType.Integer)
+    private Integer fClassifyId;
 
     /**
      * 店铺分类名称
@@ -25,8 +25,8 @@ public class SubClassifyNew {
     private String fClassifyName;
 
 
-    @Field(type = FieldType.Long)
-    private Long classifyId;
+    @Field(type = FieldType.Integer)
+    private Integer classifyId;
 
     /**
      * 店铺分类名称

@@ -9,15 +9,12 @@ import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -88,7 +85,7 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
         List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now);
         Set<Long> bookListModelIdSet = this.getBookListModelId(collectSpuVOList);
         while (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = collectSpuVOList.get(0).getUpdateTime();
+            LocalDateTime updateTime = collectSpuVOList.get(collectSpuVOList.size() -1).getUpdateTime();
             collectSpuVOList = this.getSpuByTime(updateTime, now);
             bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList));
         }

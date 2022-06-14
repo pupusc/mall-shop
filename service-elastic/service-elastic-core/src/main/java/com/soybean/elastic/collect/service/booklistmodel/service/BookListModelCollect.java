@@ -49,7 +49,7 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
         }
         //可能没有获取完，再取一次
         while (collectBookListIdList.size() >= MAX_PAGE_SIZE) {
-            Date updateTime = collectBookListIdList.get(0).getUpdateTime();
+            Date updateTime = collectBookListIdList.get(collectBookListIdList.size() - 1).getUpdateTime();
             collectBookListIdList = this.collectBookListId(LocalDateTime.ofInstant(updateTime.toInstant(), ZoneId.systemDefault()), now);
             for (BookListModelProviderResponse collectBookListParam : collectBookListIdList) {
                 bookListModelIdSet.add(collectBookListParam.getId().longValue());

@@ -1,16 +1,10 @@
 package com.soybean.elastic.collect.factory.realizer;
 
-import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.repository.EsBookListModelRepository;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
-import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelCollect;
 import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelPublishSpuCollect;
-import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
-import com.soybean.elastic.collect.service.spu.service.SpuCollect;
-import com.soybean.elastic.spu.model.EsSpuNew;
-import com.soybean.elastic.spu.repository.EsSpuRepository;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,20 +52,10 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
 
     @PostConstruct
     public void init() {
-//        while (true) {
-//            try {
-//                Thread.sleep(10 * 1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-            LocalDateTime now = LocalDateTime.now();
-                    int minSize = 50;
-                    LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-                    super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
-
-
-//        }
-
+        LocalDateTime now = LocalDateTime.now();
+        int minSize = 50;
+        LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
+        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
     }
 
 

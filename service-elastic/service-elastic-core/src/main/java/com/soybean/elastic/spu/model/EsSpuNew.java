@@ -168,7 +168,7 @@ public class EsSpuNew {
      * 店铺分类
      */
     @Field(type = FieldType.Nested)
-    private List<SubClassifyNew> classifys;
+    private SubClassifyNew classify;
 
 
 }

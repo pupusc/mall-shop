@@ -50,7 +50,7 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
         }
         //可能没有获取完，再取一次
         while (collectBookListGoodsPublishResponseList.size() >= MAX_PAGE_SIZE) {
-            LocalDateTime updateTime = collectBookListGoodsPublishResponseList.get(0).getUpdateTime();
+            LocalDateTime updateTime = collectBookListGoodsPublishResponseList.get(collectBookListGoodsPublishResponseList.size() - 1).getUpdateTime();
             collectBookListGoodsPublishResponseList = this.listCollectBookListGoodsPublish(updateTime, now);
             for (CollectBookListGoodsPublishResponse collectBookListGoodsPublishResponse : collectBookListGoodsPublishResponseList) {
                 booklistModelIdSet.add(collectBookListGoodsPublishResponse.getBookListId().longValue());
