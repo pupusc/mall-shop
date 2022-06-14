@@ -50,7 +50,7 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
     }
 
 
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         LocalDateTime now = LocalDateTime.now();
         int minSize = 50;

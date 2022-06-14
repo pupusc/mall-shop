@@ -67,15 +67,27 @@ public abstract class AbstractCollect {
     public <T> void incrementalLoads(List<T> list) {
         long beginTime = beforeCollect();
         int from = 0;
-        while (list.size() >= AbstractCollect.MAX_PAGE_SIZE) {
-            collect(list.subList(from, from + AbstractCollect.MAX_PAGE_SIZE));
-            from += AbstractCollect.MAX_PAGE_SIZE;
+        while (true) {
+            int to = from + AbstractCollect.MAX_PAGE_SIZE;
+            to = Math.min(list.size(), to);
+            collect(list.subList(from, to));
+            if (to >= list.size()) {
+                break;
+            }
+            from = to;
         }
-
-        List<T> ts = list.subList(from, list.size());
-        if (!CollectionUtils.isEmpty(ts)) {
-            collect(ts);
-        }
+//
+//        while (list.size() >= AbstractCollect.MAX_PAGE_SIZE) {
+//            int to = from + AbstractCollect.MAX_PAGE_SIZE;
+//
+//            collect(list.subList(from, to));
+//            from += AbstractCollect.MAX_PAGE_SIZE;
+//        }
+//
+//        List<T> ts = list.subList(from, list.size());
+//        if (!CollectionUtils.isEmpty(ts)) {
+//            collect(ts);
+//        }
 
         afterCollect(beginTime, "collect");
 //        return null;
