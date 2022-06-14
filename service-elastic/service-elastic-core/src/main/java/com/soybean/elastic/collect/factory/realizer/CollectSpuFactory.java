@@ -47,7 +47,7 @@ public class CollectSpuFactory extends AbstractCollectFactory {
         return SpuCollect.class;
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         LocalDateTime now = LocalDateTime.now();
         int minSize = 50;
