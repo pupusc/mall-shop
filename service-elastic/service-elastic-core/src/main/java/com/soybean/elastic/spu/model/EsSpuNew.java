@@ -156,6 +156,7 @@ public class EsSpuNew {
     /**
      * 审核状态 0待审核 1：已审核  2：审核失败 3：禁售中
      */
+    @Field(type = FieldType.Integer)
     private Integer auditStatus;
     /**
      * 图书信息
@@ -164,10 +165,10 @@ public class EsSpuNew {
     private SubBookNew book;
 
 
-    /**
-     * 店铺分类
-     */
-    @Field(type = FieldType.Nested)
+//    /**
+//     * 店铺分类
+//     */
+//    @Field(type = FieldType.Nested)
     private SubClassifyNew classify;
 
 
