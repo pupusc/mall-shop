@@ -75,23 +75,23 @@ public class EsSpuNew {
     @Field(type = FieldType.Nested)
     private List<SubAnchorRecomNew> anchorRecoms;
 
-    /**
-     * 评论数量
-     */
-    @Field(type = FieldType.Long)
-    private Long commentNum;
-
-    /**
-     * 好评数
-     */
-    @Field(type = FieldType.Long)
-    private Long favorCommentNum;
-
-    /**
-     * 好评率
-     */
-    @Field(type = FieldType.Double)
-    private Double favorCommentRate;
+//    /**
+//     * 评论数量
+//     */
+//    @Field(type = FieldType.Long)
+//    private Long commentNum;
+//
+//    /**
+//     * 好评数
+//     */
+//    @Field(type = FieldType.Long)
+//    private Long favorCommentNum;
+//
+//    /**
+//     * 好评率
+//     */
+//    @Field(type = FieldType.Double)
+//    private Double favorCommentRate;
 
     /**
      * 销量
