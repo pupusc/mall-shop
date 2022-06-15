@@ -39,7 +39,7 @@ public class CollectBookListModelService {
      */
     public List<CollectBookListGoodsPublishResponse> collectBookListGoodsPublishId(CollectBookListModelProviderReq request) {
         List<BookListGoodsPublishDTO> bookListGoodsPublishDTOList = bookListGoodsPublishRepository.
-                collectBookListGoodsPublishId(request.getBeginTime(), request.getEndTime(), CategoryEnum.BOOK_LIST_MODEL.getCode(), request.getPageSize());
+                collectBookListGoodsPublishId(request.getBeginTime(), request.getEndTime(), CategoryEnum.BOOK_LIST_MODEL.getCode(), request.getFromId(), request.getPageSize());
         List<CollectBookListGoodsPublishResponse> result = new ArrayList<>();
         for (BookListGoodsPublishDTO bookListGoodsPublish : bookListGoodsPublishDTOList) {
             CollectBookListGoodsPublishResponse collectBookListGoodsPublishResponse = new CollectBookListGoodsPublishResponse();
@@ -92,7 +92,7 @@ public class CollectBookListModelService {
      */
     public List<BookListModelProviderResponse> collectBookListId(CollectBookListModelProviderReq request){
         List<BookListModelDTO> bookListModelDTOList =
-                bookListModelRepository.collectBookListId(request.getBeginTime(), request.getEndTime(), request.getBusinesstypes(), request.getPageSize());
+                bookListModelRepository.collectBookListId(request.getBeginTime(), request.getEndTime(), request.getBusinesstypes(), request.getFromId(), request.getPageSize());
         List<BookListModelProviderResponse> result = new ArrayList<>();
         for (BookListModelDTO bookListModelDTO : bookListModelDTOList) {
             BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();

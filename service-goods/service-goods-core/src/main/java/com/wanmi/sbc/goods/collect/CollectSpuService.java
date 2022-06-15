@@ -48,12 +48,13 @@ public class CollectSpuService {
      * @return
      */
     public List<CollectSpuVO> collectSpuIdByTime(CollectSpuProviderReq req) {
-        List<Map<String, Object>> goodsMapList = goodsRepository.collectSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
+        List<Map<String, Object>> goodsMapList = goodsRepository.collectSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getFromId(), req.getPageSize());
         List<CollectSpuVO> result = new ArrayList<>();
         for (Map<String, Object> goodsMapParam : goodsMapList) {
             CollectSpuVO goodsVO = new CollectSpuVO();
             goodsVO.setGoodsId(goodsMapParam.get("goods_id").toString());
             goodsVO.setUpdateTime(goodsMapParam.get("update_time") != null ?  ((Timestamp)goodsMapParam.get("update_time")).toLocalDateTime() : null);
+            goodsVO.setTmpId(Integer.valueOf(goodsMapParam.get("tmp_id").toString()));
             result.add(goodsVO);
         }
         return result;

@@ -44,8 +44,9 @@ public class ClassifyCollect extends AbstractSpuCollect {
      * @param endTime
      * @return
      */
-    private List<CollectClassifyRelSpuResp> collectSpuId(LocalDateTime beginTime, LocalDateTime endTime) {
+    private List<CollectClassifyRelSpuResp> collectSpuId(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId) {
         CollectClassifyProviderReq req = new CollectClassifyProviderReq();
+        req.setFromId(fromId);
         req.setPageSize(MAX_PAGE_SIZE);
         req.setBeginTime(beginTime);
         req.setEndTime(endTime);
@@ -58,8 +59,9 @@ public class ClassifyCollect extends AbstractSpuCollect {
      * @param endTime
      * @return
      */
-    private List<CollectClassifyRelSpuResp> collectSpuIdRel(LocalDateTime beginTime, LocalDateTime endTime) {
+    private List<CollectClassifyRelSpuResp> collectSpuIdRel(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId) {
         CollectClassifyProviderReq req = new CollectClassifyProviderReq();
+        req.setFromId(fromId);
         req.setPageSize(MAX_PAGE_SIZE);
         req.setBeginTime(beginTime);
         req.setEndTime(endTime);
@@ -69,27 +71,27 @@ public class ClassifyCollect extends AbstractSpuCollect {
     @Override
     public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<String> spuIdSet = new HashSet<>();
-        List<CollectClassifyRelSpuResp> collectClassifyRelSpuRespList = this.collectSpuId(lastCollectTime, now);
+        List<CollectClassifyRelSpuResp> collectClassifyRelSpuRespList = this.collectSpuId(lastCollectTime, now, 0);
         for (CollectClassifyRelSpuResp collectClassifyRelSpuRespParam : collectClassifyRelSpuRespList) {
             spuIdSet.add(collectClassifyRelSpuRespParam.getSpuId());
         }
         while (collectClassifyRelSpuRespList.size() >= MAX_PAGE_SIZE) {
-            Date updateTime = collectClassifyRelSpuRespList.get(collectClassifyRelSpuRespList.size() - 1).getUpdateTime();
-            collectClassifyRelSpuRespList = this.collectSpuId(LocalDateTime.ofInstant(updateTime.toInstant(), ZoneId.systemDefault()), now);
+            Integer maxClassifyId = collectClassifyRelSpuRespList.get(collectClassifyRelSpuRespList.size() - 1).getClassifyId();
+            collectClassifyRelSpuRespList = this.collectSpuId(lastCollectTime, now, maxClassifyId);
             for (CollectClassifyRelSpuResp collectClassifyRelSpuRespParam : collectClassifyRelSpuRespList) {
                 spuIdSet.add(collectClassifyRelSpuRespParam.getSpuId());
             }
         }
 
         //此处重复率比较高，所以再获取关系表里面的更新数据，减少查询次数
-        List<CollectClassifyRelSpuResp> collectClassifyRelSpuByRelRespList = this.collectSpuIdRel(lastCollectTime, now);
+        List<CollectClassifyRelSpuResp> collectClassifyRelSpuByRelRespList = this.collectSpuIdRel(lastCollectTime, now, 0);
         for (CollectClassifyRelSpuResp collectClassifyRelSpuResp : collectClassifyRelSpuByRelRespList) {
             spuIdSet.add(collectClassifyRelSpuResp.getSpuId());
         }
 
         while (collectClassifyRelSpuByRelRespList.size() >= MAX_PAGE_SIZE) {
-            Date updateTime = collectClassifyRelSpuByRelRespList.get(collectClassifyRelSpuByRelRespList.size() - 1).getUpdateTime();
-            collectClassifyRelSpuByRelRespList = this.collectSpuIdRel(LocalDateTime.ofInstant(updateTime.toInstant(), ZoneId.systemDefault()), now);
+            Integer maxClassifySpuRelId = collectClassifyRelSpuByRelRespList.get(collectClassifyRelSpuByRelRespList.size() - 1).getClassifySpuRelId();
+            collectClassifyRelSpuByRelRespList = this.collectSpuIdRel(lastCollectTime, now, maxClassifySpuRelId);
             for (CollectClassifyRelSpuResp collectClassifyRelSpuResp : collectClassifyRelSpuByRelRespList) {
                 spuIdSet.add(collectClassifyRelSpuResp.getSpuId());
             }

@@ -456,8 +456,8 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      * 采集数据
      * @return
      */
-    @Query(value = "select * from goods where update_time >=?1 and update_time < ?2 order by update_time asc limit ?3", nativeQuery = true)
-    List<Map<String, Object>> collectSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime,  Integer pageSize);
+    @Query(value = "select * from goods where update_time >=?1 and update_time < ?2 and tmp_id > ?3 order by tmp_id asc limit ?4", nativeQuery = true)
+    List<Map<String, Object>> collectSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId,  Integer pageSize);
 
 
 }

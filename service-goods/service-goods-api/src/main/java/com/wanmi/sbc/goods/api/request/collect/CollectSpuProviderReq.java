@@ -22,6 +22,8 @@ public class CollectSpuProviderReq implements Serializable {
 
     private int pageSize = 100;
 
+    private int fromId = 0;
+
     /**
      * 开始时间
      */

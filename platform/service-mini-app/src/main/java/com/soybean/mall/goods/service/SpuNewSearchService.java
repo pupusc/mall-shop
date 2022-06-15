@@ -88,6 +88,9 @@ public class SpuNewSearchService {
      * @return
      */
     private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList){
+        if (CollectionUtils.isEmpty(esSpuNewRespList)) {
+            return new ArrayList<>();
+        }
         //获取商品对应的书单信息
         List<String> spuIdList = esSpuNewRespList.stream().map(EsSpuNewResp::getSpuId).collect(Collectors.toList());
         Map<String, SpuRecomBookListDTO> spuId2SpuRecomBookListDTOMap = spuNewBookListService.getSpuId2EsBookListModelResp(spuIdList);

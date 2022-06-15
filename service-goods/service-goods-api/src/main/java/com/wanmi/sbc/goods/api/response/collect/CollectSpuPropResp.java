@@ -2,35 +2,39 @@ package com.wanmi.sbc.goods.api.response.collect;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.math.BigDecimal;
 
 /**
- * Description: 采集店铺分类
+ * Description:
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/6/14 2:27 上午
+ * Date       : 2022/6/14 6:25 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class CollectClassifyRelSpuResp {
+public class CollectSpuPropResp {
+
 
     /**
-     * 店铺分类id
+     * 临时id
      */
-    private Integer classifyId;
+    private int tmpId;
 
-    /**
-     * 店铺分类关联对象id
-     */
-    private Integer classifySpuRelId;
-
-    /**
-     * 采集店铺分类的商品信息
-     */
     private String spuId;
 
     /**
-     * 更新时间
+     * isbn
      */
-    private Date updateTime;
+    private String isbn;
+
+    /**
+     * 定价
+     */
+    private BigDecimal fixPrice;
+
+    /**
+     * 评分
+     */
+    private Double score;
+
 }

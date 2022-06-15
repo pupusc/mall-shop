@@ -134,6 +134,20 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j-api</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                    <groupId>org.apache.logging.log4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <dependency>
             <groupId>com.wanmi.sbc</groupId>

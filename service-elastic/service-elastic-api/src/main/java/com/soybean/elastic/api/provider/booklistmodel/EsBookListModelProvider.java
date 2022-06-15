@@ -3,6 +3,7 @@ package com.soybean.elastic.api.provider.booklistmodel;
 
 import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
+import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -32,4 +33,11 @@ public interface EsBookListModelProvider {
      */
     @PostMapping("/elastic/${application.elastic.version}/booklistmodel/listEsBookListModel")
     BaseResponse<CommonPageResp<List<EsBookListModelResp>>> listEsBookListModel(@RequestBody EsBookListQueryProviderReq request);
+
+    /**
+     * 采集商品信息
+     * @return
+     */
+    @PostMapping("/elastic/${application.elastic.version}/booklistmodel/init")
+    BaseResponse init(@RequestBody CollectJobReq collectJobReq);
 }

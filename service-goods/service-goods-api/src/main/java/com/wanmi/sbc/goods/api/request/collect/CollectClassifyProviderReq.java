@@ -22,6 +22,8 @@ public class CollectClassifyProviderReq implements Serializable {
 
     private int pageSize = 10;
 
+    private int fromId = 0;
+
     /**
      * 开始时间
      */

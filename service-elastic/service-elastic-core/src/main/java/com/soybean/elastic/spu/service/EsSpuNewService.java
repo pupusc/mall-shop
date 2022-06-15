@@ -79,13 +79,15 @@ public class EsSpuNewService {
 
         boolQb.should(nestedQuery("anchorRecoms", matchQuery("anchorRecoms.recomName", req.getKeyword())
                 .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)), ScoreMode.None));
+//        boolQb.should(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
+//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)), ScoreMode.None));
 
         if (Objects.equals(req.getSearchSpuNewCategory(), SearchSpuNewCategoryEnum.SPU.getCode())) {
             //商品
-            boolQb.should(nestedQuery("classifys", matchQuery("classifys.classifyName", req.getKeyword())
+            boolQb.should(nestedQuery("classify", matchQuery("classify.classifyName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)), ScoreMode.None));
 
-            boolQb.should(nestedQuery("classifys", matchQuery("classifys.fClassifyName", req.getKeyword())
+            boolQb.should(nestedQuery("classify", matchQuery("classify.fClassifyName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)), ScoreMode.None));
         } else {
             //图书商品
@@ -174,7 +176,7 @@ public class EsSpuNewService {
      */
     public CommonPageResp<List<EsSpuNewResp>> listKeyWorldEsSpu(EsKeyWordSpuNewQueryProviderReq req) {
         NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder();
-        builder.withIndices(AbstractCollectFactory.INDEX_ES_BOOK_LIST_MODEL);
+        builder.withIndices(AbstractCollectFactory.INDEX_ES_SPU_NEW);
 
         //分页 从0开始
         req.setPageNum(Math.max((req.getPageNum() - 1), 0));

@@ -1,17 +1,24 @@
 package com.soybean.elastic.collect.factory.realizer;
 
+import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.repository.EsBookListModelRepository;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
 import com.soybean.elastic.collect.service.booklistmodel.service.BookListModelPublishSpuCollect;
+import com.soybean.elastic.redis.RedisConstant;
+import com.soybean.elastic.redis.RedisService;
 import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +32,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class CollectBookListModelFactory extends AbstractCollectFactory {
 
 
@@ -34,6 +42,9 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
 
     @Autowired
     private EsBookListModelRepository esBookListModelRepository;
+
+    @Autowired
+    private RedisService redisService;
 
 
     @Override
@@ -50,12 +61,30 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
     }
 
 
-    @PostConstruct
-    public void init() {
-        LocalDateTime now = LocalDateTime.now();
-        int minSize = 50;
-        LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-        super.load(bookListModelCollectMap, lastCollectTime, now, minSize);
+//    @PostConstruct
+    public void init(CollectJobReq collectJobReq) {
+        log.info("CollectBookListModelFactory collect begin param {}", JSON.toJSONString(collectJobReq));
+        long beginTime = System.currentTimeMillis();
+        int minSize = 50; //最小采集数量
+        LocalDateTime startTime = null;
+        LocalDateTime endTime = null;
+        if (collectJobReq.getStartTime() != null && collectJobReq.getEndTime() != null) {
+            startTime = collectJobReq.getStartTime();
+            endTime = collectJobReq.getEndTime();
+            super.load(bookListModelCollectMap, startTime, endTime, minSize, false);
+        } else {
+            String lastCollectTimeStr = redisService.getString(RedisConstant.ELASTIC_COLLECT_BOOK_LIST_LAST_TIME_KEY);
+
+            if (!StringUtils.isBlank(lastCollectTimeStr)) {
+                DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                startTime = LocalDateTime.parse(lastCollectTimeStr, df);
+            } else {
+                startTime = LocalDateTime.of(2022,01,01,00,00,00,00);
+            }
+            endTime = LocalDateTime.now();
+            super.load(bookListModelCollectMap, startTime, endTime, minSize);
+        }
+        log.info("CollectBookListModelFactory collect complete cost: {}s", (System.currentTimeMillis() - beginTime));
     }
 
 
@@ -67,8 +96,6 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
         List<EsBookListModel> result = new ArrayList<>();
         for (S s : modelList) {
             EsBookListModel esBookListModel = (EsBookListModel) s;
-//            esBookListModel.setBookListId(12313123L);
-//            esBookListModel.setBookListName("红楼梦；四大名著");
             if (!Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.RANKING_LIST.getCode())
                     .contains(esBookListModel.getBookListBusinessType())) {
                 continue;
@@ -78,6 +105,12 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
         }
         esBookListModelRepository.saveAll(result);
         result.clear(); //帮助gc回收
+    }
+
+    @Override
+    protected void finalized(LocalDateTime beginTime, LocalDateTime endTime) {
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        redisService.setString(RedisConstant.ELASTIC_COLLECT_BOOK_LIST_LAST_TIME_KEY, df.format(endTime));
     }
 
 }

@@ -25,7 +25,7 @@ public class BookCollect extends AbstractSpuCollect {
     @Override
     public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         Set<String> result = new HashSet<>();
-        result.add(UUID.randomUUID().toString());
+//        result.add(UUID.randomUUID().toString());
         return result;
     }
 
@@ -33,12 +33,12 @@ public class BookCollect extends AbstractSpuCollect {
 
     @Override
     public <T> List<T> collect(List<T> list) {
-        for (T t : list) {
-            EsSpuNew esSpuNew = (EsSpuNew) t;
-            SubBookNew subBookNew = new SubBookNew();
-            subBookNew.setBookName("图书信息");
-            esSpuNew.setBook(subBookNew);
-        }
+//        for (T t : list) {
+//            EsSpuNew esSpuNew = (EsSpuNew) t;
+//            SubBookNew subBookNew = new SubBookNew();
+//            subBookNew.setBookName("图书信息");
+//            esSpuNew.setBook(subBookNew);
+//        }
         return list;
     }
 }

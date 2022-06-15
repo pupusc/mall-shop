@@ -35,8 +35,8 @@ public interface BookListModelRepository extends JpaRepository<BookListModelDTO,
      * 采集数据
      * @return
      */
-    @Query(value = "select * from t_book_list_model where update_time >=?1 and update_time < ?2 and business_type = ?3 order by update_time asc limit ?4", nativeQuery = true)
-    List<BookListModelDTO> collectBookListId(LocalDateTime beginTime, LocalDateTime endTime, List<Integer> businessTypes, Integer pageSize);
+    @Query(value = "select * from t_book_list_model where update_time >=?1 and update_time < ?2 and business_type = ?3 and id > ?4 order by id asc limit ?5", nativeQuery = true)
+    List<BookListModelDTO> collectBookListId(LocalDateTime beginTime, LocalDateTime endTime, List<Integer> businessTypes, Integer fromId, Integer pageSize);
 
 
     /**
