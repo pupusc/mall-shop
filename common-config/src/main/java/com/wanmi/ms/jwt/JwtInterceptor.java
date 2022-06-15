@@ -117,6 +117,8 @@ public class JwtInterceptor implements WebRequestInterceptor {
                     || requestURI.startsWith("/invoice/callback")
                     || requestURI.startsWith("/wx/image")
                     || requestURI.startsWith("/search/keyword")
+                    || requestURI.startsWith("/popular_search_terms")
+
             ) {
                 if (StringUtils.isBlank(token)) {
                     log.info("JwtInterceptor preHandle out ['{} 当前token为空，直接非登陆情况下访问']", requestURI);

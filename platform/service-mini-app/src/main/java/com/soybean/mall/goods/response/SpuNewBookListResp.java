@@ -41,6 +41,11 @@ public class SpuNewBookListResp {
      */
     private BigDecimal salesPrice;
 
+    /**
+     * 市场价
+     */
+    private BigDecimal marketPrice;
+
 
     /**
      * 主播推荐
