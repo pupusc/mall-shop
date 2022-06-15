@@ -1,5 +1,6 @@
 package com.soybean.elastic.collect.factory;
 
+import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.collect.service.AbstractCollect;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
@@ -44,7 +45,7 @@ public abstract class AbstractCollectFactory {
     /**
      * 对外提供方法
      */
-    public abstract void init();
+    public abstract void init(CollectJobReq collectJobReq);
 
     /**
      * 采集完数据 后续处理
@@ -53,6 +54,13 @@ public abstract class AbstractCollectFactory {
      * @param <S>
      */
     protected abstract <S> void after(List<S> modelList, LocalDateTime now);
+
+
+    /**
+     * 全部执行完毕后调用
+     * @param
+     */
+    protected abstract void finalized(LocalDateTime beginTime, LocalDateTime endTime);
 
     /**
      * 限量采集数据
@@ -99,7 +107,18 @@ public abstract class AbstractCollectFactory {
      * @param now 当前时间
      * @param minSize 最小处理数量[只要超过该值就会调用 after 方法]
      */
-    protected  void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize) {
+    protected  void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize){
+        this.load(collectMap, lastCollectTime, now, minSize, true);
+    }
+
+    /**
+     *
+     * @param collectMap  实现类列表
+     * @param lastCollectTime 上一次存储时间
+     * @param now 当前时间
+     * @param minSize 最小处理数量[只要超过该值就会调用 after 方法]
+     */
+    protected  void load(Map<String, ? extends AbstractCollect> collectMap, LocalDateTime lastCollectTime, LocalDateTime now, Integer minSize, boolean hasRunFinalize) {
 
         Set<Object> spuIdResultSet = new HashSet<>();
         for (String key : collectMap.keySet()) {
@@ -115,6 +134,10 @@ public abstract class AbstractCollectFactory {
 
         if (!CollectionUtils.isEmpty(spuIdResultSet)) {
             this.after(bulkCollect(spuIdResultSet, collectMap), now);
+        }
+
+        if (hasRunFinalize) {
+            this.finalized(lastCollectTime, now);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.soybean.elastic.collect.factory.realizer;
 
+import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
@@ -7,6 +9,7 @@ import com.soybean.elastic.redis.RedisConstant;
 import com.soybean.elastic.redis.RedisService;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.repository.EsSpuNewRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,7 @@ import java.util.Map;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class CollectSpuFactory extends AbstractCollectFactory {
 
 
@@ -52,22 +56,37 @@ public class CollectSpuFactory extends AbstractCollectFactory {
         return SpuCollect.class;
     }
 
-    @PostConstruct
-    public void init() {
+//    @PostConstruct
+
+    /**
+     * 刷新数据
+     * @param collectJobReq
+     */
+    @Override
+    public void init(CollectJobReq collectJobReq) {
+        log.info("CollectSpuFactory collect begin param {}", JSON.toJSONString(collectJobReq));
+        long beginTime = System.currentTimeMillis();
         int minSize = 50; //最小采集数量
-        String lastCollectTimeStr = redisService.getString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY);
-        LocalDateTime lastCollectTime = null;
-        if (!StringUtils.isBlank(lastCollectTimeStr)) {
-            DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            lastCollectTime = LocalDateTime.parse(lastCollectTimeStr, df);
+        LocalDateTime startTime = null;
+        LocalDateTime endTime = null;
+        if (collectJobReq.getStartTime() != null && collectJobReq.getEndTime() != null) {
+            startTime = collectJobReq.getStartTime();
+            endTime = collectJobReq.getEndTime();
+            super.load(spuCollectMap, startTime, endTime, minSize, false);
         } else {
-            lastCollectTime = LocalDateTime.of(2022,01,01,00,00,00,00);
+
+            String lastCollectTimeStr = redisService.getString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY);
+
+            if (!StringUtils.isBlank(lastCollectTimeStr)) {
+                DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                startTime = LocalDateTime.parse(lastCollectTimeStr, df);
+            } else {
+                startTime = LocalDateTime.of(2022,01,01,00,00,00,00);
+            }
+            endTime = LocalDateTime.now();
+            super.load(spuCollectMap, startTime, endTime, minSize);
         }
-        LocalDateTime now = LocalDateTime.now();
-        int day = now.getDayOfYear() - lastCollectTime.getDayOfYear();
-//        for (int i = 0; i < day; i++) {
-            super.load(spuCollectMap, lastCollectTime, now, minSize);
-//        }
+        log.info("CollectSpuFactory collect complete cost: {}s", (System.currentTimeMillis() - beginTime));
     }
 
 
@@ -85,7 +104,11 @@ public class CollectSpuFactory extends AbstractCollectFactory {
         }
         esSpuNewRepository.saveAll(result);
         result.clear(); //帮助gc回收
+    }
+
+    @Override
+    protected void finalized(LocalDateTime beginTime, LocalDateTime endTime) {
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        redisService.setString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY, df.format(now));
+        redisService.setString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY, df.format(endTime));
     }
 }
