@@ -43,7 +43,7 @@ public class EsBookListModelController implements EsBookListModelProvider {
 
     @Override
     public BaseResponse init(CollectJobReq collectJobReq) {
-        collectBookListModelFactory.init();
+        collectBookListModelFactory.init(collectJobReq);
         return BaseResponse.SUCCESSFUL();
     }
 }
