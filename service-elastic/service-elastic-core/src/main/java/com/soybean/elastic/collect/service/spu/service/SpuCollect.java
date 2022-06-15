@@ -148,7 +148,8 @@ public class SpuCollect extends AbstractSpuCollect {
                 }
                 esSpuNew.setAnchorRecoms(subAnchorRecomNewList);
             }
-
+//            esSpuNew.setCommentNum(0L);
+//            esSpuNew.setFavorCommentNum(0L);
 //            esSpuNew.setFavorCommentRate(0.0D);
             esSpuNew.setSalesNum(collectSpuVO.getGoodsSalesNum());
             esSpuNew.setSalesPrice(collectSpuVO.getMiniSalesPrice());
