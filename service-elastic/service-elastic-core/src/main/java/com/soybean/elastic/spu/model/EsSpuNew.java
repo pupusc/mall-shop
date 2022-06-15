@@ -7,6 +7,7 @@ import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
 import com.soybean.elastic.spu.model.sub.SubClassifyNew;
+import com.soybean.elastic.spu.model.sub.SubCommentNew;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
@@ -169,6 +170,12 @@ public class EsSpuNew {
      */
     @Field(type = FieldType.Nested)
     private SubClassifyNew classify;
+
+    /**
+     * 评论信息
+     */
+    @Field(type = FieldType.Nested)
+    private SubCommentNew comment;
 
 
 }
