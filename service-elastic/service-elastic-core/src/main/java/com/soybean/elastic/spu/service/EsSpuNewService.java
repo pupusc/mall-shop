@@ -144,28 +144,28 @@ public class EsSpuNewService {
         if (sortQueryProviderReq.getSpuSortType() == null) {
             return fieldSortBuilders;
         }
-//        FieldSortBuilder order = null;
-//        if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.DEFAULT.getCode())) {
-//            order = new FieldSortBuilder("_score").order(SortOrder.DESC);
-//        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.SCORE.getCode())) {
-//            order = new FieldSortBuilder("book.score").order(SortOrder.DESC);
-//        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.NEW_ADDED.getCode())) {
-//            order = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
-//        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.FAVOR_COMMENT.getCode())) {
-//            order = new FieldSortBuilder("favorCommentRate").order(SortOrder.DESC);
-//        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.HIGH_PRICE.getCode())) {
-//            order = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
-//        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.LOWER_PRICE.getCode())) {
-//            order = new FieldSortBuilder("salesPrice").order(SortOrder.ASC);
-//        }
-//        if (order != null) {
-//            fieldSortBuilders.add(order);
-//        }
-//
-//        FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
-//        FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
-//        FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
-//        fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
+        FieldSortBuilder order = null;
+        if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.DEFAULT.getCode())) {
+            order = new FieldSortBuilder("_score").order(SortOrder.DESC);
+        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.SCORE.getCode())) {
+            order = new FieldSortBuilder("book.score").order(SortOrder.DESC);
+        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.NEW_ADDED.getCode())) {
+            order = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
+        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.FAVOR_COMMENT.getCode())) {
+            order = new FieldSortBuilder("favorCommentRate").order(SortOrder.DESC);
+        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.HIGH_PRICE.getCode())) {
+            order = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
+        } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.LOWER_PRICE.getCode())) {
+            order = new FieldSortBuilder("salesPrice").order(SortOrder.ASC);
+        }
+        if (order != null) {
+            fieldSortBuilders.add(order);
+        }
+
+        FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
+        FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
+        FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
+        fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
         return fieldSortBuilders;
     }
 

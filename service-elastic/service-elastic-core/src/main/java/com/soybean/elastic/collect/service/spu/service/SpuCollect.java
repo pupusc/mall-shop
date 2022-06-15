@@ -5,12 +5,15 @@ import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubBookNew;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.enums.AnchorPushEnum;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuPropProvider;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuPropProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuPropResp;
+import com.wanmi.sbc.goods.bean.enums.AddedFlag;
+import com.wanmi.sbc.goods.bean.enums.AuditStatus;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import org.apache.commons.lang3.StringUtils;
@@ -78,8 +81,8 @@ public class SpuCollect extends AbstractSpuCollect {
     public Set<String> collectId(LocalDateTime lastCollectTime, LocalDateTime now) {
         List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now, 0);
         Set<String> spuIdSet = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet());
-        if (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
-            Integer tmpId = collectSpuVOList.get(0).getTmpId();
+        while (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
+            Integer tmpId = collectSpuVOList.get(collectSpuVOList.size() -1).getTmpId();
             collectSpuVOList = this.getSpuByTime(lastCollectTime, now, tmpId);
             spuIdSet.addAll(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toSet()));
         }
@@ -87,8 +90,8 @@ public class SpuCollect extends AbstractSpuCollect {
         //获取商品属性信息
         List<CollectSpuPropResp> collectSpuPropRespList = this.getSpuPropByTime(lastCollectTime, now, 0);
         spuIdSet.addAll(collectSpuPropRespList.stream().map(CollectSpuPropResp::getSpuId).collect(Collectors.toSet()));
-        if (collectSpuPropRespList.size() >= MAX_PAGE_SIZE) {
-            Integer tmpId = collectSpuPropRespList.get(0).getTmpId();
+        while (collectSpuPropRespList.size() >= MAX_PAGE_SIZE) {
+            Integer tmpId = collectSpuPropRespList.get(collectSpuPropRespList.size() -1).getTmpId();
             collectSpuPropRespList = this.getSpuPropByTime(lastCollectTime, now, tmpId);
             spuIdSet.addAll(collectSpuPropRespList.stream().map(CollectSpuPropResp::getSpuId).collect(Collectors.toSet()));
         }
@@ -119,6 +122,10 @@ public class SpuCollect extends AbstractSpuCollect {
             EsSpuNew esSpuNew = (EsSpuNew) t;
             CollectSpuVO collectSpuVO = spuId2CollectGoodsVoMap.get(esSpuNew.getSpuId());
             if (collectSpuVO == null) {
+                //商品直接作废
+                esSpuNew.setDelFlag(DeleteFlag.YES.toValue());
+                esSpuNew.setAddedFlag(AddedFlag.NO.toValue());
+                esSpuNew.setAuditStatus(Integer.parseInt(AuditStatus.NOT_PASS.toValue()));
                 continue;
             }
 

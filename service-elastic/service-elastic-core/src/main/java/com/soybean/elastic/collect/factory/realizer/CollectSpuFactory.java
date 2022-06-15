@@ -1,17 +1,20 @@
 package com.soybean.elastic.collect.factory.realizer;
 
-import com.alibaba.fastjson.JSON;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.soybean.elastic.collect.service.spu.service.SpuCollect;
+import com.soybean.elastic.redis.RedisConstant;
+import com.soybean.elastic.redis.RedisService;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.repository.EsSpuNewRepository;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,8 @@ public class CollectSpuFactory extends AbstractCollectFactory {
     @Autowired
     private EsSpuNewRepository esSpuNewRepository;
 
+    @Autowired
+    private RedisService redisService;
 
     @Override
     protected EsSpuNew packModelId(Object k) {
@@ -49,10 +54,20 @@ public class CollectSpuFactory extends AbstractCollectFactory {
 
     @PostConstruct
     public void init() {
+        int minSize = 50; //最小采集数量
+        String lastCollectTimeStr = redisService.getString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY);
+        LocalDateTime lastCollectTime = null;
+        if (!StringUtils.isBlank(lastCollectTimeStr)) {
+            DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            lastCollectTime = LocalDateTime.parse(lastCollectTimeStr, df);
+        } else {
+            lastCollectTime = LocalDateTime.of(2022,01,01,00,00,00,00);
+        }
         LocalDateTime now = LocalDateTime.now();
-        int minSize = 50;
-        LocalDateTime lastCollectTime = LocalDateTime.of(2021,12,12,12,12,12,12);
-        super.load(spuCollectMap, lastCollectTime, now, minSize);
+        int day = now.getDayOfYear() - lastCollectTime.getDayOfYear();
+//        for (int i = 0; i < day; i++) {
+            super.load(spuCollectMap, lastCollectTime, now, minSize);
+//        }
     }
 
 
@@ -70,5 +85,7 @@ public class CollectSpuFactory extends AbstractCollectFactory {
         }
         esSpuNewRepository.saveAll(result);
         result.clear(); //帮助gc回收
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        redisService.setString(RedisConstant.ELASTIC_COLLECT_SPU_LAST_TIME_KEY, df.format(now));
     }
 }

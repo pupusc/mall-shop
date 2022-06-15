@@ -74,6 +74,9 @@ public class CollectSpuPropService {
             if (Objects.equals(5, goodsPropDetailRelParam.getPropId().intValue())) {
                 collectSpuPropResp.setIsbn(StringUtils.isNotBlank(goodsPropDetailRelParam.getPropValue()) ? goodsPropDetailRelParam.getPropValue() : "");
             }
+            if (propIdList.contains(goodsPropDetailRelParam.getPropId().intValue())) {
+                collectSpuPropResp.setSpuId(goodsPropDetailRelParam.getGoodsId());
+            }
             spuId2CollectSpuPropMap.put(goodsPropDetailRelParam.getGoodsId(), collectSpuPropResp);
         }
 

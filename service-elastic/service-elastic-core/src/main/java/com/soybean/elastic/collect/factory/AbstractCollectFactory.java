@@ -105,8 +105,8 @@ public abstract class AbstractCollectFactory {
         for (String key : collectMap.keySet()) {
             AbstractCollect spuCollect = collectMap.get(key);
             Set<Object> spuIdTmpSet = spuCollect.incrementalLoadSpuId(lastCollectTime, now);
+            spuIdResultSet.addAll(spuIdTmpSet);
             if (spuIdTmpSet.size() < minSize) {
-                spuIdResultSet.addAll(spuIdTmpSet);
                 continue;
             }
             this.after(bulkCollect(spuIdResultSet, collectMap), now);
