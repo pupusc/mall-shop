@@ -72,7 +72,7 @@ public class EsSpuNew {
     /**
      * 主播推荐列表
      */
-    @Field(type = FieldType.Nested)
+    @Field(type = FieldType.Object)
     private List<SubAnchorRecomNew> anchorRecoms;
 
 //    /**
@@ -163,7 +163,7 @@ public class EsSpuNew {
     /**
      * 店铺分类
      */
-    @Field(type = FieldType.Nested)
+    @Field(type = FieldType.Object)
     private SubClassifyNew classify;
 
     /**
