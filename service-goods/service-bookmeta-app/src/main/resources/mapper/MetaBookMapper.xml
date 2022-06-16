@@ -406,5 +406,13 @@
     </select>
 
 
+    <select id="collectMetaBookByCondition" resultMap="MetaBookMap">
+        select * from meta_book book where del_flag = 0 and isbn in
+        <foreach collection="isbns" item="isbn" open="(" close=")" separator=",">
+            #{isbn}
+        </foreach>
+    </select>
+
+
 </mapper>
 

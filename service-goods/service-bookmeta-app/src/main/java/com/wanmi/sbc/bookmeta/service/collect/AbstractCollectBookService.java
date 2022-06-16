@@ -11,6 +11,7 @@ import com.wanmi.sbc.bookmeta.mapper.MetaBookGroupMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookLabelMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
+import com.wanmi.sbc.bookmeta.mapper.MetaDataDictMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureAwardMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaFigureMapper;
 import com.wanmi.sbc.bookmeta.mapper.MetaLabelMapper;
@@ -71,6 +72,9 @@ public abstract class AbstractCollectBookService {
 
     @Autowired
     protected MetaBookMapper metaBookMapper;
+
+    @Autowired
+    protected MetaDataDictMapper metaDataDictMapper;
 
     /**
      * 封装书单信息

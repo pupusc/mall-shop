@@ -133,5 +133,13 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
     List<MetaBook> collectMetaBookByBookProducerIds(@Param("bookProducerIds") List<Integer> bookProducerIds);
 
 
+    /**
+     * 获取书单信息
+     * @param isbns
+     * @return
+     */
+    List<MetaBook> collectMetaBookByCondition(@Param("isbns") List<String> isbns);
+
+
 }
 

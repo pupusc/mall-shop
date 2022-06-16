@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Description:
@@ -37,4 +38,5 @@ public class CollectMetaReq {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime endTime;
 
+    private List<String> isbns;
 }
