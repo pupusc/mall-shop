@@ -34,9 +34,11 @@ public class CollectMetaBookContentService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaBookContents.get(metaBookContents.size() -1).getId());
+        collectMetaResp.setHasMore(metaBookContents.size() >= collectMetaReq.getPageSize());
         List<Integer> bookIds =
                 metaBookContents.stream().filter(ex -> Objects.equals(ex.getType(), BookContentTypeEnum.INTRODUCE.getCode())).map(MetaBookContent::getBookId).collect(Collectors.toList());
         //获取商品信息
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         return collectMetaResp;
     }
 }

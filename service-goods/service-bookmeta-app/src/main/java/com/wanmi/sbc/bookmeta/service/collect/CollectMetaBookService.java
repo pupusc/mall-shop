@@ -1,11 +1,13 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaBookResp;
 import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
 import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,6 +32,12 @@ public class CollectMetaBookService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaBooks.get(metaBooks.size() -1).getId());
+        collectMetaResp.setHasMore(metaBooks.size() > collectMetaReq.getPageSize());
+        List<CollectMetaBookResp> result = new ArrayList<>();
+        for (MetaBook metaBook : metaBooks) {
+            result.add(this.changeMetaBook2Resp(metaBook));
+        }
+        collectMetaResp.setMetaBookResps(result);
         return collectMetaResp;
     }
 }

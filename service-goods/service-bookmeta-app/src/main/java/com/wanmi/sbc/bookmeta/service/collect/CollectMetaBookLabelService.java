@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,6 +31,9 @@ public class CollectMetaBookLabelService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaBookLabels.get(metaBookLabels.size() -1).getId());
+        collectMetaResp.setHasMore(metaBookLabels.size() >= collectMetaReq.getPageSize());
+        List<Integer> bookIds = metaBookLabels.stream().map(MetaBookLabel::getBookId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         //获取图书信息
         return collectMetaResp;
     }

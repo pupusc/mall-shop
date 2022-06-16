@@ -40,6 +40,7 @@ public class CollectMetaAwardService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaAwards.get(metaAwards.size() -1).getId()); //设置最后一个采集id
+        collectMetaResp.setHasMore(metaAwards.size() >= collectMetaReq.getPageSize());
         List<Integer> awardIds = metaAwards.stream().map(MetaAward::getId).collect(Collectors.toList());
         List<Integer> bookIds = this.packBookIdByFigureAward(awardIds);
         bookIds.addAll(this.packBookIdByRecomAward(awardIds));
@@ -47,7 +48,7 @@ public class CollectMetaAwardService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         //获取商品信息
-
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         return collectMetaResp;
     }
 

@@ -103,5 +103,35 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
      */
     List<MetaBook> collectMetaBookByTime(
             @Param("beginTime")LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+    /**
+     * 采集书单信息
+     * @param bookIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByIds(@Param("bookIds") List<Integer> bookIds);
+
+    /**
+     * 采集书单信息
+     * @param publisherIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByPublisherIds(@Param("publisherIds") List<Integer> publisherIds);
+
+    /**
+     * 采集书单信息
+     * @param bookGroupIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByBookGroupIds(@Param("bookGroupIds") List<Integer> bookGroupIds);
+
+    /**
+     * 采集书单信息
+     * @param bookProducerIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByBookProducerIds(@Param("bookProducerIds") List<Integer> bookProducerIds);
+
+
 }
 

@@ -36,7 +36,10 @@ public class CollectMetaFigureService extends AbstractCollectBookService {
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaFigures.get(metaFigures.size() -1).getId());
+        collectMetaResp.setHasMore(metaFigures.size() >= collectMetaReq.getPageSize());
         List<MetaBookFigure> metaBookFigures = metaBookFigureMapper.collectMetaBookFigureByIds(figureIds);
+        List<Integer> bookIds = metaBookFigures.stream().map(MetaBookFigure::getBookId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         //获取图书信息
         return collectMetaResp;
     }

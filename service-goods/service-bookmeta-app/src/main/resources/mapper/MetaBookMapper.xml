@@ -373,5 +373,38 @@
         select * from meta_book book where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
                                        and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
     </select>
+    
+    <select id="collectMetaBookByIds" resultMap="MetaBookMap">
+        select * from meta_book book where id in
+        <foreach collection="bookIds" item="bookId" open="(" close=")" separator=",">
+            #{bookId}
+        </foreach>
+    </select>
+
+
+    <select id="collectMetaBookByPublisherIds" resultMap="MetaBookMap">
+        select * from meta_book book where publisher_id in
+        <foreach collection="publisherIds" item="publisherId" open="(" close=")" separator=",">
+            #{publisherId}
+        </foreach>
+    </select>
+
+
+    <select id="collectMetaBookByBookGroupIds" resultMap="MetaBookMap">
+        select * from meta_book book where book_group_id in
+        <foreach collection="bookGroupIds" item="bookGroupId" open="(" close=")" separator=",">
+            #{bookGroupId}
+        </foreach>
+    </select>
+
+
+    <select id="collectMetaBookByBookProducerIds" resultMap="MetaBookMap">
+        select * from meta_book book where producer_id in
+        <foreach collection="bookProducerIds" item="bookProducerId" open="(" close=")" separator=",">
+            #{bookProducerId}
+        </foreach>
+    </select>
+
+
 </mapper>
 

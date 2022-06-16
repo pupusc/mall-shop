@@ -96,11 +96,11 @@ public interface MetaPublisherMapper extends Mapper<MetaPublisher> {
     List<MetaPublisher> collectMetaPublisherByTime(
             @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 
-    /**
-     * 采集 根据id获取 出版社信息
-     * @param ids
-     * @return
-     */
-    List<MetaPublisher> collectMetaPublisherByIds(@Param("ids") List<Integer> ids);
+//    /**
+//     * 采集 根据id获取 出版社信息
+//     * @param ids
+//     * @return
+//     */
+//    List<MetaPublisher> collectMetaPublisherByIds(@Param("ids") List<Integer> ids);
 }
 

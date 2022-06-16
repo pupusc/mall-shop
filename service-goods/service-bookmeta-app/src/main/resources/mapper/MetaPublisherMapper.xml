@@ -161,12 +161,12 @@
         and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
     </select>
 
-    <!-- 获取出版社的信息 -->
-    <select id="collectMetaPublisherByIds" resultMap="MetaPublisherMap">
-        select * from meta_publisher where
-        <foreach collection="ids" item="model" open="(" close=")" separator=",">
-            #{model}
-        </foreach>
-    </select>
+<!--    &lt;!&ndash; 获取出版社的信息 &ndash;&gt;-->
+<!--    <select id="collectMetaPublisherByIds" resultMap="MetaPublisherMap">-->
+<!--        select * from meta_publisher where-->
+<!--        <foreach collection="ids" item="model" open="(" close=")" separator=",">-->
+<!--            #{model}-->
+<!--        </foreach>-->
+<!--    </select>-->
 </mapper>
 

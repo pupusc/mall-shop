@@ -33,10 +33,13 @@ public class CollectMetaBookClumpService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaBookClumps.get(metaBookClumps.size() -1).getId());
+        collectMetaResp.setHasMore(metaBookClumps.size() >= collectMetaReq.getPageSize());
+
         //获取丛书出版社
         List<Integer> publisherIds = metaBookClumps.stream().map(MetaBookClump::getPublisherId).collect(Collectors.toList());
-        List<MetaPublisher> metaPublishers = metaPublisherMapper.collectMetaPublisherByIds(publisherIds);
-
+//        List<MetaPublisher> metaPublishers = metaPublisherMapper.collectMetaPublisherByIds(publisherIds);
+//        List<Integer> publisherIds = metaPublishers.stream().map(MetaPublisher::getId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByPublisherIds(publisherIds));
         //根据出版社获取 商品信息
         return collectMetaResp;
     }

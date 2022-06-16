@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Description: 采集作者信息
@@ -30,6 +31,9 @@ public class CollectMetaFigureRelService extends AbstractCollectBookService {
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaBookFigures.get(metaBookFigures.size() -1).getId());
+        collectMetaResp.setHasMore(metaBookFigures.size() > collectMetaReq.getPageSize());
+        List<Integer> bookIds = metaBookFigures.stream().map(MetaBookFigure::getBookId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         //获取图书信息
         return collectMetaResp;
     }

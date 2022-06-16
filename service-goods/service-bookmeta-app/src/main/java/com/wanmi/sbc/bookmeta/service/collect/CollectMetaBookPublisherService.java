@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Description: 采集出版社
@@ -29,6 +30,9 @@ public class CollectMetaBookPublisherService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaPublishers.get(metaPublishers.size() -1).getId());
+        collectMetaResp.setHasMore(metaPublishers.size() > collectMetaReq.getPageSize());
+        List<Integer> publisherIds = metaPublishers.stream().map(MetaPublisher::getId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByPublisherIds(publisherIds));
         //根据出版社获取 商品信息
         return collectMetaResp;
     }

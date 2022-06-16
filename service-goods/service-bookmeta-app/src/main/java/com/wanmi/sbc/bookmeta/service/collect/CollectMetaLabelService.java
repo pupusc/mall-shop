@@ -36,6 +36,7 @@ public class CollectMetaLabelService extends AbstractCollectBookService{
             return collectMetaResp;
         }
         collectMetaResp.setLastBizId(metaLabels.get(metaLabels.size() -1).getId());
+        collectMetaResp.setHasMore(metaLabels.size() >= collectMetaReq.getPageSize());
         List<Integer> thirdLabels = new ArrayList<>();
         List<Integer> secondLabels = new ArrayList<>();
         for (MetaLabel metaLabelParam : metaLabels) {
@@ -61,7 +62,8 @@ public class CollectMetaLabelService extends AbstractCollectBookService{
         }
 
         List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.collectMetaBookLabel(thirdLabels);
-
+        List<Integer> bookIds = metaBookLabels.stream().map(MetaBookLabel::getBookId).collect(Collectors.toList());
+        collectMetaResp.setMetaBookResps(super.collectBookByIds(bookIds));
         return collectMetaResp;
     }
 }

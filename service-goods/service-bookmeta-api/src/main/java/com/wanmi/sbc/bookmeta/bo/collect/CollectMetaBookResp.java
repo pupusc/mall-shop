@@ -2,24 +2,17 @@ package com.wanmi.sbc.bookmeta.bo.collect;
 
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * Description:
+ * Description: 图书信息
  * Company    : 上海黄豆网络科技有限公司
  * Author     : duanlongshan@dushu365.com
- * Date       : 2022/6/17 1:08 上午
+ * Date       : 2022/6/17 1:52 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class CollectMetaResp {
+public class CollectMetaBookResp {
 
-    private int lastBizId = 0;
+    private Integer bookId;
 
-    /**
-     * 是否还有数据
-     */
-    private boolean hasMore = false;
-
-    private List<CollectMetaBookResp> metaBookResps;
+    private String isbn;
 }

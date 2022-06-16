@@ -96,5 +96,6 @@ public interface MetaAwardMapper extends Mapper<MetaAward> {
      */
     List<MetaAward> collectMetaAwardByTime(
             @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
 }
 
