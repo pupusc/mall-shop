@@ -45,6 +45,9 @@ public class GoodsEvaluate implements Serializable {
 	@Column(name = "evaluate_id")
 	private String evaluateId;
 
+	@Column(name = "incr_id")
+	private Long incrId;
+
 	/**
 	 * 店铺Id
 	 */

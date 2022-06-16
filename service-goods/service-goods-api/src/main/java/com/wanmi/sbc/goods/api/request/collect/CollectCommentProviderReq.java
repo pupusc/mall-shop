@@ -40,4 +40,9 @@ public class CollectCommentProviderReq implements Serializable {
      * 商品id列表
      */
     private List<String> spuIds;
+
+    /**
+     * 自增ID
+     */
+    private Long incrId;
 }

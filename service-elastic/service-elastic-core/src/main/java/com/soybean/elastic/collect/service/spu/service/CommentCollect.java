@@ -5,15 +5,12 @@ import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubCommentNew;
 import com.wanmi.sbc.goods.api.provider.collect.CollectCommentProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectCommentProviderReq;
-import com.wanmi.sbc.goods.api.response.collect.CollectClassifyRelSpuDetailResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuDetailResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuResp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,15 +37,16 @@ public class CommentCollect extends AbstractSpuCollect {
         req.setPageSize(MAX_PAGE_SIZE);
         req.setBeginTime(lastCollectTime);
         req.setEndTime(now);
+        req.setIncrId(0L);
         List<CollectCommentRelSpuResp> commentRelSpuResps = collectCommentProvider.collectCommentSpuIdByTime(req).getContext();
 
         for (CollectCommentRelSpuResp collectClassifyRelSpuResp : commentRelSpuResps) {
             spuIdSet.add(collectClassifyRelSpuResp.getSpuId());
         }
+
         while (commentRelSpuResps.size() >= MAX_PAGE_SIZE) {
-            Date updateTime = commentRelSpuResps.get(commentRelSpuResps.size() - 1).getUpdateTime();
-            req.setBeginTime(LocalDateTime.ofInstant(updateTime.toInstant(), ZoneId.systemDefault()));
-            req.setEndTime(now);
+            Long incrId = commentRelSpuResps.get(commentRelSpuResps.size() - 1).getIncrId();
+            req.setIncrId(incrId);
             commentRelSpuResps = collectCommentProvider.collectCommentSpuIdByTime(req).getContext();
             for (CollectCommentRelSpuResp collectClassifyRelSpuResp : commentRelSpuResps) {
                 spuIdSet.add(collectClassifyRelSpuResp.getSpuId());

@@ -80,8 +80,8 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
      * 采集数据
      * @return
      */
-    @Query(value = "select * from goods_evaluate where update_time >=?1 and update_time < ?2 order by update_time asc limit ?3", nativeQuery = true)
-    List<GoodsEvaluate> collectCommentSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer pageSize);
+    @Query(value = "select * from goods_evaluate where update_time >=?1 and update_time < ?2 and incr_id > ?3 order by incr_id asc limit ?4", nativeQuery = true)
+    List<GoodsEvaluate> collectCommentSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Long incrId, Integer pageSize);
 
 
     /**

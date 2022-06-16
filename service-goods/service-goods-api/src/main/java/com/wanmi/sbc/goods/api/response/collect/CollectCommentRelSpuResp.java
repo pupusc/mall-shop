@@ -28,4 +28,9 @@ public class CollectCommentRelSpuResp {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 自增ID
+     */
+    private Long incrId;
 }
