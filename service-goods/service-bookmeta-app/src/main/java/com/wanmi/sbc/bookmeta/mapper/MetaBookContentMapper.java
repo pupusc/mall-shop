@@ -4,6 +4,8 @@ import com.wanmi.sbc.bookmeta.entity.MetaBookContent;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +84,17 @@ public interface MetaBookContentMapper extends Mapper<MetaBookContent> {
      */
     int deleteById(Integer id);
 
+
+
+    /**
+     * 采集图书简介
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaBookContent> collectMetaBookContentByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

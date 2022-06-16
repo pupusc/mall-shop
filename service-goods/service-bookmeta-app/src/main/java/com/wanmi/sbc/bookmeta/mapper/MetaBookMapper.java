@@ -1,11 +1,13 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -95,5 +97,12 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
     int removeProducerId(Integer id);
 
     int removePublisherId(Integer id);
+
+    /**
+     * 采集book信息
+     * @return
+     */
+    List<MetaBook> collectMetaBookByTime(
+            @Param("beginTime")LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

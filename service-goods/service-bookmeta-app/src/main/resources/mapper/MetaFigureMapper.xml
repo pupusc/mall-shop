@@ -298,5 +298,12 @@
         update meta_figure set del_flag = 1 where id = #{id}
     </delete>
 
+
+    <!-- 采集作者 -->
+    <select id="collectMetaFigureByTime" resultMap="MetaFigureMap">
+        select * from meta_figure where type = 1 and update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                        and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
+
 </mapper>
 

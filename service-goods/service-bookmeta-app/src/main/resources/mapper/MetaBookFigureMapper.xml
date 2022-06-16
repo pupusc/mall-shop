@@ -144,5 +144,25 @@
         update meta_book_figure set del_flag = 1 where id = #{id}
     </delete>
 
+
+
+
+    <!-- 采集图书作者信息 -->
+    <select id="collectMetaBookFigureByTime" resultMap="MetaBookFigureMap">
+        select * from meta_publisher where figure_type = 1 and update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                        and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
+
+    <!-- 采集图书作者信息 -->
+    <select id="collectMetaBookFigureByIds" resultMap="MetaBookFigureMap">
+        select * from meta_book_figure where
+        <foreach collection="ids" item="model" open="(" close=")" separator=",">
+            #{model}
+        </foreach>
+        <if test="delFlag != null">
+            and del_flag = #{delFlag}
+        </if>
+        and figure_type = 1
+    </select>
 </mapper>
 

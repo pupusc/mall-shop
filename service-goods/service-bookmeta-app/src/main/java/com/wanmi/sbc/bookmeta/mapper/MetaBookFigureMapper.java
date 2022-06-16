@@ -1,9 +1,12 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
+import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +85,24 @@ public interface MetaBookFigureMapper extends Mapper<MetaBookFigure> {
      */
     int deleteById(Integer id);
 
+
+    /**
+     * 采集 图书作者关联信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaBookFigure> collectMetaBookFigureByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+
+    /**
+     * 采集 根据id获取 作者信息信息
+     * @param ids
+     * @return
+     */
+    List<MetaBookFigure> collectMetaBookFigureByIds(@Param("ids") List<Integer> ids, @Param("delFlag") Integer delFlag);
 }
 

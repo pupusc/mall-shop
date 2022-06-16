@@ -367,5 +367,11 @@
     <update id="removePublisherId">
         update meta_book set publisher_id = null where publisher_id = #{id}
     </update>
+
+    <!--  搜索所有isbn商品  -->
+    <select id="collectMetaBookByTime" resultMap="MetaBookMap">
+        select * from meta_book book where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                       and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
 </mapper>
 
