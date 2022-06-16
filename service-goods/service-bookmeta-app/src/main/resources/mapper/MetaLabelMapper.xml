@@ -242,5 +242,17 @@
         update meta_label set del_flag = 1 where id = #{id}
     </delete>
 
+    <!--目录 标签信息-->
+    <select id="collectMetaLabelByTime" resultMap="MetaLabelMap">
+        select * from meta_label where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                      and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
+
+    <select id="collectMetaLabel" resultMap="MetaLabelMap">
+        select * from meta_label where parent_id in
+        <foreach collection="parentIds" item="pid" open="(" close=")" separator=",">
+            #{pid}
+        </foreach>
+    </select>
 </mapper>
 

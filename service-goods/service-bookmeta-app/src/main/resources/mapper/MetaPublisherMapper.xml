@@ -156,8 +156,8 @@
     </delete>
 
     <!-- 采集出版社 -->
-    <select id="collectMetaPublisherByTime" resultType="integer">
-        select id from meta_publisher where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+    <select id="collectMetaPublisherByTime" resultMap="MetaPublisherMap">
+        select * from meta_publisher where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
         and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
     </select>
 
@@ -167,10 +167,6 @@
         <foreach collection="ids" item="model" open="(" close=")" separator=",">
             #{model}
         </foreach>
-        <if test="delFlag != null">
-            and del_flag = #{delFlag}
-        </if>
-
     </select>
 </mapper>
 

@@ -22,6 +22,7 @@ public class CollectMetaReq {
 
     private int fromId = 0;
 
+
     /**
      * 开始时间
      */

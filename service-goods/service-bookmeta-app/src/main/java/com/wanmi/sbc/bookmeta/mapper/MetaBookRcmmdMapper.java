@@ -82,5 +82,12 @@ public interface MetaBookRcmmdMapper extends Mapper<MetaBookRcmmd> {
      */
     int deleteById(Integer id);
 
+    /**
+     * 根据业务类型获取 推荐信息
+     * @param bizIds
+     * @param bizTypes
+     * @return
+     */
+    List<MetaBookRcmmd> collectMetaBookRcmmd(@Param("bizIds") List<Integer> bizIds, @Param("bizTypes") List<Integer> bizTypes);
 }
 

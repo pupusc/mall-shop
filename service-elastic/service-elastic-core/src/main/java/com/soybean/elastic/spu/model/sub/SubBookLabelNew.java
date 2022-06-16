@@ -14,14 +14,14 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Data
 public class SubBookLabelNew {
 
-    /**
-     * 1级标签
-     */
-    @Field(type = FieldType.Integer)
-    private Integer fTagId;
-
-    @Field(type = FieldType.Keyword)
-    private String fTagName;
+//    /**
+//     * 1级标签
+//     */
+//    @Field(type = FieldType.Integer)
+//    private Integer fTagId;
+//
+//    @Field(type = FieldType.Keyword)
+//    private String fTagName;
 
     /**
      * 2级标签

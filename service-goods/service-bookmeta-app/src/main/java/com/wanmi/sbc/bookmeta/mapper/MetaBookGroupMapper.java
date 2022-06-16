@@ -92,7 +92,7 @@ public interface MetaBookGroupMapper extends Mapper<MetaBookGroup> {
      * @param pageSize
      * @return
      */
-    List<Integer> collectMetaBookGroupByTime(
+    List<MetaBookGroup> collectMetaBookGroupByTime(
             @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

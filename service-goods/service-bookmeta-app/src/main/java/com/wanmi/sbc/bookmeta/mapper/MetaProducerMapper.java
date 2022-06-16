@@ -93,7 +93,7 @@ public interface MetaProducerMapper extends Mapper<MetaProducer> {
      * @param pageSize
      * @return
      */
-    List<Integer> collectMetaProducerByTime(
+    List<MetaProducer> collectMetaProducerByTime(
             @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

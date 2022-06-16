@@ -146,8 +146,8 @@
 
 
     <!-- 采集出版社 -->
-    <select id="collectMetaProducerByTime" resultType="integer">
-        select id from meta_producer where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+    <select id="collectMetaProducerByTime" resultMap="MetaProducerMap">
+        select * from meta_producer where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
                                         and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
     </select>
 </mapper>

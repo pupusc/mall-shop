@@ -1,9 +1,12 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
+import com.wanmi.sbc.bookmeta.entity.MetaLabel;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +85,22 @@ public interface MetaBookLabelMapper extends Mapper<MetaBookLabel> {
      */
     int deleteById(Integer id);
 
+    /**
+     * 采集图书标签信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaBookLabel> collectMetaBookLabelByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+    /**
+     * 采集图书标签信息
+     * @param labelIds
+     * @return
+     */
+    List<MetaBookLabel> collectMetaBookLabel(@Param("labelIds") List<Integer> labelIds);
 }
 

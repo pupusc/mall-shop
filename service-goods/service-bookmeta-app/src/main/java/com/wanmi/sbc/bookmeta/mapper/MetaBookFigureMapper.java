@@ -99,10 +99,10 @@ public interface MetaBookFigureMapper extends Mapper<MetaBookFigure> {
 
 
     /**
-     * 采集 根据id获取 作者信息信息
-     * @param ids
+     * 采集 根据 根据人物信息 获取 图书人物信息信息
+     * @param figureIds
      * @return
      */
-    List<MetaBookFigure> collectMetaBookFigureByIds(@Param("ids") List<Integer> ids, @Param("delFlag") Integer delFlag);
+    List<MetaBookFigure> collectMetaBookFigureByIds(@Param("ids") List<Integer> figureIds);
 }
 

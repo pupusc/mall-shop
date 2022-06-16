@@ -93,7 +93,7 @@ public interface MetaPublisherMapper extends Mapper<MetaPublisher> {
      * @param pageSize
      * @return
      */
-    List<Integer> collectMetaPublisherByTime(
+    List<MetaPublisher> collectMetaPublisherByTime(
             @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 
     /**
@@ -101,6 +101,6 @@ public interface MetaPublisherMapper extends Mapper<MetaPublisher> {
      * @param ids
      * @return
      */
-    List<MetaPublisher> collectMetaPublisherByIds(@Param("ids") List<Integer> ids, @Param("delFlag") Integer delFlag);
+    List<MetaPublisher> collectMetaPublisherByIds(@Param("ids") List<Integer> ids);
 }
 
