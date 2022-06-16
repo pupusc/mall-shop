@@ -1,9 +1,10 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookGroup;
-import com.wanmi.sbc.bookmeta.entity.MetaProducer;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -21,8 +22,14 @@ public class CollectMetaBookGroupService extends AbstractCollectBookService{
      * 采集 书组名称
      * @param collectMetaReq
      */
-    public void collectMetaBookGroupByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaBookGroupByTime(CollectMetaReq collectMetaReq){
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaBookGroup> metaBookGroup = metaBookGroupMapper.collectMetaBookGroupByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
+        if (CollectionUtils.isEmpty(metaBookGroup)) {
+            return collectMetaResp;
+        }
+        collectMetaResp.setLastBizId(metaBookGroup.get(metaBookGroup.size() -1).getId());
         //根据出品方获取商品信息
+        return collectMetaResp;
     }
 }

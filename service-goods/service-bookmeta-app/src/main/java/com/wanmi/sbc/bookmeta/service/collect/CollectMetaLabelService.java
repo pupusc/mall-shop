@@ -1,10 +1,9 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
-import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import com.wanmi.sbc.bookmeta.entity.MetaLabel;
-import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -12,7 +11,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -29,13 +27,15 @@ public class CollectMetaLabelService extends AbstractCollectBookService{
      * 采集 标签信息
      * @param collectMetaReq
      */
-    public void collectMetaLabelByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaLabelByTime(CollectMetaReq collectMetaReq){
 
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaLabel> metaLabels =
                 metaLabelMapper.collectMetaLabelByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
         if (CollectionUtils.isEmpty(metaLabels)) {
-            return;
+            return collectMetaResp;
         }
+        collectMetaResp.setLastBizId(metaLabels.get(metaLabels.size() -1).getId());
         List<Integer> thirdLabels = new ArrayList<>();
         List<Integer> secondLabels = new ArrayList<>();
         for (MetaLabel metaLabelParam : metaLabels) {
@@ -57,10 +57,11 @@ public class CollectMetaLabelService extends AbstractCollectBookService{
         }
 
         if (CollectionUtils.isEmpty(thirdLabels)) {
-            return;
+            return collectMetaResp;
         }
 
         List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.collectMetaBookLabel(thirdLabels);
 
+        return collectMetaResp;
     }
 }

@@ -1,13 +1,12 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
-import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Description: 采集出版社
@@ -23,8 +22,14 @@ public class CollectMetaBookPublisherService extends AbstractCollectBookService{
      * 采集出版社
      * @param collectMetaReq
      */
-    public void collectMetaBookPublisherByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaBookPublisherByTime(CollectMetaReq collectMetaReq){
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaPublisher> metaPublishers = metaPublisherMapper.collectMetaPublisherByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
+        if (CollectionUtils.isEmpty(metaPublishers)) {
+            return collectMetaResp;
+        }
+        collectMetaResp.setLastBizId(metaPublishers.get(metaPublishers.size() -1).getId());
         //根据出版社获取 商品信息
+        return collectMetaResp;
     }
 }

@@ -1,4 +1,4 @@
-package com.wanmi.sbc.bookmeta.bo;
+package com.wanmi.sbc.bookmeta.bo.collect;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

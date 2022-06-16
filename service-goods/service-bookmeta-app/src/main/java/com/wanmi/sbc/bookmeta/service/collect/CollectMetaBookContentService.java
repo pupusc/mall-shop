@@ -1,10 +1,11 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookContent;
-import com.wanmi.sbc.bookmeta.entity.MetaProducer;
 import com.wanmi.sbc.bookmeta.enums.BookContentTypeEnum;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,10 +27,16 @@ public class CollectMetaBookContentService extends AbstractCollectBookService{
      * 采集内容信息
      * @param collectMetaReq
      */
-    public void collectMetaBookProducerByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaBookProducerByTime(CollectMetaReq collectMetaReq){
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaBookContent> metaBookContents = metaBookContentMapper.collectMetaBookContentByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
+        if (CollectionUtils.isEmpty(metaBookContents)) {
+            return collectMetaResp;
+        }
+        collectMetaResp.setLastBizId(metaBookContents.get(metaBookContents.size() -1).getId());
         List<Integer> bookIds =
                 metaBookContents.stream().filter(ex -> Objects.equals(ex.getType(), BookContentTypeEnum.INTRODUCE.getCode())).map(MetaBookContent::getBookId).collect(Collectors.toList());
         //获取商品信息
+        return collectMetaResp;
     }
 }

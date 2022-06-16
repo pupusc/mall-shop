@@ -1,16 +1,12 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaAward;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaBookRcmmd;
 import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import com.wanmi.sbc.bookmeta.enums.BookRcmmdTypeEnum;
-import com.wanmi.sbc.bookmeta.mapper.MetaAwardMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookFigureMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaBookRcmmdMapper;
-import com.wanmi.sbc.bookmeta.mapper.MetaFigureAwardMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -35,20 +31,24 @@ public class CollectMetaAwardService extends AbstractCollectBookService{
      * 采集奖项信息
      * @param collectMetaReq
      */
-    public void collectMetaAwardByTime(CollectMetaReq collectMetaReq) {
+    public CollectMetaResp collectMetaAwardByTime(CollectMetaReq collectMetaReq) {
 
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         //奖项 获取奖项表信息
         List<MetaAward> metaAwards = metaAwardMapper.collectMetaAwardByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
         if (CollectionUtils.isEmpty(metaAwards)) {
-            return;
+            return collectMetaResp;
         }
+        collectMetaResp.setLastBizId(metaAwards.get(metaAwards.size() -1).getId()); //设置最后一个采集id
         List<Integer> awardIds = metaAwards.stream().map(MetaAward::getId).collect(Collectors.toList());
         List<Integer> bookIds = this.packBookIdByFigureAward(awardIds);
         bookIds.addAll(this.packBookIdByRecomAward(awardIds));
         if (CollectionUtils.isEmpty(bookIds)) {
-            return;
+            return collectMetaResp;
         }
         //获取商品信息
+
+        return collectMetaResp;
     }
 
     /**

@@ -1,8 +1,10 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookLabel;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -21,9 +23,14 @@ public class CollectMetaBookLabelService extends AbstractCollectBookService{
      * 采集 标签信息
      * @param collectMetaReq
      */
-    public void collectMetaBookLabelByTime(CollectMetaReq collectMetaReq){
-
+    public CollectMetaResp collectMetaBookLabelByTime(CollectMetaReq collectMetaReq){
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaBookLabel> metaBookLabels = metaBookLabelMapper.collectMetaBookLabelByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
+        if (CollectionUtils.isEmpty(metaBookLabels)) {
+            return collectMetaResp;
+        }
+        collectMetaResp.setLastBizId(metaBookLabels.get(metaBookLabels.size() -1).getId());
         //获取图书信息
+        return collectMetaResp;
     }
 }

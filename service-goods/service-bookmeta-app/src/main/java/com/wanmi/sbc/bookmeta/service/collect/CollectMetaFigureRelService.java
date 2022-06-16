@@ -1,15 +1,12 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
-import com.wanmi.sbc.bookmeta.entity.MetaFigure;
-import com.wanmi.sbc.bookmeta.enums.BookFigureTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Description: 采集作者信息
@@ -25,11 +22,16 @@ public class CollectMetaFigureRelService extends AbstractCollectBookService {
      * 采集 作者信息
      * @param collectMetaReq
      */
-    public void collectMetaFigureRelByTime(CollectMetaReq collectMetaReq){
-
+    public CollectMetaResp collectMetaFigureRelByTime(CollectMetaReq collectMetaReq){
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaBookFigure> metaBookFigures =
                 metaBookFigureMapper.collectMetaBookFigureByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
+        if (CollectionUtils.isEmpty(metaBookFigures)) {
+            return collectMetaResp;
+        }
+        collectMetaResp.setLastBizId(metaBookFigures.get(metaBookFigures.size() -1).getId());
         //获取图书信息
+        return collectMetaResp;
     }
 
 

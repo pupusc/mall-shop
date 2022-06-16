@@ -1,6 +1,5 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
 import com.wanmi.sbc.bookmeta.entity.MetaBook;
 import com.wanmi.sbc.bookmeta.entity.MetaBookExt;
 import org.apache.ibatis.annotations.Param;

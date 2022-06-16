@@ -1,6 +1,7 @@
 package com.wanmi.sbc.bookmeta.service.collect;
 
-import com.wanmi.sbc.bookmeta.bo.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaReq;
+import com.wanmi.sbc.bookmeta.bo.collect.CollectMetaResp;
 import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import org.springframework.stereotype.Service;
@@ -23,18 +24,20 @@ public class CollectMetaBookClumpService extends AbstractCollectBookService{
      * 采集
      * @param collectMetaReq
      */
-    public void collectMetaBookClumpByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaBookClumpByTime(CollectMetaReq collectMetaReq){
 
+        CollectMetaResp collectMetaResp = new CollectMetaResp();
         //获取从书
         List<MetaBookClump> metaBookClumps = metaBookClumpMapper.collectMetaBookClumpByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
         if (CollectionUtils.isEmpty(metaBookClumps)) {
-            return;
+            return collectMetaResp;
         }
-
+        collectMetaResp.setLastBizId(metaBookClumps.get(metaBookClumps.size() -1).getId());
         //获取丛书出版社
         List<Integer> publisherIds = metaBookClumps.stream().map(MetaBookClump::getPublisherId).collect(Collectors.toList());
         List<MetaPublisher> metaPublishers = metaPublisherMapper.collectMetaPublisherByIds(publisherIds);
 
         //根据出版社获取 商品信息
+        return collectMetaResp;
     }
 }
