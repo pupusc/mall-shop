@@ -42,11 +42,12 @@ public class CollectCommentService {
     public List<CollectCommentRelSpuResp> collectCommentSpuIdByTime(CollectCommentProviderReq req) {
         List<CollectCommentRelSpuResp> commentRelSpuResps = new ArrayList<>();
         List<GoodsEvaluate> goodsEvaluateList =
-                classifyRepository.collectCommentSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getPageSize());
+                classifyRepository.collectCommentSpuIdByTime(req.getBeginTime(), req.getEndTime(), req.getIncrId(), req.getPageSize());
         for (GoodsEvaluate goodsEvaluate : goodsEvaluateList) {
             CollectCommentRelSpuResp collectClassifyRelSpuResp = new CollectCommentRelSpuResp();
             collectClassifyRelSpuResp.setCommentId(goodsEvaluate.getEvaluateId());
             collectClassifyRelSpuResp.setSpuId(goodsEvaluate.getGoodsId());
+            collectClassifyRelSpuResp.setIncrId(goodsEvaluate.getIncrId());
             commentRelSpuResps.add(collectClassifyRelSpuResp);
         }
         return commentRelSpuResps;
