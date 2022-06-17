@@ -41,10 +41,11 @@ public abstract class AbstractSpuCollect extends AbstractCollect {
      * @return
      */
     protected Set<String> collectSpuPropByIsbn(CollectMetaResp collectMetaResp) {
-        List<String> isbns = collectMetaResp.getMetaBookResps().stream().map(CollectMetaBookResp::getIsbn).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(isbns)) {
+
+        if (CollectionUtils.isEmpty(collectMetaResp.getMetaBookResps())) {
             return new HashSet<>();
         }
+        List<String> isbns = collectMetaResp.getMetaBookResps().stream().map(CollectMetaBookResp::getIsbn).collect(Collectors.toList());
         CollectSpuPropProviderReq collectSpuPropProviderReq = new CollectSpuPropProviderReq();
         collectSpuPropProviderReq.setIsbn(isbns);
         List<CollectSpuPropResp> context = collectSpuPropProvider.collectSpuPropByISBN(collectSpuPropProviderReq).getContext();
