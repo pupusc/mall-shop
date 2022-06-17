@@ -19,6 +19,7 @@ import com.wanmi.sbc.goods.api.response.collect.CollectSpuPropResp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -90,7 +91,10 @@ public class BookCollect extends AbstractSpuCollect {
         for (T t : list) {
             EsSpuNew esSpuNew = (EsSpuNew) t;
             SubBookNew book = esSpuNew.getBook();
-
+            if (book == null || StringUtils.isEmpty(book.getIsbn())) {
+//                表示非图书商品
+                continue;
+            }
             CollectMetaBookResp collectMetaBookResp = isbn2BookMap.get(book.getIsbn());
             if (collectMetaBookResp == null){
                 continue;
