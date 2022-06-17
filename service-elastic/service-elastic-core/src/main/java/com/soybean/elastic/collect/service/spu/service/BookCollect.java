@@ -90,10 +90,11 @@ public class BookCollect extends AbstractSpuCollect {
         for (T t : list) {
             EsSpuNew esSpuNew = (EsSpuNew) t;
             SubBookNew book = esSpuNew.getBook();
-            if (book == null){
+
+            CollectMetaBookResp collectMetaBookResp = isbn2BookMap.get(book.getIsbn());
+            if (collectMetaBookResp == null){
                 continue;
             }
-            CollectMetaBookResp collectMetaBookResp = isbn2BookMap.get(book.getIsbn());
             book.setIsbn(collectMetaBookResp.getIsbn());
             book.setBookName(collectMetaBookResp.getBookName());
             book.setBookOriginName(collectMetaBookResp.getBookOriginName());
