@@ -2733,7 +2733,7 @@ public class PurchaseService {
                         response.getGoodsMarketings().add(
                                 GoodsMarketingVO.builder().goodsInfoId(marketInfo.getGoodsInfoId()).marketingId(marketInfo.getMarketingViewList().get(0).getMarketingId()).build()
                         );
-                        if (Objects.nonNull(customer)) {
+                        if (Objects.nonNull(customer) && goodsInfo.getDelFlag() != DeleteFlag.YES) {
                             this.modifyGoodsMarketing(marketInfo.getGoodsInfoId(), marketInfo.getMarketingViewList().get(0).getMarketingId(), customer);
                         }
                     }
