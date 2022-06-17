@@ -9,10 +9,12 @@ import com.wanmi.sbc.goods.info.repository.GoodsPropDetailRelRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +64,23 @@ public class CollectSpuPropService {
      */
     public List<CollectSpuPropResp> collectSpuPropBySpuIds(CollectSpuPropProviderReq req){
         List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.collectSpuIdPropBySpuIds(req.getSpuIds());
+        return new ArrayList<>(this.changeSpuPropMap(goodsPropDetailRels).values());
+    }
+
+    /**
+     * 根据isbn获取商品id信息
+     * @param req
+     * @return
+     */
+    public List<CollectSpuPropResp> collectSpuPropByISBN(CollectSpuPropProviderReq req) {
+        if (CollectionUtils.isEmpty(req.getIsbn())) {
+            return new ArrayList<>();
+        }
+        List<GoodsPropDetailRel> goodsPropDetailRels = goodsPropDetailRelRepository.collectSpuIdPropByIsbns(req.getIsbn(), Collections.singletonList(5));
+        return new ArrayList<>(this.changeSpuPropMap(goodsPropDetailRels).values());
+    }
+
+    private Map<String, CollectSpuPropResp> changeSpuPropMap(List<GoodsPropDetailRel> goodsPropDetailRels) {
         Map<String, CollectSpuPropResp> spuId2CollectSpuPropMap = new HashMap<>();
         for (GoodsPropDetailRel goodsPropDetailRelParam : goodsPropDetailRels) {
             CollectSpuPropResp collectSpuPropResp = spuId2CollectSpuPropMap.getOrDefault(goodsPropDetailRelParam.getGoodsId(), new CollectSpuPropResp());
@@ -79,7 +98,6 @@ public class CollectSpuPropService {
             }
             spuId2CollectSpuPropMap.put(goodsPropDetailRelParam.getGoodsId(), collectSpuPropResp);
         }
-
-        return new ArrayList<>(spuId2CollectSpuPropMap.values());
+        return spuId2CollectSpuPropMap;
     }
 }

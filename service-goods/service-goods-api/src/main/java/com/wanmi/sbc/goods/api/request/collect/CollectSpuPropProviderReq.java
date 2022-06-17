@@ -42,4 +42,9 @@ public class CollectSpuPropProviderReq implements Serializable {
      * 商品id列表
      */
     private List<String> spuIds;
+
+    /**
+     * isbn号
+     */
+    private List<String> isbn;
 }

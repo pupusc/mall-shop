@@ -108,4 +108,11 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
      */
     @Query(value = "select * from goods_prop_detail_rel where goods_id in ?1 and del_flag = 0", nativeQuery = true)
     List<GoodsPropDetailRel> collectSpuIdPropBySpuIds(List<String> spuIds);
+
+    /**
+     * 根据商品id采集定价和isbn号信息
+     * @return
+     */
+    @Query(value = "select * from goods_prop_detail_rel where prop_value in ?1 and prop_id in ?2 and del_flag = 0", nativeQuery = true)
+    List<GoodsPropDetailRel> collectSpuIdPropByIsbns(List<String> isbns, List<Integer> propIds);
 }

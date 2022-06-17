@@ -154,6 +154,12 @@
             <artifactId>sbc-osd</artifactId>
             <version>1.0.8-RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.wanmi.sbc</groupId>
+            <artifactId>service-bookmeta-api</artifactId>
+            <version>${wm.micro.service.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -90,11 +90,11 @@ public class SubBookNew {
     @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
     private String groupName;
 
-    /**
-     * 套系列
-     */
-    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
-    private String seriesName;
+//    /**
+//     * 套系列
+//     */
+//    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
+//    private String seriesName;
 
     /**
      * 装帧

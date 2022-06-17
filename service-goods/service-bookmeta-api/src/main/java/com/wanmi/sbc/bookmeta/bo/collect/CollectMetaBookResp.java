@@ -66,10 +66,6 @@ public class CollectMetaBookResp {
      */
     private String groupName;
 
-    /**
-     * 套系列
-     */
-    private String seriesName;
 
     /**
      * 装帧

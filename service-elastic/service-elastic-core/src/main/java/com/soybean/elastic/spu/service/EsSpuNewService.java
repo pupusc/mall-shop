@@ -73,6 +73,10 @@ public class EsSpuNewService {
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
 
+        boolQb.must(matchQuery("delFlag", req.getDelFlag()));
+        boolQb.must(matchQuery("auditStatus", 1));
+        boolQb.must(matchQuery("addedFlag", 1));
+
         boolQb.must(matchQuery("spuCategory", req.getSearchSpuNewCategory()));
         boolQb.should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
         boolQb.should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));

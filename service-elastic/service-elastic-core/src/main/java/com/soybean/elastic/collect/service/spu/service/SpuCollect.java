@@ -43,8 +43,8 @@ public class SpuCollect extends AbstractSpuCollect {
     @Autowired
     private CollectSpuProvider collectSpuProvider;
 
-    @Autowired
-    private CollectSpuPropProvider collectSpuPropProvider;
+//    @Autowired
+//    private CollectSpuPropProvider collectSpuPropProvider;
 
     /**
      * 获取商品对象信息
@@ -148,9 +148,7 @@ public class SpuCollect extends AbstractSpuCollect {
                 }
                 esSpuNew.setAnchorRecoms(subAnchorRecomNewList);
             }
-//            esSpuNew.setCommentNum(0L);
-//            esSpuNew.setFavorCommentNum(0L);
-//            esSpuNew.setFavorCommentRate(0.0D);
+
             esSpuNew.setSalesNum(collectSpuVO.getGoodsSalesNum());
             esSpuNew.setSalesPrice(collectSpuVO.getMiniSalesPrice());
             esSpuNew.setCpsSpecial(collectSpuVO.getCpsSpecial());
@@ -166,7 +164,7 @@ public class SpuCollect extends AbstractSpuCollect {
                 esSpuNew.setSpuCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
                 SubBookNew subBookNew = new SubBookNew();
                 subBookNew.setIsbn(collectSpuPropResp.getIsbn());
-                subBookNew.setFixPrice(collectSpuPropResp.getFixPrice().doubleValue());
+//                subBookNew.setFixPrice(collectSpuPropResp.getFixPrice().doubleValue());
                 subBookNew.setScore(collectSpuPropResp.getScore());
                 esSpuNew.setBook(subBookNew);
             }

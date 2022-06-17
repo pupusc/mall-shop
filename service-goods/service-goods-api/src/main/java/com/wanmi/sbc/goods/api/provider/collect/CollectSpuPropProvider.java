@@ -34,4 +34,12 @@ public interface CollectSpuPropProvider {
      */
     @PostMapping("/goods/${application.goods.version}/collect/spu/collectSpuPropBySpuIds")
     BaseResponse<List<CollectSpuPropResp>> collectSpuPropBySpuIds(@RequestBody CollectSpuPropProviderReq req);
+
+    /**
+     * 根据isbn获取商品信息
+     * @param req
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/collect/spu/collectSpuPropByISBN")
+    BaseResponse<List<CollectSpuPropResp>> collectSpuPropByISBN(@RequestBody CollectSpuPropProviderReq req);
 }

@@ -74,6 +74,7 @@ public class EsBookListModelService {
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         boolQb.must(matchQuery("bookListBusinessType", esKeyWordQueryProviderReq.getSearchBookListCategory()));
+        boolQb.must(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
         boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
         boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
@@ -96,7 +97,7 @@ public class EsBookListModelService {
             FieldSortBuilder order = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.add(order);
         } else if (sortQueryProviderReq.getBooklistSortType() == SearchBookListSortTypeEnum.HAS_TOP_UPDATE_TIME.getCode()) {
-            FieldSortBuilder order1 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
+            FieldSortBuilder order1 = new FieldSortBuilder("hasTop").order(SortOrder.DESC);
             FieldSortBuilder order2 = new FieldSortBuilder("updateTime").order(SortOrder.DESC);
             fieldSortBuilders.addAll(Arrays.asList(order1, order2));
         }

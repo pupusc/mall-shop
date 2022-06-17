@@ -3,6 +3,7 @@ package com.soybean.elastic.collect.service.booklistmodel.service;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
@@ -75,6 +76,7 @@ public class BookListModelPublishSpuCollect extends AbstractBookListModelCollect
             EsBookListModel esBookListModel = (EsBookListModel) f;
             List<CollectBookListGoodsPublishResponse> collectBookListGoodsPublishResponseList = bookListModelId2spuIdMap.get(esBookListModel.getBookListId().intValue());
             if (CollectionUtils.isEmpty(collectBookListGoodsPublishResponseList)) {
+                esBookListModel.setDelFlag(DeleteFlag.YES.toValue());
                 continue;
             }
             List<EsBookListSubSpuNew> subSpuNews = new ArrayList<>();

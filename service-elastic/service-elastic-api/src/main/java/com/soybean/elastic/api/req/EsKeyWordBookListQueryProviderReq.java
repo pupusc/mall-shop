@@ -22,6 +22,11 @@ public class EsKeyWordBookListQueryProviderReq extends EsSortBookListQueryProvid
     private String keyword;
 
     /**
+     * 删除标志 1 表示删除 0 表示未删除
+     */
+    private Integer delFlag = 0;
+
+    /**
      * 书单类别 1排行榜 2书单
      */
     @NotNull

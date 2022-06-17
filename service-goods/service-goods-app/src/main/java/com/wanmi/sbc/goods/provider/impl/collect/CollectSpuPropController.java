@@ -36,4 +36,10 @@ public class CollectSpuPropController implements CollectSpuPropProvider {
     public BaseResponse<List<CollectSpuPropResp>> collectSpuPropBySpuIds(CollectSpuPropProviderReq req) {
         return BaseResponse.success(collectSpuPropService.collectSpuPropBySpuIds(req));
     }
+
+
+    @Override
+    public BaseResponse<List<CollectSpuPropResp>> collectSpuPropByISBN(CollectSpuPropProviderReq req) {
+        return BaseResponse.success(collectSpuPropService.collectSpuPropByISBN(req));
+    }
 }

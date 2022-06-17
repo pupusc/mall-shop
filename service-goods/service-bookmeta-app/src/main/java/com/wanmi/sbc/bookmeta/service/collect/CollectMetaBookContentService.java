@@ -27,7 +27,7 @@ public class CollectMetaBookContentService extends AbstractCollectBookService{
      * 采集内容信息
      * @param collectMetaReq
      */
-    public CollectMetaResp collectMetaBookProducerByTime(CollectMetaReq collectMetaReq){
+    public CollectMetaResp collectMetaBookContentByTime(CollectMetaReq collectMetaReq){
         CollectMetaResp collectMetaResp = new CollectMetaResp();
         List<MetaBookContent> metaBookContents = metaBookContentMapper.collectMetaBookContentByTime(collectMetaReq.getBeginTime(), collectMetaReq.getEndTime(), collectMetaReq.getFromId(), collectMetaReq.getPageSize());
         if (CollectionUtils.isEmpty(metaBookContents)) {
