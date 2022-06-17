@@ -18,6 +18,7 @@ import com.wanmi.sbc.bookmeta.service.collect.CollectMetaLabelService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ import java.util.List;
  * Date       : 2022/6/17 3:04 下午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
-@Service
+@RestController
 public class CollectMetaBookProviderImpl implements CollectMetaBookProvider {
 
     @Autowired
