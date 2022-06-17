@@ -82,10 +82,16 @@ public class CollectClassifyService {
      * @return
      */
     public List<CollectClassifyRelSpuDetailResp> collectClassifyBySpuIds(CollectClassifyProviderReq req) {
+        List<CollectClassifyRelSpuDetailResp> result = new ArrayList<>();
         List<ClassifyGoodsRelDTO> classifyGoodsRelDTOS = classifyGoodsRelRepository.collectClassifyBySpuIds(req.getSpuIds());
         //获取店铺详细信息
         List<Integer> secondClassifyIdList = classifyGoodsRelDTOS.stream().map(ClassifyGoodsRelDTO::getClassifyId).collect(Collectors.toList());;
         List<ClassifyDTO> secondClassifyDTOS = classifyRepository.collectClassifyByIds(secondClassifyIdList);
+
+        if (CollectionUtils.isEmpty(secondClassifyDTOS)) {
+            return result;
+        }
+
         Map<Integer, ClassifyDTO> secondClassifyId2ModelMap = secondClassifyDTOS.stream().collect(Collectors.toMap(ClassifyDTO::getId, Function.identity(), (k1, k2) -> k1));
 
 
@@ -94,7 +100,7 @@ public class CollectClassifyService {
         Map<Integer, ClassifyDTO> firstClassifyId2ModelMap = firstClassifyDTOS.stream().collect(Collectors.toMap(ClassifyDTO::getId, Function.identity(), (k1, k2) -> k1));
 
 
-        List<CollectClassifyRelSpuDetailResp> result = new ArrayList<>();
+
         for (ClassifyGoodsRelDTO classifyGoodsRelDTO : classifyGoodsRelDTOS) {
             ClassifyDTO secondClassifyDTO = secondClassifyId2ModelMap.get(classifyGoodsRelDTO.getClassifyId());
             ClassifyDTO firstClassifyDTO = null;

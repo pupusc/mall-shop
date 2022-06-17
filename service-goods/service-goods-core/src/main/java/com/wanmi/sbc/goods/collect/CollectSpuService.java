@@ -5,6 +5,8 @@ import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
+import com.wanmi.sbc.goods.images.GoodsImage;
+import com.wanmi.sbc.goods.images.GoodsImageRepository;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.info.repository.GoodsRepository;
@@ -23,6 +25,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +44,9 @@ public class CollectSpuService {
 
     @Autowired
     private GoodsInfoService goodsInfoService;
+
+    @Autowired
+    private GoodsImageRepository goodsImageRepository;
 
 
     /**
@@ -69,6 +76,7 @@ public class CollectSpuService {
         List<Goods> goodsList = goodsRepository.findAllByGoodsIdIn(req.getSpuIds());
 
         Map<String, GoodsInfo> skuId2GoodsInfoMap = new HashMap<>();
+        Map<String, GoodsImage> spuId2GoodsMap = new HashMap<>();
         //获取商品对应的 sku
         if (!CollectionUtils.isEmpty(goodsList)) {
             List<String> spuIdList = goodsList.stream().map(Goods::getGoodsId).collect(Collectors.toList());
@@ -88,13 +96,29 @@ public class CollectSpuService {
                     }
                 }
             }
+
+            List<GoodsImage> spuImages = goodsImageRepository.findByGoodsIds(spuIdList);
+            if (!CollectionUtils.isEmpty(spuImages)){
+                spuId2GoodsMap = spuImages.stream()
+                        .filter(ex -> Objects.equals(ex.getSort(), 0))
+                        .collect(Collectors.toMap(GoodsImage::getGoodsId, Function.identity(), (k1,k2) -> k1));
+            }
         }
 
         List<CollectSpuVO> result = new ArrayList<>();
         for (Goods goods : goodsList) {
             CollectSpuVO collectSpuVo = new CollectSpuVO();
             BeanUtils.copyProperties(goods, collectSpuVo);
-            collectSpuVo.setMinSalePriceImg(skuId2GoodsInfoMap.get(goods.getGoodsId()) == null ? "" : skuId2GoodsInfoMap.get(goods.getGoodsId()).getGoodsInfoImg());
+            String goodsInfoImg = "";
+            //规格图
+            if (skuId2GoodsInfoMap.get(goods.getGoodsId()) != null) {
+                goodsInfoImg = skuId2GoodsInfoMap.get(goods.getGoodsId()).getGoodsInfoImg();
+            }
+            if (StringUtils.isEmpty(goodsInfoImg)) {
+                goodsInfoImg = spuId2GoodsMap.get(goods.getGoodsImg()) == null ? "" : spuId2GoodsMap.get(goods.getGoodsImg()).getArtworkUrl();
+            }
+
+            collectSpuVo.setMinSalePriceImg(goodsInfoImg);
             collectSpuVo.setMiniSalesPrice(skuId2GoodsInfoMap.get(goods.getGoodsId()) == null ? new BigDecimal("9999") : skuId2GoodsInfoMap.get(goods.getGoodsId()).getMarketPrice());
             collectSpuVo.setGoodsChannelTypes(StringUtils.isNotBlank(goods.getGoodsChannelType()) ? Arrays.asList(goods.getGoodsChannelType().split(",")) : new ArrayList<>());
             if (StringUtils.isNotBlank(goods.getAnchorPushs())) {

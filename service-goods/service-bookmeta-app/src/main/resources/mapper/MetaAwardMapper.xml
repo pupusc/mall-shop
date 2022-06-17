@@ -146,7 +146,7 @@
 
     <!-- 采集信息 -->
     <select id="collectMetaAwardByTime" resultMap="MetaAwardMap">
-        select * from meta_book_clump where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+        select * from meta_award where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
                                         and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
     </select>
 </mapper>

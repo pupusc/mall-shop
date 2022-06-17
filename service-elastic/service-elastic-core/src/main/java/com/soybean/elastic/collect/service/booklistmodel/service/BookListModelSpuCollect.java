@@ -6,8 +6,10 @@ import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCo
 import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
+import com.wanmi.sbc.goods.api.request.collect.CollectSpuImageProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
+import com.wanmi.sbc.goods.api.response.collect.CollectSpuImageResp;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,22 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
     private CollectBookListModelProvider collectBookListModelProvider;
 
     /**
+     * 采集商品图片信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @return
+     */
+    private List<CollectSpuImageResp> collectSpuImageRespsByTime (LocalDateTime beginTime, LocalDateTime endTime, Integer fromId) {
+        CollectSpuImageProviderReq collectSpuImageProviderReq = new CollectSpuImageProviderReq();
+        collectSpuImageProviderReq.setPageSize(MAX_PAGE_SIZE);
+        collectSpuImageProviderReq.setFromId(fromId);
+        collectSpuImageProviderReq.setBeginTime(beginTime);
+        collectSpuImageProviderReq.setEndTime(endTime);
+        return collectSpuProvider.collectSpuIdImageByTime(collectSpuImageProviderReq).getContext();
+    }
+
+    /**
      * 获取商品对象信息
      * @param lastCollectTime
      * @param now
@@ -57,18 +75,18 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
     /**
      * 获取书单id列表信息
-     * @param collectSpuVOList
+     * @param collectSpuIdList
      * @return
      */
-    private Set<Long> getBookListModelId(List<CollectSpuVO> collectSpuVOList) {
+    private Set<Long> getBookListModelId(List<String> collectSpuIdList) {
         Set<Long> bookListModelIdSet = new HashSet<>();
-        if (CollectionUtils.isEmpty(collectSpuVOList)) {
+        if (CollectionUtils.isEmpty(collectSpuIdList)) {
             return bookListModelIdSet;
         }
-        List<String> goodsIdList = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList());
+//        List<String> goodsIdList = collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList());
         //根据商品id 获取对应的书单
         CollectBookListModelProviderReq req = new CollectBookListModelProviderReq();
-        req.setSpuIds(goodsIdList);
+        req.setSpuIds(collectSpuIdList);
         List<CollectBookListGoodsPublishResponse> context = collectBookListModelProvider.collectBookListGoodsPublishIdBySpuIds(req).getContext();
         for (CollectBookListGoodsPublishResponse collectBookListGoodsPublishParam : context) {
             bookListModelIdSet.add(collectBookListGoodsPublishParam.getBookListId().longValue());
@@ -84,11 +102,20 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
      */
     private Set<Long> collectBookListModelId(LocalDateTime lastCollectTime, LocalDateTime now) {
         List<CollectSpuVO> collectSpuVOList = this.getSpuByTime(lastCollectTime, now, 0);
-        Set<Long> bookListModelIdSet = this.getBookListModelId(collectSpuVOList);
+        Set<Long> bookListModelIdSet = this.getBookListModelId(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList()));
         while (collectSpuVOList.size() >= MAX_PAGE_SIZE) {
             Integer tmpId = collectSpuVOList.get(collectSpuVOList.size() - 1).getTmpId();
             collectSpuVOList = this.getSpuByTime(lastCollectTime, now, tmpId);
-            bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList));
+            bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList())));
+        }
+
+        //图片对应书单更新
+        List<CollectSpuImageResp> collectSpuImageList = this.collectSpuImageRespsByTime(lastCollectTime, now, 0);
+        bookListModelIdSet.addAll(this.getBookListModelId(collectSpuImageList.stream().map(CollectSpuImageResp::getSpuId).collect(Collectors.toList())));
+        while (collectSpuImageList.size() >= MAX_PAGE_SIZE) {
+            Integer tmpId = collectSpuImageList.get(collectSpuImageList.size() - 1).getTmpId();
+            collectSpuImageList = this.collectSpuImageRespsByTime(lastCollectTime, now, tmpId);
+            bookListModelIdSet.addAll(this.getBookListModelId(collectSpuVOList.stream().map(CollectSpuVO::getGoodsId).collect(Collectors.toList())));
         }
         return bookListModelIdSet;
     }
