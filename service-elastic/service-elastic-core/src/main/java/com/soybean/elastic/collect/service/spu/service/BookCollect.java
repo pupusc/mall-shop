@@ -106,7 +106,7 @@ public class BookCollect extends AbstractSpuCollect {
             book.setClumpName(collectMetaBookResp.getClumpName());
             book.setGroupName(collectMetaBookResp.getGroupName());
             book.setBindingName(collectMetaBookResp.getBindingName());
-            List<CollectMetaBookResp.Award> awards = collectMetaBookResp.getAwards();
+            List<CollectMetaBookResp.Award> awards = collectMetaBookResp.getAwards() == null ? new ArrayList<>() : collectMetaBookResp.getAwards();
             List<SubAwardNew> awardNews = new ArrayList<>();
             for (CollectMetaBookResp.Award award : awards) {
                 SubAwardNew subAwardNew = new SubAwardNew();
@@ -116,7 +116,8 @@ public class BookCollect extends AbstractSpuCollect {
             book.setAwards(awardNews);
 
             List<SubBookLabelNew> bookLabelNews = new ArrayList<>();
-            for (CollectMetaBookResp.Tag tag : collectMetaBookResp.getTags()) {
+            List<CollectMetaBookResp.Tag> tags = collectMetaBookResp.getTags() == null ? new ArrayList<>() : collectMetaBookResp.getTags();
+            for (CollectMetaBookResp.Tag tag : tags) {
                 SubBookLabelNew subBookLabelNew = new SubBookLabelNew();
                 subBookLabelNew.setSTagId(tag.getSTagId());
                 subBookLabelNew.setSTagName(tag.getSTagName());
