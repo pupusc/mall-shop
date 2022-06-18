@@ -39,6 +39,15 @@ public class EsSpuNewResp implements Serializable {
      */
     private BigDecimal salesPrice;
 
+    /**
+     * 商品主图
+     */
+    private String pic;
+
+    /**
+     * 商品无背景图
+     */
+    private String unBackgroundPic;
 
     /**
      * 主播推荐

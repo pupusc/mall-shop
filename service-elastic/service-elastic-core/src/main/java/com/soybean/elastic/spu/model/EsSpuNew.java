@@ -64,6 +64,18 @@ public class EsSpuNew {
     private Integer spuCategory;
 
     /**
+     * 商品主图
+     */
+    @Field(type = FieldType.Keyword, index = false)
+    private String pic;
+
+    /**
+     * 无背景图
+     */
+    @Field(type = FieldType.Keyword, index = false)
+    private String unBackgroundPic;
+
+    /**
      * 商品渠道
      */
     @Field(type = FieldType.Integer)
@@ -116,6 +128,7 @@ public class EsSpuNew {
      */
     @Field(type = FieldType.Integer)
     private Integer addedFlag;
+
 
 
     /**

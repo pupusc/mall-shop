@@ -134,6 +134,8 @@ public class SpuCollect extends AbstractSpuCollect {
             esSpuNew.setSpuSubName(collectSpuVO.getGoodsSubtitle());
             esSpuNew.setSpuCategory(SearchSpuNewCategoryEnum.SPU.getCode());
             esSpuNew.setChannelTypes(collectSpuVO.getGoodsChannelTypes());
+            esSpuNew.setUnBackgroundPic(collectSpuVO.getGoodsUnBackImg());
+            esSpuNew.setPic(collectSpuVO.getMinSalePriceImg());
             if (!CollectionUtils.isEmpty(collectSpuVO.getAnchorPushs())) {
                 List<SubAnchorRecomNew> subAnchorRecomNewList = new ArrayList<>();
                 for (String s : collectSpuVO.getAnchorPushs()) {
