@@ -115,7 +115,7 @@ public class CollectSpuService {
                 goodsInfoImg = skuId2GoodsInfoMap.get(goods.getGoodsId()).getGoodsInfoImg();
             }
             if (StringUtils.isEmpty(goodsInfoImg)) {
-                goodsInfoImg = spuId2GoodsMap.get(goods.getGoodsImg()) == null ? "" : spuId2GoodsMap.get(goods.getGoodsImg()).getArtworkUrl();
+                goodsInfoImg = spuId2GoodsMap.get(goods.getGoodsId()) == null ? "" : spuId2GoodsMap.get(goods.getGoodsId()).getArtworkUrl();
             }
 
             collectSpuVo.setMinSalePriceImg(goodsInfoImg);
