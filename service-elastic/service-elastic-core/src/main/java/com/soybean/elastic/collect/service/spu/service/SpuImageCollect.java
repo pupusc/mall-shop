@@ -1,6 +1,7 @@
 package com.soybean.elastic.collect.service.spu.service;
 
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
 import com.wanmi.sbc.goods.api.provider.collect.CollectSpuProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuImageProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuImageResp;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
-public class SpuImageCollect extends AbstractBookListModelCollect {
+public class SpuImageCollect extends AbstractSpuCollect {
 
     @Autowired
     private CollectSpuProvider collectSpuProvider;

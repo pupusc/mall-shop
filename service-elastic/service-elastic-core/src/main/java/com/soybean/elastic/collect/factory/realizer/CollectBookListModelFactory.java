@@ -49,7 +49,6 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
 
     @Override
     protected EsBookListModel packModelId(Object k) {
-        log.info("CollectBookListModelFactory packModelId param:{}", k);
         EsBookListModel esBookListModel = new EsBookListModel();
         esBookListModel.setBookListId((long)k);
         return esBookListModel;
