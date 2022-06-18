@@ -248,7 +248,7 @@ public class SpuNewSearchService {
 
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
-            spuNewBookListResp.setSalesPrice(salePrice);
+            spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             result.add(spuNewBookListResp);
         }
