@@ -1,7 +1,10 @@
 package com.soybean.elastic.collect.service.booklistmodel.service;
 
+import com.soybean.elastic.api.enums.SearchBookListCategoryEnum;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.collect.service.booklistmodel.AbstractBookListModelCollect;
+import com.wanmi.sbc.common.enums.DeleteFlag;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import com.wanmi.sbc.goods.api.provider.collect.CollectBookListModelProvider;
 import com.wanmi.sbc.goods.api.request.collect.CollectBookListModelProviderReq;
 import com.wanmi.sbc.goods.api.response.booklistmodel.BookListModelProviderResponse;
@@ -10,10 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,6 +42,7 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
         request.setBeginTime(beginTime);
         request.setEndTime(endtime);
         request.setFromId(fromId);
+        request.setBusinesstypes(Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
         request.setPageSize(MAX_PAGE_SIZE);
         return collectBookListModelProvider.collectBookListId(request).getContext();
     }
@@ -73,10 +79,16 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
             EsBookListModel esBookListModel = (EsBookListModel) f;
             BookListModelProviderResponse bookListModel = bookListModelId2ModelMap.get(esBookListModel.getBookListId().intValue());
             if (bookListModel == null) {
+                esBookListModel.setDelFlag(DeleteFlag.YES.toValue());
                 continue;
             }
             esBookListModel.setBookListName(bookListModel.getName());
             esBookListModel.setBookListDesc(bookListModel.getDesc());
+            if (Objects.equals(bookListModel.getBusinessType(), BusinessTypeEnum.RANKING_LIST.getCode())) {
+                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
+            } else {
+                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
+            }
             esBookListModel.setBookListBusinessType(bookListModel.getBusinessType());
             esBookListModel.setDelFlag(bookListModel.getDelFlag());
             esBookListModel.setHasTop(bookListModel.getHasTop());

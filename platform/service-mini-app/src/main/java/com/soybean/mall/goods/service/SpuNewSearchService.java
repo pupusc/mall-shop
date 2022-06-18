@@ -124,7 +124,7 @@ public class SpuNewSearchService {
 
             for (GoodsInfoVO goodsInfoParam : goodsInfos) {
                 if (goodsInfoParam.getSalePrice() == null) {
-                    goodsInfoParam.setSalePrice(salePrice);
+                    goodsInfoParam.setSalePrice(goodsInfoParam.getMarketPrice());
                 }
                  if (goodsInfoParam.getStock() <= RedisKeyConstant.GOODS_INFO_MIN_STOCK_SIZE) {
                      goodsInfoParam.setStock(0L); //设置库存为0
@@ -206,7 +206,7 @@ public class SpuNewSearchService {
                 resultBook.setFixPrice(book.getFixPrice());
 
                 List<Book.BookTag> resultTag = new ArrayList<>();
-                if (CollectionUtils.isEmpty(book.getTags())) {
+                if (!CollectionUtils.isEmpty(book.getTags())) {
                     for (EsSpuNewResp.Book.SubBookLabel tagParam : book.getTags()) {
                         Book.BookTag resultBookTag = new Book.BookTag();
                         resultBookTag.setTageId(tagParam.getTagId());
@@ -249,6 +249,7 @@ public class SpuNewSearchService {
 
             spuNewBookListResp.setStock(goodsInfoVO.getStock());
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
+            spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
             result.add(spuNewBookListResp);
         }

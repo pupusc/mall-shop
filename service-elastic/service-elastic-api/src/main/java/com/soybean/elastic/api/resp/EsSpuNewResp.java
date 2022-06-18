@@ -58,7 +58,7 @@ public class EsSpuNewResp implements Serializable {
     /**
      * 店铺分类列表
      */
-    private List<SubClassify> classifys;
+    private SubClassify classify;
 
     /**
      * 图书信息
@@ -87,14 +87,14 @@ public class EsSpuNewResp implements Serializable {
     @Data
     public static class SubClassify {
 
-        private Long fClassifyId;
+        private Integer fClassifyId;
 
         /**
          * 一级店铺分类名称
          */
         private String fClassifyName;
 
-        private Long classifyId;
+        private Integer classifyId;
 
         /**
          * 店铺分类名称

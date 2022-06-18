@@ -73,7 +73,7 @@ public class EsBookListModelService {
         }
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        boolQb.must(matchQuery("bookListBusinessType", esKeyWordQueryProviderReq.getSearchBookListCategory()));
+        boolQb.must(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
         boolQb.must(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
         boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));

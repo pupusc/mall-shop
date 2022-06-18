@@ -1,4 +1,7 @@
 package com.soybean.elastic.spu.service;
+import java.math.BigDecimal;
+import com.google.common.collect.Lists;
+import com.soybean.elastic.api.resp.EsSpuNewResp.Book;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum;
@@ -8,10 +11,13 @@ import com.soybean.elastic.api.req.EsSortSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.spu.model.EsSpuNew;
+import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
+import com.soybean.elastic.spu.model.sub.SubBookLabelNew;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -203,6 +209,56 @@ public class EsSpuNewService {
         for (EsSpuNew esSpuNew : esSpuNewList) {
             EsSpuNewResp esSpuResp = new EsSpuNewResp();
             BeanUtils.copyProperties(esSpuNew, esSpuResp);
+//            esSpuResp.setSpuId(esSpuNew.getSpuId());
+//            esSpuResp.setSpuName(esSpuNew.getSpuName());
+//            esSpuResp.setSpuSubName(esSpuNew.getSpuSubName());
+//            esSpuResp.setSpuCategory(esSpuNew.getSpuCategory());
+//            esSpuResp.setSalesPrice(esSpuNew.getSalesPrice());
+//            esSpuResp.setPic(esSpuNew.getPic());
+//            esSpuResp.setUnBackgroundPic(esSpuNew.getUnBackgroundPic());
+
+            List<EsSpuNewResp.SubAnchorRecom> subAnchorRecoms = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(esSpuNew.getAnchorRecoms())) {
+                for (SubAnchorRecomNew anchorRecom : esSpuNew.getAnchorRecoms()) {
+                    EsSpuNewResp.SubAnchorRecom subAnchorRecom = new EsSpuNewResp.SubAnchorRecom();
+                    subAnchorRecom.setRecomId(anchorRecom.getRecomId());
+                    subAnchorRecom.setRecomName(anchorRecom.getRecomName());
+                    subAnchorRecoms.add(subAnchorRecom);
+                }
+            }
+            esSpuResp.setAnchorRecoms(subAnchorRecoms);
+
+            if (esSpuNew.getClassify() != null) {
+                EsSpuNewResp.SubClassify subClassify = new EsSpuNewResp.SubClassify();
+                subClassify.setFClassifyId(esSpuNew.getClassify().getFClassifyId());
+                subClassify.setFClassifyName(esSpuNew.getClassify().getFClassifyName());
+                subClassify.setClassifyId(esSpuNew.getClassify().getClassifyId());
+                subClassify.setClassifyName(esSpuNew.getClassify().getClassifyName());
+                esSpuResp.setClassify(subClassify);
+            }
+
+            if (esSpuNew.getBook() != null) {
+                Book book = new Book();
+                book.setIsbn(esSpuNew.getBook().getIsbn());
+                book.setAuthorNames(esSpuNew.getBook().getAuthorNames());
+                book.setScore(esSpuNew.getBook().getScore());
+                book.setPublisher(esSpuNew.getBook().getPublisher());
+                book.setFixPrice(esSpuNew.getBook().getFixPrice());
+
+                if (!CollectionUtils.isEmpty(esSpuNew.getBook().getTags())) {
+                    List<Book.SubBookLabel> subBookLabels = new ArrayList<>();
+                    for (SubBookLabelNew tag : esSpuNew.getBook().getTags()) {
+                        Book.SubBookLabel subBookLabel = new Book.SubBookLabel();
+                        subBookLabel.setSTagId(tag.getSTagId());
+                        subBookLabel.setSTagName(tag.getSTagName());
+                        subBookLabel.setTagId(tag.getTagId());
+                        subBookLabel.setTagName(tag.getTagName());
+                        subBookLabels.add(subBookLabel);
+                    }
+                    book.setTags(subBookLabels);
+                }
+                esSpuResp.setBook(book);
+            }
             result.add(esSpuResp);
         }
         return result;

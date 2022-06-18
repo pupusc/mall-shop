@@ -33,7 +33,13 @@ public class EsBookListModel {
     private Long bookListId;
 
     /**
-     * 书单类型 1 排行榜 2 书单
+     * 书单类别 1 排行榜 2 书单
+     */
+    @Field(type = FieldType.Integer)
+    private Integer bookListCategory;
+
+    /**
+     * 书单类型 1 排行榜 2 书单 3 编辑推荐 4 专题 (这个数据不采集) 5 名家推荐
      */
     @Field(type = FieldType.Integer)
     private Integer bookListBusinessType;;
