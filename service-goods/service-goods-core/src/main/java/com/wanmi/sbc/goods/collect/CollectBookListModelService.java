@@ -92,7 +92,7 @@ public class CollectBookListModelService {
      */
     public List<BookListModelProviderResponse> collectBookListId(CollectBookListModelProviderReq request){
         List<BookListModelDTO> bookListModelDTOList =
-                bookListModelRepository.collectBookListId(request.getBeginTime(), request.getEndTime(), request.getBusinesstypes(), request.getFromId(), request.getPageSize());
+                bookListModelRepository.collectBookListId(request.getBeginTime(), request.getEndTime(), request.getFromId(), request.getPageSize());
         List<BookListModelProviderResponse> result = new ArrayList<>();
         for (BookListModelDTO bookListModelDTO : bookListModelDTOList) {
             BookListModelProviderResponse bookListModelProviderResponse = new BookListModelProviderResponse();

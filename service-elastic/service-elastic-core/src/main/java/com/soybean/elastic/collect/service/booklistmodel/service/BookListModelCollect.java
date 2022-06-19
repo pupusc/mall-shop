@@ -42,7 +42,7 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
         request.setBeginTime(beginTime);
         request.setEndTime(endtime);
         request.setFromId(fromId);
-        request.setBusinesstypes(Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
+//        request.setBusinesstypes(Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode()));
         request.setPageSize(MAX_PAGE_SIZE);
         return collectBookListModelProvider.collectBookListId(request).getContext();
     }
@@ -84,11 +84,6 @@ public class BookListModelCollect extends AbstractBookListModelCollect {
             }
             esBookListModel.setBookListName(bookListModel.getName());
             esBookListModel.setBookListDesc(bookListModel.getDesc());
-            if (Objects.equals(bookListModel.getBusinessType(), BusinessTypeEnum.RANKING_LIST.getCode())) {
-                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
-            } else {
-                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
-            }
             esBookListModel.setBookListBusinessType(bookListModel.getBusinessType());
             esBookListModel.setDelFlag(bookListModel.getDelFlag());
             esBookListModel.setHasTop(bookListModel.getHasTop());

@@ -1,6 +1,7 @@
 package com.soybean.elastic.collect.factory.realizer;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.elastic.api.enums.SearchBookListCategoryEnum;
 import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.repository.EsBookListModelRepository;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Description:
@@ -96,9 +98,15 @@ public class CollectBookListModelFactory extends AbstractCollectFactory {
         List<EsBookListModel> result = new ArrayList<>();
         for (S s : modelList) {
             EsBookListModel esBookListModel = (EsBookListModel) s;
-            if (!Arrays.asList(BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.RANKING_LIST.getCode())
+            if (!Arrays.asList(BusinessTypeEnum.RANKING_LIST.getCode(), BusinessTypeEnum.BOOK_LIST.getCode(), BusinessTypeEnum.BOOK_RECOMMEND.getCode(), BusinessTypeEnum.FAMOUS_RECOMMEND.getCode())
                     .contains(esBookListModel.getBookListBusinessType())) {
                 continue;
+            }
+            if (Objects.equals(BusinessTypeEnum.RANKING_LIST.getCode(), esBookListModel.getBookListBusinessType())) {
+                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
+            } else {
+                esBookListModel.setBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
+
             }
             esBookListModel.setIndexTime(now);
             result.add(esBookListModel);

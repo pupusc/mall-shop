@@ -47,7 +47,7 @@ public class CollectBookListModelProviderReq implements Serializable {
     /**
      * 业务类型
      */
-    private List<Integer> businesstypes;
+//    private List<Integer> businesstypes;
 
     /**
      * 商品id列表
