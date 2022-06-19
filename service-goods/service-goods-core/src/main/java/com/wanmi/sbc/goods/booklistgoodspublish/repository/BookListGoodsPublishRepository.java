@@ -62,7 +62,7 @@ public interface BookListGoodsPublishRepository extends JpaRepository<BookListGo
      * 根据id采集数据
      * @return
      */
-    @Query(value = "select * from t_book_list_goods_publish where book_list_id in ?1", nativeQuery = true)
+    @Query(value = "select * from t_book_list_goods_publish where book_list_id in ?1 and del_flag = 0", nativeQuery = true)
     List<BookListGoodsPublishDTO> collectBookListGoodsPublishIdByBookListIds(List<Integer> bookListIds);
 
 
