@@ -1,4 +1,5 @@
 package com.soybean.mall.goods.service;
+import com.soybean.mall.goods.dto.SpuRecomBookListDTO.Spu;
 import com.google.common.collect.Lists;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.enums.SearchBookListSortTypeEnum;
@@ -70,7 +71,16 @@ public class SpuNewBookListService {
                     }
                     //如果存在商品id，则存入到map中，然后从list中remove掉,下次请求剩余的商品
                     if (tmpSpuIdList.contains(spuTmp.getSpuId())) {
-                        spuId2BookListMap.put(spuTmp.getSpuId(), spuRecomBookListDTOTmp);
+                        SpuRecomBookListDTO spuRecomBookListDTO = new SpuRecomBookListDTO();
+                        spuRecomBookListDTO.setBookListId(esBookListModelResp.getBookListId());
+                        spuRecomBookListDTO.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
+                        spuRecomBookListDTO.setBookListName(esBookListModelResp.getBookListName());
+
+                        Spu spu = new Spu();
+                        spu.setSpuId(spuTmp.getSpuId());
+                        spu.setSortNum(spuTmp.getSortNum());
+                        spuRecomBookListDTO.setSpu(spu);
+                        spuId2BookListMap.put(spuTmp.getSpuId(), spuRecomBookListDTO);
                         tmpSpuIdList.remove(spuTmp.getSpuId());
                     }
                 }
