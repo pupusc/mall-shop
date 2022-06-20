@@ -234,7 +234,7 @@ public class SpuNewSearchService {
             spuNewBookListResp.setBookList(bookList);
 
             //获取图书信息
-            AtmosphereDTO atmosphereDTO = skuId2AtomsphereMap.get(goodsInfoVO.getGoodsInfoImg());
+            AtmosphereDTO atmosphereDTO = skuId2AtomsphereMap.get(goodsInfoVO.getGoodsInfoId());
             if (atmosphereDTO != null) {
                 Atmosphere atmosphere = new Atmosphere();
                 atmosphere.setImageUrl(atmosphereDTO.getImageUrl());
