@@ -60,7 +60,7 @@ public class EsSpuNew {
     /**
      * 商品分类 1 图书 2 商品
      */
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Integer)
     private Integer spuCategory;
 
     /**
@@ -86,24 +86,6 @@ public class EsSpuNew {
      */
     @Field(type = FieldType.Object)
     private List<SubAnchorRecomNew> anchorRecoms;
-
-//    /**
-//     * 评论数量
-//     */
-//    @Field(type = FieldType.Long)
-//    private Long commentNum;
-//
-//    /**
-//     * 好评数
-//     */
-//    @Field(type = FieldType.Long)
-//    private Long favorCommentNum;
-//
-//    /**
-//     * 好评率
-//     */
-//    @Field(type = FieldType.Double)
-//    private Double favorCommentRate;
 
     /**
      * 销量

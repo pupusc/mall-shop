@@ -29,7 +29,7 @@ import java.util.List;
 public class EsBookListModel {
 
     @Id
-    @Field(type = FieldType.Long)
+    @Field(type = FieldType.Keyword)
     private Long bookListId;
 
     /**

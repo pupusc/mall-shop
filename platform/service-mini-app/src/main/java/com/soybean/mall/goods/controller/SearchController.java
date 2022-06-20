@@ -8,6 +8,7 @@ import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.req.KeyWordBookListQueryReq;
 import com.soybean.mall.goods.req.KeyWordQueryReq;
 import com.soybean.mall.goods.req.KeyWordSpuQueryReq;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +54,9 @@ public class SearchController {
     @Autowired
     private SpuNewSearchService spuNewSearchService;
 
+    @Autowired
+    private CommonUtil commonUtil;
+
     /**
      * 前端 关键词搜索
      *  @menu 搜索功能
@@ -63,6 +68,7 @@ public class SearchController {
         try {
             //图书
             KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
+            spuKeyWordQueryReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
             spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.BOOK.getCode());
             spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
@@ -75,6 +81,7 @@ public class SearchController {
         try {
             //商品
             KeyWordSpuQueryReq spuKeyWordQueryReq = new KeyWordSpuQueryReq();
+            spuKeyWordQueryReq.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
             spuKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             spuKeyWordQueryReq.setSearchSpuNewCategory(SearchSpuNewCategoryEnum.SPU.getCode());
             spuKeyWordQueryReq.setSpuSortType(SearchSpuNewSortTypeEnum.DEFAULT.getCode());
@@ -136,6 +143,7 @@ public class SearchController {
      */
     @PostMapping("/keyword/keywordSpuSearch")
     public BaseResponse<CommonPageResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
+        request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
         CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
         return BaseResponse.success(new CommonPageResp<>(context.getTotal(), spuNewBookListResps));

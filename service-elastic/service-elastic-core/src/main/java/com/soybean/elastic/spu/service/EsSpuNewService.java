@@ -13,6 +13,7 @@ import com.soybean.elastic.collect.factory.AbstractCollectFactory;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.spu.model.sub.SubBookLabelNew;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
@@ -23,6 +24,7 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +79,7 @@ public class EsSpuNewService {
             searchWeightMap.put(searchWeightResp.getWeightKey(), Float.parseFloat(searchWeightResp.getWeightValue()));
         }
         //查询条件
-        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuNewCommonBuilder(req);
 
         boolQb.must(matchQuery("delFlag", req.getDelFlag()));
         boolQb.must(matchQuery("auditStatus", 1));
@@ -85,6 +87,7 @@ public class EsSpuNewService {
 
         boolQb.must(matchQuery("spuCategory", req.getSearchSpuNewCategory()));
         boolQb.should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
+        boolQb.should(matchQuery("spuName.keyword", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)));
         boolQb.should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));
 
         boolQb.should(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
@@ -97,6 +100,8 @@ public class EsSpuNewService {
             //图书商品
             boolQb.should(nestedQuery("book", matchQuery("book.bookName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost)), ScoreMode.None));
+            boolQb.should(nestedQuery("book", matchQuery("book.bookName.keyword", req.getKeyword())
+                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost)), ScoreMode.None));
 
             boolQb.should(nestedQuery("book", matchQuery("book.bookOriginName", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost)), ScoreMode.None));
@@ -109,6 +114,8 @@ public class EsSpuNewService {
 
             boolQb.should(nestedQuery("book", matchQuery("book.publisher", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost)), ScoreMode.None));
+            boolQb.should(nestedQuery("book", matchQuery("book.publisher.keyword", req.getKeyword())
+                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost)), ScoreMode.None));
 
             boolQb.should(nestedQuery("book", matchQuery("book.producer", req.getKeyword())
                     .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost)), ScoreMode.None));
@@ -152,11 +159,11 @@ public class EsSpuNewService {
         if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.DEFAULT.getCode())) {
 //            order = new FieldSortBuilder("_score").order(SortOrder.DESC);
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.SCORE.getCode())) {
-            order = new FieldSortBuilder("book.score").order(SortOrder.DESC);
+            order = new FieldSortBuilder("book.score").order(SortOrder.DESC).setNestedSort(new NestedSortBuilder("book"));
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.NEW_ADDED.getCode())) {
             order = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.FAVOR_COMMENT.getCode())) {
-            order = new FieldSortBuilder("favorCommentRate").order(SortOrder.DESC);
+            order = new FieldSortBuilder("comment.goodEvaluateRatio").order(SortOrder.DESC).setNestedSort(new NestedSortBuilder("comment"));
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.HIGH_PRICE.getCode())) {
             order = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.LOWER_PRICE.getCode())) {

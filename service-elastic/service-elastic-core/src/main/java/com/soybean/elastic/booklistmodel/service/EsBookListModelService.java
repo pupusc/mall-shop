@@ -79,6 +79,8 @@ public class EsBookListModelService {
                 boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
         boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
                 .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
+        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
+                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None));
 
         return boolQb;
     }

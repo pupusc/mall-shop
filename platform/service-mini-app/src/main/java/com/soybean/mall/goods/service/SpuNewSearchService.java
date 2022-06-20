@@ -104,7 +104,7 @@ public class SpuNewSearchService {
         }
 
         //获取goodsInfo信息
-        BigDecimal salePrice = new BigDecimal("9999");
+//        BigDecimal salePrice = new BigDecimal("9999");
         Map<String, GoodsInfoVO> spuId2HasStockGoodsInfoVoMap = new HashMap<>();
         Map<String, GoodsInfoVO> spuId2UnHasStockGoodsInfoVoMap = new HashMap<>();
 

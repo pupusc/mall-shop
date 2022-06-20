@@ -1,4 +1,5 @@
 package com.soybean.elastic.collect.service.booklistmodel.service;
+import com.google.common.collect.Lists;
 
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.booklistmodel.model.sub.EsBookListSubSpuNew;
@@ -11,6 +12,7 @@ import com.wanmi.sbc.goods.api.request.collect.CollectSpuProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectBookListGoodsPublishResponse;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuImageResp;
 import com.wanmi.sbc.goods.bean.vo.CollectSpuVO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class BookListModelSpuCollect extends AbstractBookListModelCollect {
 
 
@@ -149,18 +152,25 @@ public class BookListModelSpuCollect extends AbstractBookListModelCollect {
             for (int i = 0; i<cycleCount; i++) {
                 spuId2CollectSpuVoMap.putAll(this.mapGoodsVo(spuIdList.subList(i * MAX_PAGE_SIZE, Math.min((i + 1) * MAX_PAGE_SIZE, spuIdList.size()))));
             }
-
+            log.info("BookListModelSpuCollect spuId2CollectSpuVoMap {}", spuId2CollectSpuVoMap.keySet());
             if (spuId2CollectSpuVoMap.size() > 0) {
-                for (EsBookListSubSpuNew esBookListSubSpuNew : esBookListModel.getSpus()) {
-                    CollectSpuVO collectSpuVO = spuId2CollectSpuVoMap.get(esBookListSubSpuNew.getSpuId());
+                List<EsBookListSubSpuNew> esBookListSubSpuNews = new ArrayList<>();
+                for (EsBookListSubSpuNew esBookListSubSpuNewParam : esBookListModel.getSpus()) {
+                    CollectSpuVO collectSpuVO = spuId2CollectSpuVoMap.get(esBookListSubSpuNewParam.getSpuId());
                     if (collectSpuVO == null) {
                         continue;
                     }
-                    esBookListSubSpuNew.setSpuName(collectSpuVO.getGoodsName());
+
+                    EsBookListSubSpuNew esBookListSubSpuNew = new EsBookListSubSpuNew();
+                    esBookListSubSpuNew.setSortNum(esBookListSubSpuNewParam.getSortNum());
+                    esBookListSubSpuNew.setSpuId(collectSpuVO.getGoodsId());
                     esBookListSubSpuNew.setChannelTypes(collectSpuVO.getGoodsChannelTypes());
+                    esBookListSubSpuNew.setSpuName(collectSpuVO.getGoodsName());
                     esBookListSubSpuNew.setUnBackgroundPic(collectSpuVO.getGoodsUnBackImg());
                     esBookListSubSpuNew.setPic(collectSpuVO.getMinSalePriceImg());
+                    esBookListSubSpuNews.add(esBookListSubSpuNew);
                 }
+                esBookListModel.setSpus(esBookListSubSpuNews);
 //                spuIdSet.clear(); //辅助GC
 //                spuId2GoodsVoMap.clear(); //辅助GC
             }

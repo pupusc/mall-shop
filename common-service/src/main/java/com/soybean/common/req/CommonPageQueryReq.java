@@ -3,6 +3,7 @@ package com.soybean.common.req;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Description:
@@ -13,6 +14,8 @@ import java.io.Serializable;
  ********************************************************************/
 @Data
 public class CommonPageQueryReq implements Serializable {
+
+    private List<Integer> channelTypes;
 
     private int pageNum = 0;
 
