@@ -81,66 +81,114 @@ public class EsSpuNewService {
         //查询条件
         BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuNewCommonBuilder(req);
 
-        boolQb.must(matchQuery("delFlag", req.getDelFlag()));
-        boolQb.must(matchQuery("auditStatus", 1));
-        boolQb.must(matchQuery("addedFlag", 1));
+        boolQb.must(QueryBuilders.boolQuery()
+                .filter(matchQuery("delFlag", req.getDelFlag()))
+                .filter(matchQuery("auditStatus", 1))
+                .filter(matchQuery("addedFlag", 1))
+                .filter(matchQuery("spuCategory", req.getSearchSpuNewCategory()))
+                .filter(QueryBuilders.boolQuery()
+                        .filter(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)))
+                        .filter(matchQuery("spuName.keyword", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)))
+                        .filter(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)))
+                        .filter(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)))
+                        .filter(matchQuery("classify.classifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)))
+                        .filter(matchQuery("classify.fClassifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)))
 
-        boolQb.must(matchQuery("spuCategory", req.getSearchSpuNewCategory()));
-        boolQb.should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
-        boolQb.should(matchQuery("spuName.keyword", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)));
-        boolQb.should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));
 
-        boolQb.should(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
 
-        if (Objects.equals(req.getSearchSpuNewCategory(), SearchSpuNewCategoryEnum.SPU.getCode())) {
-            //商品
-            boolQb.should(matchQuery("classify.classifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)));
-            boolQb.should(matchQuery("classify.fClassifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)));
-        } else {
-            //图书商品
-            boolQb.should(nestedQuery("book", matchQuery("book.bookName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost)), ScoreMode.None));
-            boolQb.should(nestedQuery("book", matchQuery("book.bookName.keyword", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost)), ScoreMode.None));
+                        .filter(nestedQuery("book", matchQuery("book.bookName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.bookName.keyword", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.bookOriginName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.bookDesc", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DESC, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.authorNames", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AUTHOR_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.publisher", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.publisher.keyword", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.producer", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.clumpName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.awards.awardName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.groupName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.seriesName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SERIES_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.bindingName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.tags.tagName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost)), ScoreMode.None))
+                        .filter(nestedQuery("book", matchQuery("book.tags.sTagName", req.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)), ScoreMode.None))
+                        )
+            );
 
-            boolQb.should(nestedQuery("book", matchQuery("book.bookOriginName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost)), ScoreMode.None));
+//        boolQb.must(matchQuery("delFlag", req.getDelFlag()));
+//        boolQb.must(matchQuery("auditStatus", 1));
+//        boolQb.must(matchQuery("addedFlag", 1));
+//
+//        boolQb.must(matchQuery("spuCategory", req.getSearchSpuNewCategory()));
+//        boolQb.should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
+//        boolQb.should(matchQuery("spuName.keyword", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)));
+//        boolQb.should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));
+//
+//        boolQb.should(matchQuery("anchorRecoms.recomName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
 
-            boolQb.should(nestedQuery("book", matchQuery("book.bookDesc", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DESC, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.authorNames", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AUTHOR_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.publisher", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost)), ScoreMode.None));
-            boolQb.should(nestedQuery("book", matchQuery("book.publisher.keyword", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.producer", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.clumpName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.awards.awardName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.groupName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.seriesName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SERIES_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.bindingName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.tags.tagName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost)), ScoreMode.None));
-
-            boolQb.should(nestedQuery("book", matchQuery("book.tags.sTagName", req.getKeyword())
-                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)), ScoreMode.None));
-        }
+//        if (Objects.equals(req.getSearchSpuNewCategory(), SearchSpuNewCategoryEnum.SPU.getCode())) {
+//            //商品
+//            boolQb.should(matchQuery("classify.classifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)));
+//            boolQb.should(matchQuery("classify.fClassifyName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)));
+//        } else {
+//            //图书商品
+//            boolQb.should(nestedQuery("book", matchQuery("book.bookName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost)), ScoreMode.None));
+//            boolQb.should(nestedQuery("book", matchQuery("book.bookName.keyword", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.bookOriginName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.bookDesc", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DESC, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.authorNames", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AUTHOR_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.publisher", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost)), ScoreMode.None));
+//            boolQb.should(nestedQuery("book", matchQuery("book.publisher.keyword", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.producer", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.clumpName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.awards.awardName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.groupName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.seriesName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SERIES_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.bindingName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.tags.tagName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost)), ScoreMode.None));
+//
+//            boolQb.should(nestedQuery("book", matchQuery("book.tags.sTagName", req.getKeyword())
+//                    .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)), ScoreMode.None));
+//        }
 
 
         return boolQb;
