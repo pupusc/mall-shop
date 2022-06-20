@@ -19,5 +19,5 @@ public class CommonPageQueryReq implements Serializable {
 
     private int pageNum = 0;
 
-    private int pageSize = 10;
+    private int pageSize = 20;
 }
