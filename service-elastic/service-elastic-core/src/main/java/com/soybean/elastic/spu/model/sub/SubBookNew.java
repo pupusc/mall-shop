@@ -57,7 +57,7 @@ public class SubBookNew {
     /**
      * 出版社
      */
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Text, analyzer = ConstantUtil.ES_DEFAULT_ANALYZER, searchAnalyzer = ConstantUtil.ES_DEFAULT_SEARCH_ANALYZER)
     private String publisher;
 
     /**
