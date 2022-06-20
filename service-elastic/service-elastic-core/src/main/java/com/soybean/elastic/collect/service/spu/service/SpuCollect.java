@@ -107,6 +107,14 @@ public class SpuCollect extends AbstractSpuCollect {
         req.setSpuIds(spuIdList);
         List<CollectSpuVO> context = collectSpuProvider.collectSpuBySpuIds(req).getContext();
         if (CollectionUtils.isEmpty(context)) {
+//            整体作废
+            for (T t : list) {
+                EsSpuNew esSpuNew = (EsSpuNew) t;
+                //商品直接作废
+                esSpuNew.setDelFlag(DeleteFlag.YES.toValue());
+                esSpuNew.setAddedFlag(AddedFlag.NO.toValue());
+                esSpuNew.setAuditStatus(Integer.parseInt(AuditStatus.NOT_PASS.toValue()));
+            }
             return list;
         }
         Map<String, CollectSpuVO> spuId2CollectGoodsVoMap =

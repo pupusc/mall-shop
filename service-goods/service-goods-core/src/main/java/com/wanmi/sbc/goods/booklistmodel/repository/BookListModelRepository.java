@@ -43,6 +43,6 @@ public interface BookListModelRepository extends JpaRepository<BookListModelDTO,
      * 根据id采集数据
      * @return
      */
-    @Query(value = "select * from t_book_list_model where del_flag = 0 and id in ?1", nativeQuery = true)
+    @Query(value = "select * from t_book_list_model where del_flag = 0 and publish_state in (1,2) and id in ?1", nativeQuery = true)
     List<BookListModelDTO> collectBookListByBookListIds(List<Integer> bookListIds);
 }
