@@ -49,20 +49,15 @@ public class DeliveryService {
         ConfigQueryRequest request = new ConfigQueryRequest();
         request.setConfigType(ConfigType.KUAIDI100.toValue());
         LogisticsRopResponse response = configService.findKuaiDiConfig(request.getConfigType(), DeleteFlag.NO);
-//        CompositeResponse<LogisticsRopResponse> response
-//                = sdkClient.buildClientRequest().get(LogisticsRopResponse.class, "logistics.find", "1.0.0");
         if (Objects.isNull(response)) {
             throw new SbcRuntimeException(SiteResultCode.ERROR_000001);
         }
         String customer = response.getCustomerKey();
         String kuaidiKey = response.getDeliveryKey();
-//        String param ="{\"com\":\""+code+"\",\"num\":\""+expressNo+"\",\"from\":\"\",\"to\":\"\"}";
-//        String param ="{\"com\":\""+code+"\",\"num\":\""+expressNo+"\",\"from\":\"福建\",\"to\":\"南京\"}";
         //查询参数
         String param = "{\"com\":\"" + queryRequest.getCompanyCode() + "\",\"num\":\"" + queryRequest.getDeliveryNo() + "\"}";
         //加密的签名
         String sign = (MD5Util.md5Hex(param + kuaidiKey + customer, "utf-8")).toUpperCase();
-//        String url = KUAIDI_URL + "?customer=" + customer + "&sign=" + sign + "&param=" + param;
         //查询所需的参数
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("param", param);
