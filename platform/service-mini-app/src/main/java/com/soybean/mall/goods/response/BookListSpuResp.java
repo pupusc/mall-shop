@@ -35,6 +35,11 @@ public class BookListSpuResp {
     private String bookListDesc;
 
     /**
+     * 商品总数量
+     */
+    private Integer surplusSupNum;
+
+    /**
      * 商品列表
      */
     private List<Spu> spus;

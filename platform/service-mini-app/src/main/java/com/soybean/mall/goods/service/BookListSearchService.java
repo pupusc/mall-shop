@@ -77,7 +77,7 @@ public class BookListSearchService {
         }
 
         //获取书单商品信息
-        return this.packBookListSpuResp(esBookListModelRespList, this.filterSpu(bookList2SpuMap, spuNum));
+        return this.packBookListSpuResp(esBookListModelRespList, this.filterSpu(bookList2SpuMap, spuNum), spuNum);
     }
 
     /**
@@ -85,11 +85,13 @@ public class BookListSearchService {
      * @param esBookListModelRespList
      * @return
      */
-    private List<BookListSpuResp> packBookListSpuResp(List<EsBookListModelResp> esBookListModelRespList, Map<Integer, List<EsBookListModelResp.Spu>> bookListId2SpuMap) {
+    private List<BookListSpuResp> packBookListSpuResp(List<EsBookListModelResp> esBookListModelRespList, Map<Integer, List<EsBookListModelResp.Spu>> bookListId2SpuMap, Integer spuNum) {
         List<BookListSpuResp> result = new ArrayList<>();
         for (EsBookListModelResp esBookListModelResp : esBookListModelRespList) {
             BookListSpuResp bookListSpuResp = new BookListSpuResp();
             BeanUtils.copyProperties(esBookListModelResp, bookListSpuResp);
+            int totalSpuNum = CollectionUtils.isEmpty(esBookListModelResp.getSpus()) ? 0 : esBookListModelResp.getSpus().size();
+            bookListSpuResp.setSurplusSupNum(totalSpuNum > spuNum ? 0 : totalSpuNum - spuNum);
 
             List<BookListSpuResp.Spu> spuList = new ArrayList<>();
             List<EsBookListModelResp.Spu> esBookListSpuList = bookListId2SpuMap.getOrDefault(esBookListModelResp.getBookListId().intValue(), new ArrayList<>());
