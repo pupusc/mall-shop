@@ -95,6 +95,8 @@ public class SearchController {
         try {
             KeyWordBookListQueryReq bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
             bookListKeyWordQueryReq.setSpuNum(3);
+            bookListKeyWordQueryReq.setPageNum(1);
+            bookListKeyWordQueryReq.setPageSize(5);
             bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.RANKING_LIST.getCode());
             bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             CommonPageResp<List<BookListSpuResp>> rankingListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
@@ -108,6 +110,8 @@ public class SearchController {
         try {
             KeyWordBookListQueryReq bookListKeyWordQueryReq = new KeyWordBookListQueryReq();
             bookListKeyWordQueryReq.setSpuNum(5);
+            bookListKeyWordQueryReq.setPageNum(1);
+            bookListKeyWordQueryReq.setPageSize(5);
             bookListKeyWordQueryReq.setSearchBookListCategory(SearchBookListCategoryEnum.BOOK_LIST.getCode());
             bookListKeyWordQueryReq.setKeyword(keyWordQueryReq.getKeyword());
             CommonPageResp<List<BookListSpuResp>> bookListPage = this.keywordBookListSearch(bookListKeyWordQueryReq).getContext();
