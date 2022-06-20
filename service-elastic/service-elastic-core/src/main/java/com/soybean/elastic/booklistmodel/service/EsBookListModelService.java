@@ -73,14 +73,25 @@ public class EsBookListModelService {
         }
         //查询条件
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        boolQb.must(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
-        boolQb.must(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
-        boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
-                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
-        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
-                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
-        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
-                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None));
+        boolQb.must(QueryBuilders.boolQuery()
+                .filter(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()))
+                .filter(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()))
+                .filter(QueryBuilders.boolQuery()
+                        .should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
+                                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)))
+                        .should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None))
+                        .should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
+                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None))));
+
+//        boolQb.must(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
+//        boolQb.must(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
+//        boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
+//                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
+//        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
+//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
+//        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
+//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None));
 
         return boolQb;
     }
