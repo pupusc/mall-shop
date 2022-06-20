@@ -173,10 +173,10 @@ public class EsSpuNewService {
             fieldSortBuilders.add(order);
         }
 
-        FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
-        FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
-        FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
-        fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
+//        FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
+//        FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
+//        FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
+//        fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
         return fieldSortBuilders;
     }
 
