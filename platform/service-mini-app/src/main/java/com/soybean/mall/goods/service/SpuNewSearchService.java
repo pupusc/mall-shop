@@ -24,6 +24,7 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
@@ -116,7 +117,13 @@ public class SpuNewSearchService {
         List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByCondition(request).getContext().getGoodsInfos();
         if (!CollectionUtils.isEmpty(goodsInfos)) {
             MarketingPluginGoodsListFilterRequest filterRequest = new MarketingPluginGoodsListFilterRequest();
-            filterRequest.setGoodsInfos(KsBeanUtil.convert(goodsInfos, GoodsInfoDTO.class));
+            List<GoodsInfoDTO> goodsInfoDTOS = new ArrayList<>();
+            for (GoodsInfoVO goodsInfo : goodsInfos) {
+                GoodsInfoDTO goodsInfoDTO = KsBeanUtil.convert(goodsInfo, GoodsInfoDTO.class);
+                goodsInfoDTO.setPriceType(GoodsPriceType.MARKET.toValue()); //此处强制设置为市场价来计算折扣
+                goodsInfoDTOS.add(goodsInfoDTO);
+            }
+            filterRequest.setGoodsInfos(goodsInfoDTOS);
             if (Objects.nonNull(customer)) {
                 filterRequest.setCustomerDTO(KsBeanUtil.convert(customer, CustomerDTO.class));
             }
