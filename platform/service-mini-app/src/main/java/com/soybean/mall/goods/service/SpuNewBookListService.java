@@ -8,6 +8,7 @@ import com.soybean.elastic.api.provider.booklistmodel.EsBookListModelProvider;
 import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
+import com.wanmi.sbc.goods.api.enums.BusinessTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Description: 商品书单信息
@@ -72,14 +74,21 @@ public class SpuNewBookListService {
                     //如果存在商品id，则存入到map中，然后从list中remove掉,下次请求剩余的商品
                     if (tmpSpuIdList.contains(spuTmp.getSpuId())) {
                         SpuRecomBookListDTO spuRecomBookListDTO = new SpuRecomBookListDTO();
-                        spuRecomBookListDTO.setBookListId(esBookListModelResp.getBookListId());
-                        spuRecomBookListDTO.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
-                        spuRecomBookListDTO.setBookListName(esBookListModelResp.getBookListName());
+
 
                         Spu spu = new Spu();
                         spu.setSpuId(spuTmp.getSpuId());
                         spu.setSortNum(spuTmp.getSortNum());
                         spuRecomBookListDTO.setSpu(spu);
+
+                        spuRecomBookListDTO.setBookListId(esBookListModelResp.getBookListId());
+                        spuRecomBookListDTO.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
+                        spuRecomBookListDTO.setBookListName(esBookListModelResp.getBookListName());
+                        if (Objects.equals(esBookListModelResp.getBookListBusinessType(), BusinessTypeEnum.RANKING_LIST.getCode())) {
+                            spuRecomBookListDTO.setBookListNameShow(String.format("入选「%s」排行榜第%d名", esBookListModelResp.getBookListName(), spuTmp.getSortNum()));
+                        } else {
+                            spuRecomBookListDTO.setBookListNameShow(String.format("收录在「%s」中", esBookListModelResp.getBookListName()));
+                        }
                         spuId2BookListMap.put(spuTmp.getSpuId(), spuRecomBookListDTO);
                         tmpSpuIdList.remove(spuTmp.getSpuId());
                     }

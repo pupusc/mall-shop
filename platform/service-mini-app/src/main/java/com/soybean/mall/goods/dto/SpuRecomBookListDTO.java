@@ -28,6 +28,10 @@ public class SpuRecomBookListDTO {
      */
     private String bookListName;
 
+    /**
+     * 页面展示内容
+     */
+    private String bookListNameShow;
 
     /**
      * 商品信息

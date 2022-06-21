@@ -91,7 +91,7 @@ public class BookListSearchService {
             BookListSpuResp bookListSpuResp = new BookListSpuResp();
             BeanUtils.copyProperties(esBookListModelResp, bookListSpuResp);
             int totalSpuNum = CollectionUtils.isEmpty(esBookListModelResp.getSpus()) ? 0 : esBookListModelResp.getSpus().size();
-            bookListSpuResp.setSurplusSupNum(totalSpuNum > spuNum ? 0 : totalSpuNum - spuNum);
+            bookListSpuResp.setSurplusSupNum(totalSpuNum <= spuNum ? 0 : totalSpuNum - spuNum);
 
             List<BookListSpuResp.Spu> spuList = new ArrayList<>();
             List<EsBookListModelResp.Spu> esBookListSpuList = bookListId2SpuMap.getOrDefault(esBookListModelResp.getBookListId().intValue(), new ArrayList<>());
