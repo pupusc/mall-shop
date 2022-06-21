@@ -20,6 +20,7 @@ import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -80,6 +81,7 @@ public class EsSpuNewService {
         }
         //查询条件
         BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuNewCommonBuilder(req);
+        req.setKeyword(QueryParser.escape(req.getKeyword()));
 
         boolQb.must(QueryBuilders.boolQuery()
                 .filter(matchQuery("delFlag", req.getDelFlag()))
@@ -206,6 +208,7 @@ public class EsSpuNewService {
         FieldSortBuilder order = null;
         if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.DEFAULT.getCode())) {
 //            order = new FieldSortBuilder("_score").order(SortOrder.DESC);
+
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.SCORE.getCode())) {
             order = new FieldSortBuilder("book.score").order(SortOrder.DESC).setNestedSort(new NestedSortBuilder("book"));
         } else if (Objects.equals(sortQueryProviderReq.getSpuSortType(), SearchSpuNewSortTypeEnum.NEW_ADDED.getCode())) {
