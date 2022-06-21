@@ -64,7 +64,7 @@ public class DeliveryService {
             return deliverLogisticsList;
         }
 
-        JSONArray detailList = JSONArray.parseArray(resultJson.get("list").toString());
+        JSONArray detailList = resultJson.getJSONArray("list");
         if (detailList != null && detailList.size() > 0) {
             for (int i = 0; i < detailList.size(); i++) {
                 JSONObject jobj = JSON.parseObject(detailList.get(i).toString(), JSONObject.class);
