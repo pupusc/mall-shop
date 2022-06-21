@@ -2,10 +2,8 @@ package com.wanmi.sbc.goods.collect;
 
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.goods.api.request.collect.CollectCommentProviderReq;
-import com.wanmi.sbc.goods.api.response.collect.CollectClassifyRelSpuResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuDetailResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuResp;
-import com.wanmi.sbc.goods.classify.model.root.ClassifyGoodsRelDTO;
 import com.wanmi.sbc.goods.goodsevaluate.model.root.GoodsEvaluate;
 import com.wanmi.sbc.goods.goodsevaluate.repository.GoodsEvaluateRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -59,13 +57,18 @@ public class CollectCommentService {
      * @return
      */
     public List<CollectCommentRelSpuDetailResp> collectCommentBySpuIds(CollectCommentProviderReq req) {
-        List<CollectCommentRelSpuDetailResp> commentList = classifyRepository.collectCommentSumBySpuIds(req.getSpuIds());
+        List<Map> mapList = classifyRepository.collectCommentSumBySpuIds(req.getSpuIds());
+
+        List<CollectCommentRelSpuDetailResp> commentList = KsBeanUtil.convert(mapList, CollectCommentRelSpuDetailResp.class);
         if (commentList != null && commentList.size() != 0) {
-            List<CollectCommentRelSpuDetailResp> goodsCommentList = classifyRepository.collectCommentGoodSumBySpuIds(req.getSpuIds());
+            List<Map> mapGoodsCommentList = classifyRepository.collectCommentGoodSumBySpuIds(req.getSpuIds());
+            List<CollectCommentRelSpuDetailResp> goodsCommentList = KsBeanUtil.convert(mapGoodsCommentList, CollectCommentRelSpuDetailResp.class);
             Map<String, BigDecimal> goodsCommentMap = goodsCommentList.stream().collect(Collectors.toMap(CollectCommentRelSpuDetailResp::getGoodsId, CollectCommentRelSpuDetailResp::getGoodEvaluateSum));
             for (CollectCommentRelSpuDetailResp comment : commentList) {
                 if (goodsCommentMap.get(comment.getGoodsId()) != null) {
                     comment.setGoodEvaluateRatio(goodsCommentMap.get(comment.getGoodsId()).divide(comment.getEvaluateSum(), 2, RoundingMode.HALF_UP).toString());
+                } else {
+                    comment.setGoodEvaluateRatio("0");
                 }
             }
         }

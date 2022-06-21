@@ -1,10 +1,10 @@
 package com.wanmi.sbc.goods.api.response.collect;
 
-import com.wanmi.sbc.common.enums.TerminalSource;
 import lombok.Data;
 
+import javax.persistence.Column;
+import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * Description: 采集店铺分类
@@ -14,22 +14,25 @@ import java.time.LocalDateTime;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Data
-public class CollectCommentRelSpuDetailResp {
-
+public class CollectCommentRelSpuDetailResp implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 商品id(spuId)
      */
+    @Column(name = "goodsId")
     private String goodsId;
 
     /**
      * 总评数
      */
+    @Column(name = "evaluateSum")
     private BigDecimal evaluateSum;
 
     /**
      * 好评数
      */
+    @Column(name = "goodEvaluateSum")
     private BigDecimal goodEvaluateSum;
 
     /**

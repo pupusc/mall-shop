@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -88,13 +89,13 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
      * 根据spu id采集数据
      * @return
      */
-    @Query(value = "select goods_id as goodsId, count(*) as evaluateSum from goods_evaluate where del_flag = 0 and evaluate_catetory = 0 and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
-    List<CollectCommentRelSpuDetailResp> collectCommentSumBySpuIds(List<String> goodsIds);
+    @Query(value = "select goods_id as goodsId, count(*) as evaluateSum from goods_evaluate where del_flag = 0  and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
+    List<Map> collectCommentSumBySpuIds(List<String> goodsIds);
     /**
      * 根据spu id采集数据
      * @return
      */
-    @Query(value = "select goods_id as goodsId, count(*) as goodEvaluateSum from goods_evaluate where del_flag = 0 and evaluate_catetory = 0 and evaluate_score = 5 and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
-    List<CollectCommentRelSpuDetailResp> collectCommentGoodSumBySpuIds(List<String> goodsIds);
+    @Query(value = "select goods_id as goodsId, count(*) as goodEvaluateSum from goods_evaluate where del_flag = 0  and evaluate_score >= 4 and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
+    List<Map> collectCommentGoodSumBySpuIds(List<String> goodsIds);
 
 }
