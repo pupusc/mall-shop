@@ -88,7 +88,7 @@ public class EsSpuNewService {
                 .filter(matchQuery("auditStatus", 1))
                 .filter(matchQuery("addedFlag", 1))
                 .filter(matchQuery("spuCategory", req.getSearchSpuNewCategory()))
-                .filter(QueryBuilders.boolQuery()
+                .must(QueryBuilders.boolQuery()
                         .should(matchQuery("spuName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)))
                         .should(matchQuery("spuName.keyword", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)))
                         .should(matchQuery("spuSubName", req.getKeyword()).boost(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)))
