@@ -8,6 +8,7 @@ import com.wanmi.sbc.goods.api.request.collect.CollectCommentProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuDetailResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuResp;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  * Date       : 2022/6/13 3:31 上午
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
+@Service
 public class CommentCollect extends AbstractSpuCollect {
 
     @Autowired
