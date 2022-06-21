@@ -236,8 +236,8 @@ public class SpuNewSearchService {
             //获取书单排行榜信息
             SpuRecomBookListDTO spuRecomBookListDTO = spuId2SpuRecomBookListDTOMap.get(esSpuNewRespParam.getSpuId());
             BookList bookList = spuRecomBookListDTO != null ?
-                    new BookList(spuRecomBookListDTO.getBookListName(), spuRecomBookListDTO.getSpu() == null ? 1
-                            : spuRecomBookListDTO.getSpu().getSortNum()) : null;
+                    new BookList(spuRecomBookListDTO.getBookListNameShow(),spuRecomBookListDTO.getBookListName(), spuRecomBookListDTO.getSpu() == null ? 1
+                            : spuRecomBookListDTO.getSpu().getSortNum(), spuRecomBookListDTO.getBookListBusinessType()) : null;
             spuNewBookListResp.setBookList(bookList);
 
             //获取图书信息

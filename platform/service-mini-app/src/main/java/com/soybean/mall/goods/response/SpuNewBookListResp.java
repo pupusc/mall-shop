@@ -86,6 +86,11 @@ public class SpuNewBookListResp {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class BookList {
+
+        /**
+         * 书单展示内容【拼接好的】
+         */
+        private String bookListNameShow;
         /**
          * 书单名称
          */
@@ -95,6 +100,9 @@ public class SpuNewBookListResp {
          * 排序
          */
         private Integer sortNum;
+
+
+        private Integer bookListBusinessType;
     }
 
     /**
