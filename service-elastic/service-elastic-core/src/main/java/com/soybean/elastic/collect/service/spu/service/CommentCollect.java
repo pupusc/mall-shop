@@ -75,8 +75,8 @@ public class CommentCollect extends AbstractSpuCollect {
                 continue;
             }
             SubCommentNew subCommentNew = new SubCommentNew();
-            subCommentNew.setEvaluateSum(collectClassifyRelSpuDetailResp.getEvaluateSum().intValue());
-            subCommentNew.setGoodEvaluateSum(collectClassifyRelSpuDetailResp.getGoodEvaluateSum().intValue());
+            subCommentNew.setEvaluateSum(collectClassifyRelSpuDetailResp.getEvaluateSum() == null ? 0 : collectClassifyRelSpuDetailResp.getEvaluateSum().intValue());
+            subCommentNew.setGoodEvaluateSum(collectClassifyRelSpuDetailResp.getGoodEvaluateSum() == null ? 0 : collectClassifyRelSpuDetailResp.getGoodEvaluateSum().intValue());
             subCommentNew.setGoodEvaluateRatio(collectClassifyRelSpuDetailResp.getGoodEvaluateRatio());
             esSpuNew.setComment(subCommentNew);
         }

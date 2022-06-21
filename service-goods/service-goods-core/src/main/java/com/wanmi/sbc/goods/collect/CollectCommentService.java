@@ -65,9 +65,12 @@ public class CollectCommentService {
             List<CollectCommentRelSpuDetailResp> goodsCommentList = KsBeanUtil.convert(mapGoodsCommentList, CollectCommentRelSpuDetailResp.class);
             Map<String, BigDecimal> goodsCommentMap = goodsCommentList.stream().collect(Collectors.toMap(CollectCommentRelSpuDetailResp::getGoodsId, CollectCommentRelSpuDetailResp::getGoodEvaluateSum));
             for (CollectCommentRelSpuDetailResp comment : commentList) {
+
                 if (goodsCommentMap.get(comment.getGoodsId()) != null) {
+                    comment.setGoodEvaluateSum(goodsCommentMap.get(comment.getGoodsId()));
                     comment.setGoodEvaluateRatio(goodsCommentMap.get(comment.getGoodsId()).divide(comment.getEvaluateSum(), 2, RoundingMode.HALF_UP).toString());
                 } else {
+                    comment.setGoodEvaluateSum(new BigDecimal(0));
                     comment.setGoodEvaluateRatio("0");
                 }
             }
