@@ -85,7 +85,7 @@ public class SpuNewBookListService {
                         spuRecomBookListDTO.setBookListBusinessType(esBookListModelResp.getBookListBusinessType());
                         spuRecomBookListDTO.setBookListName(esBookListModelResp.getBookListName());
                         if (Objects.equals(esBookListModelResp.getBookListBusinessType(), BusinessTypeEnum.RANKING_LIST.getCode())) {
-                            spuRecomBookListDTO.setBookListNameShow(String.format("入选「%s」排行榜第%d名", esBookListModelResp.getBookListName(), spuTmp.getSortNum()));
+                            spuRecomBookListDTO.setBookListNameShow(String.format("%s排行榜第%d名", esBookListModelResp.getBookListName(), spuTmp.getSortNum()));
                         } else {
                             spuRecomBookListDTO.setBookListNameShow(String.format("收录在「%s」中", esBookListModelResp.getBookListName()));
                         }
