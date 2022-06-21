@@ -41,7 +41,12 @@ public class DeliveryService {
 //    private static final String KUAIDI_URL = "http://poll.kuaidi100.com/poll/query.do";
     private static final String KUAIDI_URL = "https://wuliu.market.alicloudapi.com/kdi?no=JDVB16185218521";
 
-
+    /**
+     * 自定义的物流查询
+     * @param queryRequest
+     * @return
+     * @throws Exception
+     */
     public List<Map<Object, Object>> queryExpressInfoUrl(DeliveryQueryRequest queryRequest) throws Exception {
         List<Map<Object, Object>> deliverLogisticsList = new ArrayList<Map<Object, Object>>();
         String result = "";
@@ -67,8 +72,8 @@ public class DeliveryService {
         JSONArray detailList = resultJson.getJSONArray("list");
         if (detailList != null && detailList.size() > 0) {
             for (int i = 0; i < detailList.size(); i++) {
-                JSONObject jobj = JSON.parseObject(detailList.get(i).toString(), JSONObject.class);
-                Map<Object, Object> map = new HashMap<Object, Object>();
+                JSONObject jobj = detailList.getJSONObject(i);
+                Map<Object, Object> map = new HashMap<>();
                 map.put("time", jobj.get("time"));
                 map.put("context", jobj.get("status"));
                 deliverLogisticsList.add(map);
