@@ -61,7 +61,7 @@ public class DeliveryService {
         log.info("DeliveryService queryExpressInfoUrl 获取结果信息为：{}", result);
         // 格式化数据
         JSONObject reslutJsonAll = JSONObject.parseObject(result);
-        if (Objects.equals(reslutJsonAll.getString("status"), "0")) {
+        if (!Objects.equals(reslutJsonAll.getString("status"), "0")) {
             throw new SbcRuntimeException("K-999999");
         }
         JSONObject resultJson = reslutJsonAll.getJSONObject("result");
