@@ -83,9 +83,9 @@ public class CollectMetaBookResp {
     @Data
     public static class Tag {
 
-        private Integer sTagId;
+        private Integer stagId;
 
-        private String sTagName;
+        private String stagName;
 
         private Integer tagId;
 

@@ -22,10 +22,10 @@ public class CollectClassifyRelSpuDetailResp extends CollectClassifyRelSpuResp{
     /**
      * 1级店铺分类id
      */
-    private Integer fClassifyId;
+    private Integer fclassifyId;
 
     /**
      * 1级别店铺分类名称
      */
-    private String fClasssifyName;
+    private String fclasssifyName;
 }

@@ -16,13 +16,13 @@ public class SubClassifyNew {
 
 
     @Field(type = FieldType.Integer)
-    private Integer fClassifyId;
+    private Integer fclassifyId;
 
     /**
      * 店铺分类名称
      */
     @Field(type = FieldType.Keyword)
-    private String fClassifyName;
+    private String fclassifyName;
 
 
     @Field(type = FieldType.Integer)

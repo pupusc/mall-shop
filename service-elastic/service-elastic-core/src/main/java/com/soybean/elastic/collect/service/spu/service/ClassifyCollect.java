@@ -1,4 +1,5 @@
 package com.soybean.elastic.collect.service.spu.service;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 
 import com.soybean.elastic.collect.service.spu.AbstractSpuCollect;
@@ -10,6 +11,7 @@ import com.wanmi.sbc.goods.api.request.collect.CollectClassifyProviderReq;
 import com.wanmi.sbc.goods.api.response.classify.ClassifyProviderResponse;
 import com.wanmi.sbc.goods.api.response.collect.CollectClassifyRelSpuDetailResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectClassifyRelSpuResp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class ClassifyCollect extends AbstractSpuCollect {
 
     @Autowired
@@ -118,9 +121,10 @@ public class ClassifyCollect extends AbstractSpuCollect {
             if (collectClassifyRelSpuDetailResp == null) {
                 continue;
             }
+            log.info("ClassifyCollect collect collectClassifyRelSpuDetailResp {}", JSON.toJSONString(collectClassifyRelSpuDetailResp));
             SubClassifyNew subClassifyNew = new SubClassifyNew();
-            subClassifyNew.setFClassifyId(collectClassifyRelSpuDetailResp.getFClassifyId());
-            subClassifyNew.setFClassifyName(collectClassifyRelSpuDetailResp.getFClasssifyName());
+            subClassifyNew.setFclassifyId(collectClassifyRelSpuDetailResp.getFclassifyId());
+            subClassifyNew.setFclassifyName(collectClassifyRelSpuDetailResp.getFclasssifyName());
             subClassifyNew.setClassifyId(collectClassifyRelSpuDetailResp.getClassifyId());
             subClassifyNew.setClassifyName(collectClassifyRelSpuDetailResp.getClassifyName());
             esSpuNew.setClassify(subClassifyNew);

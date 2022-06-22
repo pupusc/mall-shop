@@ -124,8 +124,8 @@ public class BookCollect extends AbstractSpuCollect {
             List<CollectMetaBookResp.Tag> tags = collectMetaBookResp.getTags() == null ? new ArrayList<>() : collectMetaBookResp.getTags();
             for (CollectMetaBookResp.Tag tag : tags) {
                 SubBookLabelNew subBookLabelNew = new SubBookLabelNew();
-                subBookLabelNew.setSTagId(tag.getSTagId());
-                subBookLabelNew.setSTagName(tag.getSTagName());
+                subBookLabelNew.setStagId(tag.getStagId());
+                subBookLabelNew.setStagName(tag.getStagName());
                 subBookLabelNew.setTagId(tag.getTagId());
                 subBookLabelNew.setTagName(tag.getTagName());
                 bookLabelNews.add(subBookLabelNew);

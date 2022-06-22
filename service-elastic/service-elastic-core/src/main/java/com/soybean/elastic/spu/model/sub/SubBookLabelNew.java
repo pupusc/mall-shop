@@ -27,10 +27,10 @@ public class SubBookLabelNew {
      * 2级标签
      */
     @Field(type = FieldType.Integer)
-    private Integer sTagId;
+    private Integer stagId;
 
     @Field(type = FieldType.Keyword)
-    private String sTagName;
+    private String stagName;
 
     /**
      * 3级标签

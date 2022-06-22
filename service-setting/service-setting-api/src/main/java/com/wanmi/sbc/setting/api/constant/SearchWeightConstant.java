@@ -130,10 +130,10 @@ public class SearchWeightConstant {
      */
     public static final String BOOK_GROUP_NAME = "BOOK_GROUP_NAME";
 
-    /**
-     * 套系名
-     */
-    public static final String BOOK_SERIES_NAME = "BOOK_SERIES_NAME";
+//    /**
+//     * 套系名
+//     */
+//    public static final String BOOK_SERIES_NAME = "BOOK_SERIES_NAME";
 
     /**
      * 装帧

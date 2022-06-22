@@ -113,8 +113,8 @@ public class CollectClassifyService {
 
             CollectClassifyRelSpuDetailResp collectClassifyRelSpuDetailResp = new CollectClassifyRelSpuDetailResp();
             collectClassifyRelSpuDetailResp.setClassifyName(secondClassifyDTO.getClassifyName());
-            collectClassifyRelSpuDetailResp.setFClassifyId(firstClassifyDTO.getId());
-            collectClassifyRelSpuDetailResp.setFClasssifyName(firstClassifyDTO.getClassifyName());
+            collectClassifyRelSpuDetailResp.setFclassifyId(firstClassifyDTO.getId());
+            collectClassifyRelSpuDetailResp.setFclasssifyName(firstClassifyDTO.getClassifyName());
             collectClassifyRelSpuDetailResp.setClassifyId(secondClassifyDTO.getId());
             collectClassifyRelSpuDetailResp.setSpuId(classifyGoodsRelDTO.getGoodsId());
             collectClassifyRelSpuDetailResp.setUpdateTime(classifyGoodsRelDTO.getUpdateTime());

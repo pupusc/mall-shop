@@ -354,7 +354,7 @@ public class CollectMetaBookService extends AbstractCollectBookService{
             MetaLabel thirdMetaLabel = thirdLabelId2ModelMap.get(metaBookLabel.getLabelId());
             if (thirdMetaLabel != null) {
                 CollectMetaBookResp.Tag tag = new CollectMetaBookResp.Tag();
-                tag.setSTagId(thirdMetaLabel.getParentId());
+                tag.setStagId(thirdMetaLabel.getParentId());
                 tag.setTagId(thirdMetaLabel.getId());
                 tag.setTagName(thirdMetaLabel.getName());
                 tags.add(tag);
@@ -371,9 +371,9 @@ public class CollectMetaBookService extends AbstractCollectBookService{
         bookId2TagsMap.forEach((K, V) -> {
             //填充二级名称
             for (CollectMetaBookResp.Tag tag : V) {
-                MetaLabel secondMetaLabel = secondLabelId2ModelMap.get(tag.getSTagId());
+                MetaLabel secondMetaLabel = secondLabelId2ModelMap.get(tag.getStagId());
                 if (secondMetaLabel != null) {
-                    tag.setSTagName(secondMetaLabel.getName());
+                    tag.setStagName(secondMetaLabel.getName());
                 }
             }
         });
