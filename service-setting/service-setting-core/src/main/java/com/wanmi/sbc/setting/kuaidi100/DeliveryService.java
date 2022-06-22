@@ -14,6 +14,7 @@ import com.wanmi.sbc.setting.api.response.systemconfig.LogisticsRopResponse;
 import com.wanmi.sbc.setting.bean.enums.ConfigType;
 import com.wanmi.sbc.setting.config.ConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
@@ -39,7 +40,7 @@ public class DeliveryService {
      * kuaidi100 请求地址
      */
 //    private static final String KUAIDI_URL = "http://poll.kuaidi100.com/poll/query.do";
-    private static final String KUAIDI_URL = "https://wuliu.market.alicloudapi.com/kdi?no=JDVB16185218521";
+    private static final String KUAIDI_URL = "https://wuliu.market.alicloudapi.com/kdi";
 
     /**
      * 自定义的物流查询
@@ -48,12 +49,18 @@ public class DeliveryService {
      * @throws Exception
      */
     public List<Map<Object, Object>> queryExpressInfoUrl(DeliveryQueryRequest queryRequest) throws Exception {
-        List<Map<Object, Object>> deliverLogisticsList = new ArrayList<Map<Object, Object>>();
+        List<Map<Object, Object>> deliverLogisticsList = new ArrayList<>();
+
+        if (StringUtils.isBlank(queryRequest.getDeliveryNo())) {
+            return deliverLogisticsList;
+        }
         String result = "";
         Map<String, String> headers= new HashMap<>();
         headers.put("Authorization","APPCODE dc811f0f955f41978c754064215e0eb2");
+
+        Map<String, String> querys = new HashMap<>();
+        querys.put("no", queryRequest.getDeliveryNo());
         HttpResponse httpResponse = HttpUtil.doGet(KUAIDI_URL, "", "", headers, null);
-        log.info("");
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new SbcRuntimeException("K-999999");
         }
