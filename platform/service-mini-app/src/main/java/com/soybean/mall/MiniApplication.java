@@ -4,6 +4,7 @@ import com.wanmi.sbc.common.configure.CompositePropertySourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
@@ -14,7 +15,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @PropertySource(value = {"application.properties","api-application.properties"}, factory = CompositePropertySourceFactory.class)
-@SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"})
+@SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"}, exclude = MongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
