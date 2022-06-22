@@ -109,6 +109,11 @@ public class CollectSpuService {
         for (Goods goods : goodsList) {
             CollectSpuVO collectSpuVo = new CollectSpuVO();
             BeanUtils.copyProperties(goods, collectSpuVo);
+            //如果规格有问题，则直接下架商品
+            if (skuId2GoodsInfoMap.get(goods.getGoodsId()) == null) {
+                collectSpuVo.setAddedFlag(AddedFlag.NO.toValue());
+                collectSpuVo.setDelFlag(DeleteFlag.YES);
+            }
             String goodsInfoImg = "";
             //规格图
             if (skuId2GoodsInfoMap.get(goods.getGoodsId()) != null) {
