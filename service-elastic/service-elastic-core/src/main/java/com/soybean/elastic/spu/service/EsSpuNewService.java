@@ -94,7 +94,7 @@ public class EsSpuNewService {
         boolQb.should().add(matchQuery("classify.fClassifyName", req.getKeyword()));
 
         boolQb.should().add(nestedQuery("book", matchQuery("book.bookName", req.getKeyword()), ScoreMode.None));
-        boolQb.should().add(nestedQuery("book", matchQuery("book.bookName.keyword", req.getKeyword()), ScoreMode.None));
+        boolQb.should().add(nestedQuery("book", termQuery("book.bookName.keyword", req.getKeyword()), ScoreMode.None));
         boolQb.should().add(nestedQuery("book", matchQuery("book.bookOriginName", req.getKeyword()), ScoreMode.None));
         boolQb.should().add(nestedQuery("book", matchQuery("book.bookDesc", req.getKeyword()), ScoreMode.None));
         boolQb.should().add(nestedQuery("book", matchQuery("book.authorNames", req.getKeyword()), ScoreMode.None));
@@ -123,7 +123,7 @@ public class EsSpuNewService {
             searchWeightMap.put(searchWeightResp.getWeightKey(), Float.parseFloat(searchWeightResp.getWeightValue()));
         }
 
-        FunctionScoreQueryBuilder.FilterFunctionBuilder[] arr = new FunctionScoreQueryBuilder.FilterFunctionBuilder[25];
+        FunctionScoreQueryBuilder.FilterFunctionBuilder[] arr = new FunctionScoreQueryBuilder.FilterFunctionBuilder[21];
         FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary1 = new FunctionScoreQueryBuilder
                 .FilterFunctionBuilder(QueryBuilders.matchQuery("spuName", req.getKeyword())
                 , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
@@ -189,17 +189,21 @@ public class EsSpuNewService {
                 , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)));
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary22 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery("delFlag", 0)
-                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary23 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery("auditStatus", 1)
-                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary24 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery("addedFlag", 1)
-                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary25 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery("spuCategory", 1)
-                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
+                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery("book.tags.sTagName",req.getKeyword()), ScoreMode.None)
+                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)));
+
+//        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary22 = new FunctionScoreQueryBuilder
+//                .FilterFunctionBuilder(QueryBuilders.matchQuery("delFlag", 0)
+//                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
+//        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary23 = new FunctionScoreQueryBuilder
+//                .FilterFunctionBuilder(QueryBuilders.matchQuery("auditStatus", 1)
+//                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
+//        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary24 = new FunctionScoreQueryBuilder
+//                .FilterFunctionBuilder(QueryBuilders.matchQuery("addedFlag", 1)
+//                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
+//        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary25 = new FunctionScoreQueryBuilder
+//                .FilterFunctionBuilder(QueryBuilders.matchQuery("spuCategory", 1)
+//                , ScoreFunctionBuilders.weightFactorFunction(defaultBoost));
         arr[0] = voluntary1;
         arr[1] = voluntary2;
         arr[2] = voluntary3;
@@ -222,10 +226,10 @@ public class EsSpuNewService {
         arr[19] = voluntary20;
         arr[20] = voluntary21;
 
-        arr[21] = voluntary22;
-        arr[22] = voluntary23;
-        arr[23] = voluntary24;
-        arr[24] = voluntary25;
+//        arr[21] = voluntary22;
+//        arr[22] = voluntary23;
+//        arr[23] = voluntary24;
+//        arr[24] = voluntary25;
         return arr;
     }
 
@@ -255,12 +259,11 @@ public class EsSpuNewService {
         }
         if (order != null) {
             fieldSortBuilders.add(order);
+            FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
+            FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
+            FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
+            fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
         }
-
-//        FieldSortBuilder order1 = new FieldSortBuilder("salesNum").order(SortOrder.DESC);
-//        FieldSortBuilder order2 = new FieldSortBuilder("salesPrice").order(SortOrder.DESC);
-//        FieldSortBuilder order3 = new FieldSortBuilder("addedTime").order(SortOrder.DESC);
-//        fieldSortBuilders.addAll(Arrays.asList(order1, order2, order3));
         return fieldSortBuilders;
     }
 

@@ -30,12 +30,12 @@ public class SearchWeightConstant {
     /**
      * 商品名称
      */
-    public static final String BOOK_LIST_SEARCH_WEIGHT_SPU_NAME = "SPU_NAME";
+    public static final String BOOK_LIST_SEARCH_WEIGHT_SPU_NAME = "BOOK_LIST_SPU_NAME";
 
     /**
      * 商品详细名称
      */
-    public static final String BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME = "SPU_DIM_NAME";
+    public static final String BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME = "BOOK_LIST_SPU_DIM_NAME";
 
 
     /***************** 商品信息 *******************/
