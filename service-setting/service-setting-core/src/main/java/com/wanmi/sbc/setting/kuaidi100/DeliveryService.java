@@ -60,7 +60,7 @@ public class DeliveryService {
 
         Map<String, String> querys = new HashMap<>();
         querys.put("no", queryRequest.getDeliveryNo());
-        HttpResponse httpResponse = HttpUtil.doGet(KUAIDI_URL, "", "", headers, null);
+        HttpResponse httpResponse = HttpUtil.doGet(KUAIDI_URL, "", "", headers, querys);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new SbcRuntimeException("K-999999");
         }
