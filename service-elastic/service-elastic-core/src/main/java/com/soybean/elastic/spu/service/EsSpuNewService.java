@@ -26,6 +26,7 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
@@ -112,7 +113,7 @@ public class EsSpuNewService {
         spuWeightMap.put(ConstantMultiMatchField.FIELD_SPU_ANCHORRECOMS_RECOMNAME, searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost));
         spuWeightMap.put(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_CLASSIFYNAME, searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost));
         spuWeightMap.put(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_FCLASSIFYNAME, searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost));
-        boolQb.should().add(QueryBuilders.multiMatchQuery(req.getKeyword(), spuAttr).fields(spuWeightMap).type(MultiMatchQueryBuilder.Type.CROSS_FIELDS));
+        boolQb.should().add(QueryBuilders.multiMatchQuery(req.getKeyword(), spuAttr).fields(spuWeightMap).type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND));
 
 
 
@@ -142,13 +143,13 @@ public class EsSpuNewService {
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_PUBLISHER_KEYWORD, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_PRODUCER, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_CLUMPNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost));
-        spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_AWARDS_AWARDNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS, defaultBoost));
+        spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_AWARDS_AWARDNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS_NAME, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_GROUPNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_BINDINGNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_TAGNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost));
         spuBookWeightMap.put(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME, searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost));
         boolQb.should().add(QueryBuilders.nestedQuery("book",
-                QueryBuilders.multiMatchQuery(req.getKeyword(), bookAttr).fields(spuBookWeightMap).type(MultiMatchQueryBuilder.Type.CROSS_FIELDS), ScoreMode.None));
+                QueryBuilders.multiMatchQuery(req.getKeyword(), bookAttr).fields(spuBookWeightMap).type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND), ScoreMode.None));
 
         return boolQb;
     }

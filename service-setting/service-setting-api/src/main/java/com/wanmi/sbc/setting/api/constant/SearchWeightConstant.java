@@ -123,7 +123,7 @@ public class SearchWeightConstant {
     /**
      * 奖项名称
      */
-    public static final String BOOK_AWARDS = "BOOK_AWARDS";
+    public static final String BOOK_AWARDS_NAME = "BOOK_AWARDS_NAME";
 
     /**
      * 书组名
