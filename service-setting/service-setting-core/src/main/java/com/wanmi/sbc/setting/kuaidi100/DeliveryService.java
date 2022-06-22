@@ -69,6 +69,10 @@ public class DeliveryService {
         // 格式化数据
         JSONObject reslutJsonAll = JSONObject.parseObject(result);
         if (!Objects.equals(reslutJsonAll.getString("status"), "0")) {
+            //表示物流信息没有发货
+            if (!Objects.equals(reslutJsonAll.getString("status"), "205")) {
+                return deliverLogisticsList;
+            }
             throw new SbcRuntimeException("K-999999");
         }
         JSONObject resultJson = reslutJsonAll.getJSONObject("result");
