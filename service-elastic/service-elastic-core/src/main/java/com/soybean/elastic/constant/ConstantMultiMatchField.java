@@ -15,7 +15,7 @@ public class ConstantMultiMatchField {
     public static final String FIELD_SPU_SPUSUBNAME = "spuSubName";
     public static final String FIELD_SPU_ANCHORRECOMS_RECOMNAME = "anchorRecoms.recomName";
     public static final String FIELD_SPU_CLASSIFY_CLASSIFYNAME = "classify.classifyName";
-    public static final String FIELD_SPU_CLASSIFY_FCLASSIFYNAME = "classify.fClassifyName";
+    public static final String FIELD_SPU_CLASSIFY_FCLASSIFYNAME = "classify.fclassifyName";
 
 
     public static final String FIELD_SPU_BOOK_BOOKNAME = "book.bookName";
@@ -32,7 +32,7 @@ public class ConstantMultiMatchField {
 //    public static final String FIELD_SPU_BOOK_SERIESNAME = "book.seriesName";
     public static final String FIELD_SPU_BOOK_BINDINGNAME = "book.bindingName";
     public static final String FIELD_SPU_BOOK_TAGS_TAGNAME= "book.tags.tagName";
-    public static final String FIELD_SPU_BOOK_TAGS_STAGNAME = "book.tags.sTagName";
+    public static final String FIELD_SPU_BOOK_TAGS_STAGNAME = "book.tags.stagName";
 
 
 

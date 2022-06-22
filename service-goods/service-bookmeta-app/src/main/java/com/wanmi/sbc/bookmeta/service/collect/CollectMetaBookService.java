@@ -28,6 +28,7 @@ import com.wanmi.sbc.bookmeta.enums.LabelTypeEnum;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.ArrayList;
@@ -106,14 +107,15 @@ public class CollectMetaBookService extends AbstractCollectBookService{
         Map<Integer, MetaPublisher> publisherId2MetaPublisherMap =
                 metaPublishers.stream().collect(Collectors.toMap(MetaPublisher::getId, Function.identity(), (k1, k2) -> k1));
 
-        //群组
-        Example exampleBookGroup = new Example(MetaBookGroup.class);
-        exampleBookGroup.createCriteria()
-                .andEqualTo("delFlag", DeleteFlag.NO.toValue())
-                .andIn("id", publisherIds);
-        List<MetaBookGroup> metaBookGroups = metaBookGroupMapper.selectByExample(exampleBookGroup);
-        Map<Integer, MetaBookGroup> publisherId2MetaBookGroupMap =
-                metaBookGroups.stream().collect(Collectors.toMap(MetaBookGroup::getId, Function.identity(), (k1, k2) -> k1));
+        //书组
+//        List<Integer> bookGroupIds = metaBooks.stream().map(MetaBook::getBookGroupId).collect(Collectors.toList());
+//        Example exampleBookGroup = new Example(MetaBookGroup.class);
+//        exampleBookGroup.createCriteria()
+//                .andEqualTo("delFlag", DeleteFlag.NO.toValue())
+//                .andIn("id", bookGroupIds);
+//        List<MetaBookGroup> metaBookGroups = metaBookGroupMapper.selectByExample(exampleBookGroup);
+//        Map<Integer, MetaBookGroup> publisherId2MetaBookGroupMap =
+//                metaBookGroups.stream().collect(Collectors.toMap(MetaBookGroup::getId, Function.identity(), (k1, k2) -> k1));
 
         //获取出品方
         List<Integer> producerIds = metaBooks.stream().map(MetaBook::getProducerId).collect(Collectors.toList());
@@ -131,8 +133,8 @@ public class CollectMetaBookService extends AbstractCollectBookService{
                 .andEqualTo("delFlag", DeleteFlag.NO.toValue())
                     .andIn("cate", Arrays.asList(DataDictCateEnum.BOOK_BIND.getCode()));
         List<MetaDataDict> metaDataDicts = metaDataDictMapper.selectByExample(exampleDataDict);
-        Map<Integer, MetaDataDict> dictId2DataDictMap =
-                metaDataDicts.stream().collect(Collectors.toMap(MetaDataDict::getId, Function.identity(), (k1, k2) -> k1));
+        Map<String, MetaDataDict> dictId2DataDictMap =
+                metaDataDicts.stream().collect(Collectors.toMap(MetaDataDict::getValue, Function.identity(), (k1, k2) -> k1));
 
         //丛书
         List<Integer> bookClumpIds = metaBooks.stream().map(MetaBook::getBookClumpId).collect(Collectors.toList());
@@ -151,8 +153,17 @@ public class CollectMetaBookService extends AbstractCollectBookService{
         Map<Integer, List<MetaAward>> bookId2AwardMap = this.mapBookId2Award(bookIds);
         Map<Integer, List<MetaAward>> figureId2AwardMap = new HashMap<>();
         if (!bookId2FiguresMap.isEmpty()) {
-            List<Integer> figureIds = new ArrayList<>(bookId2FiguresMap.keySet());
-            figureId2AwardMap = this.mapFigureId2Award(figureIds);
+            List<Integer> figureIds = new ArrayList<>();
+            for (Integer bookId : bookId2AwardMap.keySet()) {
+                List<MetaFigure> metaFigures = bookId2FiguresMap.get(bookId);
+                if (CollectionUtils.isEmpty(metaFigures)) {
+                    continue;
+                }
+                figureIds.addAll(bookId2FiguresMap.get(bookId).stream().map(MetaFigure::getId).collect(Collectors.toList()));
+            }
+            if (!CollectionUtils.isEmpty(figureIds)) {
+                figureId2AwardMap = this.mapFigureId2Award(figureIds);
+            }
         }
         //标签
         Map<Integer, List<CollectMetaBookResp.Tag>> bookId2LebelsMap = this.mapBookId2Lebel(bookIds);
@@ -195,8 +206,9 @@ public class CollectMetaBookService extends AbstractCollectBookService{
             }
 
             collectMetaBookResp.setAwards(awardList);
-            collectMetaBookResp.setGroupName(publisherId2MetaBookGroupMap.getOrDefault(metaBook.getPublisherId(), new MetaBookGroup()).getName());
-            collectMetaBookResp.setBindingName(dictId2DataDictMap.getOrDefault(metaBook.getBindId(), new MetaDataDict()).getName());
+//            collectMetaBookResp.setGroupName(publisherId2MetaBookGroupMap.getOrDefault(metaBook.getPublisherId(), new MetaBookGroup()).getName());
+            collectMetaBookResp.setGroupName(metaBook.getBookGroupDescr());
+            collectMetaBookResp.setBindingName(!StringUtils.isEmpty(metaBook.getBindId()) ? dictId2DataDictMap.getOrDefault(metaBook.getBindId().toString(), new MetaDataDict()).getName() : "");
 
             collectMetaBookResp.setTags(bookId2LebelsMap.get(metaBook.getId()));
             result.add(collectMetaBookResp);
@@ -296,7 +308,7 @@ public class CollectMetaBookService extends AbstractCollectBookService{
         Example example = new Example(MetaBookRcmmd.class);
         example.createCriteria()
                 .andEqualTo("delFlag", DeleteFlag.NO.toValue())
-                .andIn("bizId", bookIds)
+                .andIn("bookId", bookIds)
                 .andIn("bizType", Arrays.asList(BookRcmmdTypeEnum.AWARD.getCode()));
         List<MetaBookRcmmd> metaBookRcmmds = metaBookRcmmdMapper.selectByExample(example);
 

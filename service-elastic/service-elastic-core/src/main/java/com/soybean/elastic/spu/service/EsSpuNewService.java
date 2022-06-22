@@ -247,8 +247,8 @@ public class EsSpuNewService {
 
             if (esSpuNew.getClassify() != null) {
                 EsSpuNewResp.SubClassify subClassify = new EsSpuNewResp.SubClassify();
-                subClassify.setFClassifyId(esSpuNew.getClassify().getFClassifyId());
-                subClassify.setFClassifyName(esSpuNew.getClassify().getFClassifyName());
+                subClassify.setFClassifyId(esSpuNew.getClassify().getFclassifyId());
+                subClassify.setFClassifyName(esSpuNew.getClassify().getFclassifyName());
                 subClassify.setClassifyId(esSpuNew.getClassify().getClassifyId());
                 subClassify.setClassifyName(esSpuNew.getClassify().getClassifyName());
                 esSpuResp.setClassify(subClassify);
@@ -266,8 +266,8 @@ public class EsSpuNewService {
                     List<Book.SubBookLabel> subBookLabels = new ArrayList<>();
                     for (SubBookLabelNew tag : esSpuNew.getBook().getTags()) {
                         Book.SubBookLabel subBookLabel = new Book.SubBookLabel();
-                        subBookLabel.setSTagId(tag.getSTagId());
-                        subBookLabel.setSTagName(tag.getSTagName());
+                        subBookLabel.setStagId(tag.getStagId());
+                        subBookLabel.setStagName(tag.getStagName());
                         subBookLabel.setTagId(tag.getTagId());
                         subBookLabel.setTagName(tag.getTagName());
                         subBookLabels.add(subBookLabel);

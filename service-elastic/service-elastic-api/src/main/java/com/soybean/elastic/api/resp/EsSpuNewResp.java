@@ -143,9 +143,9 @@ public class EsSpuNewResp implements Serializable {
             /**
              * 2级标签
              */
-            private Integer sTagId;
+            private Integer stagId;
 
-            private String sTagName;
+            private String stagName;
 
             /**
              * 3级标签
