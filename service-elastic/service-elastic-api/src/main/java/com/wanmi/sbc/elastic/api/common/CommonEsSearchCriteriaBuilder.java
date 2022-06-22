@@ -78,9 +78,9 @@ public class CommonEsSearchCriteriaBuilder {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         if (!CollectionUtils.isEmpty(commonPageQueryReq.getChannelTypes())) {
             if (commonPageQueryReq.getChannelTypes().size() == 1) {
-                boolQb.must(termQuery("channelTypes", commonPageQueryReq.getChannelTypes().get(0).toString()));
+                boolQb.filter(termQuery("channelTypes", commonPageQueryReq.getChannelTypes().get(0).toString()));
             } else {
-                boolQb.must(termsQuery("channelTypes", commonPageQueryReq.getChannelTypes()));
+                boolQb.filter(termsQuery("channelTypes", commonPageQueryReq.getChannelTypes()));
             }
 
         }
