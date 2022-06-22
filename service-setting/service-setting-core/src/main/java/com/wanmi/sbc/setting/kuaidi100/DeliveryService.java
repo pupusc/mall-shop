@@ -70,7 +70,7 @@ public class DeliveryService {
         JSONObject reslutJsonAll = JSONObject.parseObject(result);
         if (!Objects.equals(reslutJsonAll.getString("status"), "0")) {
             //表示物流信息没有发货
-            if (!Objects.equals(reslutJsonAll.getString("status"), "205")) {
+            if (Objects.equals(reslutJsonAll.getString("status"), "205")) {
                 return deliverLogisticsList;
             }
             throw new SbcRuntimeException("K-999999");
