@@ -115,7 +115,7 @@ public class EsBookListModelService {
                         .FilterFunctionBuilder(QueryBuilders.nestedQuery("spus", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME,req.getKeyword()), ScoreMode.None)
                         , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost))),
                 new FunctionScoreQueryBuilder
-                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("spus", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD,req.getKeyword()), ScoreMode.None)
                         , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)))
         };
         return arr;
