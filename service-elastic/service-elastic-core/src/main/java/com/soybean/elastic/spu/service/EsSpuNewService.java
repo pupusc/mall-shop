@@ -230,7 +230,7 @@ public class EsSpuNewService {
         req.setPageNum(Math.max((req.getPageNum() - 1), 0));
         builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
 
-        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryCondition(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.SUM);
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryCondition(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.MULTIPLY);
 
 
         //查询 条件
