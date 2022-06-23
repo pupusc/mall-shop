@@ -117,6 +117,7 @@ public class BookCollect extends AbstractSpuCollect {
                 SubAwardNew subAwardNew = new SubAwardNew();
                 subAwardNew.setAwardCategory(award.getAwardCategory());
                 subAwardNew.setAwardName(award.getAwardName());
+                awardNews.add(subAwardNew);
             }
             book.setAwards(awardNews);
 
