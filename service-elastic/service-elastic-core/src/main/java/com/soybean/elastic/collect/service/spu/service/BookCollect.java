@@ -1,4 +1,5 @@
 package com.soybean.elastic.collect.service.spu.service;
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 
 import com.soybean.elastic.api.enums.SearchSpuNewCategoryEnum;
@@ -16,6 +17,7 @@ import com.wanmi.sbc.goods.api.request.collect.CollectClassifyProviderReq;
 import com.wanmi.sbc.goods.api.request.collect.CollectSpuPropProviderReq;
 import com.wanmi.sbc.goods.api.response.collect.CollectClassifyRelSpuResp;
 import com.wanmi.sbc.goods.api.response.collect.CollectSpuPropResp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 @Service
+@Slf4j
 public class BookCollect extends AbstractSpuCollect {
 
     @Autowired
@@ -119,6 +122,7 @@ public class BookCollect extends AbstractSpuCollect {
                 subAwardNew.setAwardName(award.getAwardName());
                 awardNews.add(subAwardNew);
             }
+            log.info("BookCollect collect awardNews:{} awars():{}", JSON.toJSONString(awardNews), JSON.toJSONString(awards));
             book.setAwards(awardNews);
 
             List<SubBookLabelNew> bookLabelNews = new ArrayList<>();
