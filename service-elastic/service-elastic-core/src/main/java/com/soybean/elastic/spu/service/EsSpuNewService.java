@@ -118,93 +118,68 @@ public class EsSpuNewService {
             searchWeightMap.put(searchWeightResp.getWeightKey(), Float.parseFloat(searchWeightResp.getWeightValue()));
         }
 
-        FunctionScoreQueryBuilder.FilterFunctionBuilder[] arr = new FunctionScoreQueryBuilder.FilterFunctionBuilder[21];
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary1 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword())
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary2 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME_KEYWORD, req.getKeyword())
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary3 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUSUBNAME, req.getKeyword())
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary4 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_ANCHORRECOMS_RECOMNAME
-                , req.getKeyword()), ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary5 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_CLASSIFYNAME, req.getKeyword())
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary6 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_FCLASSIFYNAME, req.getKeyword())
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary7 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary8 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME_KEYWORD,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary9 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKORIGINNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary10 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKDESC,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DESC, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary11 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_AUTHORNAMES,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AUTHOR_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary12 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PUBLISHER,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary13 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PUBLISHER_KEYWORD,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary14 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PRODUCER,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary15 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_CLUMPNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary16 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_AWARDS_AWARDNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary17 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_GROUPNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary19 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BINDINGNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary20 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_TAGNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost)));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder voluntary21 = new FunctionScoreQueryBuilder
-                .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME,req.getKeyword()), ScoreMode.None)
-                , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)));
-
-        arr[0] = voluntary1;
-        arr[1] = voluntary2;
-        arr[2] = voluntary3;
-        arr[3] = voluntary4;
-        arr[4] = voluntary5;
-        arr[5] = voluntary6;
-        arr[6] = voluntary7;
-        arr[7] = voluntary8;
-        arr[8] = voluntary9;
-        arr[9] = voluntary10;
-        arr[10] = voluntary11;
-        arr[11] = voluntary12;
-        arr[12] = voluntary13;
-        arr[13] = voluntary14;
-        arr[14] = voluntary15;
-        arr[15] = voluntary16;
-        arr[16] = voluntary17;
-        arr[17] = voluntary19;
-        arr[18] = voluntary20;
-        arr[19] = voluntary21;
-
-//        arr[21] = voluntary22;
-//        arr[22] = voluntary23;
-//        arr[23] = voluntary24;
-//        arr[24] = voluntary25;
+        FunctionScoreQueryBuilder.FilterFunctionBuilder[] arr = new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME_KEYWORD, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_DIM_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUSUBNAME, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_SUB_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_ANCHORRECOMS_RECOMNAME
+                        , req.getKeyword()), ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_ANCHOR_RECOM, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_CLASSIFYNAME, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_CLASSIFY_FCLASSIFYNAME, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.SPU_CLASSY_SECOND_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKNAME_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKORIGINNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_ORIGIN_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BOOKDESC,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DESC, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_AUTHORNAMES,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AUTHOR_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PUBLISHER,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PUBLISHER, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PUBLISHER_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_DIM_PUBLISHER, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_PRODUCER,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_PRODUCER, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_CLUMPNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_CLUMP_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_AWARDS_AWARDNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_AWARDS_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_GROUPNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_GROUP_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_BINDINGNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_BINDING_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_TAGNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_TAG_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_SPU_BOOK_TAGS_STAGNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_SECOND_TAG_NAME, defaultBoost)))
+        };
         return arr;
     }
 
