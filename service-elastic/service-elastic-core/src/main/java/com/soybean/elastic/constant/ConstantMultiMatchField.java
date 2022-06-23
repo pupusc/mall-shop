@@ -8,8 +8,18 @@ package com.soybean.elastic.constant;
  * Modify     : 修改日期          修改人员        修改说明          JIRA编号
  ********************************************************************/
 public class ConstantMultiMatchField {
+    /**
+     * 书单/榜单
+     */
+    public static final String FIELD_BOOK_LIST_BOOKLISTNAME = "bookListName";
 
+    public static final String FIELD_BOOK_LIST_SPU_SPUNAME = "spuName";
 
+    public static final String FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD = "spuName.keyword";
+
+    /**
+     * 商品图书
+     */
     public static final String FIELD_SPU_SPUNAME = "spuName";
     public static final String FIELD_SPU_SPUNAME_KEYWORD = "spuName.keyword";
     public static final String FIELD_SPU_SPUSUBNAME = "spuSubName";

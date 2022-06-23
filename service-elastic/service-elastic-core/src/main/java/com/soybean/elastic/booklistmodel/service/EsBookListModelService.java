@@ -4,19 +4,24 @@ package com.soybean.elastic.booklistmodel.service;
 import com.soybean.elastic.api.enums.SearchBookListSortTypeEnum;
 import com.soybean.elastic.api.req.EsBookListQueryProviderReq;
 import com.soybean.elastic.api.req.EsKeyWordBookListQueryProviderReq;
+import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.EsSortBookListQueryProviderReq;
 import com.soybean.elastic.api.resp.EsBookListModelResp;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.booklistmodel.model.EsBookListModel;
 import com.soybean.elastic.collect.factory.AbstractCollectFactory;
+import com.soybean.elastic.constant.ConstantMultiMatchField;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +41,7 @@ import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
@@ -57,12 +63,42 @@ public class EsBookListModelService {
     private SearchWeightProvider searchWeightProvider;
 
     /**
-     * 设置搜索的条件信息
+     * 设置搜索的条件信息 这个是关键词的搜索
      * @param esKeyWordQueryProviderReq
      * @return
      */
     private BoolQueryBuilder packageKeyWordQueryCondition(EsKeyWordBookListQueryProviderReq esKeyWordQueryProviderReq) {
-        float defaultBoost = 0.1f;
+
+
+        //查询条件
+        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        boolQb.must(termQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
+        boolQb.must(termQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
+        boolQb.should().add(matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_BOOKLISTNAME, esKeyWordQueryProviderReq.getKeyword()));
+        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME, esKeyWordQueryProviderReq.getKeyword()), ScoreMode.None));
+        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD, esKeyWordQueryProviderReq.getKeyword()), ScoreMode.None));
+
+//
+//
+//        boolQb.must(QueryBuilders.boolQuery()
+//                .filter(QueryBuilders.boolQuery()
+//                        .should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
+//                                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)))
+//                        .should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
+//                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None))
+//                        .should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
+//                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None))));
+
+        return boolQb;
+    }
+
+    /**
+     * 自定义权重
+     * @param req
+     * @return
+     */
+    private FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilder(EsKeyWordBookListQueryProviderReq req) {
+        float defaultBoost = 1f;
         List<SearchWeightResp> context = searchWeightProvider.list(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_KEY).getContext();
         Map<String, Float> searchWeightMap = new HashMap<>();
         for (SearchWeightResp searchWeightResp : context) {
@@ -71,32 +107,19 @@ public class EsBookListModelService {
             }
             searchWeightMap.put(searchWeightResp.getWeightKey(), Float.parseFloat(searchWeightResp.getWeightValue()));
         }
-        //查询条件
-        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
-        boolQb.must(QueryBuilders.boolQuery()
-                .filter(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()))
-                .filter(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()))
-                .filter(QueryBuilders.boolQuery()
-                        .should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
-                                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)))
-                        .should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
-                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None))
-                        .should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
-                                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None))));
-
-//        boolQb.must(matchQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
-//        boolQb.must(matchQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
-//        boolQb.should(matchQuery("bookListName", esKeyWordQueryProviderReq.getKeyword()).
-//                boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost)));
-//        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName", esKeyWordQueryProviderReq.getKeyword())
-//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost)), ScoreMode.None));
-//        boolQb.should(nestedQuery("spus", matchQuery("spus.spuName.keyword", esKeyWordQueryProviderReq.getKeyword())
-//                .boost(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)), ScoreMode.None));
-
-        return boolQb;
+        FunctionScoreQueryBuilder.FilterFunctionBuilder[] arr = new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_BOOKLISTNAME, req.getKeyword())
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_BOOK_LIST_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("spus", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_NAME, defaultBoost))),
+                new FunctionScoreQueryBuilder
+                        .FilterFunctionBuilder(QueryBuilders.nestedQuery("book", QueryBuilders.matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD,req.getKeyword()), ScoreMode.None)
+                        , ScoreFunctionBuilders.weightFactorFunction(searchWeightMap.getOrDefault(SearchWeightConstant.BOOK_LIST_SEARCH_WEIGHT_SPU_DIM_NAME, defaultBoost)))
+        };
+        return arr;
     }
-
-
 
     /**
      * 设置排序
@@ -131,7 +154,9 @@ public class EsBookListModelService {
         req.setPageNum(Math.max((req.getPageNum() - 1), 0));
         builder.withPageable(PageRequest.of(req.getPageNum(), req.getPageSize()));
         //查询 条件
-        builder.withQuery(this.packageKeyWordQueryCondition(req));
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(this.packageKeyWordQueryCondition(req), this.filterFunctionBuilder(req)).scoreMode(FunctionScoreQuery.ScoreMode.MULTIPLY);
+
+        builder.withQuery(functionScoreQueryBuilder);
         //排序
         for (FieldSortBuilder fieldSortBuilder : this.packageSort(req)) {
             builder.withSort(fieldSortBuilder);
@@ -144,6 +169,11 @@ public class EsBookListModelService {
         return new CommonPageResp<>(resultQueryPage.getTotalElements(), this.packageEsBookListModelResp(resultQueryPage.getContent()));
     }
 
+    /**
+     * 封装结果
+     * @param esBookListModelList
+     * @return
+     */
     private List<EsBookListModelResp> packageEsBookListModelResp(List<EsBookListModel> esBookListModelList) {
         List<EsBookListModelResp> result = new ArrayList<>();
         for (EsBookListModel esBookListModel : esBookListModelList) {

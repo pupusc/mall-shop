@@ -108,8 +108,13 @@ public class EsSpuNewService {
         return boolQb;
     }
 
+    /**
+     * 自定义权重
+     * @param req
+     * @return
+     */
     private FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilder(EsKeyWordSpuNewQueryProviderReq req) {
-        float defaultBoost = 0.1f;
+        float defaultBoost = 1f;
         List<SearchWeightResp> context = searchWeightProvider.list(SearchWeightConstant.SPU_SEARCH_WEIGHT_KEY).getContext();
         Map<String, Float> searchWeightMap = new HashMap<>();
         for (SearchWeightResp searchWeightResp : context) {
