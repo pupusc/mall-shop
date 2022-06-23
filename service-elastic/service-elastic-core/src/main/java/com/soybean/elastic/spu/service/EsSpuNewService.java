@@ -11,6 +11,7 @@ import com.soybean.elastic.constant.ConstantMultiMatchField;
 import com.soybean.elastic.spu.model.EsSpuNew;
 import com.soybean.elastic.spu.model.sub.SubAnchorRecomNew;
 import com.soybean.elastic.spu.model.sub.SubBookLabelNew;
+import com.wanmi.sbc.elastic.api.common.CommonEsSearchCriteriaBuilder;
 import com.wanmi.sbc.setting.api.constant.SearchWeightConstant;
 import com.wanmi.sbc.setting.api.provider.weight.SearchWeightProvider;
 import com.wanmi.sbc.setting.api.response.weight.SearchWeightResp;
@@ -74,9 +75,9 @@ public class EsSpuNewService {
 
         //查询条件
         req.setKeyword(QueryParser.escape(req.getKeyword()));
-//        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuNewCommonBuilder(req);
+        BoolQueryBuilder boolQb = CommonEsSearchCriteriaBuilder.getSpuNewCommonBuilder(req);
 
-        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+//        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         boolQb.must(termQuery("delFlag", req.getDelFlag()));
         boolQb.must(termQuery("auditStatus", 1));
         boolQb.must(termQuery("addedFlag", 1));
