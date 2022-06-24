@@ -18,7 +18,7 @@ import java.net.UnknownHostException;
 @SpringBootApplication(scanBasePackages = {"com.soybean.mall", "com.wanmi.sbc"}, exclude = MongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.soybean.mall", "com.wanmi.sbc"})
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean.mall"})
+@EnableFeignClients(basePackages = {"com.wanmi.sbc", "com.soybean"})
 @Slf4j
 public class MiniApplication {
 

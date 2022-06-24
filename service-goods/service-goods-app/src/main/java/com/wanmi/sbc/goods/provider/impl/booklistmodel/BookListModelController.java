@@ -2,7 +2,6 @@ package com.wanmi.sbc.goods.provider.impl.booklistmodel;
 
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
-import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.goods.api.enums.CategoryEnum;
 import com.wanmi.sbc.goods.api.provider.booklistmodel.BookListModelProvider;
 import com.wanmi.sbc.goods.api.request.booklistgoodspublish.BookListGoodsPublishProviderRequest;
@@ -259,4 +258,5 @@ public class BookListModelController implements BookListModelProvider {
         List<Integer> collect = list.stream().map(ex -> ex.getId()).collect(Collectors.toList());
         return BaseResponse.success(collect);
     }
+
 }

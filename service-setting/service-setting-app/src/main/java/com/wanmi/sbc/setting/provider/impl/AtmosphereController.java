@@ -29,6 +29,12 @@ public class AtmosphereController implements AtmosphereProvider {
         return BaseResponse.success(atmosphereService.page(request));
     }
 
+
+    @Override
+    public BaseResponse<List<AtmosphereDTO>> listAtmosphere(AtmosphereQueryRequest request) {
+        return BaseResponse.success(atmosphereService.listAtmosphere(request));
+    }
+
     @Override
     public BaseResponse delete(AtmosphereDeleteRequest request) {
         atmosphereService.delete(request.getId());

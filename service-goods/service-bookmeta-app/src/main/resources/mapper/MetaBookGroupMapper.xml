@@ -155,5 +155,11 @@
         update meta_book_group set del_flag = 1 where id = #{id}
     </delete>
 
+
+    <!-- 采集出版社 -->
+    <select id="collectMetaBookGroupByTime" resultMap="MetaBookGroupMap">
+        select * from meta_book_group where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                       and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
 </mapper>
 

@@ -4,8 +4,6 @@ import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.base.MicroServicePage;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.CommonErrorCode;
-import com.wanmi.sbc.common.util.Constants;
-import com.wanmi.sbc.customer.bean.enums.StoreState;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticProvider;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsInfoElasticQueryProvider;
 import com.wanmi.sbc.elastic.api.provider.goods.EsGoodsStockProvider;
@@ -13,23 +11,18 @@ import com.wanmi.sbc.elastic.api.request.goods.*;
 import com.wanmi.sbc.elastic.api.response.goods.EsGoodsResponse;
 import com.wanmi.sbc.elastic.bean.vo.goods.EsGoodsVO;
 import com.wanmi.sbc.goods.api.provider.mini.assistant.WxLiveAssistantProvider;
-import com.wanmi.sbc.goods.bean.enums.AddedFlag;
-import com.wanmi.sbc.goods.bean.enums.CheckStatus;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsCreateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantGoodsUpdateRequest;
 import com.wanmi.sbc.goods.bean.wx.request.assistant.WxLiveAssistantSearchRequest;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantDetailVo;
 import com.wanmi.sbc.goods.bean.wx.vo.assistant.WxLiveAssistantVo;
-import com.wanmi.sbc.mini.mq.WxMiniMessageProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,10 +36,7 @@ public class GoodsLiveAssistantController {
 
     @Autowired
     private WxLiveAssistantProvider wxLiveAssistantProvider;
-    @Autowired
-    private WxMiniMessageProducer wxMiniMessageProducer;
-    @Autowired
-    private EsGoodsStockProvider esGoodsStockProvider;
+
     @Autowired
     private EsGoodsInfoElasticProvider esGoodsInfoElasticProvider;
     @Autowired

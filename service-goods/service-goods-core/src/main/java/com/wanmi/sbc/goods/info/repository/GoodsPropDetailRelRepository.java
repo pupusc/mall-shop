@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -93,4 +94,25 @@ public interface GoodsPropDetailRelRepository extends JpaRepository<GoodsPropDet
     @Modifying
     @Query("update GoodsPropDetailRel w set w.delFlag = 1 ,w.updateTime = now() where w.goodsId = ?1")
     void deleteByGoodsId(String goodsId);
+
+    /**
+     * 根据采集定价和isbn号信息
+     * @return
+     */
+    @Query(value = "select * from goods_prop_detail_rel where update_time >=?1 and update_time < ?2 and rel_id > ?3 order by rel_id asc limit ?4", nativeQuery = true)
+    List<GoodsPropDetailRel> collectSpuIdPropByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId, Integer pageSize);
+
+    /**
+     * 根据商品id采集定价和isbn号信息
+     * @return
+     */
+    @Query(value = "select * from goods_prop_detail_rel where goods_id in ?1 and del_flag = 0", nativeQuery = true)
+    List<GoodsPropDetailRel> collectSpuIdPropBySpuIds(List<String> spuIds);
+
+    /**
+     * 根据商品id采集定价和isbn号信息
+     * @return
+     */
+    @Query(value = "select * from goods_prop_detail_rel where prop_value in ?1 and prop_id in ?2 and del_flag = 0", nativeQuery = true)
+    List<GoodsPropDetailRel> collectSpuIdPropByIsbns(List<String> isbns, List<Integer> propIds);
 }

@@ -4,6 +4,8 @@ import com.wanmi.sbc.bookmeta.entity.MetaProducer;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +84,16 @@ public interface MetaProducerMapper extends Mapper<MetaProducer> {
      */
     int deleteById(Integer id);
 
+
+    /**
+     * 采集出品方信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaProducer> collectMetaProducerByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

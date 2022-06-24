@@ -133,5 +133,18 @@
         update meta_book_label set del_flag = 1 where id = #{id}
     </delete>
 
+
+    <!-- 图书标签信息 -->
+    <select id="collectMetaBookLabelByTime" resultMap="MetaBookLabelMap">
+        select * from meta_label where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                   and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
+
+    <select id="collectMetaBookLabel" resultMap="MetaBookLabelMap">
+        select * from meta_label where label_id in
+        <foreach collection="labelIds" item="labelId" open="(" close=")" separator=",">
+            #{labelId}
+        </foreach>
+    </select>
 </mapper>
 

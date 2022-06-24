@@ -166,5 +166,16 @@
         update meta_book_rcmmd set del_flag = 1 where id = #{id}
     </delete>
 
+
+    <select id="collectMetaBookRcmmd" resultMap="MetaBookRcmmdMap">
+        select * from meta_book_rcmmd where biz_type in
+        <foreach collection="bizTypes" item="type" separator="," open="(" close=")">
+            #{type}
+        </foreach>
+        and biz_id in
+        <foreach collection="bizIds" item="bizId" separator="," open="(" close=")">
+            #{bizId}
+        </foreach>
+    </select>
 </mapper>
 

@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -87,5 +88,23 @@ public interface MetaLabelMapper extends Mapper<MetaLabel> {
     int countExt(@Param("metaLabel") MetaLabel metaLabel);
 
     List<MetaLabelExt> queryAllByLimitExt(@Param("metaLabel") MetaLabel metaLabel, @Param("limitIndex") Integer limitIndex, @Param("limitSize") Integer limitSize);
+
+    /**
+     * 采集标签信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaLabel> collectMetaLabelByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+    /**
+     * 采集标签信息
+     * @param parentIds
+     * @return
+     */
+    List<MetaLabel> collectMetaLabel(@Param("parentIds") List<Integer> parentIds);
 }
 

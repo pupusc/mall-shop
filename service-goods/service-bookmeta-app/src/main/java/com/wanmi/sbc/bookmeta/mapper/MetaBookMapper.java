@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -95,5 +96,50 @@ public interface MetaBookMapper extends Mapper<MetaBook> {
     int removeProducerId(Integer id);
 
     int removePublisherId(Integer id);
+
+    /**
+     * 采集book信息
+     * @return
+     */
+    List<MetaBook> collectMetaBookByTime(
+            @Param("beginTime")LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+    /**
+     * 采集书单信息
+     * @param bookIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByIds(@Param("bookIds") List<Integer> bookIds);
+
+    /**
+     * 采集书单信息
+     * @param publisherIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByPublisherIds(@Param("publisherIds") List<Integer> publisherIds);
+
+    /**
+     * 采集书单信息
+     * @param bookGroupIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByBookGroupIds(@Param("bookGroupIds") List<Integer> bookGroupIds);
+
+    /**
+     * 采集书单信息
+     * @param bookProducerIds
+     * @return
+     */
+    List<MetaBook> collectMetaBookByBookProducerIds(@Param("bookProducerIds") List<Integer> bookProducerIds);
+
+
+    /**
+     * 获取书单信息
+     * @param isbns
+     * @return
+     */
+    List<MetaBook> collectMetaBookByCondition(@Param("isbns") List<String> isbns);
+
+
 }
 
