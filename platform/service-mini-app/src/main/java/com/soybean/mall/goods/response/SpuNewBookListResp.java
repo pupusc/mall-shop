@@ -58,6 +58,11 @@ public class SpuNewBookListResp {
     private String pic;
 
     /**
+     * 商品无背景图
+     */
+    private String unBackgroundPic;
+
+    /**
      * 书单/榜单信息
      */
     private BookList bookList;

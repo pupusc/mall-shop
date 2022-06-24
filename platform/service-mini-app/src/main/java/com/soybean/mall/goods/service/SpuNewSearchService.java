@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -179,8 +180,14 @@ public class SpuNewSearchService {
             AtmosphereQueryRequest atmosphereQueryRequest = new AtmosphereQueryRequest();
             atmosphereQueryRequest.setSkuId(skuIdList);
             List<AtmosphereDTO> context = atmosphereProvider.listAtmosphere(atmosphereQueryRequest).getContext();
+            LocalDateTime now = LocalDateTime.now();
             for (AtmosphereDTO atmosphereDTO : context) {
-                skuId2AtomsphereMap.put(atmosphereDTO.getSkuId(), atmosphereDTO);
+                if (atmosphereDTO.getStartTime() == null || atmosphereDTO.getEndTime() == null) {
+                    continue;
+                }
+                if (atmosphereDTO.getStartTime().compareTo(now) < 0 && atmosphereDTO.getEndTime().compareTo(now) >0) {
+                    skuId2AtomsphereMap.put(atmosphereDTO.getSkuId(), atmosphereDTO);
+                }
             }
         }
 
@@ -258,6 +265,7 @@ public class SpuNewSearchService {
             spuNewBookListResp.setSalesPrice(goodsInfoVO.getSalePrice());
             spuNewBookListResp.setMarketPrice(goodsInfoVO.getMarketPrice());
             spuNewBookListResp.setPic(esSpuNewRespParam.getPic());
+            spuNewBookListResp.setUnBackgroundPic(esSpuNewRespParam.getUnBackgroundPic());
             result.add(spuNewBookListResp);
         }
         return result;
