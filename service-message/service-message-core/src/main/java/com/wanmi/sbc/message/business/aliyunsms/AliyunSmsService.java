@@ -215,7 +215,7 @@ public class AliyunSmsService implements SmsBaseService {
                 //通知类短信验证开关状态是否关闭
                 if (SmsType.NOTICE.equals(smsTemplate.getTemplateType())
                         && (Objects.isNull(smsTemplate.getOpenFlag()) || Boolean.FALSE.equals(smsTemplate.getOpenFlag()))) {
-                    log.error("短信模板被关闭".concat(smsSendDetail.getBusinessType()));
+                    log.warn("短信模板被关闭".concat(smsSendDetail.getBusinessType()));
                     SmsBaseResponse smsBaseResponse = new SmsBaseResponse();
                     smsBaseResponse.setCode(SmsResponseCode.DEFAULT_CONFIG_ERROR);
                     return smsBaseResponse;
