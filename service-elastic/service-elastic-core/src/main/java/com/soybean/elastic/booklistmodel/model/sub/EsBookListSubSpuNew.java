@@ -41,7 +41,7 @@ public class EsBookListSubSpuNew {
     /**
      * 排序
      */
-    @Field(type = FieldType.Integer, index = false)
+    @Field(type = FieldType.Integer)
     private Integer sortNum;
 
     /**
