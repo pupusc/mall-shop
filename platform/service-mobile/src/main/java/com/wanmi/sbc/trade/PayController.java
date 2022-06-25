@@ -202,31 +202,29 @@ public class PayController {
         payExtraRequest.setAmount(trade.getTradePrice().getTotalPrice());
         //TODO 订单标题及订单描述待添加
         payExtraRequest.setOpenId(payMobileRequest.getOpenId());
-        String title = trade.getTradeItems().get(0).getSkuName();
-        String body = trade.getTradeItems().get(0).getSkuName() + " " + (trade.getTradeItems().get(0).getSpecDetails
-                () == null ? "" : trade.getTradeItems().get(0).getSpecDetails());
-        if (trade.getTradeItems().size() > 1) {
-            if (title.length() > 23) {
-//                title = String.format("s%s% %s", title.substring(0, 22), "...", "  等多件商品");
-                title = title.substring(0, 22) + "...  等多件商品";
-            } else {
-                title = title + " 等多件商品";
-            }
-            body = body + " 等多件商品";
-        } else {
-            if (title.length() > 29) {
-                title = title.substring(0, 28) + "...";
-            }
-        }
-        title = title.replaceAll("([&,', ,<,>,-,+])", "");
-        body = body.replaceAll("([&,', ,<,>,-,+])", "");
-        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
-            title = "樊登读书官方旗舰店";
-            body = "商品";
-        }
-
-        payExtraRequest.setSubject(title);
-        payExtraRequest.setBody(body);
+//        String title = trade.getTradeItems().get(0).getSkuName();
+//        String body = trade.getTradeItems().get(0).getSkuName() + " " + (trade.getTradeItems().get(0).getSpecDetails
+//                () == null ? "" : trade.getTradeItems().get(0).getSpecDetails());
+//        if (trade.getTradeItems().size() > 1) {
+//            if (title.length() > 23) {
+//                title = title.substring(0, 22) + "...  等多件商品";
+//            } else {
+//                title = title + " 等多件商品";
+//            }
+//            body = body + " 等多件商品";
+//        } else {
+//            if (title.length() > 29) {
+//                title = title.substring(0, 28) + "...";
+//            }
+//        }
+//        title = title.replaceAll("([&,', ,<,>,-,+])", "");
+//        body = body.replaceAll("([&,', ,<,>,-,+])", "");
+//        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
+//            title = "樊登读书官方旗舰店";
+//            body = "商品";
+//        }
+        payExtraRequest.setSubject("樊登读书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setBody("樊登读书订单-" + payMobileRequest.getTid());
 
         payExtraRequest.setClientIp(HttpUtil.getIpAddr());
         Object object;
@@ -619,34 +617,34 @@ public class PayController {
         }
         payExtraRequest.setAmount(totalPrice);
         payExtraRequest.setOpenId(payMobileRequest.getOpenId());
-        TradeVO trade = trades.get(0);
-        String title = trade.getTradeItems().get(0).getSkuName();
-        String body = trade.getTradeItems().get(0).getSkuName() + " " + (trade.getTradeItems().get(0).getSpecDetails
-                () == null ? "" : trade.getTradeItems().get(0).getSpecDetails());
-        if (trades.size() > 1 || trade.getTradeItems().size() > 1) {
-            if (title.length() > 23) {
-                title = title.substring(0, 22) + "...  等多件商品";
-            } else {
-                title = title + " 等多件商品";
-            }
-            body = body + " 等多件商品";
-        } else {
-            if (title.length() > 29) {
-                title = title.substring(0, 28) + "...";
-            }
-        }
-        title = title.replaceAll("([&,', ,<,>,-,+])", "");
-        body = body.replaceAll("([&,', ,<,>,-,+])", "");
-//        title = "樊登读书官方旗舰店";
-//        body = "";
-        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
-            title = "樊登读书官方旗舰店";
-            body = "商品";
-        }
-        log.info("=============body", body);
-        log.info("=============title", title);
-        payExtraRequest.setSubject(title);
-        payExtraRequest.setBody(body);
+//        TradeVO trade = trades.get(0);
+//        String title = trade.getTradeItems().get(0).getSkuName();
+//        String body = trade.getTradeItems().get(0).getSkuName() + " " + (trade.getTradeItems().get(0).getSpecDetails
+//                () == null ? "" : trade.getTradeItems().get(0).getSpecDetails());
+//        if (trades.size() > 1 || trade.getTradeItems().size() > 1) {
+//            if (title.length() > 23) {
+//                title = title.substring(0, 22) + "...  等多件商品";
+//            } else {
+//                title = title + " 等多件商品";
+//            }
+//            body = body + " 等多件商品";
+//        } else {
+//            if (title.length() > 29) {
+//                title = title.substring(0, 28) + "...";
+//            }
+//        }
+//        title = title.replaceAll("([&,', ,<,>,-,+])", "");
+//        body = body.replaceAll("([&,', ,<,>,-,+])", "");
+////        title = "樊登读书官方旗舰店";
+////        body = "";
+//        if (StringUtils.isBlank(title) && StringUtils.isBlank(body)) {
+//            title = "樊登读书官方旗舰店";
+//            body = "商品";
+//        }
+//        log.info("=============body", body);
+//        log.info("=============title", title);
+        payExtraRequest.setSubject("樊登读书订单-" + payMobileRequest.getTid());
+        payExtraRequest.setBody("樊登读书订单-" + payMobileRequest.getTid());
         payExtraRequest.setClientIp(HttpUtil.getIpAddr());
 
         String form = "";
