@@ -19,6 +19,7 @@ import com.wanmi.sbc.goods.api.constant.GoodsBrandErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsCateErrorCode;
 import com.wanmi.sbc.goods.api.constant.GoodsErrorCode;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
+import com.wanmi.sbc.goods.api.request.goods.GoodsDataUpdateRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsModifyEvaluateNumRequest;
@@ -3675,7 +3676,7 @@ public class GoodsService {
 
 
         if (!CollectionUtils.isEmpty(goodsIdList)) {
-            List<Goods> goodsList = goodsRepository.findAll(this.packageWhere(goodsIdList));
+            List<Goods> goodsList = goodsRepository.findAll(this.packageWhere(goodsIdList, null));
             if (CollectionUtils.isEmpty(goodsList)) {
                 log.info("update goods goodsList is empty");
                 return goodsIdList;
@@ -3723,7 +3724,7 @@ public class GoodsService {
     }
 
 
-    private Specification<Goods> packageWhere(Collection<String> goodsIdColl) {
+    private Specification<Goods> packageWhere(Collection<String> goodsIdColl, Collection<String> goodsNoColl) {
         return new Specification<Goods>() {
             @Override
             public Predicate toPredicate(Root<Goods> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
@@ -3733,8 +3734,49 @@ public class GoodsService {
                 if (CollectionUtils.isNotEmpty(goodsIdColl)) {
                     conditionList.add(root.get("goodsId").in(goodsIdColl));
                 }
+
+                //只是获取有效的
+                if (CollectionUtils.isNotEmpty(goodsNoColl)) {
+                    conditionList.add(root.get("goodsNo").in(goodsNoColl));
+                }
                 return criteriaBuilder.and(conditionList.toArray(new Predicate[conditionList.size()]));
             }
         };
+    }
+
+
+    /**
+     * 更新goods表信息
+     * @param goodsDetas
+     */
+    public void updateGoodsByCondition(List<GoodsDataUpdateRequest> goodsDetas) {
+        if (CollectionUtils.isEmpty(goodsDetas)) {
+            return;
+        }
+        List<String> goodsNos = goodsDetas.stream().map(GoodsDataUpdateRequest::getGoodsNo).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(goodsNos)) {
+            return;
+        }
+        List<Goods> goodsList = goodsRepository.findAll(this.packageWhere(null, goodsNos));
+        if (CollectionUtils.isEmpty(goodsList)) {
+            return;
+        }
+        Map<String, GoodsDataUpdateRequest> goodsNo2GoodsParamMap =
+                goodsDetas.stream().collect(Collectors.toMap(GoodsDataUpdateRequest::getGoodsNo, Function.identity(), (k1,k2) -> k1));
+
+        List<Goods> saveGoods = new ArrayList<>();
+        for (Goods goods : goodsList) {
+            GoodsDataUpdateRequest goodsDataUpdateRequestTmp = goodsNo2GoodsParamMap.get(goods.getGoodsId());
+            if (goodsDataUpdateRequestTmp == null) {
+                continue;
+            }
+            if (!StringUtils.isBlank(goodsDataUpdateRequestTmp.getUnbackgroundImg())) {
+                goods.setUpdateTime(LocalDateTime.now());
+                goods.setGoodsUnBackImg(goodsDataUpdateRequestTmp.getUnbackgroundImg());
+            }
+            saveGoods.add(goods);
+        }
+
+        goodsRepository.saveAll(saveGoods);
     }
 }

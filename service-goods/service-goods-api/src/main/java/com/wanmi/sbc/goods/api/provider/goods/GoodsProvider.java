@@ -334,6 +334,11 @@ public interface GoodsProvider {
     @PostMapping("/goods/${application.goods.version}/update-goods-erp-goods-no")
     BaseResponse updateGoodsErpGoodsNo(@RequestBody Collection<GoodsUpdateProviderRequest> erpGoodsColl);
 
-
-
+    /**
+     * 更新goods表信息
+     * @param goodsDetas
+     * @return
+     */
+    @PostMapping("/goods/${application.goods.version}/update-goods-by-condition")
+    BaseResponse updateGoodsByCondition(@RequestBody List<GoodsDataUpdateRequest> goodsDetas);
 }

@@ -15,29 +15,7 @@ import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.store.StoreBycompanySourceType;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsProvider;
-import com.wanmi.sbc.goods.api.request.goods.GoodsAddAllRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsAddPriceRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsAddRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsCheckRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsDeleteByIdsRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAddedStatusRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyAllRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCateRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyCollectNumRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyEvaluateNumRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyFreightTempRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifySalesNumRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifyShamSalesNumRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifySortNoRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsModifySupplierNameRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsPriceSyncRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsProviderStatusRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsSynRequest;
-import com.wanmi.sbc.goods.api.request.goods.GoodsUpdateProviderRequest;
-import com.wanmi.sbc.goods.api.request.goods.LinkedMallGoodsDelRequest;
-import com.wanmi.sbc.goods.api.request.goods.LinkedMallGoodsModifyRequest;
-import com.wanmi.sbc.goods.api.request.goods.ThirdGoodsVendibilityRequest;
+import com.wanmi.sbc.goods.api.request.goods.*;
 import com.wanmi.sbc.goods.api.request.goodsstock.GuanYiSyncGoodsStockRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdRequest;
 import com.wanmi.sbc.goods.api.request.linkedmall.SyncItemRequest;
@@ -785,5 +763,12 @@ public class GoodsController implements GoodsProvider {
     public BaseResponse updateGoodsErpGoodsNo(Collection<GoodsUpdateProviderRequest> erpGoodsColl){
         List<String> goodsIdList = goodsService.updateGoodsErpGoodsNo(erpGoodsColl);
         return BaseResponse.success(goodsIdList);
+    }
+
+
+    @Override
+    public BaseResponse updateGoodsByCondition(List<GoodsDataUpdateRequest> goodsDetas) {
+        goodsService.updateGoodsByCondition(goodsDetas);
+        return BaseResponse.SUCCESSFUL();
     }
 }
