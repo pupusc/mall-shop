@@ -92,7 +92,7 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
             criteria.andIn("type", pageRequest.getTypeIn());
         }
         if (StringUtils.isNotBlank(pageRequest.getName())) {
-            criteria.andLike("name", pageRequest.getName());
+            criteria.andLike("name", "%" + pageRequest.getName() + "%");
         }
 
         Page page = pageRequest.getPage();
