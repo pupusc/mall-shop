@@ -1,6 +1,5 @@
 package com.wanmi.sbc.bookmeta.provider.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
@@ -16,11 +15,13 @@ import com.wanmi.sbc.common.base.BusinessResponse;
 import com.wanmi.sbc.common.base.Page;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -82,15 +83,26 @@ public class MetaFigureProviderImpl implements MetaFigureProvider {
      */
     @Override
     public BusinessResponse<List<MetaFigureBO>> queryByPage(@Valid MetaFigureQueryByPageReqBO pageRequest) {
+        Example example = new Example(MetaFigure.class);
+        Example.Criteria criteria = example.createCriteria();
+        if (pageRequest.getType() != null) {
+            criteria.andEqualTo("type", pageRequest.getType());
+        }
+        if (!CollectionUtils.isEmpty(pageRequest.getTypeIn())) {
+            criteria.andIn("type", pageRequest.getTypeIn());
+        }
+        if (StringUtils.isNotBlank(pageRequest.getName())) {
+            criteria.andLike("name", "%" + pageRequest.getName() + "%");
+        }
+
         Page page = pageRequest.getPage();
-        MetaFigure metaFigure = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigure.class);
-        
-        page.setTotalCount((int) this.metaFigureMapper.count(metaFigure));
+        page.setTotalCount(this.metaFigureMapper.selectCountByExample(example));
         if (page.getTotalCount() <= 0) {
             return BusinessResponse.success(Collections.EMPTY_LIST, page);
         }
 
-        List<MetaFigure> metaFigures = this.metaFigureMapper.queryAllByLimit(metaFigure, page.getOffset(), page.getPageSize());
+        example.setOrderByClause("create_time desc limit " + page.getOffset() + "," + page.getPageSize());
+        List<MetaFigure> metaFigures = this.metaFigureMapper.selectByExample(example);
         return BusinessResponse.success(DO2BOUtils.objA2objB4List(metaFigures, MetaFigureBO.class), page);
     }
 
