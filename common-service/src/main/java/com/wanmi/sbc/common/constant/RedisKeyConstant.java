@@ -136,4 +136,20 @@ public final class RedisKeyConstant {
      * 评论数量缓存
      */
     public static final String KEY_GOODS_INFO_EVALUATE = "KEY_GOODS_INFO_EVALUATE:";
+
+    /**
+     * 库存同步 上一次的数量
+     */
+    public static final String GOODS_INFO_SYNC_KEY = "GOODS_INFO_SYNC";
+
+    /**
+     * 库存数量
+     */
+    public static final String GOODS_INFO_SYNC_STOCK_KEY = "STOCK";
+
+    /**
+     * 商品成本价
+     */
+    public static final String GOODS_INFO_SYNC_COST_PRICE_KEY = "COST_PRICE";
+
 }

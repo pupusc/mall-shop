@@ -131,7 +131,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 Map<String, Integer> skuId2StockQtySumMap = new HashMap<>();
                 Map<String, Integer> spuId2StockQtySumMap = new HashMap<>();
                 List<GoodsInfoStockSyncProviderResponse> stockSendMessageList = new ArrayList<>();
-                List<GoodsInfoStockSyncProviderResponse> costPriceList = new ArrayList<>();
+                List<GoodsInfoStockSyncProviderResponse> costPriceSendMessageList = new ArrayList<>();
                 for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : context.getGoodsInfoStockSyncList()) {
 
                     //删除缓存
@@ -140,31 +140,25 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         redisService.delete(RedisKeyConstant.GOODS_DETAIL_CACHE + goodsInfoStockSyncParam.getSpuId());
                     }
 
-                    //只是处理需要同步库存商品
-                    if (goodsInfoStockSyncParam.isCanSyncStock()) {
-                        //计算skuCode 数量
-                        Integer stockSumQtyTmp = skuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSkuId());
-                        stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
-                        skuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSkuId(), stockSumQtyTmp);
+                    //计算skuCode 数量
+                    Integer stockSumQtyTmp = skuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSkuId());
+                    stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
+                    skuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSkuId(), stockSumQtyTmp);
 
-                        //计算spuCode 数量
-                        stockSumQtyTmp = spuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSpuId());
-                        stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
-                        spuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSpuId(), stockSumQtyTmp);
+                    //计算spuCode 数量
+                    stockSumQtyTmp = spuId2StockQtySumMap.get(goodsInfoStockSyncParam.getSpuId());
+                    stockSumQtyTmp = stockSumQtyTmp == null ? goodsInfoStockSyncParam.getActualStockQty() : stockSumQtyTmp + goodsInfoStockSyncParam.getActualStockQty();
+                    spuId2StockQtySumMap.put(goodsInfoStockSyncParam.getSpuId(), stockSumQtyTmp);
 
-                        //发送消息
-                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
-                            stockSendMessageList.add(goodsInfoStockSyncParam);
-                        }
+                    //发送消息
+                    if (goodsInfoStockSyncParam.getActualStockQty() != null && !Objects.equals(goodsInfoStockSyncParam.getActualStockQty(), goodsInfoStockSyncParam.getLastStockQty())) {
+                        stockSendMessageList.add(goodsInfoStockSyncParam);
                     }
 
                     //只是处理需要同步 成本价的商品
-                    if (goodsInfoStockSyncParam.isCanSyncCostPrice()) {
-                        if (goodsInfoStockSyncParam.getErpCostPrice().compareTo(goodsInfoStockSyncParam.getCurrentCostPrice()) != 0) {
-                            costPriceList.add(goodsInfoStockSyncParam);
-                        }
+                    if (goodsInfoStockSyncParam.getActualCostPrice().compareTo(goodsInfoStockSyncParam.getLastCostPrice()) != 0) {
+                        costPriceSendMessageList.add(goodsInfoStockSyncParam);
                     }
-
                 }
 
                 if (!skuId2StockQtySumMap.isEmpty()) {
@@ -176,9 +170,9 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                     esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
                 }
 
-                if (CollectionUtils.isNotEmpty(costPriceList)) {
+                if (CollectionUtils.isNotEmpty(costPriceSendMessageList)) {
                     List<String> skuIdCostPriceList = new ArrayList<>();
-                    for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : costPriceList) {
+                    for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : costPriceSendMessageList) {
                         skuIdCostPriceList.add(goodsInfoStockSyncParam.getSkuId());
                     }
                     //更新成本价
@@ -191,7 +185,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 //发送库存消息
                 for (GoodsInfoStockSyncProviderResponse p : stockSendMessageList) {
 
-                    if (Objects.equals(p.getCurrentStockQty(), p.getActualStockQty()) && !p.isChangeStock()) {
+                    if (p.getActualStockQty() > FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
                         continue;
                     }
                     log.info("ERPGoodsStockSyncJobHandler stock send feishu message :{}", JSON.toJSONString(p));
@@ -200,18 +194,20 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 }
 
                 //发送成本价消息
-                for (GoodsInfoStockSyncProviderResponse p : costPriceList) {
+                for (GoodsInfoStockSyncProviderResponse p : costPriceSendMessageList) {
                     //计算毛利率
                     BigDecimal oldRate = new BigDecimal(0);
                     BigDecimal newRate = new BigDecimal(0);
                     if(p.getCurrentMarketPrice() != null && p.getCurrentMarketPrice().compareTo(new BigDecimal(0)) != 0){
-                        oldRate = (p.getCurrentMarketPrice().subtract(p.getCurrentCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
-                        newRate = (p.getCurrentMarketPrice().subtract(p.getErpCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
+                        oldRate = (p.getCurrentMarketPrice().subtract(p.getLastCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2, RoundingMode.HALF_UP);
+                        newRate = (p.getCurrentMarketPrice().subtract(p.getActualCostPrice())).multiply(new BigDecimal(100)).divide(p.getCurrentMarketPrice(),2,RoundingMode.HALF_UP);
                     }
-                    if (p.getCurrentCostPrice().compareTo(p.getErpCostPrice()) != 0 && newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LIMIT)) <=0) {
+                    if (p.getActualCostPrice().compareTo(p.getLastCostPrice()) != 0
+                            && newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_LT_LIMIT)) <=0
+                            && newRate.compareTo(new BigDecimal(FeiShuMessageConstant.FEI_SHU_COST_PRICE_GT_LIMIT)) >=0) {
                         log.info("ERPGoodsStockSyncJobHandler cost price send feishu message :{}", JSON.toJSONString(p));
                         String content = MessageFormat.format(FeiShuMessageConstant.FEI_SHU_COST_PRICE_NOTIFY, p.getSkuNo(), p.getSkuName(),
-                                p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getCurrentCostPrice(), p.getErpCostPrice(), oldRate, newRate);
+                                p.getCurrentMarketPrice(), sdf.format(new Date()) ,p.getLastCostPrice(), p.getActualCostPrice(), oldRate, newRate);
                         feiShuSendMessageService.sendMessage(content, FeiShuNoticeEnum.COST_PRICE);
                     }
                 }
@@ -223,42 +219,6 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 stringRedisTemplate.opsForValue().set(RedisKeyConstant.GOODS_STOCK_SYNC_MAX_TMP_ID, String.valueOf(context.getMaxTmpId()));
             }
 
-
-
-
-//            Map<String, Map<String, Integer>> context = baseResponse.getContext();
-//            if(!baseResponse.getContext().isEmpty()){
-//                Integer total = context.get("total").get("total");
-//                if(total <= 0) log.info("同步ERP商品库存查询结果为空1");
-//                int pageNum = 1;
-//                for(int i = 0; i < total; i+=20){
-//                    log.info("同步ERP商品库存,共{}条数据,当前第{}页", total, pageNum);
-//                    if(pageNum > 1) baseResponse = goodsProvider.partialUpdateStock(erpGoodsInfoNo, lastSyncTime, pageNum + "", "20");
-//                    //更新ES中的SPU和SKU库存数据
-//                    if(baseResponse.getContext() != null){
-//                        Map<String, Integer> skusMap = baseResponse.getContext().get("skus");
-//                        if(!skusMap.isEmpty()){
-//                            updateLastSyncTime = true;
-//                            EsGoodsSkuStockSubRequest esGoodsSkuStockSubRequest = EsGoodsSkuStockSubRequest.builder().skusMap(skusMap).build();
-//                            esGoodsStockProvider.batchResetStockBySkuId(esGoodsSkuStockSubRequest);
-//                        }
-//                        Map<String, Integer> spusMap = baseResponse.getContext().get("spus");
-//                        if(!spusMap.isEmpty()){
-//                            updateLastSyncTime = true;
-//                            EsGoodsSpuStockSubRequest esGoodsSpuStockSubRequest = EsGoodsSpuStockSubRequest.builder().spusMap(spusMap).build();
-//                            esGoodsStockProvider.batchResetStockBySpuId(esGoodsSpuStockSubRequest);
-//                        }
-//                    }
-//                    pageNum++;
-//                }
-//            }else {
-//                log.info("同步ERP商品库存查询结果为空2");
-//            }
-
-//            //记录更新库存时间
-//            if(updateLastSyncTime && (StringUtils.isEmpty(param) || "initial".equals(param))) {
-//                stringRedisTemplate.opsForValue().set(RedisKeyConstant.STOCK_SYNC_TIME_PREFIX, sdf.format(currentDate));
-//            }
             log.info("ERPGoodsStockSyncJobHandler running end cost: {} ms", (System.currentTimeMillis() - startTime));
             return SUCCESS;
         } catch (RuntimeException e) {

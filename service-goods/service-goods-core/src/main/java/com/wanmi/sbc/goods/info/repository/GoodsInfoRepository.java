@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -577,4 +578,12 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
     @Transactional
     @Query(value = "update GoodsInfo gi set gi.costPriceSyncFlag=?1 where gi.goodsInfoId=?2")
     int updateCostPriceSyncFlagById(Integer costPriceSyncFlag, String goodsInfoId);
+
+    /**
+     * 根据最大id
+     * @param providerId
+     * @return
+     */
+    @Query(value = "select tmp_id, goods_id, goods_info_id, erp_goods_no,erp_goods_info_no,cost_price,cost_price_sync_flag,stock,stock_sync_flag,goods_info_no,goods_info_name,market_price, cost_price from goods_info where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
+    List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }
