@@ -3749,6 +3749,7 @@ public class GoodsService {
      * 更新goods表信息
      * @param goodsDetas
      */
+    @Transactional
     public void updateGoodsByCondition(List<GoodsDataUpdateRequest> goodsDetas) {
         if (CollectionUtils.isEmpty(goodsDetas)) {
             return;
@@ -3766,7 +3767,7 @@ public class GoodsService {
 
         List<Goods> saveGoods = new ArrayList<>();
         for (Goods goods : goodsList) {
-            GoodsDataUpdateRequest goodsDataUpdateRequestTmp = goodsNo2GoodsParamMap.get(goods.getGoodsId());
+            GoodsDataUpdateRequest goodsDataUpdateRequestTmp = goodsNo2GoodsParamMap.get(goods.getGoodsNo());
             if (goodsDataUpdateRequestTmp == null) {
                 continue;
             }
