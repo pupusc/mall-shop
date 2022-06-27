@@ -26,7 +26,7 @@ import javax.validation.Valid;
  * @Description:
  * @Date: 2018-12-03 17:24
  */
-@FeignClient(value = "${application.order.name}", contextId = "TradeProvider")
+@FeignClient(value = "${application.order.name}", contextId = "TradeProvider", url = "http://192.168.68.96:8970")
 public interface TradeProvider {
 
     /**

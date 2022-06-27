@@ -9,8 +9,10 @@ import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.order.common.DefaultPayBatchRequest;
 import com.soybean.mall.order.common.PayServiceHelper;
+import com.soybean.mall.order.request.StmtParamVO;
 import com.soybean.mall.order.request.TradeItemConfirmRequest;
 import com.soybean.mall.order.response.OrderConfirmResponse;
+import com.soybean.mall.order.response.StmtResultVO;
 import com.soybean.mall.service.CommonService;
 import com.soybean.mall.vo.WxAddressInfoVO;
 import com.soybean.mall.vo.WxOrderCommitResultVO;
@@ -20,8 +22,6 @@ import com.soybean.mall.wx.mini.goods.bean.request.WxUpdateProductWithoutAuditRe
 import com.soybean.mall.wx.mini.goods.bean.response.WxGetProductDetailResponse;
 import com.soybean.mall.wx.mini.goods.bean.response.WxResponseBase;
 import com.soybean.mall.wx.mini.goods.controller.WxGoodsApiController;
-import com.soybean.mall.wx.mini.order.bean.dto.WxProductInfoDTO;
-import com.soybean.mall.wx.mini.order.bean.request.WxCreateOrderRequest;
 import com.wanmi.sbc.account.bean.enums.PayWay;
 import com.wanmi.sbc.common.annotation.MultiSubmitWithToken;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -30,9 +30,12 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.TerminalSource;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
-import com.wanmi.sbc.common.util.*;
+import com.wanmi.sbc.common.util.CommonErrorCode;
+import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
+import com.wanmi.sbc.common.util.HttpUtil;
+import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
@@ -60,15 +63,11 @@ import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.marketing.api.provider.coupon.CouponCodeQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
-import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
@@ -76,7 +75,10 @@ import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.vo.*;
+import com.wanmi.sbc.order.bean.vo.SupplierVO;
+import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
 import com.wanmi.sbc.pay.api.request.WxPayForJSApiRequest;
 import com.wanmi.sbc.pay.bean.enums.WxPayTradeType;
@@ -90,16 +92,27 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * @menu 小程序
+ */
 @Slf4j
 @RestController
 @RequestMapping("/wx/order")
@@ -526,6 +539,7 @@ public class OrderController {
 //        couponCodeListForUseByCustomerIdRequest.setPrice(totalPriceSum);
 //        confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(couponCodeListForUseByCustomerIdRequest).getContext()
 //                .getCouponCodeList());
+
         return BaseResponse.success(confirmResponse);
     }
 
@@ -622,6 +636,79 @@ public class OrderController {
         return BaseResponse.SUCCESSFUL();
     }
 
+    /**
+     * 购物车-订单结算
+     */
+    @PostMapping(value = "/stmtCommit")
+    public BaseResponse<Boolean> settlementCommit(@RequestBody StmtParamVO paramVO) {
+        return null;
+//        String customerId = commonUtil.getOperatorId();
+//        if (StringUtils.isBlank(customerId)) {
+//            throw new SbcRuntimeException("K-010110");
+//        }
 
+//        List<String> skuIds = confirmRequest.getTradeItems().stream().map(TradeItemRequest::getSkuId).collect(Collectors.toList());
+//
+//        List<TradeItemDTO> tradeItems = confirmRequest.getTradeItems().stream().map(
+//                o -> TradeItemDTO.builder().skuId(o.getSkuId()).num(o.getNum())
+//                        .isAppointmentSaleGoods(o.getIsAppointmentSaleGoods()).appointmentSaleId(o.getAppointmentSaleId())
+//                        .isBookingSaleGoods(o.getIsBookingSaleGoods()).bookingSaleId(o.getBookingSaleId())
+//                        .build()
+//        ).collect(Collectors.toList());
+//
+//        DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
+//        DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
+//        ChannelType channelType = distributeChannel.getChannelType();
+//        TradeItemConfirmSettlementRequest request = new TradeItemConfirmSettlementRequest();
+//        request.setCustomerId(customerId);
+//        request.setSkuIds(skuIds);
+//        request.setInviteeId(commonUtil.getPurchaseInviteeId());
+//        request.setOpenFlag(openFlag);
+//        request.setChannelType(channelType);
+//        request.setDistributeChannel(distributeChannel);
+//        request.setTradeItems(tradeItems);
+//        request.setTradeMarketingList(confirmRequest.getTradeMarketingList());
+//        request.setForceConfirm(confirmRequest.isForceConfirm());
+//        request.setTerminalToken(commonUtil.getTerminalToken());
+//        request.setAreaId(confirmRequest.getAreaId());
+//        return tradeItemProvider.confirmSettlement(request);
+    }
 
+    /**
+     * 购物车-订单结算
+     */
+    @PostMapping(value = "/stmtInfo")
+    public BaseResponse<StmtResultVO> settlementInfo() {
+        return null;
+//        String customerId = commonUtil.getOperatorId();
+//        if (StringUtils.isBlank(customerId)) {
+//            throw new SbcRuntimeException("K-010110");
+//        }
+
+//        List<String> skuIds = confirmRequest.getTradeItems().stream().map(TradeItemRequest::getSkuId).collect(Collectors.toList());
+//
+//        List<TradeItemDTO> tradeItems = confirmRequest.getTradeItems().stream().map(
+//                o -> TradeItemDTO.builder().skuId(o.getSkuId()).num(o.getNum())
+//                        .isAppointmentSaleGoods(o.getIsAppointmentSaleGoods()).appointmentSaleId(o.getAppointmentSaleId())
+//                        .isBookingSaleGoods(o.getIsBookingSaleGoods()).bookingSaleId(o.getBookingSaleId())
+//                        .build()
+//        ).collect(Collectors.toList());
+//
+//        DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
+//        DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
+//        ChannelType channelType = distributeChannel.getChannelType();
+//        TradeItemConfirmSettlementRequest request = new TradeItemConfirmSettlementRequest();
+//        request.setCustomerId(customerId);
+//        request.setSkuIds(skuIds);
+//        request.setInviteeId(commonUtil.getPurchaseInviteeId());
+//        request.setOpenFlag(openFlag);
+//        request.setChannelType(channelType);
+//        request.setDistributeChannel(distributeChannel);
+//        request.setTradeItems(tradeItems);
+//        request.setTradeMarketingList(confirmRequest.getTradeMarketingList());
+//        request.setForceConfirm(confirmRequest.isForceConfirm());
+//        request.setTerminalToken(commonUtil.getTerminalToken());
+//        request.setAreaId(confirmRequest.getAreaId());
+//        return tradeItemProvider.confirmSettlement(request);
+    }
 }

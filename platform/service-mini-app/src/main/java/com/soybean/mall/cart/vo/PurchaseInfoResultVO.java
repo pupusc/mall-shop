@@ -10,13 +10,17 @@ import java.util.List;
  * @date 2022-06-15 11:20:00
  */
 @Data
-public class CartInfoResVO {
+public class PurchaseInfoResultVO {
     /**
      * 店铺信息
      */
-    private CartInfoResVO$Store store;
+    private CartInfoResultVO$Store store;
     /**
      * 活动分组
      */
-    private List<CartInfoResVO$Group> goodsGroups;
+    private List<CartInfoResultVO$Group> marketings;
+//    /**
+//     * 价格信息
+//     */
+//    private CalcTradePrice calcTradePrice;
 }

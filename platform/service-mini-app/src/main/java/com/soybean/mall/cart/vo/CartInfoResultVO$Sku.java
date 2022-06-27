@@ -1,20 +1,16 @@
 package com.soybean.mall.cart.vo;
 
 import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
-import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
-import com.wanmi.sbc.marketing.bean.enums.MarketingType;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * @author Liang Jun
  * @date 2022-06-15 17:08:00
  */
 @Data
-public class CartInfoResVO$Sku {
+public class CartInfoResultVO$Sku {
     /**
      * 商品编号
      */
@@ -53,13 +49,22 @@ public class CartInfoResVO$Sku {
      */
     private BigDecimal salePrice;
     /**
-     * 购买量
+     * 购买量数量
      */
     private Long buyCount = 0L;
     /**
-     * 规格ids
+     * 最大数量
      */
-    private List<Spec> specs;
+    private Long maxCount = 0L;
+    /**
+     * 规格文案
+      */
+    private String specText;
+    /**
+     * 是否有更多规格
+     */
+    private Boolean specMore;
+
     /**
      * 前端是否选中
      */
@@ -68,47 +73,4 @@ public class CartInfoResVO$Sku {
      * 商品状态 0：正常 1：缺货 2：失效
      */
     private GoodsStatus goodsStatus = GoodsStatus.OK;
-
-    /**
-     * 活动
-     */
-    private List<Marketing> marketings;
-
-    @Data
-    private static class Spec {
-        /**
-         * 规格id
-         */
-        private Long id;
-        /**
-         * 展示文本
-         */
-        private String text;
-        /**
-         * 是否选中
-         */
-        private boolean checked;
-    }
-
-    @Data
-    private static class Marketing {
-        /**
-         * 营销Id
-         */
-        private Long marketingId;
-        /**
-         * 营销名称
-         */
-        private String marketingName;
-
-        /**
-         * 营销类型 0：满减 1:满折 2:满赠
-         */
-        private MarketingType marketingType;
-
-        /**
-         * 营销子类型 0：满金额减 1：满数量减 2:满金额折 3:满数量折 4:满金额赠 5:满数量赠
-         */
-        private MarketingSubType subType;
-    }
 }

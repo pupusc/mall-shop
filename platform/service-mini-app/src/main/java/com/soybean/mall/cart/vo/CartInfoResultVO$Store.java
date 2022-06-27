@@ -10,7 +10,7 @@ import java.util.List;
  * @date 2022-06-16 11:15:00
  */
 @Data
-public class CartInfoResVO$Store {
+public class CartInfoResultVO$Store {
     /**
      * 店铺主键
      */

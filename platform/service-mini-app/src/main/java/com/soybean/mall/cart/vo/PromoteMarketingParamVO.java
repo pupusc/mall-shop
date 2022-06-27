@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * @date 2022-06-16 19:07:00
  */
 @Data
-public class PromoteInfoReqVO {
+public class PromoteMarketingParamVO {
     @NotNull
-    private Integer goodsId;
+    private Integer goodsInfoId;
 }

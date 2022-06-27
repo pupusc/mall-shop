@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import com.soybean.mall.order.config.OrderConfigProperties;
 import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.prize.service.OrderCouponService;
-import com.soybean.mall.wx.mini.order.bean.request.WxOrderDetailRequest;
 import com.soybean.mall.wx.mini.order.bean.response.WxVideoOrderDetailResponse;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
@@ -388,7 +387,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -2489,7 +2488,6 @@ public class TradeService {
 //        }
         return trade;
     }
-
 
     /**
      * 添加加价购商品的金额
@@ -6221,6 +6219,38 @@ public class TradeService {
     }
 
     /**
+     * 入参封装model：CalcPriceParamBO, 属性goodsIds, marketingIds, couponCodeId
+     * 出参封装model：CalcPriceResultBO, 原始价格、减去价格、支付价格、原始价明细、减去价明细
+     */
+//    @Autowired
+//    VerifyService verifyService;
+//    public Object calcTradePrice(List<String> goodsInfoIds, List<Long> marketingIds, Long couponCodeId) {
+//        //-----------------------------------------------------------------------------------------
+//        Trade calcParam = new Trade();
+//        //todo 拼装计算参数
+//        List<TradeItem> tradeItems = goodsInfoIds.stream().map(item -> TradeItem.builder().skuId(item).num(1L).build()).collect(Collectors.toList());
+//        tradeItems.forEach(tradeItem -> verifyService.calcPrice(tradeItem, goodsInfo, goods, goodsInfoResponse.getGoodsIntervalPrices()));
+//        calcParam.setTradeItems(tradeItems);
+//
+//        List<MarketingDTO> marketingDTOs = queryMarketing(marketingIds);
+//        List<TradeMarketingVO> marketingVOs = marketingDTOs.stream().map(item -> {
+//            TradeMarketingVO vo = new TradeMarketingVO();
+//            BeanUtils.copyProperties(item, vo);
+//            vo.setDiscountsAmount();
+//            return vo;
+//        }).collect(Collectors.toList());
+//        calcParam.setTradeMarketings(marketingVOs);
+//
+//        TradeCouponDTO tradeCouponDTO = queryTradeCoupon(couponCodeId);
+//        TradeCouponVO tradeCouponVO = new TradeCouponVO();
+//        BeanUtils.copyProperties(tradeCouponDTO, tradeCouponVO);
+//        calcParam.setTradeCoupon(tradeCouponVO);
+//
+//        TradePrice calcResult = calc(calcParam);
+//        //todo 拼装计算结果
+//    }
+
+    /**
      * 计算订单价格
      * 订单价格 = 商品总价 - 营销优惠总金额
      *
@@ -6344,8 +6374,6 @@ public class TradeService {
                         t.getBuyPoint() * t.getNum() : tradePrice.getBuyPoints() + t.getBuyPoint() * t.getNum());
             }
         });
-
-        System.out.println("");
     }
 
     private List<TradeItem> giftNumCheck(List<TradeItem> gifts) {
