@@ -218,8 +218,8 @@ public class GoodsInfoStockService {
             goodsInfoStockSyncResponse.setActualCostPrice(tmpCostPrice);
 
             //存入redis
-            String lastSyncStockKey = RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY + goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
-            String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncStockKey);
+            String lastSyncStockKey = goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
+            String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey);
             if (!StringUtils.isBlank(lastSyncStockValue)) {
                 goodsInfoStockSyncResponse.setLastStockQty(Integer.parseInt(lastSyncStockValue));
             } else {
@@ -227,7 +227,7 @@ public class GoodsInfoStockService {
             }
 
             //存入redis
-            String lastMarketPriceKey = RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY + goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
+            String lastMarketPriceKey = goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
             String lastMarketPriceValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_MARKET_PRICE_KEY, lastMarketPriceKey);
             if (!StringUtils.isBlank(lastMarketPriceValue)) {
                 goodsInfoStockSyncResponse.setLastMarketPrice(new BigDecimal(lastMarketPriceValue));
@@ -237,8 +237,8 @@ public class GoodsInfoStockService {
 
 
             //存入redis
-            String lastSyncCostPriceKey = RedisKeyConstant.GOODS_INFO_SYNC_COST_PRICE_KEY + goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
-            String lastSyncCostPriceValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncCostPriceKey);
+            String lastSyncCostPriceKey =goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
+            String lastSyncCostPriceValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_COST_PRICE_KEY, lastSyncCostPriceKey);
             if (!StringUtils.isBlank(lastSyncCostPriceValue)) {
                 goodsInfoStockSyncResponse.setLastCostPrice(new BigDecimal(lastSyncCostPriceValue));
             } else {
@@ -246,9 +246,9 @@ public class GoodsInfoStockService {
             }
 
             if (goodsInfoStockAndCostPriceSyncParam.isHasSaveRedis()) {
-                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncStockKey, tmpActualStockQty.toString(),6 * 30 * 24 * 60 * 60);
-                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncCostPriceKey, tmpCostPrice.toString(),6 * 30 * 24 * 60 * 60);
-                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastMarketPriceKey, goodsInfoStockSyncResponse.getCurrentMarketPrice().toString(),6 * 30 * 24 * 60 * 60);
+                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey, tmpActualStockQty.toString(),6 * 30 * 24 * 60 * 60);
+                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_MARKET_PRICE_KEY, lastSyncCostPriceKey, tmpCostPrice.toString(),6 * 30 * 24 * 60 * 60);
+                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_COST_PRICE_KEY, lastMarketPriceKey, goodsInfoStockSyncResponse.getCurrentMarketPrice().toString(),6 * 30 * 24 * 60 * 60);
             }
             result.add(goodsInfoStockSyncResponse);
         }
