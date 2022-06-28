@@ -248,6 +248,7 @@ public class GoodsInfoStockService {
             if (goodsInfoStockAndCostPriceSyncParam.isHasSaveRedis()) {
                 redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncStockKey, tmpActualStockQty.toString(),6 * 30 * 24 * 60 * 60);
                 redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncCostPriceKey, tmpCostPrice.toString(),6 * 30 * 24 * 60 * 60);
+                redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastMarketPriceKey, goodsInfoStockSyncResponse.getCurrentMarketPrice().toString(),6 * 30 * 24 * 60 * 60);
             }
             result.add(goodsInfoStockSyncResponse);
         }
