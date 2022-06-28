@@ -584,6 +584,6 @@ public interface GoodsInfoRepository extends JpaRepository<GoodsInfo, String>, J
      * @param providerId
      * @return
      */
-    @Query(value = "select tmp_id, goods_id, goods_info_id, erp_goods_no,erp_goods_info_no,cost_price,cost_price_sync_flag,stock,stock_sync_flag,goods_info_no,goods_info_name,market_price, cost_price from goods_info where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
+    @Query(value = "select tmp_id, goods_id, goods_info_id, erp_goods_no,erp_goods_info_no,cost_price,cost_price_sync_flag,stock,stock_sync_flag,goods_info_no,goods_info_name,market_price from goods_info where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
     List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
 }

@@ -264,7 +264,7 @@ public class GoodsStockService {
         List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
         if (!CollectionUtils.isEmpty(goodsIdList)) {
             GoodsInfoQueryRequest goodsInfoQueryRequest = new GoodsInfoQueryRequest();
-            goodsInfoQueryRequest.setGoodsInfoIds(goodsIdList);
+            goodsInfoQueryRequest.setGoodsIds(goodsIdList);
             goodsInfoQueryRequest.setDelFlag(DeleteFlag.NO.toValue());
             goodsInfoQueryRequest.setAddedFlag(AddedFlag.YES.toValue());
             List<GoodsInfo> goodsInfoList = goodsInfoRepository.findAll(goodsInfoQueryRequest.getWhereCriteria());
