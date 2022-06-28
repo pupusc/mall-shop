@@ -120,7 +120,7 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
             log.info("ERPGoodsStockSyncJobHandler param goodsIdList {} pageSize:{} maxId: {}", JSON.toJSONString(goodsIdList), pageSize, maxTmpId);
             GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
             guanYiSyncGoodsStockRequest.setGoodsIdList(goodsIdList);
-            guanYiSyncGoodsStockRequest.setStartTime("");
+            guanYiSyncGoodsStockRequest.setHasSaveRedis(true);
             guanYiSyncGoodsStockRequest.setMaxTmpId(maxTmpId);
             guanYiSyncGoodsStockRequest.setPageSize(pageSize);
             

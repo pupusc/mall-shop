@@ -256,9 +256,9 @@ public class GoodsStockService {
 
     /**
      * 批量更新库存 根据频率计算，此处可以考虑更新 前200个商品 以及剩余的商品
-     * @param startTime
+     * @param hasSaveRedis 只有定时任务才设置为 true，保证每次采集到的都是上一次的数据
      */
-    public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, String startTime, long maxTmpId, int pageSize) {
+    public GoodsInfoStockSyncMaxIdProviderResponse batchUpdateStock(List<String> goodsIdList, boolean hasSaveRedis, long maxTmpId, int pageSize) {
         long beginTime = System.currentTimeMillis();
         String providerId = defaultProviderId; //管易云
         List<GoodsInfoStockSyncProviderResponse> tmpResult = new ArrayList<>();
@@ -282,7 +282,7 @@ public class GoodsStockService {
                 goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoParam.getGoodsInfoNo());
                 goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoParam.getGoodsInfoName());
                 goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(goodsInfoParam.getMarketPrice());
-                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(false);
+                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
                 goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
             }
 
@@ -356,7 +356,7 @@ public class GoodsStockService {
                 goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoNo(goodsInfoNo);
                 goodsInfoStockAndCostPriceSyncRequest.setGoodsInfoName(goodsInfoName);
                 goodsInfoStockAndCostPriceSyncRequest.setMarketPrice(marketPrice);
-                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(true);
+                goodsInfoStockAndCostPriceSyncRequest.setHasSaveRedis(hasSaveRedis);
                 goodsInfoStockAndCostPriceSyncRequests.add(goodsInfoStockAndCostPriceSyncRequest);
                 if (maxTmpId < tmpId) {
                     maxTmpId = tmpId;
