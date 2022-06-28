@@ -226,6 +226,15 @@ public class GoodsInfoStockService {
                 goodsInfoStockSyncResponse.setLastStockQty(0);
             }
 
+            //存入redis
+            String lastMarketPriceKey = RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY + goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();
+            String lastMarketPriceValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_MARKET_PRICE_KEY, lastMarketPriceKey);
+            if (!StringUtils.isBlank(lastMarketPriceValue)) {
+                goodsInfoStockSyncResponse.setLastMarketPrice(new BigDecimal(lastMarketPriceValue));
+            } else {
+                goodsInfoStockSyncResponse.setLastMarketPrice(goodsInfoStockSyncResponse.getCurrentMarketPrice());
+            }
+
 
             //存入redis
             String lastSyncCostPriceKey = RedisKeyConstant.GOODS_INFO_SYNC_COST_PRICE_KEY + goodsInfoStockAndCostPriceSyncParam.getGoodsInfoId();

@@ -101,6 +101,11 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
      */
     private BigDecimal currentMarketPrice;
 
+    /**
+     *  市场价
+     */
+    private BigDecimal lastMarketPrice;
+
 //    /**
 //     * 当前成本价
 //     */

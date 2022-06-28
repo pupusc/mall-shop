@@ -152,4 +152,9 @@ public final class RedisKeyConstant {
      */
     public static final String GOODS_INFO_SYNC_COST_PRICE_KEY = "COST_PRICE";
 
+    /**
+     * 商品市场价
+     */
+    public static final String GOODS_INFO_SYNC_MARKET_PRICE_KEY = "MARKET_PRICE";
+
 }
