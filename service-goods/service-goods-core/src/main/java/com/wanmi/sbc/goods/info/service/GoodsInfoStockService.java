@@ -250,8 +250,11 @@ public class GoodsInfoStockService {
                 redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_MARKET_PRICE_KEY, lastMarketPriceKey, goodsInfoStockSyncResponse.getCurrentMarketPrice().toString(),6 * 30 * 24 * 60 * 60);
                 redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_COST_PRICE_KEY, lastSyncCostPriceKey, tmpCostPrice.toString(),6 * 30 * 24 * 60 * 60);
             }
+
             result.add(goodsInfoStockSyncResponse);
+            log.info("GoodsStockService batchUpdateStock goodsInfoStockSyncResponse:{} ", JSON.toJSONString(goodsInfoStockSyncResponse));
         }
+
         return result;
     }
 

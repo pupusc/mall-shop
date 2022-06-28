@@ -407,6 +407,8 @@ public class GoodsStockService {
         List<ERPGoodsInfoVO> result = new ArrayList<>(100);
         Set<String> erpGoodsCodeNoSet =
                 goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
+        log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ", JSON.toJSONString(erpGoodsCodeNoSet));
+        long benginTime = System.currentTimeMillis();
         for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
             int pageNum = 1;
             int pageSize = 100;
@@ -428,7 +430,7 @@ public class GoodsStockService {
                 }
             }
         }
-
+        log.info("GoodsStockService batchUpdateStock erpGoodsCodeNoSet:{} ERPGoodsInfoVO size:{} cost:{} s", JSON.toJSONString(erpGoodsCodeNoSet), result.size(), (System.currentTimeMillis() - benginTime)/1000);
         Map<String, Integer> erpSkuCode2ErpStockQtyMap = new HashMap<>();
         for (ERPGoodsInfoVO erpGoodsInfoVo : result) {
             if (erpGoodsInfoVo.getDel() || unStaticsKey.contains(erpGoodsInfoVo.getWarehouseCode())) {
@@ -467,7 +469,8 @@ public class GoodsStockService {
                 log.warn("GoodsStockService batchUpdateStock erpGoodsCodeNo:{} 访问管易异常", erpGoodsCodeNo, ex);
             }
         }
-
+        log.info("GoodsStockService batchUpdateStock goodsInfoStockAndCostPriceSyncRequests:{} erpSkuCode2ErpGoodsInfoMap:{} "
+                , JSON.toJSONString(goodsInfoStockAndCostPriceSyncRequests), erpSkuCode2ErpGoodsInfoMap);
         return goodsInfoStockService.batchUpdateGoodsInfoStockAndCostPrice(goodsInfoStockAndCostPriceSyncRequests, erpSkuCode2ErpGoodsInfoMap);
     }
 
