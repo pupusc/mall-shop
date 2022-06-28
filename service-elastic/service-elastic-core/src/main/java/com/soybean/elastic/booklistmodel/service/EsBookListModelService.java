@@ -74,9 +74,9 @@ public class EsBookListModelService {
         BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
         boolQb.must(termQuery("delFlag", esKeyWordQueryProviderReq.getDelFlag()));
         boolQb.must(termQuery("bookListCategory", esKeyWordQueryProviderReq.getSearchBookListCategory()));
-        boolQb.should().add(matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_BOOKLISTNAME, esKeyWordQueryProviderReq.getKeyword()));
-        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME, esKeyWordQueryProviderReq.getKeyword()), ScoreMode.None));
-        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD, esKeyWordQueryProviderReq.getKeyword()), ScoreMode.None));
+        boolQb.should().add(matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_BOOKLISTNAME, esKeyWordQueryProviderReq.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
+        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME, esKeyWordQueryProviderReq.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
+        boolQb.should().add(nestedQuery("spus", matchQuery(ConstantMultiMatchField.FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD, esKeyWordQueryProviderReq.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH), ScoreMode.None));
 
 //
 //

@@ -9,6 +9,10 @@ package com.soybean.elastic.constant;
  ********************************************************************/
 public class ConstantMultiMatchField {
     /**
+     * 设置最小匹配数量
+     */
+    public static final String FIELD_MINIMUM_SHOULD_MATCH = "2";
+    /**
      * 书单/榜单
      */
     public static final String FIELD_BOOK_LIST_BOOKLISTNAME = "bookListName";
