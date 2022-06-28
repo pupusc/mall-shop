@@ -148,10 +148,10 @@ public class GuanyierpController implements GuanyierpProvider {
                 erpGoodsInfoVO.setStockStatusCode(erpGoodsInfo.getStockStatusCode());
                 erpGoodsInfoVO.setItemCode(erpGoods.getCode());
                 erpGoodsInfoVO.setItemName(erpGoods.getName());
-                //如果库存状态为空则设置为spu的库存状态
-                if (StringUtils.isBlank(erpGoodsInfo.getStockStatusCode())) {
+                if (StringUtils.isNotBlank(erpGoods.getStockStatusCode())) {
                     erpGoodsInfoVO.setStockStatusCode(erpGoods.getStockStatusCode());
                 }
+
                 //成本价
                 if (erpGoods.getCostPrice() != null && erpGoods.getCostPrice().compareTo(new BigDecimal("0")) > 0) {
                     erpGoodsInfoVO.setCostPrice(erpGoods.getCostPrice());
