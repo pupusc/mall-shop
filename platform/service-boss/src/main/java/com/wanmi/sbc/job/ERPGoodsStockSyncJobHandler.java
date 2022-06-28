@@ -156,7 +156,8 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                     }
 
                     //只是处理需要同步 成本价的商品
-                    if (goodsInfoStockSyncParam.getActualCostPrice().compareTo(goodsInfoStockSyncParam.getLastCostPrice()) != 0) {
+                    if (goodsInfoStockSyncParam.getActualCostPrice().compareTo(goodsInfoStockSyncParam.getLastCostPrice()) != 0
+                            || goodsInfoStockSyncParam.getCurrentMarketPrice().compareTo(goodsInfoStockSyncParam.getLastMarketPrice()) != 0) {
                         costPriceSendMessageList.add(goodsInfoStockSyncParam);
                     }
                 }
@@ -173,6 +174,9 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                 if (CollectionUtils.isNotEmpty(costPriceSendMessageList)) {
                     List<String> skuIdCostPriceList = new ArrayList<>();
                     for (GoodsInfoStockSyncProviderResponse goodsInfoStockSyncParam : costPriceSendMessageList) {
+                        if (goodsInfoStockSyncParam.getActualCostPrice().compareTo(goodsInfoStockSyncParam.getLastCostPrice()) == 0){
+                            continue;
+                        }
                         skuIdCostPriceList.add(goodsInfoStockSyncParam.getSkuId());
                     }
                     //更新成本价
