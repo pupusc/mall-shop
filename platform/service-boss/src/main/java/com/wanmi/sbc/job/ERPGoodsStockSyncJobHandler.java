@@ -179,11 +179,13 @@ public class ERPGoodsStockSyncJobHandler extends IJobHandler {
                         }
                         skuIdCostPriceList.add(goodsInfoStockSyncParam.getSkuId());
                     }
-                    //更新成本价
-                    EsGoodsInfoAdjustPriceRequest costPrice = new EsGoodsInfoAdjustPriceRequest();
-                    costPrice.setGoodsInfoIds(skuIdCostPriceList);
-                    costPrice.setType(PriceAdjustmentType.MARKET);
-                    esGoodsInfoElasticProvider.adjustPrice(costPrice);
+                    if (!CollectionUtils.isEmpty(skuIdCostPriceList)) {
+                        //更新成本价
+                        EsGoodsInfoAdjustPriceRequest costPrice = new EsGoodsInfoAdjustPriceRequest();
+                        costPrice.setGoodsInfoIds(skuIdCostPriceList);
+                        costPrice.setType(PriceAdjustmentType.MARKET);
+                        esGoodsInfoElasticProvider.adjustPrice(costPrice);
+                    }
                 }
 
                 //发送库存消息
