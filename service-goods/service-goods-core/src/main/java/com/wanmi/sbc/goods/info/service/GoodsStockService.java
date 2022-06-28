@@ -402,12 +402,14 @@ public class GoodsStockService {
             unStaticsKey.addAll(goodsBlackListPageProviderResponse.getWareHouseListModel().getNormalList());
         }
 
-        int pageNum = 1;
-        int pageSize = 100;
+
+
         List<ERPGoodsInfoVO> result = new ArrayList<>(100);
         Set<String> erpGoodsCodeNoSet =
                 goodsInfoStockAndCostPriceSyncRequests.stream().map(GoodsInfoStockAndCostPriceSyncRequest::getErpGoodsNo).collect(Collectors.toSet());
         for (String erpGoodsCodeNo : erpGoodsCodeNoSet) {
+            int pageNum = 1;
+            int pageSize = 100;
             while (true) {
                 BaseResponse<ErpStockVo> listWareHoseStock = guanyierpProvider.listWareHoseStock(pageNum, pageSize, erpGoodsCodeNo);
                 ErpStockVo erpStockInfo = listWareHoseStock.getContext();
