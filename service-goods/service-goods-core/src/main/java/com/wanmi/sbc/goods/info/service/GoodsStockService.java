@@ -541,14 +541,14 @@ public class GoodsStockService {
         goodsInfoStockSyncProviderResponse.setActualStockQty(actualStock.intValue());
 
         //存入redis
-        String lastSyncStockKey = RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY + goodsInfo.getGoodsInfoId();
-        String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncStockKey);
+        String lastSyncStockKey = goodsInfo.getGoodsInfoId();
+        String lastSyncStockValue = redisService.getHashValue(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey);
         if (!StringUtils.isBlank(lastSyncStockValue)) {
             goodsInfoStockSyncProviderResponse.setLastStockQty(Integer.parseInt(lastSyncStockValue));
         } else {
             goodsInfoStockSyncProviderResponse.setLastStockQty(0);
         }
-        redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_KEY, lastSyncStockKey, actualStock.toString(),6 * 30 * 24 * 60 * 60);
+        redisService.putHash(RedisKeyConstant.GOODS_INFO_SYNC_STOCK_KEY, lastSyncStockKey, actualStock.toString(),6 * 30 * 24 * 60 * 60);
         return goodsInfoStockSyncProviderResponse;
     }
 
