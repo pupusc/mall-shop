@@ -1081,6 +1081,7 @@ public class ProviderTradeService {
             if (pageSize <= 0) {
                 pageSize = 200;
             }
+            long beginTime = System.currentTimeMillis();
             List<Criteria> criterias = new ArrayList<>();
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
             criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
@@ -1117,18 +1118,18 @@ public class ProviderTradeService {
                 grouponCriterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
             }
 
-
             Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
             Query grouponQuery = new Query(grouponCriteria).limit(pageSize);
             grouponQuery.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> grouponQueryProviderTrades = mongoTemplate.find(grouponQuery, ProviderTrade.class);
-
+            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
 
 
             Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+            log.info("ProviderTradeService.batchPushOrder criterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
 
 
             List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
