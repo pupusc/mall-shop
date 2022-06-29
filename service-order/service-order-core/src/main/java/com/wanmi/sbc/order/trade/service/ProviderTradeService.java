@@ -1129,7 +1129,7 @@ public class ProviderTradeService {
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-            log.info("ProviderTradeService.batchPushOrder criterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
+            log.info("ProviderTradeService.batchPushOrder criterias query:{} cost:{} s", query.toString(), (System.currentTimeMillis() - beginTime) /1000);
 
 
             List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
