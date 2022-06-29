@@ -17,9 +17,9 @@ public class ConstantMultiMatchField {
      */
     public static final String FIELD_BOOK_LIST_BOOKLISTNAME = "bookListName";
 
-    public static final String FIELD_BOOK_LIST_SPU_SPUNAME = "spuName";
+    public static final String FIELD_BOOK_LIST_SPU_SPUNAME = "spus.spuName";
 
-    public static final String FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD = "spuName.keyword";
+    public static final String FIELD_BOOK_LIST_SPU_SPUNAME_KEYWORD = "spus.spuName.keyword";
 
     /**
      * 商品图书
