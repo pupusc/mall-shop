@@ -68,10 +68,13 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
+import com.wanmi.sbc.order.api.provider.trade.TradeItemProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeItemConfirmSettlementRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
@@ -178,7 +181,8 @@ public class OrderController {
 
     @Autowired
     private WxGoodsApiController wxGoodsApiController;
-
+    @Autowired
+    private TradeItemProvider tradeItemProvider;
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
@@ -641,37 +645,41 @@ public class OrderController {
      */
     @PostMapping(value = "/stmtCommit")
     public BaseResponse<Boolean> settlementCommit(@RequestBody StmtParamVO paramVO) {
-        return null;
-//        String customerId = commonUtil.getOperatorId();
-//        if (StringUtils.isBlank(customerId)) {
-//            throw new SbcRuntimeException("K-010110");
-//        }
+        String customerId = commonUtil.getOperatorId();
+        if (StringUtils.isBlank(customerId)) {
+            throw new SbcRuntimeException("K-010110");
+        }
 
-//        List<String> skuIds = confirmRequest.getTradeItems().stream().map(TradeItemRequest::getSkuId).collect(Collectors.toList());
-//
-//        List<TradeItemDTO> tradeItems = confirmRequest.getTradeItems().stream().map(
-//                o -> TradeItemDTO.builder().skuId(o.getSkuId()).num(o.getNum())
-//                        .isAppointmentSaleGoods(o.getIsAppointmentSaleGoods()).appointmentSaleId(o.getAppointmentSaleId())
-//                        .isBookingSaleGoods(o.getIsBookingSaleGoods()).bookingSaleId(o.getBookingSaleId())
-//                        .build()
-//        ).collect(Collectors.toList());
-//
-//        DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
-//        DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
-//        ChannelType channelType = distributeChannel.getChannelType();
-//        TradeItemConfirmSettlementRequest request = new TradeItemConfirmSettlementRequest();
-//        request.setCustomerId(customerId);
-//        request.setSkuIds(skuIds);
-//        request.setInviteeId(commonUtil.getPurchaseInviteeId());
-//        request.setOpenFlag(openFlag);
-//        request.setChannelType(channelType);
-//        request.setDistributeChannel(distributeChannel);
-//        request.setTradeItems(tradeItems);
-//        request.setTradeMarketingList(confirmRequest.getTradeMarketingList());
-//        request.setForceConfirm(confirmRequest.isForceConfirm());
-//        request.setTerminalToken(commonUtil.getTerminalToken());
-//        request.setAreaId(confirmRequest.getAreaId());
-//        return tradeItemProvider.confirmSettlement(request);
+        List<String> skuIds = new ArrayList<>();
+        List<TradeItemDTO> tradeItems = new ArrayList<>();
+        List<TradeMarketingDTO> marketings = new ArrayList<>();
+        paramVO.getMarketings().forEach(item -> {
+            TradeMarketingDTO marketing = new TradeMarketingDTO();
+            marketing.setMarketingId(item.getMarketingId());
+            marketing.setSkuIds(new ArrayList<>());
+            item.getGoodsInfos().stream().forEach(goods -> {
+                skuIds.add(goods.getSkuId());
+                marketing.getSkuIds().add(goods.getSkuId());
+                tradeItems.add(TradeItemDTO.builder().skuId(goods.getSkuId()).num(goods.getCount()).build());
+            });
+            marketings.add(marketing);
+        });
+
+        DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
+        ChannelType channelType = distributeChannel.getChannelType();
+        TradeItemConfirmSettlementRequest request = new TradeItemConfirmSettlementRequest();
+        request.setCustomerId(customerId);
+        request.setSkuIds(skuIds);
+        request.setInviteeId(commonUtil.getPurchaseInviteeId());
+        //request.setOpenFlag(openFlag);
+        request.setChannelType(channelType);
+        request.setDistributeChannel(distributeChannel);
+        request.setTradeItems(tradeItems);
+        request.setTradeMarketingList(marketings);
+        request.setForceConfirm(false);
+        request.setTerminalToken(commonUtil.getTerminalToken());
+        //request.setAreaId(confirmRequest.getAreaId());
+        return tradeItemProvider.confirmSettlement(request);
     }
 
     /**
@@ -680,35 +688,5 @@ public class OrderController {
     @PostMapping(value = "/stmtInfo")
     public BaseResponse<StmtResultVO> settlementInfo() {
         return null;
-//        String customerId = commonUtil.getOperatorId();
-//        if (StringUtils.isBlank(customerId)) {
-//            throw new SbcRuntimeException("K-010110");
-//        }
-
-//        List<String> skuIds = confirmRequest.getTradeItems().stream().map(TradeItemRequest::getSkuId).collect(Collectors.toList());
-//
-//        List<TradeItemDTO> tradeItems = confirmRequest.getTradeItems().stream().map(
-//                o -> TradeItemDTO.builder().skuId(o.getSkuId()).num(o.getNum())
-//                        .isAppointmentSaleGoods(o.getIsAppointmentSaleGoods()).appointmentSaleId(o.getAppointmentSaleId())
-//                        .isBookingSaleGoods(o.getIsBookingSaleGoods()).bookingSaleId(o.getBookingSaleId())
-//                        .build()
-//        ).collect(Collectors.toList());
-//
-//        DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
-//        DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
-//        ChannelType channelType = distributeChannel.getChannelType();
-//        TradeItemConfirmSettlementRequest request = new TradeItemConfirmSettlementRequest();
-//        request.setCustomerId(customerId);
-//        request.setSkuIds(skuIds);
-//        request.setInviteeId(commonUtil.getPurchaseInviteeId());
-//        request.setOpenFlag(openFlag);
-//        request.setChannelType(channelType);
-//        request.setDistributeChannel(distributeChannel);
-//        request.setTradeItems(tradeItems);
-//        request.setTradeMarketingList(confirmRequest.getTradeMarketingList());
-//        request.setForceConfirm(confirmRequest.isForceConfirm());
-//        request.setTerminalToken(commonUtil.getTerminalToken());
-//        request.setAreaId(confirmRequest.getAreaId());
-//        return tradeItemProvider.confirmSettlement(request);
     }
 }

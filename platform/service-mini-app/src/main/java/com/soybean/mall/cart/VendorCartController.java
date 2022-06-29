@@ -147,6 +147,7 @@ public class VendorCartController {
                 skuVO.setGoodsInfoId(item.getGoodsInfoId());
                 skuVO.setGoodsInfoImg(item.getGoodsInfoImg());
                 skuVO.setGoodsInfoNo(item.getGoodsInfoNo());
+                skuVO.setGoodsInfoName(item.getGoodsInfoName());
                 skuVO.setBuyCount(item.getBuyCount());
                 skuVO.setMarketPrice(item.getMarketPrice());
                 skuVO.setSalePrice(item.getSalePrice());
@@ -174,20 +175,20 @@ public class VendorCartController {
                 }).collect(Collectors.toList())
             );
         }
-        calcPrice(customer, resultVO, goodsInfos);
+        resultVO.setCalcPrice(calcPrice(customer, goodsInfos));
         return BaseResponse.success(resultVO);
     }
 
-    private void calcPrice(CustomerVO customer, PurchaseInfoResultVO resultVO, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
+    private PurchasePriceResultVO calcPrice(CustomerVO customer, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
         if (CollectionUtils.isEmpty(goodsInfos)) {
-            return;
+            return null;
         }
         TradePriceParamBO paramBO = new TradePriceParamBO();
         paramBO.setCustomerId(customer.getCustomerId());
         paramBO.setGoodsInfos(goodsInfos);
         BaseResponse<TradePriceResultBO> calcPriceResult = tradePriceProvider.calcPrice(paramBO);
         if (calcPriceResult == null || calcPriceResult.getContext() == null) {
-            return;
+            return null;
         }
         PurchasePriceResultVO calcPrice = new PurchasePriceResultVO();
         calcPrice.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
@@ -197,7 +198,7 @@ public class VendorCartController {
                 .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
         calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
                 .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-        resultVO.setCalcPrice(calcPrice);
+        return calcPrice;
     }
 
     private List<CartInfoResultVO$Sku.Marketing> buildMarketings(List<MarketingViewVO> marketingViewVOS) {
@@ -260,23 +261,7 @@ public class VendorCartController {
             goodsInfo.setMarketingId(paramVO.getMarketingId());
             return goodsInfo;
         }).collect(Collectors.toList());
-
-        TradePriceParamBO paramBO = new TradePriceParamBO();
-        paramBO.setCustomerId(customer.getCustomerId());
-        paramBO.setCouponId(paramVO.getCouponId());
-        paramBO.setGoodsInfos(calcGoods);
-        BaseResponse<TradePriceResultBO> calcPriceResult = tradePriceProvider.calcPrice(paramBO);
-
-        if (calcPriceResult.getContext() != null) {
-            resultVO.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
-            resultVO.setPayPrice(calcPriceResult.getContext().getPayPrice());
-            resultVO.setCutPrice(calcPriceResult.getContext().getCutPrice());
-            resultVO.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-            resultVO.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-        }
-        return BaseResponse.success(resultVO);
+        return BaseResponse.success(calcPrice(customer, calcGoods));
     }
 
     /**
@@ -303,6 +288,7 @@ public class VendorCartController {
 
         List<PromoteInfoResultVO$Coupon> couponVOs = couponResponse.getContext().getCouponViews().stream().map(item -> {
             PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
+            couponVO.setActivityId(item.getActivityId());
             couponVO.setStartTime(item.getCouponStartTime());
             couponVO.setEndTime(item.getCouponEndTime());
             couponVO.setCouponId(item.getCouponId());
@@ -311,24 +297,12 @@ public class VendorCartController {
             couponVO.setCouponDesc(item.getCouponDesc());
             couponVO.setDenomination(BigDecimal.valueOf(item.getDenomination()));
             couponVO.setLimitPrice(FullBuyType.FULL_MONEY.equals(item.getFullBuyType()) ? BigDecimal.valueOf(item.getFullBuyPrice()) : BigDecimal.ZERO);
-            couponVO.setLimitPriceText("满" + couponVO.getLimitPrice() + "可用");
             couponVO.setLimitScope(item.getScopeType().toValue());
-            if (ScopeType.BRAND.equals(item.getScopeType())) {
-                couponVO.setLimitScopeText("限品牌");
-                couponVO.setLimitScopeDesc("仅可购买指定品牌部分商品");
-            }
-            if (ScopeType.STORE_CATE.equals(item.getScopeType()) || ScopeType.BOSS_CATE.equals(item.getScopeType())) {
-                couponVO.setLimitScopeText("限分类");
-                couponVO.setLimitScopeDesc("仅可购买指定分类部分商品");
-            }
-            couponVO.setLimitScopeText(item.getScopeType().name());
             couponVO.setCanFetch(item.isLeftFlag());
-            couponVO.setCanFetchDesc("已抢光");
             couponVO.setHasFetch(item.isHasFetched());
             couponVO.setNearOverdue(item.isCouponWillEnd());
-            fillNearOverdueText(couponVO);
-            couponVO.setStoreNameText("仅樊登读书自营旗舰店可用");
-
+            couponVO.setRangeDayType(item.getRangeDayType().toValue());
+            couponVO.setEffectiveDays(item.getEffectiveDays());
             return couponVO;
         }).collect(Collectors.toList());
         return BaseResponse.success(couponVOs);
@@ -348,18 +322,6 @@ public class VendorCartController {
     @PostMapping(value = "/couponGoods")
     public BaseResponse<PromoteGoodsResultVO> couponGoods(CouponGoodsParamVO param) {
         return null;
-    }
-
-    private void fillNearOverdueText(PromoteInfoResultVO$Coupon couponVO) {
-        if (couponVO.isNearOverdue()) {
-            try {
-                long days = (System.currentTimeMillis() - DateUtils.parseDate(couponVO.getEndTime(), "yyyy-MM-dd").getTime()) / (1000*3600*24);
-                couponVO.setNearOverdueText("距过期仅剩"+ days +"天");
-            } catch (ParseException e) {
-                log.warn("日期格式解析错误", e);
-                couponVO.setNearOverdueText("已经快要过期了");
-            }
-        }
     }
 }
 

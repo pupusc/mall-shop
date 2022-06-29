@@ -2,6 +2,8 @@ package com.soybean.mall.order.request;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -10,13 +12,14 @@ import java.util.List;
  */
 @Data
 public class SettlementParamVO$Marketing {
-    /**
-     * 店铺id
-     */
-    private Long storeId;
+//    /**
+//     * 店铺id
+//     */
+//    private Long storeId;
     /**
      * 营销活动Id
      */
+    @NotNull
     private Long marketingId;
 //    /**
 //     * 营销等级id
@@ -26,6 +29,7 @@ public class SettlementParamVO$Marketing {
     /**
      * 该营销活动关联的订单商品id集合
      */
+    @NotEmpty
     private List<SettlementParamVO$TradeItem> goodsInfos;
 
 //    /**

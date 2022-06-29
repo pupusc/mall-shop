@@ -18,10 +18,10 @@ public class SettlementParamVO$TradeItem implements Serializable {
      * 购买数量
      */
     private long count;
-    /**
-     * 购买商品的价格
-     */
-    private BigDecimal price;
+//    /**
+//     * 购买商品的价格
+//     */
+//    private BigDecimal price;
 //    /**
 //     * 是否是秒杀抢购商品
 //     */

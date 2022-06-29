@@ -2,6 +2,7 @@ package com.soybean.mall.order.request;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -13,6 +14,7 @@ public class StmtParamVO {
     /**
      * 订单营销信息快照
      */
+    @NotEmpty
     private List<SettlementParamVO$Marketing> marketings;
 
 //    /**

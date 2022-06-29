@@ -12,6 +12,9 @@ import java.util.List;
  */
 @Data
 public class PromoteCouponParamVO {
+    /**
+     * skuId
+     */
     @NotEmpty
     private List<String> goodsInfoIds;
 }
