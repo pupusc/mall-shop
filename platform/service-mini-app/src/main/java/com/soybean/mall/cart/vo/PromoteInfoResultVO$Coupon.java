@@ -1,7 +1,5 @@
 package com.soybean.mall.cart.vo;
 
-import com.wanmi.sbc.marketing.bean.enums.CouponType;
-import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -25,13 +23,9 @@ public class PromoteInfoResultVO$Coupon {
      */
     private String couponId;
     /**
-     * 优惠券码id
-     */
-    private String couponCodeId;
-    /**
      * 优惠券类型 0通用券 1店铺券 2运费券
      */
-    private CouponType couponType;
+    private Integer couponType;
     /**
      * 优惠券名称
      */
@@ -51,11 +45,15 @@ public class PromoteInfoResultVO$Coupon {
     /**
      * 限制范围：0全部商品，1品牌，2平台(boss)类目,3店铺分类，4自定义货品（店铺可用）
      */
-    private ScopeType limitScope;
+    private Integer limitScope;
     /**
      * 是否可以领取
      */
     private Boolean canFetch;
+    /**
+     * 不可领取说明
+     */
+    private String canFetchDesc;
     /**
      * 是否已经领取
      */

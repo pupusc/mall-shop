@@ -2,7 +2,7 @@ package com.soybean.mall.cart.vo;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -12,6 +12,6 @@ import java.util.List;
  */
 @Data
 public class PromoteCouponParamVO {
-    @NotNull
-    private List<Integer> goodsInfoIds;
+    @NotEmpty
+    private List<String> goodsInfoIds;
 }

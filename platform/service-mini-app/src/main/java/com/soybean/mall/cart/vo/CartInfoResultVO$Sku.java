@@ -4,6 +4,8 @@ import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Liang Jun
@@ -63,8 +65,11 @@ public class CartInfoResultVO$Sku {
     /**
      * 是否有更多规格
      */
-    private Boolean specMore;
-
+    private Boolean specMore = false;
+    /**
+     * 是否有更多促销
+     */
+    private List<Marketing> marketings = new ArrayList<>();
     /**
      * 前端是否选中
      */
@@ -73,4 +78,20 @@ public class CartInfoResultVO$Sku {
      * 商品状态 0：正常 1：缺货 2：失效
      */
     private GoodsStatus goodsStatus = GoodsStatus.OK;
+
+    @Data
+    public static class Marketing {
+        /**
+         * 营销id
+         */
+        private Long marketingId;
+        /**
+         * 营销名称
+         */
+        private String marketingName;
+        /**
+         * 营销描述
+         */
+        private String marketingDesc;
+    }
 }

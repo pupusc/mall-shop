@@ -1,12 +1,16 @@
 package com.wanmi.sbc.order.trade.service;
 
+import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.IteratorUtils;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
+import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingTradePluginProvider;
+import com.wanmi.sbc.marketing.api.request.market.MarketingQueryByIdsRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingTradeBatchWrapperRequest;
+import com.wanmi.sbc.marketing.api.response.market.MarketingQueryByIdsResponse;
 import com.wanmi.sbc.marketing.bean.constant.CouponErrorCode;
 import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
@@ -18,20 +22,21 @@ import com.wanmi.sbc.marketing.bean.vo.TradeMarketingVO;
 import com.wanmi.sbc.marketing.bean.vo.TradeMarketingWrapperVO;
 import com.wanmi.sbc.order.bean.vo.TradeGoodsListVO;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
-import com.wanmi.sbc.order.trade.model.entity.value.Buyer;
 import com.wanmi.sbc.order.trade.model.entity.value.DiscountsPriceDetail;
 import com.wanmi.sbc.order.trade.model.entity.value.TradePrice;
 import com.wanmi.sbc.order.trade.model.root.Trade;
-import com.wanmi.sbc.order.trade.request.TradeParams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -53,112 +58,143 @@ public class CalcTradePriceService {
     private MarketingTradePluginProvider marketingTradePluginProvider;
     @Autowired
     private TradeCacheService tradeCacheService;
+    @Autowired
+    private MarketingQueryProvider marketingQueryProvider;
+
+//    /**
+//     * @see TradeService#validateAndWrapperTrade(com.wanmi.sbc.order.trade.model.root.Trade, com.wanmi.sbc.order.trade.request.TradeParams)
+//     */
+//    public Trade calc(Trade trade, TradeParams tradeParams) {
+//        // 2.1.设置订单基本信息(购买人,商家,代客下单操作人,收货地址,发票信息,配送方式,支付方式,备注,附件,操作人ip,订单商品,订单总价...)
+//        trade.setTradeItems(tradeParams.getTradeItems());
+//        trade.setTradePrice(tradeParams.getTradePrice());
+//
+//        // 2.2.订单中商品信息填充(同时设置商品的客户级别价格/客户指定价salePrice)
+//        // 计算价格前换购商品排除
+//        trade.setTradeItems(trade.getTradeItems().stream().filter(tradeItem -> !Boolean.TRUE.equals(tradeItem.getIsMarkupGoods())).collect(Collectors.toList()));
+//        TradeGoodsListVO skuList;
+//        if (Objects.isNull(tradeParams.getCustomer())) {
+//            GoodsInfoViewByIdsResponse idsResponse = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(trade.getTradeItems(), TradeItem::getSkuId));
+//            CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(trade.getBuyer().getId());
+//            skuList = tradeGoodsService.getGoodsInfoResponse(trade,customerVO,idsResponse);
+//        } else {
+//            skuList = tradeGoodsService.getGoodsInfoResponse(trade,tradeParams.getCustomer(),tradeParams.getGoodsInfoViewByIdsResponse());
+//        }
+//
+//
+//
+//        // 2.3.若是后端下单/修改,校验商家跟商品的关系(因为前端下单信息都是从库里读取的,无需验证)
+//
+//        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
+//        verifyService.verifyGoods(trade.getTradeItems(), tradeParams.getOldTradeItems(), skuList,
+//                trade.getSupplier().getStoreId(), true, null);
+//
+//        // 2.5.处理分销
+//
+//        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
+//        tradeParams.getMarketingList().forEach(i -> {
+//            List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
+//                    .collect(Collectors.toList());
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//        });
+//        // 拼团订单--处理
+//        // 校验组合购活动信息
+//
+//
+//        //构建订单满系营销对象 优惠券
+//        this.wrapperMarketingForCommit(trade, tradeParams);
+//
+//        // 2.7.赠品信息校验与填充
+//
+//        // 2.8.计算满系营销、优惠券均摊价，并设置结算信息
+//        calcMarketingPrice(trade);
+//
+//        // 2.9.计算并设置订单总价(已减去营销优惠总金额)
+//        trade.setTradePrice(calc(trade));
+//
+//        // 2.10.计算运费
+//        // 2.11.计算订单总价(追加运费)
+//        return trade;
+//    }
 
     /**
      * @see TradeService#validateAndWrapperTrade(com.wanmi.sbc.order.trade.model.root.Trade, com.wanmi.sbc.order.trade.request.TradeParams)
      */
-    public Trade calc(Trade trade, TradeParams tradeParams) {
-        // 2.1.设置订单基本信息(购买人,商家,代客下单操作人,收货地址,发票信息,配送方式,支付方式,备注,附件,操作人ip,订单商品,订单总价...)
-        trade.setTradeItems(tradeParams.getTradeItems());
-        trade.setTradePrice(tradeParams.getTradePrice());
-
-        // 2.2.订单中商品信息填充(同时设置商品的客户级别价格/客户指定价salePrice)
-        // 计算价格前换购商品排除
-        trade.setTradeItems(trade.getTradeItems().stream().filter(tradeItem -> !Boolean.TRUE.equals(tradeItem.getIsMarkupGoods())).collect(Collectors.toList()));
-        TradeGoodsListVO skuList;
-        if (Objects.isNull(tradeParams.getCustomer())) {
-            GoodsInfoViewByIdsResponse idsResponse = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(trade.getTradeItems(), TradeItem::getSkuId));
-            CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(trade.getBuyer().getId());
-            skuList = tradeGoodsService.getGoodsInfoResponse(trade,customerVO,idsResponse);
-        } else {
-            skuList = tradeGoodsService.getGoodsInfoResponse(trade,tradeParams.getCustomer(),tradeParams.getGoodsInfoViewByIdsResponse());
-        }
-
-
-
-        // 2.3.若是后端下单/修改,校验商家跟商品的关系(因为前端下单信息都是从库里读取的,无需验证)
+    public TradePrice calc(List<TradeItem> tradeItemp, String couponId, String customerId) {
+        //算价之前排除加价购商品
+        final List<TradeItem> tradeItems = tradeItemp.stream().filter(tradeItem -> !Boolean.TRUE.equals(tradeItem.getIsMarkupGoods())).collect(Collectors.toList());
+        GoodsInfoViewByIdsResponse idsResponse = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
+        CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(customerId);
+        Trade tradeParam = new Trade();
+        tradeParam.setTradeItems(tradeItems);
+        TradeGoodsListVO skuList = tradeGoodsService.getGoodsInfoResponse(tradeParam,customerVO,idsResponse);
 
         // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
-        verifyService.verifyGoods(trade.getTradeItems(), tradeParams.getOldTradeItems(), skuList,
-                trade.getSupplier().getStoreId(), true, null);
+        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);
 
-        // 2.5.处理分销
-
-        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
-        tradeParams.getMarketingList().forEach(i -> {
-            List<TradeItem> items = trade.getTradeItems().stream().filter(s -> i.getSkuIds().contains(s.getSkuId()))
-                    .collect(Collectors.toList());
-            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
-        });
-        // 拼团订单--处理
-        // 校验组合购活动信息
-
-        
-        //构建订单满系营销对象 优惠券
-        this.wrapperMarketingForCommit(trade, tradeParams);
-
-        // 2.7.赠品信息校验与填充
-
-        // 2.8.计算满系营销、优惠券均摊价，并设置结算信息
-        calcMarketingPrice(trade);
-
-        // 2.9.计算并设置订单总价(已减去营销优惠总金额)
-        trade.setTradePrice(calc(trade));
-
-        // 2.10.计算运费
-        // 2.11.计算订单总价(追加运费)
-        return trade;
-    }
-
-    /**
-     * 包装营销信息(供提交订单使用)
-     */
-    public void wrapperMarketingForCommit(Trade trade, TradeParams tradeParams) {
-
-        // 1.构建订单满系营销对象
-        trade.setTradeMarketings(this.wrapperMarketingForConfirm(trade.getTradeItems(),
-                tradeParams.getMarketingList()));
-
-        // 2.构建订单优惠券对象
-        if (StringUtils.isNotEmpty(tradeParams.getCouponCodeId())) {
-            trade.setTradeCoupon(tradeMarketingService.buildTradeCouponInfo(
-                    trade.getTradeItems(), tradeParams.getCouponCodeId(), tradeParams.isForceCommit(),
-                    trade.getBuyer().getId()));
+        //marketings
+        List<Long> marketingIds = tradeItems.stream().filter(item -> CollectionUtils.isNotEmpty(item.getMarketingIds()))
+                .map(item -> item.getMarketingId()).distinct().collect(Collectors.toList());
+        List<TradeMarketingDTO> marketings = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(marketingIds)) {
+            MarketingQueryByIdsRequest idsParam = new MarketingQueryByIdsRequest();
+            idsParam.setMarketingIds(marketingIds);
+            BaseResponse<MarketingQueryByIdsResponse> mktResponse = marketingQueryProvider.queryByIds(idsParam);
+            if (mktResponse.getContext() != null && mktResponse.getContext().getMarketingVOList() != null) {
+                marketings = mktResponse.getContext().getMarketingVOList().stream().map(item -> {
+                    TradeMarketingDTO dto = new TradeMarketingDTO();
+                    BeanUtils.copyProperties(item, dto);
+                    return dto;
+                }).collect(Collectors.toList());
+            }
         }
 
+//        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
+//        marketings.forEach(i -> {
+//            List<TradeItem> items = tradeItems.stream().filter(s -> i.getSkuIds().contains(s.getSkuId())).collect(Collectors.toList());
+//            items.forEach(s -> s.getMarketingIds().add(i.getMarketingId()));
+//        });
+
+        // 1.构建订单满系营销对象
+        List<TradeMarketingVO> tradeMarketingVOs = this.wrapperMarketingForConfirm(tradeItems, marketings);
+        // 2.构建订单优惠券对象
+        TradeCouponVO tradeCouponVO = StringUtils.isBlank(couponId) ? null : tradeMarketingService.buildTradeCouponInfo(tradeItems, couponId, false, customerId);
+        calcMarketingPrice(tradeItems, tradeMarketingVOs, tradeCouponVO);
+
+        // 2.9.计算并设置订单总价(已减去营销优惠总金额)
+        return calc(tradeItems, tradeMarketingVOs, tradeCouponVO);
     }
 
     /**
      * 营销价格计算-结算信息设置
      * 【商品价格计算第②步】: 商品的 满折/满减营销活动 均摊价 -> splitPrice
-     *
-     * @param trade
      */
-    private void calcMarketingPrice(Trade trade) {
+    private void calcMarketingPrice(List<TradeItem> tradeItems, List<TradeMarketingVO> tradeMarketings, TradeCouponVO tradeCoupon) {
         // 1.设置满系营销商品优惠后的均摊价、结算信息
-        trade.getTradeMarketings().stream()
-                .filter(i -> i.getMarketingType() != MarketingType.GIFT && i.getMarketingType() != MarketingType.MARKUP).forEach(i -> {
-            List<TradeItem> items = trade.getTradeItems().stream().filter(t -> Objects.isNull(t.getIsMarkupGoods()) || !t.getIsMarkupGoods())
-                    .filter(t -> i.getSkuIds().contains(t.getSkuId()))
-                    .collect(Collectors.toList());
-            tradeItemService.clacSplitPrice(items, i.getRealPayAmount());
-            items.forEach(t -> {
-                List<TradeItem.MarketingSettlement> settlements = new ArrayList<>();
-                settlements.add(TradeItem.MarketingSettlement.builder().marketingType(i.getMarketingType())
-                        .splitPrice(t.getSplitPrice()).build());
-                t.setMarketingSettlements(settlements);
-            });
-        });
+        tradeMarketings.stream()
+                .filter(i -> i.getMarketingType() != MarketingType.GIFT && i.getMarketingType() != MarketingType.MARKUP)
+                .forEach(i -> {
+                    List<TradeItem> items = tradeItems.stream()
+                            .filter(t -> Objects.isNull(t.getIsMarkupGoods()) || !t.getIsMarkupGoods())
+                            .filter(t -> i.getSkuIds().contains(t.getSkuId()))
+                            .collect(Collectors.toList());
+                    tradeItemService.clacSplitPrice(items, i.getRealPayAmount());
+                    items.forEach(t -> {
+                        List<TradeItem.MarketingSettlement> settlements = new ArrayList<>();
+                        settlements.add(TradeItem.MarketingSettlement.builder().marketingType(i.getMarketingType())
+                                .splitPrice(t.getSplitPrice()).build());
+                        t.setMarketingSettlements(settlements);
+                    });
+                });
 
         // 2.设置店铺优惠券后的均摊价、结算信息
-        TradeCouponVO tradeCoupon = trade.getTradeCoupon();
         if (tradeCoupon != null) {
             // 2.1.查找出优惠券关联的商品，及总价
-            List<TradeItem> items = trade.getTradeItems().stream()
-                    .filter(t -> trade.getTradeCoupon().getGoodsInfoIds().contains(t.getSkuId()))
+            List<TradeItem> items = tradeItems.stream()
+                    .filter(t -> tradeCoupon.getGoodsInfoIds().contains(t.getSkuId()))
                     .collect(Collectors.toList());
             // 换购商品加入店铺优惠计算
-            items.addAll(trade.getTradeItems().stream()
+            items.addAll(tradeItems.stream()
                     .filter(t -> Objects.nonNull(t.getIsMarkupGoods()) && t.getIsMarkupGoods())
                     .collect(Collectors.toList()));
             BigDecimal total = tradeItemService.calcSkusTotalPrice(items);
@@ -185,7 +221,7 @@ public class CalcTradePriceService {
                         .couponCode(tradeCoupon.getCouponCode())
                         .splitPrice(item.getSplitPrice()).build());
             });
-            tradeItemService.calcSplitPrice(items, total.subtract(trade.getTradeCoupon().getDiscountsAmount()), total);
+            tradeItemService.calcSplitPrice(items, total.subtract(tradeCoupon.getDiscountsAmount()), total);
             items.forEach(item -> {
                 TradeItem.CouponSettlement settlement =
                         item.getCouponSettlements().get(item.getCouponSettlements().size() - 1);
@@ -198,11 +234,9 @@ public class CalcTradePriceService {
     /**
      * 包装营销信息(供确认订单使用)
      */
-    public List<TradeMarketingVO> wrapperMarketingForConfirm(List<TradeItem> skus, List<TradeMarketingDTO>
-            tradeMarketingRequests) {
-
+    private List<TradeMarketingVO> wrapperMarketingForConfirm(List<TradeItem> skus, List<TradeMarketingDTO> marketings) {
         //积分换购活动只允许购物车存在一件商品
-        for (TradeMarketingDTO tradeMarketingRequest : tradeMarketingRequests) {
+        for (TradeMarketingDTO tradeMarketingRequest : marketings) {
             Integer marketingSubType = tradeMarketingRequest.getMarketingSubType();
             if(marketingSubType != null && MarketingSubType.POINT_BUY.toValue() == marketingSubType){
                 if(skus.size() > 1){
@@ -215,60 +249,48 @@ public class CalcTradePriceService {
                 }
             }
         }
+
+        Map<Long, TradeMarketingDTO> marketingMap = marketings.stream().collect(Collectors.toMap(TradeMarketingDTO::getMarketingId, item -> item, (a, b) -> a));
+        Map<Long, List<TradeItem>> marketingGroup =
+                skus.stream().filter(item -> marketingMap.containsKey(item.getMarketingId())).collect(Collectors.groupingBy(TradeItem::getMarketingId));
+
         // 1.构建营销插件请求对象
-        List<TradeMarketingWrapperDTO> requests = new ArrayList<>();
-        List<TradeMarketingVO> tradeMarketings = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(tradeMarketingRequests)) {
-            tradeMarketingRequests.forEach(tradeMarketing -> {
-                List<TradeItemInfoDTO> tradeItems = skus.stream()
-                        .filter(s -> tradeMarketing.getSkuIds().contains(s.getSkuId()))
-                        .map(t -> TradeItemInfoDTO.builder()
-                                .num(t.getNum())
-                                .price(t.getPrice())
-                                .skuId(t.getSkuId())
-                                .storeId(t.getStoreId())
-                                .goodsType(t.getGoodsType())
-                                .distributionGoodsAudit(t.getDistributionGoodsAudit())
-                                .build())
-                        .collect(Collectors.toList());
-                requests.add(TradeMarketingWrapperDTO.builder().tradeMarketingDTO(tradeMarketing)
-                        .tradeItems(tradeItems).build());
-            });
-
-
+        List<TradeMarketingWrapperDTO> pluginParam = new ArrayList<>();
+        for (Map.Entry<Long, List<TradeItem>> entry : marketingGroup.entrySet()) {
+            List<TradeItemInfoDTO> tradeItems = entry.getValue().stream()
+                    .map(t -> TradeItemInfoDTO.builder()
+                            .num(t.getNum())
+                            .price(t.getPrice())
+                            .skuId(t.getSkuId())
+                            .storeId(t.getStoreId())
+                            .goodsType(t.getGoodsType())
+                            .distributionGoodsAudit(t.getDistributionGoodsAudit())
+                            .build())
+                    .collect(Collectors.toList());
+            pluginParam.add(TradeMarketingWrapperDTO.builder().tradeMarketingDTO(marketingMap.get(entry.getKey())).tradeItems(tradeItems).build());
         }
-        // requests.stream().filter(r->CollectionUtils.isNotEmpty(r.getTradeItems())).collect(Collectors.toList());
+
         // 2.调用营销插件，并设置满系营销信息
-        if (CollectionUtils.isNotEmpty(requests)) {
-            List<TradeMarketingWrapperVO> voList = marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
-                    .wraperDTOList(requests).build()).getContext().getWraperVOList();
-            if (CollectionUtils.isNotEmpty(voList)) {
-                voList.forEach(tradeMarketingWrapperVO -> {
-                    tradeMarketings.add(tradeMarketingWrapperVO.getTradeMarketing());
-                });
-            }
+        List<TradeMarketingVO> tradeMarketings = new ArrayList<>();
+        List<TradeMarketingWrapperVO> voList = marketingTradePluginProvider.batchWrapper(MarketingTradeBatchWrapperRequest.builder()
+                .wraperDTOList(pluginParam).build()).getContext().getWraperVOList();
+        if (CollectionUtils.isNotEmpty(voList)) {
+            voList.forEach(tradeMarketingWrapperVO -> tradeMarketings.add(tradeMarketingWrapperVO.getTradeMarketing()));
         }
-
         return tradeMarketings;
     }
 
     /**
      * 计算订单价格
      * 订单价格 = 商品总价 - 营销优惠总金额
-     *
-     * @param trade
      */
-    private TradePrice calc(Trade trade) {
-        TradePrice tradePriceTemp = trade.getTradePrice();
-        if (tradePriceTemp == null) {
-            tradePriceTemp = new TradePrice();
-            trade.setTradePrice(tradePriceTemp);
-        }
-        final TradePrice tradePrice = tradePriceTemp;
+    private TradePrice calc(List<TradeItem> tradeItems, List<TradeMarketingVO> tradeMarketings, TradeCouponVO tradeCoupon) {
+        final TradePrice tradePrice = new TradePrice();
 
         // 1.计算商品总价
-        handlePrice(trade.getTradeItems(), tradePrice);
-        List<TradeMarketingVO> list = trade.getTradeMarketings().stream().filter(i -> i.getMarketingType()
+        handlePrice(tradeItems, tradePrice);
+
+        List<TradeMarketingVO> list = tradeMarketings.stream().filter(i -> i.getMarketingType()
                 != MarketingType.GIFT && i.getMarketingType()
                 != MarketingType.MARKUP).collect(Collectors.toList());
 
@@ -280,8 +302,8 @@ public class CalcTradePriceService {
         //营销活动优惠总额
         tradePrice.setMarketingDiscountPrice(discountPrice);
 
-        if (trade.getTradeCoupon() != null) {
-            discountPrice = discountPrice.add(trade.getTradeCoupon().getDiscountsAmount());
+        if (tradeCoupon != null) {
+            discountPrice = discountPrice.add(tradeCoupon.getDiscountsAmount());
         }
 
         // 3.计算各类营销活动的优惠金额(比如:满折优惠xxx,满减优惠yyy)
@@ -297,8 +319,8 @@ public class CalcTradePriceService {
         tradePrice.setDiscountsPriceDetails(discountsPriceDetails);
 
         // 4.设置优惠券优惠金额
-        if (trade.getTradeCoupon() != null) {
-            BigDecimal couponPrice = trade.getTradeCoupon().getDiscountsAmount();
+        if (tradeCoupon != null) {
+            BigDecimal couponPrice = tradeCoupon.getDiscountsAmount();
             tradePrice.setCouponPrice(couponPrice);
         }
 

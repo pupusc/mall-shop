@@ -1,5 +1,6 @@
 package com.soybean.mall.cart.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,18 +9,20 @@ import java.math.BigDecimal;
  * @author Liang Jun
  * @date 2022-06-26 21:22:00
  */
+@AllArgsConstructor
 @Data
 public class CalcPriceItem {
     /**
-     * 类型
+     * 金额
      */
-    private Integer type;
+    private BigDecimal amount;
     /**
      * 说明
      */
     private String desc;
     /**
-     * 金额
+     * 类型
      */
-    private BigDecimal amount;
+    private Integer type;
 }
+

@@ -2,6 +2,7 @@ package com.soybean.mall.cart.vo;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,39 +12,36 @@ import java.util.List;
 @Data
 public class PurchaseInfoParamVO {
     /**
-     * 商品id
-     */
-    private List<String> tickSkuIds;
-    /**
-     * 指定规格
-     */
-    private List<PickSpec> pickSpecs;
-    /**
      * 指定促销
      */
-    private List<PickMarketing> pickMarketings;
+    private List<Marketing> marketings = new ArrayList<>();
+
 
     @Data
-    private static class PickSpec {
-        /**
-         * 商品id
-         */
-        private String skuId;
-        /**
-         * 规格id
-         */
-        private Long specId;
-    }
-
-    @Data
-    private static class PickMarketing {
-        /**
-         * 商品id
-         */
-        private String skuId;
+    public static class Marketing {
         /**
          * 促销id
          */
-        private String marketingId;
+        private Long marketingId;
+        /**
+         * 商品信息
+         */
+        private List<GoodsInfo> goodsInfos;
+    }
+
+    @Data
+    public static class GoodsInfo {
+        /**
+         * spuId
+         */
+        private String goodsId;
+        /**
+         * skuId
+         */
+        private String goodsInfoId;
+        /**
+         * 是否选中
+         */
+        private boolean checked;
     }
 }

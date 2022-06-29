@@ -18,9 +18,9 @@ public class PurchaseInfoResultVO {
     /**
      * 活动分组
      */
-    private List<CartInfoResultVO$Group> marketings;
-//    /**
-//     * 价格信息
-//     */
-//    private CalcTradePrice calcTradePrice;
+    private List<CartInfoResultVO$Marketing> marketings;
+    /**
+     * 价格信息
+     */
+    private PurchasePriceResultVO calcPrice;
 }

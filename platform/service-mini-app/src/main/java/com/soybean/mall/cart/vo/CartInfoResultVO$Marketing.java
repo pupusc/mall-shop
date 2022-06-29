@@ -9,7 +9,7 @@ import java.util.List;
  * @date 2022-06-16 15:28:00
  */
 @Data
-public class CartInfoResultVO$Group {
+public class CartInfoResultVO$Marketing {
     /**
      * 营销id：0表示没有营销
      */
