@@ -174,23 +174,30 @@ public class VendorCartController {
                 }).collect(Collectors.toList())
             );
         }
+        calcPrice(customer, resultVO, goodsInfos);
+        return BaseResponse.success(resultVO);
+    }
+
+    private void calcPrice(CustomerVO customer, PurchaseInfoResultVO resultVO, List<TradePriceParamBO.GoodsInfo> goodsInfos) {
+        if (CollectionUtils.isEmpty(goodsInfos)) {
+            return;
+        }
         TradePriceParamBO paramBO = new TradePriceParamBO();
         paramBO.setCustomerId(customer.getCustomerId());
         paramBO.setGoodsInfos(goodsInfos);
         BaseResponse<TradePriceResultBO> calcPriceResult = tradePriceProvider.calcPrice(paramBO);
-
-        if (calcPriceResult.getContext() != null) {
-            PurchasePriceResultVO calcPrice = new PurchasePriceResultVO();
-            calcPrice.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
-            calcPrice.setPayPrice(calcPriceResult.getContext().getPayPrice());
-            calcPrice.setCutPrice(calcPriceResult.getContext().getCutPrice());
-            calcPrice.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-            calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
-                    .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
-            resultVO.setCalcPrice(calcPrice);
+        if (calcPriceResult == null || calcPriceResult.getContext() == null) {
+            return;
         }
-        return BaseResponse.success(resultVO);
+        PurchasePriceResultVO calcPrice = new PurchasePriceResultVO();
+        calcPrice.setTotalPrice(calcPriceResult.getContext().getTotalPrice());
+        calcPrice.setPayPrice(calcPriceResult.getContext().getPayPrice());
+        calcPrice.setCutPrice(calcPriceResult.getContext().getCutPrice());
+        calcPrice.setTotalPriceItems(calcPriceResult.getContext().getTotalPriceItems().stream()
+                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        calcPrice.setCutPriceItems(calcPriceResult.getContext().getCutPriceItems().stream()
+                .map(item -> new CalcPriceItem(item.getAmount(), item.getDesc(), item.getType())).collect(Collectors.toList()));
+        resultVO.setCalcPrice(calcPrice);
     }
 
     private List<CartInfoResultVO$Sku.Marketing> buildMarketings(List<MarketingViewVO> marketingViewVOS) {
