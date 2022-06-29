@@ -384,4 +384,37 @@ public class RedisService {
         redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer(Object.class));
         return (List<String>) redisTemplate.opsForHash().get(key, hashKey);
     }
+
+
+    /**
+     * 新增hash
+     * @param key
+     * @param hashKey
+     * @param hashValue
+     * @param second
+     */
+    public void putHash(String key, String hashKey, String hashValue, long second) {
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
+        redisTemplate.opsForHash().put(key, hashKey, hashValue);
+        redisTemplate.expire(key, second, TimeUnit.SECONDS);
+    }
+
+
+    /**
+     * 获取hash
+     * @param key
+     * @param hashKey
+     */
+    public String getHashValue(String key, String hashKey) {
+        String hashValue = null;
+        redisTemplate.setKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashKeySerializer(redisTemplate.getStringSerializer());
+        redisTemplate.setHashValueSerializer(redisTemplate.getStringSerializer());
+        if (redisTemplate.opsForHash().hasKey(key, hashKey)) {
+            hashValue = (String) redisTemplate.opsForHash().get(key, hashKey);
+        }
+        return hashValue;
+    }
 }

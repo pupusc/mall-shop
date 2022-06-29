@@ -11,6 +11,7 @@ import com.wanmi.sbc.common.enums.Platform;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
+import com.wanmi.sbc.common.util.DateUtil;
 import com.wanmi.sbc.common.util.GeneratorService;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.company.CompanyInfoQueryProvider;
@@ -170,6 +171,10 @@ public class ProviderTradeService {
 
     @Value("${default.providerId}")
     private Long defaultProviderId;
+
+    @Value("${fdds.provider.id}")
+    private Long fddsProviderId;
+
 
     @Autowired
     private GoodsInfoQueryProvider goodsInfoQueryProvider;
@@ -1076,6 +1081,7 @@ public class ProviderTradeService {
             if (pageSize <= 0) {
                 pageSize = 200;
             }
+            long beginTime = System.currentTimeMillis();
             List<Criteria> criterias = new ArrayList<>();
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
             criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
@@ -1084,6 +1090,7 @@ public class ProviderTradeService {
             criterias.add(Criteria.where("cycleBuyFlag").is(false));
             criterias.add(Criteria.where("yzTid").exists(false));
             criterias.add(Criteria.where("grouponFlag").is(false));
+
 
             //补偿推送已成团的订单
             List<Criteria> grouponCriterias = new ArrayList<>();
@@ -1101,20 +1108,28 @@ public class ProviderTradeService {
             if (StringUtils.isNoneBlank(ptid)) {
                 criterias.add(Criteria.where("id").is(ptid));
                 grouponCriterias.add(Criteria.where("id").is(ptid));
-            }
+            } else {
+                //默认获取半年内的数据
+                LocalDateTime localDateTime = LocalDateTime.now().plusMonths(-6);
+                criterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
+                criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
 
+                grouponCriterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
+                grouponCriterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+            }
 
             Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
             Query grouponQuery = new Query(grouponCriteria).limit(pageSize);
             grouponQuery.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> grouponQueryProviderTrades = mongoTemplate.find(grouponQuery, ProviderTrade.class);
-
+            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
 
 
             Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
+            log.info("ProviderTradeService.batchPushOrder criterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
 
 
             List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
