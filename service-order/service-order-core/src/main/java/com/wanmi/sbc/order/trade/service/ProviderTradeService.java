@@ -1317,12 +1317,14 @@ public class ProviderTradeService {
 
             stopWatch.start("同步订单发货状态/添加canCount StopWatch");
             if (CollectionUtils.isNotEmpty(totalTradeList)) {
+                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {}", totalTradeList.size());
                 totalTradeList.stream().forEach(providerTrade -> {
 
                     log.info("#同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
                     tradePushERPService.syncDeliveryStatus(providerTrade, deliveryInfoVOList);
                 });
             } else {
+                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {} scanCount++", totalTradeList.size(), scanCount);
                 scanCount = scanCount +1;
                 if (scanCount > ScanCount.COUNT_THREE.toValue()) {
                     scanCount = 0;
