@@ -27,7 +27,6 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListReq
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
-import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradePriceProvider;
@@ -38,7 +37,6 @@ import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResp
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
 import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,7 +45,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -152,6 +149,7 @@ public class VendorCartController {
                 skuVO.setMarketPrice(item.getMarketPrice());
                 skuVO.setSalePrice(item.getSalePrice());
                 skuVO.setSpecText(item.getSpecText());
+                skuVO.setMaxCount(item.getMaxCount());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
                 skuVO.setChecked(goods2Checked.containsKey(item.getGoodsInfoId())); //处理客户端指定选中的商品
                 skuVO.setMarketings(buildMarketings(goodsMarketingMap.get(item.getGoodsInfoId())));

@@ -6,7 +6,6 @@ import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.marketing.request.CouponByCustomerReq;
 import com.soybean.mall.marketing.request.TradeItemSimpleRequest;
-import com.soybean.mall.marketing.response.CouponByCustomerResp;
 import com.soybean.mall.service.CommonService;
 import com.wanmi.sbc.common.base.BaseResponse;
 import com.wanmi.sbc.common.enums.DefaultFlag;
@@ -32,7 +31,6 @@ import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomer
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
-import com.wanmi.sbc.marketing.bean.enums.ScopeType;
 import com.wanmi.sbc.marketing.bean.vo.CouponCodeVO;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
@@ -52,7 +50,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Description:
