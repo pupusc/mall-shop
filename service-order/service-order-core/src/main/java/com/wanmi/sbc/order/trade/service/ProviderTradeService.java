@@ -1289,24 +1289,33 @@ public class ProviderTradeService {
                 scanCount = Integer.parseInt(scanCountStr);
             }
 
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start("同步普通订单发货状态获取 StopWatch");
             /**
              * 普通订单发货状态更新
              */
             // 查询scanCount小于3或scanCount不存在的数据
             Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.REGULAR_ORDER_ZERO.toValue(), scanCount);
+            log.info("ProviderTradeService scanNotYetShippedTrade normal query:{}", query);
             List<ProviderTrade> providerTrades = mongoTemplate.find(query.limit(pageSize), ProviderTrade.class);
+            stopWatch.stop();
 
             /**
              * 周期购订单发货单状态更新
              */
+            stopWatch.start("同步周期购订单发货状态获取 StopWatch");
             // 查询zhouqigou scanCount小于3或scanCount不存在的数据
             Query cycleQuery = this.queryProviderTradeCondition(ptid, OrderTypeEnums.CYCLE_ORDER_TWO.toValue(), scanCount);
+            log.info("ProviderTradeService scanNotYetShippedTrade cycle query:{}", query);
             List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery.limit(pageSize), ProviderTrade.class);
+            stopWatch.stop();
 
             List<ProviderTrade> totalTradeList = Stream.of(providerTrades, cycleBuyTradeList)
                             .flatMap(Collection::stream)
                             .collect(Collectors.toList());
             List<DeliveryInfoVO> deliveryInfoVOList = new ArrayList<>();
+
+            stopWatch.start("同步订单发货状态/添加canCount StopWatch");
             if (CollectionUtils.isNotEmpty(totalTradeList)) {
                 totalTradeList.stream().forEach(providerTrade -> {
 
@@ -1319,6 +1328,11 @@ public class ProviderTradeService {
                     scanCount = 0;
                 }
                 redisService.setString(ORDER_DELIVER_SYNC_SCAN_COUNT, scanCount + "", 24 * 60 * 60);
+            }
+            stopWatch.stop();
+            log.info("ProviderTradeService scanNotYetShippedTrade StopWatch statistics {}", stopWatch.prettyPrint());
+            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
+                log.info("ProviderTradeService scanNotYetShippedTrade StopWatch {} cost:{}", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
             }
         } catch (Exception e) {
             log.error("Error message ： #批量同步发货状态异常:{}",e.getMessage(), e);
