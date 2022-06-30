@@ -1160,9 +1160,9 @@ public class ProviderTradeService {
             }
             stopWatch.stop();
 
-            log.info("ProviderTradeService.batchPushOrder StopWatch statistics {}", stopWatch.prettyPrint());
+//            log.info("ProviderTradeService.batchPushOrder StopWatch statistics {}", stopWatch.prettyPrint());
             for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
-                log.info("ProviderTradeService.batchPushOrder StopWatch {} cost:{}", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
+                log.info("ProviderTradeService.batchPushOrder StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
             }
         } catch (Exception e) {
             log.error("#订单推送失败", e);
@@ -1317,10 +1317,10 @@ public class ProviderTradeService {
 
             stopWatch.start("同步订单发货状态/添加canCount StopWatch");
             if (CollectionUtils.isNotEmpty(totalTradeList)) {
-                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {}", totalTradeList.size());
+                log.info("ProviderTradeService scanNotYetShippedTrade totalTradeList is {} scanCount is {}", totalTradeList.size(), scanCount);
                 totalTradeList.stream().forEach(providerTrade -> {
 
-                    log.info("#同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
+                    log.info("ProviderTradeService scanNotYetShippedTrade  同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
                     tradePushERPService.syncDeliveryStatus(providerTrade, deliveryInfoVOList);
                 });
             } else {
@@ -1332,9 +1332,9 @@ public class ProviderTradeService {
                 redisService.setString(ORDER_DELIVER_SYNC_SCAN_COUNT, scanCount + "", 24 * 60 * 60);
             }
             stopWatch.stop();
-            log.info("ProviderTradeService scanNotYetShippedTrade StopWatch statistics {}", stopWatch.prettyPrint());
+//            log.info("ProviderTradeService scanNotYetShippedTrade StopWatch statistics {}", stopWatch.prettyPrint());
             for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
-                log.info("ProviderTradeService scanNotYetShippedTrade StopWatch {} cost:{}", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
+                log.info("ProviderTradeService scanNotYetShippedTrade StopWatch {} cost:{} 秒", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
             }
         } catch (Exception e) {
             log.error("Error message ： #批量同步发货状态异常:{}",e.getMessage(), e);
