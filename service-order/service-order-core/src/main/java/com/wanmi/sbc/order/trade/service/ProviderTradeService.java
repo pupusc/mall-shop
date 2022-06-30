@@ -36,6 +36,7 @@ import com.wanmi.sbc.order.api.request.trade.TradeUpdateRequest;
 import com.wanmi.sbc.order.bean.enums.*;
 import com.wanmi.sbc.order.bean.vo.PurchaseMarketingCalcVO;
 import com.wanmi.sbc.order.common.OperationLogMq;
+import com.wanmi.sbc.order.redis.RedisService;
 import com.wanmi.sbc.order.returnorder.model.root.ReturnOrder;
 import com.wanmi.sbc.order.returnorder.model.value.ReturnPoints;
 import com.wanmi.sbc.order.returnorder.repository.ReturnOrderRepository;
@@ -169,6 +170,8 @@ public class ProviderTradeService {
      */
     private final String BATCH_UPDATE_ERP_PUSH_COUNT = "autoResetErpPushCount";
 
+    private final String ORDER_DELIVER_SYNC_SCAN_COUNT = "ORDER_DELIVER_SYNC_SCAN_COUNT";
+
     @Value("${default.providerId}")
     private Long defaultProviderId;
 
@@ -181,6 +184,9 @@ public class ProviderTradeService {
 
     @Value("${default.companyId:1182}")
     private Long defaultCompanyId;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 新增文档
@@ -1084,7 +1090,7 @@ public class ProviderTradeService {
             long beginTime = System.currentTimeMillis();
             List<Criteria> criterias = new ArrayList<>();
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+
             criterias.add(Criteria.where("tradeState.pushCount").lte(3));
             criterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
             criterias.add(Criteria.where("cycleBuyFlag").is(false));
@@ -1095,7 +1101,6 @@ public class ProviderTradeService {
             //补偿推送已成团的订单
             List<Criteria> grouponCriterias = new ArrayList<>();
             grouponCriterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
-            grouponCriterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
             grouponCriterias.add(Criteria.where("tradeState.pushCount").lte(3));
             grouponCriterias.add(Criteria.where("tradeState.flowState").ne(FlowState.VOID.getStateId()));
             grouponCriterias.add(Criteria.where("cycleBuyFlag").is(false));
@@ -1113,9 +1118,12 @@ public class ProviderTradeService {
                 LocalDateTime localDateTime = LocalDateTime.now().plusMonths(-6);
                 criterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
                 criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+                criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
 
                 grouponCriterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
                 grouponCriterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
+                grouponCriterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
+
             }
 
             Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
@@ -1230,7 +1238,7 @@ public class ProviderTradeService {
             /**
              * 查询所有扫描次数为3的数据
              */
-            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.RESET_ORDER_THREE.toValue());
+            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.RESET_ORDER_THREE.toValue(), null);
             List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
 
             if (CollectionUtils.isNotEmpty(providerTrades)) {
@@ -1259,18 +1267,24 @@ public class ProviderTradeService {
         }
         lock.lock();
         try {
+            int scanCount = 0;
+            String scanCountStr = redisService.getString(ORDER_DELIVER_SYNC_SCAN_COUNT);
+            if (StringUtils.isNotBlank(scanCountStr)) {
+                scanCount = Integer.parseInt(scanCountStr);
+            }
+
             /**
              * 普通订单发货状态更新
              */
             // 查询scanCount小于3或scanCount不存在的数据
-            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.REGULAR_ORDER_ZERO.toValue());
+            Query query = this.queryProviderTradeCondition(ptid, OrderTypeEnums.REGULAR_ORDER_ZERO.toValue(), scanCount);
             List<ProviderTrade> providerTrades = mongoTemplate.find(query.limit(pageSize), ProviderTrade.class);
 
             /**
              * 周期购订单发货单状态更新
              */
             // 查询zhouqigou scanCount小于3或scanCount不存在的数据
-            Query cycleQuery = this.queryProviderTradeCondition(ptid, OrderTypeEnums.CYCLE_ORDER_TWO.toValue());
+            Query cycleQuery = this.queryProviderTradeCondition(ptid, OrderTypeEnums.CYCLE_ORDER_TWO.toValue(), scanCount);
             List<ProviderTrade> cycleBuyTradeList = mongoTemplate.find(cycleQuery.limit(pageSize), ProviderTrade.class);
 
             List<ProviderTrade> totalTradeList = Stream.of(providerTrades, cycleBuyTradeList)
@@ -1281,8 +1295,14 @@ public class ProviderTradeService {
                 totalTradeList.stream().forEach(providerTrade -> {
 
                     log.info("#同步erp发货状态的订单:{},订单id:{}", providerTrade.getTradeState(),providerTrade.getId());
-                    tradePushERPService.syncDeliveryStatus(providerTrade,deliveryInfoVOList);
+                    tradePushERPService.syncDeliveryStatus(providerTrade, deliveryInfoVOList);
                 });
+            } else {
+                scanCount = scanCount +1;
+                if (scanCount > ScanCount.COUNT_THREE.toValue()) {
+                    scanCount = 0;
+                }
+                redisService.setString(ORDER_DELIVER_SYNC_SCAN_COUNT, scanCount + "", 24 * 60 * 60);
             }
         } catch (Exception e) {
             log.error("Error message ： #批量同步发货状态异常:{}",e.getMessage(), e);
@@ -1346,7 +1366,7 @@ public class ProviderTradeService {
      * @param ptid 订单子id
      * @return
      */
-    public Query queryProviderTradeCondition(String ptid, Integer orderType) {
+    public Query queryProviderTradeCondition(String ptid, Integer orderType, Integer scanCount) {
         List<Criteria> criterias = new ArrayList<>();
         // 查询条件组装
         criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
@@ -1359,20 +1379,28 @@ public class ProviderTradeService {
 
             criterias.add(Criteria.where("id").is(ptid));
             return new Query(new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()])));
-        }
-
-        // 重置订单扫描次数
-        if (OrderTypeEnums.RESET_ORDER_THREE.toValue() == orderType) {
-
-            criterias.add(Criteria.where("tradeState.scanCount").is(ScanCount.COUNT_THREE.toValue()));
         } else {
+            // 重置订单扫描次数
+            if (OrderTypeEnums.RESET_ORDER_THREE.toValue() == orderType) {
 
-            Criteria orCriteria = new Criteria();
-            orCriteria.orOperator(
-                    Criteria.where("tradeState.scanCount").exists(false),
-                    Criteria.where("tradeState.scanCount").lt(ScanCount.COUNT_THREE.toValue()));
-            criterias.add(orCriteria);
+                criterias.add(Criteria.where("tradeState.scanCount").is(ScanCount.COUNT_THREE.toValue()));
+            } else {
+
+                Criteria orCriteria = new Criteria();
+                if (scanCount != null) {
+                    orCriteria.orOperator(
+                            Criteria.where("tradeState.scanCount").exists(false),
+                            Criteria.where("tradeState.scanCount").is(scanCount));
+                } else {
+                    orCriteria.orOperator(
+                            Criteria.where("tradeState.scanCount").exists(false),
+                            Criteria.where("tradeState.scanCount").lt(ScanCount.COUNT_THREE.toValue()));
+                }
+                criterias.add(orCriteria);
+            }
         }
+
+
 
         // 周期购订单
         if (OrderTypeEnums.CYCLE_ORDER_TWO.toValue() == orderType){
