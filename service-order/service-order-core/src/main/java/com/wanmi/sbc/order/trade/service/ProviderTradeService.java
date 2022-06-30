@@ -78,6 +78,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -1087,7 +1088,8 @@ public class ProviderTradeService {
             if (pageSize <= 0) {
                 pageSize = 200;
             }
-            long beginTime = System.currentTimeMillis();
+
+
             List<Criteria> criterias = new ArrayList<>();
             criterias.add(Criteria.where("tradeState.payState").is(PayState.PAID.getStateId()));
 
@@ -1126,30 +1128,44 @@ public class ProviderTradeService {
 
             }
 
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start("补偿推送周期购订单获取StopWatch");
+
             Criteria grouponCriteria = new Criteria().andOperator(grouponCriterias.toArray(new Criteria[grouponCriterias.size()]));
             Query grouponQuery = new Query(grouponCriteria).limit(pageSize);
             grouponQuery.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> grouponQueryProviderTrades = mongoTemplate.find(grouponQuery, ProviderTrade.class);
-            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} cost:{} s", grouponQuery.toString(), (System.currentTimeMillis() - beginTime) /1000);
+
+            log.info("ProviderTradeService.batchPushOrder grouponCriterias query:{} ", grouponQuery);
+            stopWatch.stop();
 
 
+
+            stopWatch.start("补偿推送普通订单获取StopWatch");
             Criteria newCriteria = new Criteria().andOperator(criterias.toArray(new Criteria[criterias.size()]));
             Query query = new Query(newCriteria).limit(pageSize);
             query.with(Sort.by(Sort.Direction.ASC, "tradeState.payTime"));
             List<ProviderTrade> providerTrades = mongoTemplate.find(query, ProviderTrade.class);
-            log.info("ProviderTradeService.batchPushOrder criterias query:{} cost:{} s", query.toString(), (System.currentTimeMillis() - beginTime) /1000);
+            log.info("ProviderTradeService.batchPushOrder criterias query:{}", query);
+            stopWatch.stop();
 
 
             List<ProviderTrade> totalProviderTradeList = Stream.of(providerTrades, grouponQueryProviderTrades).flatMap(Collection::stream).distinct().collect(Collectors.toList());
 
-
+            stopWatch.start("补偿推送订单 StopWatch");
             for (ProviderTrade providerTrade : totalProviderTradeList) {
                 log.info("================普通订单补偿推送erp=====:{}", providerTrade);
                 // 推送订单
                 tradePushERPService.pushOrderToERP(providerTrade);
             }
+            stopWatch.stop();
+
+            log.info("ProviderTradeService.batchPushOrder StopWatch statistics {}", stopWatch.prettyPrint());
+            for (StopWatch.TaskInfo taskInfo : stopWatch.getTaskInfo()) {
+                log.info("ProviderTradeService.batchPushOrder StopWatch {} cost:{}", taskInfo.getTaskName(), taskInfo.getTimeSeconds());
+            }
         } catch (Exception e) {
-            log.error("#订单推送失败:{}", e);
+            log.error("#订单推送失败", e);
         } finally {
             //释放锁
             lock.unlock();
