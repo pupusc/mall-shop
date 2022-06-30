@@ -30,6 +30,7 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
+import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
@@ -41,27 +42,29 @@ import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.request.distribution.DistributionCustomerByCustomerIdRequest;
 import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
+import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
-import com.wanmi.sbc.customer.bean.vo.DistributionCustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
+import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
-import com.wanmi.sbc.goods.api.request.flashsalegoods.FlashSaleGoodsListRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
+import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
+import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
@@ -70,21 +73,24 @@ import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
+import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
+import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.vo.FlashSaleGoodsVO;
+import com.wanmi.sbc.goods.bean.enums.PriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
+import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
-import com.wanmi.sbc.marketing.api.request.coupon.CouponCodeListForUseByCustomerIdRequest;
 import com.wanmi.sbc.marketing.api.request.markup.MarkupListRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
-import com.wanmi.sbc.marketing.bean.dto.TradeItemInfoDTO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
+import com.wanmi.sbc.marketing.bean.vo.MarkupLevelDetailVO;
 import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.MergeGoodsInfoRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
@@ -191,7 +197,10 @@ public class OrderController {
 
     @Autowired
     private CommonService commonService;
-
+    @Autowired
+    private TradeQueryProvider tradeQueryProvider;
+    @Autowired
+    private EnterpriseGoodsInfoQueryProvider enterpriseGoodsInfoQueryProvider;
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -211,6 +220,10 @@ public class OrderController {
     private TradeItemProvider tradeItemProvider;
     @Autowired
     private TradeItemQueryProvider tradeItemQueryProvider;
+    @Autowired
+    private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+    @Autowired
+    private MarkupQueryProvider markupQueryProvider;
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
@@ -713,429 +726,157 @@ public class OrderController {
     /**
      * 购物车-订单结算
      */
-//    @PostMapping(value = "/stmtInfo")
-//    public BaseResponse<StmtResultVO> settlementInfo() {
-//        String customerId = commonUtil.getOperatorId();
-//        //验证用户
-//        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
-//
-//        List<TradeItemGroupVO> tradeItemGroups = tradeItemQueryProvider.listByTerminalToken(TradeItemByCustomerIdRequest
-//                .builder().terminalToken(commonUtil.getTerminalToken()).build()).getContext().getTradeItemGroupList();
-//
-//        List<TradeConfirmItemVO> items = new ArrayList<>();
-//        List<String> skuIds =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream()).map(TradeItemVO::getSkuId).collect(Collectors.toList());
-//
-//// TODO: 2022/6/29
-//
-//        //获取订单商品详情,包含区间价，会员级别价salePrice
-//        GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
-//        Map<String, Integer> cpsMap = skuResp.getGoodses().stream().filter(good -> good.getCpsSpecial() != null).collect(Collectors.toMap(GoodsVO::getGoodsId, GoodsVO::getCpsSpecial));
-//        // 营销活动赠品
-//        List<String> giftIds =
-//                tradeItemGroups.stream().flatMap(i -> i.getTradeMarketingList().stream())
-//                        .filter(i -> CollectionUtils.isNotEmpty(i.getGiftSkuIds())).flatMap(r -> r.getGiftSkuIds()
-//                        .stream()).distinct().collect(Collectors.toList());
-//        giftIds.addAll(tradeItemGroups.stream().flatMap(i -> i.getTradeMarketingList().stream())
-//                .filter(i -> CollectionUtils.isNotEmpty(i.getMarkupSkuIds())).flatMap(r -> r.getMarkupSkuIds()
-//                        .stream()).distinct().collect(Collectors.toList()));
-//        Map<Long, StoreVO> storeMap = storeQueryProvider.listNoDeleteStoreByIds(new ListNoDeleteStoreByIdsRequest
-//                (tradeItemGroups.stream().map(g -> g
-//                        .getSupplier().getStoreId())
-//                        .collect(Collectors.toList()))).getContext().getStoreVOList().stream().collect(Collectors
-//                .toMap(StoreVO::getStoreId,
-//                        s -> s));
-//        TradeGetGoodsResponse giftResp;
-//        giftResp = tradeQueryProvider.getGoods(TradeGetGoodsRequest.builder().skuIds(giftIds).build()).getContext();
-//        final TradeGetGoodsResponse giftTemp = giftResp;
-//        // 组合购标记
-//        boolean suitMarketingFlag = tradeItemGroups.stream().anyMatch(s -> Objects.equals(Boolean.TRUE, s.getSuitMarketingFlag()));
-//        Integer suitScene = null;
-//        if(suitMarketingFlag && tradeItemGroups.stream().anyMatch(s -> s.getSuitScene()!=null)){
-//            suitScene = tradeItemGroups.stream().filter(s -> s.getSuitScene()!=null).findFirst().get().getSuitScene();
-//        }
-//        //拼团标记
-//        boolean grouponFlag = tradeItemGroups.stream().anyMatch(s -> s.getGrouponForm() != null && s.getGrouponForm().getOpenGroupon() != null);
-//        confirmResponse.setSuitMarketingFlag(suitMarketingFlag);
-//        confirmResponse.setSuitScene(suitScene);
-//        // 如果为PC商城下单or组合购商品，将分销商品变为普通商品
-//        if (ChannelType.PC_MALL.equals(commonUtil.getDistributeChannel().getChannelType()) || suitMarketingFlag || grouponFlag) {
-//            tradeItemGroups.forEach(tradeItemGroup ->
-//                    tradeItemGroup.getTradeItems().forEach(tradeItem -> {
-//                        tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-//                        if (suitMarketingFlag) {
-//                            tradeItem.setBuyPoint(NumberUtils.LONG_ZERO);
-//                        }
-//                    })
-//            );
-//            skuResp.getGoodsInfos().forEach(item -> {
-//                item.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-//                if (suitMarketingFlag) {
-//                    item.setBuyPoint(NumberUtils.LONG_ZERO);
-//                }
-//            });
-//        }
-//
-//        //企业会员判断
-//        boolean isIepCustomerFlag = isIepCustomer(customer);
-//        boolean isGoodsPoint = systemPointsConfigService.isGoodsPoint();
-//
-//        Map<String, Long> buyCountMap = new HashMap<>();
-//        Map<String, BigDecimal> enterprisePriceMap = new HashMap<>();
-//        List<GoodsLevelPriceVO> goodsLevelPrices = new ArrayList<>();
-//        if (isIepCustomerFlag) {
-//            tradeItemGroups.forEach(e -> {
-//                List<TradeItemVO> tradeItems = e.getTradeItems();
-//                tradeItems.forEach(item -> {
-//                    buyCountMap.put(item.getSkuId(), item.getNum());
-//                });
-//            });
-//            //企业价
-//            EnterprisePriceGetRequest enterprisePriceGetRequest = new EnterprisePriceGetRequest();
-//            enterprisePriceGetRequest.setGoodsInfoIds(skuIds);
-//            enterprisePriceGetRequest.setCustomerId(customer.getCustomerId());
-//            enterprisePriceGetRequest.setBuyCountMap(buyCountMap);
-//            enterprisePriceGetRequest.setListFlag(false);
-//            enterprisePriceGetRequest.setOrderFlag(true);
-//
-//            EnterprisePriceResponse context = enterpriseGoodsInfoQueryProvider.userPrice(enterprisePriceGetRequest).getContext();
-//            Map<String, BigDecimal> priceMap = context.getPriceMap();
-//            if (priceMap != null) {
-//                enterprisePriceMap.putAll(priceMap);
-//            }
-//
-//            //会员等级价
-//            goodsLevelPrices.addAll(this.getGoodsLevelPrices(skuIds, customer));
-//        }
-//
-//        //分销开关
-//        boolean distributionPcMall = DefaultFlag.YES.equals(distributionCacheService.queryOpenFlag())
-//                && !ChannelType.PC_MALL.equals(commonUtil.getDistributeChannel().getChannelType());
-//        //商品验证并填充商品价格
-//        List<Long> flashSaleGoodsIds = new ArrayList<>();
-//        tradeItemGroups.forEach(
-//                g -> {
-//                    //周期购使用单品运费
-//                    DefaultFlag freightTemplateType = Objects.nonNull(g.getCycleBuyInfo())
-//                            ? DefaultFlag.YES
-//                            : storeMap.get(g.getSupplier().getStoreId()).getFreightTemplateType();
-//                    g.getSupplier().setFreightTemplateType(freightTemplateType);
-//                    List<TradeItemVO> tradeItems = g.getTradeItems();
-//                    List<TradeItemDTO> tradeItemDTOList = KsBeanUtil.convert(tradeItems, TradeItemDTO.class);
-//                    // 分销商品、开店礼包商品、拼团商品、企业购商品，不验证起限定量
-//                    skuResp.getGoodsInfos().forEach(item -> {
-//                        //企业购商品
-//                        boolean isIep = isIepCustomerFlag && isEnjoyIepGoodsInfo(item.getEnterPriseAuditState());
-//                        if (DistributionGoodsAudit.CHECKED.equals(item.getDistributionGoodsAudit())
-//                                || DefaultFlag.YES.equals(g.getStoreBagsFlag())
-//                                || Objects.nonNull(g.getGrouponForm()) || isIep) {
-//                            item.setCount(null);
-//                            item.setMaxCount(null);
-//                        }
-//                    });
-//                    //商品验证并填充商品价格
-//                    List<TradeItemVO> tradeItemVOList =
-//                            verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItemDTOList, Collections
-//                                    .emptyList(),
-//                                    KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
-//                                    g.getSupplier().getStoreId(), true)).getContext().getTradeItems();
-//                    tradeItemVOList.stream().forEach(
-//                            tradeItemVO -> {
-//                                tradeItemVO.setCpsSpecial(cpsMap.get(tradeItemVO.getSpuId()));
-//                            }
-//                    );
-//                    //企业购商品价格回设
-//                    if (isIepCustomerFlag) {
-//                        tradeItemVOList.forEach(tradeItemVO -> {
-//                            if (isEnjoyIepGoodsInfo(tradeItemVO.getEnterPriseAuditState())
-//                                    && (!isGoodsPoint || (isGoodsPoint && (tradeItemVO.getBuyPoint() == null || tradeItemVO.getBuyPoint() == 0)))) {
-//                                tradeItemVO.setPrice(tradeItemVO.getEnterPrisePrice());
-//
-//                                BigDecimal price = enterprisePriceMap.get(tradeItemVO.getSkuId());
-//                                if (price != null) {
-//                                    tradeItemVO.setPrice(price);
-//                                }
-//                                tradeItemVO.setSplitPrice(tradeItemVO.getEnterPrisePrice().multiply(new BigDecimal(tradeItemVO.getNum())));
-//                                tradeItemVO.setLevelPrice(tradeItemVO.getEnterPrisePrice());
-//                                //判断当前用户对应企业购商品等级企业价
-//                                if (CollectionUtils.isNotEmpty(goodsLevelPrices)) {
-//                                    Optional<GoodsLevelPriceVO> first = goodsLevelPrices.stream()
-//                                            .filter(goodsLevelPrice -> goodsLevelPrice.getGoodsInfoId().equals(tradeItemVO.getSkuId()))
-//                                            .findFirst();
-//                                    tradeItemVO.setPrice(first.isPresent() ? first.get().getPrice() : tradeItemVO.getEnterPrisePrice());
-//                                }
-//                            }
-//                        });
-//                    }
-//                    //抢购商品价格回设
-//                    if (StringUtils.isNotBlank(g.getSnapshotType()) && (g.getSnapshotType().equals(Constants.FLASH_SALE_GOODS_ORDER_TYPE))) {
-//                        tradeItemVOList.forEach(tradeItemVO -> {
-//                            g.getTradeItems().forEach(tradeItem -> {
-//                                if (tradeItem.getSkuId().equals(tradeItemVO.getSkuId())) {
-//                                    tradeItemVO.setPrice(tradeItem.getPrice());
-//                                }
-//                            });
-//                        });
-//                        if (CollectionUtils.isNotEmpty(tradeItemVOList)) {
-//                            flashSaleGoodsIds.add(tradeItemVOList.get(0).getFlashSaleGoodsId());
-//                        }
-//                    }
-//                    tradeItemVOList.forEach(tradeItemVO -> {
-//
-//                        g.getTradeItems().forEach(tradeItem -> {
-//                            g.getTradeMarketingList().forEach(tradeItemMarketingVO -> {
-//                                if (tradeItemMarketingVO.getSkuIds().contains(tradeItemVO.getSkuId())
-//                                        && !tradeItemVO.getMarketingIds().contains(tradeItemMarketingVO.getMarketingId())) {
-//                                    tradeItemVO.getMarketingIds().add(tradeItemMarketingVO.getMarketingId());
-//                                    tradeItemVO.getMarketingLevelIds().add(tradeItemMarketingVO.getMarketingLevelId());
-//                                }
-//                            });
-//                            if ((Objects.nonNull(tradeItem.getIsAppointmentSaleGoods()) && tradeItem.getIsAppointmentSaleGoods())) {
-//                                if (tradeItem.getSkuId().equals(tradeItemVO.getSkuId())) {
-//                                    tradeItemVO.setPrice(tradeItem.getPrice());
-//                                    tradeItemVO.setIsAppointmentSaleGoods(tradeItem.getIsAppointmentSaleGoods());
-//                                    tradeItemVO.setAppointmentSaleId(tradeItem.getAppointmentSaleId());
-//                                }
-//                            }
-//                            if (Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods() && tradeItem.getBookingType() == BookingType.FULL_MONEY) {
-//                                if (tradeItem.getSkuId().equals(tradeItemVO.getSkuId())) {
-//                                    tradeItemVO.setPrice(tradeItem.getPrice());
-//                                    tradeItemVO.setIsBookingSaleGoods(tradeItem.getIsBookingSaleGoods());
-//                                    tradeItemVO.setBookingSaleId(tradeItem.getBookingSaleId());
-//                                    tradeItemVO.setBookingType(tradeItem.getBookingType());
-//                                }
-//                            }
-//                            if (Objects.nonNull(tradeItem.getIsBookingSaleGoods()) && tradeItem.getIsBookingSaleGoods() && tradeItem.getBookingType() == BookingType.EARNEST_MONEY) {
-//                                if (tradeItem.getSkuId().equals(tradeItemVO.getSkuId())) {
-//                                    tradeItemVO.setPrice(tradeItem.getOriginalPrice());
-//                                    tradeItemVO.setIsBookingSaleGoods(tradeItem.getIsBookingSaleGoods());
-//                                    tradeItemVO.setBookingSaleId(tradeItem.getBookingSaleId());
-//                                    tradeItemVO.setBookingType(tradeItem.getBookingType());
-//                                    tradeItemVO.setHandSelStartTime(tradeItem.getHandSelStartTime());
-//                                    tradeItemVO.setHandSelEndTime(tradeItem.getHandSelEndTime());
-//                                    tradeItemVO.setTailStartTime(tradeItem.getTailStartTime());
-//                                    tradeItemVO.setTailEndTime(tradeItem.getTailEndTime());
-//                                    tradeItemVO.setEarnestPrice(tradeItem.getEarnestPrice());
-//                                    tradeItemVO.setSwellPrice(tradeItem.getSwellPrice());
-//                                }
-//                            }
-//                        });
-//                    });
-//                    g.setTradeItems(tradeItemVOList);
-//                    // 分销商品、开店礼包商品，重新设回市场价
-//                    if (distributionPcMall) {
-//                        g.getTradeItems().stream().filter(tradeItemVO -> DefaultFlag.YES.equals(g.getStoreBagsFlag())
-//                                || (Objects.isNull(tradeItemVO.getBuyPoint()) || tradeItemVO.getBuyPoint() == 0)).forEach(item -> {
-//                            DefaultFlag storeOpenFlag = distributionCacheService.queryStoreOpenFlag(item.getStoreId()
-//                                    .toString());
-//                            if ((Objects.isNull(item.getIsFlashSaleGoods()) ||
-//                                    (Objects.nonNull(item.getIsFlashSaleGoods()) && !item.getIsFlashSaleGoods())) &&
-//                                    (Objects.isNull(item.getIsAppointmentSaleGoods()) || !item.getIsAppointmentSaleGoods()) &&
-//                                    !(Objects.nonNull(item.getIsBookingSaleGoods()) && item.getIsBookingSaleGoods() && item.getBookingType() == BookingType.FULL_MONEY) &&
-//                                    DefaultFlag.YES.equals(storeOpenFlag) && (
-//                                    DistributionGoodsAudit.CHECKED.equals(item.getDistributionGoodsAudit())
-//                                            || DefaultFlag.YES.equals(g.getStoreBagsFlag()))) {
-//                                if (null == item.getOriginalPrice()) {
-//                                    item.setOriginalPrice(BigDecimal.ZERO);
-//                                }
-//                                item.setSplitPrice(item.getOriginalPrice().multiply(new BigDecimal(item.getNum())));
-//                                item.setPrice(item.getOriginalPrice());
-//                                item.setLevelPrice(item.getOriginalPrice());
-//                                if (DefaultFlag.YES.equals(g.getStoreBagsFlag())) {
-//                                    item.setBuyPoint(NumberUtils.LONG_ZERO);
-//                                }
-//                            } else {
-//                                item.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-//                            }
-//                        });
-//                    }
-//                    confirmResponse.setStoreBagsFlag(g.getStoreBagsFlag());
-//                }
-//        );
-//
-//        //秒杀包邮
-//        if (CollectionUtils.isNotEmpty(flashSaleGoodsIds)) {
-//            FlashSaleGoodsListRequest flashSaleGoodsListRequest = new FlashSaleGoodsListRequest();
-//            flashSaleGoodsListRequest.setIdList(flashSaleGoodsIds);
-//            List<FlashSaleGoodsVO> flashSaleGoodsVOList = flashSaleGoodsQueryProvider.list(flashSaleGoodsListRequest).getContext().getFlashSaleGoodsVOList();
-//            if (CollectionUtils.isNotEmpty(flashSaleGoodsVOList)) {
-//                Boolean flashFreeDelivery = Boolean.FALSE;
-//                for (FlashSaleGoodsVO flashSaleGoodsVO : flashSaleGoodsVOList) {
-//                    flashFreeDelivery = flashSaleGoodsVO.getPostage().equals(NumberUtils.INTEGER_ONE);
-//                }
-//                confirmResponse.setFlashFreeDelivery(flashFreeDelivery);
-//            }
-//        }
-//
-//        List<TradeItemMarketingVO> tradeMarketingList = tradeItemGroups.stream()
-//                .flatMap(tradeItemGroupVO -> tradeItemGroupVO.getTradeMarketingList().stream())
-//                .collect(Collectors.toList());
-//        // 加价购商品信息填充
-//        List<Long> marketingIds =
-//                tradeMarketingList.parallelStream().filter(i -> CollectionUtils.isNotEmpty(i.getMarkupSkuIds()))
-//                        .map(TradeItemMarketingVO::getMarketingId).distinct().collect(Collectors.toList());
-//
-//        MarkupListRequest markupListRequest = MarkupListRequest.builder().marketingId(marketingIds).build();
-//        List<MarkupLevelVO> levelList = markupQueryProvider.getMarkupList(markupListRequest).getContext().getLevelList();
-//
-//        //赠品信息填充
-//        List<String> giftItemIds =
-//                tradeMarketingList.parallelStream().filter(i -> CollectionUtils.isNotEmpty(i.getGiftSkuIds()))
-//                        .flatMap(r -> r.getGiftSkuIds().stream()).distinct().collect(Collectors.toList());
-//        List<TradeItemDTO> gifts =
-//                giftItemIds.stream().map(i -> TradeItemDTO.builder().price(BigDecimal.ZERO)
-//                        .skuId(i)
-//                        .build()).collect(Collectors.toList());
-//
-//        List<TradeItemVO> giftVoList = verifyQueryProvider.mergeGoodsInfo(new MergeGoodsInfoRequest(gifts
-//                , KsBeanUtil.convert(giftTemp, TradeGoodsListDTO.class)))
-//                .getContext().getTradeItems();
-//        gifts = KsBeanUtil.convert(giftVoList, TradeItemDTO.class);
-//        List<TradeItemDTO> markupItem = new ArrayList<>();
-//        for (TradeItemGroupVO g : tradeItemGroups) {
-//            Map<String, List<MarkupLevelVO>> listMap = levelList.stream().collect(Collectors.groupingBy(l -> "" + l.getMarkupId() + l.getId()));
-//            // 通过 加价购id 阶梯id 加购商品sku定位 换购价格
-//            List<TradeItemDTO> finalMarkupItem = markupItem;
-//            g.getTradeMarketingList().parallelStream().filter(i -> CollectionUtils.isNotEmpty(i.getMarkupSkuIds()))
-//                    .forEach(m -> {
-//                        List<MarkupLevelVO> markupLevelVOS = listMap.get("" + m.getMarketingId() + m.getMarketingLevelId());
-//                        if (CollectionUtils.isNotEmpty(markupLevelVOS)) {
-//                            m.getMarkupSkuIds().stream().forEach(sku -> {
-//                                markupLevelVOS.stream().flatMap(l -> l.getMarkupLevelDetailList().stream())
-//                                        .filter(detailVO -> sku.equals(detailVO.getGoodsInfoId()))
-//                                        .forEach(detail -> {
-//                                            finalMarkupItem.add(TradeItemDTO.builder()
-//                                                    .price(detail.getMarkupPrice())
-//                                                    .skuId(detail.getGoodsInfoId())
-//                                                    .num(NumberUtils.LONG_ONE)
-//                                                    .isMarkupGoods(Boolean.TRUE)
-//                                                    .build());
-//                                        });
-//                            });
-//
-//                        }
-//                    });
-//
-//            List<TradeItemVO> markupVoList = verifyQueryProvider.mergeGoodsInfo(new MergeGoodsInfoRequest(markupItem
-//                    , KsBeanUtil.convert(giftTemp, TradeGoodsListDTO.class)))
-//                    .getContext().getTradeItems();
-//            // 换购商品阶梯价不受其他影响
-//            markupVoList.forEach(m -> {
-//                m.setSplitPrice(m.getPrice());
-//                m.setLevelPrice(m.getPrice());
-//                m.setOriginalPrice(m.getPrice());
-//            });
-//            markupItem = KsBeanUtil.convert(markupVoList, TradeItemDTO.class);
-//            items.add(tradeQueryProvider.queryPurchaseInfo(TradeQueryPurchaseInfoRequest.builder()
-//                    .tradeItemGroupDTO(KsBeanUtil.convert(g, TradeItemGroupDTO.class))
-//                    .tradeItemList(gifts).markupItemList(markupItem).build()).getContext().getTradeConfirmItemVO());
-//        }
-//        this.setGoodsStatus(items);
-//
-//        // 验证小店商品
-//        this.validShopGoods(tradeItemGroups, commonUtil.getDistributeChannel());
-//        //设置购买总积分
-//        confirmResponse.setTotalBuyPoint(items.stream().flatMap(i -> i.getTradeItems().stream())
-//                .filter(i -> Objects.isNull(i.getIsMarkupGoods()) || !i.getIsMarkupGoods()).mapToLong(v -> Objects.isNull(v.getBuyPoint()) ? 0 : v.getBuyPoint() * v.getNum()).sum());
-//
-//        confirmResponse.setTradeConfirmItems(items);
-//
-//        BigDecimal totalCommission = dealDistribution(tradeItemGroups, confirmResponse);
-//
-//        // 设置小店名称、返利总价
-//        confirmResponse.setShopName(distributionCacheService.getShopName());
-//
-//        confirmResponse.setTotalCommission(totalCommission);
-//
-//        // 设置邀请人名字
-//        if (StringUtils.isNotEmpty(commonUtil.getDistributeChannel().getInviteeId())) {
-//            DistributionCustomerByCustomerIdRequest request = new DistributionCustomerByCustomerIdRequest();
-//            request.setCustomerId(commonUtil.getDistributeChannel().getInviteeId());
-//            DistributionCustomerVO distributionCustomer = distributionCustomerQueryProvider.getByCustomerId(request)
-//                    .getContext().getDistributionCustomerVO();
-//            if (distributionCustomer != null) {
-//                confirmResponse.setInviteeName(distributionCustomer.getCustomerName());
-//            }
-//        }
-//
-//        // 校验拼团信息
-//        validGrouponOrder(confirmResponse, tradeItemGroups, customerId);
-//        // 校验组合购活动信息
-//        dealSuitOrder(confirmResponse, tradeItemGroups, customerId);
-//
-//        // 填充立即购买的满系营销信息
-//        fillMarketingInfo(confirmResponse, tradeItemGroups);
-//
-//        //填充周期购信息
-//        fillCycleBuyInfoToConfirmResponse(confirmResponse, tradeItemGroups);
-//
-//        // 根据确认订单计算出的信息，查询出使用优惠券页需要的优惠券列表数据
-//        DefaultFlag openFlag = distributionCacheService.queryOpenFlag();
-//        List<TradeItemInfoDTO> tradeDtos = items.stream().flatMap(confirmItem ->
-//                confirmItem.getTradeItems().stream().map(tradeItem -> {
-//                    TradeItemInfoDTO dto = new TradeItemInfoDTO();
-//                    dto.setBrandId(tradeItem.getBrand());
-//                    dto.setCateId(tradeItem.getCateId());
-//                    dto.setSpuId(tradeItem.getSpuId());
-//                    dto.setSkuId(tradeItem.getSkuId());
-//                    dto.setStoreId(confirmItem.getSupplier().getStoreId());
-//                    dto.setPrice(tradeItem.getSplitPrice());
-//                    dto.setDistributionGoodsAudit(tradeItem.getDistributionGoodsAudit());
-//                    if (DefaultFlag.NO.equals(openFlag) || DefaultFlag.NO.equals(
-//                            distributionCacheService.queryStoreOpenFlag(String.valueOf(tradeItem.getStoreId())))) {
-//                        tradeItem.setDistributionGoodsAudit(DistributionGoodsAudit.COMMON_GOODS);
-//                    }
-//                    return dto;
-//                })
-//        ).collect(Collectors.toList());
-//
-//        // 加价购填充
-//        markupForGoodsInfo(confirmResponse);
-//
-//        CouponCodeListForUseByCustomerIdRequest requ = CouponCodeListForUseByCustomerIdRequest.builder()
-//                .customerId(customerId)
-//                .tradeItems(tradeDtos).price(confirmResponse.getTotalPrice()).build();
-//
-//        confirmResponse.setCouponCodes(couponCodeQueryProvider.listForUseByCustomerId(requ).getContext()
-//                .getCouponCodeList());
-//
-//
-//        //打包信息
-//        List<String> mainGoodsIdList =  tradeItemGroups.stream().flatMap(i -> i.getTradeItems().stream())
-//                .map(TradeItemVO::getSpuId).collect(Collectors.toList());
-//        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(mainGoodsIdList);
-//
-//        List<TradeConfirmItemVO> tradeConfirmItems = confirmResponse.getTradeConfirmItems();
-//        for (TradeConfirmItemVO tradeConfirmItem : tradeConfirmItems) {
-//            List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
-//            for (TradeItemVO tradeItemVO : tradeItems) {
-//                tradeItemVO.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItemVO.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItemVO.getSpuId()));
-//            }
-//        }
-//
-//        //视频号黑名单
-//        Map<String, Boolean> goodsId2VideoChannelMap = new HashMap<>();
-//        for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
-//            List<String> skuIdList = tradeConfirmItem.getTradeItems().stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
-//            goodsId2VideoChannelMap.putAll(videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext());
-//        }
-//
-//        List<String> blackListGoodsIdList = new ArrayList<>();
-//        // 积分和名单商品不能使用积分，也不参与分摊
-//        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
-//        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
-//        GoodsBlackListPageProviderResponse context = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
-//        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
-//            blackListGoodsIdList.addAll(context.getPointNotSplitBlackListModel().getGoodsIdList());
-//        }
-//
-//        for (TradeConfirmItemVO tradeConfirmItem : confirmResponse.getTradeConfirmItems()) {
-//            List<TradeItemVO> tradeItems = tradeConfirmItem.getTradeItems();
-//            for (TradeItemVO tradeItem : tradeItems) {
-//                if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
-//                    tradeItem.setInPointBlackList(true);
-//                }
-//            }
-//        }
-//        return BaseResponse.success(confirmResponse);
-//    }
+    @PostMapping(value = "/stmtInfo")
+    public BaseResponse<StmtResultVO> settlementInfo(@RequestBody StmtParamVO paramVO) {
+        OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
+
+        CustomerGetByIdResponse customer = null;
+        String customerId = commonUtil.getOperatorId();
+        if(StringUtils.isNotBlank(customerId)){
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+        }
+
+        //入参是商品sku和num，返回商品信息和价格信息
+        List<TradeItemDTO> tradeItems = paramVO.getMarketings().stream().flatMap(item -> item.getGoodsInfos().stream())
+                .map(item -> TradeItemDTO.builder().skuId(item.getSkuId()).num(item.getCount()).build()).collect(Collectors.toList());
+
+        List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+
+        //获取订单商品详情和会员价salePrice
+        GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
+
+        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        //设置是否展示输入电话输入框
+        //获取商品下的打包信息 TODO 修改此处的时候，同时修改 h5的 purchase 接口
+        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
+
+        List<TradeConfirmItemVO> items = new ArrayList<>(1);
+        //一期只能购买一个商品，只有一个商家
+        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(skuResp.getGoodsInfos().get(0).getStoreId())
+                .build())
+                .getContext().getStoreVO();
+
+        TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
+        //商品验证并填充商品价格
+        List<TradeItemVO> tradeItemVOList =
+                verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
+                        KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
+                        store.getStoreId(), true)).getContext().getTradeItems();
+
+        //视频号黑名单
+        List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
+        Map<String, Boolean> goodsId2VideoChannelMap = videoChannelSetFilterControllerProvider.filterGoodsIdHasVideoChannelMap(skuIdList).getContext();
+
+        List<String> blackListGoodsIdList = new ArrayList<>();
+        // 积分和名单商品不能使用积分，也不参与分摊
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(Collections.singletonList(GoodsBlackListCategoryEnum.POINT_NOT_SPLIT.getCode()));
+        GoodsBlackListPageProviderResponse context = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
+        if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
+            blackListGoodsIdList.addAll(context.getPointNotSplitBlackListModel().getGoodsIdList());
+        }
+
+        //定价
+        for (TradeItemVO tradeItem : tradeItemVOList) {
+            BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
+            if(priceByGoodsId.getContext() != null){
+                tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+            }
+            if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
+                tradeItem.setInPointBlackList(true);
+            }
+            //设置是否显示输入框
+            tradeItem.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()));
+        }
+
+
+        tradeConfirmItemVO.setTradeItems(tradeItemVOList);
+        tradeConfirmItemVO.setTradePrice(commonService.calPrice(tradeItemVOList));
+
+        DefaultFlag freightTemplateType = store.getFreightTemplateType();
+        SupplierVO supplier = SupplierVO.builder()
+                .storeId(store.getStoreId())
+                .storeName(store.getStoreName())
+                .isSelf(store.getCompanyType() == BoolFlag.NO)
+                .supplierCode(store.getCompanyInfo().getCompanyCode())
+                .supplierId(store.getCompanyInfo().getCompanyInfoId())
+                .supplierName(store.getCompanyInfo().getSupplierName())
+                .freightTemplateType(freightTemplateType)
+                .build();
+        tradeConfirmItemVO.setSupplier(supplier);
+        items.add(tradeConfirmItemVO);
+        confirmResponse.setTradeConfirmItems(items);
+
+        return null;
+    }
+
+    /**
+     * 是否企业购会员
+     */
+    private boolean isIepCustomer(CustomerVO customer) {
+        EnterpriseCheckState customerState;
+        if (Objects.isNull(customer)) {
+            customerState = commonUtil.getCustomer().getEnterpriseCheckState();
+        } else {
+            customerState = customer.getEnterpriseCheckState();
+        }
+        return commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING)
+                && !Objects.isNull(customerState)
+                && customerState == EnterpriseCheckState.CHECKED;
+    }
+
+    /**
+     * 商品分级价格
+     */
+    private List<GoodsLevelPriceVO> getGoodsLevelPrices(List<String> skuIds, CustomerVO customer) {
+        List<GoodsLevelPriceVO> goodsLevelPriceList = new ArrayList<>();
+        if (Objects.nonNull(customer)
+                && EnterpriseCheckState.CHECKED.equals(customer.getEnterpriseCheckState())
+                && CollectionUtils.isNotEmpty(skuIds)) {
+            //等级价格
+            GoodsLevelPriceBySkuIdsRequest goodsLevelPriceBySkuIdsRequest = new GoodsLevelPriceBySkuIdsRequest();
+            goodsLevelPriceBySkuIdsRequest.setSkuIds(skuIds);
+            goodsLevelPriceBySkuIdsRequest.setType(PriceType.ENTERPRISE_SKU);
+            goodsLevelPriceList = goodsLevelPriceQueryProvider
+                    .listBySkuIds(goodsLevelPriceBySkuIdsRequest).getContext().getGoodsLevelPriceList();
+            if (CollectionUtils.isNotEmpty(goodsLevelPriceList)) {
+                return goodsLevelPriceList.stream()
+                        .filter(goodsLevelPrice -> goodsLevelPrice.getLevelId().equals(customer.getCustomerLevelId()))
+                        .collect(Collectors.toList());
+            }
+        }
+        return goodsLevelPriceList;
+    }
+
+    /**
+     * 判断商品是否企业购商品
+     */
+    private boolean isEnjoyIepGoodsInfo(EnterpriseAuditState enterpriseAuditState) {
+        return EnterpriseAuditState.CHECKED.equals(enterpriseAuditState);
+    }
+
+    /**
+     * 填充商品状态
+     *
+     * @param items
+     */
+    public void setGoodsStatus(List<TradeConfirmItemVO> items) {
+        if (CollectionUtils.isNotEmpty(items)) {
+            items.forEach(item -> {
+                List<TradeItemVO> gifts = item.getGifts();
+                if (CollectionUtils.isNotEmpty(gifts)) {
+                    Map<String, GoodsStatus> statusMap = new HashMap<>();
+                    List<String> skuIds = gifts.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
+                    List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder().goodsInfoIds(skuIds).build())
+                            .getContext().getGoodsInfos();
+                    if (CollectionUtils.isNotEmpty(goodsInfos)) {
+                        statusMap = goodsInfos.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, g -> g.getGoodsStatus(), (k1, k2) -> k1));
+                        for (TradeItemVO gift : gifts) {
+                            gift.setGoodsStatus(statusMap.get(gift.getSkuId()));
+                        }
+                    }
+                }
+            });
+        }
+    }
 }

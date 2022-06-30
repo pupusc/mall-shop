@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -283,9 +284,10 @@ public class MarketingController {
             }
             PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
             couponVO.setActivityId(couponCodeVO.getActivityId());
-            couponVO.setStartTime(couponCodeVO.getStartTime().toString());
-            couponVO.setEndTime(couponCodeVO.getEndTime().toString());
+            couponVO.setStartTime(couponCodeVO.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            couponVO.setEndTime(couponCodeVO.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             couponVO.setCouponId(couponCodeVO.getCouponId());
+            couponVO.setCouponCodeId(couponCodeVO.getCouponCodeId());
             couponVO.setCouponType(couponCodeVO.getCouponType().toValue());
             couponVO.setCouponName(couponCodeVO.getCouponName());
             couponVO.setCouponDesc(couponCodeVO.getCouponDesc());

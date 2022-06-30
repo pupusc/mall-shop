@@ -47,6 +47,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,8 @@ public class VendorCartController {
         if (CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
             return BaseResponse.success(resultVO);
         }
+        //按创建时间倒叙排列
+        cartInfo.setGoodsInfos(cartInfo.getGoodsInfos().stream().sorted(Comparator.comparing(GoodsInfoVO::getCreateTime).reversed()).collect(Collectors.toList()));
         //spu信息按照id->model映射
         Map<String, GoodsVO> goodsVOMap = cartInfo.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, item -> item, (a, b) -> a));
         //按照客户指定状态分组：指定促销方案；指定选中商品；
@@ -133,9 +136,12 @@ public class VendorCartController {
         Map<String, List<MarketingViewVO>> goodsMarketingMap = cartInfo.getGoodsMarketingMap();
         resultVO.setMarketings(new ArrayList<>());
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
-            CartInfoResultVO$Marketing marketing = new CartInfoResultVO$Marketing();
-            marketing.setMarketingId(entry.getKey());
-            marketing.setGoodsInfos(entry.getValue().stream().map(item->{
+            MarketingViewVO marketingBO = markertingMap.getOrDefault(entry.getKey(), new MarketingViewVO());
+            CartInfoResultVO$Marketing marketingVO = new CartInfoResultVO$Marketing();
+            marketingVO.setMarketingId(entry.getKey());
+            marketingVO.setType(marketingBO.getMarketingType().toValue());
+            marketingVO.setSubType(marketingBO.getSubType().toValue());
+            marketingVO.setGoodsInfos(entry.getValue().stream().map(item->{
                 CartInfoResultVO$Sku skuVO = new CartInfoResultVO$Sku();
                 skuVO.setGoodsId(item.getGoodsId());
                 skuVO.setGoodsNo(item.getGoodsNo());
@@ -155,9 +161,8 @@ public class VendorCartController {
                 skuVO.setMarketings(buildMarketings(goodsMarketingMap.get(item.getGoodsInfoId())));
                 return skuVO;
             }).collect(Collectors.toList()));
-            resultVO.getMarketings().add(marketing);
+            resultVO.getMarketings().add(marketingVO);
         }
-
         //计算购物车价格，只包含选中的商品
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {

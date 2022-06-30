@@ -32,6 +32,10 @@ public class PromoteInfoResultVO$Coupon {
      */
     private String couponId;
     /**
+     * 优惠券id
+     */
+    private String couponCodeId;
+    /**
      * 优惠券类型 0通用券 1店铺券 2运费券
      */
     private Integer couponType;

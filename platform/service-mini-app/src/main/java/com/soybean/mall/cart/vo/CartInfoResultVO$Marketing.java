@@ -29,9 +29,26 @@ public class CartInfoResultVO$Marketing {
     /**
      * 促销文案：每满300减150，还差32
      */
-    private String typeDesc;
+    private String subTypeText;
     /**
      * sku列表
      */
     private List<CartInfoResultVO$Sku> goodsInfos;
+    /**
+     * 是否最大优惠政策（再逛逛/去凑单）
+     */
+    private boolean isMaxPolicy;
+
+    public void setType(int type) {
+        this.type = type;
+        if (this.type == 0) {
+            this.typeText = "满减";
+        } else if (this.type == 1) {
+            this.typeText = "满折";
+        } else if (this.type == 2) {
+            this.typeText = "满赠";
+        } else {
+            this.typeText = "其他";
+        }
+    }
 }

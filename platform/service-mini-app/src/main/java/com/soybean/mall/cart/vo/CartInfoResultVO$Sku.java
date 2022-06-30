@@ -78,6 +78,10 @@ public class CartInfoResultVO$Sku {
      * 商品状态 0：正常 1：缺货 2：失效
      */
     private GoodsStatus goodsStatus = GoodsStatus.OK;
+    /**
+     * vip折扣率
+     */
+    private String vipPriceRate;
 
     @Data
     public static class Marketing {
