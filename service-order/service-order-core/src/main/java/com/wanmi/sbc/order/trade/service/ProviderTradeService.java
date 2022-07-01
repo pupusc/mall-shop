@@ -1418,7 +1418,7 @@ public class ProviderTradeService {
                 criterias.add(Criteria.where("tradeState.scanCount").is(ScanCount.COUNT_THREE.toValue()));
             } else {
                 //增加时间限制
-                LocalDateTime localDateTime = LocalDateTime.now().plusHours(-6);
+                LocalDateTime localDateTime = LocalDateTime.now().plusDays(-6);
                 criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
                 Criteria orCriteria = new Criteria();
                 if (scanCount != null) {
