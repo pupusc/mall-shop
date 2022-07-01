@@ -24,6 +24,8 @@ public class ConstantMultiMatchField {
     /**
      * 商品图书
      */
+    public static final String FIELD_SPU_SPUId = "spuId";
+
     public static final String FIELD_SPU_SPUNAME = "spuName";
     public static final String FIELD_SPU_SPUNAME_KEYWORD = "spuName.keyword";
     public static final String FIELD_SPU_SPUSUBNAME = "spuSubName";

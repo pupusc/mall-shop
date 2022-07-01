@@ -47,6 +47,7 @@ import java.util.Objects;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 
 /**
  * Description: 搜索商品信息
@@ -82,6 +83,9 @@ public class EsSpuNewService {
         boolQb.must(termQuery("auditStatus", 1));
         boolQb.must(termQuery("addedFlag", 1));
         boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+        if (CollectionUtils.isNotEmpty(req.getUnSpuIds())) {
+            boolQb.mustNot(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds()));
+        }
 
         BoolQueryBuilder boolQbChild = QueryBuilders.boolQuery();
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
