@@ -193,9 +193,9 @@ public class SearchController {
         String userId = commonUtil.getOperatorId();
         if (!StringUtils.isEmpty(userId)) {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
-            CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
+            String isCounselor = customerProvider.isCounselorCache(Integer.valueOf(customer.getFanDengUserNo())).getContext();
             //非知识顾问用户
-            if (!Objects.isNull(counselorDto)) {
+            if (!Objects.isNull(isCounselor) && "true".equals(isCounselor)) {
                 request.setCpsSpecial(1);// 表示知识顾问，显示所有商品
             }
         }

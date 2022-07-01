@@ -111,6 +111,16 @@ public interface CustomerProvider {
      */
     @PostMapping("/customer/${application.customer.version}/customer/modify-to-distributor")
     BaseResponse modifyToDistributor(@RequestBody @Valid CustomerToDistributorModifyRequest request);
+
+
+    /**
+     * 查询缓存是否知识顾问
+     * @param userId
+     * @return
+     */
+    @PostMapping("/customer/${application.customer.version}/customer/is-counselor-cache")
+    BaseResponse<String> isCounselorCache(@RequestParam("userId") Integer userId);
+
     /**
      * 查询是否是知识顾问
      *
