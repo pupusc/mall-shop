@@ -1117,7 +1117,7 @@ public class ProviderTradeService {
                 grouponCriterias.add(Criteria.where("id").is(ptid));
             } else {
                 //默认获取半年内的数据
-                LocalDateTime localDateTime = LocalDateTime.now().plusMonths(-6);
+                LocalDateTime localDateTime = LocalDateTime.now().plusDays(-7);
                 criterias.add(Criteria.where("supplier.storeId").ne(fddsProviderId));  //直冲引起的过滤条件
                 criterias.add(Criteria.where("tradeState.createTime").gte(localDateTime));
                 criterias.add(Criteria.where("tradeState.erpTradeState").ne(ERPTradePushStatus.PUSHED_SUCCESS.getStateId()));
