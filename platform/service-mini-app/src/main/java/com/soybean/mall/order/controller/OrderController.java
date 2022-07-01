@@ -30,7 +30,6 @@ import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.enums.BoolFlag;
 import com.wanmi.sbc.common.enums.ChannelType;
 import com.wanmi.sbc.common.enums.DefaultFlag;
-import com.wanmi.sbc.common.enums.VASConstants;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.Constants;
@@ -42,12 +41,10 @@ import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
-import com.wanmi.sbc.customer.api.request.store.ListNoDeleteStoreByIdsRequest;
 import com.wanmi.sbc.customer.api.request.store.NoDeleteStoreByIdRequest;
 import com.wanmi.sbc.customer.api.response.address.CustomerDeliveryAddressByIdResponse;
 import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
-import com.wanmi.sbc.customer.bean.enums.EnterpriseCheckState;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
@@ -59,57 +56,35 @@ import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProv
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
-import com.wanmi.sbc.goods.api.request.enterprise.goods.EnterprisePriceGetRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
-import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoViewByIdsRequest;
-import com.wanmi.sbc.goods.api.request.price.GoodsLevelPriceBySkuIdsRequest;
 import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
-import com.wanmi.sbc.goods.api.response.enterprise.EnterprisePriceResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsListByIdsResponse;
 import com.wanmi.sbc.goods.api.response.goods.GoodsPackDetailResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoResponse;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
-import com.wanmi.sbc.goods.bean.enums.DistributionGoodsAudit;
-import com.wanmi.sbc.goods.bean.enums.EnterpriseAuditState;
-import com.wanmi.sbc.goods.bean.enums.GoodsStatus;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
-import com.wanmi.sbc.goods.bean.enums.PriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
-import com.wanmi.sbc.goods.bean.vo.GoodsLevelPriceVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
-import com.wanmi.sbc.marketing.api.request.markup.MarkupListRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelDetailVO;
-import com.wanmi.sbc.marketing.bean.vo.MarkupLevelVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
-import com.wanmi.sbc.order.api.request.trade.MergeGoodsInfoRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeGetGoodsRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeItemByCustomerIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemConfirmSettlementRequest;
-import com.wanmi.sbc.order.api.request.trade.TradeQueryPurchaseInfoRequest;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
-import com.wanmi.sbc.order.api.response.trade.TradeGetGoodsResponse;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
-import com.wanmi.sbc.order.bean.dto.TradeGoodsListDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemGroupDTO;
-import com.wanmi.sbc.order.bean.enums.BookingType;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
-import com.wanmi.sbc.order.bean.vo.TradeItemGroupVO;
-import com.wanmi.sbc.order.bean.vo.TradeItemMarketingVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
@@ -121,7 +96,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,7 +115,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -730,11 +703,12 @@ public class OrderController {
     public BaseResponse<StmtResultVO> settlementInfo(@RequestBody StmtParamVO paramVO) {
         OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
 
-        CustomerGetByIdResponse customer = null;
         String customerId = commonUtil.getOperatorId();
-        if(StringUtils.isNotBlank(customerId)){
-            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+        if (StringUtils.isBlank(customerId)) {
+            throw new SbcRuntimeException("K-010110");
         }
+
+        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
 
         //入参是商品sku和num，返回商品信息和价格信息
         List<TradeItemDTO> tradeItems = paramVO.getMarketings().stream().flatMap(item -> item.getGoodsInfos().stream())
@@ -789,7 +763,6 @@ public class OrderController {
             tradeItem.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()));
         }
 
-
         tradeConfirmItemVO.setTradeItems(tradeItemVOList);
         tradeConfirmItemVO.setTradePrice(commonService.calPrice(tradeItemVOList));
 
@@ -808,75 +781,5 @@ public class OrderController {
         confirmResponse.setTradeConfirmItems(items);
 
         return null;
-    }
-
-    /**
-     * 是否企业购会员
-     */
-    private boolean isIepCustomer(CustomerVO customer) {
-        EnterpriseCheckState customerState;
-        if (Objects.isNull(customer)) {
-            customerState = commonUtil.getCustomer().getEnterpriseCheckState();
-        } else {
-            customerState = customer.getEnterpriseCheckState();
-        }
-        return commonUtil.findVASBuyOrNot(VASConstants.VAS_IEP_SETTING)
-                && !Objects.isNull(customerState)
-                && customerState == EnterpriseCheckState.CHECKED;
-    }
-
-    /**
-     * 商品分级价格
-     */
-    private List<GoodsLevelPriceVO> getGoodsLevelPrices(List<String> skuIds, CustomerVO customer) {
-        List<GoodsLevelPriceVO> goodsLevelPriceList = new ArrayList<>();
-        if (Objects.nonNull(customer)
-                && EnterpriseCheckState.CHECKED.equals(customer.getEnterpriseCheckState())
-                && CollectionUtils.isNotEmpty(skuIds)) {
-            //等级价格
-            GoodsLevelPriceBySkuIdsRequest goodsLevelPriceBySkuIdsRequest = new GoodsLevelPriceBySkuIdsRequest();
-            goodsLevelPriceBySkuIdsRequest.setSkuIds(skuIds);
-            goodsLevelPriceBySkuIdsRequest.setType(PriceType.ENTERPRISE_SKU);
-            goodsLevelPriceList = goodsLevelPriceQueryProvider
-                    .listBySkuIds(goodsLevelPriceBySkuIdsRequest).getContext().getGoodsLevelPriceList();
-            if (CollectionUtils.isNotEmpty(goodsLevelPriceList)) {
-                return goodsLevelPriceList.stream()
-                        .filter(goodsLevelPrice -> goodsLevelPrice.getLevelId().equals(customer.getCustomerLevelId()))
-                        .collect(Collectors.toList());
-            }
-        }
-        return goodsLevelPriceList;
-    }
-
-    /**
-     * 判断商品是否企业购商品
-     */
-    private boolean isEnjoyIepGoodsInfo(EnterpriseAuditState enterpriseAuditState) {
-        return EnterpriseAuditState.CHECKED.equals(enterpriseAuditState);
-    }
-
-    /**
-     * 填充商品状态
-     *
-     * @param items
-     */
-    public void setGoodsStatus(List<TradeConfirmItemVO> items) {
-        if (CollectionUtils.isNotEmpty(items)) {
-            items.forEach(item -> {
-                List<TradeItemVO> gifts = item.getGifts();
-                if (CollectionUtils.isNotEmpty(gifts)) {
-                    Map<String, GoodsStatus> statusMap = new HashMap<>();
-                    List<String> skuIds = gifts.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
-                    List<GoodsInfoVO> goodsInfos = goodsInfoQueryProvider.listByIds(GoodsInfoListByIdsRequest.builder().goodsInfoIds(skuIds).build())
-                            .getContext().getGoodsInfos();
-                    if (CollectionUtils.isNotEmpty(goodsInfos)) {
-                        statusMap = goodsInfos.stream().collect(Collectors.toMap(GoodsInfoVO::getGoodsInfoId, g -> g.getGoodsStatus(), (k1, k2) -> k1));
-                        for (TradeItemVO gift : gifts) {
-                            gift.setGoodsStatus(statusMap.get(gift.getSkuId()));
-                        }
-                    }
-                }
-            });
-        }
     }
 }
