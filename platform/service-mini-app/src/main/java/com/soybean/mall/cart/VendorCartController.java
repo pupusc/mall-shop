@@ -136,11 +136,16 @@ public class VendorCartController {
         Map<String, List<MarketingViewVO>> goodsMarketingMap = cartInfo.getGoodsMarketingMap();
         resultVO.setMarketings(new ArrayList<>());
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
-            MarketingViewVO marketingBO = markertingMap.getOrDefault(entry.getKey(), new MarketingViewVO());
             CartInfoResultVO$Marketing marketingVO = new CartInfoResultVO$Marketing();
             marketingVO.setMarketingId(entry.getKey());
-            marketingVO.setType(marketingBO.getMarketingType().toValue());
-            marketingVO.setSubType(marketingBO.getSubType().toValue());
+
+            //促销活动信息
+            if (markertingMap.get(entry.getKey()) != null) {
+                MarketingViewVO marketingBO = markertingMap.get(entry.getKey());
+                marketingVO.setType(marketingBO.getMarketingType().toValue());
+                marketingVO.setSubType(marketingBO.getSubType().toValue());
+            }
+
             marketingVO.setGoodsInfos(entry.getValue().stream().map(item->{
                 CartInfoResultVO$Sku skuVO = new CartInfoResultVO$Sku();
                 skuVO.setGoodsId(item.getGoodsId());
