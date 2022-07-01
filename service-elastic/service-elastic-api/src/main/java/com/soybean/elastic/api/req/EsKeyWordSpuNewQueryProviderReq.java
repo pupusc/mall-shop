@@ -39,7 +39,7 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
     private List<String> unSpuIds;
 
     /**
-     * 知识顾问专项商品
+     * 知识顾问专项商品 0 非知识顾问 其他为非知识顾问
      */
-    private int cpsSpecial;
+    private Integer cpsSpecial = 0;
 }

@@ -188,13 +188,14 @@ public class SearchController {
         if (!StringUtils.isEmpty(userId)) {
             customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
             CounselorDto counselorDto = customerProvider.isCounselor(Integer.valueOf(customer.getFanDengUserNo())).getContext();
-            if (Objects.isNull(counselorDto)) {
-                request.setCpsSpecial(0);
+            //非知识顾问用户
+            if (!Objects.isNull(counselorDto)) {
+                request.setCpsSpecial(1);// 表示知识顾问，显示所有商品
             }
         }
 
         CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent(), customer);
         return BaseResponse.success(new CommonPageResp<>(context.getTotal(), spuNewBookListResps));
     }
 

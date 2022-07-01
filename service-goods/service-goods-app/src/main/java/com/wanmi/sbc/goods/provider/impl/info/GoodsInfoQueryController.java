@@ -340,6 +340,7 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         //填充库存
         if (CollectionUtils.isNotEmpty(response.getGoodsInfos())) {
             for (GoodsInfoVO goodsParam : response.getGoodsInfos()) {
+                goodsParam.setSalePrice(goodsParam.getSalePrice() == null ? goodsParam.getMarketPrice() : goodsParam.getSalePrice());
                 //获取冻结
                 String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsParam.getGoodsInfoId());
                 long freezeStock = StringUtils.isBlank(freezeStockStr) ? 0L : Long.parseLong(freezeStockStr);
