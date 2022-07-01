@@ -178,8 +178,14 @@ public class SearchController {
         GoodsBlackListPageProviderResponse goodsBlackListResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
         if (goodsBlackListResponse != null) {
             List<String> unSpuIds = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
-            unSpuIds.addAll(goodsBlackListResponse.getGoodsSearchAtIndexBlackListModel().getGoodsIdList());
-            request.setUnSpuIds(goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList());
+            List<String> goodsIdList = goodsBlackListResponse.getGoodsSearchAtIndexBlackListModel().getGoodsIdList();
+            if (!CollectionUtils.isEmpty(goodsIdList)) {
+                unSpuIds.addAll(goodsIdList);
+            }
+            goodsIdList = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
+            if (!CollectionUtils.isEmpty(goodsIdList)) {
+                request.setUnSpuIds(goodsIdList);
+            }
         }
         //获取是否知识顾问用户
         //获取客户信息
