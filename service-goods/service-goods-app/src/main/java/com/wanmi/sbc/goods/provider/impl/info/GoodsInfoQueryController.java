@@ -70,6 +70,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -340,6 +341,7 @@ public class GoodsInfoQueryController implements GoodsInfoQueryProvider {
         //填充库存
         if (CollectionUtils.isNotEmpty(response.getGoodsInfos())) {
             for (GoodsInfoVO goodsParam : response.getGoodsInfos()) {
+                goodsParam.setMarketPrice(goodsParam.getMarketPrice() == null ? new BigDecimal("9999") : goodsParam.getMarketPrice());
                 goodsParam.setSalePrice(goodsParam.getSalePrice() == null ? goodsParam.getMarketPrice() : goodsParam.getSalePrice());
                 //获取冻结
                 String freezeStockStr = redisService.getString(RedisKeyConstant.GOODS_INFO_STOCK_FREEZE_PREFIX + goodsParam.getGoodsInfoId());
