@@ -19,7 +19,7 @@ public class CalcPriceSum {
     /**
      * 商品总额明细
      */
-    private List<CalcPriceItem> totalPriceItem = new ArrayList<>();
+    private List<CalcPriceItem> totalPriceItems = new ArrayList<>();
     /**
      * 优惠总额（discountsTotalPrice）
      */

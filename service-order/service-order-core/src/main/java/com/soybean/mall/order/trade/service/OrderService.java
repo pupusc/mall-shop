@@ -1,25 +1,24 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
+import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
-import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
-import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
-import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
+import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
+import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePurchaseRequest;
 import com.wanmi.sbc.order.bean.dto.CycleBuyInfoDTO;
-import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.enums.FlowState;
 import com.wanmi.sbc.order.trade.model.entity.TradeCommitResult;
 import com.wanmi.sbc.order.trade.model.entity.TradeItem;
@@ -28,11 +27,13 @@ import com.wanmi.sbc.order.trade.model.entity.value.TradeEventLog;
 import com.wanmi.sbc.order.trade.model.root.ProviderTrade;
 import com.wanmi.sbc.order.trade.model.root.Trade;
 import com.wanmi.sbc.order.trade.model.root.TradeItemGroup;
+import com.wanmi.sbc.order.trade.model.root.TradeItemSnapshot;
 import com.wanmi.sbc.order.trade.request.TradeWrapperListRequest;
 import com.wanmi.sbc.order.trade.service.ProviderTradeService;
 import com.wanmi.sbc.order.trade.service.TradeCacheService;
 import com.wanmi.sbc.order.trade.service.TradeCustomerService;
-import com.wanmi.sbc.order.trade.service.TradeGoodsService;
+import com.wanmi.sbc.order.trade.service.TradeItemService;
+import com.wanmi.sbc.order.trade.service.TradeItemSnapshotService;
 import com.wanmi.sbc.order.trade.service.TradeService;
 import com.wanmi.sbc.order.trade.service.VerifyService;
 import io.seata.spring.annotation.GlobalTransactional;
@@ -71,8 +72,10 @@ public class OrderService {
     private TradeService tradeService;
 
     @Autowired
-    private TradeGoodsService tradeGoodsService;
+    private TradeItemService tradeItemService;
 
+//    @Autowired
+//    private TradeGoodsService tradeGoodsService;
 
     @Autowired
     private ProviderTradeService providerTradeService;
@@ -83,18 +86,14 @@ public class OrderService {
 //    @Autowired
 //    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
-    @Autowired
-    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
+//    @Autowired
+//    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
 
-    @Autowired
-    private StoreQueryProvider storeQueryProvider;
+//    @Autowired
+//    private StoreQueryProvider storeQueryProvider;
 
-    @Autowired
-    private GoodsQueryProvider goodsQueryProvider;
-
-    @Autowired
-    private WxOrderService wxOrderService;
-
+//    @Autowired
+//    private GoodsQueryProvider goodsQueryProvider;
 
 
     /**
@@ -102,6 +101,134 @@ public class OrderService {
      * @param tradeCommitRequest
      * @return
      */
+//    @Transactional
+//    @GlobalTransactional
+//    public List<OrderCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
+//        // 验证用户
+//        CustomerSimplifyOrderCommitVO customer = verifyService.simplifyById(tradeCommitRequest.getOperator().getUserId());
+//        customer.setOpenId(tradeCommitRequest.getOpenId());
+//        tradeCommitRequest.setCustomer(customer);
+//        Operator operator = tradeCommitRequest.getOperator();
+//        //商品明细传参
+//        if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
+//            throw new SbcRuntimeException("K-050214");
+//        }
+//        if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
+//            throw new SbcRuntimeException("K-050215");
+//        }
+//
+//        if (tradeCommitRequest.getTradeItems().stream().anyMatch(f -> f.getNum() <= 0)) {
+//            throw new SbcRuntimeException("K-050466");
+//        }
+//
+//        TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+//        tradePurchaseRequest.setCustomer(customer);
+//        tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+//        tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+//        List<TradeItemGroup> tradeItemGroups = tradeService.getTradeItemList(tradePurchaseRequest);
+//        List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
+//
+//        //商品信息
+//        List<String> skuIds = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+//        GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = tradeCacheService.getGoodsInfoViewByIds(skuIds);
+//        List<GoodsInfoVO> goodsInfoVOList = goodsInfoViewByIdsResponse.getGoodsInfos();
+//
+//        Map<Long, TradeItemGroup> tradeItemGroupsMap = tradeItemGroups.stream().collect(
+//                Collectors.toMap(g -> g.getSupplier().getStoreId(), Function.identity()));
+//        List<StoreVO> storeVOList = tradeCacheService.queryStoreList(new ArrayList<>(tradeItemGroupsMap.keySet()));
+//
+//        Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
+//                new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
+//        // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
+//        //verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
+//        //校验周期购
+//        verifyCycleBuy(tradeItemGroups, goodsInfoVOList,tradeCommitRequest.isForceCommit());
+//        // 处理加价购加购商品
+//        //tradeService.wrapperMarkup(tradeItemGroups,goodsInfoVOList,tradeCommitRequest.isForceCommit());
+//        // 2.按店铺包装多个订单信息、订单组信息
+//        TradeWrapperListRequest tradeWrapperListRequest = new TradeWrapperListRequest();
+//        tradeWrapperListRequest.setStoreLevelMap(storeLevelMap);
+//        tradeWrapperListRequest.setStoreVOList(storeVOList);
+//        tradeWrapperListRequest.setTradeCommitRequest(tradeCommitRequest);
+//        tradeWrapperListRequest.setTradeItemGroups(tradeItemGroups);
+//        List<Trade> trades = tradeService.wrapperTradeList(tradeWrapperListRequest);
+//        trades.forEach(trade -> {
+//            trade.setMiniProgram(new MiniProgram());
+//        });
+//        List<OrderCommitResult> results = new ArrayList<>();
+//        try {
+//            // 处理积分抵扣
+//            tradeService.dealPoints(trades, tradeCommitRequest);
+//            // 处理打包商品
+//            tradeService.dealGoodsPackDetail(trades, tradeCommitRequest, customer);
+//            // 处理知豆抵扣
+//            //tradeService.dealKnowledge(trades, tradeCommitRequest);
+//            // 预售补充尾款价格
+//            //tradeService.dealTailPrice(trades, tradeCommitRequest);
+//
+//
+//            List<TradeCommitResult> successResults = tradeService.createBatch(trades, null, operator);
+//            //返回订单信息
+//            results = KsBeanUtil.convertList(trades,OrderCommitResult.class);
+//            results.forEach(result->{
+//                Optional<TradeCommitResult> tradeCommitResult = successResults.stream().filter(p->p.getTid().equals(result.getId())).findFirst();
+//                if(tradeCommitResult.isPresent()) {
+//                    result.setCouponFlag(tradeCommitResult.get().getCouponFlag());
+//                }
+//            });
+//        }catch (Exception e){
+//            log.error("提交订单异常：{}",e);
+//            for (Trade trade : trades) {
+//                if (StringUtils.isNotBlank(trade.getDeductCode())) {
+//                    log.error("提交订单异常补偿取消订单积分对象：{}", trade);
+//                    if (tradeCommitRequest.getPoints() != null && tradeCommitRequest.getPoints() > 0) {
+//                        //释放积分接口
+//                        externalProvider.pointCancel(FanDengPointCancelRequest.builder().deductCode(trade.getDeductCode())
+//                                .desc("订单提交异常返还(退单号:" + trade.getId() + ")").build());
+//                    }
+//                }
+//
+//                log.info("************* 提交订单异常 订单 {} 作废 begin *************:", trade.getId());
+//
+//                //异常订单，主单和子单全部标记作废
+//                if (trade.getTradeState() != null) {
+//                    trade.getTradeState().setFlowState(FlowState.VOID); //此处只是做标记，不做其他任何处理
+//                    trade.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+//                    tradeService.addTrade(trade);
+//                }
+//                log.info("提交订单异常 订单：{} Trade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId());
+//                //获取子单列表
+//                List<ProviderTrade> providerTradeList = providerTradeService.findListByParentId(trade.getId());
+//                for (ProviderTrade providerTradeParam : providerTradeList) {
+//                    providerTradeParam.getTradeState().setFlowState(FlowState.VOID);
+//                    providerTradeParam.appendTradeEventLog(new TradeEventLog(operator, "订单异常，标记订单为作废状态", "订单异常，标记订单为作废状态", LocalDateTime.now()));
+//                    providerTradeService.addProviderTrade(providerTradeParam);
+//                    log.info("提交订单异常 订单：{} 子单：{} ProviderTrade 作废处理 完成，当前只做不退换优惠券处理，临时方案", trade.getId(), providerTradeParam.getId());
+//                }
+//
+//                log.info("************* 提交订单异常 订单 {} 作废 end *************:", trade.getId());
+//            }
+//
+//            throw e;
+//        }
+//        try {
+//            // 6.订单提交成功，增加限售记录
+//            tradeService.insertRestrictedRecord(trades);
+//        } catch (Exception e) {
+//            log.error("Delete the trade sku list snapshot or the purchase order exception," +
+//                            "trades={}," +
+//                            "customer={}",
+//                    JSONObject.toJSONString(trades),
+//                    customer,
+//                    e
+//            );
+//        }
+//        return results;
+//    }
+
+    @Autowired
+    private TradeItemSnapshotService tradeItemSnapshotService;
+
     @Transactional
     @GlobalTransactional
     public List<OrderCommitResult> commitTrade(TradeCommitRequest tradeCommitRequest) {
@@ -110,25 +237,53 @@ public class OrderService {
         customer.setOpenId(tradeCommitRequest.getOpenId());
         tradeCommitRequest.setCustomer(customer);
         Operator operator = tradeCommitRequest.getOperator();
-        //商品明细传参
-        if(CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())){
-            throw new SbcRuntimeException("K-050214");
-        }
+
         if (CollectionUtils.isEmpty(tradeCommitRequest.getGoodsChannelTypeSet())) {
             throw new SbcRuntimeException("K-050215");
         }
-
-        if (tradeCommitRequest.getTradeItems().stream().anyMatch(f -> f.getNum() <= 0)) {
-            throw new SbcRuntimeException("K-050466");
+        List<TradeItemGroup> tradeItemGroups;
+        if (tradeCommitRequest.isMiniProgramCart()) { //小程序购物车
+            TradeItemSnapshot tradeItemSnapshot = tradeItemSnapshotService.getTradeItemSnapshot(tradeCommitRequest.getTerminalToken());
+            if (tradeItemSnapshot == null) {
+                throw new SbcRuntimeException(SiteResultCode.ERROR_050201);
+            }
+            tradeItemGroups = tradeItemSnapshot.getItemGroups();
+        } else { //小程序快速下单
+            if (CollectionUtils.isEmpty(tradeCommitRequest.getTradeItems())) {
+                throw new SbcRuntimeException("K-050214");
+            }
+            if (tradeCommitRequest.getTradeItems().stream().anyMatch(f -> f.getNum() <= 0)) {
+                throw new SbcRuntimeException("K-050466");
+            }
+            TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
+            tradePurchaseRequest.setCustomer(customer);
+            tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
+            tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
+            tradeItemGroups = tradeService.getTradeItemList(tradePurchaseRequest);
         }
 
-        TradePurchaseRequest tradePurchaseRequest = new TradePurchaseRequest();
-        tradePurchaseRequest.setCustomer(customer);
-        tradePurchaseRequest.setTradeItems(tradeCommitRequest.getTradeItems());
-        tradePurchaseRequest.setGoodsChannelTypeSet(tradeCommitRequest.getGoodsChannelTypeSet());
-        List<TradeItemGroup> tradeItemGroups = tradeService.getTradeItemList(tradePurchaseRequest);
-        List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(tradeItemGroups)) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "下单的商品信息不能为空");
+        }
+        if (tradeItemGroups.size() > 1) {
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "当前仅支持按单店铺下单");
+        }
 
+        //小程序仅支持满减与满折营销活动
+        List<TradeMarketingDTO> marketings = tradeItemGroups.get(0).getTradeMarketingList();
+        if (CollectionUtils.isNotEmpty(marketings)) {
+            boolean support = marketings.stream().anyMatch(item -> item.getMarketingSubType() == null
+                            || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT.toValue()
+                            || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_COUNT.toValue()
+                            || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_AMOUNT.toValue()
+                            || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_COUNT.toValue()
+            );
+            if (!support) {
+                throw new SbcRuntimeException(CommonErrorCode.FAILED, "小程序下单仅支持满减或满折活动");
+            }
+        }
+
+        List<TradeItem> tradeItems = tradeItemGroups.stream().flatMap(tradeItemGroup -> tradeItemGroup.getTradeItems().stream()).collect(Collectors.toList());
         //商品信息
         List<String> skuIds = tradeItems.stream().map(TradeItem::getSkuId).collect(Collectors.toList());
         GoodsInfoViewByIdsResponse goodsInfoViewByIdsResponse = tradeCacheService.getGoodsInfoViewByIds(skuIds);
@@ -141,7 +296,7 @@ public class OrderService {
         Map<Long, CommonLevelVO> storeLevelMap = tradeCustomerService.listCustomerLevelMapByCustomerIdAndIds(
                 new ArrayList<>(tradeItemGroupsMap.keySet()), customer.getCustomerId());
         // 1.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
-        //verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
+        verifyService.verifyInvalidMarketings(tradeCommitRequest, tradeItemGroups, storeLevelMap);
         //校验周期购
         verifyCycleBuy(tradeItemGroups, goodsInfoVOList,tradeCommitRequest.isForceCommit());
         // 处理加价购加购商品
@@ -213,6 +368,19 @@ public class OrderService {
             throw e;
         }
         try {
+            // 4.订单提交成功，且为购物车购买，删除关联的采购单商品
+            if (Boolean.TRUE.equals(tradeCommitRequest.isMiniProgramCart())) {
+                trades.forEach(
+                        trade -> {
+                            List<String> tradeSkuIds =
+                                    trade.getTradeItems().stream().map(TradeItem::getSkuId).collect(Collectors.toList());
+                            tradeService.deletePurchaseOrder(customer.getCustomerId(), tradeSkuIds,
+                                    tradeCommitRequest.getDistributeChannel());
+                        }
+                );
+            }
+            // 5.订单提交成功，删除订单商品快照
+            tradeItemService.remove(tradeCommitRequest.getTerminalToken());
             // 6.订单提交成功，增加限售记录
             tradeService.insertRestrictedRecord(trades);
         } catch (Exception e) {

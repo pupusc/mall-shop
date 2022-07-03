@@ -119,23 +119,24 @@ public class CalcTradePriceService {
 
     /**
      * @see TradeService#validateAndWrapperTrade(com.wanmi.sbc.order.trade.model.root.Trade, com.wanmi.sbc.order.trade.request.TradeParams)
+     *
+     * 【算价流程：】
+     * 1.验证用户
+     * 2.验证营销有效性
+     * 3.验证优惠券有效性
+     * 4.查询商品信息
+     * 5.验证商品信息
      */
     public TradePrice calc(List<TradeItem> tradeItemp, String couponId, String customerId) {
         //算价之前排除加价购商品
         final List<TradeItem> tradeItems = tradeItemp.stream().filter(tradeItem -> !Boolean.TRUE.equals(tradeItem.getIsMarkupGoods())).collect(Collectors.toList());
-        GoodsInfoViewByIdsResponse idsResponse = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
+
+        //1.验证用户
         CustomerSimplifyOrderCommitVO customerVO = verifyService.simplifyById(customerId);
-        Trade tradeParam = new Trade();
-        tradeParam.setTradeItems(tradeItems);
-        TradeGoodsListVO skuList = tradeGoodsService.getGoodsInfoResponse(tradeParam,customerVO,idsResponse);
 
-        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
-        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);
-
-        //marketings
-        List<Long> marketingIds = tradeItems.stream().filter(item -> CollectionUtils.isNotEmpty(item.getMarketingIds()))
-                .map(item -> item.getMarketingId()).distinct().collect(Collectors.toList());
+        List<Long> marketingIds = tradeItems.stream().flatMap(item->item.getMarketingIds().stream()).distinct().collect(Collectors.toList());
         List<TradeMarketingDTO> marketings = new ArrayList<>();
+
         if (CollectionUtils.isNotEmpty(marketingIds)) {
             MarketingQueryByIdsRequest idsParam = new MarketingQueryByIdsRequest();
             idsParam.setMarketingIds(marketingIds);
@@ -148,6 +149,16 @@ public class CalcTradePriceService {
                 }).collect(Collectors.toList());
             }
         }
+        //2.验证失效的营销信息(目前包括失效的赠品、满系活动、优惠券)
+        verifyService.verifyTradeMarketing(marketings, Collections.EMPTY_LIST, tradeItems, customerId, false);
+        //4.查询商品信息
+        GoodsInfoViewByIdsResponse idsResponse = tradeCacheService.getGoodsInfoViewByIds(IteratorUtils.collectKey(tradeItems, TradeItem::getSkuId));
+        Trade tradeParam = new Trade();
+        tradeParam.setTradeItems(tradeItems);
+        TradeGoodsListVO skuList = tradeGoodsService.getGoodsInfoResponse(tradeParam, customerVO, idsResponse);
+
+        // 2.4.校验sku 和 【商品价格计算第①步】: 商品的 客户级别价格 (完成客户级别价格/客户指定价/订货区间价计算) -> levelPrice
+        verifyService.verifyGoods(tradeItems, Collections.EMPTY_LIST, skuList, null, true, null);
 
 //        // 2.6.商品营销信息冗余,验证,计算,设置各营销优惠,实付金额
 //        marketings.forEach(i -> {
@@ -157,6 +168,7 @@ public class CalcTradePriceService {
 
         // 1.构建订单满系营销对象
         List<TradeMarketingVO> tradeMarketingVOs = this.wrapperMarketingForConfirm(tradeItems, marketings);
+
         // 2.构建订单优惠券对象
         TradeCouponVO tradeCouponVO = StringUtils.isBlank(couponId) ? null : tradeMarketingService.buildTradeCouponInfo(tradeItems, couponId, false, customerId);
         calcMarketingPrice(tradeItems, tradeMarketingVOs, tradeCouponVO);
@@ -290,15 +302,11 @@ public class CalcTradePriceService {
         // 1.计算商品总价
         handlePrice(tradeItems, tradePrice);
 
-        List<TradeMarketingVO> list = tradeMarketings.stream().filter(i -> i.getMarketingType()
-                != MarketingType.GIFT && i.getMarketingType()
-                != MarketingType.MARKUP).collect(Collectors.toList());
+        List<TradeMarketingVO> list = tradeMarketings.stream().filter(
+                i -> i.getMarketingType() != MarketingType.GIFT && i.getMarketingType() != MarketingType.MARKUP).collect(Collectors.toList());
 
         // 2.计算所有营销活动的总优惠金额(非满赠)
-        BigDecimal discountPrice = list.stream().filter(i -> i.getMarketingType() != MarketingType.GIFT && i.getMarketingType()
-                != MarketingType.MARKUP).map
-                (TradeMarketingVO
-                        ::getDiscountsAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal discountPrice = list.stream().map(TradeMarketingVO::getDiscountsAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         //营销活动优惠总额
         tradePrice.setMarketingDiscountPrice(discountPrice);
 

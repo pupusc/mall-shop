@@ -1272,7 +1272,7 @@ public class TradeService {
     /**
      * 从购物车中删除商品信息
      */
-    protected void deletePurchaseOrder(String customerId, List<String> skuIds, DistributeChannel distributeChannel) {
+    public void deletePurchaseOrder(String customerId, List<String> skuIds, DistributeChannel distributeChannel) {
         PurchaseRequest request = PurchaseRequest.builder()
                 .customerId(customerId)
                 .goodsInfoIds(skuIds).inviteeId(getPurchaseInviteeId(distributeChannel))

@@ -1,7 +1,7 @@
 package com.soybean.mall.order.response;
 
-import com.soybean.mall.cart.vo.CalcPriceSum;
 import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
+import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import lombok.Data;
 
 import java.util.List;
@@ -19,21 +19,11 @@ public class StmtResultVO {
     /**
      * 价格汇总
      */
-    private CalcPriceSum calcPrice;
-    /**
-     * 营销活动
-     */
-    private List<Marketing> marketings;
+    //private CalcPriceSum calcPrice;
+    private TradePriceResultBO calcPrice;
 
-    @Data
-    private static class Marketing {
-        /**
-         * 促销活动
-         */
-        private SettlementResultVO$Marketing marketing;
-        /**
-         * 数量
-         */
-        private List<SettlementResultVO$GoodsInfo> goodsInfos;
-    }
+    /**
+     * 商品列表
+     */
+    private List<SettlementResultVO$GoodsInfo> goodsInfos;
 }

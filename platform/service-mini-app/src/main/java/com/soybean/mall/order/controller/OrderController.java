@@ -1,6 +1,7 @@
 package com.soybean.mall.order.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.order.api.provider.order.MiniAppOrderProvider;
 import com.soybean.mall.order.api.request.order.GetPaymentParamsRequest;
@@ -12,6 +13,7 @@ import com.soybean.mall.order.common.PayServiceHelper;
 import com.soybean.mall.order.request.StmtParamVO;
 import com.soybean.mall.order.request.TradeItemConfirmRequest;
 import com.soybean.mall.order.response.OrderConfirmResponse;
+import com.soybean.mall.order.response.SettlementResultVO$GoodsInfo;
 import com.soybean.mall.order.response.StmtResultVO;
 import com.soybean.mall.service.CommonService;
 import com.soybean.mall.vo.WxAddressInfoVO;
@@ -38,6 +40,7 @@ import com.wanmi.sbc.common.util.HttpUtil;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.customer.api.provider.address.CustomerDeliveryAddressQueryProvider;
 import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.provider.level.CustomerLevelQueryProvider;
 import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.address.CustomerDeliveryAddressByIdRequest;
 import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
@@ -49,12 +52,10 @@ import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
 import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
 import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
-import com.wanmi.sbc.goods.api.provider.enterprise.EnterpriseGoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.provider.info.VideoChannelSetFilterControllerProvider;
 import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
-import com.wanmi.sbc.goods.api.provider.price.GoodsLevelPriceQueryProvider;
 import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
 import com.wanmi.sbc.goods.api.request.goods.GoodsListByIdsRequest;
 import com.wanmi.sbc.goods.api.request.goods.PackDetailByPackIdsRequest;
@@ -68,23 +69,37 @@ import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.GoodsType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
-import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
+import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
+import com.wanmi.sbc.marketing.api.provider.market.MarketingCommonQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListRequest;
+import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingLevelGoodsListFilterRequest;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
+import com.wanmi.sbc.marketing.api.response.market.MarketInfoForPurchaseResponse;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
+import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
+import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
+import com.wanmi.sbc.marketing.bean.vo.GoodsInfoMarketingVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeItemQueryProvider;
+import com.wanmi.sbc.order.api.provider.trade.TradePriceProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradeProvider;
-import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeItemByCustomerIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemConfirmSettlementRequest;
+import com.wanmi.sbc.order.api.request.trade.TradePriceParamBO;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
+import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
 import com.wanmi.sbc.order.bean.vo.TradeConfirmItemVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemGroupVO;
+import com.wanmi.sbc.order.bean.vo.TradeItemMarketingVO;
 import com.wanmi.sbc.order.bean.vo.TradeItemVO;
 import com.wanmi.sbc.order.bean.vo.TradeVO;
 import com.wanmi.sbc.pay.api.provider.WxPayProvider;
@@ -170,10 +185,6 @@ public class OrderController {
 
     @Autowired
     private CommonService commonService;
-    @Autowired
-    private TradeQueryProvider tradeQueryProvider;
-    @Autowired
-    private EnterpriseGoodsInfoQueryProvider enterpriseGoodsInfoQueryProvider;
 
     @Value("${mini.program.appid}")
     private String appId;
@@ -194,9 +205,11 @@ public class OrderController {
     @Autowired
     private TradeItemQueryProvider tradeItemQueryProvider;
     @Autowired
-    private GoodsLevelPriceQueryProvider goodsLevelPriceQueryProvider;
+    private TradePriceProvider tradePriceProvider;
     @Autowired
-    private MarkupQueryProvider markupQueryProvider;
+    private CouponCacheProvider couponCacheProvider;
+    @Autowired
+    private MarketingCommonQueryProvider marketingCommonQueryProvider;
 
     @Value("${wx.default.image.url}")
     private String defaultImageUrl;
@@ -250,6 +263,74 @@ public class OrderController {
                 tradeCommitRequest.setOperator(operator);
                 DistributeChannel channel = new DistributeChannel();
                 channel.setChannelType(ChannelType.MINIAPP);
+                tradeCommitRequest.setDistributeChannel(channel);
+                tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
+                BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
+                log.info("OrderController commit result: {}", JSON.toJSONString(orderCommitResponseBaseResponse));
+                if (!CommonErrorCode.SUCCESSFUL.equals(orderCommitResponseBaseResponse.getCode())) {
+                    throw new SbcRuntimeException(orderCommitResponseBaseResponse.getCode(), orderCommitResponseBaseResponse.getMessage());
+                }
+                successResults = orderCommitResponseBaseResponse.getContext().getOrderCommitResults();
+            } else {
+                throw new SbcRuntimeException("K-000001", "操作频繁");
+            }
+            return BaseResponse.success(getOrderPaymentResult(successResults,tradeCommitRequest.getOpenId(),tradeCommitRequest.getMiniProgramScene()));
+        } catch (InterruptedException ex) {
+            log.error("OrderController commit InterruptedException", ex);
+            throw new SbcRuntimeException("K-000001",  "操作频繁");
+        } catch (Exception e) {
+            log.error("OrderController commit Exception ", e);
+            throw e;
+        } finally {
+            if (rLock.isLocked()) {
+                rLock.unlock();
+            }
+        }
+    }
+
+    /**
+     * 创建订单
+     */
+    @RequestMapping(value = "/commit4cart", method = RequestMethod.POST)
+    @MultiSubmitWithToken
+    public BaseResponse<WxOrderPaymentVO> commit4cart(@RequestBody @Valid TradeCommitRequest tradeCommitRequest) {
+        //验证操作用户
+        Operator operator = commonUtil.getOperator();
+        if (StringUtils.isBlank(operator.getUserId())) {
+            throw new SbcRuntimeException("K-010110");
+        }
+        //验证地址信息
+        CustomerDeliveryAddressByIdResponse address = customerDeliveryAddressQueryProvider
+                .getById(new CustomerDeliveryAddressByIdRequest(tradeCommitRequest.getConsigneeId())).getContext();
+        if (address == null) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的地址信息不存在");
+        }
+        PlatformAddressVerifyRequest platformAddressVerifyRequest = new PlatformAddressVerifyRequest();
+        if (Objects.nonNull(address.getProvinceId())) {
+            platformAddressVerifyRequest.setProvinceId(String.valueOf(address.getProvinceId()));
+        }
+        if (Objects.nonNull(address.getCityId())) {
+            platformAddressVerifyRequest.setCityId(String.valueOf(address.getCityId()));
+        }
+        if (Objects.nonNull(address.getAreaId())) {
+            platformAddressVerifyRequest.setAreaId(String.valueOf(address.getAreaId()));
+        }
+        if (Objects.nonNull(address.getStreetId())) {
+            platformAddressVerifyRequest.setStreetId(String.valueOf(address.getStreetId()));
+        }
+        if (Boolean.TRUE.equals(platformAddressQueryProvider.verifyAddress(platformAddressVerifyRequest).getContext())) {
+            throw new SbcRuntimeException("K-220001");
+        }
+
+        RLock rLock = redissonClient.getFairLock(commonUtil.getOperatorId());
+        List<OrderCommitResultVO> successResults;
+        try {
+            if (rLock.tryLock(3, 3, TimeUnit.SECONDS)) {
+                tradeCommitRequest.setOperator(operator);
+                DistributeChannel channel = new DistributeChannel();
+                channel.setChannelType(ChannelType.MINIAPP);
+                tradeCommitRequest.setMiniProgramCart(true);
+                tradeCommitRequest.setTerminalToken(commonUtil.getTerminalToken());
                 tradeCommitRequest.setDistributeChannel(channel);
                 tradeCommitRequest.setGoodsChannelTypeSet(Collections.singletonList(commonUtil.getTerminal().getCode()));
                 BaseResponse<OrderCommitResponse> orderCommitResponseBaseResponse = tradeProvider.commitTrade(tradeCommitRequest);
@@ -638,6 +719,8 @@ public class OrderController {
                 .build();
     }
 
+    @Autowired
+    private CustomerLevelQueryProvider customerLevelQueryProvider;
 
     /**
      * @description 0元订单批量支付
@@ -655,13 +738,18 @@ public class OrderController {
     }
 
     /**
-     * 购物车-订单结算
+     * 购物车-订单结算提交
      */
     @PostMapping(value = "/stmtCommit")
     public BaseResponse<Boolean> settlementCommit(@RequestBody StmtParamVO paramVO) {
         String customerId = commonUtil.getOperatorId();
         if (StringUtils.isBlank(customerId)) {
             throw new SbcRuntimeException("K-010110");
+        }
+        CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+        if (customer == null) {
+            log.warn("没有找到指定的用户, customerId={}", customerId);
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "没有找对指定的用户");
         }
 
         List<String> skuIds = new ArrayList<>();
@@ -678,6 +766,29 @@ public class OrderController {
             });
             marketings.add(marketing);
         });
+
+        //验证营销活动
+        List<GoodsInfoMarketingVO> marketingInfos = skuIds.stream().map(i -> GoodsInfoMarketingVO.builder().goodsInfoId(i).build()).collect(Collectors.toList());
+        MarketInfoForPurchaseResponse marketResp = marketingCommonQueryProvider.queryInfoForPurchase(new InfoForPurchseRequest(marketingInfos, customer, null)).getContext();
+        Map<Long, MarketingViewVO> mktMap = marketResp.getGoodsInfos().stream().flatMap(item -> item.getMarketingViewList().stream())
+                .collect(Collectors.toMap(MarketingViewVO::getMarketingId, i -> i, (a, b) -> a));
+        for (TradeMarketingDTO item : marketings) {
+            MarketingViewVO mkt = mktMap.get(item.getMarketingId());
+            if (mkt == null) {
+                log.warn("营销方案不存在或者已过期, mktId={}", item.getMarketingId());
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "营销方案已不存在");
+            }
+
+            boolean support = MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())
+                    || MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType())
+                    || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())
+                    || MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType());
+
+            if (!support) {
+                log.warn("小程序当前仅支持满减或满折营销, subType={}", mkt.getSubType());
+                throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "营销方案类型错误");
+            }
+        }
 
         DistributeChannel distributeChannel = commonUtil.getDistributeChannel();
         ChannelType channelType = distributeChannel.getChannelType();
@@ -697,45 +808,48 @@ public class OrderController {
     }
 
     /**
-     * 购物车-订单结算
+     * 购物车-订单结算查询
      */
     @PostMapping(value = "/stmtInfo")
-    public BaseResponse<StmtResultVO> settlementInfo(@RequestBody StmtParamVO paramVO) {
-        OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
-
+    public BaseResponse<StmtResultVO> settlementInfo() {
         String customerId = commonUtil.getOperatorId();
         if (StringUtils.isBlank(customerId)) {
             throw new SbcRuntimeException("K-010110");
         }
-
         CustomerGetByIdResponse customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(customerId)).getContext();
+        if (customer == null) {
+            log.warn("没有找到指定的用户, customerId={}", customerId);
+            throw new SbcRuntimeException(CommonErrorCode.FAILED, "没有找对指定的用户");
+        }
 
-        //入参是商品sku和num，返回商品信息和价格信息
-        List<TradeItemDTO> tradeItems = paramVO.getMarketings().stream().flatMap(item -> item.getGoodsInfos().stream())
-                .map(item -> TradeItemDTO.builder().skuId(item.getSkuId()).num(item.getCount()).build()).collect(Collectors.toList());
+        //查询结算快照
+        List<TradeItemGroupVO> tradeItemGroups = tradeItemQueryProvider.listByTerminalToken(TradeItemByCustomerIdRequest
+                        .builder().terminalToken(commonUtil.getTerminalToken()).build()).getContext().getTradeItemGroupList();
+        if (CollectionUtils.isEmpty(tradeItemGroups)) {
+            throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "没有找到商品的结算信息");
+        }
 
-        List<String> skuIds = tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList());
+        //默认只有一个店铺
+        TradeItemGroupVO tradeItemGroup = tradeItemGroups.get(0);
+        List<TradeItemDTO> tradeItems = tradeItemGroup.getTradeItems().stream()
+                .map(item -> TradeItemDTO.builder().skuId(item.getSkuId()).num(item.getNum()).build()).collect(Collectors.toList());
 
         //获取订单商品详情和会员价salePrice
-        GoodsInfoResponse skuResp = getGoodsResponse(skuIds, customer);
-
-        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
+        GoodsInfoResponse skuResp = getGoodsResponse(tradeItems.stream().map(TradeItemDTO::getSkuId).collect(Collectors.toList()), customer);
+//        List<String> spuIds = skuResp.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList());
         //设置是否展示输入电话输入框
         //获取商品下的打包信息 TODO 修改此处的时候，同时修改 h5的 purchase 接口
-        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
+//        Map<String, Boolean> mainGoodsId2HasVirtualMap = this.getGoodsIdHasVirtual(spuIds);
 
-        List<TradeConfirmItemVO> items = new ArrayList<>(1);
+//        List<TradeConfirmItemVO> items = new ArrayList<>(1);
         //一期只能购买一个商品，只有一个商家
-        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder().storeId(skuResp.getGoodsInfos().get(0).getStoreId())
-                .build())
-                .getContext().getStoreVO();
+        StoreVO store = storeQueryProvider.getNoDeleteStoreById(NoDeleteStoreByIdRequest.builder()
+                .storeId(skuResp.getGoodsInfos().get(0).getStoreId()).build()).getContext().getStoreVO();
 
-        TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
+//        TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
         //商品验证并填充商品价格
-        List<TradeItemVO> tradeItemVOList =
-                verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
-                        KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class),
-                        store.getStoreId(), true)).getContext().getTradeItems();
+        List<TradeItemVO> tradeItemVOList = verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
+                        KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class), store.getStoreId(), true)).getContext().getTradeItems();
 
         //视频号黑名单
         List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
@@ -749,37 +863,86 @@ public class OrderController {
         if (context.getPointNotSplitBlackListModel() != null && !CollectionUtils.isEmpty(context.getPointNotSplitBlackListModel().getGoodsIdList())) {
             blackListGoodsIdList.addAll(context.getPointNotSplitBlackListModel().getGoodsIdList());
         }
-
         //定价
         for (TradeItemVO tradeItem : tradeItemVOList) {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
-            if(priceByGoodsId.getContext() != null){
+            if(priceByGoodsId.getContext() != null) {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
             }
             if(blackListGoodsIdList.contains(tradeItem.getSpuId()) || (goodsId2VideoChannelMap.get(tradeItem.getSpuId()) != null && goodsId2VideoChannelMap.get(tradeItem.getSpuId()))){
                 tradeItem.setInPointBlackList(true);
             }
-            //设置是否显示输入框
-            tradeItem.setShowPhoneNum(mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()) != null && mainGoodsId2HasVirtualMap.get(tradeItem.getSpuId()));
         }
 
-        tradeConfirmItemVO.setTradeItems(tradeItemVOList);
-        tradeConfirmItemVO.setTradePrice(commonService.calPrice(tradeItemVOList));
+        //--------------------------------------------------------------------------------------------
+        //按照id->model映射
+        Map<String, TradeItemVO> tradeItemMap = tradeItemVOList.stream().collect(Collectors.toMap(TradeItemVO::getSkuId, item->item, (a,b)->a));
+        List<TradePriceParamBO.GoodsInfo> calcSkus = new ArrayList<>();  //餐与算价的商品列表
+        List<SettlementResultVO$GoodsInfo> viewSkus = new ArrayList<>(); //返回客户端的商品列表
+        Map<String, Long> sku2market = new HashMap<>();
+        for (TradeItemMarketingVO makertVO : tradeItemGroup.getTradeMarketingList()) {
+            makertVO.getSkuIds().forEach(skuId -> sku2market.put(skuId, makertVO.getMarketingId()));
+        }
 
-        DefaultFlag freightTemplateType = store.getFreightTemplateType();
-        SupplierVO supplier = SupplierVO.builder()
-                .storeId(store.getStoreId())
-                .storeName(store.getStoreName())
-                .isSelf(store.getCompanyType() == BoolFlag.NO)
-                .supplierCode(store.getCompanyInfo().getCompanyCode())
-                .supplierId(store.getCompanyInfo().getCompanyInfoId())
-                .supplierName(store.getCompanyInfo().getSupplierName())
-                .freightTemplateType(freightTemplateType)
-                .build();
-        tradeConfirmItemVO.setSupplier(supplier);
-        items.add(tradeConfirmItemVO);
-        confirmResponse.setTradeConfirmItems(items);
+        for (TradeItemVO item : tradeItemVOList) {
+            TradePriceParamBO.GoodsInfo calcSku = new TradePriceParamBO.GoodsInfo();
+            calcSku.setGoodsInfoId(item.getSkuId());
+            calcSku.setBuyCount(item.getNum());
+            calcSku.setMarketingId(sku2market.get(item.getSkuId()));
+            calcSkus.add(calcSku);
+            //客户端展示对象
+            if (tradeItemMap.get(item.getSkuId()) != null) {
+                SettlementResultVO$GoodsInfo viewSku = new SettlementResultVO$GoodsInfo();
+                viewSku.setSkuId(item.getSkuId());
+                TradeItemVO tradeItem = tradeItemMap.get(item.getSkuId());
+                viewSku.setSkuName(tradeItem.getSkuName());
+                viewSku.setSpuId(tradeItem.getSpuId());
+                viewSku.setSpuName(tradeItem.getSpuName());
+                viewSku.setPropPrice(tradeItem.getPropPrice());
+                viewSku.setPayPrice(tradeItem.getPrice());
+                viewSkus.add(viewSku);
+            }
+        }
+        //商品信息
+        StmtResultVO resultVO = new StmtResultVO();
+        resultVO.setGoodsInfos(viewSkus);
+        //优惠券信息
+        CouponCacheListForGoodsListRequest request = new CouponCacheListForGoodsListRequest();
+        request.setCustomerId(customerId);
+        request.setGoodsInfoIds(new ArrayList<>(tradeItemMap.keySet()));
+        BaseResponse<CouponCacheListForGoodsListResponse> couponResp = couponCacheProvider.listCouponForGoodsList(request);
 
-        return null;
+        if (couponResp != null && couponResp.getContext() != null) {
+            List<PromoteInfoResultVO$Coupon> couponVOs = couponResp.getContext().getCouponViews().stream().map(couponBO -> {
+                PromoteInfoResultVO$Coupon couponVO = new PromoteInfoResultVO$Coupon();
+                couponVO.setStartTime(couponBO.getCouponStartTime());
+                couponVO.setEndTime(couponBO.getCouponEndTime());
+                couponVO.setActivityId(couponBO.getActivityId());
+                couponVO.setCouponId(couponBO.getCouponId());
+                couponVO.setCouponType(couponBO.getCouponType().toValue());
+                couponVO.setCouponName(couponBO.getCouponName());
+                couponVO.setCouponDesc(couponBO.getCouponDesc());
+                couponVO.setDenomination(BigDecimal.valueOf(couponBO.getDenomination()));
+                couponVO.setLimitPrice(FullBuyType.FULL_MONEY.equals(couponBO.getFullBuyType()) ? BigDecimal.valueOf(couponBO.getFullBuyPrice()) : BigDecimal.ZERO);
+                couponVO.setLimitScope(couponBO.getScopeType().toValue());
+                couponVO.setCanFetch(couponBO.isLeftFlag());
+                couponVO.setHasFetch(couponBO.isHasFetched());
+                couponVO.setNearOverdue(couponBO.isCouponWillEnd());
+                couponVO.setRangeDayType(couponBO.getRangeDayType().toValue());
+                couponVO.setEffectiveDays(couponBO.getEffectiveDays());
+                return couponVO;
+            }).collect(Collectors.toList());
+            resultVO.setCoupons(couponVOs);
+        }
+        //计算价格
+        TradePriceParamBO paramBO = new TradePriceParamBO();
+        paramBO.setCustomerId(customerId);
+        paramBO.setGoodsInfos(calcSkus);
+        BaseResponse<TradePriceResultBO> priceResponse = tradePriceProvider.calcPrice(paramBO);
+        if (priceResponse != null) {
+            resultVO.setCalcPrice(priceResponse.getContext());
+        }
+
+        return BaseResponse.success(resultVO);
     }
 }

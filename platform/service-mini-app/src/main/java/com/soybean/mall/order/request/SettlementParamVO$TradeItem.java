@@ -1,12 +1,8 @@
 package com.soybean.mall.order.request;
 
-import com.wanmi.sbc.goods.bean.enums.DeliveryCycle;
-import com.wanmi.sbc.goods.bean.enums.DeliveryPlan;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 @Data
 public class SettlementParamVO$TradeItem implements Serializable {

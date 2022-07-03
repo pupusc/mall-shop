@@ -16,14 +16,6 @@ import java.text.ParseException;
 @Data
 public class PromoteInfoResultVO$Coupon {
     /**
-     * 优惠券开始时间
-     */
-    private String startTime;
-    /**
-     * 优惠券结束时间
-     */
-    private String endTime;
-    /**
      * 活动id
      */
     private String activityId;
@@ -108,6 +100,15 @@ public class PromoteInfoResultVO$Coupon {
      * 状态
      */
     private Integer status;
+
+    /**
+     * 优惠券开始时间
+     */
+    private String startTime;
+    /**
+     * 优惠券结束时间
+     */
+    private String endTime;
 
     public void setLimitPrice(BigDecimal limitPrice) {
         this.limitPrice = limitPrice;

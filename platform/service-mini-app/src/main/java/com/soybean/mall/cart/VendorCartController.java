@@ -47,8 +47,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -105,35 +105,52 @@ public class VendorCartController {
         if (CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
             return BaseResponse.success(resultVO);
         }
-        //按创建时间倒叙排列
-        cartInfo.setGoodsInfos(cartInfo.getGoodsInfos().stream().sorted(Comparator.comparing(GoodsInfoVO::getCreateTime).reversed()).collect(Collectors.toList()));
-        //spu信息按照id->model映射
-        Map<String, GoodsVO> goodsVOMap = cartInfo.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, item -> item, (a, b) -> a));
-        //按照客户指定状态分组：指定促销方案；指定选中商品；
-        Map<String, Long> goods2Marketing = new HashMap<>();
-        Map<String, Boolean> goods2Checked = new HashMap<>();
-        for (PurchaseInfoParamVO.Marketing marketing : paramVO.getMarketings()) {
-            for (PurchaseInfoParamVO.GoodsInfo goodsInfo : marketing.getGoodsInfos()) {
-                goods2Marketing.put(goodsInfo.getGoodsInfoId(), marketing.getMarketingId());
-                goods2Checked.put(goodsInfo.getGoodsInfoId(), Boolean.TRUE.equals(goodsInfo.isChecked()));
-            }
-        }
-        //markerting的ip->goods列表映射
-        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
-        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
-            //处理客户端指定切换的促销方案
-            Long marketingId = goods2Marketing.get(goodsInfo.getGoodsInfoId());
-            if (marketingId == null) {
-                marketingId = goodsInfo.getGoodsMarketing()==null ? 0L : goodsInfo.getGoodsMarketing().getMarketingId();
-            }
-            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
-        }
-        //markerting的id->model映射
-        Map<Long, MarketingViewVO> markertingMap = new HashMap<>();
-        cartInfo.getGoodsMarketingMap().values().forEach(item-> item.stream().forEach(mk-> markertingMap.put(mk.getMarketingId(), mk)));
 
         //sku对应的营销列表映射
         Map<String, List<MarketingViewVO>> goodsMarketingMap = cartInfo.getGoodsMarketingMap();
+        //markerting的id->model映射
+        Map<Long, MarketingViewVO> markertingMap = new HashMap<>();
+        //仅支持满减和满折的营销
+        for (List<MarketingViewVO> marketings : goodsMarketingMap.values()) {
+            Iterator<MarketingViewVO> iter = marketings.iterator();
+            while (iter.hasNext()) {
+                MarketingViewVO next = iter.next();
+                boolean support = MarketingSubType.REDUCTION_FULL_AMOUNT.equals(next.getSubType())
+                        || MarketingSubType.REDUCTION_FULL_COUNT.equals(next.getSubType())
+                        || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(next.getSubType())
+                        || MarketingSubType.DISCOUNT_FULL_COUNT.equals(next.getSubType());
+                if (!support) {
+                    iter.remove();
+                }
+                markertingMap.put(next.getMarketingId(), next);
+            }
+        }
+
+        //按创建时间倒叙排列
+        //cartInfo.setGoodsInfos(cartInfo.getGoodsInfos().stream().sorted(Comparator.comparing(GoodsInfoVO::getCreateTime).reversed()).collect(Collectors.toList()));
+        //spu信息按照id->model映射
+        Map<String, GoodsVO> goodsVOMap = cartInfo.getGoodses().stream().collect(Collectors.toMap(GoodsVO::getGoodsId, item -> item, (a, b) -> a));
+        //按照客户指定状态分组：指定促销方案；指定选中商品；
+        Map<String, Long> client2Marketing = new HashMap<>();
+        Map<String, Boolean> client2Checked = new HashMap<>();
+        for (PurchaseInfoParamVO.Marketing marketing : paramVO.getMarketings()) {
+            for (PurchaseInfoParamVO.GoodsInfo goodsInfo : marketing.getGoodsInfos()) {
+                client2Marketing.put(goodsInfo.getGoodsInfoId(), marketing.getMarketingId());
+                client2Checked.put(goodsInfo.getGoodsInfoId(), Boolean.TRUE.equals(goodsInfo.isChecked()));
+            }
+        }
+        //markerting的id->goods列表映射
+        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
+        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
+            //处理客户端指定切换的促销方案
+            Long marketingId = client2Marketing.get(goodsInfo.getGoodsInfoId());
+            if (marketingId == null) {
+                List<MarketingViewVO> marketingViewVOS = goodsMarketingMap.get(goodsInfo.getGoodsInfoId());
+                marketingId = CollectionUtils.isEmpty(marketingViewVOS) ? 0L : marketingViewVOS.get(0).getMarketingId();
+            }
+            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
+        }
+
         resultVO.setMarketings(new ArrayList<>());
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
             CartInfoResultVO$Marketing marketingVO = new CartInfoResultVO$Marketing();
@@ -145,7 +162,6 @@ public class VendorCartController {
                 marketingVO.setType(marketingBO.getMarketingType().toValue());
                 marketingVO.setSubType(marketingBO.getSubType().toValue());
             }
-
             marketingVO.setGoodsInfos(entry.getValue().stream().map(item->{
                 CartInfoResultVO$Sku skuVO = new CartInfoResultVO$Sku();
                 skuVO.setGoodsId(item.getGoodsId());
@@ -162,7 +178,7 @@ public class VendorCartController {
                 skuVO.setSpecText(item.getSpecText());
                 skuVO.setMaxCount(item.getMaxCount());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
-                skuVO.setChecked(goods2Checked.containsKey(item.getGoodsInfoId())); //处理客户端指定选中的商品
+                skuVO.setChecked(client2Checked.containsKey(item.getGoodsInfoId())); //处理客户端指定选中的商品
                 skuVO.setMarketings(buildMarketings(goodsMarketingMap.get(item.getGoodsInfoId())));
                 return skuVO;
             }).collect(Collectors.toList()));
@@ -173,7 +189,7 @@ public class VendorCartController {
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
             goodsInfos.addAll(
                 entry.getValue().stream().filter(
-                        item -> goods2Checked.containsKey(item.getGoodsInfoId())
+                        item -> client2Checked.containsKey(item.getGoodsInfoId())
                 ).map(item -> {
                     TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
                     goods.setMarketingId(entry.getKey());
