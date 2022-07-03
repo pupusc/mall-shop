@@ -1,10 +1,12 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
 import com.wanmi.sbc.bookmeta.entity.MetaAward;
+import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,6 +84,18 @@ public interface MetaAwardMapper extends Mapper<MetaAward> {
      * @return 影响行数
      */
     int deleteById(Integer id);
+
+
+    /**
+     * 采集奖项信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaAward> collectMetaAwardByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 
 }
 

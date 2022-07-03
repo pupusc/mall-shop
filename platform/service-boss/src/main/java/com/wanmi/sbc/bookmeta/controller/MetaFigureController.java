@@ -2,10 +2,11 @@ package com.wanmi.sbc.bookmeta.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureAddReqBO;
+import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureEditReqBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByIdResBO;
 import com.wanmi.sbc.bookmeta.bo.MetaFigureQueryByPageReqBO;
-import com.wanmi.sbc.bookmeta.bo.MetaFigureBO;
+import com.wanmi.sbc.bookmeta.enums.FigureTypeEnum;
 import com.wanmi.sbc.bookmeta.provider.MetaFigureProvider;
 import com.wanmi.sbc.bookmeta.vo.IntegerIdVO;
 import com.wanmi.sbc.bookmeta.vo.MetaFigureAddReqVO;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,12 @@ public class MetaFigureController {
     @PostMapping("queryByPage")
     public BusinessResponse<List<MetaFigureQueryByPageResVO>> queryByPage(@RequestBody MetaFigureQueryByPageReqVO pageRequest) {
         MetaFigureQueryByPageReqBO pageReqBO = JSON.parseObject(JSON.toJSONString(pageRequest), MetaFigureQueryByPageReqBO.class);
+
+        if (Integer.valueOf(FigureTypeEnum.FAMOUS.getCode()).equals(pageReqBO.getType())) {
+            pageReqBO.setType(null);
+            pageReqBO.setTypeIn(Arrays.asList(FigureTypeEnum.FAMOUS.getCode(), FigureTypeEnum.AUTHOR.getCode()));
+        }
+
         BusinessResponse<List<MetaFigureBO>> list = this.metaFigureProvider.queryByPage(pageReqBO);
         return JSON.parseObject(JSON.toJSONString(list), BusinessResponse.class);
     }

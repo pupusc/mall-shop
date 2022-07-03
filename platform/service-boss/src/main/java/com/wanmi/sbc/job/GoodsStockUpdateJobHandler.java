@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -105,7 +106,9 @@ public class GoodsStockUpdateJobHandler extends IJobHandler {
                         skuId2StockQtyMap.put(goodsInfoStockSyncParam.getSkuId(), goodsInfoStockSyncParam.getActualStockQty());
                         spuId2StockQtyMap.put(goodsInfoStockSyncParam.getSpuId(), goodsInfoStockSyncParam.getActualStockQty());
                         //发送消息
-                        if (goodsInfoStockSyncParam.getIsCalculateStock() && goodsInfoStockSyncParam.getActualStockQty() != null && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
+                        if (goodsInfoStockSyncParam.getActualStockQty() != null
+                                && !Objects.equals(goodsInfoStockSyncParam.getActualStockQty(), goodsInfoStockSyncParam.getLastStockQty())
+                                && goodsInfoStockSyncParam.getActualStockQty() <= FeiShuMessageConstant.FEI_SHU_STOCK_LIMIT) {
                             stockSendMessageList.add(goodsInfoStockSyncParam);
                         }
                     }

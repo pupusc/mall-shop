@@ -4,6 +4,8 @@ import com.wanmi.sbc.bookmeta.entity.MetaBookGroup;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +84,15 @@ public interface MetaBookGroupMapper extends Mapper<MetaBookGroup> {
      */
     int deleteById(Integer id);
 
+    /**
+     * 采集书组名称
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaBookGroup> collectMetaBookGroupByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
 }
 

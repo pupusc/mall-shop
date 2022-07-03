@@ -519,21 +519,21 @@ public class WxOrderService {
 
     public WxCreateOrderRequest buildRequest(Trade trade) {
 
-        int outTime = 60; //1小时
-        try {
-            // 查询设置中订单超时时间
-            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
-            Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
-            if (minuteObj != null) {
-                int tmpOutTime = Integer.parseInt(minuteObj.toString());
-                if (tmpOutTime >= 15 && tmpOutTime <= (24 * 60)) {
-                    outTime = tmpOutTime;
-                }
-            }
-        } catch (Exception ex) {
-            log.error("TradeService timeoutCancelConfig error", ex);
-        }
-        log.info("WxOrderService buildRequest 订单：{} 超时是:{}分钟", trade.getId(), outTime );
+//        int outTime = 60; //1小时
+//        try {
+//            // 查询设置中订单超时时间
+//            JSONObject timeoutCancelConfigJsonObj = JSON.parseObject(orderConfigProperties.getTimeOutJson());
+//            Object minuteObj = timeoutCancelConfigJsonObj.get("wxOrderTimeOut");
+//            if (minuteObj != null) {
+//                int tmpOutTime = Integer.parseInt(minuteObj.toString());
+//                if (tmpOutTime >= 15 && tmpOutTime <= (24 * 60)) {
+//                    outTime = tmpOutTime;
+//                }
+//            }
+//        } catch (Exception ex) {
+//            log.error("TradeService timeoutCancelConfig error", ex);
+//        }
+//        log.info("WxOrderService buildRequest 订单：{} 超时是:{}分钟", trade.getId(), outTime );
         WxCreateOrderRequest result = new WxCreateOrderRequest();
         result.setOutOrderId(trade.getId());
         result.setCreateTime(DateUtil.format(LocalDateTime.now(), DateUtil.FMT_TIME_1));
@@ -544,7 +544,7 @@ public class WxOrderService {
         if (Objects.equals(trade.getChannelType(), ChannelType.MINIAPP) && Objects.equals(trade.getMiniProgramScene(), 2)) {
             result.setFundType(1);
         }
-        result.setExpireTime(LocalDateTime.now().plusMinutes((outTime + 1)).toEpochSecond(ZoneOffset.of("+8")));
+        result.setExpireTime(trade.getOrderTimeOut().toEpochSecond(ZoneOffset.of("+8")));
         WxOrderDetailDTO detail = new WxOrderDetailDTO();
         List<WxProductInfoDTO> productInfoDTOS = new ArrayList<>();
         trade.getTradeItems().forEach(tradeItem -> {
@@ -587,13 +587,19 @@ public class WxOrderService {
     }
 
 
-    public PaymentParamsDTO getPaymentParams(Trade trade) {
+    public PaymentParamsDTO getPaymentParams(String openId, String tid) {
+        if (StringUtils.isBlank(openId) || StringUtils.isBlank(tid)) {
+            throw new SbcRuntimeException(null, "K-050009", "参数有误");
+        }
         WxOrderDetailRequest request = new WxOrderDetailRequest();
-        request.setOpenid(trade.getBuyer().getOpenId());
-        request.setOutOrderId(trade.getId());
+        request.setOpenid(openId);
+        request.setOutOrderId(tid);
         BaseResponse<GetPaymentParamsResponse> response = wxOrderApiController.getPaymentParams(request);
-        if (response == null || response.getContext().getPaymentParams() == null) {
-            return null;
+        if (response == null) {
+            throw new SbcRuntimeException(null, "K-050009", "获取预支付参数失败");
+        }
+        if (!response.getContext().isSuccess()) {
+            throw new SbcRuntimeException(null, response.getContext().getErrcode().toString(), response.getContext().getErrmsg());
         }
         return response.getContext().getPaymentParams();
     }

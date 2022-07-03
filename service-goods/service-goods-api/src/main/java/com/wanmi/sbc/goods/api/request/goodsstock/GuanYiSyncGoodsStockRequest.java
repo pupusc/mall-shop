@@ -17,9 +17,14 @@ public class GuanYiSyncGoodsStockRequest implements Serializable {
 
     private List<String> goodsIdList;
 
-    private String startTime;
+//    private String startTime;
 
     private long maxTmpId;
 
     private int pageSize;
+
+    /**
+     * 此次是否记录到redis中
+     */
+    private boolean hasSaveRedis = false;
 }

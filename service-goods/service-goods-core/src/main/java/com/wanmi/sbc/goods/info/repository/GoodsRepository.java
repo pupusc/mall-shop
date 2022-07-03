@@ -4,6 +4,7 @@ package com.wanmi.sbc.goods.info.repository;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.enums.ThirdPlatformType;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
+import com.wanmi.sbc.goods.booklistmodel.model.root.BookListModelDTO;
 import com.wanmi.sbc.goods.info.model.root.Goods;
 import com.wanmi.sbc.goods.info.model.root.GoodsInfo;
 import com.wanmi.sbc.goods.standard.model.root.StandardGoods;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -447,4 +449,15 @@ public interface GoodsRepository extends JpaRepository<Goods, String>, JpaSpecif
      */
     @Query(value = "select tmp_id, erp_goods_no,goods_id from goods where del_flag = 0 and added_flag = 1 and provider_id=?1  and tmp_id > ?2 order by tmp_id asc limit ?3", nativeQuery = true)
     List<Map<String, Object>> listByMaxAutoId(String providerId, Long tmpId, Integer pageSize);
+
+
+
+    /**
+     * 采集数据
+     * @return
+     */
+    @Query(value = "select * from goods where update_time >=?1 and update_time < ?2 and tmp_id > ?3 order by tmp_id asc limit ?4", nativeQuery = true)
+    List<Map<String, Object>> collectSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Integer fromId,  Integer pageSize);
+
+
 }

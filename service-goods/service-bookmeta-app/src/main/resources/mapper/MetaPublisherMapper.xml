@@ -155,5 +155,18 @@
         update meta_publisher set del_flag = 1 where id = #{id}
     </delete>
 
+    <!-- 采集出版社 -->
+    <select id="collectMetaPublisherByTime" resultMap="MetaPublisherMap">
+        select * from meta_publisher where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+        and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
+
+<!--    &lt;!&ndash; 获取出版社的信息 &ndash;&gt;-->
+<!--    <select id="collectMetaPublisherByIds" resultMap="MetaPublisherMap">-->
+<!--        select * from meta_publisher where-->
+<!--        <foreach collection="ids" item="model" open="(" close=")" separator=",">-->
+<!--            #{model}-->
+<!--        </foreach>-->
+<!--    </select>-->
 </mapper>
 

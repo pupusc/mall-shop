@@ -1,16 +1,23 @@
 package com.wanmi.sbc.goods.goodsevaluate.repository;
 
 import com.wanmi.sbc.goods.api.request.goodsevaluate.GoodsEvaluatePageRequest;
+import com.wanmi.sbc.goods.api.response.collect.CollectCommentRelSpuDetailResp;
 import com.wanmi.sbc.goods.goodsevaluate.model.root.GoodsEvaluate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -68,5 +75,27 @@ public interface GoodsEvaluateRepository extends JpaRepository<GoodsEvaluate, St
 
     @Query("select goodsId, count(1) from GoodsEvaluate where goodsId in (:goodsIds) and delFlag = 0 and isShow = 1 and evaluateScore in(4,5) group by goodsId")
     List<Object> countFavorteByGoodsIdsGroupByAndGoodsId(List<String> goodsIds);
+
+
+    /**
+     * 采集数据
+     * @return
+     */
+    @Query(value = "select * from goods_evaluate where update_time >=?1 and update_time < ?2 and incr_id > ?3 order by incr_id asc limit ?4", nativeQuery = true)
+    List<GoodsEvaluate> collectCommentSpuIdByTime(LocalDateTime beginTime, LocalDateTime endTime, Long incrId, Integer pageSize);
+
+
+    /**
+     * 根据spu id采集数据
+     * @return
+     */
+    @Query(value = "select goods_id as goodsId, count(*) as evaluateSum from goods_evaluate where del_flag = 0  and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
+    List<Map> collectCommentSumBySpuIds(List<String> goodsIds);
+    /**
+     * 根据spu id采集数据
+     * @return
+     */
+    @Query(value = "select goods_id as goodsId, count(*) as goodEvaluateSum from goods_evaluate where del_flag = 0  and evaluate_score >= 4 and goods_id in ?1 group by goods_id order by update_time asc", nativeQuery = true)
+    List<Map> collectCommentGoodSumBySpuIds(List<String> goodsIds);
 
 }

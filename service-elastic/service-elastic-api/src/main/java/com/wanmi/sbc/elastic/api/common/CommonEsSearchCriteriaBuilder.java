@@ -1,5 +1,6 @@
 package com.wanmi.sbc.elastic.api.common;
 
+import com.soybean.common.req.CommonPageQueryReq;
 import com.wanmi.sbc.common.base.BaseRequest;
 import com.wanmi.sbc.common.enums.TerminalSource;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,24 @@ public class CommonEsSearchCriteriaBuilder {
                 log.info("CommonEsSearchCriteriaBuilder getSpuCommonSearchCriterialBuilder two channelTypeSet");
 
                 boolQb.must(termsQuery("goodsChannelTypeList", baseRequest.getGoodsChannelTypeSet()));
+            }
+
+        }
+        return boolQb;
+    }
+
+
+    /**
+     * 查询 es_goods 索引中的公共部分
+     * @return
+     */
+    public static BoolQueryBuilder getSpuNewCommonBuilder(CommonPageQueryReq commonPageQueryReq) {
+        BoolQueryBuilder boolQb = QueryBuilders.boolQuery();
+        if (!CollectionUtils.isEmpty(commonPageQueryReq.getChannelTypes())) {
+            if (commonPageQueryReq.getChannelTypes().size() == 1) {
+                boolQb.must(termQuery("channelTypes", commonPageQueryReq.getChannelTypes().get(0).toString()));
+            } else {
+                boolQb.must(termsQuery("channelTypes", commonPageQueryReq.getChannelTypes()));
             }
 
         }

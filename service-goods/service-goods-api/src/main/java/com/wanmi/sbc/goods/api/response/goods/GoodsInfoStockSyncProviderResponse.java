@@ -25,15 +25,15 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
      */
     private String skuId;
 
-    /**
-     * erpSpuCode
-     */
-    private String erpSpuCode;
-
-    /**
-     * erpSkuCode
-     */
-    private String erpSkuCode;
+//    /**
+//     * erpSpuCode
+//     */
+//    private String erpSpuCode;
+//
+//    /**
+//     * erpSkuCode
+//     */
+//    private String erpSkuCode;
 
     /**
      * skuNo
@@ -45,51 +45,56 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
      */
     private String skuName;
 
-    /**
-     * 是否同步库存
-     */
-    private boolean canSyncStock = false;
+//    /**
+//     * 是否同步库存
+//     */
+//    private boolean canSyncStock = false;
 
-    /**
-     * true 表示 直接使用库存传递的库存数量
-     * false 表示 不需要重制 计算真实库存
-     */
-    private Boolean isCalculateStock;
+//    /**
+//     * true 表示 直接使用库存传递的库存数量
+//     * false 表示 不需要重制 计算真实库存
+//     */
+//    private Boolean isCalculateStock;
 
     /**
      * 最终库存数量
      */
     private Integer actualStockQty;
 
-    /**
-     * erp库存数量
-     */
-    private Integer erpStockQty;
+//    /**
+//     * erp库存数量
+//     */
+//    private Integer erpStockQty;
+
+//    /**
+//     * 当前库存
+//     */
+//    private Integer currentStockQty;
 
     /**
-     * 当前库存
+     * 最后一次同步库存数量
      */
-    private Integer currentStockQty;
+    private Integer lastStockQty;
 
-    /**
-     * 当前库存冻结是否变更
-     */
-    private boolean isChangeStock = false;
+//    /**
+//     * 当前库存冻结是否变更
+//     */
+//    private boolean isChangeStock = false;
 
-    /**
-     * 是否发送库存消息
-     */
-    private Boolean isSendStockMsg;
+//    /**
+//     * 是否发送库存消息
+//     */
+//    private Boolean isSendStockMsg;
 
-    /**
-     * 是否同步成本价
-     */
-    private boolean canSyncCostPrice = false;
+//    /**
+//     * 是否同步成本价
+//     */
+//    private boolean canSyncCostPrice = false;
 
-    /**
-     *  erp成本价
-     */
-    private BigDecimal erpCostPrice;
+//    /**
+//     *  erp成本价
+//     */
+//    private BigDecimal erpCostPrice;
 
     /**
      *  市场价
@@ -97,8 +102,22 @@ public class GoodsInfoStockSyncProviderResponse implements Serializable {
     private BigDecimal currentMarketPrice;
 
     /**
-     * 当前成本价
+     *  市场价
      */
-    private BigDecimal currentCostPrice;
+    private BigDecimal lastMarketPrice;
 
+//    /**
+//     * 当前成本价
+//     */
+//    private BigDecimal currentCostPrice;
+
+    /**
+     * 真实成本价
+     */
+    private BigDecimal actualCostPrice;
+
+    /**
+     * 最后同步的成本价
+     */
+    private BigDecimal lastCostPrice;
 }

@@ -4,6 +4,8 @@ import com.wanmi.sbc.bookmeta.entity.MetaPublisher;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -82,5 +84,23 @@ public interface MetaPublisherMapper extends Mapper<MetaPublisher> {
      */
     int deleteById(Integer id);
 
+
+    /**
+     * 采集出版社信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaPublisher> collectMetaPublisherByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
+//    /**
+//     * 采集 根据id获取 出版社信息
+//     * @param ids
+//     * @return
+//     */
+//    List<MetaPublisher> collectMetaPublisherByIds(@Param("ids") List<Integer> ids);
 }
 

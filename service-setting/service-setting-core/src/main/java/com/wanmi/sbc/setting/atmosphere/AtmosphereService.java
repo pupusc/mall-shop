@@ -59,6 +59,16 @@ public class AtmosphereService {
 
     }
 
+    /**
+     * 获取氛围图
+     * @param request
+     * @return
+     */
+    public List<AtmosphereDTO> listAtmosphere(AtmosphereQueryRequest request) {
+        List<Atmosphere> atmosphereList = atmosphereRepository.findAll(this.getAtmosphereWhereCriteria(request));
+        return KsBeanUtil.convertList(atmosphereList, AtmosphereDTO.class);
+    }
+
     public void delete(Integer id){
         atmosphereRepository.disableById(id);
     }

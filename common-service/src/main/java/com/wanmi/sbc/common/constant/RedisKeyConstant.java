@@ -74,6 +74,11 @@ public final class RedisKeyConstant {
     public static final String GOODS_INFO_STOCK_PREFIX = "GOODS_INFO_STOCK_";
 
     /**
+     * 最小库存数量
+     */
+    public static final Long GOODS_INFO_MIN_STOCK_SIZE = 5L;
+
+    /**
      * 冻结库存信息
      */
     public static final String GOODS_INFO_STOCK_FREEZE_PREFIX = "GOODS_INFO_FREEZE_STOCK_";
@@ -131,4 +136,21 @@ public final class RedisKeyConstant {
      * 评论数量缓存
      */
     public static final String KEY_GOODS_INFO_EVALUATE = "KEY_GOODS_INFO_EVALUATE:";
+
+
+    /**
+     * 库存数量
+     */
+    public static final String GOODS_INFO_SYNC_STOCK_KEY = "GOODS_INFO_SYNC:STOCK";
+
+    /**
+     * 商品成本价
+     */
+    public static final String GOODS_INFO_SYNC_COST_PRICE_KEY = "GOODS_INFO_SYNC:COST_PRICE";
+
+    /**
+     * 商品市场价
+     */
+    public static final String GOODS_INFO_SYNC_MARKET_PRICE_KEY = "GOODS_INFO_SYNC:MARKET_PRICE";
+
 }

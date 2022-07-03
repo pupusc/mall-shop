@@ -4,6 +4,8 @@ import com.wanmi.sbc.bookmeta.entity.MetaBookClump;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -83,5 +85,17 @@ public interface MetaBookClumpMapper extends Mapper<MetaBookClump> {
     int deleteById(Integer id);
 
     int removePublisherId(Integer id);
+
+    /**
+     * 采集从书信息
+     * @param beginTime
+     * @param endTime
+     * @param fromId
+     * @param pageSize
+     * @return
+     */
+    List<MetaBookClump> collectMetaBookClumpByTime(
+            @Param("beginTime") LocalDateTime beginTime, @Param("endTime") LocalDateTime endTime, @Param("fromId") Integer fromId, @Param("pageSize") int pageSize);
+
 }
 

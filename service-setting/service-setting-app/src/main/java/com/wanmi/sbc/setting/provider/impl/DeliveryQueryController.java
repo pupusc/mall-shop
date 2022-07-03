@@ -5,11 +5,13 @@ import com.wanmi.sbc.setting.api.provider.DeliveryQueryProvider;
 import com.wanmi.sbc.setting.api.request.DeliveryQueryRequest;
 import com.wanmi.sbc.setting.api.response.DeliveryQueryResponse;
 import com.wanmi.sbc.setting.kuaidi100.DeliveryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 public class DeliveryQueryController implements DeliveryQueryProvider {
     @Autowired
     private DeliveryService deliveryService;
@@ -20,6 +22,7 @@ public class DeliveryQueryController implements DeliveryQueryProvider {
         try {
             response.setOrderList(deliveryService.queryExpressInfoUrl(queryRequest));
         }catch (Exception e){
+            log.error("DeliveryQueryController queryExpressInfoUrl exceptin", e);
             return BaseResponse.FAILED();
         }
         return BaseResponse.success(response);

@@ -145,4 +145,5 @@ public interface BookListModelProvider {
      */
     @PostMapping("/goods/${application.goods.version}/booklistmodel/countGroupByBookListModelIdList")
     BaseResponse<List<CountBookListModelGroupProviderResponse>> countGroupByBookListModelIdList(@RequestBody CountBookListModelGroupProviderRequest countBookListModelGroupProviderRequest);
+
 }

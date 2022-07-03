@@ -1,6 +1,8 @@
 package com.soybean.mall.image;
 
+import com.soybean.mall.image.req.CommonImageReq;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.goods.api.enums.ImageTypeEnum;
 import com.wanmi.sbc.goods.api.enums.StateEnum;
 import com.wanmi.sbc.goods.api.enums.UsingStateEnum;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,6 +45,24 @@ public class ImageController {
         imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
         imagePageProviderRequest.setStatus(StateEnum.RUNNING.getCode());
         imagePageProviderRequest.setImageTypeList(Collections.singletonList(ImageTypeEnum.WX_SUBSCRIBE.getCode()));
+        BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
+        return BaseResponse.success(listBaseResponse.getContext());
+    }
+
+    /**
+     * app 通用的图片获取
+     * @menu 小程序订阅
+     * @return
+     */
+    @PostMapping("/common-list")
+    public BaseResponse<List<ImageProviderResponse>> listImage(@RequestBody CommonImageReq commonImageReq) {
+        if (commonImageReq.getImageType()== null || ImageTypeEnum.getByCode(commonImageReq.getImageType()) == null) {
+            throw new SbcRuntimeException("K-0000001", "参数误");
+        }
+        ImagePageProviderRequest imagePageProviderRequest = new ImagePageProviderRequest();
+        imagePageProviderRequest.setPublishState(UsingStateEnum.USING.getCode());
+        imagePageProviderRequest.setStatus(StateEnum.RUNNING.getCode());
+        imagePageProviderRequest.setImageTypeList(Collections.singletonList(commonImageReq.getImageType()));
         BaseResponse<List<ImageProviderResponse>> listBaseResponse = imageProvider.listNoPage(imagePageProviderRequest);
         return BaseResponse.success(listBaseResponse.getContext());
     }

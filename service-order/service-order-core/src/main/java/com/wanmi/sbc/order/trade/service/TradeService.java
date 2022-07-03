@@ -1927,10 +1927,12 @@ public class TradeService {
             BaseResponse<String> priceByGoodsId = goodsIntervalPriceProvider.findPriceByGoodsId(tradeItem.getSkuId());
             if (priceByGoodsId.getContext() != null) {
                 tradeItem.setPropPrice(Double.valueOf(priceByGoodsId.getContext()));
+                tradeItem.setOriginalPrice(new BigDecimal(priceByGoodsId.getContext())); //设置原始价格
             }
+            tradeItem.setMarketPrice(goodsInfoVOMap.get(tradeItem.getSkuId()).getMarketPrice());
         }
 
-
+        log.info("TradeService getTradeItemList tradeItem:{}", JSON.toJSONString(tradeItems));
 
         // 校验商品限售信息
         TradeItemGroup tradeItemGroupVOS = new TradeItemGroup();

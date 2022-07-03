@@ -170,5 +170,12 @@
     <update id="removePublisherId">
         update meta_book_clump set publisher_id = null where publisher_id = #{id}
     </update>
+
+
+    <!-- 采集信息 -->
+    <select id="collectMetaBookClumpByTime" resultMap="MetaBookClumpMap">
+        select * from meta_book_clump where update_time <![CDATA[ >  ]]> #{beginTime} and update_time <![CDATA[ <=  ]]> #{endTime}
+                                        and id <![CDATA[ >  ]]> #{fromId} ORDER BY id asc limit #{pageSize}
+    </select>
 </mapper>
 

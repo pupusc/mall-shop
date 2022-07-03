@@ -27,7 +27,11 @@ public class PopularSearchTermsRequest extends SettingBaseRequest {
     @Length(max = 10)
     @NotBlank
     private String popularSearchKeyword;
-
+    /**
+     * 搜索词类型 0-H5  1-小程序
+     */
+    @ApiModelProperty(value= "搜索词类型 0-H5  1-小程序")
+    private Integer popularChannel = 0;
     /**
      * 移动端落地页
      */
@@ -41,11 +45,23 @@ public class PopularSearchTermsRequest extends SettingBaseRequest {
     private String pcLandingPage;
 
     /**
+     * 小程序热捜词
+     */
+    @ApiModelProperty(value = "小程序热捜词")
+    private String miniHotKeyword;
+
+    /**
+     * 小程序精选词
+     */
+    @ApiModelProperty(value = "小程序精选词")
+    private String miniSelectKeyword;
+
+    /**
      * 排序号
      */
     @ApiModelProperty(value="sort_number")
     @NotNull
-    private Long sortNumber;
+    private Long sortNumber = 1L;
 
     /**
      * 是否删除 0 否  1 是

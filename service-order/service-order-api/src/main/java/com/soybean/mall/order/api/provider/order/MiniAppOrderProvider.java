@@ -12,6 +12,7 @@ import com.wanmi.sbc.order.api.request.trade.ProviderTradeErpRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -65,7 +66,20 @@ public interface MiniAppOrderProvider {
     @GetMapping("/order/${application.order.version}/trade/get-wx-order-report-cache")
     BaseResponse<MiniProgramOrderReportVO> getOrderReportCache();
 
-    @PostMapping("/order/${application.order.version}/trade/get-wx-order-payment-params")
-    BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(@RequestBody GetPaymentParamsRequest request);
+    /**
+     * 创建微信订单和获取预支付参数
+     * @param request
+     * @return
+     */
+    @PostMapping("/order/${application.order.version}/trade/create-wx-order-and-get-payments-params")
+    BaseResponse<WxOrderPaymentParamsVO> createWxOrderAndGetPaymentsParams(@RequestBody GetPaymentParamsRequest request);
+
+    /**
+     * 获取预支付参数
+     * @return
+     */
+    @GetMapping("/order/${application.order.version}/trade/get-wx-order-payments-params/{openId}/{tid}")
+    BaseResponse<WxOrderPaymentParamsVO> getWxOrderPaymentParams(@PathVariable("openId") String openId, @PathVariable("tid") String tid);
+
 
 }

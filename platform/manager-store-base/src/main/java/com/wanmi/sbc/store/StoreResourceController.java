@@ -184,7 +184,7 @@ public class StoreResourceController {
                             .build()).getContext().getResourceUrl();
                     resourceUrls.add(resourceUrl);
                 } catch (Exception e) {
-                    logger.error("uploadStoreResource error: {}", e.getMessage());
+                    logger.error("uploadStoreResource error ", e);
                     return ResponseEntity.ok(BaseResponse.FAILED());
                 }
             } else {

@@ -8,7 +8,12 @@ import lombok.Getter;
  */
 @Getter
 public enum FigureTypeEnum {
-    AUTHOR(1, "作者/译者/绘画人/作序人");
+    //1作者/译者/绘画人/作序人；2编辑；3名家；4专业机构；5媒体；
+    AUTHOR(1, "作者/译者/绘画人/作序人"),
+    EDITOR(2, "编辑"),
+    FAMOUS(3, "名人"),
+    ORGAN(4, "机构"),
+    MEDIA(5, "媒体");
 
     private Integer code;
     private String desc;

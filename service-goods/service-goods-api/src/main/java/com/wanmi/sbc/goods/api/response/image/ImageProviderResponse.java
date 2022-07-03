@@ -71,7 +71,7 @@ public class ImageProviderResponse implements Serializable {
     private Integer status;
 
     /**
-     * 图片类型 1首页轮播 2 广告图片、3 首页卖点图 4 直播订阅图
+     * 图片类型 1首页轮播 2 广告图片、3 首页卖点图 4 直播订阅图 5 订单准备支付页面图
      */
     private Integer imageType;
 }

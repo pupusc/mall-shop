@@ -1,5 +1,6 @@
 package com.wanmi.sbc.bookmeta.mapper;
 
+import com.wanmi.sbc.bookmeta.entity.MetaBookFigure;
 import com.wanmi.sbc.bookmeta.entity.MetaFigureAward;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -82,5 +83,12 @@ public interface MetaFigureAwardMapper extends Mapper<MetaFigureAward> {
      */
     int deleteById(Integer id);
 
+
+    /**
+     * 采集 人物奖项信息
+     * @param ids
+     * @return
+     */
+    List<MetaFigureAward> collectMetaFigureAwardByIds(@Param("ids") List<Integer> ids);
 }
 

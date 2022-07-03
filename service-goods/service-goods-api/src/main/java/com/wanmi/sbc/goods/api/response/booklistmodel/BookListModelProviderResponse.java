@@ -7,6 +7,7 @@ import com.wanmi.sbc.common.util.CustomLocalDateTimeDeserializer;
 import com.wanmi.sbc.common.util.CustomLocalDateTimeSerializer;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -104,4 +105,8 @@ public class BookListModelProviderResponse implements Serializable {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date updateTime;
 
+    /**
+     * 已删除：1，未删除：0
+     */
+    private Integer delFlag;
 }

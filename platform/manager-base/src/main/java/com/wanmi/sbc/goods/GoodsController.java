@@ -343,7 +343,7 @@ public class GoodsController {
             //同步库存 不判断是否自动同步，交给同步方法处理
             GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
             guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
-            guanYiSyncGoodsStockRequest.setStartTime("");
+            guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
             guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
             guanYiSyncGoodsStockRequest.setPageSize(0);
             goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
@@ -1399,7 +1399,7 @@ public class GoodsController {
                 //同步库存 不判断是否自动同步，交给同步方法处理
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(V);
-                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
                 guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
                 guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
@@ -1610,7 +1610,7 @@ public class GoodsController {
                 //同步库存 不判断是否自动同步，交给同步方法处理
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
-                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
                 guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
                 guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);
@@ -1659,7 +1659,7 @@ public class GoodsController {
                 //同步库存 不判断是否自动同步，交给同步方法处理
                 GuanYiSyncGoodsStockRequest guanYiSyncGoodsStockRequest = new GuanYiSyncGoodsStockRequest();
                 guanYiSyncGoodsStockRequest.setGoodsIdList(Collections.singletonList(goodsId));
-                guanYiSyncGoodsStockRequest.setStartTime("");
+                guanYiSyncGoodsStockRequest.setHasSaveRedis(false);
                 guanYiSyncGoodsStockRequest.setMaxTmpId(0L);
                 guanYiSyncGoodsStockRequest.setPageSize(0);
                 goodsProvider.guanYiSyncGoodsStock(guanYiSyncGoodsStockRequest);

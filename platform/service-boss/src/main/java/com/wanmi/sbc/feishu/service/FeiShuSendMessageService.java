@@ -36,6 +36,7 @@ public class FeiShuSendMessageService {
     @Value("${notice.send.message.tenantId}")
     private String noticeSendMsgTenantId;
 
+
     /**
      * @时艺洪@姜金秀@教恩惠@柏红阳 【成本价】
      */
@@ -57,16 +58,18 @@ public class FeiShuSendMessageService {
         headers.put("Content-type", "application/json; charset=utf-8");
         headers.put("Accept", "application/json");
         headers.put("token", noticeSendMsgToken);
-        headers.put("tenantId", noticeSendMsgTenantId);
+
 
         Map<String, String> contentMap = new HashMap<>();
         contentMap.put("content", content);
+        headers.put("tenantId", noticeSendMsgTenantId);
 
         Map<String,Object> body = new HashMap<>();
         body.put("replaceParams", contentMap);
 
         if (feiShuNoticeEnum == FeiShuNoticeEnum.STOCK) {
             body.put("noticeId",noticeSendMsgNoticeId);
+
         } else if (feiShuNoticeEnum == FeiShuNoticeEnum.COST_PRICE) {
             body.put("noticeId",noticeSendMsgNoticeId2);
         } else {
