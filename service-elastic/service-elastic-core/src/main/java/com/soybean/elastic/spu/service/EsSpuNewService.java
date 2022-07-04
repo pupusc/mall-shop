@@ -62,8 +62,7 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
      */
     private BoolQueryBuilder packageKeyWordQueryCondition(EsKeyWordSpuNewQueryProviderReq req) {
 
-        //查询条件
-        req.setKeyword(QueryParser.escape(req.getKeyword()));
+
         BoolQueryBuilder boolQb = super.packageEsSpuNewReq(req);
 
         if (req.getSearchSpuNewCategory() != null) {
@@ -97,6 +96,8 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         if (StringUtils.isBlank(req.getKeyword())) {
             return boolQb;
         }
+        //查询条件
+        req.setKeyword(QueryParser.escape(req.getKeyword()));
         BoolQueryBuilder boolQbChild = QueryBuilders.boolQuery();
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME_KEYWORD, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
