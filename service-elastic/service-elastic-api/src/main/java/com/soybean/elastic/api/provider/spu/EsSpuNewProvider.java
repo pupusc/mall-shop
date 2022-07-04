@@ -2,6 +2,7 @@ package com.soybean.elastic.api.provider.spu;
 
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.req.EsKeyWordSpuNewQueryProviderReq;
+import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
 import com.soybean.elastic.api.req.collect.CollectJobReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.wanmi.sbc.common.base.BaseResponse;
@@ -36,4 +37,15 @@ public interface EsSpuNewProvider {
      */
     @PostMapping("/elastic/${application.elastic.version}/spunew/init")
     BaseResponse init(@RequestBody CollectJobReq collectJobReq);
+
+
+    /**
+     * 内部使用的普通搜索
+     * @param req
+     * @return
+     */
+    @PostMapping("/elastic/${application.elastic.version}/spunew/listNormalEsSpuNew")
+    BaseResponse<CommonPageResp<List<EsSpuNewResp>>> listNormalEsSpuNew(@Validated @RequestBody EsSpuNewQueryProviderReq req);
+
+
 }

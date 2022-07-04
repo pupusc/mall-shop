@@ -4,9 +4,6 @@ import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.common.CommonUtil;
 import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
-import com.soybean.mall.goods.response.SpuNewBookListResp.Atmosphere;
-import com.soybean.mall.goods.response.SpuNewBookListResp.Book;
-import com.soybean.mall.goods.response.SpuNewBookListResp.BookList;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -73,8 +70,22 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
+    public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer);
+    }
+
+    /**
+     * 搜索商品书单信息
+     * @param esSpuNewRespList
+     * @return
+     */
     public List<SpuNewBookListResp> listSpuNewSearch(List<EsSpuNewResp> esSpuNewRespList){
-        return this.packageSpuNewBookListResp(esSpuNewRespList);
+        CustomerGetByIdResponse customer = null;
+        String userId = commonUtil.getOperatorId();
+        if (!StringUtils.isEmpty(userId)) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+        }
+        return this.packageSpuNewBookListResp(esSpuNewRespList, customer);
     }
 
 
@@ -83,7 +94,7 @@ public class SpuNewSearchService {
      * @param esSpuNewRespList
      * @return
      */
-    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList){
+    private List<SpuNewBookListResp> packageSpuNewBookListResp(List<EsSpuNewResp> esSpuNewRespList, CustomerGetByIdResponse customer){
         if (CollectionUtils.isEmpty(esSpuNewRespList)) {
             return new ArrayList<>();
         }
@@ -91,13 +102,6 @@ public class SpuNewSearchService {
         List<String> spuIdList = esSpuNewRespList.stream().map(EsSpuNewResp::getSpuId).collect(Collectors.toList());
         Map<String, SpuRecomBookListDTO> spuId2SpuRecomBookListDTOMap = spuNewBookListService.getSpuId2EsBookListModelResp(spuIdList);
 
-
-        //获取客户信息
-        CustomerGetByIdResponse customer = null;
-        String userId = commonUtil.getOperatorId();
-        if (!StringUtils.isEmpty(userId)) {
-            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
-        }
 
         //获取goodsInfo信息
 //        BigDecimal salePrice = new BigDecimal("9999");
@@ -207,16 +211,16 @@ public class SpuNewSearchService {
 
             if (esSpuNewRespParam.getBook() != null) {
                 EsSpuNewResp.Book book = esSpuNewRespParam.getBook();
-                Book resultBook = new Book();
+                SpuNewBookListResp.Book resultBook = new SpuNewBookListResp.Book();
                 resultBook.setAuthorNames(book.getAuthorNames());
                 resultBook.setScore(book.getScore());
                 resultBook.setPublisher(book.getPublisher());
                 resultBook.setFixPrice(book.getFixPrice());
 
-                List<Book.BookTag> resultTag = new ArrayList<>();
+                List<SpuNewBookListResp.Book.BookTag> resultTag = new ArrayList<>();
                 if (!CollectionUtils.isEmpty(book.getTags())) {
                     for (EsSpuNewResp.Book.SubBookLabel tagParam : book.getTags()) {
-                        Book.BookTag resultBookTag = new Book.BookTag();
+                        SpuNewBookListResp.Book.BookTag resultBookTag = new SpuNewBookListResp.Book.BookTag();
                         resultBookTag.setTageId(tagParam.getTagId());
                         resultBookTag.setTagName(tagParam.getTagName());
                         resultTag.add(resultBookTag);
@@ -236,15 +240,15 @@ public class SpuNewSearchService {
 
             //获取书单排行榜信息
             SpuRecomBookListDTO spuRecomBookListDTO = spuId2SpuRecomBookListDTOMap.get(esSpuNewRespParam.getSpuId());
-            BookList bookList = spuRecomBookListDTO != null ?
-                    new BookList(spuRecomBookListDTO.getBookListNameShow(),spuRecomBookListDTO.getBookListName(), spuRecomBookListDTO.getSpu() == null ? 1
+            SpuNewBookListResp.BookList bookList = spuRecomBookListDTO != null ?
+                    new SpuNewBookListResp.BookList(spuRecomBookListDTO.getBookListNameShow(),spuRecomBookListDTO.getBookListName(), spuRecomBookListDTO.getSpu() == null ? 1
                             : spuRecomBookListDTO.getSpu().getSortNum(), spuRecomBookListDTO.getBookListBusinessType()) : null;
             spuNewBookListResp.setBookList(bookList);
 
             //获取图书信息
             AtmosphereDTO atmosphereDTO = skuId2AtomsphereMap.get(goodsInfoVO.getGoodsInfoId());
             if (atmosphereDTO != null) {
-                Atmosphere atmosphere = new Atmosphere();
+                SpuNewBookListResp.Atmosphere atmosphere = new SpuNewBookListResp.Atmosphere();
                 atmosphere.setImageUrl(atmosphereDTO.getImageUrl());
                 atmosphere.setAtmosType(atmosphereDTO.getAtmosType());
                 atmosphere.setElementOne(atmosphereDTO.getElementOne());

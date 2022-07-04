@@ -5,9 +5,10 @@ import com.fangdeng.server.client.request.bookuu.*;
 import com.fangdeng.server.client.response.bookuu.*;
 import com.fangdeng.server.util.OkHttpUtil;
 import com.fangdeng.server.util.XmlUtil;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,19 +19,20 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 @Service
+@RefreshScope
 public class BookuuClient {
 
     /**
      * 博库合作伙伴ID
      */
-    //@Value("${bookuu.channelId}")
-    private String channelID = "4005421";//"4004061";
+    @Value("${bookuu.channelId}")
+    private String channelID;//"4004061";
 
     /**
      * 接口地址
      */
-    //@Value("${bookuu.url}")
-    private String path = "http://api.bookuu.com/open/external.php?type=%s&sign=f54a9e518762dafdbc816d6fb4d35654";//"http://api.bookuu.com/open_test/external.php?type=%s&sign=6aa51007f3fa72a6c9d3308f6d1f0e6d";
+    @Value("${bookuu.url}")
+    private String path;//"http://api.bookuu.com/open_test/external.php?type=%s&sign=6aa51007f3fa72a6c9d3308f6d1f0e6d";
 
 
     /**

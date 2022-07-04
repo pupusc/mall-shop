@@ -99,6 +99,7 @@ public class GoodsEvaluateService {
         entity.setIsShow(0);
         entity.setIsSys(Constants.no);
         entity.setEvaluateCatetory(0);
+        entity.setUpdateTime(LocalDateTime.now());
         goodsEvaluateRepository.save(entity);
         //增加评论数
         if(entity.getIsShow().intValue() == 1){
@@ -377,6 +378,7 @@ public class GoodsEvaluateService {
         entity.setIsAnswer(request.getIsAnswer());
         entity.setBuyTime(goodsEvaluateDetail.getBuyTime());
         entity.setGoodsImg(goodsEvaluateDetail.getGoodsImg());
+        entity.setUpdateTime(LocalDateTime.now());
         goodsEvaluateImageService.updateIsShowByEvaluateId(EvaluateImgUpdateIsShowReq.builder()
                 .evaluateId(request.getEvaluateId()).isShow(request.getIsShow()).build());
         if (!goodsEvaluateDetail.getIsShow().equals(request.getIsShow()) && request.getIsShow().equals(NumberUtils.INTEGER_ONE)){

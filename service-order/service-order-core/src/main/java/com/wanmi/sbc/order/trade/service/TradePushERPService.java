@@ -700,7 +700,7 @@ public class TradePushERPService {
      *
      * @param providerTrade
      */
-    public void syncDeliveryStatus(ProviderTrade providerTrade,List<DeliveryInfoVO> deliveryInfoVOList) {
+    public void syncDeliveryStatus(ProviderTrade providerTrade, List<DeliveryInfoVO> deliveryInfoVOList) {
         if(!Objects.equals(providerTrade.getSupplier().getStoreId(),defaultProviderId) && CollectionUtils.isEmpty(deliveryInfoVOList)){
             this.syncDeliveryStatusProduct(providerTrade);
             return;
@@ -727,6 +727,8 @@ public class TradePushERPService {
                         TradeState tradeState = providerTrade.getTradeState();
                         if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
                             tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                        } else {
+                            tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
                         }
                     }
                     providerTradeService.updateProviderTrade(providerTrade);
@@ -805,6 +807,8 @@ public class TradePushERPService {
                     TradeState tradeState = providerTrade.getTradeState();
                     if (tradeState.getScanCount() < ScanCount.COUNT_THREE.toValue()) {
                         tradeState.setScanCount(tradeState.getScanCount() + ScanCount.COUNT_ONE.toValue());
+                    } else {
+                        tradeState.setScanCount(ScanCount.COUNT_ONE.toValue());
                     }
                 }
 

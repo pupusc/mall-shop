@@ -189,6 +189,7 @@ public class OkHttpUtil {
      * @return
      */
     public static String postXml(String url, String body) {
+        log.info("BookuuClient postXml url:{} body:{}", url, body);
         return post(url, body, xmlMediaType);
     }
 

@@ -18,16 +18,30 @@ import com.soybean.mall.goods.response.SpuNewBookListResp;
 import com.soybean.mall.goods.service.BookListSearchService;
 import com.soybean.mall.goods.service.SpuNewSearchService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerProvider;
+import com.wanmi.sbc.customer.api.provider.customer.CustomerQueryProvider;
+import com.wanmi.sbc.customer.api.request.customer.CustomerGetByIdRequest;
+import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
+import com.wanmi.sbc.customer.bean.dto.CounselorDto;
+import com.wanmi.sbc.goods.api.enums.GoodsBlackListCategoryEnum;
+import com.wanmi.sbc.goods.api.provider.blacklist.GoodsBlackListProvider;
+import com.wanmi.sbc.goods.api.request.blacklist.GoodsBlackListPageProviderRequest;
+import com.wanmi.sbc.goods.api.response.blacklist.GoodsBlackListPageProviderResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Description:
@@ -46,6 +60,9 @@ public class SearchController {
     private EsBookListModelProvider esBookListModelProvider;
 
     @Autowired
+    private GoodsBlackListProvider goodsBlackListProvider;
+
+    @Autowired
     private EsSpuNewProvider esSpuNewProvider;
 
     @Autowired
@@ -53,6 +70,12 @@ public class SearchController {
 
     @Autowired
     private SpuNewSearchService spuNewSearchService;
+
+    @Autowired
+    private CustomerQueryProvider customerQueryProvider;
+
+    @Autowired
+    private CustomerProvider customerProvider;
 
     @Autowired
     private CommonUtil commonUtil;
@@ -148,8 +171,37 @@ public class SearchController {
     @PostMapping("/keyword/keywordSpuSearch")
     public BaseResponse<CommonPageResp<List<SpuNewBookListResp>>> keywordSpuSearch(@Validated @RequestBody KeyWordSpuQueryReq request) {
         request.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        //获取搜索黑名单
+        GoodsBlackListPageProviderRequest goodsBlackListPageProviderRequest = new GoodsBlackListPageProviderRequest();
+        goodsBlackListPageProviderRequest.setBusinessCategoryColl(
+                Arrays.asList(GoodsBlackListCategoryEnum.GOODS_SESRCH_H5_AT_INDEX.getCode(), GoodsBlackListCategoryEnum.GOODS_SESRCH_AT_INDEX.getCode()));
+        GoodsBlackListPageProviderResponse goodsBlackListResponse = goodsBlackListProvider.listNoPage(goodsBlackListPageProviderRequest).getContext();
+        if (goodsBlackListResponse != null) {
+            List<String> unSpuIds = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
+            List<String> goodsIdList = goodsBlackListResponse.getGoodsSearchAtIndexBlackListModel().getGoodsIdList();
+            if (!CollectionUtils.isEmpty(goodsIdList)) {
+                unSpuIds.addAll(goodsIdList);
+            }
+            goodsIdList = goodsBlackListResponse.getGoodsSearchH5AtIndexBlackListModel().getGoodsIdList();
+            if (!CollectionUtils.isEmpty(goodsIdList)) {
+                request.setUnSpuIds(goodsIdList);
+            }
+        }
+        //获取是否知识顾问用户
+        //获取客户信息
+        CustomerGetByIdResponse customer = null;
+        String userId = commonUtil.getOperatorId();
+        if (!StringUtils.isEmpty(userId)) {
+            customer = customerQueryProvider.getCustomerById(new CustomerGetByIdRequest(userId)).getContext();
+            String isCounselor = customerProvider.isCounselorCache(Integer.valueOf(customer.getFanDengUserNo())).getContext();
+            //非知识顾问用户
+            if (!Objects.isNull(isCounselor) && "true".equals(isCounselor)) {
+                request.setCpsSpecial(1);// 表示知识顾问，显示所有商品
+            }
+        }
+
         CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(request).getContext();
-        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent(), customer);
         return BaseResponse.success(new CommonPageResp<>(context.getTotal(), spuNewBookListResps));
     }
 
