@@ -216,7 +216,7 @@ public class VendorCartController {
                 skuVO.setSpecText(item.getSpecText());
                 skuVO.setMaxCount(item.getMaxCount());
                 skuVO.setSpecMore(goodsVOMap.containsKey(item.getGoodsId()) && Boolean.FALSE.equals(goodsVOMap.get(item.getGoodsId()).getSingleSpecFlag()));
-                skuVO.setChecked(client2Checked.containsKey(item.getGoodsInfoId())); //处理客户端指定选中的商品
+                skuVO.setChecked(client2Checked.get(item.getGoodsInfoId())); //处理客户端指定选中的商品
                 skuVO.setMarketings(buildMarketings(goodsMarketingMap.get(item.getGoodsInfoId())));
                 return skuVO;
             }).collect(Collectors.toList()));
@@ -226,7 +226,7 @@ public class VendorCartController {
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
             goodsInfos.addAll(
-                entry.getValue().stream().filter(item -> client2Checked.containsKey(item.getGoodsInfoId())).map(item -> {
+                entry.getValue().stream().filter(item -> client2Checked.get(item.getGoodsInfoId())).map(item -> {
                     TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
                     goods.setMarketingId(entry.getKey() == 0 ? null : entry.getKey());
                     goods.setGoodsInfoId(item.getGoodsInfoId());

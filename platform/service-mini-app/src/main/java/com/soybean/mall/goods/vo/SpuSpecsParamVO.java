@@ -8,5 +8,12 @@ import javax.validation.constraints.NotNull;
 public class SpuSpecsParamVO {
     @NotNull
     private String spuId;
+    /**
+     * 指定优惠券
+     */
+    private String couponId;
+    /**
+     * 指定营销活动
+     */
     private Long marketingId;
 }
