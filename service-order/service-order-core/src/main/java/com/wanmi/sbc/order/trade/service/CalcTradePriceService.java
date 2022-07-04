@@ -146,36 +146,12 @@ public class CalcTradePriceService {
         List<Long> marketingIds = tradeItems.stream().map(item->item.getMarketingId()).distinct().collect(Collectors.toList());
         Map<Long, List<TradeItem>> marketingGroup = tradeItems.stream().collect(Collectors.groupingBy(TradeItem::getMarketingId));
 
-        //--------------------
-//        List<GoodsInfoMarketingVO> marketingInfos = goodsInfoList.stream().map(i ->
-//                GoodsInfoMarketingVO.builder().storeId(i.getStoreId()).goodsInfoId(i.getGoodsInfoId()).distributionGoodsAudit(i.getDistributionGoodsAudit()).build()
-//        ).collect(Collectors.toList());
-//        MarketInfoForPurchaseResponse marketResp = marketingCommonQueryProvider.queryInfoForPurchase(
-//                new InfoForPurchseRequest(marketingInfos, customer, goodsResp.getLevelsMap())).getContext();
-
-//        List<String> skuIds = tradeItems.stream().map(item -> item.getSkuId()).distinct().collect(Collectors.toList());
-//        MarketingMapGetByGoodsIdRequest mktParamm = MarketingMapGetByGoodsIdRequest.builder().goodsInfoIdList(skuIds)
-//                .marketingStatus(MarketingStatus.STARTED).deleteFlag(DeleteFlag.NO).build();
-//        BaseResponse<MarketingMapGetByGoodsIdResponse> mktResponse = marketingQueryProvider.getMarketingMapByGoodsId(mktParamm);
-//        if (mktResponse != null && mktResponse.getContext() != null && mktResponse.getContext().getListMap() != null) {
-////            HashMap<String, List<MarketingForEndVO>> skuId2mkts = mktResponse.getContext().getListMap();
-//            Map<Long, MarketingForEndVO> mktId2mkt = new HashMap<>();
-//            for (List<MarketingForEndVO> mkts : mktResponse.getContext().getListMap().values()) {
-//                for (MarketingForEndVO mkt : mkts) {
-//                    mktId2mkt.put(mkt.getMarketingId(), mkt);
-//                }
-//            }
-//
-//            //验证提交的sku是否存在
-//        }
-        //--------------------
-
         List<TradeMarketingDTO> marketings = new ArrayList<>();
         Map<Long, MarketingForEndVO> mktId2mkt = new HashMap<>();
 
         List<String> skuIds = tradeItems.stream().map(item -> item.getSkuId()).distinct().collect(Collectors.toList());
         MarketingMapGetByGoodsIdRequest mktParamm = MarketingMapGetByGoodsIdRequest.builder().goodsInfoIdList(skuIds)
-                .marketingStatus(MarketingStatus.STARTED).deleteFlag(DeleteFlag.NO).build();
+                .marketingStatus(MarketingStatus.STARTED).deleteFlag(DeleteFlag.NO).cascadeLevel(true).build();
         BaseResponse<MarketingMapGetByGoodsIdResponse> mktResponse = marketingQueryProvider.getMarketingMapByGoodsId(mktParamm);
         if (mktResponse != null && mktResponse.getContext() != null && mktResponse.getContext().getListMap() != null) {
             for (List<MarketingForEndVO> mkts : mktResponse.getContext().getListMap().values()) {
