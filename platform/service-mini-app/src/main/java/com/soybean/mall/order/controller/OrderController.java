@@ -10,8 +10,8 @@ import com.soybean.mall.order.bean.vo.OrderCommitResultVO;
 import com.soybean.mall.order.bean.vo.WxOrderPaymentParamsVO;
 import com.soybean.mall.order.common.DefaultPayBatchRequest;
 import com.soybean.mall.order.common.PayServiceHelper;
-import com.soybean.mall.order.request.StmtParamVO;
 import com.soybean.mall.order.request.OrderPaymentParamReq;
+import com.soybean.mall.order.request.StmtParamVO;
 import com.soybean.mall.order.request.TradeItemConfirmRequest;
 import com.soybean.mall.order.response.OrderConfirmResponse;
 import com.soybean.mall.order.response.SettlementResultVO$GoodsInfo;
@@ -73,6 +73,7 @@ import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
 import com.wanmi.sbc.marketing.api.provider.market.MarketingCommonQueryProvider;
+import com.wanmi.sbc.marketing.api.provider.markup.MarkupQueryProvider;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingLevelPluginProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListRequest;
 import com.wanmi.sbc.marketing.api.request.market.InfoForPurchseRequest;
@@ -92,14 +93,13 @@ import com.wanmi.sbc.order.api.provider.trade.TradeQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.VerifyQueryProvider;
 import com.wanmi.sbc.order.api.request.trade.TradeCommitRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeDefaultPayBatchRequest;
+import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemByCustomerIdRequest;
 import com.wanmi.sbc.order.api.request.trade.TradeItemConfirmSettlementRequest;
 import com.wanmi.sbc.order.api.request.trade.TradePriceParamBO;
 import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
-import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
-import com.wanmi.sbc.order.api.request.trade.TradeGetByIdRequest;
-import com.wanmi.sbc.order.api.request.trade.VerifyGoodsRequest;
 import com.wanmi.sbc.order.api.response.trade.TradeGetByIdResponse;
+import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import com.wanmi.sbc.order.bean.dto.TradeGoodsInfoPageDTO;
 import com.wanmi.sbc.order.bean.dto.TradeItemDTO;
 import com.wanmi.sbc.order.bean.vo.SupplierVO;
@@ -213,6 +213,7 @@ public class OrderController {
     @Autowired
     private TradePriceProvider tradePriceProvider;
     @Autowired
+    private MarkupQueryProvider markupQueryProvider;
     private CouponCacheProvider couponCacheProvider;
     @Autowired
     private MarketingCommonQueryProvider marketingCommonQueryProvider;
@@ -546,7 +547,7 @@ public class OrderController {
      */
     @ApiOperation(value = "用于确认订单后，创建订单前的获取订单商品信息")
     @RequestMapping(value = "/purchase", method = RequestMethod.POST)
-   // @GlobalTransactional
+    // @GlobalTransactional
     public BaseResponse<OrderConfirmResponse> getPurchaseItems(@RequestBody TradeItemConfirmRequest request) {
 
         OrderConfirmResponse confirmResponse = new OrderConfirmResponse();
@@ -749,6 +750,72 @@ public class OrderController {
     }
 
     /**
+     * 获取支付参数信息
+     * @param orderPaymentParamReq
+     * @return
+     */
+    @PostMapping("/miniOrderPaymentParam")
+    public BaseResponse<WxOrderPaymentVO> miniOrderPaymentParams(@RequestBody OrderPaymentParamReq orderPaymentParamReq) {
+
+        if (!Objects.equals(commonUtil.getTerminal(), TerminalSource.MALL_NORMAL)
+                && !Objects.equals(commonUtil.getTerminal(), TerminalSource.MINIPROGRAM)) {
+            throw new SbcRuntimeException("K-000001", "只有小程序和视频号可以调用");
+        }
+
+        WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
+        //获取订单信息
+        TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
+        tradeGetByIdRequest.setTid(orderPaymentParamReq.getTid());
+        TradeGetByIdResponse context = tradeQueryProvider.getOrderById(tradeGetByIdRequest).getContext();
+        if (context.getTradeVO() == null) {
+            throw new SbcRuntimeException("K-000001", String.format("%s 订单不存在", orderPaymentParamReq.getTid()));
+        }
+        TradeVO tradeVO = context.getTradeVO();
+        //0元支付不需要生成预支付单
+        if(tradeVO.getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) <= 0){
+            throw new SbcRuntimeException("K-000001", String.format("%s 不需要调用此方法", orderPaymentParamReq.getTid()));
+        } else {
+
+            //2 小程序下单
+            if (Objects.equals(commonUtil.getTerminal(), TerminalSource.MINIPROGRAM)) {
+                //生成预支付订单
+                WxPayForJSApiRequest req = wxPayCommon(tradeVO.getBuyer().getOpenId(), orderPaymentParamReq.getTid());
+                req.setAppid(appId);
+                BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
+                if(prepayResult == null || prepayResult.getContext().isEmpty()){
+                    throw new SbcRuntimeException("K-000001", "小程序支付参数生成有误");
+                }
+                wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
+                wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
+                wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
+                wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
+                wxOrderPaymentVO.setSignType("MD5");
+            }else{
+
+                BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(tradeVO.getBuyer().getOpenId(), tradeVO.getId());
+                if(response == null || response.getContext() ==null){
+                    throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
+                }
+                wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
+                wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
+                wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
+                wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
+                wxOrderPaymentVO.setSignType(response.getContext().getSignType());
+            }
+            OrderCommitResultVO orderCommitResultVO = KsBeanUtil.convert(tradeVO, OrderCommitResultVO.class);
+            wxOrderPaymentVO.setOrderInfo(this.convertResult(Collections.singletonList(orderCommitResultVO), tradeVO.getBuyer().getOpenId()));
+            String prepayId = wxOrderPaymentVO.getPrepayId();
+            String ppid = "";
+            if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
+                ppid = prepayId.substring(10,prepayId.length());
+            }
+            wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
+            wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
+        }
+        return BaseResponse.success(wxOrderPaymentVO);
+    }
+
+    /**
      * 购物车-订单结算提交
      */
     @PostMapping(value = "/stmtCommit")
@@ -835,7 +902,7 @@ public class OrderController {
 
         //查询结算快照
         List<TradeItemGroupVO> tradeItemGroups = tradeItemQueryProvider.listByTerminalToken(TradeItemByCustomerIdRequest
-                        .builder().terminalToken(commonUtil.getTerminalToken()).build()).getContext().getTradeItemGroupList();
+                .builder().terminalToken(commonUtil.getTerminalToken()).build()).getContext().getTradeItemGroupList();
         if (CollectionUtils.isEmpty(tradeItemGroups)) {
             throw new SbcRuntimeException(CommonErrorCode.DATA_NOT_EXISTS, "没有找到商品的结算信息");
         }
@@ -860,7 +927,7 @@ public class OrderController {
 //        TradeConfirmItemVO tradeConfirmItemVO = new TradeConfirmItemVO();
         //商品验证并填充商品价格
         List<TradeItemVO> tradeItemVOList = verifyQueryProvider.verifyGoods(new VerifyGoodsRequest(tradeItems, Collections.emptyList(),
-                        KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class), store.getStoreId(), true)).getContext().getTradeItems();
+                KsBeanUtil.convert(skuResp, TradeGoodsInfoPageDTO.class), store.getStoreId(), true)).getContext().getTradeItems();
 
         //视频号黑名单
         List<String> skuIdList = tradeItemVOList.stream().map(TradeItemVO::getSkuId).collect(Collectors.toList());
@@ -955,70 +1022,5 @@ public class OrderController {
         }
 
         return BaseResponse.success(resultVO);
-    }
-    /*
-     * 获取支付参数信息
-     * @param orderPaymentParamReq
-     * @return
-     */
-    @PostMapping("/miniOrderPaymentParam")
-    public BaseResponse<WxOrderPaymentVO> miniOrderPaymentParams(@RequestBody OrderPaymentParamReq orderPaymentParamReq) {
-
-        if (!Objects.equals(commonUtil.getTerminal(), TerminalSource.MALL_NORMAL)
-            && !Objects.equals(commonUtil.getTerminal(), TerminalSource.MINIPROGRAM)) {
-            throw new SbcRuntimeException("K-000001", "只有小程序和视频号可以调用");
-        }
-
-        WxOrderPaymentVO wxOrderPaymentVO = new WxOrderPaymentVO();
-        //获取订单信息
-        TradeGetByIdRequest tradeGetByIdRequest = new TradeGetByIdRequest();
-        tradeGetByIdRequest.setTid(orderPaymentParamReq.getTid());
-        TradeGetByIdResponse context = tradeQueryProvider.getOrderById(tradeGetByIdRequest).getContext();
-        if (context.getTradeVO() == null) {
-            throw new SbcRuntimeException("K-000001", String.format("%s 订单不存在", orderPaymentParamReq.getTid()));
-        }
-        TradeVO tradeVO = context.getTradeVO();
-        //0元支付不需要生成预支付单
-        if(tradeVO.getTradePrice().getTotalPrice().compareTo(new BigDecimal(0)) <= 0){
-            throw new SbcRuntimeException("K-000001", String.format("%s 不需要调用此方法", orderPaymentParamReq.getTid()));
-        } else {
-
-            //2 小程序下单
-            if (Objects.equals(commonUtil.getTerminal(), TerminalSource.MINIPROGRAM)) {
-                //生成预支付订单
-                WxPayForJSApiRequest req = wxPayCommon(tradeVO.getBuyer().getOpenId(), orderPaymentParamReq.getTid());
-                req.setAppid(appId);
-                BaseResponse<Map<String,String>> prepayResult= wxPayProvider.wxPayForLittleProgram(req);
-                if(prepayResult == null || prepayResult.getContext().isEmpty()){
-                    throw new SbcRuntimeException("K-000001", "小程序支付参数生成有误");
-                }
-                wxOrderPaymentVO.setTimeStamp(prepayResult.getContext().get("timeStamp"));
-                wxOrderPaymentVO.setNonceStr(prepayResult.getContext().get("nonceStr"));
-                wxOrderPaymentVO.setPrepayId(prepayResult.getContext().get("package"));
-                wxOrderPaymentVO.setPaySign(prepayResult.getContext().get("paySign"));
-                wxOrderPaymentVO.setSignType("MD5");
-            }else{
-
-                BaseResponse<WxOrderPaymentParamsVO> response = miniAppOrderProvider.getWxOrderPaymentParams(tradeVO.getBuyer().getOpenId(), tradeVO.getId());
-                if(response == null || response.getContext() ==null){
-                    throw new SbcRuntimeException("K-000001", "网络异常请重新下单！！");
-                }
-                wxOrderPaymentVO.setPrepayId(response.getContext().getPrepayId());
-                wxOrderPaymentVO.setPaySign(response.getContext().getPaySign());
-                wxOrderPaymentVO.setNonceStr(response.getContext().getNonceStr());
-                wxOrderPaymentVO.setTimeStamp(response.getContext().getTimeStamp());
-                wxOrderPaymentVO.setSignType(response.getContext().getSignType());
-            }
-            OrderCommitResultVO orderCommitResultVO = KsBeanUtil.convert(tradeVO, OrderCommitResultVO.class);
-            wxOrderPaymentVO.setOrderInfo(this.convertResult(Collections.singletonList(orderCommitResultVO), tradeVO.getBuyer().getOpenId()));
-            String prepayId = wxOrderPaymentVO.getPrepayId();
-            String ppid = "";
-            if(StringUtils.isNotEmpty(prepayId) && prepayId.length() > 10){
-                ppid = prepayId.substring(10,prepayId.length());
-            }
-            wxOrderPaymentVO.getOrderInfo().getOrderDetail().getPayInfo().setPrepayId(ppid);
-            wxOrderPaymentVO.setOrderInfoStr(JSON.toJSONString(wxOrderPaymentVO.getOrderInfo()));
-        }
-        return BaseResponse.success(wxOrderPaymentVO);
     }
 }

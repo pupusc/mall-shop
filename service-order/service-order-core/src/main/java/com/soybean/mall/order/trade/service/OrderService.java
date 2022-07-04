@@ -1,6 +1,7 @@
 package com.soybean.mall.order.trade.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.soybean.mall.order.miniapp.service.WxOrderService;
 import com.soybean.mall.order.trade.model.OrderCommitResult;
 import com.wanmi.sbc.common.base.Operator;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
@@ -8,10 +9,13 @@ import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.common.util.KsBeanUtil;
 import com.wanmi.sbc.common.util.SiteResultCode;
 import com.wanmi.sbc.customer.api.provider.fandeng.ExternalProvider;
+import com.wanmi.sbc.customer.api.provider.store.StoreQueryProvider;
 import com.wanmi.sbc.customer.api.request.fandeng.FanDengPointCancelRequest;
 import com.wanmi.sbc.customer.bean.vo.CommonLevelVO;
 import com.wanmi.sbc.customer.bean.vo.CustomerSimplifyOrderCommitVO;
 import com.wanmi.sbc.customer.bean.vo.StoreVO;
+import com.wanmi.sbc.goods.api.provider.goods.GoodsQueryProvider;
+import com.wanmi.sbc.goods.api.provider.price.GoodsIntervalPriceProvider;
 import com.wanmi.sbc.goods.api.response.info.GoodsInfoViewByIdsResponse;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.bean.dto.TradeMarketingDTO;
@@ -86,6 +90,17 @@ public class OrderService {
 //    @Autowired
 //    private PaidCardCustomerRelQueryProvider paidCardCustomerRelQueryProvider;
 
+    @Autowired
+    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
+
+    @Autowired
+    private StoreQueryProvider storeQueryProvider;
+
+    @Autowired
+    private WxOrderService wxOrderService;
+
+    @Autowired
+    private GoodsQueryProvider goodsQueryProvider;
 //    @Autowired
 //    private GoodsIntervalPriceProvider goodsIntervalPriceProvider;
 
@@ -273,10 +288,10 @@ public class OrderService {
         List<TradeMarketingDTO> marketings = tradeItemGroups.get(0).getTradeMarketingList();
         if (CollectionUtils.isNotEmpty(marketings)) {
             boolean support = marketings.stream().anyMatch(item -> item.getMarketingSubType() == null
-                            || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT.toValue()
-                            || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_COUNT.toValue()
-                            || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_AMOUNT.toValue()
-                            || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_COUNT.toValue()
+                    || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_AMOUNT.toValue()
+                    || item.getMarketingSubType() == MarketingSubType.REDUCTION_FULL_COUNT.toValue()
+                    || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_AMOUNT.toValue()
+                    || item.getMarketingSubType() == MarketingSubType.DISCOUNT_FULL_COUNT.toValue()
             );
             if (!support) {
                 throw new SbcRuntimeException(CommonErrorCode.FAILED, "小程序下单仅支持满减或满折活动");
