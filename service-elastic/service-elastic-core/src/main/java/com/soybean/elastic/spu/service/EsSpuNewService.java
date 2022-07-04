@@ -65,10 +65,27 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
         //查询条件
         req.setKeyword(QueryParser.escape(req.getKeyword()));
         BoolQueryBuilder boolQb = super.packageEsSpuNewReq(req);
-        boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+
+        if (req.getSearchSpuNewCategory() != null) {
+            boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+        }
+
         //不展示spu信息
         if (CollectionUtils.isNotEmpty(req.getUnSpuIds())) {
-            boolQb.mustNot(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds()));
+            if (req.getUnSpuIds().size() > 1) {
+                boolQb.mustNot(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds()));
+            } else {
+                boolQb.mustNot(termQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getUnSpuIds().get(0)));
+            }
+        }
+
+        //指定spu信息
+        if (CollectionUtils.isNotEmpty(req.getSpuIds())) {
+            if (req.getSpuIds().size() > 1) {
+                boolQb.must(termsQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getSpuIds()));
+            } else {
+                boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_SPUId, req.getSpuIds().get(0)));
+            }
         }
 
         //传递值，0表示非知识顾问商品可以访问
@@ -76,6 +93,10 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
             boolQb.must(termQuery(ConstantMultiMatchField.FIELD_SPU_CPSSPECIAL, 0));
         }
 
+        //如果没有关键词，则直接返回查询条件数据
+        if (StringUtils.isBlank(req.getKeyword())) {
+            return boolQb;
+        }
         BoolQueryBuilder boolQbChild = QueryBuilders.boolQuery();
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME_KEYWORD, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));
@@ -108,6 +129,9 @@ public class EsSpuNewService extends AbstractEsSpuNewService{
      * @return
      */
     private FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilder(EsKeyWordSpuNewQueryProviderReq req) {
+        if (StringUtils.isBlank(req.getKeyword())) {
+            return new FunctionScoreQueryBuilder.FilterFunctionBuilder[0];
+        }
         float defaultBoost = 1f;
         List<SearchWeightResp> context = searchWeightProvider.list(SearchWeightConstant.SPU_SEARCH_WEIGHT_KEY).getContext();
         Map<String, Float> searchWeightMap = new HashMap<>();

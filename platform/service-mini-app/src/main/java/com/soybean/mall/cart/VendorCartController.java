@@ -3,7 +3,6 @@ package com.soybean.mall.cart;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.soybean.common.resp.CommonPageResp;
 import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
-import com.soybean.elastic.api.req.EsSpuNewQueryProviderReq;
 import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.cart.vo.CalcPriceItem;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Marketing;
@@ -33,6 +32,10 @@ import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
 import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
+import com.wanmi.sbc.goods.api.provider.spec.GoodsInfoSpecDetailRelQueryProvider;
+import com.wanmi.sbc.goods.api.request.spec.GoodsInfoSpecDetailRelBySpuIdsRequest;
+import com.wanmi.sbc.goods.api.response.spec.GoodsInfoSpecDetailRelBySpuIdsResponse;
+import com.wanmi.sbc.goods.bean.vo.GoodsInfoSpecDetailRelVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
@@ -70,6 +73,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,6 +108,8 @@ public class VendorCartController {
     private EsSpuNewProvider esSpuNewProvider;
     @Autowired
     private SpuNewSearchService spuNewSearchService;
+    @Autowired
+    private GoodsInfoSpecDetailRelQueryProvider goodsInfoSpecDetailRelQueryProvider;
 
     /**
      * 购物车-购物车信息
@@ -409,14 +415,17 @@ public class VendorCartController {
         }
 
         //查询商品
-        EsSpuNewQueryProviderReq spuParam = new EsSpuNewQueryProviderReq();
-        //走搜索路线
+        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
+        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
         spuParam.setPageNum(paramVO.getPageNum());
         spuParam.setPageSize(paramVO.getPageSize());
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
+        spuParam.setSearchSpuNewCategory(2);
+        spuParam.setKeyword(paramVO.getKeyword());
         spuParam.setSpuIds(mkt.getGoodsList().getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList()));
+        //走搜索路线
         spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
-        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listNormalEsSpuNew(spuParam).getContext();
+        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
 
         List<PromoteFitGoodsResultVO> fitGoods = spuNewBookListResps.stream().map(item -> {
@@ -514,29 +523,20 @@ public class VendorCartController {
         if (couponGoods == null || CollectionUtils.isEmpty(couponGoods.getGoodses())) {
             return BusinessResponse.success(result);
         }
-
+        //适用的spu集合
+        List<String> spuIds = couponGoods.getGoodses().stream().map(GoodsVO::getGoodsId).distinct().collect(Collectors.toList());
         //查询商品
-//        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
-//        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
-//        spuParam.setPageNum(paramVO.getPageNum());
-//        spuParam.setPageSize(paramVO.getPageSize());
-//        spuParam.setDelFlag(DeleteFlag.NO.toValue());
-//        spuParam.setSearchSpuNewCategory(2);
-//        spuParam.setKeyword(paramVO.getKeyword());
-//        spuParam.setSpuIds(couponGoods.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList()));
-//        //走搜索路线
-//        spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
-//        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
-
-        //查询商品
-        EsSpuNewQueryProviderReq spuParam = new EsSpuNewQueryProviderReq();
-        //走搜索路线
+        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
+        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
         spuParam.setPageNum(paramVO.getPageNum());
         spuParam.setPageSize(paramVO.getPageSize());
         spuParam.setDelFlag(DeleteFlag.NO.toValue());
-        spuParam.setSpuIds(couponGoods.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList()));
+        spuParam.setSearchSpuNewCategory(2);
+        spuParam.setKeyword(paramVO.getKeyword());
+        spuParam.setSpuIds(spuIds);
+        //走搜索路线
         spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
-        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listNormalEsSpuNew(spuParam).getContext();
+        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
         List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
 
         List<PromoteFitGoodsResultVO> fitGoods = spuNewBookListResps.stream().map(item -> {
@@ -548,9 +548,23 @@ public class VendorCartController {
 
         //计算购物车价格
         result.setCalcPrice(calcPrice4FitGoods(commonUtil.getCustomer()));
+        //处理商品规格
+        BaseResponse<GoodsInfoSpecDetailRelBySpuIdsResponse> specResp =
+                goodsInfoSpecDetailRelQueryProvider.listBySpuIds(new GoodsInfoSpecDetailRelBySpuIdsRequest(spuIds));
+        if (specResp.getContext() != null) {
+            Map<String, List<GoodsInfoSpecDetailRelVO>> spuidGroup =
+                    specResp.getContext().getGoodsInfoSpecDetailRelVOList().stream().collect(Collectors.groupingBy(GoodsInfoSpecDetailRelVO::getGoodsId));
+            for (PromoteFitGoodsResultVO fitGood : fitGoods) {
+                List<GoodsInfoSpecDetailRelVO> specs = spuidGroup.get(fitGood.getSpuId());
+                if (specs == null) {
+                    continue;
+                }
+                fitGood.setSpecMore(specs.size() > 1);
+                fitGood.setSpecText(specs.stream().filter(item->fitGood.getSkuId().equals(item.getGoodsId())).map(item->item.getDetailName()).collect(Collectors.joining(",")));
+            }
+        }
+
         return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), context.getTotal().intValue()));
     }
-
-    //根据spuId查询商品规格接口
 }
 
