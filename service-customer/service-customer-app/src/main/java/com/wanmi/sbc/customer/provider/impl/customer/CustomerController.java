@@ -171,6 +171,34 @@ public class CustomerController implements CustomerProvider {
         return BaseResponse.SUCCESSFUL();
     }
 
+
+    /**
+     * 获取知识顾问信息
+     *
+     * @return
+     */
+    @Override
+    public BaseResponse<String> isCounselorCache(Integer userId) {
+        String isKnowledgeUser = redisService.getString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId);
+        if (StringUtils.isBlank(isKnowledgeUser)) {
+            FanDengKnowledgeRequest request = new FanDengKnowledgeRequest();
+            request.setUserNo(userId.toString());
+            BaseResponse<FanDengKnowledgeResponse> response = externalService.getKnowledgeByFanDengNo(request);
+            if (response.getContext() == null) {
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "false", 24 * 60 * 60);
+                return BaseResponse.success("false");
+            } else {
+                CounselorDto counselorDto = new CounselorDto();
+                counselorDto.setProfit(response.getContext().getBeans().intValue());
+                redisService.setString(RedisConstant.CUSTOMER_KNOWLEDGE_PREFIX + userId, "true", 24 * 60 * 60);
+                return BaseResponse.success("true");
+            }
+        } else {
+            return BaseResponse.success(isKnowledgeUser);
+        }
+    }
+
+
     /**
      * 获取知识顾问信息
      *

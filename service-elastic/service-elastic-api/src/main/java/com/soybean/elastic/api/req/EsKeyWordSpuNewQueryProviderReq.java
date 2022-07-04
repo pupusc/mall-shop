@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Description:
@@ -31,4 +32,14 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      */
     @NotNull
     private Integer searchSpuNewCategory;
+
+    /**
+     * 不展示的spuid
+     */
+    private List<String> unSpuIds;
+
+    /**
+     * 知识顾问专项商品 0 非知识顾问 其他为非知识顾问
+     */
+    private Integer cpsSpecial = 0;
 }
