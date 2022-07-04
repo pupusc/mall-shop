@@ -1,16 +1,12 @@
 package com.soybean.mall.goods.service;
-import java.math.BigDecimal;
-
-import com.soybean.mall.common.CommonUtil;
-import com.soybean.mall.common.RedisService;
-import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
-import com.soybean.mall.goods.response.SpuNewBookListResp.BookList;
-import com.soybean.mall.goods.response.SpuNewBookListResp.Book;
-import com.soybean.mall.goods.response.SpuNewBookListResp.Atmosphere;
 
 import com.soybean.elastic.api.resp.EsSpuNewResp;
+import com.soybean.mall.common.CommonUtil;
+import com.soybean.mall.goods.dto.SpuRecomBookListDTO;
 import com.soybean.mall.goods.response.SpuNewBookListResp;
-import com.wanmi.sbc.common.base.BaseResponse;
+import com.soybean.mall.goods.response.SpuNewBookListResp.Atmosphere;
+import com.soybean.mall.goods.response.SpuNewBookListResp.Book;
+import com.soybean.mall.goods.response.SpuNewBookListResp.BookList;
 import com.wanmi.sbc.common.constant.RedisKeyConstant;
 import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.util.KsBeanUtil;
@@ -20,7 +16,6 @@ import com.wanmi.sbc.customer.api.response.customer.CustomerGetByIdResponse;
 import com.wanmi.sbc.customer.bean.dto.CustomerDTO;
 import com.wanmi.sbc.goods.api.provider.info.GoodsInfoQueryProvider;
 import com.wanmi.sbc.goods.api.request.info.GoodsInfoListByConditionRequest;
-import com.wanmi.sbc.goods.api.response.info.GoodsInfoListByConditionResponse;
 import com.wanmi.sbc.goods.bean.dto.GoodsInfoDTO;
 import com.wanmi.sbc.goods.bean.enums.AddedFlag;
 import com.wanmi.sbc.goods.bean.enums.CheckStatus;
@@ -28,7 +23,6 @@ import com.wanmi.sbc.goods.bean.enums.GoodsPriceType;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.marketing.api.provider.plugin.MarketingPluginProvider;
 import com.wanmi.sbc.marketing.api.request.plugin.MarketingPluginGoodsListFilterRequest;
-import com.wanmi.sbc.marketing.api.response.info.GoodsInfoListByGoodsInfoResponse;
 import com.wanmi.sbc.setting.api.provider.AtmosphereProvider;
 import com.wanmi.sbc.setting.api.request.AtmosphereQueryRequest;
 import com.wanmi.sbc.setting.bean.dto.AtmosphereDTO;

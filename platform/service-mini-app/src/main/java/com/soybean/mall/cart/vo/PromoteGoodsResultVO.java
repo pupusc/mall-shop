@@ -3,7 +3,6 @@ package com.soybean.mall.cart.vo;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,18 +22,18 @@ public class PromoteGoodsResultVO {
     /**
      * 价格信息
      */
-    private CalcPriceSum calcPrice;
+    private PurchasePriceResultVO calcPrice;
 
     @Data
-    private static class PromoteInfo {
+    public static class PromoteInfo {
         /**
          * 开始时间
          */
-        private Date startTime;
+        private String startTime;
         /**
          * 结束时间
          */
-        private Date endTime;
+        private String endTime;
         /**
          * 提示文案
          */

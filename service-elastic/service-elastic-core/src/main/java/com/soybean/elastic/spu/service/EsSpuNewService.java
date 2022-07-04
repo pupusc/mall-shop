@@ -23,6 +23,10 @@ import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -43,10 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
  * Description: 搜索商品信息
@@ -82,6 +82,10 @@ public class EsSpuNewService {
         boolQb.must(termQuery("auditStatus", 1));
         boolQb.must(termQuery("addedFlag", 1));
         boolQb.must(termQuery("spuCategory", req.getSearchSpuNewCategory()));
+
+        if (CollectionUtils.isNotEmpty(req.getSpuIds())) {
+            boolQb.must(termsQuery("spuId", req.getSpuIds()));
+        }
 
         BoolQueryBuilder boolQbChild = QueryBuilders.boolQuery();
         boolQbChild.should().add(matchQuery(ConstantMultiMatchField.FIELD_SPU_SPUNAME, req.getKeyword()).minimumShouldMatch(ConstantMultiMatchField.FIELD_MINIMUM_SHOULD_MATCH));

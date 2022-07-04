@@ -1,38 +1,20 @@
 package com.soybean.mall.cart.vo;
 
+import com.soybean.mall.goods.response.SpuNewBookListResp;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
-import java.io.Serializable;
-
-/**
- * ES商品实体类
- * 以SKU维度
- * Created by dyt on 2017/4/21.
- */
 @Data
 @ApiModel
-public class PromoteFitGoodsResultVO implements Serializable {
-    /**
-     * spuId
-     */
-    private String goodsId;
-    /**
-     * spu名称
-     */
-    private String goodsName;
-    /**
-     * skuId
-     */
-    private String goodsInfoId;
-    /**
-     * sku名称
-     */
-    private String goodsInfoName;
+public class PromoteFitGoodsResultVO extends SpuNewBookListResp {
     /**
      * 规格名称
      */
     private String specText;
+    /**
+     * 是否有更多规格
+     */
+    private Boolean specMore = false;
     /**
      * 选购数量
      */

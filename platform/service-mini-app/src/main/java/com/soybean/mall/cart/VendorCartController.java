@@ -1,6 +1,9 @@
 package com.soybean.mall.cart;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.soybean.common.resp.CommonPageResp;
+import com.soybean.elastic.api.provider.spu.EsSpuNewProvider;
+import com.soybean.elastic.api.resp.EsSpuNewResp;
 import com.soybean.mall.cart.vo.CalcPriceItem;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Marketing;
 import com.soybean.mall.cart.vo.CartInfoResultVO$Sku;
@@ -9,6 +12,7 @@ import com.soybean.mall.cart.vo.ComposePriceParamVO;
 import com.soybean.mall.cart.vo.CouponGoodsParamVO;
 import com.soybean.mall.cart.vo.MarketingGoodsParamVO;
 import com.soybean.mall.cart.vo.PromoteCouponParamVO;
+import com.soybean.mall.cart.vo.PromoteFitGoodsResultVO;
 import com.soybean.mall.cart.vo.PromoteGoodsResultVO;
 import com.soybean.mall.cart.vo.PromoteInfoResultVO$Coupon;
 import com.soybean.mall.cart.vo.PromoteInfoResultVO$Marketing;
@@ -17,16 +21,33 @@ import com.soybean.mall.cart.vo.PurchaseInfoParamVO;
 import com.soybean.mall.cart.vo.PurchaseInfoResultVO;
 import com.soybean.mall.cart.vo.PurchasePriceResultVO;
 import com.soybean.mall.common.CommonUtil;
+import com.soybean.mall.goods.req.KeyWordSpuQueryReq;
+import com.soybean.mall.goods.response.SpuNewBookListResp;
+import com.soybean.mall.goods.service.SpuNewSearchService;
 import com.wanmi.sbc.common.base.BaseResponse;
+import com.wanmi.sbc.common.base.BusinessResponse;
+import com.wanmi.sbc.common.base.Page;
+import com.wanmi.sbc.common.enums.ChannelType;
+import com.wanmi.sbc.common.enums.DeleteFlag;
 import com.wanmi.sbc.common.exception.SbcRuntimeException;
+import com.wanmi.sbc.common.util.CommonErrorCode;
 import com.wanmi.sbc.customer.bean.vo.CustomerVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsInfoVO;
 import com.wanmi.sbc.goods.bean.vo.GoodsVO;
 import com.wanmi.sbc.marketing.api.provider.coupon.CouponCacheProvider;
+import com.wanmi.sbc.marketing.api.provider.coupon.CouponInfoQueryProvider;
+import com.wanmi.sbc.marketing.api.provider.market.MarketingQueryProvider;
 import com.wanmi.sbc.marketing.api.request.coupon.CouponCacheListForGoodsListRequest;
+import com.wanmi.sbc.marketing.api.request.coupon.CouponInfoDetailByIdRequest;
+import com.wanmi.sbc.marketing.api.request.market.MarketingGetByIdRequest;
 import com.wanmi.sbc.marketing.api.response.coupon.CouponCacheListForGoodsListResponse;
+import com.wanmi.sbc.marketing.api.response.coupon.CouponInfoDetailByIdResponse;
+import com.wanmi.sbc.marketing.api.response.market.MarketingGetByIdForCustomerResponse;
 import com.wanmi.sbc.marketing.bean.enums.FullBuyType;
 import com.wanmi.sbc.marketing.bean.enums.MarketingSubType;
+import com.wanmi.sbc.marketing.bean.vo.CouponGoodsVO;
+import com.wanmi.sbc.marketing.bean.vo.CouponInfoVO;
+import com.wanmi.sbc.marketing.bean.vo.MarketingForEndVO;
 import com.wanmi.sbc.marketing.bean.vo.MarketingViewVO;
 import com.wanmi.sbc.order.api.provider.purchase.PurchaseQueryProvider;
 import com.wanmi.sbc.order.api.provider.trade.TradePriceProvider;
@@ -37,6 +58,7 @@ import com.wanmi.sbc.order.api.response.purchase.PurchaseGetStoreCouponExistResp
 import com.wanmi.sbc.order.api.response.purchase.PurchaseListResponse;
 import com.wanmi.sbc.order.api.response.trade.TradePriceResultBO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,12 +67,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +96,14 @@ public class VendorCartController {
     private TradePriceProvider tradePriceProvider;
     @Autowired
     private CouponCacheProvider couponCacheProvider;
+    @Autowired
+    private CouponInfoQueryProvider couponInfoQueryProvider;
+    @Autowired
+    private MarketingQueryProvider marketingQueryProvider;
+    @Autowired
+    private EsSpuNewProvider esSpuNewProvider;
+    @Autowired
+    private SpuNewSearchService spuNewSearchService;
 
     /**
      * 购物车-购物车信息
@@ -188,11 +221,9 @@ public class VendorCartController {
         List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
         for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
             goodsInfos.addAll(
-                entry.getValue().stream().filter(
-                        item -> client2Checked.containsKey(item.getGoodsInfoId())
-                ).map(item -> {
+                entry.getValue().stream().filter(item -> client2Checked.containsKey(item.getGoodsInfoId())).map(item -> {
                     TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
-                    goods.setMarketingId(entry.getKey());
+                    goods.setMarketingId(entry.getKey() == 0 ? null : entry.getKey());
                     goods.setGoodsInfoId(item.getGoodsInfoId());
                     goods.setBuyCount(item.getBuyCount());
                     return goods;
@@ -332,20 +363,183 @@ public class VendorCartController {
         return BaseResponse.success(couponVOs);
     }
 
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /**
      * 购物车-凑单商品-活动
      */
     @PostMapping(value = "/marketingGoods")
-    public BaseResponse<PromoteGoodsResultVO> marketingGoods(MarketingGoodsParamVO param) {
-        return null;
+    public BusinessResponse<PromoteGoodsResultVO> marketingGoods(MarketingGoodsParamVO paramVO) {
+        //查询营销活动
+        MarketingGetByIdRequest mktParam = new MarketingGetByIdRequest();
+        mktParam.setMarketingId(paramVO.getId());
+        BaseResponse<MarketingGetByIdForCustomerResponse> mktResp = marketingQueryProvider.getByIdForCustomer(mktParam);
+        if (mktResp == null || mktResp.getContext() == null || mktResp.getContext().getMarketingForEndVO() == null) {
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的营销活动不存在");
+        }
+
+        MarketingForEndVO mkt = mktResp.getContext().getMarketingForEndVO();
+        //活动信息
+        PromoteGoodsResultVO.PromoteInfo promoteInfo = new PromoteGoodsResultVO.PromoteInfo();
+        promoteInfo.setStartTime(mkt.getBeginTime().format(formatter));
+        promoteInfo.setEndTime(mkt.getEndTime().format(formatter));
+        //促销文案
+        String text = "限时促销";
+        if (MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mkt.getSubType())) {
+            text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "减" + item.getReduction()).collect(Collectors.joining(","));
+        } else if (MarketingSubType.REDUCTION_FULL_COUNT.equals(mkt.getSubType())) {
+            text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullCount() + "件减" + item.getReduction()).collect(Collectors.joining(","));
+        } else if (MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mkt.getSubType())) {
+            text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "打" + item.getReduction() + "折").collect(Collectors.joining(","));
+        } else if (MarketingSubType.DISCOUNT_FULL_COUNT.equals(mkt.getSubType())) {
+            text += mkt.getFullReductionLevelList().stream().map(item-> "满" + item.getFullAmount() + "件打" + item.getReduction() + "折").collect(Collectors.joining(","));
+        } else {
+            text += "其他";
+        }
+        promoteInfo.setTipText(text);
+
+        //返回参数
+        PromoteGoodsResultVO result = new PromoteGoodsResultVO();
+        result.setPromoteInfo(promoteInfo);
+        if (Objects.isNull(mkt.getGoodsList()) || CollectionUtils.isEmpty(mkt.getGoodsList().getGoodses())) {
+            return BusinessResponse.success(result);
+        }
+
+        //查询商品
+        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
+        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
+        spuParam.setPageNum(paramVO.getPageNum());
+        spuParam.setPageSize(paramVO.getPageSize());
+        spuParam.setDelFlag(DeleteFlag.NO.toValue());
+        spuParam.setSearchSpuNewCategory(2);
+        spuParam.setKeyword(paramVO.getKeyword());
+        spuParam.setSpuIds(mkt.getGoodsList().getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList()));
+        //走搜索路线
+        spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
+
+        List<PromoteFitGoodsResultVO> fitGoods = spuNewBookListResps.stream().map(item -> {
+            PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
+            BeanUtils.copyProperties(item, fitGoodsVO);
+            return fitGoodsVO;
+        }).collect(Collectors.toList());
+        result.setFitGoods(fitGoods);
+
+        //计算购物车价格
+        result.setCalcPrice(calcPrice4FitGoods(commonUtil.getCustomer()));
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), context.getTotal().intValue()));
+    }
+
+    private PurchasePriceResultVO calcPrice4FitGoods(CustomerVO customer) {
+        //统一查询购物车内容
+        BaseResponse<PurchaseListResponse> cartResponse = purchaseQueryProvider.purchaseInfo(
+                PurchaseInfoRequest.builder().customer(customer).inviteeId(commonUtil.getPurchaseInviteeId()).build());
+
+        PurchaseListResponse cartInfo = cartResponse.getContext();
+        if (cartInfo == null || CollectionUtils.isEmpty(cartInfo.getGoodsInfos())) {
+            return new PurchasePriceResultVO();
+        }
+
+        //sku对应的营销列表映射
+        Map<String, List<MarketingViewVO>> goodsMarketingMap = cartInfo.getGoodsMarketingMap();
+        //仅支持满减和满折的营销
+        for (List<MarketingViewVO> marketings : goodsMarketingMap.values()) {
+            Iterator<MarketingViewVO> iter = marketings.iterator();
+            while (iter.hasNext()) {
+                MarketingViewVO mktView = iter.next();
+                boolean support = MarketingSubType.REDUCTION_FULL_AMOUNT.equals(mktView.getSubType())
+                        || MarketingSubType.REDUCTION_FULL_COUNT.equals(mktView.getSubType())
+                        || MarketingSubType.DISCOUNT_FULL_AMOUNT.equals(mktView.getSubType())
+                        || MarketingSubType.DISCOUNT_FULL_COUNT.equals(mktView.getSubType());
+                if (!support) {
+                    iter.remove();
+                }
+            }
+        }
+
+        //markerting的id->goods列表映射
+        Map<Long, List<GoodsInfoVO>> makertingGoodsMap = new HashMap<>();
+        for (GoodsInfoVO goodsInfo : cartInfo.getGoodsInfos()) {
+            List<MarketingViewVO> marketingViewVOS = goodsMarketingMap.get(goodsInfo.getGoodsInfoId());
+            Long marketingId = CollectionUtils.isEmpty(marketingViewVOS) ? 0L : marketingViewVOS.get(0).getMarketingId();
+            makertingGoodsMap.computeIfAbsent(marketingId, key -> new ArrayList<>()).add(goodsInfo);
+        }
+
+        List<TradePriceParamBO.GoodsInfo> goodsInfos = new ArrayList<>();
+        for (Map.Entry<Long, List<GoodsInfoVO>> entry : makertingGoodsMap.entrySet()) {
+            for (GoodsInfoVO item : entry.getValue()) {
+                TradePriceParamBO.GoodsInfo goods = new TradePriceParamBO.GoodsInfo();
+                goods.setMarketingId(entry.getKey()==0 ? null : entry.getKey());
+                goods.setGoodsInfoId(item.getGoodsInfoId());
+                goods.setBuyCount(item.getBuyCount());
+                goodsInfos.add(goods);
+            }
+        }
+        return calcPrice(customer, goodsInfos);
     }
 
     /**
      * 购物车-凑单商品-优惠券
      */
     @PostMapping(value = "/couponGoods")
-    public BaseResponse<PromoteGoodsResultVO> couponGoods(CouponGoodsParamVO param) {
-        return null;
+    public BaseResponse<PromoteGoodsResultVO> couponGoods(CouponGoodsParamVO paramVO) {
+
+        CouponInfoDetailByIdRequest couponParam = CouponInfoDetailByIdRequest.builder().couponId(paramVO.getId()).build();
+        BaseResponse<CouponInfoDetailByIdResponse> couponResp = couponInfoQueryProvider.getDetailById(couponParam);
+
+        if (couponResp == null || couponResp.getContext() == null || couponResp.getContext().getCouponInfo() == null) {
+            log.warn("没有找到对应的优惠券：couponId={}", paramVO.getId());
+            throw new SbcRuntimeException(CommonErrorCode.PARAMETER_ERROR, "指定的优惠券信息不存在");
+        }
+        CouponInfoVO coupon = couponResp.getContext().getCouponInfo();
+        //营销信息
+        PromoteGoodsResultVO.PromoteInfo promoteInfo = new PromoteGoodsResultVO.PromoteInfo();
+        promoteInfo.setStartTime(coupon.getStartTime().format(formatter));
+        promoteInfo.setEndTime(coupon.getEndTime().format(formatter));
+
+        if (FullBuyType.FULL_MONEY.equals(coupon.getFullBuyType())) {
+            promoteInfo.setTipText("满" + coupon.getFullBuyPrice() + "减" + coupon.getDenomination());
+        } else if (FullBuyType.NO_THRESHOLD.equals(coupon.getFullBuyType())) {
+            promoteInfo.setTipText("减" + coupon.getDenomination());
+        } else {
+            promoteInfo.setTipText("其他");
+        }
+
+        //返回参数
+        PromoteGoodsResultVO result = new PromoteGoodsResultVO();
+        result.setPromoteInfo(promoteInfo);
+
+        CouponGoodsVO couponGoods = couponResp.getContext().getGoodsList();
+        if (couponGoods == null || CollectionUtils.isEmpty(couponGoods.getGoodses())) {
+            return BusinessResponse.success(result);
+        }
+
+        //查询商品
+        KeyWordSpuQueryReq spuParam = new KeyWordSpuQueryReq();
+        spuParam.setChannelTypes(Arrays.asList(ChannelType.MINIAPP.toValue()));
+        spuParam.setPageNum(paramVO.getPageNum());
+        spuParam.setPageSize(paramVO.getPageSize());
+        spuParam.setDelFlag(DeleteFlag.NO.toValue());
+        spuParam.setSearchSpuNewCategory(2);
+        spuParam.setKeyword(paramVO.getKeyword());
+        spuParam.setSpuIds(couponGoods.getGoodses().stream().map(GoodsVO::getGoodsId).collect(Collectors.toList()));
+        //走搜索路线
+        spuParam.setChannelTypes(Collections.singletonList(commonUtil.getTerminal().getCode()));
+        CommonPageResp<List<EsSpuNewResp>> context = esSpuNewProvider.listKeyWorldEsSpu(spuParam).getContext();
+        List<SpuNewBookListResp> spuNewBookListResps = spuNewSearchService.listSpuNewSearch(context.getContent());
+
+        List<PromoteFitGoodsResultVO> fitGoods = spuNewBookListResps.stream().map(item -> {
+            PromoteFitGoodsResultVO fitGoodsVO = new PromoteFitGoodsResultVO();
+            BeanUtils.copyProperties(item, fitGoodsVO);
+            return fitGoodsVO;
+        }).collect(Collectors.toList());
+        result.setFitGoods(fitGoods);
+
+        //计算购物车价格
+        result.setCalcPrice(calcPrice4FitGoods(commonUtil.getCustomer()));
+        return BusinessResponse.success(result, new Page(paramVO.getPageNum(), paramVO.getPageSize(), context.getTotal().intValue()));
     }
+
+    //根据spuId查询商品规格接口
 }
 

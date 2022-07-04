@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Description:
@@ -31,4 +32,6 @@ public class EsKeyWordSpuNewQueryProviderReq extends EsSortSpuNewQueryProviderRe
      */
     @NotNull
     private Integer searchSpuNewCategory;
+
+    private List<String> spuIds;
 }
